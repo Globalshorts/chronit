@@ -9,7 +9,7 @@ import {
   Users,
   Cpu,
   ShieldCheck,
-  MousePointer2,
+
 } from 'lucide-react'
 
 /**
@@ -365,4 +365,93 @@ const App = () => {
             </div>
           </div>
         </div>
-        <div className="mx-auto mt-16 flex max-w-7xl flex-col items-c
+        <div className="mx-auto mt-16 flex max-w-7xl flex-col items-center justify-between gap-6 border-t border-white/5 pt-8 md:mt-32 md:flex-row md:gap-8 md:pt-10">
+          <p className="text-center text-[10px] font-bold tracking-[0.3em] text-slate-600 uppercase md:text-xs md:tracking-[0.4em]">
+            &copy; 2024 Chronit Labs. Crafting Future Efficiency.
+          </p>
+          <div className="flex gap-6 md:gap-8">
+            <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-white/5 transition-all hover:bg-blue-600">
+              <Users size={20} />
+            </div>
+            <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-white/5 transition-all hover:bg-blue-600">
+              <MessageCircle size={20} />
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* Global CSS for Animations */}
+      <style jsx global>{`
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes burn {
+          0% {
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+          }
+          50% {
+            color: #ef4444;
+            text-shadow:
+              0 0 20px rgba(239, 68, 68, 0.8),
+              0 0 40px rgba(239, 68, 68, 0.4);
+            transform: scale(1.05);
+          }
+          100% {
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+          }
+        }
+        .animate-fade-in {
+          animation: fade-in 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-burn {
+          animation: burn 3s ease-in-out infinite;
+          display: inline-block;
+        }
+        html {
+          scroll-behavior: smooth;
+        }
+        body {
+          -webkit-font-smoothing: antialiased;
+        }
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+          background: #020617;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #1e293b;
+          border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: #334155;
+        }
+      `}</style>
+    </div>
+  )
+}
+
+const FeatureCard = ({ icon, title, description }) => (
+  <div className="group rounded-[1.5rem] border border-white/5 bg-gradient-to-b from-white/[0.04] to-transparent p-6 shadow-2xl transition-all duration-700 hover:border-blue-500/30 sm:rounded-[2rem] sm:p-8 md:rounded-[4rem] md:p-14">
+    <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-[#03081c] shadow-xl transition-all duration-500 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white md:mb-12 md:h-20 md:w-20 md:rounded-3xl">
+      {React.cloneElement(icon, { size: 32, className: 'group-hover:text-white' })}
+    </div>
+    <h4 className="mb-4 text-xl leading-[1.4] font-bold transition-colors group-hover:text-blue-400 md:mb-8 md:text-2xl">
+      {title}
+    </h4>
+    <p className="text-base leading-[1.8] font-medium text-slate-400 md:text-lg md:leading-[1.9]">
+      {description}
+    </p>
+  </div>
+)
+
+export default App
