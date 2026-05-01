@@ -9,8 +9,11 @@ import {
   Users,
   Cpu,
   ShieldCheck,
+  Film,
+  TrendingDown,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import AnimatedCounter from '../components/AnimatedCounter'
 
 /**
  * Spline Viewer를 이용한 배경 파티클
@@ -131,6 +134,61 @@ const Home = () => {
           <div className="mt-16 flex animate-pulse flex-col items-center gap-4 text-xs font-bold tracking-[0.5em] text-slate-500 md:mt-20">
             <div className="h-12 w-[1px] bg-gradient-to-b from-transparent via-slate-700 to-transparent"></div>
             <span>SCROLL TO EXPLORE</span>
+          </div>
+        </div>
+      </section>
+
+
+      {/* Stats Section */}
+      <section className="relative overflow-hidden bg-[#020617] px-5 py-20 md:px-8 md:py-32">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_60%,transparent_100%)]"></div>
+
+        <div className="relative z-10 mx-auto max-w-5xl">
+          <div className="mb-12 text-center md:mb-16">
+            <h3 className="mb-4 text-xs font-black tracking-[0.3em] text-blue-500 uppercase md:text-sm">
+              By The Numbers
+            </h3>
+            <h2 className="text-2xl leading-[1.4] font-bold md:text-4xl">
+              실무자들이 직접 검증한 결과
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6 md:gap-8">
+            <div className="group relative overflow-hidden rounded-[1.5rem] border border-white/10 bg-gradient-to-b from-white/[0.04] to-transparent p-6 text-center shadow-2xl transition-all duration-500 hover:border-blue-500/40 md:rounded-[2rem] md:p-10">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400 transition-transform group-hover:scale-110 md:mb-6 md:h-14 md:w-14">
+                <Film size={24} />
+              </div>
+              <div className="bg-gradient-to-br from-white via-blue-200 to-blue-400 bg-clip-text text-4xl font-black tracking-tight text-transparent md:text-6xl">
+                <AnimatedCounter to={1500} suffix="+" />
+              </div>
+              <div className="mt-3 text-sm font-bold text-slate-400 md:mt-4 md:text-base">
+                제작된 릴스
+              </div>
+            </div>
+
+            <div className="group relative overflow-hidden rounded-[1.5rem] border border-white/10 bg-gradient-to-b from-blue-500/[0.08] to-transparent p-6 text-center shadow-[0_0_60px_-20px_rgba(37,99,235,0.5)] transition-all duration-500 hover:border-blue-500/40 md:rounded-[2rem] md:p-10">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400 transition-transform group-hover:scale-110 md:mb-6 md:h-14 md:w-14">
+                <TrendingDown size={24} />
+              </div>
+              <div className="bg-gradient-to-br from-white via-blue-200 to-blue-400 bg-clip-text text-4xl font-black tracking-tight text-transparent md:text-6xl">
+                <AnimatedCounter to={97} suffix="%" />
+              </div>
+              <div className="mt-3 text-sm font-bold text-slate-400 md:mt-4 md:text-base">
+                시간 절감률
+              </div>
+            </div>
+
+            <div className="group relative overflow-hidden rounded-[1.5rem] border border-white/10 bg-gradient-to-b from-white/[0.04] to-transparent p-6 text-center shadow-2xl transition-all duration-500 hover:border-blue-500/40 md:rounded-[2rem] md:p-10">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400 transition-transform group-hover:scale-110 md:mb-6 md:h-14 md:w-14">
+                <Clock size={24} />
+              </div>
+              <div className="bg-gradient-to-br from-white via-blue-200 to-blue-400 bg-clip-text text-4xl font-black tracking-tight text-transparent md:text-6xl">
+                <AnimatedCounter to={320} suffix="시간" />
+              </div>
+              <div className="mt-3 text-sm font-bold text-slate-400 md:mt-4 md:text-base">
+                총 절약 시간
+              </div>
+            </div>
           </div>
         </div>
       </section>
