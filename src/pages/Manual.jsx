@@ -21,9 +21,11 @@ const Manual = () => {
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
           <Link to="/" className="flex min-w-0 items-center gap-2 md:gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 font-bold text-white shadow-xl shadow-blue-500/20 md:h-10 md:w-10">
-              C
-            </div>
+            <img
+              src="/icon.png"
+              alt="Chronit"
+              className="h-9 w-9 shrink-0 rounded-xl shadow-xl shadow-blue-500/20 md:h-10 md:w-10"
+            />
             <h1 className="bg-gradient-to-r from-white to-slate-400 bg-clip-text text-xl font-black tracking-tighter text-transparent md:text-2xl">
               Chronit
             </h1>

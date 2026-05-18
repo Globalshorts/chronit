@@ -59,9 +59,11 @@ const Home = () => {
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
           <div className="flex min-w-0 items-center gap-2 md:gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 font-bold text-white shadow-xl shadow-blue-500/20 md:h-10 md:w-10">
-              C
-            </div>
+            <img
+              src="/icon.png"
+              alt="Chronit"
+              className="h-9 w-9 shrink-0 rounded-xl shadow-xl shadow-blue-500/20 md:h-10 md:w-10"
+            />
             <h1 className="bg-gradient-to-r from-white to-slate-400 bg-clip-text text-xl font-black tracking-tighter text-transparent md:text-2xl">
               Chronit
             </h1>
@@ -95,12 +97,12 @@ const Home = () => {
 
         <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center px-5 py-24 md:px-8 md:py-32">
           <div className="animate-fade-in mb-8 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1.5 text-xs font-bold text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.15)] md:mb-10 md:px-4 md:text-sm">
-            <Zap size={14} fill="currentColor" /> <span>실무자 직접 제작 v1.0</span>
+            <Zap size={14} fill="currentColor" /> <span>실무진 직접 제작 v1.0</span>
           </div>
 
           <div className="mb-10 flex w-full flex-col items-center md:mb-12">
             <span className="mb-2 text-base font-medium text-slate-400 opacity-80 md:text-2xl">
-              숏폼 회사 실무자가
+              숏폼 회사 실무진이
             </span>
             <h2 className="animate-burn mb-4 text-4xl font-black tracking-tight text-white md:text-6xl">
               답답해서
@@ -118,10 +120,10 @@ const Home = () => {
             <strong className="border-b-2 border-blue-500/50 text-white">시간</strong>을
             인증합니다."
             <br />
-            하루 단 <span className="font-bold text-blue-400">966원</span>. 1시간의 노가다를 1분의
+            하루 단 <span className="font-bold text-blue-400">1,633원</span>. 1시간의 노가다를 1분의
             자동화로 바꾸고
             <br className="hidden md:block" />
-            당신은 오직 기획에만 집중하세요.
+            당신은 오직 수익화에만 집중하세요.
           </p>
 
           <div className="flex w-full flex-col gap-6 sm:w-auto sm:flex-row">
@@ -149,7 +151,7 @@ const Home = () => {
               By The Numbers
             </h3>
             <h2 className="text-2xl leading-[1.4] font-bold md:text-4xl">
-              실무자들이 직접 검증한 결과
+              실무진들이 직접 검증한 결과
             </h2>
           </div>
 
@@ -250,9 +252,9 @@ const Home = () => {
                 Core Strength
               </h3>
               <h2 className="text-3xl leading-[1.4] font-bold md:text-5xl">
-                진짜를 아는 실무자는
+                진짜를 아는 실무진은
                 <br />
-                기획에만 에너지를 씁니다.
+                수익화에만 에너지를 씁니다.
               </h2>
             </div>
             <div className="border-l-4 border-blue-500 bg-blue-500/5 p-6 text-left md:max-w-sm md:p-8">
@@ -291,53 +293,98 @@ const Home = () => {
               <br className="hidden md:block" /> 900원보다 훨씬 고귀합니다.
             </h2>
             <p className="mx-auto mb-12 max-w-3xl text-base leading-[1.8] font-medium text-slate-300 md:mb-20 md:text-2xl">
-              하루 편의점 껌 한 통 값으로,
+              하루 커피 한 잔 값으로,
               <br />
               당신의 성장을 가로막던 제작 노가다에서 해방되세요.
             </p>
 
             <div
               id="pricing"
-              className="mx-auto mb-16 grid max-w-4xl gap-6 text-left md:mb-24 md:grid-cols-2 md:gap-10"
+              className="mx-auto mb-16 grid max-w-6xl gap-6 text-left md:mb-24 md:grid-cols-3 md:gap-8"
             >
-              <div className="rounded-[1.5rem] border border-white/5 bg-black/40 p-5 opacity-50 backdrop-blur-2xl transition-all sm:rounded-[2rem] sm:p-6 md:rounded-[3.5rem] md:p-12">
-                <p className="mb-2 text-[10px] font-bold tracking-widest text-slate-500 uppercase line-through md:mb-3 md:text-xs">
-                  Standard Plan
+              {/* 스타터 */}
+              <div className="rounded-[1.5rem] border border-white/10 bg-black/40 p-6 backdrop-blur-2xl transition-all sm:rounded-[2rem] md:rounded-[2.5rem] md:p-10">
+                <p className="mb-3 text-[10px] font-bold tracking-widest text-slate-400 uppercase md:text-xs">
+                  Starter
                 </p>
-                <div className="mb-4 flex items-end gap-2 md:mb-10">
-                  <span className="text-xl font-black text-slate-400 md:text-3xl">
-                    월 59,000원
+                <div className="mb-6 flex items-baseline gap-2 md:mb-8">
+                  <span className="text-3xl font-black text-white md:text-4xl">
+                    49,000<span className="text-base font-bold text-slate-400 md:text-lg">원</span>
                   </span>
                 </div>
-                <ul className="space-y-3 text-xs font-bold text-slate-500 md:space-y-6 md:text-sm">
-                  <li className="flex items-center gap-2 md:gap-4">
-                    <CheckCircle2 size={16} className="shrink-0" /> 서비스 전체 기능 이용
+                <p className="mb-6 text-xs font-bold tracking-widest text-slate-500 uppercase line-through md:text-sm">
+                  기존가 79,000원
+                </p>
+                <ul className="space-y-3 text-sm font-bold text-slate-300 md:space-y-4 md:text-base">
+                  <li className="flex items-start gap-2 md:gap-3">
+                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-400" /> 기본 자동화 기능
                   </li>
-                  <li className="flex items-center gap-2 md:gap-4">
-                    <CheckCircle2 size={16} className="shrink-0" /> 기본 기술 상담 제공
+                  <li className="flex items-start gap-2 md:gap-3">
+                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-400" /> 월 50개 영상 제작
+                  </li>
+                  <li className="flex items-start gap-2 md:gap-3">
+                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-400" /> 이메일 기술 지원
                   </li>
                 </ul>
               </div>
 
-              <div className="group relative transform rounded-[1.5rem] border border-blue-400 bg-blue-600 p-5 shadow-[0_0_60px_-12px_rgba(37,99,235,0.6)] transition-all duration-500 hover:-translate-y-3 sm:rounded-[2rem] sm:p-6 md:rounded-[3.5rem] md:p-12">
-                <div className="absolute -top-3 right-4 rounded-full bg-white px-3 py-1 text-[10px] font-black whitespace-nowrap text-blue-600 shadow-2xl sm:-top-4 sm:right-6 sm:px-4 sm:py-1.5 sm:text-xs md:-top-6 md:right-12 md:px-6 md:py-2 md:text-sm">
-                  선착순 한정 혜택
+              {/* 프로 (추천) */}
+              <div className="group relative transform rounded-[1.5rem] border border-blue-400 bg-blue-600 p-6 shadow-[0_0_60px_-12px_rgba(37,99,235,0.6)] transition-all duration-500 hover:-translate-y-3 sm:rounded-[2rem] md:rounded-[2.5rem] md:p-10">
+                <div className="absolute -top-3 right-4 rounded-full bg-white px-3 py-1 text-[10px] font-black whitespace-nowrap text-blue-600 shadow-2xl sm:-top-4 sm:right-6 sm:px-4 sm:py-1.5 sm:text-xs md:-top-5 md:right-8 md:text-sm">
+                  가장 인기
                 </div>
-                <p className="mb-2 text-[10px] font-bold tracking-widest text-blue-100 uppercase md:mb-3 md:text-xs">
-                  Pre-order Offer
+                <p className="mb-3 text-[10px] font-bold tracking-widest text-blue-100 uppercase md:text-xs">
+                  Pro
                 </p>
-                <div className="mb-4 flex items-end gap-2 md:mb-10">
-                  <span className="text-2xl font-black text-white md:text-5xl">월 29,000원</span>
+                <div className="mb-6 flex items-baseline gap-2 md:mb-8">
+                  <span className="text-3xl font-black text-white md:text-5xl">
+                    99,000<span className="text-base font-bold text-blue-100 md:text-lg">원</span>
+                  </span>
                 </div>
-                <ul className="space-y-3 text-sm font-bold text-white md:space-y-6 md:text-lg">
-                  <li className="flex items-start gap-2 md:gap-4">
-                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-200" /> 조회수 폭발 기획 가이드
+                <p className="mb-6 text-xs font-bold tracking-widest text-blue-100/70 uppercase line-through md:text-sm">
+                  기존가 159,000원
+                </p>
+                <ul className="space-y-3 text-sm font-bold text-white md:space-y-4 md:text-base">
+                  <li className="flex items-start gap-2 md:gap-3">
+                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-200" /> 모든 자동화 기능
                   </li>
-                  <li className="flex items-start gap-2 md:gap-4">
-                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-200" /> 실무진 1:1 피드백 반영권
+                  <li className="flex items-start gap-2 md:gap-3">
+                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-200" /> 월 200개 영상 제작
                   </li>
-                  <li className="flex items-start gap-2 md:gap-4">
-                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-200" /> 파트너 전용 커뮤니티 초대
+                  <li className="flex items-start gap-2 md:gap-3">
+                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-200" /> 실무진 1:1 피드백
+                  </li>
+                  <li className="flex items-start gap-2 md:gap-3">
+                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-200" /> 파트너 커뮤니티 초대
+                  </li>
+                </ul>
+              </div>
+
+              {/* 마스터 */}
+              <div className="rounded-[1.5rem] border border-white/10 bg-gradient-to-b from-indigo-900/30 to-black/40 p-6 backdrop-blur-2xl transition-all sm:rounded-[2rem] md:rounded-[2.5rem] md:p-10">
+                <p className="mb-3 text-[10px] font-bold tracking-widest text-indigo-300 uppercase md:text-xs">
+                  Master
+                </p>
+                <div className="mb-6 flex items-baseline gap-2 md:mb-8">
+                  <span className="text-3xl font-black text-white md:text-4xl">
+                    199,000<span className="text-base font-bold text-slate-400 md:text-lg">원</span>
+                  </span>
+                </div>
+                <p className="mb-6 text-xs font-bold tracking-widest text-slate-500 uppercase line-through md:text-sm">
+                  기존가 299,000원
+                </p>
+                <ul className="space-y-3 text-sm font-bold text-slate-300 md:space-y-4 md:text-base">
+                  <li className="flex items-start gap-2 md:gap-3">
+                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-indigo-400" /> Pro 모든 혜택
+                  </li>
+                  <li className="flex items-start gap-2 md:gap-3">
+                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-indigo-400" /> 무제한 영상 제작
+                  </li>
+                  <li className="flex items-start gap-2 md:gap-3">
+                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-indigo-400" /> 우선 신규 기능 접근
+                  </li>
+                  <li className="flex items-start gap-2 md:gap-3">
+                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-indigo-400" /> 전담 매니저 배정
                   </li>
                 </ul>
               </div>
@@ -347,7 +394,7 @@ const Home = () => {
               프리오더 혜택 신청하기
             </button>
             <p className="mt-8 flex items-center justify-center gap-3 text-sm font-bold text-slate-400 md:mt-12">
-              <MessageCircle size={20} className="text-blue-500" /> 실무자 1:1 카카오톡 상담
+              <MessageCircle size={20} className="text-blue-500" /> 실무진 1:1 카카오톡 상담
             </p>
           </div>
         </div>
@@ -358,15 +405,13 @@ const Home = () => {
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-12 md:flex-row md:gap-16">
           <div className="max-w-md">
             <div className="mb-6 flex items-center gap-3 md:mb-10">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold">
-                C
-              </div>
+              <img src="/icon.png" alt="Chronit" className="h-8 w-8 rounded-lg" />
               <h1 className="text-xl font-black tracking-tighter">Chronit</h1>
             </div>
             <p className="text-base leading-[1.8] font-medium text-slate-500 md:text-lg">
               우리는 당신의 '시간'이 가장 가치 있는 자산이라 믿습니다.
               <br />
-              실무자의 고뇌가 담긴 도구로 숏폼 비즈니스의 격을 높이세요.
+              실무진의 고뇌가 담긴 도구로 숏폼 비즈니스의 격을 높이세요.
             </p>
           </div>
           <div className="grid w-full grid-cols-3 gap-6 sm:gap-12 md:w-auto md:gap-20">
