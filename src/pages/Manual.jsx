@@ -6,7 +6,7 @@ import {
   ArrowLeft,
   Download,
   PlayCircle,
-  Keyboard,
+  Zap,
   HelpCircle,
   Sparkles,
 } from 'lucide-react'
@@ -14,7 +14,7 @@ import {
 // 마크다운 콘텐츠를 raw text로 import (Vite의 ?raw)
 import installMd from '../content/install.md?raw'
 import usageMd from '../content/usage.md?raw'
-import shortcutsMd from '../content/shortcuts.md?raw'
+import automationMd from '../content/automation.md?raw'
 import faqMd from '../content/faq.md?raw'
 
 const Manual = () => {
@@ -83,7 +83,7 @@ const Manual = () => {
           {[
             { id: 'install', icon: Download, label: '설치' },
             { id: 'usage', icon: PlayCircle, label: '사용법' },
-            { id: 'shortcuts', icon: Keyboard, label: '단축키' },
+            { id: 'automation', icon: Zap, label: '자동화' },
             { id: 'faq', icon: HelpCircle, label: 'FAQ' },
           ].map(({ id, icon: Icon, label }) => (
             <a
@@ -106,8 +106,8 @@ const Manual = () => {
         <Markdown>{usageMd}</Markdown>
       </MarkdownSection>
 
-      <MarkdownSection id="shortcuts" icon={Keyboard} title="3. 단축키" subtitle="Keyboard Shortcuts">
-        <Markdown>{shortcutsMd}</Markdown>
+      <MarkdownSection id="automation" icon={Zap} title="3. 완전 자동화" subtitle="Full Automation">
+        <Markdown>{automationMd}</Markdown>
       </MarkdownSection>
 
       <MarkdownSection id="faq" icon={HelpCircle} title="4. 자주 묻는 질문" subtitle="FAQ">
