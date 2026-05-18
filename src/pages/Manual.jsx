@@ -22,7 +22,7 @@ const Manual = () => {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
           <Link to="/" className="flex min-w-0 items-center gap-2 md:gap-3">
             <img
-              src="/icon.png"
+              src="/favicon.png"
               alt="Chronit"
               className="h-12 w-12 shrink-0 drop-shadow-[0_0_15px_rgba(139,92,246,0.5)] md:h-16 md:w-16"
             />
