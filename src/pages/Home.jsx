@@ -363,7 +363,7 @@ const Home = () => {
                 <ul className="space-y-3 text-sm leading-relaxed font-medium text-white md:space-y-4 md:text-base">
                   <li className="flex items-start gap-2 md:gap-3">
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-200" />
-                    <span><strong>월 150개</strong> 영상 완성본 제작 (하루 5개 폭격, 본격 양산용)</span>
+                    <span><strong>월 100개</strong> 영상 완성본 제작 (하루 3~4개, 본격 양산용)</span>
                   </li>
                   <li className="flex items-start gap-2 md:gap-3">
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-200" />
@@ -392,7 +392,7 @@ const Home = () => {
                 <ul className="space-y-3 text-sm leading-relaxed font-medium text-slate-300 md:space-y-4 md:text-base">
                   <li className="flex items-start gap-2 md:gap-3">
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-indigo-400" />
-                    <span><strong className="text-white">월 500개</strong> 영상 완성본 제작 (채널 수십 개 동시 운영, 무제한급 생산)</span>
+                    <span><strong className="text-white">월 300개</strong> 영상 완성본 제작 (채널 수십 개 동시 운영, 대량 생산)</span>
                   </li>
                   <li className="flex items-start gap-2 md:gap-3">
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-indigo-400" />
