@@ -10,11 +10,13 @@ import {
   Cpu,
   ShieldCheck,
   Flame,
+  Monitor,
   Film,
   TrendingDown,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import AnimatedCounter from '../components/AnimatedCounter'
+import PaymentModal from '../components/PaymentModal'
 
 /**
  * Spline Viewer를 이용한 배경 파티클
@@ -41,8 +43,18 @@ const SplineScene = ({ scene }) => {
   )
 }
 
+const DOWNLOAD_URL =
+  'https://github.com/Globalshorts/chronit/releases/latest/download/Chronit_Setup_1.0.0.exe'
+
 const Home = () => {
   const [scrolled, setScrolled] = useState(false)
+  const [paymentOpen, setPaymentOpen] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState('pro')
+
+  const openPayment = (plan) => {
+    setSelectedPlan(plan)
+    setPaymentOpen(true)
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -80,7 +92,10 @@ const Home = () => {
               Pricing
             </a>
           </nav>
-          <button className="shrink-0 rounded-full bg-blue-600 px-4 py-2 text-xs font-bold whitespace-nowrap text-white shadow-lg shadow-blue-600/25 transition-all hover:bg-blue-500 active:scale-95 md:px-7 md:py-2.5 md:text-sm">
+          <button
+            onClick={() => openPayment('pro')}
+            className="shrink-0 rounded-full bg-blue-600 px-4 py-2 text-xs font-bold whitespace-nowrap text-white shadow-lg shadow-blue-600/25 transition-all hover:bg-blue-500 active:scale-95 md:px-7 md:py-2.5 md:text-sm"
+          >
             Pre-order
           </button>
         </div>
@@ -127,12 +142,25 @@ const Home = () => {
             당신은 오직 수익화에만 집중하세요.
           </p>
 
-          <div className="flex w-full flex-col gap-6 sm:w-auto sm:flex-row">
-            <button className="group flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-4 text-base font-extrabold text-white shadow-[0_20px_50px_-15px_rgba(37,99,235,0.6)] transition-all hover:bg-blue-500 active:scale-95 md:gap-3 md:px-14 md:py-5 md:text-xl">
+          <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
+            <button
+              onClick={() => openPayment('pro')}
+              className="group flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-4 text-base font-extrabold text-white shadow-[0_20px_50px_-15px_rgba(37,99,235,0.6)] transition-all hover:bg-blue-500 active:scale-95 md:gap-3 md:px-12 md:py-5 md:text-xl"
+            >
               프리오더 70% 혜택받기{' '}
               <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
             </button>
+            <a
+              href={DOWNLOAD_URL}
+              className="group flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/[0.04] px-6 py-4 text-base font-extrabold text-white backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/10 active:scale-95 md:gap-3 md:px-10 md:py-5 md:text-xl"
+            >
+              <Monitor size={20} /> Windows 다운로드
+            </a>
           </div>
+          <p className="mt-4 text-xs font-medium text-slate-500 md:text-sm">
+            Windows 10/11 · 약 513MB · 첫 실행 시 "PC 보호" 경고 발생 →{' '}
+            <span className="text-slate-300">추가 정보 → 실행</span> 클릭
+          </p>
 
           <div className="mt-16 flex animate-pulse flex-col items-center gap-4 text-xs font-bold tracking-[0.5em] text-slate-500 md:mt-20">
             <div className="h-12 w-[1px] bg-gradient-to-b from-transparent via-slate-700 to-transparent"></div>
@@ -304,7 +332,7 @@ const Home = () => {
               className="mx-auto mb-16 grid max-w-6xl gap-6 text-left md:mb-24 md:grid-cols-3 md:gap-8"
             >
               {/* 스타터 */}
-              <div className="flex flex-col rounded-[1.5rem] border border-white/10 bg-black/40 p-6 backdrop-blur-2xl transition-all sm:rounded-[2rem] md:rounded-[2.5rem] md:p-10">
+              <div onClick={() => openPayment('starter')} className="flex cursor-pointer flex-col rounded-[1.5rem] border border-white/10 bg-black/40 p-6 backdrop-blur-2xl transition-all hover:border-blue-400/40 sm:rounded-[2rem] md:rounded-[2.5rem] md:p-10">
                 <p className="mb-2 text-[10px] font-bold tracking-widest text-slate-400 uppercase md:text-xs">
                   Starter
                 </p>
@@ -345,7 +373,7 @@ const Home = () => {
               </div>
 
               {/* 프로 (추천) */}
-              <div className="group relative flex transform flex-col rounded-[1.5rem] border border-blue-400 bg-blue-600 p-6 shadow-[0_0_60px_-12px_rgba(37,99,235,0.6)] transition-all duration-500 hover:-translate-y-3 sm:rounded-[2rem] md:rounded-[2.5rem] md:p-10">
+              <div onClick={() => openPayment('pro')} className="group relative flex transform cursor-pointer flex-col rounded-[1.5rem] border border-blue-400 bg-blue-600 p-6 shadow-[0_0_60px_-12px_rgba(37,99,235,0.6)] transition-all duration-500 hover:-translate-y-3 sm:rounded-[2rem] md:rounded-[2.5rem] md:p-10">
                 <div className="absolute -top-3 right-4 flex items-center gap-1 rounded-full bg-white px-3 py-1 text-[10px] font-black whitespace-nowrap text-blue-600 shadow-2xl sm:-top-4 sm:right-6 sm:px-4 sm:py-1.5 sm:text-xs md:-top-5 md:right-8 md:text-sm">
                   <Flame size={14} className="text-orange-500" fill="currentColor" /> BEST
                 </div>
@@ -377,7 +405,7 @@ const Home = () => {
               </div>
 
               {/* 마스터 */}
-              <div className="flex flex-col rounded-[1.5rem] border border-white/10 bg-gradient-to-b from-indigo-900/30 to-black/40 p-6 backdrop-blur-2xl transition-all sm:rounded-[2rem] md:rounded-[2.5rem] md:p-10">
+              <div onClick={() => openPayment('master')} className="flex cursor-pointer flex-col rounded-[1.5rem] border border-white/10 bg-gradient-to-b from-indigo-900/30 to-black/40 p-6 backdrop-blur-2xl transition-all hover:border-indigo-400/40 sm:rounded-[2rem] md:rounded-[2.5rem] md:p-10">
                 <p className="mb-2 text-[10px] font-bold tracking-widest text-indigo-300 uppercase md:text-xs">
                   Master
                 </p>
@@ -406,7 +434,10 @@ const Home = () => {
               </div>
             </div>
 
-            <button className="shadow-3xl w-full rounded-[2rem] bg-white px-8 py-5 text-base font-black text-blue-950 transition-all hover:bg-slate-100 active:scale-95 sm:w-auto md:rounded-[2.5rem] md:px-20 md:py-7 md:text-2xl">
+            <button
+              onClick={() => openPayment(selectedPlan)}
+              className="shadow-3xl w-full rounded-[2rem] bg-white px-8 py-5 text-base font-black text-blue-950 transition-all hover:bg-slate-100 active:scale-95 sm:w-auto md:rounded-[2.5rem] md:px-20 md:py-7 md:text-2xl"
+            >
               프리오더 혜택 신청하기
             </button>
             <p className="mt-8 flex items-center justify-center gap-3 text-sm font-bold text-slate-400 md:mt-12">
@@ -555,6 +586,12 @@ const Home = () => {
           background: #334155;
         }
       `}</style>
+      <PaymentModal
+        key={selectedPlan + (paymentOpen ? '-open' : '-closed')}
+        open={paymentOpen}
+        onClose={() => setPaymentOpen(false)}
+        defaultPlan={selectedPlan}
+      />
     </div>
   )
 }
