@@ -24,9 +24,9 @@ const Manual = () => {
             <img
               src="/icon.png"
               alt="Chronit"
-              className="h-9 w-9 shrink-0 rounded-xl shadow-xl shadow-blue-500/20 md:h-10 md:w-10"
+              className="h-12 w-12 shrink-0 drop-shadow-[0_0_15px_rgba(139,92,246,0.5)] md:h-16 md:w-16"
             />
-            <h1 className="bg-gradient-to-r from-white to-slate-400 bg-clip-text text-xl font-black tracking-tighter text-transparent md:text-2xl">
+            <h1 className="bg-gradient-to-r from-white to-slate-400 bg-clip-text text-2xl font-black tracking-tighter text-transparent md:text-3xl">
               Chronit
             </h1>
           </Link>
