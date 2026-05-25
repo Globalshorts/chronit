@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   Zap,
   Clock,
@@ -13,10 +13,14 @@ import {
   Monitor,
   Film,
   TrendingDown,
+  LogOut,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import AnimatedCounter from '../components/AnimatedCounter'
 import PaymentModal from '../components/PaymentModal'
+import AuthModal from '../components/AuthModal'
+import TermsModal from '../components/TermsModal'
+import { supabase } from '../lib/supabase'
 
 /**
  * Spline Viewer를 이용한 배경 파티클
@@ -50,11 +54,107 @@ const Home = () => {
   const [scrolled, setScrolled] = useState(false)
   const [paymentOpen, setPaymentOpen] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState('pro')
+  const [user, setUser] = useState(null)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [showTermsModal, setShowTermsModal] = useState(false)
+  const [codeFromUrl, setCodeFromUrl] = useState(null)
+  const pendingPlanRef = useRef(null)
+  const pendingSessionRef = useRef(null)
 
+  // 로그인 완료 후 공통 처리
+  const handleAfterLogin = (session) => {
+    // 앱이 실행 중이면 토큰 전달
+    fetch('http://localhost:17389/ping')
+      .then((res) => {
+        if (res.ok) {
+          fetch('http://localhost:17389/sso', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              access_token: session.access_token,
+              refresh_token: session.refresh_token,
+            }),
+          }).catch(() => {})
+        }
+      })
+      .catch(() => {})
+
+    // 대기 중인 결제 플랜 오픈
+    if (pendingPlanRef.current) {
+      setSelectedPlan(pendingPlanRef.current)
+      setPaymentOpen(true)
+      pendingPlanRef.current = null
+    }
+  }
+
+  // 약관 동의 완료
+  const handleTermsAgree = () => {
+    setShowTermsModal(false)
+    const session = pendingSessionRef.current
+    pendingSessionRef.current = null
+    if (session) handleAfterLogin(session)
+  }
+
+  // 로그인 필요 시 AuthModal → 로그인 후 결제 모달 자동 오픈
   const openPayment = (plan) => {
+    if (!user) {
+      pendingPlanRef.current = plan
+      setShowAuthModal(true)
+      return
+    }
     setSelectedPlan(plan)
     setPaymentOpen(true)
   }
+
+  // Auth 상태 관리
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null)
+      if (event === 'SIGNED_IN' && session) {
+        const createdAt = new Date(session.user.created_at).getTime()
+        const signedInAt = new Date(session.user.last_sign_in_at).getTime()
+        const isNewUser = Math.abs(signedInAt - createdAt) < 5000
+
+        if (isNewUser) {
+          // 신규 가입자 → 약관 동의 먼저
+          pendingSessionRef.current = session
+          setShowTermsModal(true)
+          setShowAuthModal(false)
+        } else {
+          // 기존 유저 → 바로 처리
+          handleAfterLogin(session)
+        }
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  // URL 파라미터 처리 (코드 & Python 앱 세션 공유)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+
+    // 할인 코드: sessionStorage에 저장 (OAuth 리디렉트 후에도 유지)
+    const code = params.get('code')
+    if (code) {
+      setCodeFromUrl(code)
+      sessionStorage.setItem('chronit_code', code)
+    } else {
+      const stored = sessionStorage.getItem('chronit_code')
+      if (stored) setCodeFromUrl(stored)
+    }
+
+    // Python 앱에서 세션 토큰 전달 시 자동 로그인
+    const access_token = params.get('access_token')
+    const refresh_token = params.get('refresh_token')
+    if (access_token && refresh_token) {
+      supabase.auth.setSession({ access_token, refresh_token })
+    }
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -66,6 +166,15 @@ const Home = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#020617] font-sans break-keep text-slate-100 selection:bg-blue-500/30">
+      {/* 할인 코드 배너 */}
+      {codeFromUrl && (
+        <div className="fixed top-0 right-0 left-0 z-[60] flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg">
+          <Zap size={13} fill="currentColor" />
+          <span>할인 코드 <strong>{codeFromUrl}</strong> 감지됨 — 결제 시 자동 적용됩니다</span>
+          <button onClick={() => { setCodeFromUrl(null); sessionStorage.removeItem('chronit_code') }} className="ml-2 opacity-70 hover:opacity-100">✕</button>
+        </div>
+      )}
+
       {/* Header */}
       <header
         className={`fixed top-0 right-0 left-0 z-50 transition-all duration-500 ${scrolled ? 'border-b border-white/10 bg-[#020617]/90 py-3 backdrop-blur-xl md:py-4' : 'bg-transparent py-5 md:py-8'}`}
@@ -81,7 +190,7 @@ const Home = () => {
               Chronit
             </h1>
           </div>
-          <nav className="hidden gap-12 text-sm font-bold tracking-wide text-slate-400 md:flex">
+          <nav className="hidden gap-12 text-base font-bold tracking-wide text-slate-400 md:flex">
             <a href="#features" className="uppercase transition-colors hover:text-blue-400">
               Features
             </a>
@@ -92,12 +201,35 @@ const Home = () => {
               Pricing
             </a>
           </nav>
-          <button
-            onClick={() => openPayment('pro')}
-            className="shrink-0 rounded-full bg-blue-600 px-4 py-2 text-xs font-bold whitespace-nowrap text-white shadow-lg shadow-blue-600/25 transition-all hover:bg-blue-500 active:scale-95 md:px-7 md:py-2.5 md:text-sm"
-          >
-            Pre-order
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            {user ? (
+              <>
+                <span className="hidden text-sm font-medium text-slate-400 md:block">
+                  {user.email?.split('@')[0]}
+                </span>
+                <button
+                  onClick={() => supabase.auth.signOut()}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-slate-400 transition-all hover:border-white/30 hover:text-white"
+                  title="로그아웃"
+                >
+                  <LogOut size={15} />
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-slate-300 transition-all hover:border-white/30 hover:text-white md:px-5"
+              >
+                로그인
+              </button>
+            )}
+            <button
+              onClick={() => openPayment('pro')}
+              className="rounded-full bg-blue-600 px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-lg shadow-blue-600/25 transition-all hover:bg-blue-500 active:scale-95 md:px-7 md:py-2.5 md:text-base"
+            >
+              Pre-order
+            </button>
+          </div>
         </div>
       </header>
 
@@ -112,18 +244,18 @@ const Home = () => {
         <div className="absolute inset-0 z-[1] bg-gradient-to-b from-[#020617]/10 via-transparent to-[#020617]"></div>
 
         <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center px-5 py-24 md:px-8 md:py-32">
-          <div className="animate-fade-in mb-8 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1.5 text-xs font-bold text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.15)] md:mb-10 md:px-4 md:text-sm">
+          <div className="animate-fade-in mb-8 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1.5 text-sm font-bold text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.15)] md:mb-10 md:px-4 md:text-base">
             <Zap size={14} fill="currentColor" /> <span>실무진 직접 제작 v1.0</span>
           </div>
 
           <div className="mb-10 flex w-full flex-col items-center md:mb-12">
-            <span className="mb-2 text-base font-medium text-slate-400 opacity-80 md:text-2xl">
+            <span className="mb-2 text-lg font-medium text-slate-400 opacity-80 md:text-xl">
               숏폼 회사 실무진이
             </span>
             <h2 className="animate-burn mb-4 text-4xl font-black tracking-tight text-white md:text-6xl">
               답답해서
             </h2>
-            <span className="mb-4 text-center text-base font-medium text-slate-400 opacity-80 md:mb-6 md:text-2xl">
+            <span className="mb-4 text-center text-lg font-medium text-slate-400 opacity-80 md:mb-6 md:text-xl">
               직접 만든 릴스 자동화 솔루션,
             </span>
             <h2 className="bg-gradient-to-r from-blue-400 via-white to-indigo-400 bg-clip-text text-[64px] leading-[1] font-black tracking-tighter text-transparent drop-shadow-[0_10px_20px_rgba(59,130,246,0.3)] md:text-[110px]">
@@ -131,7 +263,7 @@ const Home = () => {
             </h2>
           </div>
 
-          <p className="mb-10 max-w-3xl px-2 text-base leading-[1.8] font-medium text-slate-300 md:mb-14 md:text-xl">
+          <p className="mb-10 max-w-3xl px-2 text-lg leading-[1.8] font-medium text-slate-300 md:mb-14 md:text-xl">
             "수익 인증 대신, 제가 아껴드린{' '}
             <strong className="border-b-2 border-blue-500/50 text-white">시간</strong>을
             인증합니다."
@@ -145,24 +277,24 @@ const Home = () => {
           <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
             <button
               onClick={() => openPayment('pro')}
-              className="group flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-4 text-base font-extrabold text-white shadow-[0_20px_50px_-15px_rgba(37,99,235,0.6)] transition-all hover:bg-blue-500 active:scale-95 md:gap-3 md:px-12 md:py-5 md:text-xl"
+              className="group flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-4 text-lg font-extrabold text-white shadow-[0_20px_50px_-15px_rgba(37,99,235,0.6)] transition-all hover:bg-blue-500 active:scale-95 md:gap-3 md:px-12 md:py-5 md:text-xl"
             >
               프리오더 70% 혜택받기{' '}
               <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
             </button>
             <a
               href={DOWNLOAD_URL}
-              className="group flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/[0.04] px-6 py-4 text-base font-extrabold text-white backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/10 active:scale-95 md:gap-3 md:px-10 md:py-5 md:text-xl"
+              className="group flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/[0.04] px-6 py-4 text-lg font-extrabold text-white backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/10 active:scale-95 md:gap-3 md:px-10 md:py-5 md:text-xl"
             >
               <Monitor size={20} /> Windows 다운로드
             </a>
           </div>
-          <p className="mt-4 text-xs font-medium text-slate-500 md:text-sm">
+          <p className="mt-4 text-sm font-medium text-slate-500 md:text-base">
             Windows 10/11 · 약 513MB · 첫 실행 시 "PC 보호" 경고 발생 →{' '}
             <span className="text-slate-300">추가 정보 → 실행</span> 클릭
           </p>
 
-          <div className="mt-16 flex animate-pulse flex-col items-center gap-4 text-xs font-bold tracking-[0.5em] text-slate-500 md:mt-20">
+          <div className="mt-16 flex animate-pulse flex-col items-center gap-4 text-sm font-bold tracking-[0.5em] text-slate-500 md:mt-20">
             <div className="h-12 w-[1px] bg-gradient-to-b from-transparent via-slate-700 to-transparent"></div>
             <span>SCROLL TO EXPLORE</span>
           </div>
@@ -192,7 +324,7 @@ const Home = () => {
               <div className="bg-gradient-to-br from-white via-blue-200 to-blue-400 bg-clip-text text-4xl font-black tracking-tight text-transparent md:text-6xl">
                 <AnimatedCounter to={1500} suffix="+" />
               </div>
-              <div className="mt-3 text-sm font-bold text-slate-400 md:mt-4 md:text-base">
+              <div className="mt-3 text-base font-bold text-slate-400 md:mt-4 md:text-lg">
                 제작된 릴스
               </div>
             </div>
@@ -204,7 +336,7 @@ const Home = () => {
               <div className="bg-gradient-to-br from-white via-blue-200 to-blue-400 bg-clip-text text-4xl font-black tracking-tight text-transparent md:text-6xl">
                 <AnimatedCounter to={97} suffix="%" />
               </div>
-              <div className="mt-3 text-sm font-bold text-slate-400 md:mt-4 md:text-base">
+              <div className="mt-3 text-base font-bold text-slate-400 md:mt-4 md:text-lg">
                 시간 절감률
               </div>
             </div>
@@ -216,7 +348,7 @@ const Home = () => {
               <div className="bg-gradient-to-br from-white via-blue-200 to-blue-400 bg-clip-text text-4xl font-black tracking-tight text-transparent md:text-6xl">
                 <AnimatedCounter to={320} suffix="시간" />
               </div>
-              <div className="mt-3 text-sm font-bold text-slate-400 md:mt-4 md:text-base">
+              <div className="mt-3 text-base font-bold text-slate-400 md:mt-4 md:text-lg">
                 총 절약 시간
               </div>
             </div>
@@ -246,7 +378,7 @@ const Home = () => {
               <h4 className="mb-4 text-xl leading-[1.4] font-bold md:mb-6 md:text-2xl">
                 매일 반복되는 1시간의 노가다
               </h4>
-              <p className="text-base leading-[1.8] text-slate-400 md:text-lg">
+              <p className="text-lg leading-[1.8] text-slate-400 md:text-xl">
                 영상 소스 찾기, 대본 짜기, 자막 복붙... 조회수는 제자리인데 당신의 시간만 의미 없이
                 소모되고 있지는 않나요?
               </p>
@@ -258,7 +390,7 @@ const Home = () => {
               <h4 className="mb-4 text-xl leading-[1.4] font-bold md:mb-6 md:text-2xl">
                 어설픈 AI의 '광고 필터'
               </h4>
-              <p className="text-base leading-[1.8] text-slate-400 md:text-lg">
+              <p className="text-lg leading-[1.8] text-slate-400 md:text-xl">
                 시청자는 0.1초 만에 가짜를 알아봅니다. 자연스럽지 못한 AI 영상은 오히려 브랜드
                 신뢰도를 깎아먹습니다.
               </p>
@@ -287,7 +419,7 @@ const Home = () => {
               </h2>
             </div>
             <div className="border-l-4 border-blue-500 bg-blue-500/5 p-6 text-left md:max-w-sm md:p-8">
-              <p className="text-base leading-[1.8] text-slate-400 md:text-lg">
+              <p className="text-lg leading-[1.8] text-slate-400 md:text-xl">
                 수만 개의 영상을 직접 제작하며 증명된 로직을 시스템에 그대로 옮겼습니다.
               </p>
             </div>
@@ -302,7 +434,7 @@ const Home = () => {
             <FeatureCard
               icon={<Cpu className="text-cyan-500" />}
               title="실전 자막 리듬 로직"
-              description="단순 자막이 아닙니다. 이탈률을 최소화하는 30자 절단 공법과 스토리텔링 체인 기술이 탑재되었습니다."
+              description="단순 자막이 아닙니다. 이탈률을 최소화하는 자막 절단 알고리즘과 스토리텔링 체인 기술이 탑재되었습니다."
             />
             <FeatureCard
               icon={<Zap className="text-indigo-500" />}
@@ -321,7 +453,7 @@ const Home = () => {
               당신의 1시간은
               <br className="hidden md:block" /> 1600원보다 훨씬 고귀합니다.
             </h2>
-            <p className="mx-auto mb-12 max-w-3xl text-base leading-[1.8] font-medium text-slate-300 md:mb-20 md:text-2xl">
+            <p className="mx-auto mb-12 max-w-3xl text-lg leading-[1.8] font-medium text-slate-300 md:mb-20 md:text-xl">
               하루 커피 한 잔 값으로,
               <br />
               당신의 성장을 가로막던 제작 노가다에서 해방되세요.
@@ -333,18 +465,18 @@ const Home = () => {
             >
               {/* 스타터 */}
               <div onClick={() => openPayment('starter')} className="flex cursor-pointer flex-col rounded-[1.5rem] border border-white/10 bg-black/40 p-6 backdrop-blur-2xl transition-all hover:border-blue-400/40 sm:rounded-[2rem] md:rounded-[2.5rem] md:p-10">
-                <p className="mb-2 text-[10px] font-bold tracking-widest text-slate-400 uppercase md:text-xs">
+                <p className="mb-2 text-[10px] font-bold tracking-widest text-slate-400 uppercase md:text-sm">
                   Starter
                 </p>
                 <h4 className="mb-3 text-xl font-black text-white md:text-2xl">스타터</h4>
-                <p className="mb-6 text-sm leading-relaxed text-slate-400 md:text-base">
+                <p className="mb-6 text-base leading-relaxed text-slate-400 md:text-lg">
                   나만의 숏폼 자동화 공장 맛보기
                 </p>
                 <div className="mb-8 flex items-baseline gap-1">
                   <span className="text-4xl font-black text-white md:text-5xl">49,000</span>
-                  <span className="text-base font-bold text-slate-400 md:text-lg">원 / 월</span>
+                  <span className="text-lg font-bold text-slate-400 md:text-xl">원 / 월</span>
                 </div>
-                <ul className="space-y-3 text-sm leading-relaxed font-medium text-slate-300 md:space-y-4 md:text-base">
+                <ul className="space-y-3 text-base leading-relaxed font-medium text-slate-300 md:space-y-4 md:text-lg">
                   <li className="flex items-start gap-2 md:gap-3">
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-400" />
                     <span><strong className="text-white">월 15개</strong> 영상 완성본 제작</span>
@@ -374,21 +506,21 @@ const Home = () => {
 
               {/* 프로 (추천) */}
               <div onClick={() => openPayment('pro')} className="group relative flex transform cursor-pointer flex-col rounded-[1.5rem] border border-blue-400 bg-blue-600 p-6 shadow-[0_0_60px_-12px_rgba(37,99,235,0.6)] transition-all duration-500 hover:-translate-y-3 sm:rounded-[2rem] md:rounded-[2.5rem] md:p-10">
-                <div className="absolute -top-3 right-4 flex items-center gap-1 rounded-full bg-white px-3 py-1 text-[10px] font-black whitespace-nowrap text-blue-600 shadow-2xl sm:-top-4 sm:right-6 sm:px-4 sm:py-1.5 sm:text-xs md:-top-5 md:right-8 md:text-sm">
+                <div className="absolute -top-3 right-4 flex items-center gap-1 rounded-full bg-white px-3 py-1 text-[10px] font-black whitespace-nowrap text-blue-600 shadow-2xl sm:-top-4 sm:right-6 sm:px-4 sm:py-1.5 sm:text-sm md:-top-5 md:right-8 md:text-base">
                   <Flame size={14} className="text-orange-500" fill="currentColor" /> BEST
                 </div>
-                <p className="mb-2 text-[10px] font-bold tracking-widest text-blue-100 uppercase md:text-xs">
+                <p className="mb-2 text-[10px] font-bold tracking-widest text-blue-100 uppercase md:text-sm">
                   Pro
                 </p>
                 <h4 className="mb-3 text-xl font-black text-white md:text-2xl">프로</h4>
-                <p className="mb-6 text-sm leading-relaxed text-blue-100 md:text-base">
+                <p className="mb-6 text-base leading-relaxed text-blue-100 md:text-lg">
                   다중 채널 폭발 및 대량 수익화를 위한 핵심 패키지
                 </p>
                 <div className="mb-8 flex items-baseline gap-1">
                   <span className="text-4xl font-black text-white md:text-6xl">99,000</span>
-                  <span className="text-base font-bold text-blue-100 md:text-lg">원 / 월</span>
+                  <span className="text-lg font-bold text-blue-100 md:text-xl">원 / 월</span>
                 </div>
-                <ul className="space-y-3 text-sm leading-relaxed font-medium text-white md:space-y-4 md:text-base">
+                <ul className="space-y-3 text-base leading-relaxed font-medium text-white md:space-y-4 md:text-lg">
                   <li className="flex items-start gap-2 md:gap-3">
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-200" />
                     <span><strong>월 100개</strong> 영상 완성본 제작 (하루 3~4개, 본격 양산용)</span>
@@ -399,25 +531,25 @@ const Home = () => {
                   </li>
                   <li className="flex items-start gap-2 md:gap-3">
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-200" />
-                    다중 채널 팩토리 최적화 (여러 개 영상을 한 번에 뽑아내는 대량 생성 구조)
+                    고급 AI 음성 사용 가능 (자연스러운 한국어 TTS 보이스 활성화)
                   </li>
                 </ul>
               </div>
 
               {/* 마스터 */}
               <div onClick={() => openPayment('master')} className="flex cursor-pointer flex-col rounded-[1.5rem] border border-white/10 bg-gradient-to-b from-indigo-900/30 to-black/40 p-6 backdrop-blur-2xl transition-all hover:border-indigo-400/40 sm:rounded-[2rem] md:rounded-[2.5rem] md:p-10">
-                <p className="mb-2 text-[10px] font-bold tracking-widest text-indigo-300 uppercase md:text-xs">
+                <p className="mb-2 text-[10px] font-bold tracking-widest text-indigo-300 uppercase md:text-sm">
                   Master
                 </p>
                 <h4 className="mb-3 text-xl font-black text-white md:text-2xl">마스터</h4>
-                <p className="mb-6 text-sm leading-relaxed text-slate-400 md:text-base">
+                <p className="mb-6 text-base leading-relaxed text-slate-400 md:text-lg">
                   전문 크리에이터 및 대형 대행사를 위한 마스터 패키지
                 </p>
                 <div className="mb-8 flex items-baseline gap-1">
                   <span className="text-4xl font-black text-white md:text-5xl">199,000</span>
-                  <span className="text-base font-bold text-slate-400 md:text-lg">원 / 월</span>
+                  <span className="text-lg font-bold text-slate-400 md:text-xl">원 / 월</span>
                 </div>
-                <ul className="space-y-3 text-sm leading-relaxed font-medium text-slate-300 md:space-y-4 md:text-base">
+                <ul className="space-y-3 text-base leading-relaxed font-medium text-slate-300 md:space-y-4 md:text-lg">
                   <li className="flex items-start gap-2 md:gap-3">
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-indigo-400" />
                     <span><strong className="text-white">월 300개</strong> 영상 완성본 제작 (채널 수십 개 동시 운영, 대량 생산)</span>
@@ -436,11 +568,11 @@ const Home = () => {
 
             <button
               onClick={() => openPayment(selectedPlan)}
-              className="shadow-3xl w-full rounded-[2rem] bg-white px-8 py-5 text-base font-black text-blue-950 transition-all hover:bg-slate-100 active:scale-95 sm:w-auto md:rounded-[2.5rem] md:px-20 md:py-7 md:text-2xl"
+              className="shadow-3xl w-full rounded-[2rem] bg-white px-8 py-5 text-lg font-black text-blue-950 transition-all hover:bg-slate-100 active:scale-95 sm:w-auto md:rounded-[2.5rem] md:px-20 md:py-7 md:text-xl"
             >
               프리오더 혜택 신청하기
             </button>
-            <p className="mt-8 flex items-center justify-center gap-3 text-sm font-bold text-slate-400 md:mt-12">
+            <p className="mt-8 flex items-center justify-center gap-3 text-base font-bold text-slate-400 md:mt-12">
               <MessageCircle size={20} className="text-blue-500" /> 실무진 1:1 카카오톡 상담
             </p>
           </div>
@@ -455,7 +587,7 @@ const Home = () => {
               <img src="/favicon.png" alt="Chronit" className="h-12 w-12 drop-shadow-[0_0_10px_rgba(139,92,246,0.4)]" />
               <h1 className="text-2xl font-black tracking-tighter">Chronit</h1>
             </div>
-            <p className="text-base leading-[1.8] font-medium text-slate-500 md:text-lg">
+            <p className="text-lg leading-[1.8] font-medium text-slate-500 md:text-xl">
               우리는 당신의 '시간'이 가장 가치 있는 자산이라 믿습니다.
               <br />
               실무진의 고뇌가 담긴 도구로 숏폼 비즈니스의 격을 높이세요.
@@ -463,60 +595,60 @@ const Home = () => {
           </div>
           <div className="grid w-full grid-cols-3 gap-6 sm:gap-12 md:w-auto md:gap-20">
             <div className="flex flex-col gap-4 md:gap-6">
-              <span className="text-xs font-bold tracking-widest text-white uppercase md:text-sm">
+              <span className="text-sm font-bold tracking-widest text-white uppercase md:text-base">
                 Product
               </span>
               <a
                 href="#"
-                className="text-sm font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-base"
+                className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
               >
                 Features
               </a>
               <a
                 href="#"
-                className="text-sm font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-base"
+                className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
               >
                 Pricing
               </a>
             </div>
             <div className="flex flex-col gap-4 md:gap-6">
-              <span className="text-xs font-bold tracking-widest text-white uppercase md:text-sm">
+              <span className="text-sm font-bold tracking-widest text-white uppercase md:text-base">
                 Company
               </span>
               <a
                 href="#"
-                className="text-sm font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-base"
+                className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
               >
                 Story
               </a>
               <a
                 href="#"
-                className="text-sm font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-base"
+                className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
               >
                 Contact
               </a>
             </div>
             <div className="flex flex-col gap-4 md:gap-6">
-              <span className="text-xs font-bold tracking-widest text-white uppercase md:text-sm">
+              <span className="text-sm font-bold tracking-widest text-white uppercase md:text-base">
                 Legal
               </span>
-              <a
-                href="#"
-                className="text-sm font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-base"
+              <Link
+                to="/privacy"
+                className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
               >
                 Privacy
-              </a>
-              <a
-                href="#"
-                className="text-sm font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-base"
+              </Link>
+              <Link
+                to="/terms"
+                className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
               >
                 Terms
-              </a>
+              </Link>
             </div>
           </div>
         </div>
         <div className="mx-auto mt-16 flex max-w-7xl flex-col items-center justify-between gap-6 border-t border-white/5 pt-8 md:mt-32 md:flex-row md:gap-8 md:pt-10">
-          <p className="text-center text-[10px] font-bold tracking-[0.3em] text-slate-600 uppercase md:text-xs md:tracking-[0.4em]">
+          <p className="text-center text-[10px] font-bold tracking-[0.3em] text-slate-600 uppercase md:text-sm md:tracking-[0.4em]">
             &copy; 2024 Chronit Labs. Crafting Future Efficiency.
           </p>
           <div className="flex gap-6 md:gap-8">
@@ -586,11 +718,14 @@ const Home = () => {
           background: #334155;
         }
       `}</style>
+      <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      <TermsModal open={showTermsModal} onAgree={handleTermsAgree} onClose={() => setShowTermsModal(false)} />
       <PaymentModal
         key={selectedPlan + (paymentOpen ? '-open' : '-closed')}
         open={paymentOpen}
         onClose={() => setPaymentOpen(false)}
         defaultPlan={selectedPlan}
+        initialCode={codeFromUrl}
       />
     </div>
   )
@@ -604,7 +739,7 @@ const FeatureCard = ({ icon, title, description }) => (
     <h4 className="mb-4 text-xl leading-[1.4] font-bold transition-colors group-hover:text-blue-400 md:mb-8 md:text-2xl">
       {title}
     </h4>
-    <p className="text-base leading-[1.8] font-medium text-slate-400 md:text-lg md:leading-[1.9]">
+    <p className="text-lg leading-[1.8] font-medium text-slate-400 md:text-xl md:leading-[1.9]">
       {description}
     </p>
   </div>
