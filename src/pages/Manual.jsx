@@ -11,7 +11,6 @@ import {
   Sparkles,
 } from 'lucide-react'
 
-// 마크다운 콘텐츠를 raw text로 import (Vite의 ?raw)
 import installMd from '../content/install.md?raw'
 import usageMd from '../content/usage.md?raw'
 import automationMd from '../content/automation.md?raw'
@@ -26,8 +25,10 @@ const Manual = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // FAQ는 ## Q. 헤딩 기준으로 파싱
-  const faqItems = useMemo(() => parseFaq(faqMd), [])
+  const installSections  = useMemo(() => parseMarkdownSections(installMd), [])
+  const usageSections    = useMemo(() => parseMarkdownSections(usageMd), [])
+  const automationSections = useMemo(() => parseMarkdownSections(automationMd), [])
+  const faqItems         = useMemo(() => parseFaq(faqMd), [])
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#020617] font-sans break-keep text-slate-100 selection:bg-blue-500/30">
@@ -65,8 +66,9 @@ const Manual = () => {
         </div>
       </header>
 
+      {/* Hero */}
       <section className="relative px-5 pt-32 pb-12 md:px-8 md:pt-48 md:pb-16">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_60%,transparent_100%)]"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_60%,transparent_100%)]" />
         <div className="relative z-10 mx-auto max-w-4xl text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-1.5 text-sm font-bold text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.15)] md:text-base">
             <Sparkles size={14} fill="currentColor" /> <span>크로닛 사용 매뉴얼</span>
@@ -78,13 +80,14 @@ const Manual = () => {
         </div>
       </section>
 
+      {/* 빠른 이동 */}
       <section className="px-5 pb-12 md:px-8 md:pb-16">
         <div className="mx-auto grid max-w-4xl grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
           {[
-            { id: 'install', icon: Download, label: '설치' },
-            { id: 'usage', icon: PlayCircle, label: '사용법' },
-            { id: 'automation', icon: Zap, label: '자동화' },
-            { id: 'faq', icon: HelpCircle, label: 'FAQ' },
+            { id: 'install',    icon: Download,    label: '설치' },
+            { id: 'usage',      icon: PlayCircle,  label: '사용법' },
+            { id: 'automation', icon: Zap,         label: '자동화' },
+            { id: 'faq',        icon: HelpCircle,  label: 'FAQ' },
           ].map(({ id, icon: Icon, label }) => (
             <a
               key={id}
@@ -98,25 +101,30 @@ const Manual = () => {
         </div>
       </section>
 
-      <MarkdownSection id="install" icon={Download} title="1. 설치하기" subtitle="Installation">
-        <Markdown>{installMd}</Markdown>
-      </MarkdownSection>
+      {/* 섹션들 */}
+      <AccordionSection id="install" icon={Download} title="1. 설치하기" subtitle="Installation" intro={installSections.intro}>
+        {installSections.items.map((item, i) => (
+          <AccordionItem key={i} title={item.title} content={item.content} defaultOpen={i === 0} />
+        ))}
+      </AccordionSection>
 
-      <MarkdownSection id="usage" icon={PlayCircle} title="2. 사용법" subtitle="Getting Started">
-        <Markdown>{usageMd}</Markdown>
-      </MarkdownSection>
+      <AccordionSection id="usage" icon={PlayCircle} title="2. 사용법" subtitle="Getting Started" intro={usageSections.intro}>
+        {usageSections.items.map((item, i) => (
+          <AccordionItem key={i} title={item.title} content={item.content} defaultOpen={i === 0} />
+        ))}
+      </AccordionSection>
 
-      <MarkdownSection id="automation" icon={Zap} title="3. 완전 자동화" subtitle="Full Automation">
-        <Markdown>{automationMd}</Markdown>
-      </MarkdownSection>
+      <AccordionSection id="automation" icon={Zap} title="3. 완전 자동화" subtitle="Full Automation" intro={automationSections.intro}>
+        {automationSections.items.map((item, i) => (
+          <AccordionItem key={i} title={item.title} content={item.content} />
+        ))}
+      </AccordionSection>
 
-      <MarkdownSection id="faq" icon={HelpCircle} title="4. 자주 묻는 질문" subtitle="FAQ">
-        <div className="space-y-3 md:space-y-4">
-          {faqItems.map((item, idx) => (
-            <FaqItem key={idx} question={item.question} answer={item.answer} />
-          ))}
-        </div>
-      </MarkdownSection>
+      <AccordionSection id="faq" icon={HelpCircle} title="4. 자주 묻는 질문" subtitle="FAQ">
+        {faqItems.map((item, i) => (
+          <AccordionItem key={i} title={`Q. ${item.question}`} content={item.answer} />
+        ))}
+      </AccordionSection>
 
       <section className="px-5 py-16 text-center md:px-8 md:py-24">
         <Link
@@ -139,11 +147,13 @@ const Manual = () => {
   )
 }
 
-const MarkdownSection = ({ id, icon: Icon, title, subtitle, children }) => (
+/* ── 섹션 래퍼 ─────────────────────────────────────────── */
+const AccordionSection = ({ id, icon: Icon, title, subtitle, intro, children }) => (
   <section id={id} className="px-5 py-16 md:px-8 md:py-24">
     <div className="mx-auto max-w-4xl">
-      <div className="mb-10 flex items-center gap-4 md:mb-14">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-blue-500/10 text-blue-400 md:h-14 md:w-14">
+      {/* 섹션 헤더 */}
+      <div className="mb-8 flex items-center gap-4 md:mb-12">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-blue-500/10 text-blue-400 md:h-14 md:w-14">
           <Icon size={24} />
         </div>
         <div>
@@ -153,29 +163,75 @@ const MarkdownSection = ({ id, icon: Icon, title, subtitle, children }) => (
           <h2 className="text-2xl font-black tracking-tight md:text-4xl">{title}</h2>
         </div>
       </div>
-      {children}
+
+      {/* 인트로 (## 이전 내용) */}
+      {intro && (
+        <div className="mb-6">
+          <Markdown>{intro}</Markdown>
+        </div>
+      )}
+
+      {/* 아코디언 아이템 목록 */}
+      <div className="space-y-3 md:space-y-4">
+        {children}
+      </div>
     </div>
   </section>
 )
 
-// 다크 테마용 마크다운 컴포넌트 매핑
+/* ── 아코디언 아이템 ────────────────────────────────────── */
+const AccordionItem = ({ title, content, defaultOpen = false }) => {
+  const [open, setOpen] = useState(defaultOpen)
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] transition-colors hover:border-blue-500/20">
+      {/* 클릭 헤더 */}
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="flex w-full items-center justify-between gap-4 p-5 text-left transition-colors hover:bg-white/[0.03] md:p-6"
+      >
+        <span className="text-base font-bold text-white md:text-lg">{title}</span>
+        <span
+          className="shrink-0 text-blue-400 transition-transform duration-300"
+          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', fontSize: '14px' }}
+        >
+          ▼
+        </span>
+      </button>
+
+      {/* 슬라이드 콘텐츠 */}
+      <div
+        className="grid transition-all duration-300 ease-in-out"
+        style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
+      >
+        <div className="overflow-hidden">
+          <div className="border-t border-white/5 px-5 pt-4 pb-5 md:px-6 md:pt-5 md:pb-6">
+            <Markdown>{content}</Markdown>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── 마크다운 렌더러 ────────────────────────────────────── */
 const mdComponents = {
   h1: (props) => (
     <h1 className="mt-10 mb-4 text-2xl font-black text-white md:text-3xl" {...props} />
   ),
   h2: (props) => (
     <h2
-      className="mt-10 mb-3 border-l-4 border-blue-500 pl-4 text-xl font-bold text-white md:text-xl"
+      className="mt-8 mb-3 border-l-4 border-blue-500 pl-4 text-xl font-bold text-white"
       {...props}
     />
   ),
   h3: (props) => <h3 className="mt-6 mb-2 text-lg font-bold text-white md:text-xl" {...props} />,
   p: (props) => (
-    <p className="my-3 text-lg leading-[1.9] text-slate-300 md:text-xl" {...props} />
+    <p className="my-3 text-base leading-[1.9] text-slate-300 md:text-lg" {...props} />
   ),
   ul: (props) => <ul className="my-3 list-disc space-y-2 pl-6 text-slate-300" {...props} />,
   ol: (props) => <ol className="my-3 list-decimal space-y-2 pl-6 text-slate-300" {...props} />,
-  li: (props) => <li className="text-lg leading-[1.9] md:text-xl" {...props} />,
+  li: (props) => <li className="text-base leading-[1.9] md:text-lg" {...props} />,
   a: (props) => (
     <a
       className="text-blue-400 underline underline-offset-4 transition-colors hover:text-blue-300"
@@ -195,23 +251,23 @@ const mdComponents = {
   code: ({ inline, ...props }) =>
     inline ? (
       <code
-        className="rounded-md bg-blue-500/15 px-1.5 py-0.5 font-mono text-base text-blue-300"
+        className="rounded-md bg-blue-500/15 px-1.5 py-0.5 font-mono text-sm text-blue-300"
         {...props}
       />
     ) : (
-      <code className="block rounded-xl bg-black/40 p-4 font-mono text-base text-slate-200" {...props} />
+      <code className="block rounded-xl bg-black/40 p-4 font-mono text-sm text-slate-200" {...props} />
     ),
   pre: (props) => (
     <pre className="my-4 overflow-x-auto rounded-2xl border border-white/10 bg-black/40 p-4" {...props} />
   ),
   table: (props) => (
     <div className="my-4 overflow-x-auto rounded-2xl border border-white/10">
-      <table className="w-full border-collapse text-left text-base md:text-lg" {...props} />
+      <table className="w-full border-collapse text-left text-sm md:text-base" {...props} />
     </div>
   ),
   thead: (props) => <thead className="bg-blue-500/10" {...props} />,
   th: (props) => (
-    <th className="border-b border-white/10 px-4 py-3 text-sm font-black tracking-widest text-blue-300 uppercase" {...props} />
+    <th className="border-b border-white/10 px-4 py-3 text-xs font-black tracking-widest text-blue-300 uppercase" {...props} />
   ),
   td: (props) => (
     <td className="border-b border-white/5 px-4 py-3 text-slate-300 last:border-b-0" {...props} />
@@ -225,37 +281,34 @@ const Markdown = ({ children }) => (
   </ReactMarkdown>
 )
 
-const FaqItem = ({ question, answer }) => {
-  const [open, setOpen] = useState(false)
-  return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-4 p-5 text-left transition-colors hover:bg-white/[0.03] md:p-6"
-      >
-        <span className="text-base font-bold text-white md:text-lg">Q. {question}</span>
-        <span
-          className={`text-xl text-blue-400 transition-transform md:text-xl ${open ? 'rotate-45' : ''}`}
-        >
-          +
-        </span>
-      </button>
-      {open && (
-        <div className="border-t border-white/5 px-5 pt-4 pb-5 md:px-6 md:pt-5 md:pb-6">
-          <div className="prose-faq">
-            <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
-              {answer}
-            </ReactMarkdown>
-          </div>
-        </div>
-      )}
-    </div>
-  )
+/* ── 유틸 함수들 ────────────────────────────────────────── */
+
+/** 마크다운 → { intro: string, items: [{title, content}] } */
+function parseMarkdownSections(md) {
+  const lines = md.split('\n')
+  const items = []
+  let intro = ''
+  let current = null
+
+  for (const line of lines) {
+    const match = line.match(/^##\s+(.+)$/)
+    if (match) {
+      if (current) items.push(current)
+      current = { title: match[1].trim(), content: '' }
+    } else if (current) {
+      current.content += line + '\n'
+    } else {
+      intro += line + '\n'
+    }
+  }
+  if (current) items.push(current)
+  return {
+    intro: intro.trim(),
+    items: items.map(i => ({ ...i, content: i.content.trim() })),
+  }
 }
 
-/**
- * faq.md 파싱: "## Q. 질문" 기준으로 항목 분리
- */
+/** FAQ 마크다운 → [{question, answer}] */
 function parseFaq(md) {
   const lines = md.split('\n')
   const items = []
@@ -270,7 +323,7 @@ function parseFaq(md) {
     }
   }
   if (current) items.push(current)
-  return items.map((i) => ({ ...i, answer: i.answer.trim() }))
+  return items.map(i => ({ ...i, answer: i.answer.trim() }))
 }
 
 export default Manual
