@@ -290,7 +290,7 @@ const Home = () => {
             </a>
           </div>
           <p className="mt-4 text-sm font-medium text-slate-500 md:text-base">
-            Windows 10/11 · 약 513MB · 첫 실행 시 "PC 보호" 경고 발생 →{' '}
+            Windows 10/11 · 약 1.9GB · 첫 실행 시 "PC 보호" 경고 발생 →{' '}
             <span className="text-slate-300">추가 정보 → 실행</span> 클릭
           </p>
 
