@@ -180,7 +180,7 @@ const Home = () => {
         className={`fixed top-0 right-0 left-0 z-50 transition-all duration-500 ${scrolled ? 'border-b border-white/10 bg-[#020617]/90 py-3 backdrop-blur-xl md:py-4' : 'bg-transparent py-5 md:py-8'}`}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
-          <div className="flex min-w-0 items-center gap-2 md:gap-3">
+          <a href="/" className="flex min-w-0 items-center gap-2 md:gap-3">
             <img
               src="/favicon.png"
               alt="Chronit"
@@ -189,7 +189,7 @@ const Home = () => {
             <h1 className="bg-gradient-to-r from-white to-slate-400 bg-clip-text text-2xl font-black tracking-tighter text-transparent md:text-3xl">
               Chronit
             </h1>
-          </div>
+          </a>
           <nav className="hidden gap-12 text-base font-bold tracking-wide text-slate-400 md:flex">
             <a href="#features" className="uppercase transition-colors hover:text-blue-400">
               Features
@@ -227,7 +227,7 @@ const Home = () => {
               onClick={() => openPayment('pro')}
               className="rounded-full bg-blue-600 px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-lg shadow-blue-600/25 transition-all hover:bg-blue-500 active:scale-95 md:px-7 md:py-2.5 md:text-base"
             >
-              Pre-order
+              시작하기
             </button>
           </div>
         </div>
