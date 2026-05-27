@@ -119,7 +119,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
           </div>
           <div>
             <h3 className="text-xl font-black tracking-tight text-white md:text-2xl">
-              {isFreedays ? '무료 체험 신청' : '프리오더 신청'}
+              {isFreedays ? '무료 체험 신청' : '결제 신청'}
             </h3>
             <p className="text-sm font-medium text-slate-400 md:text-base">
               {isFreedays ? `${discount.value}일 무료 체험이 적용됩니다` : '계좌이체로 결제 후 활성화됩니다'}
