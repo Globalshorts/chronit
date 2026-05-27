@@ -179,33 +179,35 @@ const AccordionSection = ({ id, icon: Icon, title, subtitle, intro, children }) 
   </section>
 )
 
-/* ── 아코디언 아이템 ────────────────────────────────────── */
+/* ── 아코디언 아이템 (노션 스타일) ─────────────────────── */
 const AccordionItem = ({ title, content, defaultOpen = false }) => {
   const [open, setOpen] = useState(defaultOpen)
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] transition-colors hover:border-blue-500/20">
-      {/* 클릭 헤더 */}
+    <div>
+      {/* 클릭 헤더 — 화살표 왼쪽 */}
       <button
         onClick={() => setOpen(v => !v)}
-        className="flex w-full items-center justify-between gap-4 p-5 text-left transition-colors hover:bg-white/[0.03] md:p-6"
+        className="group flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-white/[0.05]"
       >
-        <span className="text-base font-bold text-white md:text-lg">{title}</span>
         <span
-          className="shrink-0 text-blue-400 transition-transform duration-300"
-          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', fontSize: '14px' }}
+          className="shrink-0 text-slate-400 transition-transform duration-200 group-hover:text-blue-400"
+          style={{ transform: open ? 'rotate(90deg)' : 'rotate(0deg)', fontSize: '12px' }}
         >
-          ▼
+          ▶
+        </span>
+        <span className="text-base font-semibold text-slate-200 group-hover:text-white md:text-lg">
+          {title}
         </span>
       </button>
 
-      {/* 슬라이드 콘텐츠 */}
+      {/* 슬라이드 콘텐츠 — 왼쪽 인덴트 */}
       <div
-        className="grid transition-all duration-300 ease-in-out"
+        className="grid transition-all duration-200 ease-in-out"
         style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
       >
         <div className="overflow-hidden">
-          <div className="border-t border-white/5 px-5 pt-4 pb-5 md:px-6 md:pt-5 md:pb-6">
+          <div className="border-l-2 border-white/10 ml-3 pl-5 pt-2 pb-3">
             <Markdown>{content}</Markdown>
           </div>
         </div>
