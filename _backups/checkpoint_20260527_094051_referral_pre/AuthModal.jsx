@@ -1,7 +1,7 @@
-import { X, Gift } from 'lucide-react'
+import { X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
-const AuthModal = ({ open, onClose, referralCode }) => {
+const AuthModal = ({ open, onClose }) => {
   if (!open) return null
 
   const signIn = async (provider) => {
@@ -34,16 +34,6 @@ const AuthModal = ({ open, onClose, referralCode }) => {
             결제를 진행하려면 로그인이 필요합니다.
           </p>
         </div>
-
-        {/* 추천인 코드 표시 */}
-        {referralCode && (
-          <div className="mb-5 flex items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-3">
-            <Gift size={15} className="shrink-0 text-blue-400" />
-            <span className="text-sm font-bold text-blue-300">
-              추천 코드 <span className="text-white">{referralCode}</span> — 가입 시 500 크레딧 지급
-            </span>
-          </div>
-        )}
 
         <div className="space-y-3">
           {/* Google */}

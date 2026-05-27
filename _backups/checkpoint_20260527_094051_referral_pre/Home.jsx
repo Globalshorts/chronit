@@ -58,7 +58,6 @@ const Home = () => {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [showTermsModal, setShowTermsModal] = useState(false)
   const [codeFromUrl, setCodeFromUrl] = useState(null)
-  const [refFromUrl, setRefFromUrl] = useState(null)
   const pendingPlanRef = useRef(null)
   const pendingSessionRef = useRef(null)
 
@@ -121,23 +120,7 @@ const Home = () => {
         const isNewUser = Math.abs(signedInAt - createdAt) < 5000
 
         if (isNewUser) {
-          // 신규 가입자 → 추천인 코드 적용 후 약관 동의
-          const storedRef = sessionStorage.getItem('chronit_ref')
-          if (storedRef) {
-            fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/apply_referral_code_rpc`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${session.access_token}`,
-              },
-              body: JSON.stringify({
-                p_new_user_id: session.user.id,
-                p_referral_code: storedRef,
-              }),
-            }).catch(() => {})
-            sessionStorage.removeItem('chronit_ref')
-          }
+          // 신규 가입자 → 약관 동의 먼저
           pendingSessionRef.current = session
           setShowTermsModal(true)
           setShowAuthModal(false)
@@ -163,16 +146,6 @@ const Home = () => {
     } else {
       const stored = sessionStorage.getItem('chronit_code')
       if (stored) setCodeFromUrl(stored)
-    }
-
-    // 추천인 코드: ?ref=CHRONIT-XXXX
-    const ref = params.get('ref')
-    if (ref) {
-      setRefFromUrl(ref.toUpperCase())
-      sessionStorage.setItem('chronit_ref', ref.toUpperCase())
-    } else {
-      const storedRef = sessionStorage.getItem('chronit_ref')
-      if (storedRef) setRefFromUrl(storedRef)
     }
 
     // Python 앱에서 세션 토큰 전달 시 자동 로그인
@@ -742,7 +715,7 @@ const Home = () => {
           background: #334155;
         }
       `}</style>
-      <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} referralCode={refFromUrl} />
+      <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
       <TermsModal open={showTermsModal} onAgree={handleTermsAgree} onClose={() => setShowTermsModal(false)} />
       <PaymentModal
         key={selectedPlan + (paymentOpen ? '-open' : '-closed')}
