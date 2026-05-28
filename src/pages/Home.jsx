@@ -454,7 +454,7 @@ const Home = () => {
         .event-content code { background:rgba(255,255,255,0.08); padding:0.1em 0.4em; border-radius:4px; font-family:monospace; font-size:0.9em; }
         @keyframes badge-pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
         .badge-pulse { animation: badge-pulse 2s ease-in-out infinite; }
-      \`}</style>
+      `}</style>
 
 
       {/* Hero Section */}
