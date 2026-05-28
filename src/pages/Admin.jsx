@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import Quill from 'quill'
+import 'quill/dist/quill.snow.css'
 import { supabase } from '../lib/supabase'
 import { Megaphone, Save, LogOut, ShieldCheck, Loader, Eye, EyeOff } from 'lucide-react'
 
@@ -17,65 +19,39 @@ const Admin = () => {
   const [user, setUser] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [event, setEvent] = useState({
-    active: false,
-    label: '',
-    text: '',
-    cta_text: '',
-  })
+  const [event, setEvent] = useState({ id: null, active: false, label: '', text: '', cta_text: '' })
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState(null)
   const [preview, setPreview] = useState(false)
 
-  const editorRef = useRef(null)
+  const containerRef = useRef(null)
   const quillRef = useRef(null)
-  const initializedRef = useRef(false)
 
-  // Quill 초기화
+  // Quill 마운트
   useEffect(() => {
-    if (preview || initializedRef.current || !editorRef.current) return
+    if (!containerRef.current || quillRef.current) return
 
-    const loadQuill = async () => {
-      const { default: Quill } = await import('quill')
-      await import('quill/dist/quill.snow.css')
+    const quill = new Quill(containerRef.current, {
+      theme: 'snow',
+      modules: { toolbar: TOOLBAR_OPTIONS },
+      placeholder: '이벤트 내용을 입력하세요 (폰트, 굵기, 색상, 이미지 모두 지원)',
+    })
 
-      if (quillRef.current || !editorRef.current) return
+    quill.on('text-change', () => {
+      setEvent(ev => ({ ...ev, text: quill.root.innerHTML }))
+    })
 
-      const quill = new Quill(editorRef.current, {
-        theme: 'snow',
-        modules: { toolbar: TOOLBAR_OPTIONS },
-        placeholder: '이벤트 내용을 입력하세요 (폰트, 굵기, 기울기, 색상, 이미지 모두 지원)',
-      })
+    quillRef.current = quill
+  }, [])
 
-      quill.on('text-change', () => {
-        const html = quill.root.innerHTML
-        setEvent(ev => ({ ...ev, text: html }))
-      })
-
-      quillRef.current = quill
-      initializedRef.current = true
-
-      // 기존 내용 복원
-      setEvent(ev => {
-        if (ev.text) quill.root.innerHTML = ev.text
-        return ev
-      })
-    }
-
-    loadQuill()
-  }, [preview])
-
-  // 편집 모드로 돌아올 때 내용 복원
+  // DB 데이터 로드 후 Quill에 내용 삽입
   useEffect(() => {
-    if (!preview && quillRef.current) {
-      // 약간의 지연 후 복원 (DOM 렌더 후)
-      setTimeout(() => {
-        if (quillRef.current) {
-          quillRef.current.root.innerHTML = event.text || ''
-        }
-      }, 50)
+    if (quillRef.current && event.text && event.id) {
+      if (quillRef.current.root.innerHTML !== event.text) {
+        quillRef.current.root.innerHTML = event.text
+      }
     }
-  }, [preview])
+  }, [event.id])
 
   useEffect(() => {
     const init = async () => {
@@ -96,13 +72,7 @@ const Admin = () => {
           .select('*')
           .limit(1)
           .single()
-        if (data) {
-          setEvent(data)
-          // Quill이 이미 초기화됐다면 내용 설정
-          if (quillRef.current) {
-            quillRef.current.root.innerHTML = data.text || ''
-          }
-        }
+        if (data) setEvent(data)
       }
       setLoading(false)
     }
@@ -165,19 +135,58 @@ const Admin = () => {
   return (
     <>
       <style>{`
-        .ql-toolbar { background: #0f172a !important; border-color: rgba(255,255,255,0.1) !important; border-radius: 12px 12px 0 0; }
-        .ql-container { background: #0f172a !important; border-color: rgba(255,255,255,0.1) !important; border-radius: 0 0 12px 12px; min-height: 300px; }
-        .ql-editor { color: #e2e8f0 !important; min-height: 300px; font-size: 15px; line-height: 1.8; }
-        .ql-editor.ql-blank::before { color: #475569 !important; font-style: normal; }
-        .ql-stroke { stroke: #94a3b8 !important; }
-        .ql-fill { fill: #94a3b8 !important; }
-        .ql-picker-label { color: #94a3b8 !important; }
-        .ql-picker-options { background: #1e293b !important; border-color: rgba(255,255,255,0.1) !important; }
-        .ql-picker-item { color: #cbd5e1 !important; }
-        .ql-picker-item:hover { color: #fff !important; background: rgba(255,255,255,0.05) !important; }
-        .ql-toolbar button:hover .ql-stroke, .ql-toolbar button.ql-active .ql-stroke { stroke: #60a5fa !important; }
-        .ql-toolbar button:hover .ql-fill, .ql-toolbar button.ql-active .ql-fill { fill: #60a5fa !important; }
-        .ql-toolbar button:hover, .ql-toolbar button.ql-active { background: rgba(255,255,255,0.06) !important; border-radius: 4px; }
+        /* Quill 다크모드 */
+        .ql-toolbar.ql-snow {
+          background: #1e293b;
+          border: 1px solid rgba(255,255,255,0.12);
+          border-bottom: 1px solid rgba(255,255,255,0.08);
+          border-radius: 12px 12px 0 0;
+          padding: 10px 12px;
+        }
+        .ql-container.ql-snow {
+          background: #0f172a;
+          border: 1px solid rgba(255,255,255,0.12);
+          border-top: none;
+          border-radius: 0 0 12px 12px;
+          min-height: 400px;
+          font-size: 15px;
+        }
+        .ql-editor {
+          color: #e2e8f0;
+          min-height: 400px;
+          line-height: 1.8;
+          padding: 16px 20px;
+        }
+        .ql-editor.ql-blank::before {
+          color: #475569;
+          font-style: normal;
+          left: 20px;
+        }
+        /* 툴바 아이콘 */
+        .ql-snow .ql-stroke { stroke: #94a3b8; }
+        .ql-snow .ql-fill { fill: #94a3b8; }
+        .ql-snow .ql-picker-label { color: #94a3b8; border-color: rgba(255,255,255,0.1); background: transparent; }
+        .ql-snow .ql-picker-label:hover { color: #e2e8f0; }
+        .ql-snow .ql-picker-options {
+          background: #1e293b;
+          border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 8px;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+        .ql-snow .ql-picker-item { color: #cbd5e1; }
+        .ql-snow .ql-picker-item:hover { color: #fff; background: rgba(255,255,255,0.06); }
+        .ql-toolbar.ql-snow button:hover,
+        .ql-toolbar.ql-snow button.ql-active {
+          background: rgba(255,255,255,0.08);
+          border-radius: 4px;
+        }
+        .ql-toolbar.ql-snow button:hover .ql-stroke,
+        .ql-toolbar.ql-snow button.ql-active .ql-stroke { stroke: #60a5fa; }
+        .ql-toolbar.ql-snow button:hover .ql-fill,
+        .ql-toolbar.ql-snow button.ql-active .ql-fill { fill: #60a5fa; }
+        /* 컬러 피커 */
+        .ql-color-picker .ql-picker-options { width: 164px; padding: 8px; }
+        /* 미리보기 */
         .event-preview img { max-width: 100%; border-radius: 8px; }
         .event-preview p { margin: 0.5em 0; }
         .event-preview h1,.event-preview h2,.event-preview h3 { font-weight: 800; margin: 0.8em 0 0.4em; }
@@ -255,17 +264,20 @@ const Admin = () => {
                   className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors"
                 >
                   {preview ? <EyeOff size={13} /> : <Eye size={13} />}
-                  {preview ? '편집' : '미리보기'}
+                  {preview ? '편집으로 돌아가기' : '미리보기'}
                 </button>
               </div>
 
-              {preview ? (
+              {/* Quill 에디터는 항상 DOM에 존재, preview일 때만 숨김 */}
+              <div style={{ display: preview ? 'none' : 'block' }}>
+                <div ref={containerRef} />
+              </div>
+
+              {preview && (
                 <div
-                  className="event-preview min-h-[300px] rounded-xl border border-white/10 bg-white/[0.03] p-6 text-slate-200"
+                  className="event-preview min-h-[400px] rounded-xl border border-white/10 bg-white/[0.03] p-6 text-slate-200"
                   dangerouslySetInnerHTML={{ __html: event.text || '<p style="color:#475569">본문 없음</p>' }}
                 />
-              ) : (
-                <div ref={editorRef} />
               )}
             </div>
 
