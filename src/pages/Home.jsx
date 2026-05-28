@@ -15,6 +15,9 @@ import {
   TrendingDown,
   LogOut,
   Gift,
+  Menu,
+  X,
+  Megaphone,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import AnimatedCounter from '../components/AnimatedCounter'
@@ -102,6 +105,11 @@ const SplineScene = ({ scene }) => {
 const DOWNLOAD_URL =
   'https://github.com/Globalshorts/chronit/releases/latest/download/Chronit_Setup_1.0.1.exe'
 
+// ★ 이벤트 섹션 ON/OFF — 이벤트 있을 때 true로 변경
+const EVENT_ACTIVE = false
+const EVENT_TEXT = '🎁 친구 초대 보너스 1,000 크레딧 + 후기 작성 시 2,000 크레딧으로 상향!'
+const EVENT_LABEL = '이벤트 진행중'
+
 const Home = () => {
   const [scrolled, setScrolled] = useState(false)
   const [paymentOpen, setPaymentOpen] = useState(false)
@@ -111,6 +119,7 @@ const Home = () => {
   const [showTermsModal, setShowTermsModal] = useState(false)
   const [codeFromUrl, setCodeFromUrl] = useState(null)
   const [refFromUrl, setRefFromUrl] = useState(null)
+  const [menuOpen, setMenuOpen] = useState(false)
   const pendingPlanRef = useRef(null)
   const pendingSessionRef = useRef(null)
 
@@ -238,10 +247,11 @@ const Home = () => {
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50)
+      if (menuOpen) setMenuOpen(false)
     }
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  }, [menuOpen])
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#020617] font-sans break-keep text-slate-100 selection:bg-blue-500/30">
@@ -290,6 +300,14 @@ const Home = () => {
             </a>
           </nav>
           <div className="flex shrink-0 items-center gap-2">
+            {/* 햄버거 버튼 — 모바일 전용 */}
+            <button
+              onClick={() => setMenuOpen((v) => !v)}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-slate-300 transition-all hover:border-white/30 hover:text-white md:hidden"
+              aria-label="메뉴"
+            >
+              {menuOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
             {user ? (
               <>
                 <span className="hidden text-sm font-medium text-slate-400 md:block">
@@ -320,6 +338,69 @@ const Home = () => {
           </div>
         </div>
       </header>
+
+      {/* 모바일 햄버거 메뉴 드롭다운 */}
+      <div
+        className={`fixed top-0 left-0 right-0 z-40 transform transition-all duration-300 ease-in-out md:hidden ${
+          menuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
+        }`}
+        style={{ paddingTop: '80px' }}
+      >
+        <div className="border-b border-white/10 bg-[#020617]/95 px-6 py-6 backdrop-blur-xl">
+          <nav className="flex flex-col gap-1">
+            <a
+              href="#features"
+              onClick={() => setMenuOpen(false)}
+              className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400"
+            >
+              Features
+            </a>
+            <Link
+              to="/manual"
+              onClick={() => setMenuOpen(false)}
+              className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400"
+            >
+              Manual
+            </Link>
+            <a
+              href="#pricing"
+              onClick={() => setMenuOpen(false)}
+              className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400"
+            >
+              Pricing
+            </a>
+          </nav>
+          {user && (
+            <div className="mt-4 border-t border-white/10 pt-4">
+              <p className="px-4 pb-3 text-sm text-slate-500">{user.email}</p>
+              <button
+                onClick={() => { supabase.auth.signOut(); setMenuOpen(false) }}
+                className="flex w-full items-center gap-2 rounded-xl px-4 py-3 text-base font-bold text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
+              >
+                <LogOut size={16} /> 로그아웃
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 이벤트 배너 — EVENT_ACTIVE = true 로 변경하면 표시 */}
+      {EVENT_ACTIVE && (
+        <div className="relative z-30 flex items-center justify-center gap-3 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg md:text-base"
+          style={{ marginTop: '80px' }}>
+          <Megaphone size={15} className="shrink-0" />
+          <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-black uppercase tracking-wide">
+            {EVENT_LABEL}
+          </span>
+          <span>{EVENT_TEXT}</span>
+          <button
+            onClick={() => openPayment('pro')}
+            className="ml-2 shrink-0 rounded-full bg-white/20 px-3 py-1 text-xs font-black transition-all hover:bg-white/30"
+          >
+            지금 참여
+          </button>
+        </div>
+      )}
 
       {/* Hero Section */}
       <section className="relative flex min-h-screen items-center justify-center overflow-hidden text-center">
