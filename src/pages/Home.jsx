@@ -14,11 +14,63 @@ import {
   Film,
   TrendingDown,
   LogOut,
+  Gift,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import AnimatedCounter from '../components/AnimatedCounter'
 import PaymentModal from '../components/PaymentModal'
 import AuthModal from '../components/AuthModal'
+
+// 가격표 위 쿠폰 입력 바
+const CouponBar = ({ codeFromUrl, onApply }) => {
+  const [input, setInput] = React.useState('')
+  const [status, setStatus] = React.useState(null) // null | 'ok' | 'fail'
+
+  const handleApply = async () => {
+    const trimmed = input.trim().toUpperCase()
+    if (!trimmed) return
+    // 간단히 형식만 체크 (실제 검증은 PaymentModal에서)
+    if (trimmed.length >= 3) {
+      onApply(trimmed)
+      setStatus('ok')
+    } else {
+      setStatus('fail')
+    }
+  }
+
+  if (codeFromUrl) {
+    return (
+      <div className="mx-auto mb-10 flex max-w-sm items-center gap-3 rounded-2xl border border-blue-500/30 bg-blue-500/10 px-5 py-3">
+        <Zap size={15} className="shrink-0 text-blue-400" fill="currentColor" />
+        <span className="text-sm font-bold text-blue-300">할인 코드 <strong className="text-white">{codeFromUrl}</strong> 적용됨</span>
+        <button onClick={() => { onApply(null); sessionStorage.removeItem('chronit_code') }} className="ml-auto text-slate-500 hover:text-white">✕</button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="mx-auto mb-10 flex max-w-sm flex-col items-center gap-2">
+      <div className="flex w-full gap-2">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => { setInput(e.target.value.toUpperCase()); setStatus(null) }}
+          onKeyDown={(e) => e.key === 'Enter' && handleApply()}
+          placeholder="쿠폰 / 할인 코드 입력"
+          className="flex-1 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-bold text-white placeholder-slate-600 outline-none transition-all focus:border-blue-500/50 focus:bg-white/[0.07]"
+        />
+        <button
+          onClick={handleApply}
+          className="rounded-2xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-blue-500 active:scale-95"
+        >
+          적용
+        </button>
+      </div>
+      {status === 'ok' && <p className="text-xs font-bold text-green-400">✓ 코드 적용됨 — 결제 시 할인이 반영됩니다</p>}
+      {status === 'fail' && <p className="text-xs font-bold text-red-400">유효하지 않은 코드입니다</p>}
+    </div>
+  )
+}
 import TermsModal from '../components/TermsModal'
 import { supabase } from '../lib/supabase'
 
@@ -48,7 +100,7 @@ const SplineScene = ({ scene }) => {
 }
 
 const DOWNLOAD_URL =
-  'https://github.com/Globalshorts/chronit/releases/latest/download/Chronit_Setup_1.0.0.exe'
+  'https://github.com/Globalshorts/chronit/releases/latest/download/Chronit_Setup_1.0.1.exe'
 
 const Home = () => {
   const [scrolled, setScrolled] = useState(false)
@@ -193,9 +245,18 @@ const Home = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#020617] font-sans break-keep text-slate-100 selection:bg-blue-500/30">
+      {/* 추천인 코드 배너 */}
+      {refFromUrl && (
+        <div className="fixed top-0 right-0 left-0 z-[61] flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-purple-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg">
+          <Gift size={13} />
+          <span>추천 코드 <strong>{refFromUrl}</strong> 적용됨 — 가입 시 <strong>500 크레딧</strong> 지급!</span>
+          <button onClick={() => { setRefFromUrl(null); sessionStorage.removeItem('chronit_ref') }} className="ml-2 opacity-70 hover:opacity-100">✕</button>
+        </div>
+      )}
+
       {/* 할인 코드 배너 */}
       {codeFromUrl && (
-        <div className="fixed top-0 right-0 left-0 z-[60] flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg">
+        <div className={`fixed right-0 left-0 z-[60] flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg ${refFromUrl ? 'top-10' : 'top-0'}`}>
           <Zap size={13} fill="currentColor" />
           <span>할인 코드 <strong>{codeFromUrl}</strong> 감지됨 — 결제 시 자동 적용됩니다</span>
           <button onClick={() => { setCodeFromUrl(null); sessionStorage.removeItem('chronit_code') }} className="ml-2 opacity-70 hover:opacity-100">✕</button>
@@ -272,7 +333,7 @@ const Home = () => {
 
         <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center px-5 py-24 md:px-8 md:py-32">
           <div className="animate-fade-in mb-8 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1.5 text-sm font-bold text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.15)] md:mb-10 md:px-4 md:text-base">
-            <Zap size={14} fill="currentColor" /> <span>실무진 직접 제작 v1.0</span>
+            <Zap size={14} fill="currentColor" /> <span>실무진 직접 제작 v1.0.1</span>
           </div>
 
           <div className="mb-10 flex w-full flex-col items-center md:mb-12">
@@ -485,6 +546,9 @@ const Home = () => {
               <br />
               당신의 성장을 가로막던 제작 노가다에서 해방되세요.
             </p>
+
+            {/* 쿠폰 코드 입력 */}
+            <CouponBar codeFromUrl={codeFromUrl} onApply={(code) => { setCodeFromUrl(code); sessionStorage.setItem('chronit_code', code) }} />
 
             <div
               id="pricing"
