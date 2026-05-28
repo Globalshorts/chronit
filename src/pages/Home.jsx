@@ -105,11 +105,6 @@ const SplineScene = ({ scene }) => {
 const DOWNLOAD_URL =
   'https://github.com/Globalshorts/chronit/releases/latest/download/Chronit_Setup_1.0.1.exe'
 
-// ★ 이벤트 섹션 ON/OFF — 이벤트 있을 때 true로 변경
-const EVENT_ACTIVE = false
-const EVENT_TEXT = '🎁 친구 초대 보너스 1,000 크레딧 + 후기 작성 시 2,000 크레딧으로 상향!'
-const EVENT_LABEL = '이벤트 진행중'
-
 const Home = () => {
   const [scrolled, setScrolled] = useState(false)
   const [paymentOpen, setPaymentOpen] = useState(false)
@@ -120,6 +115,7 @@ const Home = () => {
   const [codeFromUrl, setCodeFromUrl] = useState(null)
   const [refFromUrl, setRefFromUrl] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [eventData, setEventData] = useState(null)
   const pendingPlanRef = useRef(null)
   const pendingSessionRef = useRef(null)
 
@@ -242,6 +238,13 @@ const Home = () => {
     if (access_token && refresh_token) {
       supabase.auth.setSession({ access_token, refresh_token })
     }
+  }, [])
+
+
+  // 이벤트 배너 DB fetch
+  useEffect(() => {
+    supabase.from('site_events').select('*').limit(1).single()
+      .then(({ data }) => { if (data?.active) setEventData(data) })
   }, [])
 
   useEffect(() => {
@@ -393,20 +396,20 @@ const Home = () => {
         </div>
       </div>
 
-      {/* 이벤트 배너 — EVENT_ACTIVE = true 로 변경하면 표시 */}
-      {EVENT_ACTIVE && (
+      {/* 이벤트 배너 — Supabase site_events 테이블에서 관리 */}
+      {eventData && (
         <div className="relative z-30 flex items-center justify-center gap-3 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg md:text-base"
           style={{ marginTop: '80px' }}>
           <Megaphone size={15} className="shrink-0" />
           <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-black uppercase tracking-wide">
-            {EVENT_LABEL}
+            {eventData.label}
           </span>
-          <span>{EVENT_TEXT}</span>
+          <span>{eventData.text}</span>
           <button
             onClick={() => openPayment('pro')}
             className="ml-2 shrink-0 rounded-full bg-white/20 px-3 py-1 text-xs font-black transition-all hover:bg-white/30"
           >
-            지금 참여
+            {eventData.cta_text}
           </button>
         </div>
       )}
