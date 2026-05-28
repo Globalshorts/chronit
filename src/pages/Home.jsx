@@ -439,12 +439,24 @@ const Home = () => {
             />
             {/* 모달 푸터 */}
             <div className="border-t border-white/10 px-6 py-4">
-              <button
-                onClick={() => { openPayment('pro'); setEventModalOpen(false) }}
-                className="w-full rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-3.5 text-base font-extrabold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
-              >
-                {eventData.cta_text}
-              </button>
+              {eventData.cta_url ? (
+                <a
+                  href={eventData.cta_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setEventModalOpen(false)}
+                  className="block w-full rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-3.5 text-center text-base font-extrabold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
+                >
+                  {eventData.cta_text}
+                </a>
+              ) : (
+                <button
+                  onClick={() => { openPayment('pro'); setEventModalOpen(false) }}
+                  className="w-full rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-3.5 text-base font-extrabold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
+                >
+                  {eventData.cta_text}
+                </button>
+              )}
             </div>
           </div>
         </div>
