@@ -1,30 +1,16 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { Megaphone, Save, LogOut, ShieldCheck, Loader, Eye, EyeOff } from 'lucide-react'
-import ReactQuill from 'react-quill'
-import 'react-quill/dist/quill.snow.css'
 
-const QUILL_MODULES = {
-  toolbar: [
-    [{ font: [] }, { size: ['small', false, 'large', 'huge'] }],
-    ['bold', 'italic', 'underline', 'strike'],
-    [{ color: [] }, { background: [] }],
-    [{ align: [] }],
-    [{ list: 'ordered' }, { list: 'bullet' }],
-    ['blockquote', 'code-block'],
-    ['link', 'image'],
-    ['clean'],
-  ],
-}
-
-const QUILL_FORMATS = [
-  'font', 'size',
-  'bold', 'italic', 'underline', 'strike',
-  'color', 'background',
-  'align',
-  'list', 'bullet',
-  'blockquote', 'code-block',
-  'link', 'image',
+const TOOLBAR_OPTIONS = [
+  [{ font: [] }, { size: ['small', false, 'large', 'huge'] }],
+  ['bold', 'italic', 'underline', 'strike'],
+  [{ color: [] }, { background: [] }],
+  [{ align: [] }],
+  [{ list: 'ordered' }, { list: 'bullet' }],
+  ['blockquote', 'code-block'],
+  ['link', 'image'],
+  ['clean'],
 ]
 
 const Admin = () => {
@@ -40,6 +26,56 @@ const Admin = () => {
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState(null)
   const [preview, setPreview] = useState(false)
+
+  const editorRef = useRef(null)
+  const quillRef = useRef(null)
+  const initializedRef = useRef(false)
+
+  // Quill 초기화
+  useEffect(() => {
+    if (preview || initializedRef.current || !editorRef.current) return
+
+    const loadQuill = async () => {
+      const { default: Quill } = await import('quill')
+      await import('quill/dist/quill.snow.css')
+
+      if (quillRef.current || !editorRef.current) return
+
+      const quill = new Quill(editorRef.current, {
+        theme: 'snow',
+        modules: { toolbar: TOOLBAR_OPTIONS },
+        placeholder: '이벤트 내용을 입력하세요 (폰트, 굵기, 기울기, 색상, 이미지 모두 지원)',
+      })
+
+      quill.on('text-change', () => {
+        const html = quill.root.innerHTML
+        setEvent(ev => ({ ...ev, text: html }))
+      })
+
+      quillRef.current = quill
+      initializedRef.current = true
+
+      // 기존 내용 복원
+      setEvent(ev => {
+        if (ev.text) quill.root.innerHTML = ev.text
+        return ev
+      })
+    }
+
+    loadQuill()
+  }, [preview])
+
+  // 편집 모드로 돌아올 때 내용 복원
+  useEffect(() => {
+    if (!preview && quillRef.current) {
+      // 약간의 지연 후 복원 (DOM 렌더 후)
+      setTimeout(() => {
+        if (quillRef.current) {
+          quillRef.current.root.innerHTML = event.text || ''
+        }
+      }, 50)
+    }
+  }, [preview])
 
   useEffect(() => {
     const init = async () => {
@@ -60,7 +96,13 @@ const Admin = () => {
           .select('*')
           .limit(1)
           .single()
-        if (data) setEvent(data)
+        if (data) {
+          setEvent(data)
+          // Quill이 이미 초기화됐다면 내용 설정
+          if (quillRef.current) {
+            quillRef.current.root.innerHTML = data.text || ''
+          }
+        }
       }
       setLoading(false)
     }
@@ -122,7 +164,6 @@ const Admin = () => {
 
   return (
     <>
-      {/* Quill 스타일 다크모드 오버라이드 */}
       <style>{`
         .ql-toolbar { background: #0f172a !important; border-color: rgba(255,255,255,0.1) !important; border-radius: 12px 12px 0 0; }
         .ql-container { background: #0f172a !important; border-color: rgba(255,255,255,0.1) !important; border-radius: 0 0 12px 12px; min-height: 300px; }
@@ -137,7 +178,6 @@ const Admin = () => {
         .ql-toolbar button:hover .ql-stroke, .ql-toolbar button.ql-active .ql-stroke { stroke: #60a5fa !important; }
         .ql-toolbar button:hover .ql-fill, .ql-toolbar button.ql-active .ql-fill { fill: #60a5fa !important; }
         .ql-toolbar button:hover, .ql-toolbar button.ql-active { background: rgba(255,255,255,0.06) !important; border-radius: 4px; }
-        /* 미리보기 영역 */
         .event-preview img { max-width: 100%; border-radius: 8px; }
         .event-preview p { margin: 0.5em 0; }
         .event-preview h1,.event-preview h2,.event-preview h3 { font-weight: 800; margin: 0.8em 0 0.4em; }
@@ -149,7 +189,6 @@ const Admin = () => {
       <div className="min-h-screen bg-[#020617] px-4 py-16 text-slate-100">
         <div className="mx-auto max-w-3xl">
 
-          {/* 헤더 */}
           <div className="mb-10 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <ShieldCheck size={22} className="text-blue-400" />
@@ -163,7 +202,6 @@ const Admin = () => {
             </button>
           </div>
 
-          {/* 이벤트 관리 카드 */}
           <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
             <div className="mb-6 flex items-center gap-2">
               <Megaphone size={18} className="text-violet-400" />
@@ -208,7 +246,7 @@ const Admin = () => {
               </div>
             </div>
 
-            {/* 리치 텍스트 에디터 */}
+            {/* 에디터 */}
             <div className="mb-6">
               <div className="mb-2 flex items-center justify-between">
                 <label className="text-sm font-bold text-slate-400">이벤트 본문</label>
@@ -224,17 +262,10 @@ const Admin = () => {
               {preview ? (
                 <div
                   className="event-preview min-h-[300px] rounded-xl border border-white/10 bg-white/[0.03] p-6 text-slate-200"
-                  dangerouslySetInnerHTML={{ __html: event.text || '<p class="text-slate-500">본문 없음</p>' }}
+                  dangerouslySetInnerHTML={{ __html: event.text || '<p style="color:#475569">본문 없음</p>' }}
                 />
               ) : (
-                <ReactQuill
-                  theme="snow"
-                  value={event.text}
-                  onChange={v => setEvent(ev => ({ ...ev, text: v }))}
-                  modules={QUILL_MODULES}
-                  formats={QUILL_FORMATS}
-                  placeholder="이벤트 내용을 입력하세요 (폰트, 굵기, 색상, 이미지 모두 지원)"
-                />
+                <div ref={editorRef} />
               )}
             </div>
 
