@@ -103,7 +103,22 @@ const SplineScene = ({ scene }) => {
 }
 
 const DOWNLOAD_URL =
-  'https://github.com/Globalshorts/chronit/releases/latest/download/Chronit_Setup_1.0.1.exe'
+  'https://github.com/Globalshorts/chronit/releases/latest/download/Chronit_Setup_1.0.0.exe'
+
+const statusCfg = {
+  active:  { label: '진행중',      cls: 'bg-blue-500/20 text-blue-300 border-blue-500/30', dot: true },
+  ended:   { label: '종료됨',      cls: 'bg-slate-600/30 text-slate-400 border-slate-500/20', dot: false },
+  winner:  { label: '당첨자 발표', cls: 'bg-amber-500/20 text-amber-300 border-amber-500/30', dot: false },
+}
+const EventBadge = ({ status, label }) => {
+  const cfg = statusCfg[status] || statusCfg.active
+  return (
+    <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold ${cfg.cls}`}>
+      {cfg.dot && <span className="badge-pulse h-1.5 w-1.5 rounded-full bg-blue-400" />}
+      {label || cfg.label}
+    </span>
+  )
+}
 
 const Home = () => {
   const [scrolled, setScrolled] = useState(false)
@@ -115,8 +130,9 @@ const Home = () => {
   const [codeFromUrl, setCodeFromUrl] = useState(null)
   const [refFromUrl, setRefFromUrl] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [eventData, setEventData] = useState(null)
-  const [eventModalOpen, setEventModalOpen] = useState(false)
+  const [events, setEvents] = useState([])
+  const [eventTab, setEventTab] = useState('active')
+  const [selectedEvent, setSelectedEvent] = useState(null)
   const pendingPlanRef = useRef(null)
   const pendingSessionRef = useRef(null)
 
@@ -242,10 +258,10 @@ const Home = () => {
   }, [])
 
 
-  // 이벤트 배너 DB fetch
+  // 이벤트 게시판 fetch
   useEffect(() => {
-    supabase.from('site_events').select('*').limit(1).single()
-      .then(({ data }) => { if (data?.active) setEventData(data) })
+    supabase.from('events').select('*').order('created_at', { ascending: false })
+      .then(({ data }) => { if (data) setEvents(data) })
   }, [])
 
   useEffect(() => {
@@ -397,85 +413,49 @@ const Home = () => {
         </div>
       </div>
 
-      {/* 이벤트 배너 — Supabase site_events 테이블에서 관리 */}
-      {eventData && (
-        <button
-          onClick={() => setEventModalOpen(true)}
-          className="relative z-30 flex w-full items-center justify-center gap-3 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg transition-opacity hover:opacity-90 md:text-base"
-          style={{ marginTop: '80px' }}
-        >
-          <Megaphone size={15} className="shrink-0" />
-          <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-black uppercase tracking-wide">
-            {eventData.label}
-          </span>
-          <span className="line-clamp-1 max-w-md" dangerouslySetInnerHTML={{ __html: eventData.text.replace(/<[^>]+>/g, ' ').slice(0, 80) }} />
-          <span className="ml-2 shrink-0 rounded-full bg-white/20 px-3 py-1 text-xs font-black">
-            {eventData.cta_text} →
-          </span>
-        </button>
-      )}
 
       {/* 이벤트 모달 */}
-      {eventModalOpen && eventData && (
+      {selectedEvent && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setEventModalOpen(false)} />
-          <div className="relative z-10 w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-2xl border border-white/10 bg-[#0d1526] shadow-2xl">
-            {/* 모달 헤더 */}
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setSelectedEvent(null)} />
+          <div className="relative z-10 w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl border border-white/10 bg-[#0d1526] shadow-2xl">
             <div className="sticky top-0 flex items-center justify-between gap-3 border-b border-white/10 bg-[#0d1526]/95 px-6 py-4 backdrop-blur-xl">
-              <div className="flex items-center gap-2">
-                <Megaphone size={16} className="text-violet-400" />
-                <span className="rounded-full bg-violet-500/20 px-2.5 py-0.5 text-xs font-black uppercase tracking-wide text-violet-300">
-                  {eventData.label}
-                </span>
+              <div className="flex items-center gap-2 min-w-0">
+                <EventBadge status={selectedEvent.status} label={selectedEvent.label} />
+                <h3 className="truncate text-base font-bold text-slate-100">{selectedEvent.title}</h3>
               </div>
-              <button onClick={() => setEventModalOpen(false)} className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-white/10 hover:text-white">
-                ✕
-              </button>
+              <button onClick={() => setSelectedEvent(null)} className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:bg-white/10 hover:text-white transition-colors">✕</button>
             </div>
-            {/* 모달 본문 */}
-            <div
-              className="event-content px-6 py-6 text-slate-200"
-              dangerouslySetInnerHTML={{ __html: eventData.text }}
-            />
-            {/* 모달 푸터 */}
-            <div className="border-t border-white/10 px-6 py-4">
-              {eventData.cta_url ? (
-                <a
-                  href={eventData.cta_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setEventModalOpen(false)}
-                  className="block w-full rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-3.5 text-center text-base font-extrabold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
-                >
-                  {eventData.cta_text}
+            <div className="event-content px-6 py-6 text-slate-200" dangerouslySetInnerHTML={{ __html: selectedEvent.content }} />
+            {selectedEvent.cta_text && selectedEvent.cta_url && (
+              <div className="border-t border-white/10 px-6 py-4">
+                <a href={selectedEvent.cta_url} target="_blank" rel="noopener noreferrer"
+                  onClick={() => setSelectedEvent(null)}
+                  className="block w-full rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-3.5 text-center text-base font-extrabold text-white shadow-lg hover:opacity-90 active:scale-95 transition-all">
+                  {selectedEvent.cta_text}
                 </a>
-              ) : (
-                <button
-                  onClick={() => { openPayment('pro'); setEventModalOpen(false) }}
-                  className="w-full rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-3.5 text-base font-extrabold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
-                >
-                  {eventData.cta_text}
-                </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       )}
 
       <style>{`
-        .event-content img { max-width: 100%; border-radius: 8px; margin: 0.5em 0; }
-        .event-content p { margin: 0.6em 0; line-height: 1.8; }
-        .event-content h1 { font-size: 1.6em; font-weight: 800; margin: 0.8em 0 0.4em; color: #f1f5f9; }
-        .event-content h2 { font-size: 1.3em; font-weight: 700; margin: 0.8em 0 0.4em; color: #f1f5f9; }
-        .event-content h3 { font-size: 1.1em; font-weight: 700; margin: 0.6em 0 0.3em; color: #f1f5f9; }
-        .event-content ul, .event-content ol { padding-left: 1.5em; margin: 0.5em 0; }
-        .event-content li { margin: 0.3em 0; }
-        .event-content blockquote { border-left: 3px solid #7c3aed; padding-left: 1em; color: #94a3b8; margin: 0.6em 0; }
-        .event-content a { color: #a78bfa; text-decoration: underline; }
-        .event-content strong { color: #f1f5f9; font-weight: 700; }
-        .event-content em { font-style: italic; }
-        .event-content code { background: rgba(255,255,255,0.08); padding: 0.1em 0.4em; border-radius: 4px; font-family: monospace; font-size: 0.9em; }
-      `}</style>
+        .event-content img { max-width:100%; border-radius:8px; margin:0.5em 0; }
+        .event-content p { margin:0.6em 0; line-height:1.8; }
+        .event-content h1 { font-size:1.6em; font-weight:800; margin:0.8em 0 0.4em; color:#f1f5f9; }
+        .event-content h2 { font-size:1.3em; font-weight:700; margin:0.8em 0 0.4em; color:#f1f5f9; }
+        .event-content h3 { font-size:1.1em; font-weight:700; margin:0.6em 0 0.3em; color:#f1f5f9; }
+        .event-content ul, .event-content ol { padding-left:1.5em; margin:0.5em 0; }
+        .event-content li { margin:0.3em 0; }
+        .event-content blockquote { border-left:3px solid #7c3aed; padding-left:1em; color:#94a3b8; margin:0.6em 0; }
+        .event-content a { color:#a78bfa; text-decoration:underline; }
+        .event-content strong { color:#f1f5f9; font-weight:700; }
+        .event-content code { background:rgba(255,255,255,0.08); padding:0.1em 0.4em; border-radius:4px; font-family:monospace; font-size:0.9em; }
+        @keyframes badge-pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+        .badge-pulse { animation: badge-pulse 2s ease-in-out infinite; }
+      \`}</style>
+
 
       {/* Hero Section */}
       <section className="relative flex min-h-screen items-center justify-center overflow-hidden text-center">
@@ -822,6 +802,60 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* 이벤트 게시판 */}
+      {events.length > 0 && (
+        <section className="bg-[#020617] px-5 py-20 md:px-8">
+          <div className="mx-auto max-w-4xl">
+            <h2 className="mb-8 text-2xl font-black tracking-tight text-white">이벤트</h2>
+
+            {/* 탭 */}
+            <div className="mb-1 flex border-b border-white/10">
+              {[
+                { key: 'active', label: '진행중인 이벤트' },
+                { key: 'ended',  label: '종료된 이벤트' },
+                { key: 'winner', label: '당첨자 발표' },
+              ].map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => setEventTab(tab.key)}
+                  className={`px-5 py-3 text-sm font-bold transition-colors border-b-2 -mb-px ${
+                    eventTab === tab.key
+                      ? 'border-blue-500 text-white'
+                      : 'border-transparent text-slate-500 hover:text-slate-300'
+                  }`}
+                >
+                  {tab.label}
+                  <span className="ml-1.5 rounded-full bg-white/8 px-1.5 py-0.5 text-xs text-slate-400">
+                    {events.filter(e => e.status === tab.key).length}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* 목록 */}
+            <div className="divide-y divide-white/6">
+              {events.filter(e => e.status === eventTab).length === 0 ? (
+                <p className="py-12 text-center text-sm text-slate-600">해당 이벤트가 없습니다</p>
+              ) : (
+                events.filter(e => e.status === eventTab).map(ev => (
+                  <button
+                    key={ev.id}
+                    onClick={() => setSelectedEvent(ev)}
+                    className="flex w-full items-center gap-4 px-2 py-4 text-left transition-colors hover:bg-white/[0.03]"
+                  >
+                    <EventBadge status={ev.status} label={ev.label} />
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-200">{ev.title}</span>
+                    <span className="shrink-0 text-xs text-slate-500">
+                      {new Date(ev.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '')}
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Footer */}
       <footer className="border-t border-white/5 bg-[#01030a] px-5 py-16 md:px-8 md:py-32">
