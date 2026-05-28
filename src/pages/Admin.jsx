@@ -3,10 +3,10 @@ import { supabase } from '../lib/supabase'
 import {
   Megaphone, Save, LogOut, ShieldCheck, Loader, Eye, EyeOff,
   Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter,
-  AlignRight, List, ListOrdered, Link, Image, Minus, Plus, Pencil, Trash2, X, ChevronLeft
+  AlignRight, List, ListOrdered, Link, Image, Minus, Plus, Pencil, Trash2, ChevronLeft
 } from 'lucide-react'
 
-/* ── 툴바 버튼 ── */
+/* ── 툴바 ── */
 const ToolBtn = ({ onClick, title, children }) => (
   <button type="button" title={title}
     onMouseDown={e => { e.preventDefault(); onClick() }}
@@ -31,11 +31,7 @@ const RichEditor = ({ value, onChange }) => {
   }, [value])
 
   const exec = (cmd, val = null) => { editorRef.current?.focus(); document.execCommand(cmd, false, val) }
-
-  const insertLink = () => {
-    const url = prompt('링크 URL:', 'https://')
-    if (url) exec('createLink', url)
-  }
+  const insertLink = () => { const u = prompt('링크 URL:', 'https://'); if (u) exec('createLink', u) }
 
   const insertImageFromFile = async (file) => {
     if (!file?.type.startsWith('image/')) return
@@ -131,25 +127,24 @@ const RichEditor = ({ value, onChange }) => {
   )
 }
 
-/* ── 상태 배지 ── */
-const statusConfig = {
-  active:  { label: '진행중',     color: 'bg-blue-500/20 text-blue-300 border-blue-500/30' },
-  ended:   { label: '종료됨',     color: 'bg-slate-500/20 text-slate-400 border-slate-500/30' },
-  winner:  { label: '당첨자 발표', color: 'bg-amber-500/20 text-amber-300 border-amber-500/30' },
+/* ── 상태 설정 ── */
+const STATUS_CFG = {
+  active:  { label: '진행중',      cls: 'bg-blue-500/20 text-blue-300 border-blue-500/30', dot: true },
+  ended:   { label: '종료됨',      cls: 'bg-slate-600/30 text-slate-400 border-slate-500/20', dot: false },
+  winner:  { label: '당첨자 발표', cls: 'bg-amber-500/20 text-amber-300 border-amber-500/30', dot: false },
 }
 
 const StatusBadge = ({ status }) => {
-  const cfg = statusConfig[status] || statusConfig.active
+  const cfg = STATUS_CFG[status] || STATUS_CFG.active
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-bold ${cfg.color}`}>
-      {status === 'active' && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-400" />}
+    <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold ${cfg.cls}`}>
+      {cfg.dot && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-400" />}
       {cfg.label}
     </span>
   )
 }
 
-/* ── 빈 폼 ── */
-const emptyForm = () => ({ title: '', label: '진행중', content: '', cta_text: '', cta_url: '', status: 'active' })
+const emptyForm = () => ({ title: '', content: '', status: 'active', cta_text: '', cta_url: '' })
 
 /* ── 메인 ── */
 const Admin = () => {
@@ -157,8 +152,8 @@ const Admin = () => {
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
   const [events, setEvents] = useState([])
-  const [view, setView] = useState('list') // 'list' | 'form'
-  const [editing, setEditing] = useState(null) // null = 새 글
+  const [view, setView] = useState('list')
+  const [editing, setEditing] = useState(null)
   const [form, setForm] = useState(emptyForm())
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState(null)
@@ -188,12 +183,21 @@ const Admin = () => {
   }
 
   const openNew = () => { setForm(emptyForm()); setEditing(null); setPreview(false); setView('form') }
-  const openEdit = (ev) => { setForm({ ...ev }); setEditing(ev.id); setPreview(false); setView('form') }
+  const openEdit = ev => { setForm({ title: ev.title, content: ev.content, status: ev.status, cta_text: ev.cta_text || '', cta_url: ev.cta_url || '' }); setEditing(ev.id); setPreview(false); setView('form') }
 
   const handleSave = async () => {
     if (!form.title.trim()) { setSaveMsg('제목을 입력하세요'); setTimeout(() => setSaveMsg(null), 2000); return }
     setSaving(true); setSaveMsg(null)
-    const payload = { ...form, updated_at: new Date().toISOString(), created_by: user.id }
+    const payload = {
+      title: form.title,
+      content: form.content,
+      status: form.status,
+      label: STATUS_CFG[form.status]?.label || '진행중',  // 상태에서 자동 설정
+      cta_text: form.cta_text,
+      cta_url: form.cta_url,
+      updated_at: new Date().toISOString(),
+      created_by: user.id,
+    }
     let error
     if (editing) {
       ({ error } = await supabase.from('events').update(payload).eq('id', editing))
@@ -212,7 +216,7 @@ const Admin = () => {
     setDeleting(null)
   }
 
-  const formatDate = (s) => new Date(s).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '')
+  const formatDate = s => new Date(s).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '')
 
   if (loading) return <div className="flex min-h-screen items-center justify-center bg-[#020617]"><Loader size={24} className="animate-spin text-slate-400" /></div>
 
@@ -240,7 +244,6 @@ const Admin = () => {
     <div className="min-h-screen bg-[#020617] px-4 py-16 text-slate-100">
       <div className="mx-auto max-w-3xl">
 
-        {/* 헤더 */}
         <div className="mb-8 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {view === 'form' && (
@@ -256,7 +259,7 @@ const Admin = () => {
             <LogOut size={14} /> 로그아웃</button>
         </div>
 
-        {/* 목록 뷰 */}
+        {/* 목록 */}
         {view === 'list' && (
           <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
             <div className="mb-6 flex items-center justify-between">
@@ -302,7 +305,7 @@ const Admin = () => {
           </div>
         )}
 
-        {/* 폼 뷰 */}
+        {/* 폼 */}
         {view === 'form' && (
           <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
             <h2 className="mb-6 text-base font-bold">{editing ? '이벤트 수정' : '새 이벤트 작성'}</h2>
@@ -315,22 +318,19 @@ const Admin = () => {
                 className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 outline-none focus:border-blue-500/50" />
             </div>
 
-            {/* 배지 라벨 + 상태 */}
-            <div className="mb-4 grid grid-cols-2 gap-4">
-              <div>
-                <label className="mb-2 block text-sm font-bold text-slate-400">배지 라벨 <span className="font-normal text-slate-600">(목록에 표시)</span></label>
-                <input value={form.label} onChange={e => set('label', e.target.value)}
-                  placeholder="진행중"
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 outline-none focus:border-blue-500/50" />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-bold text-slate-400">상태</label>
-                <select value={form.status} onChange={e => set('status', e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-[#0f172a] px-4 py-3 text-sm text-slate-200 outline-none focus:border-blue-500/50">
-                  <option value="active">진행중</option>
-                  <option value="ended">종료됨</option>
-                  <option value="winner">당첨자 발표</option>
-                </select>
+            {/* 상태 */}
+            <div className="mb-5">
+              <label className="mb-2 block text-sm font-bold text-slate-400">상태</label>
+              <div className="flex gap-3">
+                {Object.entries(STATUS_CFG).map(([key, cfg]) => (
+                  <button key={key} type="button" onClick={() => set('status', key)}
+                    className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition-all ${
+                      form.status === key ? cfg.cls + ' border-current' : 'border-white/10 text-slate-500 hover:text-slate-300'
+                    }`}>
+                    {key === 'active' && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-400" />}
+                    {cfg.label}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -350,7 +350,7 @@ const Admin = () => {
               </div>
             </div>
 
-            {/* 본문 에디터 */}
+            {/* 본문 */}
             <div className="mb-6">
               <div className="mb-2 flex items-center justify-between">
                 <label className="text-sm font-bold text-slate-400">본문</label>
