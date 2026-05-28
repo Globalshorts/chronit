@@ -13,9 +13,11 @@
     "@supabase/supabase-js": "^2.106.1",
     "@tailwindcss/vite": "^4.2.4",
     "lucide-react": "^1.11.0",
+    "quill": "^2.0.3",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-markdown": "^10.1.0",
+    "react-quill": "^2.0.0",
     "react-router-dom": "^7.14.2",
     "remark-gfm": "^4.0.1",
     "tailwindcss": "^4.2.4"

@@ -116,6 +116,7 @@ const Home = () => {
   const [refFromUrl, setRefFromUrl] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [eventData, setEventData] = useState(null)
+  const [eventModalOpen, setEventModalOpen] = useState(false)
   const pendingPlanRef = useRef(null)
   const pendingSessionRef = useRef(null)
 
@@ -398,21 +399,71 @@ const Home = () => {
 
       {/* 이벤트 배너 — Supabase site_events 테이블에서 관리 */}
       {eventData && (
-        <div className="relative z-30 flex items-center justify-center gap-3 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg md:text-base"
-          style={{ marginTop: '80px' }}>
+        <button
+          onClick={() => setEventModalOpen(true)}
+          className="relative z-30 flex w-full items-center justify-center gap-3 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg transition-opacity hover:opacity-90 md:text-base"
+          style={{ marginTop: '80px' }}
+        >
           <Megaphone size={15} className="shrink-0" />
           <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-black uppercase tracking-wide">
             {eventData.label}
           </span>
-          <span>{eventData.text}</span>
-          <button
-            onClick={() => openPayment('pro')}
-            className="ml-2 shrink-0 rounded-full bg-white/20 px-3 py-1 text-xs font-black transition-all hover:bg-white/30"
-          >
-            {eventData.cta_text}
-          </button>
+          <span className="line-clamp-1 max-w-md" dangerouslySetInnerHTML={{ __html: eventData.text.replace(/<[^>]+>/g, ' ').slice(0, 80) }} />
+          <span className="ml-2 shrink-0 rounded-full bg-white/20 px-3 py-1 text-xs font-black">
+            {eventData.cta_text} →
+          </span>
+        </button>
+      )}
+
+      {/* 이벤트 모달 */}
+      {eventModalOpen && eventData && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setEventModalOpen(false)} />
+          <div className="relative z-10 w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-2xl border border-white/10 bg-[#0d1526] shadow-2xl">
+            {/* 모달 헤더 */}
+            <div className="sticky top-0 flex items-center justify-between gap-3 border-b border-white/10 bg-[#0d1526]/95 px-6 py-4 backdrop-blur-xl">
+              <div className="flex items-center gap-2">
+                <Megaphone size={16} className="text-violet-400" />
+                <span className="rounded-full bg-violet-500/20 px-2.5 py-0.5 text-xs font-black uppercase tracking-wide text-violet-300">
+                  {eventData.label}
+                </span>
+              </div>
+              <button onClick={() => setEventModalOpen(false)} className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-white/10 hover:text-white">
+                ✕
+              </button>
+            </div>
+            {/* 모달 본문 */}
+            <div
+              className="event-content px-6 py-6 text-slate-200"
+              dangerouslySetInnerHTML={{ __html: eventData.text }}
+            />
+            {/* 모달 푸터 */}
+            <div className="border-t border-white/10 px-6 py-4">
+              <button
+                onClick={() => { openPayment('pro'); setEventModalOpen(false) }}
+                className="w-full rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-3.5 text-base font-extrabold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
+              >
+                {eventData.cta_text}
+              </button>
+            </div>
+          </div>
         </div>
       )}
+
+      <style>{`
+        .event-content img { max-width: 100%; border-radius: 8px; margin: 0.5em 0; }
+        .event-content p { margin: 0.6em 0; line-height: 1.8; }
+        .event-content h1 { font-size: 1.6em; font-weight: 800; margin: 0.8em 0 0.4em; color: #f1f5f9; }
+        .event-content h2 { font-size: 1.3em; font-weight: 700; margin: 0.8em 0 0.4em; color: #f1f5f9; }
+        .event-content h3 { font-size: 1.1em; font-weight: 700; margin: 0.6em 0 0.3em; color: #f1f5f9; }
+        .event-content ul, .event-content ol { padding-left: 1.5em; margin: 0.5em 0; }
+        .event-content li { margin: 0.3em 0; }
+        .event-content blockquote { border-left: 3px solid #7c3aed; padding-left: 1em; color: #94a3b8; margin: 0.6em 0; }
+        .event-content a { color: #a78bfa; text-decoration: underline; }
+        .event-content strong { color: #f1f5f9; font-weight: 700; }
+        .event-content em { font-style: italic; }
+        .event-content code { background: rgba(255,255,255,0.08); padding: 0.1em 0.4em; border-radius: 4px; font-family: monospace; font-size: 0.9em; }
+      `}</style>
 
       {/* Hero Section */}
       <section className="relative flex min-h-screen items-center justify-center overflow-hidden text-center">

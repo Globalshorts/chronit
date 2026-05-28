@@ -1,16 +1,46 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
-import { Megaphone, Save, LogOut, ShieldCheck, Loader } from 'lucide-react'
+import { Megaphone, Save, LogOut, ShieldCheck, Loader, Eye, EyeOff } from 'lucide-react'
+import ReactQuill from 'react-quill'
+import 'react-quill/dist/quill.snow.css'
+
+const QUILL_MODULES = {
+  toolbar: [
+    [{ font: [] }, { size: ['small', false, 'large', 'huge'] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ color: [] }, { background: [] }],
+    [{ align: [] }],
+    [{ list: 'ordered' }, { list: 'bullet' }],
+    ['blockquote', 'code-block'],
+    ['link', 'image'],
+    ['clean'],
+  ],
+}
+
+const QUILL_FORMATS = [
+  'font', 'size',
+  'bold', 'italic', 'underline', 'strike',
+  'color', 'background',
+  'align',
+  'list', 'bullet',
+  'blockquote', 'code-block',
+  'link', 'image',
+]
 
 const Admin = () => {
   const [user, setUser] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [event, setEvent] = useState({ active: false, label: '', text: '', cta_text: '' })
+  const [event, setEvent] = useState({
+    active: false,
+    label: '',
+    text: '',
+    cta_text: '',
+  })
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState(null)
+  const [preview, setPreview] = useState(false)
 
-  // 로그인 상태 + admin 체크
   useEffect(() => {
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession()
@@ -25,21 +55,17 @@ const Admin = () => {
 
       if (sub?.role === 'super_admin') {
         setIsAdmin(true)
-        await loadEvent()
+        const { data } = await supabase
+          .from('site_events')
+          .select('*')
+          .limit(1)
+          .single()
+        if (data) setEvent(data)
       }
       setLoading(false)
     }
     init()
   }, [])
-
-  const loadEvent = async () => {
-    const { data } = await supabase
-      .from('site_events')
-      .select('*')
-      .limit(1)
-      .single()
-    if (data) setEvent(data)
-  }
 
   const handleSave = async () => {
     setSaving(true)
@@ -61,14 +87,12 @@ const Admin = () => {
     setTimeout(() => setSaveMsg(null), 3000)
   }
 
-  // 로딩
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center bg-[#020617] text-slate-400">
       <Loader size={24} className="animate-spin" />
     </div>
   )
 
-  // 비로그인
   if (!user) return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-[#020617] text-slate-100">
       <ShieldCheck size={48} className="text-slate-600" />
@@ -82,7 +106,6 @@ const Admin = () => {
     </div>
   )
 
-  // 권한 없음
   if (!isAdmin) return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#020617] text-slate-100">
       <ShieldCheck size={48} className="text-red-500/60" />
@@ -98,117 +121,144 @@ const Admin = () => {
   )
 
   return (
-    <div className="min-h-screen bg-[#020617] px-4 py-16 text-slate-100">
-      <div className="mx-auto max-w-2xl">
+    <>
+      {/* Quill 스타일 다크모드 오버라이드 */}
+      <style>{`
+        .ql-toolbar { background: #0f172a !important; border-color: rgba(255,255,255,0.1) !important; border-radius: 12px 12px 0 0; }
+        .ql-container { background: #0f172a !important; border-color: rgba(255,255,255,0.1) !important; border-radius: 0 0 12px 12px; min-height: 300px; }
+        .ql-editor { color: #e2e8f0 !important; min-height: 300px; font-size: 15px; line-height: 1.8; }
+        .ql-editor.ql-blank::before { color: #475569 !important; font-style: normal; }
+        .ql-stroke { stroke: #94a3b8 !important; }
+        .ql-fill { fill: #94a3b8 !important; }
+        .ql-picker-label { color: #94a3b8 !important; }
+        .ql-picker-options { background: #1e293b !important; border-color: rgba(255,255,255,0.1) !important; }
+        .ql-picker-item { color: #cbd5e1 !important; }
+        .ql-picker-item:hover { color: #fff !important; background: rgba(255,255,255,0.05) !important; }
+        .ql-toolbar button:hover .ql-stroke, .ql-toolbar button.ql-active .ql-stroke { stroke: #60a5fa !important; }
+        .ql-toolbar button:hover .ql-fill, .ql-toolbar button.ql-active .ql-fill { fill: #60a5fa !important; }
+        .ql-toolbar button:hover, .ql-toolbar button.ql-active { background: rgba(255,255,255,0.06) !important; border-radius: 4px; }
+        /* 미리보기 영역 */
+        .event-preview img { max-width: 100%; border-radius: 8px; }
+        .event-preview p { margin: 0.5em 0; }
+        .event-preview h1,.event-preview h2,.event-preview h3 { font-weight: 800; margin: 0.8em 0 0.4em; }
+        .event-preview ul,.event-preview ol { padding-left: 1.5em; margin: 0.5em 0; }
+        .event-preview blockquote { border-left: 3px solid #3b82f6; padding-left: 1em; color: #94a3b8; margin: 0.5em 0; }
+        .event-preview a { color: #60a5fa; text-decoration: underline; }
+      `}</style>
 
-        {/* 헤더 */}
-        <div className="mb-10 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <ShieldCheck size={22} className="text-blue-400" />
-            <h1 className="text-xl font-black tracking-tight">Chronit 관리자</h1>
-          </div>
-          <button
-            onClick={() => supabase.auth.signOut()}
-            className="flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2 text-sm font-bold text-slate-400 transition-colors hover:text-white"
-          >
-            <LogOut size={14} /> 로그아웃
-          </button>
-        </div>
+      <div className="min-h-screen bg-[#020617] px-4 py-16 text-slate-100">
+        <div className="mx-auto max-w-3xl">
 
-        {/* 이벤트 관리 카드 */}
-        <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
-          <div className="mb-6 flex items-center gap-2">
-            <Megaphone size={18} className="text-violet-400" />
-            <h2 className="text-base font-bold">홈페이지 이벤트 배너</h2>
-          </div>
-
-          {/* ON/OFF 토글 */}
-          <div className="mb-6 flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.03] px-5 py-4">
-            <div>
-              <p className="font-bold text-slate-200">이벤트 활성화</p>
-              <p className="mt-0.5 text-sm text-slate-500">켜면 홈페이지 상단에 배너가 표시됩니다</p>
+          {/* 헤더 */}
+          <div className="mb-10 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <ShieldCheck size={22} className="text-blue-400" />
+              <h1 className="text-xl font-black tracking-tight">Chronit 관리자</h1>
             </div>
             <button
-              onClick={() => setEvent(e => ({ ...e, active: !e.active }))}
-              className={`relative h-7 w-12 rounded-full transition-colors ${event.active ? 'bg-blue-600' : 'bg-white/10'}`}
+              onClick={() => supabase.auth.signOut()}
+              className="flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2 text-sm font-bold text-slate-400 transition-colors hover:text-white"
             >
-              <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${event.active ? 'left-6' : 'left-1'}`} />
+              <LogOut size={14} /> 로그아웃
             </button>
           </div>
 
-          {/* 배지 라벨 */}
-          <div className="mb-4">
-            <label className="mb-2 block text-sm font-bold text-slate-400">배지 라벨</label>
-            <input
-              type="text"
-              value={event.label}
-              onChange={e => setEvent(ev => ({ ...ev, label: e.target.value }))}
-              placeholder="이벤트 진행중"
-              className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 outline-none focus:border-blue-500/50"
-            />
-          </div>
+          {/* 이벤트 관리 카드 */}
+          <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
+            <div className="mb-6 flex items-center gap-2">
+              <Megaphone size={18} className="text-violet-400" />
+              <h2 className="text-base font-bold">홈페이지 이벤트 공지</h2>
+            </div>
 
-          {/* 이벤트 문구 */}
-          <div className="mb-4">
-            <label className="mb-2 block text-sm font-bold text-slate-400">이벤트 문구</label>
-            <textarea
-              value={event.text}
-              onChange={e => setEvent(ev => ({ ...ev, text: e.target.value }))}
-              placeholder="🎁 친구 초대 보너스 1,000 크레딧 + 후기 작성 시 2,000 크레딧으로 상향!"
-              rows={3}
-              className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 outline-none focus:border-blue-500/50 resize-none"
-            />
-          </div>
+            {/* ON/OFF 토글 */}
+            <div className="mb-6 flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.03] px-5 py-4">
+              <div>
+                <p className="font-bold text-slate-200">이벤트 활성화</p>
+                <p className="mt-0.5 text-sm text-slate-500">켜면 홈페이지에 이벤트 배너가 표시됩니다</p>
+              </div>
+              <button
+                onClick={() => setEvent(e => ({ ...e, active: !e.active }))}
+                className={`relative h-7 w-12 rounded-full transition-colors ${event.active ? 'bg-blue-600' : 'bg-white/10'}`}
+              >
+                <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${event.active ? 'left-6' : 'left-1'}`} />
+              </button>
+            </div>
 
-          {/* CTA 버튼 텍스트 */}
-          <div className="mb-8">
-            <label className="mb-2 block text-sm font-bold text-slate-400">버튼 텍스트</label>
-            <input
-              type="text"
-              value={event.cta_text}
-              onChange={e => setEvent(ev => ({ ...ev, cta_text: e.target.value }))}
-              placeholder="지금 참여"
-              className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 outline-none focus:border-blue-500/50"
-            />
-          </div>
-
-          {/* 미리보기 */}
-          {event.active && (
-            <div className="mb-6 rounded-xl overflow-hidden">
-              <p className="mb-2 text-xs font-bold text-slate-600 uppercase tracking-widest">미리보기</p>
-              <div className="flex items-center justify-center gap-3 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 px-4 py-3 text-sm font-bold text-white">
-                <Megaphone size={14} className="shrink-0" />
-                <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-black uppercase">
-                  {event.label || '이벤트 진행중'}
-                </span>
-                <span>{event.text || '이벤트 문구를 입력하세요'}</span>
-                <span className="ml-2 shrink-0 rounded-full bg-white/20 px-3 py-1 text-xs font-black">
-                  {event.cta_text || '지금 참여'}
-                </span>
+            {/* 배지 라벨 + CTA */}
+            <div className="mb-4 grid grid-cols-2 gap-4">
+              <div>
+                <label className="mb-2 block text-sm font-bold text-slate-400">배지 라벨</label>
+                <input
+                  type="text"
+                  value={event.label}
+                  onChange={e => setEvent(ev => ({ ...ev, label: e.target.value }))}
+                  placeholder="이벤트 진행중"
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 outline-none focus:border-blue-500/50"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-bold text-slate-400">버튼 텍스트</label>
+                <input
+                  type="text"
+                  value={event.cta_text}
+                  onChange={e => setEvent(ev => ({ ...ev, cta_text: e.target.value }))}
+                  placeholder="지금 참여"
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 outline-none focus:border-blue-500/50"
+                />
               </div>
             </div>
-          )}
 
-          {/* 저장 버튼 */}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-bold text-white transition-all hover:bg-blue-500 active:scale-95 disabled:opacity-50"
-            >
-              {saving ? <Loader size={16} className="animate-spin" /> : <Save size={16} />}
-              저장
-            </button>
-            {saveMsg && (
-              <span className={`text-sm font-bold ${saveMsg.includes('실패') ? 'text-red-400' : 'text-green-400'}`}>
-                {saveMsg}
-              </span>
-            )}
+            {/* 리치 텍스트 에디터 */}
+            <div className="mb-6">
+              <div className="mb-2 flex items-center justify-between">
+                <label className="text-sm font-bold text-slate-400">이벤트 본문</label>
+                <button
+                  onClick={() => setPreview(v => !v)}
+                  className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors"
+                >
+                  {preview ? <EyeOff size={13} /> : <Eye size={13} />}
+                  {preview ? '편집' : '미리보기'}
+                </button>
+              </div>
+
+              {preview ? (
+                <div
+                  className="event-preview min-h-[300px] rounded-xl border border-white/10 bg-white/[0.03] p-6 text-slate-200"
+                  dangerouslySetInnerHTML={{ __html: event.text || '<p class="text-slate-500">본문 없음</p>' }}
+                />
+              ) : (
+                <ReactQuill
+                  theme="snow"
+                  value={event.text}
+                  onChange={v => setEvent(ev => ({ ...ev, text: v }))}
+                  modules={QUILL_MODULES}
+                  formats={QUILL_FORMATS}
+                  placeholder="이벤트 내용을 입력하세요 (폰트, 굵기, 색상, 이미지 모두 지원)"
+                />
+              )}
+            </div>
+
+            {/* 저장 버튼 */}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-bold text-white transition-all hover:bg-blue-500 active:scale-95 disabled:opacity-50"
+              >
+                {saving ? <Loader size={16} className="animate-spin" /> : <Save size={16} />}
+                저장
+              </button>
+              {saveMsg && (
+                <span className={`text-sm font-bold ${saveMsg.includes('실패') ? 'text-red-400' : 'text-green-400'}`}>
+                  {saveMsg}
+                </span>
+              )}
+            </div>
           </div>
-        </div>
 
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 
