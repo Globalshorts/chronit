@@ -300,40 +300,43 @@ const Home = () => {
             </a>
           </nav>
           <div className="flex shrink-0 items-center gap-2">
-            {/* 햄버거 버튼 — 모바일 전용 */}
+            {/* 데스크톱 전용 */}
+            <div className="hidden md:flex items-center gap-2">
+              {user ? (
+                <>
+                  <span className="text-sm font-medium text-slate-400">
+                    {user.email?.split('@')[0]}
+                  </span>
+                  <button
+                    onClick={() => supabase.auth.signOut()}
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-slate-400 transition-all hover:border-white/30 hover:text-white"
+                    title="로그아웃"
+                  >
+                    <LogOut size={15} />
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  className="rounded-full border border-white/15 px-5 py-2 text-sm font-bold text-slate-300 transition-all hover:border-white/30 hover:text-white"
+                >
+                  로그인
+                </button>
+              )}
+              <button
+                onClick={() => openPayment('pro')}
+                className="rounded-full bg-blue-600 px-7 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-lg shadow-blue-600/25 transition-all hover:bg-blue-500 active:scale-95"
+              >
+                시작하기
+              </button>
+            </div>
+            {/* 햄버거 버튼 — 모바일 전용, 오른쪽 끝 */}
             <button
               onClick={() => setMenuOpen((v) => !v)}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-slate-300 transition-all hover:border-white/30 hover:text-white md:hidden"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-slate-300 transition-all hover:border-white/30 hover:text-white md:hidden"
               aria-label="메뉴"
             >
-              {menuOpen ? <X size={18} /> : <Menu size={18} />}
-            </button>
-            {user ? (
-              <>
-                <span className="hidden text-sm font-medium text-slate-400 md:block">
-                  {user.email?.split('@')[0]}
-                </span>
-                <button
-                  onClick={() => supabase.auth.signOut()}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-slate-400 transition-all hover:border-white/30 hover:text-white"
-                  title="로그아웃"
-                >
-                  <LogOut size={15} />
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={() => setShowAuthModal(true)}
-                className="rounded-full border border-white/15 px-4 py-2 text-sm font-bold text-slate-300 transition-all hover:border-white/30 hover:text-white md:px-5"
-              >
-                로그인
-              </button>
-            )}
-            <button
-              onClick={() => openPayment('pro')}
-              className="rounded-full bg-blue-600 px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-lg shadow-blue-600/25 transition-all hover:bg-blue-500 active:scale-95 md:px-7 md:py-2.5 md:text-base"
-            >
-              시작하기
+              {menuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
@@ -348,39 +351,45 @@ const Home = () => {
       >
         <div className="border-b border-white/10 bg-[#020617]/95 px-6 py-6 backdrop-blur-xl">
           <nav className="flex flex-col gap-1">
-            <a
-              href="#features"
-              onClick={() => setMenuOpen(false)}
-              className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400"
-            >
+            <a href="#features" onClick={() => setMenuOpen(false)}
+              className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400">
               Features
             </a>
-            <Link
-              to="/manual"
-              onClick={() => setMenuOpen(false)}
-              className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400"
-            >
+            <Link to="/manual" onClick={() => setMenuOpen(false)}
+              className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400">
               Manual
             </Link>
-            <a
-              href="#pricing"
-              onClick={() => setMenuOpen(false)}
-              className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400"
-            >
+            <a href="#pricing" onClick={() => setMenuOpen(false)}
+              className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400">
               Pricing
             </a>
           </nav>
-          {user && (
-            <div className="mt-4 border-t border-white/10 pt-4">
-              <p className="px-4 pb-3 text-sm text-slate-500">{user.email}</p>
+          <div className="mt-4 border-t border-white/10 pt-4 flex flex-col gap-2">
+            {user ? (
+              <>
+                <p className="px-4 pb-1 text-sm text-slate-500">{user.email}</p>
+                <button
+                  onClick={() => { supabase.auth.signOut(); setMenuOpen(false) }}
+                  className="flex w-full items-center gap-2 rounded-xl px-4 py-3 text-base font-bold text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
+                >
+                  <LogOut size={16} /> 로그아웃
+                </button>
+              </>
+            ) : (
               <button
-                onClick={() => { supabase.auth.signOut(); setMenuOpen(false) }}
-                className="flex w-full items-center gap-2 rounded-xl px-4 py-3 text-base font-bold text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
+                onClick={() => { setShowAuthModal(true); setMenuOpen(false) }}
+                className="w-full rounded-xl border border-white/15 px-4 py-3 text-base font-bold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
               >
-                <LogOut size={16} /> 로그아웃
+                로그인
               </button>
-            </div>
-          )}
+            )}
+            <button
+              onClick={() => { openPayment('pro'); setMenuOpen(false) }}
+              className="w-full rounded-xl bg-blue-600 px-4 py-3.5 text-base font-extrabold text-white shadow-lg shadow-blue-600/25 transition-all hover:bg-blue-500 active:scale-95"
+            >
+              시작하기
+            </button>
+          </div>
         </div>
       </div>
 
