@@ -103,7 +103,7 @@ const SplineScene = ({ scene }) => {
 }
 
 const DOWNLOAD_URL =
-  'https://github.com/Globalshorts/chronit/releases/latest/download/Chronit_Setup_1.0.0.exe'
+  'https://github.com/Globalshorts/chronit/releases/latest/download/Chronit_Setup_1.0.1.exe'
 
 const statusCfg = {
   active:  { label: '진행중',      cls: 'bg-blue-500/20 text-blue-300 border-blue-500/30', dot: true },
