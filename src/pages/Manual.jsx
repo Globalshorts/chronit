@@ -26,7 +26,7 @@ const Manual = () => {
   const startMd = installMd + '\n\n---\n\n' + usageMd
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#020617] font-sans text-slate-100 selection:bg-blue-500/30" style={{overflowWrap:'anywhere',wordBreak:'break-word'}}>
+    <div className="min-h-screen overflow-x-hidden bg-[#020617] font-sans text-slate-100 selection:bg-blue-500/30" style={{overflowWrap:'anywhere'}}>
 
       {/* 헤더 */}
       <header className={`fixed top-0 right-0 left-0 z-50 transition-all duration-500 ${scrolled ? 'border-b border-white/10 bg-[#020617]/90 py-3 backdrop-blur-xl md:py-4' : 'bg-transparent py-5 md:py-8'}`}>
@@ -186,7 +186,7 @@ const mdComponents = {
   h1: (p) => <h1 className="mt-8 mb-3 text-xl font-black text-white md:text-2xl" {...p} />,
   h2: (p) => <h2 className="mt-8 mb-3 text-lg font-black text-white md:text-xl" {...p} />,
   h3: (p) => <h3 className="mt-5 mb-2 text-base font-bold text-slate-200 md:text-lg" {...p} />,
-  p:  (p) => <p className="my-2 text-base leading-[1.9] text-slate-300 [word-break:break-word] [overflow-wrap:anywhere] md:text-lg" {...p} />,
+  p:  (p) => <p className="my-2 text-base leading-[1.9] text-slate-300 [overflow-wrap:anywhere] md:text-lg" {...p} />,
   ul: (p) => <ul className="my-2 list-disc space-y-1.5 pl-5 text-slate-300 [overflow-wrap:anywhere]" {...p} />,
   ol: (p) => <ol className="my-2 list-decimal space-y-1.5 pl-5 text-slate-300 [overflow-wrap:anywhere]" {...p} />,
   li: (p) => <li className="text-base leading-[1.9] [overflow-wrap:anywhere] md:text-lg" {...p} />,
