@@ -26,7 +26,7 @@ const Manual = () => {
   const startMd = installMd + '\n\n---\n\n' + usageMd
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#020617] font-sans break-words text-slate-100 selection:bg-blue-500/30">
+    <div className="min-h-screen overflow-x-hidden bg-[#020617] font-sans text-slate-100 selection:bg-blue-500/30" style={{overflowWrap:'anywhere',wordBreak:'break-word'}}>
 
       {/* 헤더 */}
       <header className={`fixed top-0 right-0 left-0 z-50 transition-all duration-500 ${scrolled ? 'border-b border-white/10 bg-[#020617]/90 py-3 backdrop-blur-xl md:py-4' : 'bg-transparent py-5 md:py-8'}`}>
@@ -186,12 +186,12 @@ const mdComponents = {
   h1: (p) => <h1 className="mt-8 mb-3 text-xl font-black text-white md:text-2xl" {...p} />,
   h2: (p) => <h2 className="mt-8 mb-3 text-lg font-black text-white md:text-xl" {...p} />,
   h3: (p) => <h3 className="mt-5 mb-2 text-base font-bold text-slate-200 md:text-lg" {...p} />,
-  p:  (p) => <p className="my-2 break-words text-base leading-[1.9] text-slate-300 md:text-lg" {...p} />,
-  ul: (p) => <ul className="my-2 list-disc space-y-1.5 pl-5 text-slate-300" {...p} />,
-  ol: (p) => <ol className="my-2 list-decimal space-y-1.5 pl-5 text-slate-300" {...p} />,
-  li: (p) => <li className="break-words text-base leading-[1.9] md:text-lg" {...p} />,
+  p:  (p) => <p className="my-2 text-base leading-[1.9] text-slate-300 [word-break:break-word] [overflow-wrap:anywhere] md:text-lg" {...p} />,
+  ul: (p) => <ul className="my-2 list-disc space-y-1.5 pl-5 text-slate-300 [overflow-wrap:anywhere]" {...p} />,
+  ol: (p) => <ol className="my-2 list-decimal space-y-1.5 pl-5 text-slate-300 [overflow-wrap:anywhere]" {...p} />,
+  li: (p) => <li className="text-base leading-[1.9] [overflow-wrap:anywhere] md:text-lg" {...p} />,
   a:  (p) => <a className="text-blue-400 underline underline-offset-4 hover:text-blue-300" target="_blank" rel="noopener noreferrer" {...p} />,
-  strong: (p) => <strong className="font-bold text-white" {...p} />,
+  strong: (p) => <strong className="font-bold text-white [overflow-wrap:anywhere]" {...p} />,
   em:     (p) => <em className="italic text-slate-200" {...p} />,
   blockquote: (p) => (
     <blockquote className="my-3 overflow-hidden rounded-r-xl border-l-4 border-yellow-500/60 bg-yellow-500/[0.06] py-2 pr-4 pl-4 text-sm leading-relaxed text-yellow-100 break-words md:text-base" {...p} />
