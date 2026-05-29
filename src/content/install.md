@@ -14,6 +14,11 @@
 1. 경고창에서 **추가 정보** 클릭
 2. 아래에 나타나는 **실행** 버튼 클릭
 
+<div style="display:flex;gap:12px;margin:16px 0">
+  <img src="/smartscreen-step1.png" alt="SmartScreen 1단계 - 추가 정보 클릭" style="width:50%;border-radius:10px;border:1px solid rgba(255,255,255,0.1)" />
+  <img src="/smartscreen-step2.png" alt="SmartScreen 2단계 - 실행 클릭" style="width:50%;border-radius:10px;border:1px solid rgba(255,255,255,0.1)" />
+</div>
+
 > 보안상 문제 없는 정상 경고입니다. 누적 다운로드가 쌓이면 자동으로 사라집니다.
 
 ## 3단계: 설치 마법사 진행

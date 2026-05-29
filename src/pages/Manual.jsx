@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import rehypeRaw from 'rehype-raw'
 import { ArrowLeft, Sparkles } from 'lucide-react'
 
 import installMd    from '../content/install.md?raw'
@@ -213,7 +214,7 @@ const mdComponents = {
 }
 
 const Markdown = ({ children }) => (
-  <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
+  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={mdComponents}>
     {children}
   </ReactMarkdown>
 )
@@ -235,7 +236,7 @@ function parseFaq(md) {
     }
   }
   if (current) items.push(current)
-  return items.map(i => ({ ...i, answer: i.answer.trim() }))
+    return items.map(i => ({ ...i, answer: i.answer.trim() }))
 }
 
 export default Manual
