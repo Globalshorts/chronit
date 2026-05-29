@@ -210,7 +210,7 @@ const mdComponents = {
   th: (p) => <th className="border-b border-white/10 px-4 py-2 text-xs font-black tracking-widest text-blue-300 uppercase" {...p} />,
   td: (p) => <td className="border-b border-white/5 px-4 py-2.5 text-slate-300 last:border-b-0" {...p} />,
   hr: (p) => <hr className="my-8 border-white/10" {...p} />,
-  img: (p) => <img className={p.style ? 'rounded-xl border border-white/10 shadow-xl' : 'my-4 w-full rounded-2xl border border-white/10 shadow-xl'} {...p} />,
+  img: (p) => <img className="my-3 rounded-xl border border-white/10 shadow-xl" style={{ maxWidth: '480px', width: '100%', display: 'block', ...((p.style) || {}) }} {...p} />,
 }
 
 const Markdown = ({ children }) => (
