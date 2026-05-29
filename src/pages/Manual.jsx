@@ -91,8 +91,13 @@ const Manual = () => {
 
       {/* 핵심 안내 배너 */}
       <div className="px-5 pb-6 md:px-8">
-        <div className="mx-auto max-w-3xl rounded-2xl border border-blue-500/30 bg-blue-500/10 px-5 py-4 text-sm leading-relaxed text-blue-100 md:text-base">
-          ⚡ 쇼핑 릴스 링크만 입력하면 영상 1개가 완성되기까지 <strong className="text-white">약 2분</strong>.<br /><span className="text-blue-300">(단, 1회 2·3·4·5 단계에서 영상 길이·목소리·자막·썸네일 스타일을 설정해두면 퀄리티를 높일 수 있습니다)</span>
+        <div className="mx-auto max-w-3xl rounded-2xl border border-yellow-400/40 bg-gradient-to-r from-yellow-500/15 to-orange-500/10 px-6 py-5">
+          <p className="text-base font-bold text-yellow-100 md:text-lg">
+            ⚡ 링크만 입력하면 영상 1개 완성까지 <span className="text-yellow-300">약 2분</span>, 당신이 할 일은 없습니다.
+          </p>
+          <p className="mt-1 text-sm text-yellow-200/70 md:text-base">
+            단, 처음 한 번만 2·3·4·5단계에서 영상 길이·목소리·자막·썸네일 스타일을 설정해두세요.
+          </p>
         </div>
       </div>
 
