@@ -303,7 +303,7 @@ const Home = () => {
             <img
               src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png"
               alt="Chronit"
-              className="h-12 w-12 shrink-0 drop-shadow-[0_0_15px_rgba(139,92,246,0.5)] md:h-16 md:w-16"
+              className="h-8 w-8 shrink-0 rounded-lg md:h-10 md:w-10"
             />
             <h1 className="bg-gradient-to-r from-white to-slate-400 bg-clip-text text-2xl font-black tracking-tighter text-transparent md:text-3xl">
               Chronit
@@ -875,7 +875,7 @@ const Home = () => {
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-12 md:flex-row md:gap-16">
           <div className="max-w-md">
             <div className="mb-6 flex items-center gap-3 md:mb-10">
-              <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-12 w-12 drop-shadow-[0_0_10px_rgba(139,92,246,0.4)]" />
+              <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-8 w-8 rounded-lg" />
               <h1 className="text-2xl font-black tracking-tighter">Chronit</h1>
             </div>
             <p className="text-lg leading-[1.8] font-medium text-slate-500 md:text-xl">

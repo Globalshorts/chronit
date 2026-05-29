@@ -26,13 +26,13 @@ const Manual = () => {
   const startMd = installMd + '\n\n---\n\n' + usageMd
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#020617] font-sans break-keep text-slate-100 selection:bg-blue-500/30">
+    <div className="min-h-screen overflow-x-hidden bg-[#020617] font-sans break-words text-slate-100 selection:bg-blue-500/30">
 
       {/* 헤더 */}
       <header className={`fixed top-0 right-0 left-0 z-50 transition-all duration-500 ${scrolled ? 'border-b border-white/10 bg-[#020617]/90 py-3 backdrop-blur-xl md:py-4' : 'bg-transparent py-5 md:py-8'}`}>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
           <Link to="/" className="flex min-w-0 items-center gap-2 md:gap-3">
-            <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-12 w-12 shrink-0 drop-shadow-[0_0_15px_rgba(139,92,246,0.5)] md:h-16 md:w-16" />
+            <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-8 w-8 shrink-0 rounded-lg md:h-10 md:w-10" />
             <h1 className="bg-gradient-to-r from-white to-slate-400 bg-clip-text text-2xl font-black tracking-tighter text-transparent md:text-3xl">Chronit</h1>
           </Link>
           <nav className="hidden gap-12 text-base font-bold tracking-wide text-slate-400 md:flex">
@@ -210,7 +210,7 @@ const mdComponents = {
   th: (p) => <th className="border-b border-white/10 px-4 py-2 text-xs font-black tracking-widest text-blue-300 uppercase" {...p} />,
   td: (p) => <td className="border-b border-white/5 px-4 py-2.5 text-slate-300 last:border-b-0" {...p} />,
   hr: (p) => <hr className="my-8 border-white/10" {...p} />,
-  img: (p) => <img className="my-4 w-full max-h-80 object-contain rounded-xl border border-white/10 shadow-xl" style={{ display: 'block', ...((p.style) || {}) }} {...p} />,
+  img: (p) => <img className="my-4 max-h-96 w-auto max-w-full rounded-xl border border-white/10 shadow-xl" style={{ display: 'block', ...((p.style) || {}) }} {...p} />,
 }
 
 const Markdown = ({ children }) => (
