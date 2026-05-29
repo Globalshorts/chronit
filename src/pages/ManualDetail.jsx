@@ -31,26 +31,41 @@ function parseTips(md) {
 
 /* ── 팁 카드 색상 ── */
 const TIP_COLORS = [
-  'border-blue-500/30 bg-blue-500/5',
-  'border-violet-500/30 bg-violet-500/5',
-  'border-cyan-500/30 bg-cyan-500/5',
-  'border-green-500/30 bg-green-500/5',
-  'border-yellow-500/30 bg-yellow-500/5',
-  'border-orange-500/30 bg-orange-500/5',
-  'border-pink-500/30 bg-pink-500/5',
+  { border: 'border-blue-500/40',   accent: 'bg-blue-500',   light: 'bg-blue-500/10 text-blue-300' },
+  { border: 'border-violet-500/40', accent: 'bg-violet-500', light: 'bg-violet-500/10 text-violet-300' },
+  { border: 'border-cyan-500/40',   accent: 'bg-cyan-500',   light: 'bg-cyan-500/10 text-cyan-300' },
+  { border: 'border-green-500/40',  accent: 'bg-green-500',  light: 'bg-green-500/10 text-green-300' },
+  { border: 'border-yellow-500/40', accent: 'bg-yellow-500', light: 'bg-yellow-500/10 text-yellow-300' },
+  { border: 'border-orange-500/40', accent: 'bg-orange-500', light: 'bg-orange-500/10 text-orange-300' },
+  { border: 'border-pink-500/40',   accent: 'bg-pink-500',   light: 'bg-pink-500/10 text-pink-300' },
 ]
 
 /* ── 팁 카드 컴포넌트 ── */
 const TipsCards = ({ md }) => {
   const tips = useMemo(() => parseTips(md), [md])
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      {tips.map((tip, i) => (
-        <div key={i} className={`rounded-2xl border p-5 ${TIP_COLORS[i % TIP_COLORS.length]}`}>
-          <h3 className="mb-3 text-base font-black text-white md:text-lg">{tip.title}</h3>
-          <p className="text-sm leading-relaxed text-slate-300 [overflow-wrap:anywhere] md:text-base whitespace-pre-line">{tip.body}</p>
-        </div>
-      ))}
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+      {tips.map((tip, i) => {
+        const c = TIP_COLORS[i % TIP_COLORS.length]
+        return (
+          <div key={i} className={`relative overflow-hidden rounded-2xl border bg-white/[0.03] ${c.border}`}>
+            {/* 상단 컬러 라인 */}
+            <div className={`h-1 w-full ${c.accent}`} />
+            <div className="p-5 md:p-6">
+              {/* 번호 배지 */}
+              <span className={`mb-3 inline-block rounded-full px-3 py-1 text-xs font-black ${c.light}`}>
+                {tip.title.match(/^[①②③④⑤⑥⑦⑧⑨⑩]/)?.[0] ?? `#${i+1}`}
+              </span>
+              <h3 className="mb-3 text-base font-black leading-snug text-white md:text-lg">
+                {tip.title.replace(/^[①②③④⑤⑥⑦⑧⑨⑩]\s*/, '')}
+              </h3>
+              <p className="text-sm leading-[1.9] text-slate-300 [overflow-wrap:anywhere] md:text-base whitespace-pre-line">
+                {tip.body}
+              </p>
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
