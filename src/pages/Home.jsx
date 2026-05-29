@@ -314,7 +314,7 @@ const Home = () => {
               기능
             </a>
             <Link to="/manual" className="uppercase transition-colors hover:text-blue-400">
-              매뉴얼
+              사용 방법
             </Link>
             <a href="#pricing" className="uppercase transition-colors hover:text-blue-400">
               요금제
@@ -381,7 +381,7 @@ const Home = () => {
             </a>
             <Link to="/manual" onClick={() => setMenuOpen(false)}
               className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400">
-              매뉴얼
+              사용 방법
             </Link>
             <a href="#pricing" onClick={() => setMenuOpen(false)}
               className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400">
@@ -902,7 +902,7 @@ const Home = () => {
                 요금제
               </a>
               <a
-                href="#events"
+                href="/events"
                 className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
               >
                 이벤트
