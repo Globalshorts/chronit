@@ -11,6 +11,50 @@ import faqMd        from '../content/faq.md?raw'
 
 const startMd = installMd + '\n\n---\n\n' + usageMd
 
+/* ── tips.md 파서 ── */
+function parseTips(md) {
+  const lines = md.split('\n')
+  const items = []
+  let current = null
+  for (const line of lines) {
+    const match = line.match(/^##\s+(.+)$/)
+    if (match) {
+      if (current) items.push(current)
+      current = { title: match[1].trim(), body: '' }
+    } else if (current) {
+      current.body += line + '\n'
+    }
+  }
+  if (current) items.push(current)
+  return items.map(i => ({ ...i, body: i.body.trim() }))
+}
+
+/* ── 팁 카드 색상 ── */
+const TIP_COLORS = [
+  'border-blue-500/30 bg-blue-500/5',
+  'border-violet-500/30 bg-violet-500/5',
+  'border-cyan-500/30 bg-cyan-500/5',
+  'border-green-500/30 bg-green-500/5',
+  'border-yellow-500/30 bg-yellow-500/5',
+  'border-orange-500/30 bg-orange-500/5',
+  'border-pink-500/30 bg-pink-500/5',
+]
+
+/* ── 팁 카드 컴포넌트 ── */
+const TipsCards = ({ md }) => {
+  const tips = useMemo(() => parseTips(md), [md])
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {tips.map((tip, i) => (
+        <div key={i} className={`rounded-2xl border p-5 ${TIP_COLORS[i % TIP_COLORS.length]}`}>
+          <h3 className="mb-3 text-base font-black text-white md:text-lg">{tip.title}</h3>
+          <p className="text-sm leading-relaxed text-slate-300 [overflow-wrap:anywhere] md:text-base whitespace-pre-line">{tip.body}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 const SECTIONS = {
   start: {
     emoji: '🚀',
@@ -30,7 +74,7 @@ const SECTIONS = {
     emoji: '💡',
     title: '꿀팁',
     callout: null,
-    type: 'markdown',
+    type: 'tips',
     content: tipsMd,
   },
   faq: {
@@ -119,6 +163,10 @@ const ManualDetail = () => {
 
           {data.type === 'markdown' && (
             <Markdown onImageClick={setLightbox}>{data.content}</Markdown>
+          )}
+
+          {data.type === 'tips' && (
+            <TipsCards md={data.content} />
           )}
 
           {data.type === 'faq' && (
