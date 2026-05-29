@@ -1,5 +1,5 @@
-// React 19: no React import needed
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { useEffect } from 'react'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
 import Manual from './pages/Manual'
 import Events from './pages/Events'
@@ -7,8 +7,15 @@ import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import Admin from './pages/Admin'
 
+const ScrollToTop = () => {
+  const { pathname } = useLocation()
+  useEffect(() => { window.scrollTo(0, 0) }, [pathname])
+  return null
+}
+
 const App = () => (
   <BrowserRouter>
+    <ScrollToTop />
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/manual" element={<Manual />} />

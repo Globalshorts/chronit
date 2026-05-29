@@ -172,13 +172,14 @@ const Home = () => {
 
   // 로그인 필요 시 AuthModal → 로그인 후 결제 모달 자동 오픈
   const openPayment = (plan) => {
+    document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     if (!user) {
       pendingPlanRef.current = plan
-      setShowAuthModal(true)
+      setTimeout(() => setShowAuthModal(true), 400)
       return
     }
     setSelectedPlan(plan)
-    setPaymentOpen(true)
+    setTimeout(() => setPaymentOpen(true), 400)
   }
 
   // Auth 상태 관리
@@ -679,7 +680,7 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="px-5 py-24 md:px-8 md:py-48">
+      <section id="pricing" className="px-5 py-24 md:px-8 md:py-48">
         <div className="shadow-3xl relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-blue-900/60 via-[#03081c] to-indigo-900/40 md:rounded-[4rem]">
           <div className="relative z-10 p-5 text-center sm:p-8 md:p-32">
             <h2 className="mb-8 text-3xl leading-[1.3] font-black tracking-tight md:mb-12 md:text-[56px]">
@@ -696,7 +697,6 @@ const Home = () => {
             <CouponBar codeFromUrl={codeFromUrl} onApply={(code) => { setCodeFromUrl(code); sessionStorage.setItem('chronit_code', code) }} />
 
             <div
-              id="pricing"
               className="mx-auto mb-16 grid max-w-6xl gap-6 text-left md:mb-24 md:grid-cols-3 md:gap-8"
             >
               {/* 스타터 */}
@@ -1047,13 +1047,12 @@ const FeatureCard = ({ icon, title, description }) => (
    - 중앙 영상만 활성(autoplay/unmuted), 나머지는 흐리게
    - 좌우 클릭 or 드래그로 이동, 무한 루프
 ────────────────────────────────────────────────────── */
+
 const DemoCarousel = () => {
   const [videos, setVideos] = useState([])
   const [active, setActive] = useState(0)
   const dragStartX = useRef(0)
   const videoRefs = useRef([])
-  const sectionRef = useRef(null)
-  const inViewRef = useRef(false)
 
   useEffect(() => {
     supabase.from('demo_videos').select('*').order('sort_order').then(({ data }) => {
@@ -1065,46 +1064,20 @@ const DemoCarousel = () => {
   const prev = () => setActive(i => (i - 1 + n) % n)
   const next = () => setActive(i => (i + 1) % n)
 
-  const playActive = (idx) => {
+  useEffect(() => {
     videoRefs.current.forEach((v, i) => {
       if (!v) return
-      if (i === idx) {
+      if (i === active) {
+        v.muted = true
         v.currentTime = 0
-        v.play().catch(() => {})
+        const p = v.play()
+        if (p && typeof p.catch === 'function') p.catch(() => {})
       } else {
         v.pause()
         v.currentTime = 0
       }
     })
-  }
-
-  useEffect(() => {
-    if (!n) return
-    const t = setTimeout(() => {
-      videoRefs.current.forEach(v => { if (v) v.load() })
-      if (inViewRef.current) playActive(0)
-    }, 300)
-    return () => clearTimeout(t)
-  }, [n])
-
-  useEffect(() => {
-    if (inViewRef.current) playActive(active)
-  }, [active])
-
-  useEffect(() => {
-    const el = sectionRef.current
-    if (!el) return
-    const obs = new IntersectionObserver(([entry]) => {
-      inViewRef.current = entry.isIntersecting
-      if (entry.isIntersecting) {
-        playActive(active)
-      } else {
-        videoRefs.current.forEach(v => { if (v) v.pause() })
-      }
-    }, { threshold: 0.1 })
-    obs.observe(el)
-    return () => obs.disconnect()
-  }, [])
+  }, [active, videos])
 
   const onMouseDown = (e) => { dragStartX.current = e.clientX }
   const onMouseUp = (e) => {
@@ -1120,7 +1093,7 @@ const DemoCarousel = () => {
   if (!n) return null
 
   return (
-    <section ref={sectionRef} className="relative overflow-hidden bg-[#020617] py-16 md:py-24">
+    <section className="relative overflow-hidden bg-[#020617] py-16 md:py-24">
       <div className="mb-10 text-center md:mb-14">
         <p className="mb-2 text-xs font-bold tracking-[0.3em] text-blue-400 uppercase md:text-sm">DEMO</p>
         <h2 className="text-2xl font-black tracking-tight text-white md:text-4xl">
@@ -1160,26 +1133,25 @@ const DemoCarousel = () => {
                 pointerEvents: visible ? 'auto' : 'none',
               }}
             >
-              <div
-                style={{
-                  width: 'min(52vw, 280px)',
-                  aspectRatio: '9/16',
-                  borderRadius: '1.25rem',
-                  overflow: 'hidden',
-                  boxShadow: isCenter
-                    ? '0 30px 80px -10px rgba(59,130,246,0.35), 0 0 0 1px rgba(255,255,255,0.08)'
-                    : '0 10px 30px -10px rgba(0,0,0,0.5)',
-                  border: isCenter ? '1px solid rgba(255,255,255,0.12)' : 'none',
-                  transition: 'box-shadow 0.5s ease, border 0.5s ease',
-                }}
-              >
+              <div style={{
+                width: 'min(52vw, 280px)',
+                aspectRatio: '9/16',
+                borderRadius: '1.25rem',
+                overflow: 'hidden',
+                boxShadow: isCenter
+                  ? '0 30px 80px -10px rgba(59,130,246,0.35), 0 0 0 1px rgba(255,255,255,0.08)'
+                  : '0 10px 30px -10px rgba(0,0,0,0.5)',
+                border: isCenter ? '1px solid rgba(255,255,255,0.12)' : 'none',
+                transition: 'box-shadow 0.5s ease',
+              }}>
                 <video
                   ref={el => { videoRefs.current[vidIdx] = el }}
                   src={src}
                   muted
                   loop
                   playsInline
-                  preload={isCenter ? 'auto' : 'metadata'}
+                  autoPlay={isCenter}
+                  preload="auto"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', background: '#0f172a' }}
                 />
               </div>
@@ -1191,14 +1163,9 @@ const DemoCarousel = () => {
         <button onClick={prev} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-all hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-95 md:h-12 md:w-12">{"<"}</button>
         <div className="flex gap-2">
           {videos.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setActive(i)}
+            <button key={i} onClick={() => setActive(i)}
               className="h-1.5 rounded-full transition-all duration-300"
-              style={{
-                width: i === active ? '24px' : '6px',
-                background: i === active ? '#3b82f6' : 'rgba(255,255,255,0.2)',
-              }}
+              style={{ width: i === active ? '24px' : '6px', background: i === active ? '#3b82f6' : 'rgba(255,255,255,0.2)' }}
             />
           ))}
         </div>
