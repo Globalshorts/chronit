@@ -127,10 +127,10 @@ const GroupToggle = ({ emoji, title, callout, children, defaultOpen = false }) =
       </button>
 
       <div
-        className="grid transition-all duration-300 ease-in-out"
+        className="grid overflow-hidden transition-all duration-300 ease-in-out"
         style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
       >
-        <div className="overflow-hidden">
+        <div style={{ minHeight: 0 }}>
           <div className="border-t border-white/5 px-5 pb-6 pt-4 md:px-6 md:pb-8">
             {callout && (
               <div className="mb-5 flex items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-3 text-sm font-semibold text-blue-300 md:text-base">
