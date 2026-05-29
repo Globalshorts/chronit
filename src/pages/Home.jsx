@@ -310,13 +310,16 @@ const Home = () => {
           </a>
           <nav className="hidden gap-12 text-base font-bold tracking-wide text-slate-400 md:flex">
             <a href="#features" className="uppercase transition-colors hover:text-blue-400">
-              Features
+              기능
             </a>
             <Link to="/manual" className="uppercase transition-colors hover:text-blue-400">
-              Manual
+              매뉴얼
             </Link>
             <a href="#pricing" className="uppercase transition-colors hover:text-blue-400">
-              Pricing
+              요금제
+            </a>
+            <a href="#events" className="uppercase transition-colors hover:text-blue-400">
+              이벤트
             </a>
           </nav>
           <div className="flex shrink-0 items-center gap-2">
@@ -373,15 +376,19 @@ const Home = () => {
           <nav className="flex flex-col gap-1">
             <a href="#features" onClick={() => setMenuOpen(false)}
               className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400">
-              Features
+              기능
             </a>
             <Link to="/manual" onClick={() => setMenuOpen(false)}
               className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400">
-              Manual
+              매뉴얼
             </Link>
             <a href="#pricing" onClick={() => setMenuOpen(false)}
               className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400">
-              Pricing
+              요금제
+            </a>
+            <a href="#events" onClick={() => setMenuOpen(false)}
+              className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400">
+              이벤트
             </a>
           </nav>
           <div className="mt-4 border-t border-white/10 pt-4 flex flex-col gap-2">
@@ -805,7 +812,7 @@ const Home = () => {
 
       {/* 이벤트 게시판 */}
       {events.length > 0 && (
-        <section className="bg-[#020617] px-5 py-20 md:px-8">
+        <section id="events" className="bg-[#020617] px-5 py-20 md:px-8">
           <div className="mx-auto max-w-4xl">
             <h2 className="mb-8 text-2xl font-black tracking-tight text-white">이벤트</h2>
 
@@ -874,53 +881,59 @@ const Home = () => {
           <div className="grid w-full grid-cols-3 gap-6 sm:gap-12 md:w-auto md:gap-20">
             <div className="flex flex-col gap-4 md:gap-6">
               <span className="text-sm font-bold tracking-widest text-white uppercase md:text-base">
-                Product
+                서비스
+              </span>
+              <a
+                href="#features"
+                className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
+              >
+                기능
+              </a>
+              <a
+                href="#pricing"
+                className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
+              >
+                요금제
+              </a>
+              <a
+                href="#events"
+                className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
+              >
+                이벤트
+              </a>
+            </div>
+            <div className="flex flex-col gap-4 md:gap-6">
+              <span className="text-sm font-bold tracking-widest text-white uppercase md:text-base">
+                회사
               </span>
               <a
                 href="#"
                 className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
               >
-                Features
+                회사 소개
               </a>
               <a
-                href="#"
+                href="mailto:support@chronit.kr"
                 className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
               >
-                Pricing
+                문의하기
               </a>
             </div>
             <div className="flex flex-col gap-4 md:gap-6">
               <span className="text-sm font-bold tracking-widest text-white uppercase md:text-base">
-                Company
-              </span>
-              <a
-                href="#"
-                className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
-              >
-                Story
-              </a>
-              <a
-                href="#"
-                className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
-              >
-                Contact
-              </a>
-            </div>
-            <div className="flex flex-col gap-4 md:gap-6">
-              <span className="text-sm font-bold tracking-widest text-white uppercase md:text-base">
-                Legal
+                법적고지
               </span>
               <Link
                 to="/privacy"
                 className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
               >
-                Privacy
+                개인정보처리방침
               </Link>
               <Link
                 to="/terms"
                 className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
               >
-                Terms
+                이용약관
               </Link>
             </div>
           </div>
