@@ -1050,10 +1050,10 @@ const FeatureCard = ({ icon, title, description }) => (
 const DemoCarousel = () => {
   const [videos, setVideos] = useState([])
   const [active, setActive] = useState(0)
-  const [inView, setInView] = useState(false)
   const dragStartX = useRef(0)
   const videoRefs = useRef([])
   const sectionRef = useRef(null)
+  const inViewRef = useRef(false)
 
   useEffect(() => {
     supabase.from('demo_videos').select('*').order('sort_order').then(({ data }) => {
@@ -1065,41 +1065,54 @@ const DemoCarousel = () => {
   const prev = () => setActive(i => (i - 1 + n) % n)
   const next = () => setActive(i => (i + 1) % n)
 
+  const playActive = (idx) => {
+    videoRefs.current.forEach((v, i) => {
+      if (!v) return
+      if (i === idx) {
+        v.currentTime = 0
+        v.play().catch(() => {})
+      } else {
+        v.pause()
+        v.currentTime = 0
+      }
+    })
+  }
+
   useEffect(() => {
     if (!n) return
-    videoRefs.current.forEach(v => { if (v) v.load() })
+    const t = setTimeout(() => {
+      videoRefs.current.forEach(v => { if (v) v.load() })
+      if (inViewRef.current) playActive(0)
+    }, 300)
+    return () => clearTimeout(t)
   }, [n])
+
+  useEffect(() => {
+    if (inViewRef.current) playActive(active)
+  }, [active])
 
   useEffect(() => {
     const el = sectionRef.current
     if (!el) return
-    const obs = new IntersectionObserver(
-      ([entry]) => setInView(entry.isIntersecting),
-      { threshold: 0.3 }
-    )
+    const obs = new IntersectionObserver(([entry]) => {
+      inViewRef.current = entry.isIntersecting
+      if (entry.isIntersecting) {
+        playActive(active)
+      } else {
+        videoRefs.current.forEach(v => { if (v) v.pause() })
+      }
+    }, { threshold: 0.1 })
     obs.observe(el)
     return () => obs.disconnect()
   }, [])
 
-  useEffect(() => {
-    videoRefs.current.forEach((v, i) => {
-      if (!v) return
-      if (i === active && inView) {
-        v.play().catch(() => {})
-      } else {
-        v.pause()
-        if (i !== active) v.currentTime = 0
-      }
-    })
-  }, [active, inView])
-
   const onMouseDown = (e) => { dragStartX.current = e.clientX }
-  const onMouseUp   = (e) => {
+  const onMouseUp = (e) => {
     const dx = e.clientX - dragStartX.current
     if (Math.abs(dx) > 40) dx < 0 ? next() : prev()
   }
   const onTouchStart = (e) => { dragStartX.current = e.touches[0].clientX }
-  const onTouchEnd   = (e) => {
+  const onTouchEnd = (e) => {
     const dx = e.changedTouches[0].clientX - dragStartX.current
     if (Math.abs(dx) > 40) dx < 0 ? next() : prev()
   }
@@ -1111,7 +1124,7 @@ const DemoCarousel = () => {
       <div className="mb-10 text-center md:mb-14">
         <p className="mb-2 text-xs font-bold tracking-[0.3em] text-blue-400 uppercase md:text-sm">DEMO</p>
         <h2 className="text-2xl font-black tracking-tight text-white md:text-4xl">
-          실제 제작된 영상을 확인하세요
+          {"실제 제작된 영상을 확인하세요"}
         </h2>
       </div>
       <div
@@ -1129,9 +1142,9 @@ const DemoCarousel = () => {
           const absOff = Math.abs(offset)
           const visible = absOff <= 2
           const translateX = offset * 220
-          const scale   = isCenter ? 1 : absOff === 1 ? 0.78 : 0.6
+          const scale = isCenter ? 1 : absOff === 1 ? 0.78 : 0.6
           const opacity = isCenter ? 1 : absOff === 1 ? 0.55 : 0.2
-          const zIndex  = isCenter ? 20 : absOff === 1 ? 10 : 5
+          const zIndex = isCenter ? 20 : absOff === 1 ? 10 : 5
           return (
             <div
               key={vidIdx}
@@ -1175,7 +1188,7 @@ const DemoCarousel = () => {
         })}
       </div>
       <div className="mt-8 flex items-center justify-center gap-6">
-        <button onClick={prev} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-all hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-95 md:h-12 md:w-12">{'<'}</button>
+        <button onClick={prev} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-all hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-95 md:h-12 md:w-12">{"<"}</button>
         <div className="flex gap-2">
           {videos.map((_, i) => (
             <button
@@ -1189,7 +1202,7 @@ const DemoCarousel = () => {
             />
           ))}
         </div>
-        <button onClick={next} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-all hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-95 md:h-12 md:w-12">{'>'}</button>
+        <button onClick={next} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-all hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-95 md:h-12 md:w-12">{">"}</button>
       </div>
     </section>
   )
