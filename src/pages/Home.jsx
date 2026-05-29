@@ -318,9 +318,9 @@ const Home = () => {
             <a href="#pricing" className="uppercase transition-colors hover:text-blue-400">
               요금제
             </a>
-            <a href="#events" className="uppercase transition-colors hover:text-blue-400">
+            <Link to="/events" className="uppercase transition-colors hover:text-blue-400">
               이벤트
-            </a>
+            </Link>
           </nav>
           <div className="flex shrink-0 items-center gap-2">
             {/* 데스크톱 전용 */}
@@ -386,10 +386,10 @@ const Home = () => {
               className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400">
               요금제
             </a>
-            <a href="#events" onClick={() => setMenuOpen(false)}
+            <Link to="/events" onClick={() => setMenuOpen(false)}
               className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400">
               이벤트
-            </a>
+            </Link>
           </nav>
           <div className="mt-4 border-t border-white/10 pt-4 flex flex-col gap-2">
             {user ? (

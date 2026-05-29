@@ -35,12 +35,13 @@ const Manual = () => {
             <h1 className="bg-gradient-to-r from-white to-slate-400 bg-clip-text text-2xl font-black tracking-tighter text-transparent md:text-3xl">Chronit</h1>
           </Link>
           <nav className="hidden gap-12 text-base font-bold tracking-wide text-slate-400 md:flex">
-            <Link to="/#features" className="uppercase transition-colors hover:text-blue-400">Features</Link>
-            <Link to="/manual"    className="uppercase text-blue-400">Manual</Link>
-            <Link to="/#pricing"  className="uppercase transition-colors hover:text-blue-400">Pricing</Link>
+            <Link to="/#features" className="uppercase transition-colors hover:text-blue-400">기능</Link>
+            <Link to="/manual"    className="uppercase text-blue-400">매뉴얼</Link>
+            <Link to="/#pricing"  className="uppercase transition-colors hover:text-blue-400">요금제</Link>
+            <Link to="/events"    className="uppercase transition-colors hover:text-blue-400">이벤트</Link>
           </nav>
-          <Link to="/" className="shrink-0 rounded-full bg-blue-600 px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-lg shadow-blue-600/25 transition-all hover:bg-blue-500 active:scale-95 md:px-7 md:py-2.5 md:text-base">
-            Pre-order
+          <Link to="/#pricing" className="shrink-0 rounded-full bg-blue-600 px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-lg shadow-blue-600/25 transition-all hover:bg-blue-500 active:scale-95 md:px-7 md:py-2.5 md:text-base">
+            시작하기
           </Link>
         </div>
       </header>
@@ -52,7 +53,7 @@ const Manual = () => {
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-1.5 text-sm font-bold text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.15)] md:text-base">
             <Sparkles size={14} fill="currentColor" /> <span>크로닛 사용 매뉴얼</span>
           </div>
-          <h1 className="mb-4 text-4xl font-black tracking-tight md:text-6xl">Manual</h1>
+          <h1 className="mb-4 text-4xl font-black tracking-tight md:text-6xl">매뉴얼</h1>
           <p className="text-lg leading-[1.8] text-slate-400 md:text-xl">설치부터 첫 영상 제작까지, 5분 안에 익히는 크로닛 사용법.</p>
         </div>
       </section>
