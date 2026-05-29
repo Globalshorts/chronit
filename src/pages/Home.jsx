@@ -301,7 +301,7 @@ const Home = () => {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
           <a href="/" className="flex min-w-0 items-center gap-2 md:gap-3">
             <img
-              src="/favicon.svg"
+              src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png"
               alt="Chronit"
               className="h-12 w-12 shrink-0 drop-shadow-[0_0_15px_rgba(139,92,246,0.5)] md:h-16 md:w-16"
             />
@@ -875,7 +875,7 @@ const Home = () => {
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-12 md:flex-row md:gap-16">
           <div className="max-w-md">
             <div className="mb-6 flex items-center gap-3 md:mb-10">
-              <img src="/favicon.svg" alt="Chronit" className="h-12 w-12 drop-shadow-[0_0_10px_rgba(139,92,246,0.4)]" />
+              <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-12 w-12 drop-shadow-[0_0_10px_rgba(139,92,246,0.4)]" />
               <h1 className="text-2xl font-black tracking-tighter">Chronit</h1>
             </div>
             <p className="text-lg leading-[1.8] font-medium text-slate-500 md:text-xl">
