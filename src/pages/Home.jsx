@@ -1065,6 +1065,12 @@ const DemoCarousel = () => {
   const prev = () => setActive(i => (i - 1 + n) % n)
   const next = () => setActive(i => (i + 1) % n)
 
+  // 마운트 시 모든 영상 강제 로드 (모바일 브라우저 preload 무시 대응)
+  useEffect(() => {
+    if (!n) return
+    videoRefs.current.forEach(v => { if (v) v.load() })
+  }, [n])
+
   // 중앙 영상 재생, 나머지 일시정지
   useEffect(() => {
     videoRefs.current.forEach((v, i) => {
@@ -1164,8 +1170,12 @@ const DemoCarousel = () => {
                   muted
                   loop
                   playsInline
-                  preload="auto"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  preload={isCenter ? 'auto' : 'metadata'}
+                  style={{
+                    width: '100%', height: '100%',
+                    objectFit: 'cover', display: 'block',
+                    background: '#0f172a',  // 로딩 중 검은 화면 대신 다크 배경
+                  }}
                 />
               </div>
             </div>
@@ -1193,15 +1203,6 @@ const DemoCarousel = () => {
           ))}
         </div>
         <button
-          onClick={next}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-all hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-95 md:h-12 md:w-12"
-        >{'>'}</button>
-      </div>
-    </section>
-  )
-}
-
-export default Home      <button
           onClick={next}
           className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-all hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-95 md:h-12 md:w-12"
         >{'>'}</button>
