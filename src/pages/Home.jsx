@@ -294,6 +294,19 @@ const Home = () => {
         </div>
       )}
 
+      {/* 진행중인 이벤트 배너 */}
+      {events.filter(e => e.status === 'active').length > 0 && !sessionStorage.getItem('chronit_event_banner_closed') && (
+        <div
+          className="fixed right-0 left-0 z-[59] flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg cursor-pointer"
+          style={{ top: `${((refFromUrl ? 1 : 0) + (codeFromUrl ? 1 : 0)) * 40}px` }}
+          onClick={() => { window.location.href = '/events' }}
+        >
+          <span>🎉</span>
+          <span>진행중인 이벤트가 <strong>{events.filter(e => e.status === 'active').length}건</strong> 있어요 — 지금 확인하기 →</span>
+          <button onClick={e => { e.stopPropagation(); sessionStorage.setItem('chronit_event_banner_closed', '1'); window.location.reload() }} className="ml-2 opacity-70 hover:opacity-100">✕</button>
+        </div>
+      )}
+
       {/* Header */}
       <header
         className={`fixed top-0 right-0 left-0 z-50 transition-all duration-500 ${scrolled ? 'border-b border-white/10 bg-[#020617]/90 py-3 backdrop-blur-xl md:py-4' : 'bg-transparent py-5 md:py-8'}`}
