@@ -1050,9 +1050,10 @@ const FeatureCard = ({ icon, title, description }) => (
 const DemoCarousel = () => {
   const [videos, setVideos] = useState([])
   const [active, setActive] = useState(0)
-  const [dragging, setDragging] = useState(false)
+  const [inView, setInView] = useState(false)
   const dragStartX = useRef(0)
   const videoRefs = useRef([])
+  const sectionRef = useRef(null)
 
   useEffect(() => {
     supabase.from('demo_videos').select('*').order('sort_order').then(({ data }) => {
@@ -1061,31 +1062,38 @@ const DemoCarousel = () => {
   }, [])
 
   const n = videos.length
-
   const prev = () => setActive(i => (i - 1 + n) % n)
   const next = () => setActive(i => (i + 1) % n)
 
-  // 마운트 시 모든 영상 강제 로드 (모바일 브라우저 preload 무시 대응)
   useEffect(() => {
     if (!n) return
     videoRefs.current.forEach(v => { if (v) v.load() })
   }, [n])
 
-  // 중앙 영상 재생, 나머지 일시정지
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { threshold: 0.3 }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
   useEffect(() => {
     videoRefs.current.forEach((v, i) => {
       if (!v) return
-      if (i === active) {
-        v.currentTime = 0
+      if (i === active && inView) {
         v.play().catch(() => {})
       } else {
         v.pause()
-        v.currentTime = 0
+        if (i !== active) v.currentTime = 0
       }
     })
-  }, [active])
+  }, [active, inView])
 
-  const onMouseDown = (e) => { setDragging(false); dragStartX.current = e.clientX }
+  const onMouseDown = (e) => { dragStartX.current = e.clientX }
   const onMouseUp   = (e) => {
     const dx = e.clientX - dragStartX.current
     if (Math.abs(dx) > 40) dx < 0 ? next() : prev()
@@ -1096,23 +1104,16 @@ const DemoCarousel = () => {
     if (Math.abs(dx) > 40) dx < 0 ? next() : prev()
   }
 
-  // 영상 없으면 섹션 숨김
   if (!n) return null
 
   return (
-    <section className="relative overflow-hidden bg-[#020617] py-16 md:py-24">
-      {/* 헤딩 */}
+    <section ref={sectionRef} className="relative overflow-hidden bg-[#020617] py-16 md:py-24">
       <div className="mb-10 text-center md:mb-14">
         <p className="mb-2 text-xs font-bold tracking-[0.3em] text-blue-400 uppercase md:text-sm">DEMO</p>
         <h2 className="text-2xl font-black tracking-tight text-white md:text-4xl">
           실제 제작된 영상을 확인하세요
         </h2>
       </div>
-
-      {/* 캐러셀 트랙
-          ★ key=vidIdx — 각 영상이 항상 DOM에 유지됨 (src 변경 없어서 끊김 없음)
-          ★ offset = 현재 영상이 active 기준 몇 칸 떨어져 있는지 (shortest path)
-      */}
       <div
         className="relative flex items-center justify-center select-none"
         style={{ height: 'min(72vw, 560px)' }}
@@ -1122,19 +1123,15 @@ const DemoCarousel = () => {
         onTouchEnd={onTouchEnd}
       >
         {videos.map((src, vidIdx) => {
-          // shortest-path offset: -2 ~ +2
           let offset = (vidIdx - active + n) % n
           if (offset > n / 2) offset -= n
-
           const isCenter = offset === 0
           const absOff = Math.abs(offset)
           const visible = absOff <= 2
-
           const translateX = offset * 220
           const scale   = isCenter ? 1 : absOff === 1 ? 0.78 : 0.6
           const opacity = isCenter ? 1 : absOff === 1 ? 0.55 : 0.2
           const zIndex  = isCenter ? 20 : absOff === 1 ? 10 : 5
-
           return (
             <div
               key={vidIdx}
@@ -1144,7 +1141,6 @@ const DemoCarousel = () => {
                 transform: `translateX(${translateX}px) scale(${scale})`,
                 opacity: visible ? opacity : 0,
                 zIndex,
-                // ★ transform/opacity만 transition — blur 제거로 GPU 부하 감소
                 transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease',
                 willChange: 'transform, opacity',
                 cursor: isCenter ? 'default' : 'pointer',
@@ -1171,24 +1167,15 @@ const DemoCarousel = () => {
                   loop
                   playsInline
                   preload={isCenter ? 'auto' : 'metadata'}
-                  style={{
-                    width: '100%', height: '100%',
-                    objectFit: 'cover', display: 'block',
-                    background: '#0f172a',  // 로딩 중 검은 화면 대신 다크 배경
-                  }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', background: '#0f172a' }}
                 />
               </div>
             </div>
           )
         })}
       </div>
-
-      {/* 네비게이션 버튼 */}
       <div className="mt-8 flex items-center justify-center gap-6">
-        <button
-          onClick={prev}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-all hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-95 md:h-12 md:w-12"
-        >{'<'}</button>
+        <button onClick={prev} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-all hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-95 md:h-12 md:w-12">{'<'}</button>
         <div className="flex gap-2">
           {videos.map((_, i) => (
             <button
@@ -1202,10 +1189,7 @@ const DemoCarousel = () => {
             />
           ))}
         </div>
-        <button
-          onClick={next}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-all hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-95 md:h-12 md:w-12"
-        >{'>'}</button>
+        <button onClick={next} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-all hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-95 md:h-12 md:w-12">{'>'}</button>
       </div>
     </section>
   )
