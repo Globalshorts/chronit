@@ -77,7 +77,7 @@ const Legal = ({ title, subtitle, markdown }) => {
       <footer className="border-t border-white/5 bg-[#01030a] px-5 py-12 md:px-8 md:py-16">
         <div className="mx-auto max-w-7xl text-center">
           <p className="text-sm font-bold tracking-[0.3em] text-slate-600 uppercase md:text-base md:tracking-[0.4em]">
-            &copy; 2026 Chronit. Crafting Future Efficiency.
+            &copy; 2026 Chronit Labs. Crafting Future Efficiency.
           </p>
         </div>
       </footer>
