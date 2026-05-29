@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
-import { ArrowLeft, Sparkles } from 'lucide-react'
+import { ArrowLeft, Sparkles, X } from 'lucide-react'
 
 import installMd    from '../content/install.md?raw'
 import usageMd      from '../content/usage.md?raw'
@@ -11,8 +11,32 @@ import automationMd from '../content/automation.md?raw'
 import tipsMd       from '../content/tips.md?raw'
 import faqMd        from '../content/faq.md?raw'
 
+/* ────────────────────────────────────────────────────────
+   이미지 라이트박스
+──────────────────────────────────────────────────────── */
+const Lightbox = ({ src, alt, onClose }) => (
+  <div
+    className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+    onClick={onClose}
+  >
+    <button
+      className="absolute top-4 right-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition-colors"
+      onClick={onClose}
+    >
+      <X size={24} />
+    </button>
+    <img
+      src={src}
+      alt={alt}
+      className="max-h-[90vh] max-w-[90vw] rounded-xl shadow-2xl"
+      onClick={e => e.stopPropagation()}
+    />
+  </div>
+)
+
 const Manual = () => {
   const [scrolled, setScrolled] = useState(false)
+  const [lightbox, setLightbox] = useState(null)
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50)
@@ -20,13 +44,19 @@ const Manual = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const faqItems = useMemo(() => parseFaq(faqMd), [])
+  // ESC로 닫기
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') setLightbox(null) }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
 
-  // 시작하기 = 설치 + 사용법 합치기
+  const faqItems = useMemo(() => parseFaq(faqMd), [])
   const startMd = installMd + '\n\n---\n\n' + usageMd
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#020617] font-sans text-slate-100 selection:bg-blue-500/30" style={{overflowWrap:'anywhere'}}>
+    <div className="min-h-screen overflow-x-hidden bg-[#020617] font-sans text-slate-100 selection:bg-blue-500/30">
+      {lightbox && <Lightbox src={lightbox.src} alt={lightbox.alt} onClose={() => setLightbox(null)} />}
 
       {/* 헤더 */}
       <header className={`fixed top-0 right-0 left-0 z-50 transition-all duration-500 ${scrolled ? 'border-b border-white/10 bg-[#020617]/90 py-3 backdrop-blur-xl md:py-4' : 'bg-transparent py-5 md:py-8'}`}>
@@ -61,24 +91,24 @@ const Manual = () => {
 
       {/* 본문 */}
       <section className="px-5 pb-24 md:px-8">
-        <div className="mx-auto max-w-3xl space-y-3 overflow-hidden">
+        <div className="mx-auto max-w-3xl space-y-3">
 
           <GroupToggle emoji="🚀" title="크로닛 시작하기" callout="아래 순서를 그대로 따라와주세요." defaultOpen>
-            <Markdown>{startMd}</Markdown>
+            <Markdown onImageClick={setLightbox}>{startMd}</Markdown>
           </GroupToggle>
 
           <GroupToggle emoji="⚙️" title="필수 기능" callout="헷갈리기 쉬운 주요 기능을 정리했어요.">
-            <Markdown>{automationMd}</Markdown>
+            <Markdown onImageClick={setLightbox}>{automationMd}</Markdown>
           </GroupToggle>
 
           <GroupToggle emoji="💡" title="꿀팁">
-            <Markdown>{tipsMd}</Markdown>
+            <Markdown onImageClick={setLightbox}>{tipsMd}</Markdown>
           </GroupToggle>
 
           <GroupToggle emoji="❓" title="자주 묻는 질문 (FAQ)">
             <div className="space-y-2">
               {faqItems.map((item, i) => (
-                <FaqItem key={i} question={item.question} answer={item.answer} />
+                <FaqItem key={i} question={item.question} answer={item.answer} onImageClick={setLightbox} />
               ))}
             </div>
           </GroupToggle>
@@ -131,7 +161,7 @@ const GroupToggle = ({ emoji, title, callout, children, defaultOpen = false }) =
         style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
       >
         <div style={{ minHeight: 0 }}>
-          <div className="border-t border-white/5 px-5 pb-6 pt-4 overflow-hidden break-words md:px-6 md:pb-8">
+          <div className="border-t border-white/5 px-5 pb-6 pt-4 md:px-6 md:pb-8">
             {callout && (
               <div className="mb-5 flex items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-3 text-sm font-semibold text-blue-300 md:text-base">
                 <span>📌</span>
@@ -149,7 +179,7 @@ const GroupToggle = ({ emoji, title, callout, children, defaultOpen = false }) =
 /* ────────────────────────────────────────────────────────
    FAQ 전용 토글 (질문만 토글, 답변 펼침)
 ──────────────────────────────────────────────────────── */
-const FaqItem = ({ question, answer }) => {
+const FaqItem = ({ question, answer, onImageClick }) => {
   const [open, setOpen] = useState(false)
   return (
     <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.02]">
@@ -171,7 +201,7 @@ const FaqItem = ({ question, answer }) => {
       >
         <div className="overflow-hidden">
           <div className="border-t border-white/5 px-5 pb-4 pt-3">
-            <Markdown>{answer}</Markdown>
+            <Markdown onImageClick={onImageClick}>{answer}</Markdown>
           </div>
         </div>
       </div>
@@ -182,7 +212,7 @@ const FaqItem = ({ question, answer }) => {
 /* ────────────────────────────────────────────────────────
    마크다운 렌더러
 ──────────────────────────────────────────────────────── */
-const mdComponents = {
+const makeMdComponents = (onImageClick) => ({
   h1: (p) => <h1 className="mt-8 mb-3 text-xl font-black text-white md:text-2xl" {...p} />,
   h2: (p) => <h2 className="mt-8 mb-3 text-lg font-black text-white md:text-xl" {...p} />,
   h3: (p) => <h3 className="mt-5 mb-2 text-base font-bold text-slate-200 md:text-lg" {...p} />,
@@ -194,7 +224,7 @@ const mdComponents = {
   strong: (p) => <strong className="font-bold text-white [overflow-wrap:anywhere]" {...p} />,
   em:     (p) => <em className="italic text-slate-200" {...p} />,
   blockquote: (p) => (
-    <blockquote className="my-3 overflow-hidden rounded-r-xl border-l-4 border-yellow-500/60 bg-yellow-500/[0.06] py-2 pr-4 pl-4 text-sm leading-relaxed text-yellow-100 break-words md:text-base" {...p} />
+    <blockquote className="my-3 rounded-r-xl border-l-4 border-yellow-500/60 bg-yellow-500/[0.06] py-2 pr-4 pl-4 text-sm leading-relaxed text-yellow-100 [overflow-wrap:anywhere] md:text-base" {...p} />
   ),
   code: ({ inline, ...p }) =>
     inline
@@ -210,11 +240,19 @@ const mdComponents = {
   th: (p) => <th className="border-b border-white/10 px-4 py-2 text-xs font-black tracking-widest text-blue-300 uppercase" {...p} />,
   td: (p) => <td className="border-b border-white/5 px-4 py-2.5 text-slate-300 last:border-b-0" {...p} />,
   hr: (p) => <hr className="my-8 border-white/10" {...p} />,
-  img: (p) => <img className="my-4 max-h-96 w-auto max-w-full rounded-xl border border-white/10 shadow-xl" style={{ display: 'block', ...((p.style) || {}) }} {...p} />,
-}
+  img: ({ src, alt, ...p }) => (
+    <img
+      src={src} alt={alt}
+      className="my-4 max-h-96 w-auto max-w-full cursor-zoom-in rounded-xl border border-white/10 shadow-xl transition-opacity hover:opacity-90"
+      style={{ display: 'block' }}
+      onClick={() => onImageClick?.({ src, alt })}
+      {...p}
+    />
+  ),
+})
 
-const Markdown = ({ children }) => (
-  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={mdComponents}>
+const Markdown = ({ children, onImageClick }) => (
+  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={makeMdComponents(onImageClick)}>
     {children}
   </ReactMarkdown>
 )
