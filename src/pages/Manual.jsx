@@ -61,7 +61,7 @@ const Manual = () => {
 
       {/* 본문 */}
       <section className="px-5 pb-24 md:px-8">
-        <div className="mx-auto max-w-3xl space-y-3">
+        <div className="mx-auto max-w-3xl space-y-3 overflow-hidden">
 
           <GroupToggle emoji="🚀" title="크로닛 시작하기" callout="아래 순서를 그대로 따라와주세요." defaultOpen>
             <Markdown>{startMd}</Markdown>
@@ -131,7 +131,7 @@ const GroupToggle = ({ emoji, title, callout, children, defaultOpen = false }) =
         style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
       >
         <div style={{ minHeight: 0 }}>
-          <div className="border-t border-white/5 px-5 pb-6 pt-4 md:px-6 md:pb-8">
+          <div className="border-t border-white/5 px-5 pb-6 pt-4 overflow-hidden break-words md:px-6 md:pb-8">
             {callout && (
               <div className="mb-5 flex items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-3 text-sm font-semibold text-blue-300 md:text-base">
                 <span>📌</span>
@@ -186,15 +186,15 @@ const mdComponents = {
   h1: (p) => <h1 className="mt-8 mb-3 text-xl font-black text-white md:text-2xl" {...p} />,
   h2: (p) => <h2 className="mt-8 mb-3 text-lg font-black text-white md:text-xl" {...p} />,
   h3: (p) => <h3 className="mt-5 mb-2 text-base font-bold text-slate-200 md:text-lg" {...p} />,
-  p:  (p) => <p className="my-2 text-base leading-[1.9] text-slate-300 md:text-lg" {...p} />,
+  p:  (p) => <p className="my-2 break-words text-base leading-[1.9] text-slate-300 md:text-lg" {...p} />,
   ul: (p) => <ul className="my-2 list-disc space-y-1.5 pl-5 text-slate-300" {...p} />,
   ol: (p) => <ol className="my-2 list-decimal space-y-1.5 pl-5 text-slate-300" {...p} />,
-  li: (p) => <li className="text-base leading-[1.9] md:text-lg" {...p} />,
+  li: (p) => <li className="break-words text-base leading-[1.9] md:text-lg" {...p} />,
   a:  (p) => <a className="text-blue-400 underline underline-offset-4 hover:text-blue-300" target="_blank" rel="noopener noreferrer" {...p} />,
   strong: (p) => <strong className="font-bold text-white" {...p} />,
   em:     (p) => <em className="italic text-slate-200" {...p} />,
   blockquote: (p) => (
-    <blockquote className="my-3 rounded-r-xl border-l-4 border-yellow-500/60 bg-yellow-500/[0.06] py-2 pr-4 pl-4 text-sm leading-relaxed text-yellow-100 md:text-base" {...p} />
+    <blockquote className="my-3 overflow-hidden rounded-r-xl border-l-4 border-yellow-500/60 bg-yellow-500/[0.06] py-2 pr-4 pl-4 text-sm leading-relaxed text-yellow-100 break-words md:text-base" {...p} />
   ),
   code: ({ inline, ...p }) =>
     inline
