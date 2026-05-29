@@ -8,56 +8,40 @@
 ## 2단계: 로그인
 
 크로닛 데스크탑 앱을 실행하고 **결제 시 사용한 이메일(구글/카카오)**로 로그인합니다.
-구독 상태가 자동으로 확인되며 즉시 사용 가능합니다.
 
-## 3단계: 스타일 찾기 (첫 세팅 전 필수)
+![로그인 화면](https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/manual-images/login.png)
 
-영상을 만들기 전에 **원하는 스타일**을 먼저 찾아두세요.
+## 3단계: 스타일 찾기
 
+영상을 만들기 전에 원하는 스타일을 먼저 찾아두세요.
 좌측 메뉴의 **스타일 찾기** 탭에서 여러 쇼핑 유튜버의 스타일을 미리보기 할 수 있습니다.
-마음에 드는 스타일을 선택하면 자막 폰트·색상·효과가 자동 적용됩니다.
 
-> 스타일은 나중에 언제든 바꿀 수 있습니다.
+![스타일 찾기](https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/manual-images/style-finder.png)
 
-## 4단계: 첫 프로젝트 — 직접 세팅하기
+## 4단계: 새 프로젝트 생성
 
-처음 한 번은 각 단계를 직접 설정해야 합니다. **한 번 저장하면 이후 자동 진행에 동일 스타일이 적용됩니다.**
+대시보드에서 **새 프로젝트** 버튼을 클릭합니다.
 
-새 프로젝트 생성 후 순서대로 진행합니다:
+![대시보드](https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/manual-images/dashboard.png)
 
-**2단계 — 영상 담기**
+## 5단계: 영상 담기 (2단계)
+
 만들고 싶은 상품의 쇼핑 릴스/쇼츠 링크를 입력하고, 쓰고 싶은 영상을 **2개 이상** 담아주세요.
 
-**3단계 — 스크립트 확인**
+![영상 담기](https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/manual-images/step2-link.png)
+
+## 6단계: 스크립트 확인 (3단계)
+
 AI가 후킹 카피 + 본문을 한국어로 자동 작성합니다. 내용을 확인하고 원하면 수정하세요.
 
-**4단계 — 자막 · 썸네일 스타일 설정**
-- **자막 스타일**: 폰트, 크기, 색상, 위치, 효과를 원하는 대로 설정
-- **썸네일 스타일**: 썸네일 문구 폰트와 색상 설정
+![스크립트 확인](https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/manual-images/step3-script.png)
 
-> 여기서 저장한 설정이 이후 자동 실행에 계속 사용됩니다.
+## 7단계: 자막·썸네일·목소리 스타일 설정 (4~5단계)
 
-**5단계 — 목소리 설정**
-원하는 목소리 톤과 속도를 선택합니다. 한 번 설정하면 저장됩니다.
+자막 스타일, 썸네일 스타일, 목소리를 원하는 대로 설정합니다.
 
-## 5단계: 이후는 자동 진행
+![자막 및 썸네일 스타일](https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/manual-images/step4-subtitle.png)
 
-2~5단계 스타일을 한 번 저장해두면, 이후에는 **링크만 입력 → 자동 실행 버튼 클릭** 만으로 동일한 스타일의 영상이 자동 완성됩니다.
+![목소리 설정](https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/manual-images/step5-voice.png)
 
-완성까지 약 **2~3분** 소요됩니다.
-
-## 6단계: 완성 파일 확인
-
-영상이 완성되면 지정한 저장 폴더에 두 개의 파일이 생성됩니다:
-
-- `영상명.mp4` — 완성된 쇼핑 숏폼 영상
-- `영상명_seo.txt` — 유튜브/틱톡 업로드용 SEO 제목·설명·해시태그 자동 생성
-
-## 7단계: 상품 링크 찾기 (수익화)
-
-영상 업로드 전, 본문에 넣을 상품 링크를 찾아주세요.
-
-좌측 메뉴 **상품 검색** 탭에서:
-
-- **쿠파스** — 릴스 링크 또는 프로젝트로 상품 자동 검색. 복사하면 프로그램 내 자동 저장
-- **인포크링크** — 원클릭 접속으로 링크 바로 붙여넣기 가능
+> **⚠️ 중요: 각 단계에서 반드시 
