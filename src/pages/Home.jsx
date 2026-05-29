@@ -1093,9 +1093,6 @@ const DemoCarousel = () => {
   // 영상 없으면 섹션 숨김
   if (!n) return null
 
-  // 각 슬롯의 위치 오프셋 (-2 ~ +2)
-  const order = [-2, -1, 0, 1, 2].map(offset => (active + offset + n) % n)
-
   return (
     <section className="relative overflow-hidden bg-[#020617] py-16 md:py-24">
       {/* 헤딩 */}
@@ -1106,7 +1103,10 @@ const DemoCarousel = () => {
         </h2>
       </div>
 
-      {/* 캐러셀 트랙 */}
+      {/* 캐러셀 트랙
+          ★ key=vidIdx — 각 영상이 항상 DOM에 유지됨 (src 변경 없어서 끊김 없음)
+          ★ offset = 현재 영상이 active 기준 몇 칸 떨어져 있는지 (shortest path)
+      */}
       <div
         className="relative flex items-center justify-center select-none"
         style={{ height: 'min(72vw, 560px)' }}
@@ -1115,30 +1115,34 @@ const DemoCarousel = () => {
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
-        {order.map((vidIdx, slot) => {
-          const offset = slot - 2   // -2 ~ +2
+        {videos.map((src, vidIdx) => {
+          // shortest-path offset: -2 ~ +2
+          let offset = (vidIdx - active + n) % n
+          if (offset > n / 2) offset -= n
+
           const isCenter = offset === 0
           const absOff = Math.abs(offset)
+          const visible = absOff <= 2
 
-          // 위치·크기·투명도 계산
-          const translateX = offset * (isCenter ? 0 : 220)
-          const scale = isCenter ? 1 : absOff === 1 ? 0.78 : 0.6
-          const opacity = isCenter ? 1 : absOff === 1 ? 0.55 : 0.25
+          const translateX = offset * 220
+          const scale   = isCenter ? 1 : absOff === 1 ? 0.78 : 0.6
+          const opacity = isCenter ? 1 : absOff === 1 ? 0.55 : 0.2
           const zIndex  = isCenter ? 20 : absOff === 1 ? 10 : 5
-          const blur    = isCenter ? 0 : absOff === 1 ? 1 : 3
 
           return (
             <div
-              key={slot}
-              onClick={() => { if (!isCenter) (offset < 0 ? prev : next)() }}
+              key={vidIdx}
+              onClick={() => { if (!isCenter) setActive(vidIdx) }}
               style={{
                 position: 'absolute',
                 transform: `translateX(${translateX}px) scale(${scale})`,
-                opacity,
+                opacity: visible ? opacity : 0,
                 zIndex,
-                filter: `blur(${blur}px)`,
-                transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                // ★ transform/opacity만 transition — blur 제거로 GPU 부하 감소
+                transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease',
+                willChange: 'transform, opacity',
                 cursor: isCenter ? 'default' : 'pointer',
+                pointerEvents: visible ? 'auto' : 'none',
               }}
             >
               <div
@@ -1151,15 +1155,16 @@ const DemoCarousel = () => {
                     ? '0 30px 80px -10px rgba(59,130,246,0.35), 0 0 0 1px rgba(255,255,255,0.08)'
                     : '0 10px 30px -10px rgba(0,0,0,0.5)',
                   border: isCenter ? '1px solid rgba(255,255,255,0.12)' : 'none',
+                  transition: 'box-shadow 0.5s ease, border 0.5s ease',
                 }}
               >
                 <video
                   ref={el => { videoRefs.current[vidIdx] = el }}
-                  src={videos[vidIdx]}
+                  src={src}
                   muted
                   loop
                   playsInline
-                  preload="metadata"
+                  preload="auto"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                 />
               </div>
@@ -1188,6 +1193,15 @@ const DemoCarousel = () => {
           ))}
         </div>
         <button
+          onClick={next}
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-all hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-95 md:h-12 md:w-12"
+        >{'>'}</button>
+      </div>
+    </section>
+  )
+}
+
+export default Home      <button
           onClick={next}
           className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-all hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-95 md:h-12 md:w-12"
         >{'>'}</button>
