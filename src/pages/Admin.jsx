@@ -3,10 +3,10 @@ import { supabase } from '../lib/supabase'
 import {
   Megaphone, Save, LogOut, ShieldCheck, Loader, Eye, EyeOff,
   Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter,
-  AlignRight, List, ListOrdered, Link, Image, Minus, Plus, Pencil, Trash2, ChevronLeft
+  AlignRight, List, ListOrdered, Link, Image, Minus, Plus, Pencil, Trash2, ChevronLeft,
+  Film, ChevronUp, ChevronDown, Upload,
 } from 'lucide-react'
 
-/* ── 툴바 ── */
 const ToolBtn = ({ onClick, title, children }) => (
   <button type="button" title={title}
     onMouseDown={e => { e.preventDefault(); onClick() }}
@@ -16,7 +16,6 @@ const ToolBtn = ({ onClick, title, children }) => (
 )
 const Divider = () => <div className="mx-1 h-5 w-px bg-white/10" />
 
-/* ── 리치 에디터 ── */
 const RichEditor = ({ value, onChange }) => {
   const editorRef = useRef(null)
   const isInit = useRef(false)
@@ -31,7 +30,7 @@ const RichEditor = ({ value, onChange }) => {
   }, [value])
 
   const exec = (cmd, val = null) => { editorRef.current?.focus(); document.execCommand(cmd, false, val) }
-  const insertLink = () => { const u = prompt('링크 URL:', 'https://'); if (u) exec('createLink', u) }
+  const insertLink = () => { const u = prompt('URL:', 'https://'); if (u) exec('createLink', u) }
 
   const insertImageFromFile = async (file) => {
     if (!file?.type.startsWith('image/')) return
@@ -61,48 +60,44 @@ const RichEditor = ({ value, onChange }) => {
       <div className="flex flex-wrap items-center gap-0.5 border-b border-white/10 bg-slate-800/80 px-3 py-2">
         <select onChange={e => exec('fontSize', e.target.value)} defaultValue="3"
           className="h-8 rounded border border-white/10 bg-slate-700 px-2 text-xs text-slate-300 outline-none">
-          <option value="1">작게</option><option value="3">보통</option>
-          <option value="5">크게</option><option value="7">매우 크게</option>
+          <option value="1">small</option><option value="3">normal</option>
+          <option value="5">large</option><option value="7">x-large</option>
         </select>
         <Divider />
-        <ToolBtn onClick={() => exec('bold')} title="굵게"><Bold size={14} /></ToolBtn>
-        <ToolBtn onClick={() => exec('italic')} title="기울기"><Italic size={14} /></ToolBtn>
-        <ToolBtn onClick={() => exec('underline')} title="밑줄"><Underline size={14} /></ToolBtn>
-        <ToolBtn onClick={() => exec('strikeThrough')} title="취소선"><Strikethrough size={14} /></ToolBtn>
+        <ToolBtn onClick={() => exec('bold')} title="bold"><Bold size={14} /></ToolBtn>
+        <ToolBtn onClick={() => exec('italic')} title="italic"><Italic size={14} /></ToolBtn>
+        <ToolBtn onClick={() => exec('underline')} title="underline"><Underline size={14} /></ToolBtn>
+        <ToolBtn onClick={() => exec('strikeThrough')} title="strike"><Strikethrough size={14} /></ToolBtn>
         <Divider />
-        <label title="글자색" className="flex h-8 w-8 cursor-pointer items-center justify-center rounded text-sm font-bold text-slate-400 hover:bg-white/10">
-          가<input type="color" className="sr-only" onChange={e => exec('foreColor', e.target.value)} />
-        </label>
-        <label title="배경색" className="flex h-8 w-8 cursor-pointer items-center justify-center rounded text-sm font-bold text-slate-400 hover:bg-white/10">
-          A<input type="color" className="sr-only" onChange={e => exec('hiliteColor', e.target.value)} />
+        <label className="flex h-8 w-8 cursor-pointer items-center justify-center rounded text-sm font-bold text-slate-400 hover:bg-white/10">
+          A<input type="color" className="sr-only" onChange={e => exec('foreColor', e.target.value)} />
         </label>
         <Divider />
-        <ToolBtn onClick={() => exec('justifyLeft')} title="왼쪽"><AlignLeft size={14} /></ToolBtn>
-        <ToolBtn onClick={() => exec('justifyCenter')} title="가운데"><AlignCenter size={14} /></ToolBtn>
-        <ToolBtn onClick={() => exec('justifyRight')} title="오른쪽"><AlignRight size={14} /></ToolBtn>
+        <ToolBtn onClick={() => exec('justifyLeft')} title="left"><AlignLeft size={14} /></ToolBtn>
+        <ToolBtn onClick={() => exec('justifyCenter')} title="center"><AlignCenter size={14} /></ToolBtn>
+        <ToolBtn onClick={() => exec('justifyRight')} title="right"><AlignRight size={14} /></ToolBtn>
         <Divider />
-        <ToolBtn onClick={() => exec('insertUnorderedList')} title="목록"><List size={14} /></ToolBtn>
-        <ToolBtn onClick={() => exec('insertOrderedList')} title="번호 목록"><ListOrdered size={14} /></ToolBtn>
+        <ToolBtn onClick={() => exec('insertUnorderedList')} title="ul"><List size={14} /></ToolBtn>
+        <ToolBtn onClick={() => exec('insertOrderedList')} title="ol"><ListOrdered size={14} /></ToolBtn>
         <Divider />
-        <ToolBtn onClick={insertLink} title="링크"><Link size={14} /></ToolBtn>
-        <label title="이미지 업로드" className="flex h-8 w-8 cursor-pointer items-center justify-center rounded text-slate-400 hover:bg-white/10">
+        <ToolBtn onClick={insertLink} title="link"><Link size={14} /></ToolBtn>
+        <label className="flex h-8 w-8 cursor-pointer items-center justify-center rounded text-slate-400 hover:bg-white/10">
           <Image size={14} />
           <input type="file" accept="image/*" className="sr-only" onChange={e => { insertImageFromFile(e.target.files?.[0]); e.target.value='' }} />
         </label>
-        <ToolBtn onClick={() => exec('insertHorizontalRule')} title="구분선"><Minus size={14} /></ToolBtn>
+        <ToolBtn onClick={() => exec('insertHorizontalRule')} title="hr"><Minus size={14} /></ToolBtn>
         <Divider />
-        <ToolBtn onClick={() => exec('removeFormat')} title="서식 제거"><span className="text-xs font-bold">T×</span></ToolBtn>
+        <ToolBtn onClick={() => exec('removeFormat')} title="clear"><span className="text-xs font-bold">Tx</span></ToolBtn>
       </div>
       <div className="relative">
         {uploading && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 rounded-b-xl">
             <Loader size={18} className="animate-spin text-blue-400" />
-            <span className="ml-2 text-sm text-slate-300">업로드 중...</span>
           </div>
         )}
         {dragging && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-blue-500/10 border-2 border-dashed border-blue-500/50 rounded-b-xl">
-            <p className="text-sm font-bold text-blue-400">이미지를 여기에 놓으세요</p>
+            <p className="text-sm font-bold text-blue-400">drop image here</p>
           </div>
         )}
         <div ref={editorRef} contentEditable suppressContentEditableWarning
@@ -112,7 +107,7 @@ const RichEditor = ({ value, onChange }) => {
           onDrop={handleDrop}
           className="min-h-[360px] bg-[#0f172a] p-5 text-slate-200 outline-none"
           style={{ fontSize: '15px', lineHeight: '1.8' }}
-          data-placeholder="이벤트 내용을 입력하세요 (이미지는 드래그 앤 드롭)"
+          data-placeholder="write content..."
         />
       </div>
       <style>{`
@@ -127,11 +122,10 @@ const RichEditor = ({ value, onChange }) => {
   )
 }
 
-/* ── 상태 설정 ── */
 const STATUS_CFG = {
-  active:  { label: '진행중',      cls: 'bg-blue-500/20 text-blue-300 border-blue-500/30', dot: true },
-  ended:   { label: '종료됨',      cls: 'bg-slate-600/30 text-slate-400 border-slate-500/20', dot: false },
-  winner:  { label: '당첨자 발표', cls: 'bg-amber-500/20 text-amber-300 border-amber-500/30', dot: false },
+  active:  { label: 'Active',  cls: 'bg-blue-500/20 text-blue-300 border-blue-500/30', dot: true },
+  ended:   { label: 'Ended',   cls: 'bg-slate-600/30 text-slate-400 border-slate-500/20', dot: false },
+  winner:  { label: 'Winners', cls: 'bg-amber-500/20 text-amber-300 border-amber-500/30', dot: false },
 }
 
 const StatusBadge = ({ status }) => {
@@ -146,12 +140,129 @@ const StatusBadge = ({ status }) => {
 
 const emptyForm = () => ({ title: '', content: '', status: 'active', cta_text: '', cta_url: '' })
 
-/* ── 메인 ── */
+const DemoVideosPanel = () => {
+  const [videos, setVideos] = useState([])
+  const [uploading, setUploading] = useState(false)
+  const [deleting, setDeleting] = useState(null)
+  const [msg, setMsg] = useState(null)
+
+  const load = async () => {
+    const { data } = await supabase.from('demo_videos').select('*').order('sort_order')
+    if (data) setVideos(data)
+  }
+
+  useEffect(() => { load() }, [])
+
+  const showMsg = (text, isErr = false) => {
+    setMsg({ text, isErr })
+    setTimeout(() => setMsg(null), 2500)
+  }
+
+  const handleUpload = async (e) => {
+    const files = Array.from(e.target.files || [])
+    if (!files.length) return
+    setUploading(true)
+    for (const file of files) {
+      if (!file.type.startsWith('video/')) continue
+      const ext = file.name.split('.').pop()
+      const path = `demo/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
+      const { error: upErr } = await supabase.storage.from('demo-videos').upload(path, file, { upsert: false })
+      if (upErr) { showMsg('Upload failed: ' + upErr.message, true); continue }
+      const { data: { publicUrl } } = supabase.storage.from('demo-videos').getPublicUrl(path)
+      const maxOrder = videos.length ? Math.max(...videos.map(v => v.sort_order)) : -1
+      await supabase.from('demo_videos').insert({ url: publicUrl, sort_order: maxOrder + 1 })
+    }
+    await load()
+    setUploading(false)
+    e.target.value = ''
+    showMsg('Upload complete!')
+  }
+
+  const handleDelete = async (video) => {
+    setDeleting(video.id)
+    try {
+      const urlPath = new URL(video.url).pathname
+      const storagePath = urlPath.split('/demo-videos/')[1]
+      if (storagePath) await supabase.storage.from('demo-videos').remove([storagePath])
+    } catch {}
+    await supabase.from('demo_videos').delete().eq('id', video.id)
+    await load()
+    setDeleting(null)
+  }
+
+  const move = async (idx, dir) => {
+    const next = idx + dir
+    if (next < 0 || next >= videos.length) return
+    const a = videos[idx], b = videos[next]
+    await supabase.from('demo_videos').update({ sort_order: b.sort_order }).eq('id', a.id)
+    await supabase.from('demo_videos').update({ sort_order: a.sort_order }).eq('id', b.id)
+    await load()
+  }
+
+  return (
+    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Film size={18} className="text-blue-400" />
+          <h2 className="text-base font-bold">Demo Videos</h2>
+          <span className="rounded-full bg-white/8 px-2 py-0.5 text-xs text-slate-400">{videos.length}</span>
+        </div>
+        <label className={`flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all active:scale-95 ${uploading ? 'bg-slate-700 text-slate-400' : 'bg-blue-600 text-white hover:bg-blue-500'}`}>
+          {uploading ? <Loader size={14} className="animate-spin" /> : <Upload size={14} />}
+          {uploading ? 'Uploading...' : 'Add Video'}
+          <input type="file" accept="video/*" multiple className="sr-only" onChange={handleUpload} disabled={uploading} />
+        </label>
+      </div>
+
+      {msg && (
+        <div className={`mb-4 rounded-xl border px-4 py-3 text-sm font-bold ${msg.isErr ? 'border-red-500/30 bg-red-500/10 text-red-400' : 'border-green-500/30 bg-green-500/10 text-green-400'}`}>
+          {msg.text}
+        </div>
+      )}
+
+      {videos.length === 0 ? (
+        <div className="py-16 text-center text-slate-500">
+          <Film size={32} className="mx-auto mb-3 opacity-30" />
+          <p className="text-sm">No demo videos yet</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {videos.map((v, idx) => (
+            <div key={v.id} className="flex items-center gap-3 rounded-xl border border-white/6 bg-white/[0.02] px-4 py-3">
+              <video src={v.url} className="h-16 w-9 shrink-0 rounded-lg bg-black object-cover" muted playsInline preload="metadata" />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-bold text-slate-400">#{idx + 1}</p>
+                <p className="truncate text-xs text-slate-600">{v.url.split('/').pop()}</p>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <button onClick={() => move(idx, -1)} disabled={idx === 0}
+                  className="flex h-6 w-6 items-center justify-center rounded text-slate-500 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-20">
+                  <ChevronUp size={14} />
+                </button>
+                <button onClick={() => move(idx, 1)} disabled={idx === videos.length - 1}
+                  className="flex h-6 w-6 items-center justify-center rounded text-slate-500 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-20">
+                  <ChevronDown size={14} />
+                </button>
+              </div>
+              <button onClick={() => handleDelete(v)} disabled={deleting === v.id}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-white/10 hover:text-red-400 disabled:opacity-40">
+                {deleting === v.id ? <Loader size={14} className="animate-spin" /> : <Trash2 size={14} />}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <p className="mt-4 text-xs text-slate-600">Use arrows to reorder. Changes reflect on homepage immediately.</p>
+    </div>
+  )
+}
+
 const Admin = () => {
   const [user, setUser] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
   const [events, setEvents] = useState([])
+  const [tab, setTab] = useState('events')
   const [view, setView] = useState('list')
   const [editing, setEditing] = useState(null)
   const [form, setForm] = useState(emptyForm())
@@ -183,20 +294,19 @@ const Admin = () => {
   }
 
   const openNew = () => { setForm(emptyForm()); setEditing(null); setPreview(false); setView('form') }
-  const openEdit = ev => { setForm({ title: ev.title, content: ev.content, status: ev.status, cta_text: ev.cta_text || '', cta_url: ev.cta_url || '' }); setEditing(ev.id); setPreview(false); setView('form') }
+  const openEdit = ev => {
+    setForm({ title: ev.title, content: ev.content, status: ev.status, cta_text: ev.cta_text || '', cta_url: ev.cta_url || '' })
+    setEditing(ev.id); setPreview(false); setView('form')
+  }
 
   const handleSave = async () => {
-    if (!form.title.trim()) { setSaveMsg('제목을 입력하세요'); setTimeout(() => setSaveMsg(null), 2000); return }
+    if (!form.title.trim()) { setSaveMsg('title required'); setTimeout(() => setSaveMsg(null), 2000); return }
     setSaving(true); setSaveMsg(null)
     const payload = {
-      title: form.title,
-      content: form.content,
-      status: form.status,
-      label: STATUS_CFG[form.status]?.label || '진행중',  // 상태에서 자동 설정
-      cta_text: form.cta_text,
-      cta_url: form.cta_url,
-      updated_at: new Date().toISOString(),
-      created_by: user.id,
+      title: form.title, content: form.content, status: form.status,
+      label: STATUS_CFG[form.status]?.label || 'Active',
+      cta_text: form.cta_text, cta_url: form.cta_url,
+      updated_at: new Date().toISOString(), created_by: user.id,
     }
     let error
     if (editing) {
@@ -205,8 +315,8 @@ const Admin = () => {
       ({ error } = await supabase.from('events').insert(payload))
     }
     setSaving(false)
-    if (error) { setSaveMsg('저장 실패: ' + error.message) }
-    else { setSaveMsg('저장 완료!'); await loadEvents(); setTimeout(() => { setSaveMsg(null); setView('list') }, 1000) }
+    if (error) { setSaveMsg('Error: ' + error.message) }
+    else { setSaveMsg('Saved!'); await loadEvents(); setTimeout(() => { setSaveMsg(null); setView('list') }, 1000) }
   }
 
   const handleDelete = async (id) => {
@@ -223,20 +333,21 @@ const Admin = () => {
   if (!user) return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-[#020617] text-slate-100">
       <ShieldCheck size={48} className="text-slate-600" />
-      <p className="text-lg font-bold text-slate-400">로그인이 필요합니다</p>
+      <p className="text-lg font-bold text-slate-400">Login required</p>
       <button onClick={() => supabase.auth.signInWithOAuth({ provider: 'google' })}
-        className="rounded-xl bg-blue-600 px-6 py-3 font-bold text-white hover:bg-blue-500">Google로 로그인</button>
+        className="rounded-xl bg-blue-600 px-6 py-3 font-bold text-white hover:bg-blue-500">Sign in with Google</button>
     </div>
   )
 
   if (!isAdmin) return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#020617] text-slate-100">
       <ShieldCheck size={48} className="text-red-500/60" />
-      <p className="text-lg font-bold text-slate-400">관리자 권한이 없습니다</p>
+      <p className="text-lg font-bold text-slate-400">No admin access</p>
       <p className="text-sm text-slate-600">{user.email}</p>
       <button onClick={() => supabase.auth.signOut()}
         className="mt-2 flex items-center gap-2 rounded-xl border border-white/10 px-5 py-2.5 text-sm font-bold text-slate-400 hover:text-white">
-        <LogOut size={15} /> 로그아웃</button>
+        <LogOut size={15} /> Sign out
+      </button>
     </div>
   )
 
@@ -246,43 +357,56 @@ const Admin = () => {
 
         <div className="mb-8 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {view === 'form' && (
+            {tab === 'events' && view === 'form' && (
               <button onClick={() => setView('list')} className="mr-1 flex items-center gap-1 text-sm text-slate-400 hover:text-white">
-                <ChevronLeft size={16} /> 목록
+                <ChevronLeft size={16} /> Back
               </button>
             )}
             <ShieldCheck size={22} className="text-blue-400" />
-            <h1 className="text-xl font-black tracking-tight">Chronit 관리자</h1>
+            <h1 className="text-xl font-black tracking-tight">Chronit Admin</h1>
           </div>
           <button onClick={() => supabase.auth.signOut()}
             className="flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2 text-sm font-bold text-slate-400 hover:text-white">
-            <LogOut size={14} /> 로그아웃</button>
+            <LogOut size={14} /> Sign out
+          </button>
         </div>
 
-        {/* 목록 */}
-        {view === 'list' && (
+        <div className="mb-6 flex gap-2">
+          {[
+            { key: 'events', icon: <Megaphone size={15} />, label: 'Events' },
+            { key: 'videos', icon: <Film size={15} />, label: 'Demo Videos' },
+          ].map(t => (
+            <button key={t.key} onClick={() => { setTab(t.key); setView('list') }}
+              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all ${tab === t.key ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'border border-white/10 text-slate-400 hover:text-white'}`}>
+              {t.icon}{t.label}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'videos' && <DemoVideosPanel />}
+
+        {tab === 'events' && view === 'list' && (
           <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
             <div className="mb-6 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Megaphone size={18} className="text-violet-400" />
-                <h2 className="text-base font-bold">이벤트 관리</h2>
-                <span className="rounded-full bg-white/8 px-2 py-0.5 text-xs text-slate-400">{events.length}개</span>
+                <h2 className="text-base font-bold">Events</h2>
+                <span className="rounded-full bg-white/8 px-2 py-0.5 text-xs text-slate-400">{events.length}</span>
               </div>
               <button onClick={openNew}
                 className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-500 active:scale-95">
-                <Plus size={15} /> 새 이벤트
+                <Plus size={15} /> New Event
               </button>
             </div>
-
             {events.length === 0 ? (
               <div className="py-16 text-center text-slate-500">
                 <Megaphone size={32} className="mx-auto mb-3 opacity-30" />
-                <p className="text-sm">등록된 이벤트가 없습니다</p>
+                <p className="text-sm">No events yet</p>
               </div>
             ) : (
               <div className="space-y-2">
                 {events.map(ev => (
-                  <div key={ev.id} className="flex items-center gap-3 rounded-xl border border-white/6 bg-white/[0.02] px-4 py-3 hover:bg-white/[0.04] transition-colors">
+                  <div key={ev.id} className="flex items-center gap-3 rounded-xl border border-white/6 bg-white/[0.02] px-4 py-3 transition-colors hover:bg-white/[0.04]">
                     <StatusBadge status={ev.status} />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-bold text-slate-200">{ev.title}</p>
@@ -290,11 +414,11 @@ const Admin = () => {
                     </div>
                     <div className="flex items-center gap-1">
                       <button onClick={() => openEdit(ev)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-blue-400 transition-colors">
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-white/10 hover:text-blue-400">
                         <Pencil size={14} />
                       </button>
                       <button onClick={() => handleDelete(ev.id)} disabled={deleting === ev.id}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-red-400 transition-colors disabled:opacity-40">
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-white/10 hover:text-red-400 disabled:opacity-40">
                         {deleting === ev.id ? <Loader size={14} className="animate-spin" /> : <Trash2 size={14} />}
                       </button>
                     </div>
@@ -305,83 +429,68 @@ const Admin = () => {
           </div>
         )}
 
-        {/* 폼 */}
-        {view === 'form' && (
+        {tab === 'events' && view === 'form' && (
           <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
-            <h2 className="mb-6 text-base font-bold">{editing ? '이벤트 수정' : '새 이벤트 작성'}</h2>
-
-            {/* 제목 */}
+            <h2 className="mb-6 text-base font-bold">{editing ? 'Edit Event' : 'New Event'}</h2>
             <div className="mb-4">
-              <label className="mb-2 block text-sm font-bold text-slate-400">제목</label>
+              <label className="mb-2 block text-sm font-bold text-slate-400">Title</label>
               <input value={form.title} onChange={e => set('title', e.target.value)}
-                placeholder="이벤트 제목을 입력하세요"
+                placeholder="Event title"
                 className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 outline-none focus:border-blue-500/50" />
             </div>
-
-            {/* 상태 */}
             <div className="mb-5">
-              <label className="mb-2 block text-sm font-bold text-slate-400">상태</label>
+              <label className="mb-2 block text-sm font-bold text-slate-400">Status</label>
               <div className="flex gap-3">
                 {Object.entries(STATUS_CFG).map(([key, cfg]) => (
                   <button key={key} type="button" onClick={() => set('status', key)}
-                    className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition-all ${
-                      form.status === key ? cfg.cls + ' border-current' : 'border-white/10 text-slate-500 hover:text-slate-300'
-                    }`}>
+                    className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition-all ${form.status === key ? cfg.cls + ' border-current' : 'border-white/10 text-slate-500 hover:text-slate-300'}`}>
                     {key === 'active' && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-400" />}
                     {cfg.label}
                   </button>
                 ))}
               </div>
             </div>
-
-            {/* CTA 버튼 (선택) */}
             <div className="mb-5 grid grid-cols-2 gap-4">
               <div>
-                <label className="mb-2 block text-sm font-bold text-slate-400">버튼 텍스트 <span className="font-normal text-slate-600">(선택)</span></label>
-                <input value={form.cta_text} onChange={e => set('cta_text', e.target.value)}
-                  placeholder="지금 참여"
+                <label className="mb-2 block text-sm font-bold text-slate-400">CTA Text</label>
+                <input value={form.cta_text} onChange={e => set('cta_text', e.target.value)} placeholder="Join Now"
                   className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 outline-none focus:border-blue-500/50" />
               </div>
               <div>
-                <label className="mb-2 block text-sm font-bold text-slate-400">버튼 링크 <span className="font-normal text-slate-600">(선택)</span></label>
-                <input value={form.cta_url} onChange={e => set('cta_url', e.target.value)}
-                  placeholder="https://..."
+                <label className="mb-2 block text-sm font-bold text-slate-400">CTA URL</label>
+                <input value={form.cta_url} onChange={e => set('cta_url', e.target.value)} placeholder="https://..."
                   className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 outline-none focus:border-blue-500/50" />
               </div>
             </div>
-
-            {/* 본문 */}
             <div className="mb-6">
               <div className="mb-2 flex items-center justify-between">
-                <label className="text-sm font-bold text-slate-400">본문</label>
+                <label className="text-sm font-bold text-slate-400">Content</label>
                 <button onClick={() => setPreview(v => !v)}
-                  className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors">
+                  className="flex items-center gap-1.5 text-xs font-bold text-slate-500 transition-colors hover:text-slate-300">
                   {preview ? <EyeOff size={13} /> : <Eye size={13} />}
-                  {preview ? '편집으로 돌아가기' : '미리보기'}
+                  {preview ? 'Edit' : 'Preview'}
                 </button>
               </div>
               {preview ? (
                 <div className="min-h-[360px] rounded-xl border border-white/10 bg-[#0f172a] p-6 text-slate-200"
                   style={{ fontSize: '15px', lineHeight: '1.8' }}
-                  dangerouslySetInnerHTML={{ __html: form.content || '<p style="color:#475569">본문 없음</p>' }} />
+                  dangerouslySetInnerHTML={{ __html: form.content || '<p style="color:#475569">No content</p>' }} />
               ) : (
                 <RichEditor value={form.content} onChange={v => set('content', v)} />
               )}
             </div>
-
-            {/* 저장 */}
             <div className="flex items-center gap-4">
               <button onClick={handleSave} disabled={saving}
-                className="flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-bold text-white hover:bg-blue-500 active:scale-95 disabled:opacity-50 transition-all">
+                className="flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-bold text-white transition-all hover:bg-blue-500 active:scale-95 disabled:opacity-50">
                 {saving ? <Loader size={16} className="animate-spin" /> : <Save size={16} />}
-                {editing ? '수정 저장' : '등록'}
+                {editing ? 'Update' : 'Save'}
               </button>
               <button onClick={() => setView('list')}
-                className="rounded-xl border border-white/10 px-5 py-3 text-sm font-bold text-slate-400 hover:text-white transition-colors">
-                취소
+                className="rounded-xl border border-white/10 px-5 py-3 text-sm font-bold text-slate-400 transition-colors hover:text-white">
+                Cancel
               </button>
               {saveMsg && (
-                <span className={`text-sm font-bold ${saveMsg.includes('실패') || saveMsg.includes('입력') ? 'text-red-400' : 'text-green-400'}`}>
+                <span className={`text-sm font-bold ${saveMsg.includes('Error') || saveMsg.includes('required') ? 'text-red-400' : 'text-green-400'}`}>
                   {saveMsg}
                 </span>
               )}

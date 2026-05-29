@@ -1047,20 +1047,20 @@ const FeatureCard = ({ icon, title, description }) => (
    - 중앙 영상만 활성(autoplay/unmuted), 나머지는 흐리게
    - 좌우 클릭 or 드래그로 이동, 무한 루프
 ────────────────────────────────────────────────────── */
-const DEMO_VIDEOS = [
-  '/demo1.mp4',
-  '/demo2.mp4',
-  '/demo3.mp4',
-  '/demo4.mp4',
-  '/demo5.mp4',
-]
-
 const DemoCarousel = () => {
+  const [videos, setVideos] = useState([])
   const [active, setActive] = useState(0)
   const [dragging, setDragging] = useState(false)
   const dragStartX = useRef(0)
   const videoRefs = useRef([])
-  const n = DEMO_VIDEOS.length
+
+  useEffect(() => {
+    supabase.from('demo_videos').select('*').order('sort_order').then(({ data }) => {
+      if (data && data.length) setVideos(data.map(v => v.url))
+    })
+  }, [])
+
+  const n = videos.length
 
   const prev = () => setActive(i => (i - 1 + n) % n)
   const next = () => setActive(i => (i + 1) % n)
@@ -1089,6 +1089,9 @@ const DemoCarousel = () => {
     const dx = e.changedTouches[0].clientX - dragStartX.current
     if (Math.abs(dx) > 40) dx < 0 ? next() : prev()
   }
+
+  // 영상 없으면 섹션 숨김
+  if (!n) return null
 
   // 각 슬롯의 위치 오프셋 (-2 ~ +2)
   const order = [-2, -1, 0, 1, 2].map(offset => (active + offset + n) % n)
@@ -1152,7 +1155,7 @@ const DemoCarousel = () => {
               >
                 <video
                   ref={el => { videoRefs.current[vidIdx] = el }}
-                  src={DEMO_VIDEOS[vidIdx]}
+                  src={videos[vidIdx]}
                   muted
                   loop
                   playsInline
@@ -1170,11 +1173,9 @@ const DemoCarousel = () => {
         <button
           onClick={prev}
           className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-all hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-95 md:h-12 md:w-12"
-        >
-          ‹
-        </button>
+        >{'<'}</button>
         <div className="flex gap-2">
-          {DEMO_VIDEOS.map((_, i) => (
+          {videos.map((_, i) => (
             <button
               key={i}
               onClick={() => setActive(i)}
@@ -1189,9 +1190,7 @@ const DemoCarousel = () => {
         <button
           onClick={next}
           className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-all hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-95 md:h-12 md:w-12"
-        >
-          ›
-        </button>
+        >{'>'}</button>
       </div>
     </section>
   )
