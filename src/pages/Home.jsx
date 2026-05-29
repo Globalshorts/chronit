@@ -476,18 +476,18 @@ const Home = () => {
 
         <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center px-5 py-24 md:px-8 md:py-32">
           <div className="animate-fade-in mb-8 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1.5 text-sm font-bold text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.15)] md:mb-10 md:px-4 md:text-base">
-            <Zap size={14} fill="currentColor" /> <span>실무진 직접 제작 v1.0.1</span>
+            <Zap size={14} fill="currentColor" /> <span>시간을 선물하는 AI 솔루션 v1.0.1</span>
           </div>
 
           <div className="mb-10 flex w-full flex-col items-center md:mb-12">
-            <span className="mb-2 text-lg font-medium text-slate-400 opacity-80 md:text-xl">
-              숏폼 회사 실무진이
-            </span>
-            <h2 className="animate-burn mb-4 text-4xl font-black tracking-tight text-white md:text-6xl">
-              답답해서
+            <h2 className="animate-burn mb-3 text-4xl font-black tracking-tight text-white md:text-6xl">
+              복잡함은 빼고,
             </h2>
+            <span className="mb-2 text-center text-lg font-medium text-slate-400 opacity-80 md:text-xl">
+              영상 제작 시간, <strong className="text-blue-400">단 1분</strong>이면 충분합니다.
+            </span>
             <span className="mb-4 text-center text-lg font-medium text-slate-400 opacity-80 md:mb-6 md:text-xl">
-              직접 만든 릴스 자동화 솔루션,
+              원클릭으로 시작하는 스마트 쇼핑 크리에이터,
             </span>
             <h2 className="bg-gradient-to-r from-blue-400 via-white to-indigo-400 bg-clip-text text-[64px] leading-[1] font-black tracking-tighter text-transparent drop-shadow-[0_10px_20px_rgba(59,130,246,0.3)] md:text-[110px]">
               크로닛
@@ -532,6 +532,8 @@ const Home = () => {
         </div>
       </section>
 
+      {/* ── 데모 영상 캐러셀 ── */}
+      <DemoCarousel />
 
       {/* Stats Section */}
       <section className="relative overflow-hidden bg-[#020617] px-5 py-20 md:px-8 md:py-32">
@@ -766,6 +768,10 @@ const Home = () => {
                   <li className="flex items-start gap-2 md:gap-3">
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-200" />
                     고급 AI 음성 사용 가능 (자연스러운 한국어 TTS 보이스 활성화)
+                  </li>
+                  <li className="flex items-start gap-2 md:gap-3">
+                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-200" />
+                    <span><strong>워터마크 제거</strong> — 완성본에 브랜드 로고 없이 깔끔하게 출력</span>
                   </li>
                 </ul>
               </div>
@@ -1035,5 +1041,160 @@ const FeatureCard = ({ icon, title, description }) => (
     </p>
   </div>
 )
+
+/* ──────────────────────────────────────────────────────
+   데모 영상 캐러셀
+   - 중앙 영상만 활성(autoplay/unmuted), 나머지는 흐리게
+   - 좌우 클릭 or 드래그로 이동, 무한 루프
+────────────────────────────────────────────────────── */
+const DEMO_VIDEOS = [
+  '/demo1.mp4',
+  '/demo2.mp4',
+  '/demo3.mp4',
+  '/demo4.mp4',
+  '/demo5.mp4',
+]
+
+const DemoCarousel = () => {
+  const [active, setActive] = useState(0)
+  const [dragging, setDragging] = useState(false)
+  const dragStartX = useRef(0)
+  const videoRefs = useRef([])
+  const n = DEMO_VIDEOS.length
+
+  const prev = () => setActive(i => (i - 1 + n) % n)
+  const next = () => setActive(i => (i + 1) % n)
+
+  // 중앙 영상 재생, 나머지 일시정지
+  useEffect(() => {
+    videoRefs.current.forEach((v, i) => {
+      if (!v) return
+      if (i === active) {
+        v.currentTime = 0
+        v.play().catch(() => {})
+      } else {
+        v.pause()
+        v.currentTime = 0
+      }
+    })
+  }, [active])
+
+  const onMouseDown = (e) => { setDragging(false); dragStartX.current = e.clientX }
+  const onMouseUp   = (e) => {
+    const dx = e.clientX - dragStartX.current
+    if (Math.abs(dx) > 40) dx < 0 ? next() : prev()
+  }
+  const onTouchStart = (e) => { dragStartX.current = e.touches[0].clientX }
+  const onTouchEnd   = (e) => {
+    const dx = e.changedTouches[0].clientX - dragStartX.current
+    if (Math.abs(dx) > 40) dx < 0 ? next() : prev()
+  }
+
+  // 각 슬롯의 위치 오프셋 (-2 ~ +2)
+  const order = [-2, -1, 0, 1, 2].map(offset => (active + offset + n) % n)
+
+  return (
+    <section className="relative overflow-hidden bg-[#020617] py-16 md:py-24">
+      {/* 헤딩 */}
+      <div className="mb-10 text-center md:mb-14">
+        <p className="mb-2 text-xs font-bold tracking-[0.3em] text-blue-400 uppercase md:text-sm">DEMO</p>
+        <h2 className="text-2xl font-black tracking-tight text-white md:text-4xl">
+          실제 제작된 영상을 확인하세요
+        </h2>
+      </div>
+
+      {/* 캐러셀 트랙 */}
+      <div
+        className="relative flex items-center justify-center select-none"
+        style={{ height: 'min(72vw, 560px)' }}
+        onMouseDown={onMouseDown}
+        onMouseUp={onMouseUp}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
+        {order.map((vidIdx, slot) => {
+          const offset = slot - 2   // -2 ~ +2
+          const isCenter = offset === 0
+          const absOff = Math.abs(offset)
+
+          // 위치·크기·투명도 계산
+          const translateX = offset * (isCenter ? 0 : 220)
+          const scale = isCenter ? 1 : absOff === 1 ? 0.78 : 0.6
+          const opacity = isCenter ? 1 : absOff === 1 ? 0.55 : 0.25
+          const zIndex  = isCenter ? 20 : absOff === 1 ? 10 : 5
+          const blur    = isCenter ? 0 : absOff === 1 ? 1 : 3
+
+          return (
+            <div
+              key={slot}
+              onClick={() => { if (!isCenter) (offset < 0 ? prev : next)() }}
+              style={{
+                position: 'absolute',
+                transform: `translateX(${translateX}px) scale(${scale})`,
+                opacity,
+                zIndex,
+                filter: `blur(${blur}px)`,
+                transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                cursor: isCenter ? 'default' : 'pointer',
+              }}
+            >
+              <div
+                style={{
+                  width: 'min(52vw, 280px)',
+                  aspectRatio: '9/16',
+                  borderRadius: '1.25rem',
+                  overflow: 'hidden',
+                  boxShadow: isCenter
+                    ? '0 30px 80px -10px rgba(59,130,246,0.35), 0 0 0 1px rgba(255,255,255,0.08)'
+                    : '0 10px 30px -10px rgba(0,0,0,0.5)',
+                  border: isCenter ? '1px solid rgba(255,255,255,0.12)' : 'none',
+                }}
+              >
+                <video
+                  ref={el => { videoRefs.current[vidIdx] = el }}
+                  src={DEMO_VIDEOS[vidIdx]}
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* 네비게이션 버튼 */}
+      <div className="mt-8 flex items-center justify-center gap-6">
+        <button
+          onClick={prev}
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-all hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-95 md:h-12 md:w-12"
+        >
+          ‹
+        </button>
+        <div className="flex gap-2">
+          {DEMO_VIDEOS.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setActive(i)}
+              className="h-1.5 rounded-full transition-all duration-300"
+              style={{
+                width: i === active ? '24px' : '6px',
+                background: i === active ? '#3b82f6' : 'rgba(255,255,255,0.2)',
+              }}
+            />
+          ))}
+        </div>
+        <button
+          onClick={next}
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-all hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-95 md:h-12 md:w-12"
+        >
+          ›
+        </button>
+      </div>
+    </section>
+  )
+}
 
 export default Home
