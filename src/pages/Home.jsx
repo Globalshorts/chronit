@@ -138,6 +138,8 @@ const Home = () => {
 
   // 로그인 완료 후 공통 처리
   const handleAfterLogin = (session) => {
+    // GA4 회원가입/로그인 전환 이벤트
+    window.gtag?.('event', 'sign_up', { event_category: 'conversion', event_label: 'google_oauth' })
     // 앱이 실행 중이면 토큰 전달
     fetch('http://localhost:17389/ping')
       .then((res) => {
@@ -548,6 +550,7 @@ const Home = () => {
             </button>
             <a
               href={DOWNLOAD_URL}
+              onClick={() => window.gtag?.('event', 'download', { event_category: 'conversion', event_label: 'windows_download' })}
               className="group flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/[0.04] px-6 py-4 text-lg font-extrabold text-white backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/10 active:scale-95 md:gap-3 md:px-10 md:py-5 md:text-xl"
             >
               <Monitor size={20} /> Windows 다운로드
