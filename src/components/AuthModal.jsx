@@ -28,7 +28,7 @@ const AuthModal = ({ open, onClose, referralCode }) => {
         </button>
 
         <div className="mb-8 text-center">
-          <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="mx-auto mb-4 h-12 w-12" />
+          <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="mx-auto mb-4 h-12 w-12 rounded-lg" />
           <h3 className="text-xl font-black text-white">로그인</h3>
           <p className="mt-2 text-sm leading-relaxed text-slate-400">
             결제를 진행하려면 로그인이 필요합니다.

@@ -24,7 +24,7 @@ const TermsModal = ({ open, onAgree, onClose }) => {
         </button>
 
         <div className="mb-6 text-center">
-          <img src="/favicon.png" alt="Chronit" className="mx-auto mb-4 h-12 w-12" />
+          <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="mx-auto mb-4 h-12 w-12 rounded-lg" />
           <h3 className="text-xl font-black text-white">서비스 이용 동의</h3>
           <p className="mt-2 text-sm leading-relaxed text-slate-400">
             크로닛을 이용하기 전에 아래 약관에 동의해주세요.
