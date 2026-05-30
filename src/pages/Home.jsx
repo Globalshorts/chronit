@@ -506,6 +506,7 @@ const Home = () => {
             <h2 className="bg-gradient-to-r from-blue-400 via-white to-indigo-400 bg-clip-text text-[64px] leading-[1] font-black tracking-tighter text-transparent drop-shadow-[0_10px_20px_rgba(59,130,246,0.3)] md:text-[110px]">
               크로닛
             </h2>
+            <span className="sr-only">크로닛(Chronit) — 쇼핑 릴스 영상 편집 자동화 솔루션. 링크만 입력하면 영상이 완성됩니다.</span>
           </div>
 
           <p className="mb-10 max-w-3xl px-2 text-lg leading-[1.8] font-medium text-slate-300 md:mb-14 md:text-xl">
