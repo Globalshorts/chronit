@@ -30,7 +30,7 @@ const Legal = ({ title, subtitle, markdown }) => {
             <img
               src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png"
               alt="Chronit"
-              className="h-8 w-8 shrink-0 rounded-lg md:h-10 md:w-10"
+              className="h-8 w-8 shrink-0 md:h-10 md:w-10"
             />
             <h1 className="bg-gradient-to-r from-white to-slate-400 bg-clip-text text-2xl font-black tracking-tighter text-transparent md:text-3xl">
               Chronit
