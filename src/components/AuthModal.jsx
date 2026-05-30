@@ -31,7 +31,7 @@ const AuthModal = ({ open, onClose, referralCode }) => {
           <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="mx-auto mb-4 h-12 w-12" />
           <h3 className="text-xl font-black text-white">로그인</h3>
           <p className="mt-2 text-sm leading-relaxed text-slate-400">
-            결제를 진행하려면 로그인이 필요합니다.
+            로그인 후 무료 크레딧으로 바로 사용해보세요.
           </p>
         </div>
 
