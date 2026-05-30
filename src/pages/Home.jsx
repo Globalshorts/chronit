@@ -545,7 +545,7 @@ const Home = () => {
               onClick={() => openPayment('pro')}
               className="group flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-4 text-lg font-extrabold text-white shadow-[0_20px_50px_-15px_rgba(37,99,235,0.6)] transition-all hover:bg-blue-500 active:scale-95 md:gap-3 md:px-12 md:py-5 md:text-xl"
             >
-              지금 시작하기{' '}
+              무료로 시작하기{' '}
               <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
             </button>
             <a
@@ -845,7 +845,7 @@ const Home = () => {
               onClick={() => openPayment(selectedPlan)}
               className="shadow-3xl w-full rounded-[2rem] bg-white px-8 py-5 text-lg font-black text-blue-950 transition-all hover:bg-slate-100 active:scale-95 sm:w-auto md:rounded-[2.5rem] md:px-20 md:py-7 md:text-xl"
             >
-              지금 시작하기
+              무료로 시작하기
             </button>
           </div>
         </div>
