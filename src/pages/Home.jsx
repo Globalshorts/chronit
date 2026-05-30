@@ -256,6 +256,24 @@ const Home = () => {
     if (access_token && refresh_token) {
       supabase.auth.setSession({ access_token, refresh_token })
     }
+
+    // OAuth 콜백: URL 해시에서 토큰 파싱 후 세션 설정 + URL 정리
+    const hash = window.location.hash
+    if (hash && hash.includes('access_token')) {
+      // 첫 번째 #access_token 블록만 파싱
+      const hashStr = hash.startsWith('#') ? hash.slice(1) : hash
+      const firstBlock = hashStr.split('#')[0]
+      const hashParams = new URLSearchParams(firstBlock)
+      const hashAccessToken = hashParams.get('access_token')
+      const hashRefreshToken = hashParams.get('refresh_token')
+      if (hashAccessToken && hashRefreshToken) {
+        supabase.auth.setSession({ access_token: hashAccessToken, refresh_token: hashRefreshToken })
+          .then(() => {
+            // URL에서 토큰 제거
+            window.history.replaceState(null, '', window.location.pathname)
+          })
+      }
+    }
   }, [])
 
 
