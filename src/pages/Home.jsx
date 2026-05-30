@@ -542,7 +542,7 @@ const Home = () => {
 
           <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
             <button
-              onClick={() => openPayment('pro')}
+              onClick={() => setShowAuthModal(true)}
               className="group flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-4 text-lg font-extrabold text-white shadow-[0_20px_50px_-15px_rgba(37,99,235,0.6)] transition-all hover:bg-blue-500 active:scale-95 md:gap-3 md:px-12 md:py-5 md:text-xl"
             >
               무료로 시작하기{' '}
