@@ -548,59 +548,59 @@ const Home = () => {
           {/* 우측: 노트북 목업 + 스마트폰 겹침 */}
           <div className="hidden md:block" style={{position: 'relative', height: '580px'}}>
 
-            {/* 노트북 목업 이미지 */}
-            <div style={{position: 'absolute', left: '0', top: '40px', zIndex: 10, width: '420px', filter: 'drop-shadow(0 40px 80px rgba(0,0,0,0.5))'}}>
+            {/* 노트북 목업 이미지 — mix-blend-mode로 검정 배경 제거 */}
+            <div style={{position: 'absolute', left: '0', top: '40px', zIndex: 10, width: '420px'}}>
               <img
                 src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/macbook_mockup.png"
                 alt="Chronit 앱 화면"
-                style={{width: '100%', height: 'auto', display: 'block'}}
+                style={{width: '100%', height: 'auto', display: 'block', mixBlendMode: 'lighten', filter: 'drop-shadow(0 20px 40px rgba(59,130,246,0.15))'}}
               />
             </div>
 
             {/* 스마트폰 — 노트북 오른쪽 앞에 겹침 */}
             <div style={{position: 'absolute', right: '10px', bottom: '40px', zIndex: 30, width: '190px'}}>
-              {/* 수익 팝업 */}
+              {/* 팝업 1 — 영상 생성 완료 */}
               <div style={{
-                position: 'absolute', top: '8%', right: '-30%', zIndex: 50,
+                position: 'absolute', top: '8%', right: '-32%', zIndex: 50,
                 background: 'rgba(15,17,32,0.97)', backdropFilter: 'blur(16px)',
-                border: '1px solid rgba(255,107,0,0.35)', borderRadius: '14px',
-                padding: '10px 14px', width: '130px',
+                border: '1px solid rgba(34,197,94,0.35)', borderRadius: '14px',
+                padding: '10px 14px', width: '140px',
                 boxShadow: '0 12px 40px rgba(0,0,0,0.4)',
                 transform: 'rotate(3deg)',
               }}>
-                <div style={{fontSize: '9px', color: '#94a3b8', marginBottom: '3px'}}>이번 달 수익</div>
-                <div style={{fontSize: '16px', fontWeight: 800, color: '#ff6b00'}}>₩842,000</div>
-                <div style={{display: 'flex', alignItems: 'center', gap: '3px', marginTop: '3px'}}>
-                  <div style={{width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e'}} />
-                  <div style={{fontSize: '9px', color: '#22c55e', fontWeight: 600}}>↑ 32% 증가</div>
-                </div>
+                <div style={{fontSize: '9px', color: '#22c55e', marginBottom: '3px', fontWeight: 600}}>✅ 생성 완료</div>
+                <div style={{fontSize: '12px', fontWeight: 700, color: '#fff', lineHeight: 1.4}}>수익형 영상<br/>생성 완료!</div>
+                <div style={{fontSize: '9px', color: '#94a3b8', marginTop: '3px'}}>방금 전 · 2분 소요</div>
               </div>
-              {/* AI 자막 팝업 */}
+              {/* 팝업 2 — AI 릴스 발행 중 */}
               <div style={{
-                position: 'absolute', bottom: '20%', left: '-45%', zIndex: 50,
+                position: 'absolute', bottom: '20%', left: '-48%', zIndex: 50,
                 background: 'rgba(15,17,32,0.97)', backdropFilter: 'blur(16px)',
                 border: '1px solid rgba(39,207,254,0.3)', borderRadius: '14px',
-                padding: '10px 14px', width: '128px',
+                padding: '10px 14px', width: '135px',
                 boxShadow: '0 12px 40px rgba(39,207,254,0.1)',
               }}>
-                <div style={{fontSize: '9px', color: '#27CFFE', marginBottom: '3px', fontWeight: 600}}>AI 자막 생성</div>
-                <div style={{fontSize: '11px', fontWeight: 700, color: '#fff', lineHeight: 1.4}}>"이 가격에 이 퀄리티?"</div>
-                <div style={{fontSize: '9px', color: '#22c55e', marginTop: '3px'}}>자동 완성됨 ✓</div>
+                <div style={{fontSize: '9px', color: '#27CFFE', marginBottom: '3px', fontWeight: 600}}>🔄 발행 중</div>
+                <div style={{fontSize: '12px', fontWeight: 700, color: '#fff', lineHeight: 1.4}}>AI 릴스<br/>자동 발행 중</div>
+                <div style={{fontSize: '9px', color: '#27CFFE', marginTop: '3px'}}>인스타그램 업로드...</div>
               </div>
-              {/* 아이폰 */}
-              <div style={{
-                background: 'linear-gradient(160deg, #2a2a2a, #111)',
-                borderRadius: '2.4rem', padding: '8px',
-                boxShadow: '0 50px 100px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.12)',
-              }}>
-                <div style={{background: '#0a0a0a', borderRadius: '2rem 2rem 0 0', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 12px', position: 'relative'}}>
-                  <span style={{fontSize: '9px', fontWeight: 700, color: '#fff'}}>9:41</span>
-                  <div style={{position: 'absolute', left: '50%', top: '4px', transform: 'translateX(-50%)', width: '55px', height: '20px', background: '#000', borderRadius: '12px'}} />
-                  <svg width="18" height="8" viewBox="0 0 22 10" fill="none"><rect x="0.5" y="0.5" width="18" height="9" rx="2.5" stroke="white" strokeOpacity="0.35"/><rect x="1.5" y="1.5" width="13" height="7" rx="1.5" fill="white"/></svg>
-                </div>
-                <div style={{background: '#000', overflow: 'hidden'}}><HeroPhoneVideo /></div>
-                <div style={{background: '#0a0a0a', borderRadius: '0 0 2rem 2rem', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                  <div style={{width: '65px', height: '3px', background: 'rgba(255,255,255,0.25)', borderRadius: '2px'}} />
+              {/* 폰 목업 이미지 */}
+              <div style={{position: 'relative'}}>
+                <img
+                  src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/phone_mockup.png"
+                  alt="스마트폰 목업"
+                  style={{width: '100%', height: 'auto', display: 'block', filter: 'drop-shadow(0 40px 80px rgba(0,0,0,0.5))'}}
+                />
+                {/* 화면 영역에 영상 오버레이 */}
+                <div style={{
+                  position: 'absolute',
+                  top: '11%', left: '31.2%',
+                  width: '38%', height: '79%',
+                  overflow: 'hidden',
+                  borderRadius: '4px',
+                  zIndex: -1,
+                }}>
+                  <HeroPhoneVideo />
                 </div>
               </div>
             </div>
