@@ -1201,10 +1201,10 @@ const DemoCarousel = () => {
   if (!n) return null
 
   return (
-    <section className="relative overflow-hidden bg-[#0B0D17] py-16 md:py-24">
+    <section className="relative overflow-hidden bg-[#F5F4F0] py-16 md:py-24">
       <div className="mb-10 text-center md:mb-14">
         <p className="mb-2 text-xs font-bold tracking-[0.3em] text-blue-400 uppercase md:text-sm">DEMO</p>
-        <h2 className="text-2xl font-black tracking-tight text-white md:text-4xl">
+        <h2 className="text-2xl font-black tracking-tight text-slate-900 md:text-4xl">
           {"실제 제작된 영상을 확인하세요"}
         </h2>
       </div>
