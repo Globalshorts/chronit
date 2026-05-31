@@ -557,7 +557,7 @@ const Home = () => {
               />
             </div>
 
-            {/* 스마트폰 — 영상(z-10) 밑, 베젤PNG(z-20) 위 */}
+            {/* 스마트폰 — 노트북 뒤(z-index: 5), overflow hidden으로 크롭 */}
             <div style={{position: 'absolute', right: '-10px', bottom: '30px', zIndex: 30}}>
 
               {/* 팝업 1 */}
@@ -588,19 +588,19 @@ const Home = () => {
               </div>
 
               {/* 폰 — 영상(z-10) 밑, 베젤PNG(z-20) 위 */}
-              {/* 베젤 실제 영역: 500x500 이미지 내 x=154~343(189px), y=56~446(390px) → 비율 유지 높이 390px */}
+              {/* 500x500 정사각형 이미지 → 컨테이너도 정사각형 → contain이 꽉 참 */}
               <div style={{
                 position: 'relative',
-                width: '189px',
-                height: '390px',
+                width: '300px',
+                height: '300px',
               }}>
-                {/* 1층: 영상 — 화면 영역 x=158~342, y=57~442 (500px 기준) → 189x390 스케일 */}
+                {/* 1층: 영상 — 화면좌표(500px 기준) % 그대로 */}
                 <div style={{
                   position: 'absolute',
-                  top: `${(57-56)/390*100}%`,
-                  left: `${(158-154)/189*100}%`,
-                  width: `${(342-158)/189*100}%`,
-                  height: `${(442-57)/390*100}%`,
+                  top: '11.4%',
+                  left: '31.6%',
+                  width: '36.8%',
+                  height: '77%',
                   overflow: 'hidden',
                   borderRadius: '4px',
                   zIndex: 10,
@@ -608,17 +608,16 @@ const Home = () => {
                 }}>
                   <HeroPhoneVideo />
                 </div>
-                {/* 2층: 투명 폰 베젤 — 500x500 이미지를 베젤 영역(154~343, 56~446)만 크롭해서 표시 */}
+                {/* 2층: 투명 폰 베젤 */}
                 <img
                   src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/phone_frame.png"
                   alt="폰 베젤"
                   style={{
                     position: 'absolute',
-                    top: `${-(56/390)*100}%`,
-                    left: `${-(154/189)*100}%`,
-                    width: `${(500/189)*100}%`,
-                    height: `${(500/390)*100}%`,
-                    objectFit: 'fill',
+                    inset: 0,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
                     zIndex: 20,
                     pointerEvents: 'none',
                     filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.5))',
