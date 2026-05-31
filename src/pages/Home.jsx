@@ -548,20 +548,20 @@ const Home = () => {
           {/* 우측: 노트북 목업 + 스마트폰 겹침 */}
           <div className="hidden md:block" style={{position: 'relative', height: '580px'}}>
 
-            {/* 노트북 목업 이미지 — mix-blend-mode로 검정 배경 제거 */}
-            <div style={{position: 'absolute', left: '0', top: '40px', zIndex: 10, width: '420px'}}>
+            {/* 노트북 목업 이미지 */}
+            <div style={{position: 'absolute', left: '0', top: '40px', zIndex: 10, width: '420px', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.3))'}}>
               <img
                 src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/macbook_mockup.png"
                 alt="Chronit 앱 화면"
-                style={{width: '100%', height: 'auto', display: 'block', mixBlendMode: 'lighten', filter: 'drop-shadow(0 20px 40px rgba(59,130,246,0.15))'}}
+                style={{width: '100%', height: 'auto', display: 'block'}}
               />
             </div>
 
             {/* 스마트폰 — 노트북 오른쪽 앞에 겹침 */}
-            <div style={{position: 'absolute', right: '10px', bottom: '40px', zIndex: 30, width: '190px'}}>
+            <div style={{position: 'absolute', right: '-10px', bottom: '20px', zIndex: 30, width: '240px'}}>
               {/* 팝업 1 — 영상 생성 완료 */}
               <div style={{
-                position: 'absolute', top: '8%', right: '-32%', zIndex: 50,
+                position: 'absolute', top: '8%', right: '-35%', zIndex: 50,
                 background: 'rgba(15,17,32,0.97)', backdropFilter: 'blur(16px)',
                 border: '1px solid rgba(34,197,94,0.35)', borderRadius: '14px',
                 padding: '10px 14px', width: '140px',
@@ -574,7 +574,7 @@ const Home = () => {
               </div>
               {/* 팝업 2 — AI 릴스 발행 중 */}
               <div style={{
-                position: 'absolute', bottom: '20%', left: '-48%', zIndex: 50,
+                position: 'absolute', bottom: '22%', left: '-48%', zIndex: 50,
                 background: 'rgba(15,17,32,0.97)', backdropFilter: 'blur(16px)',
                 border: '1px solid rgba(39,207,254,0.3)', borderRadius: '14px',
                 padding: '10px 14px', width: '135px',
@@ -584,24 +584,25 @@ const Home = () => {
                 <div style={{fontSize: '12px', fontWeight: 700, color: '#fff', lineHeight: 1.4}}>AI 릴스<br/>자동 발행 중</div>
                 <div style={{fontSize: '9px', color: '#27CFFE', marginTop: '3px'}}>인스타그램 업로드...</div>
               </div>
-              {/* 폰 목업 이미지 */}
+              {/* 폰 목업 — 영상 뒤에, 프레임 앞에 */}
               <div style={{position: 'relative'}}>
-                <img
-                  src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/phone_mockup.png"
-                  alt="스마트폰 목업"
-                  style={{width: '100%', height: 'auto', display: 'block', filter: 'drop-shadow(0 40px 80px rgba(0,0,0,0.5))'}}
-                />
-                {/* 화면 영역에 영상 오버레이 */}
+                {/* 영상 레이어 (폰 프레임 뒤) */}
                 <div style={{
                   position: 'absolute',
                   top: '11%', left: '31.2%',
                   width: '38%', height: '79%',
                   overflow: 'hidden',
-                  borderRadius: '4px',
-                  zIndex: -1,
+                  borderRadius: '6px',
+                  zIndex: 1,
                 }}>
                   <HeroPhoneVideo />
                 </div>
+                {/* 폰 프레임 이미지 (영상 앞) */}
+                <img
+                  src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/phone_mockup.png"
+                  alt="스마트폰 목업"
+                  style={{width: '100%', height: 'auto', display: 'block', position: 'relative', zIndex: 2, filter: 'drop-shadow(0 40px 80px rgba(0,0,0,0.5))'}}
+                />
               </div>
             </div>
           </div>
