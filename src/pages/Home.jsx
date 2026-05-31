@@ -612,7 +612,7 @@ const Home = () => {
       </div>
 
       {/* Stats Section */}
-      <section className="relative overflow-hidden bg-[#1e2235] px-5 pt-28 pb-36 md:px-8 md:pt-32 md:pb-48" style={{clipPath:"polygon(0 0,100% 0,100% calc(100% - 80px),0 100%)",marginBottom:"-60px",zIndex:2}}>
+      <section className="relative bg-[#1e2235] px-5 pt-28 pb-36 md:px-8 md:pt-32 md:pb-48" style={{clipPath:"polygon(0 0, 100% 0, 100% 92%, 0 100%)",marginBottom:"-60px",zIndex:2}}>
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_60%,transparent_100%)]"></div>
 
         <div className="relative z-10 mx-auto max-w-5xl">
@@ -666,7 +666,7 @@ const Home = () => {
       </section>
 
       {/* Problem Section */}
-      <section className="relative bg-white px-5 pt-28 pb-36 md:px-8 md:pt-32 md:pb-52" style={{clipPath:"polygon(0 0,100% 0,100% calc(100% - 80px),0 100%)",marginBottom:"-60px",zIndex:2}}>
+      <section className="relative bg-white px-5 pt-28 pb-36 md:px-8 md:pt-32 md:pb-52" style={{clipPath:"polygon(0 0, 100% 0, 100% 92%, 0 100%)",marginBottom:"-60px",zIndex:2}}>
         <div className="mx-auto max-w-5xl">
           <div className="mb-16 text-center md:mb-28">
             <h3 className="mb-6 text-xs font-black tracking-[0.3em] text-blue-500 uppercase md:mb-8 md:text-sm">
@@ -711,7 +711,7 @@ const Home = () => {
       {/* Feature Section */}
       <section
         id="features"
-        className="relative overflow-hidden bg-[#1e2235] px-5 pt-28 pb-36 md:px-8 md:pt-32 md:pb-52" style={{clipPath:"polygon(0 0,100% 0,100% calc(100% - 80px),0 100%)",marginBottom:"-60px",zIndex:2}}
+        className="relative bg-[#1e2235] px-5 pt-28 pb-36 md:px-8 md:pt-32 md:pb-52" style={{clipPath:"polygon(0 0, 100% 0, 100% 92%, 0 100%)",marginBottom:"-60px",zIndex:2}}
       >
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] bg-[size:40px_40px]"></div>
 
@@ -755,7 +755,7 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section id="pricing" className="relative bg-white px-5 pt-28 pb-36 md:px-8 md:pt-32 md:pb-52" style={{clipPath:"polygon(0 0,100% 0,100% calc(100% - 80px),0 100%)",marginBottom:"-60px",zIndex:2}}>
+      <section id="pricing" className="relative bg-white px-5 pt-28 pb-36 md:px-8 md:pt-32 md:pb-52" style={{clipPath:"polygon(0 0, 100% 0, 100% 92%, 0 100%)",marginBottom:"-60px",zIndex:2}}>
         <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-xl md:rounded-[4rem]">
           <div className="relative z-10 p-5 text-center sm:p-8 md:p-32">
             <h2 className="mb-8 text-3xl leading-[1.3] font-black tracking-tight text-slate-900 md:mb-12 md:text-[56px]">
@@ -1189,7 +1189,7 @@ const DemoCarousel = () => {
   if (!n) return null
 
   return (
-    <section className="relative bg-white pt-56 pb-36 md:pt-64 md:pb-48" style={{clipPath:"polygon(0 0,100% 0,100% calc(100% - 80px),0 100%)",marginBottom:"-60px",zIndex:2}}>
+    <section className="relative bg-white pt-56 pb-36 md:pt-64 md:pb-48" style={{clipPath:"polygon(0 0, 100% 0, 100% 92%, 0 100%)",marginBottom:"-60px",zIndex:2}}>
       <div className="mb-10 text-center md:mb-14">
         <p className="mb-2 text-xs font-bold tracking-[0.3em] text-blue-400 uppercase md:text-sm">DEMO</p>
         <h2 className="text-2xl font-black tracking-tight text-gray-900 md:text-4xl">
