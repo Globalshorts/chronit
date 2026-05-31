@@ -573,7 +573,7 @@ const Home = () => {
                   <div style={{fontSize: '9px', color: '#27CFFE', fontWeight: 700, marginBottom: '8px'}}>⚡ Chronit v1.0.1</div>
                   <div style={{display: 'flex', gap: '4px', marginBottom: '10px', flexWrap: 'wrap'}}>
                     {['영상 분석','영상 선택','대본 생성','스타일','보이스','내보내기'].map((s,i) => (
-                      <div key={i} style={{fontSize: '7px', padding: '3px 6px', borderRadius: '4px', background: i===0 ? '#27CFFE20' : '#ffffff08', color: i===0 ? '#27CFFE' : '#475569', border: `1px solid ${i===0 ? '#27CFFE40' : '#ffffff10'}`}}>{s}</div>
+                      <div key={i} style={{fontSize: '7px', padding: '3px 6px', borderRadius: '4px', background: i===0 ? '#27CFFE20' : '#ffffff08', color: i===0 ? '#27CFFE' : '#475569', border: i===0 ? '1px solid #27CFFE40' : '1px solid #ffffff10'}}>{s}</div>
                     ))}
                   </div>
                   <div style={{background: '#131c2e', borderRadius: '8px', padding: '10px', marginBottom: '8px'}}>
