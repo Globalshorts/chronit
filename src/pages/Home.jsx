@@ -52,7 +52,7 @@ const CouponBar = ({ codeFromUrl, onApply }) => {
   }
 
   return (
-    <div className="mx-auto mb-10 flex max-w-sm flex-col items-center gap-2">
+    <div className="mx-auto mb-10 flex max-w-md flex-col items-center gap-2">
       <div className="flex w-full gap-2">
         <input
           type="text"
@@ -60,17 +60,17 @@ const CouponBar = ({ codeFromUrl, onApply }) => {
           onChange={(e) => { setInput(e.target.value.toUpperCase()); setStatus(null) }}
           onKeyDown={(e) => e.key === 'Enter' && handleApply()}
           placeholder="쿠폰 / 할인 코드 입력"
-          className="flex-1 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-bold text-white placeholder-slate-600 outline-none transition-all focus:border-blue-500/50 focus:bg-white/[0.07]"
+          className="flex-1 rounded-2xl border-2 border-slate-300 bg-white px-5 py-3 text-sm font-bold text-gray-900 placeholder-slate-400 outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         />
         <button
           onClick={handleApply}
-          className="rounded-2xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-blue-500 active:scale-95"
+          className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-bold text-white transition-all hover:bg-blue-500 active:scale-95"
         >
           적용
         </button>
       </div>
-      {status === 'ok' && <p className="text-xs font-bold text-green-400">✓ 코드 적용됨 — 결제 시 할인이 반영됩니다</p>}
-      {status === 'fail' && <p className="text-xs font-bold text-red-400">유효하지 않은 코드입니다</p>}
+      {status === 'ok' && <p className="text-xs font-bold text-green-600">✓ 코드 적용됨 — 결제 시 할인이 반영됩니다</p>}
+      {status === 'fail' && <p className="text-xs font-bold text-red-500">유효하지 않은 코드입니다</p>}
     </div>
   )
 }
