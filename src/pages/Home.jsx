@@ -587,29 +587,30 @@ const Home = () => {
                 <div style={{fontSize: '9px', color: '#27CFFE', marginTop: '3px'}}>인스타그램 업로드...</div>
               </div>
 
-              {/* 폰 — 320x640, 영상(z-10) + 투명 베젤(z-20) */}
+              {/* 폰 — 이미지 500x500 정사각형 기준 */}
               <div style={{
                 position: 'relative',
-                width: '320px',
-                height: '640px',
+                width: '340px',
+                height: '340px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                overflow: 'hidden',
               }}>
-                {/* 1층: 릴스 영상 — 베젤 안에 딱 맞게 */}
+                {/* 1층: 릴스 영상 — 실측 좌표 */}
                 <div style={{
                   position: 'absolute',
-                  width: '91%',
-                  height: '95%',
+                  top: '17.2%',
+                  left: '33%',
+                  width: '33.6%',
+                  height: '69.4%',
                   overflow: 'hidden',
-                  borderRadius: '40px',
+                  borderRadius: '8px',
                   zIndex: 10,
                   background: '#000',
                 }}>
                   <HeroPhoneVideo />
                 </div>
-                {/* 2층: 투명 폰 베젤 프레임 — 영상 위에 덮음 */}
+                {/* 2층: 투명 폰 베젤 */}
                 <img
                   src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/phone_frame.png"
                   alt="폰 베젤"
@@ -621,7 +622,7 @@ const Home = () => {
                     objectFit: 'contain',
                     zIndex: 20,
                     pointerEvents: 'none',
-                    filter: 'drop-shadow(0 30px 60px rgba(0,0,0,0.5))',
+                    filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.5))',
                   }}
                 />
               </div>
