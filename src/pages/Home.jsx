@@ -509,7 +509,7 @@ const Home = () => {
         <div style={{
           position: 'absolute', bottom: 0, left: 0, width: '100%', height: '200px',
           background: '#F5F4F0', zIndex: 0,
-          clipPath: 'polygon(0 60%, 100% 0%, 100% 100%, 0% 100%)',
+          clipPath: 'polygon(0 30%, 100% 0%, 100% 100%, 0% 100%)',
         }} />
 
         <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-5 pt-32 md:grid-cols-2 md:gap-8 md:px-16" style={{paddingBottom: '0'}}>
@@ -626,11 +626,11 @@ const Home = () => {
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6 md:gap-8">
-            <div className="group relative overflow-hidden rounded-[1.5rem] border border-white/10 bg-gradient-to-b from-white/[0.04] to-transparent p-6 text-center shadow-2xl transition-all duration-500 hover:border-blue-500/40 md:rounded-[2rem] md:p-10">
+            <div className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white p-6 text-center shadow-2xl transition-all duration-500 hover:border-blue-500/40 md:rounded-[2rem] md:p-10">
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400 transition-transform group-hover:scale-110 md:mb-6 md:h-14 md:w-14">
                 <Film size={24} />
               </div>
-              <div className="bg-gradient-to-br from-white via-blue-200 to-blue-400 bg-clip-text text-4xl font-black tracking-tight text-transparent md:text-6xl">
+              <div className="bg-gradient-to-br from-slate-900 via-slate-700 to-blue-500 bg-clip-text text-4xl font-black tracking-tight text-transparent md:text-6xl">
                 <AnimatedCounter to={1500} suffix="+" />
               </div>
               <div className="mt-3 text-base font-bold text-slate-400 md:mt-4 md:text-lg">
@@ -642,7 +642,7 @@ const Home = () => {
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400 transition-transform group-hover:scale-110 md:mb-6 md:h-14 md:w-14">
                 <TrendingDown size={24} />
               </div>
-              <div className="bg-gradient-to-br from-white via-blue-200 to-blue-400 bg-clip-text text-4xl font-black tracking-tight text-transparent md:text-6xl">
+              <div className="bg-gradient-to-br from-slate-900 via-slate-700 to-blue-500 bg-clip-text text-4xl font-black tracking-tight text-transparent md:text-6xl">
                 <AnimatedCounter to={97} suffix="%" />
               </div>
               <div className="mt-3 text-base font-bold text-slate-400 md:mt-4 md:text-lg">
@@ -650,11 +650,11 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="group relative overflow-hidden rounded-[1.5rem] border border-white/10 bg-gradient-to-b from-white/[0.04] to-transparent p-6 text-center shadow-2xl transition-all duration-500 hover:border-blue-500/40 md:rounded-[2rem] md:p-10">
+            <div className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white p-6 text-center shadow-2xl transition-all duration-500 hover:border-blue-500/40 md:rounded-[2rem] md:p-10">
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400 transition-transform group-hover:scale-110 md:mb-6 md:h-14 md:w-14">
                 <Clock size={24} />
               </div>
-              <div className="bg-gradient-to-br from-white via-blue-200 to-blue-400 bg-clip-text text-4xl font-black tracking-tight text-transparent md:text-6xl">
+              <div className="bg-gradient-to-br from-slate-900 via-slate-700 to-blue-500 bg-clip-text text-4xl font-black tracking-tight text-transparent md:text-6xl">
                 <AnimatedCounter to={320} suffix="시간" />
               </div>
               <div className="mt-3 text-base font-bold text-slate-400 md:mt-4 md:text-lg">
@@ -680,7 +680,7 @@ const Home = () => {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 md:gap-12">
-            <div className="group rounded-[1.5rem] border border-white/5 bg-slate-900/30 p-6 shadow-2xl backdrop-blur-sm transition-all duration-500 hover:border-blue-500/40 sm:rounded-[2rem] sm:p-8 md:rounded-[3rem] md:p-14">
+            <div className="group rounded-[1.5rem] border-2 border-slate-200 bg-transparent p-6 transition-all duration-500 hover:border-blue-400 sm:rounded-[2rem] sm:p-8 md:rounded-[3rem] md:p-14">
               <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10 text-red-500 transition-transform group-hover:scale-110 md:mb-10 md:h-16 md:w-16">
                 <Clock size={28} />
               </div>
@@ -692,7 +692,7 @@ const Home = () => {
                 소모되고 있지는 않나요?
               </p>
             </div>
-            <div className="group rounded-[1.5rem] border border-white/5 bg-slate-900/30 p-6 shadow-2xl backdrop-blur-sm transition-all duration-500 hover:border-blue-500/40 sm:rounded-[2rem] sm:p-8 md:rounded-[3rem] md:p-14">
+            <div className="group rounded-[1.5rem] border-2 border-slate-200 bg-transparent p-6 transition-all duration-500 hover:border-blue-400 sm:rounded-[2rem] sm:p-8 md:rounded-[3rem] md:p-14">
               <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-yellow-500/10 text-yellow-500 transition-transform group-hover:scale-110 md:mb-10 md:h-16 md:w-16">
                 <TrendingUp size={28} />
               </div>
@@ -1237,7 +1237,7 @@ const DemoCarousel = () => {
                 boxShadow: isCenter
                   ? '0 30px 80px -10px rgba(59,130,246,0.35), 0 0 0 1px rgba(255,255,255,0.08)'
                   : '0 10px 30px -10px rgba(0,0,0,0.5)',
-                border: isCenter ? '1px solid rgba(255,255,255,0.12)' : 'none',
+                boxShadow: isCenter ? '0 30px 60px -10px rgba(0,0,0,0.35), 0 4px 6px rgba(0,0,0,0.1)' : '0 10px 30px -5px rgba(0,0,0,0.2)',
                 transition: 'box-shadow 0.5s ease',
               }}>
                 <video
@@ -1256,7 +1256,7 @@ const DemoCarousel = () => {
         })}
       </div>
       <div className="mt-8 flex items-center justify-center gap-6">
-        <button onClick={prev} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-all hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-95 md:h-12 md:w-12">{"<"}</button>
+        <button onClick={prev} className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-slate-300 bg-white text-slate-700 shadow transition-all hover:border-blue-500 hover:text-blue-500 active:scale-95 md:h-12 md:w-12">{"<"}</button>
         <div className="flex gap-2">
           {videos.map((_, i) => (
             <button key={i} onClick={() => setActive(i)}
@@ -1265,7 +1265,7 @@ const DemoCarousel = () => {
             />
           ))}
         </div>
-        <button onClick={next} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-all hover:border-blue-500/50 hover:bg-blue-500/10 active:scale-95 md:h-12 md:w-12">{">"}</button>
+        <button onClick={next} className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-slate-300 bg-white text-slate-700 shadow transition-all hover:border-blue-500 hover:text-blue-500 active:scale-95 md:h-12 md:w-12">{">"}</button>
       </div>
     </section>
   )
