@@ -513,10 +513,9 @@ const Home = () => {
             <Zap size={14} fill="currentColor" /> <span>쇼핑 릴스 자동화 v1.0.1</span>
           </div>
 
-          <div className="mb-10 flex w-full flex-col items-center md:mb-12">
+          <div className="mb-6 flex w-full flex-col items-center md:mb-8">
             <h2 className="animate-burn mb-4 text-center text-3xl font-black tracking-tight text-white md:text-5xl">
-              쇼핑 릴스로 수익 내고 싶은데,<br />
-              <span className="text-slate-400">어디서부터 시작해야 할지 막막하셨나요?</span>
+              클릭에 수익을 입히다,
             </h2>
             <h2 className="bg-gradient-to-r from-blue-400 via-white to-indigo-400 bg-clip-text text-[64px] leading-[1] font-black tracking-tighter text-transparent drop-shadow-[0_10px_20px_rgba(59,130,246,0.3)] md:text-[110px]">
               크로닛
@@ -525,8 +524,8 @@ const Home = () => {
           </div>
 
           <p className="mb-10 max-w-2xl px-2 text-center text-lg leading-[1.9] text-slate-300 md:mb-14 md:text-xl">
-            링크만 넣으면 <strong className="text-white">2분 만에</strong> 완성돼요.<br />
-            자막·썸네일·목소리까지 <strong className="text-blue-400">전부 자동</strong>으로.
+            쇼핑 릴스 링크만 넣고 영상은 AI에게 맡기세요.<br />
+            <strong className="text-white">2분이면 충분합니다,</strong> 매일 자동으로 쌓이는 나만의 <strong className="text-blue-400">부업 엔진.</strong>
           </p>
 
           <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
