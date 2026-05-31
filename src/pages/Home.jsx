@@ -512,7 +512,7 @@ const Home = () => {
           clipPath: 'polygon(0 55%, 100% 0%, 100% 100%, 0% 100%)',
         }} />
 
-        <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-5 pt-32 md:grid-cols-[7fr_5fr] md:gap-4 md:px-16" style={{paddingBottom: '0'}}>
+        <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-5 pt-32 md:grid-cols-2 md:gap-4 md:px-16" style={{paddingBottom: '0'}}>
 
           {/* 좌측: 카피 + 버튼 */}
           <div className="flex flex-col items-start pb-20 md:pb-32">
@@ -520,7 +520,7 @@ const Home = () => {
               <Zap size={14} fill="currentColor" /> <span>쇼핑 릴스 자동화 v1.0.1</span>
             </div>
 
-            <h1 className="mb-4 text-4xl font-black leading-tight tracking-tight text-white md:text-5xl lg:text-6xl">
+            <h1 className="mb-4 text-3xl font-black leading-tight tracking-tight text-white md:text-5xl lg:text-6xl whitespace-nowrap">
               클릭에 <span style={{color: '#ff6b00'}}>수익</span>을 입히다, 크로닛
             </h1>
             <span className="sr-only">크로닛(Chronit) — 쇼핑 릴스 영상 편집 자동화 솔루션.</span>
