@@ -564,6 +564,9 @@ const Home = () => {
                 padding: '10px 14px', width: '148px',
                 boxShadow: '0 12px 40px rgba(0,0,0,0.4)',
                 transform: 'rotate(3deg)',
+                willChange: 'transform',
+                backfaceVisibility: 'hidden',
+                WebkitFontSmoothing: 'antialiased',
               }}>
                 <div style={{fontSize: '9px', color: '#22c55e', marginBottom: '3px', fontWeight: 600}}>✅ 생성 완료</div>
                 <div style={{fontSize: '12px', fontWeight: 700, color: '#fff', lineHeight: 1.4}}>수익형 영상<br/>생성 완료!</div>
