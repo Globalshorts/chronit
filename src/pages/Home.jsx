@@ -587,54 +587,46 @@ const Home = () => {
                 <div style={{fontSize: '9px', color: '#27CFFE', marginTop: '3px'}}>인스타그램 업로드...</div>
               </div>
 
-              {/* 폰 — 패딩 방식: 베젤 두께만큼 패딩, 영상 object-cover로 꽉 채움 */}
-              {/* 500x500 이미지 기준: 베젤 x=154~343(189px), y=56~446(390px) */}
-              {/* 화면 내부: x=162~338(176px), y=79~439(360px) */}
-              {/* 베젤 두께: 좌=8px, 우=5px, 상=23px, 하=7px (화면 기준) */}
-              {/* 390x390 컨테이너 스케일: 각 수치 * (390/500) */}
+              {/* 폰 — bg-black 컨테이너 + 패딩으로 베젤 맞춤 + 베젤PNG 위에 덮기 */}
+              {/* 500x500 이미지 기준 화면: x=162~338(176px), y=79~439(360px) */}
+              {/* 베젤 영역: x=154~343(189px), y=56~446(390px) */}
+              {/* 컨테이너 = 베젤 비율 189:390 → 높이 390px 기준 너비 189px */}
               <div style={{
                 position: 'relative',
-                width: '390px',
+                width: '189px',
                 height: '390px',
+                borderRadius: '44px',
+                overflow: 'hidden',
+                background: '#000',
               }}>
-                {/* 1층: 영상 — 패딩으로 베젤 안쪽에 정확히 가둠 */}
+                {/* 1층: 영상 — 패딩으로 화면 영역만 채움 */}
+                {/* 베젤 y=56~446(390px) 기준 화면 y=79~439: top=(79-56)/390=5.9%, bottom=(446-439)/390=1.8% */}
+                {/* 베젤 x=154~343(189px) 기준 화면 x=162~338: left=(162-154)/189=4.2%, right=(343-338)/189=2.6% */}
                 <div style={{
                   position: 'absolute',
-                  top: `${79/500*390}px`,
-                  left: `${162/500*390}px`,
-                  width: `${176/500*390}px`,
-                  height: `${360/500*390}px`,
-                  overflow: 'hidden',
-                  borderRadius: '18px',
+                  top: '5.9%',
+                  left: '4.2%',
+                  right: '2.6%',
+                  bottom: '1.8%',
                   zIndex: 10,
+                  borderRadius: '36px',
+                  overflow: 'hidden',
                 }}>
                   <HeroPhoneVideo />
                 </div>
-                {/* 다이나믹 아일랜드 막기 — 베젤 위에 검정 블록 */}
-                <div style={{
-                  position: 'absolute',
-                  top: `${79/500*390}px`,
-                  left: `${162/500*390}px`,
-                  width: `${176/500*390}px`,
-                  height: `${23/500*390}px`,
-                  background: '#000',
-                  borderRadius: '18px 18px 0 0',
-                  zIndex: 25,
-                  pointerEvents: 'none',
-                }} />
-                {/* 2층: 투명 폰 베젤 */}
+                {/* 2층: 베젤 PNG — 위에 덮기, 화면 영역은 투명이므로 영상이 비침 */}
                 <img
                   src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/phone_frame.png"
                   alt="폰 베젤"
                   style={{
                     position: 'absolute',
-                    inset: 0,
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain',
+                    top: `${-56/390*100}%`,
+                    left: `${-154/189*100}%`,
+                    width: `${500/189*100}%`,
+                    height: `${500/390*100}%`,
+                    objectFit: 'fill',
                     zIndex: 20,
                     pointerEvents: 'none',
-                    filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.5))',
                   }}
                 />
               </div>
