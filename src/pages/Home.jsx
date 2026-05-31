@@ -1354,8 +1354,9 @@ const DemoCarousel = () => {
 
       {/* 3단계 수익화 섹션 */}
       <div className="mx-auto max-w-4xl px-5 pt-16 pb-16 md:px-8 md:pt-20 md:pb-20">
-        <div className="mb-10 text-center">
-          <p className="mb-2 inline-block rounded-full border-2 border-orange-400 px-4 py-1 text-xs font-bold tracking-[0.3em] text-orange-500 uppercase md:text-sm">HOW IT WORKS</p>
+        <div className="rounded-3xl border-4 border-orange-400 p-8 md:p-12">
+          <div className="mb-10 text-center">
+            <p className="mb-2 inline-block rounded-full border-2 border-orange-400 px-4 py-1 text-xs font-bold tracking-[0.3em] text-orange-500 uppercase md:text-sm">HOW IT WORKS</p>
           <h2 className="mb-3 text-2xl font-black text-gray-900 md:text-4xl">크로닛으로 구축하는 3단계 자동화</h2>
           <p className="text-base text-gray-500 md:text-lg">복잡한 과정은 없습니다. 시스템이 스스로 작동하는 파이프라인을 확인하세요.</p>
         </div>
@@ -1386,6 +1387,7 @@ const DemoCarousel = () => {
               <p className="text-sm leading-relaxed text-gray-500">{desc}</p>
             </div>
           ))}
+        </div>
         </div>
       </div>
     </section>
