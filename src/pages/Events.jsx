@@ -90,7 +90,7 @@ const Events = () => {
                 onClick={() => setEventTab(tab.key)}
                 className={`px-5 py-3 text-sm font-bold transition-colors border-b-2 -mb-px ${
                   eventTab === tab.key
-                    ? 'border-blue-500 text-white'
+                    ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-slate-500 hover:text-slate-300'
                 }`}
               >
