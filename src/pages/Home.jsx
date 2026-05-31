@@ -612,7 +612,7 @@ const Home = () => {
       </div>
 
       {/* Stats Section */}
-      <section className="relative overflow-hidden bg-[#F5F4F0] px-5 py-20 md:px-8 md:py-32">
+      <section className="relative overflow-hidden bg-[#1e2235] px-5 py-20 md:px-8 md:py-32">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_60%,transparent_100%)]"></div>
 
         <div className="relative z-10 mx-auto max-w-5xl">
@@ -620,7 +620,7 @@ const Home = () => {
             <h3 className="mb-4 text-xs font-black tracking-[0.3em] text-blue-500 uppercase md:text-sm">
               By The Numbers
             </h3>
-            <h2 className="text-2xl leading-[1.4] font-bold md:text-4xl">
+            <h2 className="text-2xl leading-[1.4] font-bold text-white md:text-4xl">
               실무진들이 직접 검증한 결과
             </h2>
           </div>
@@ -666,7 +666,7 @@ const Home = () => {
       </section>
 
       {/* Problem Section */}
-      <section className="relative bg-[#F5F4F0] px-5 py-24 md:px-8 md:py-48">
+      <section className="relative bg-white px-5 py-24 md:px-8 md:py-48">
         <div className="mx-auto max-w-5xl">
           <div className="mb-16 text-center md:mb-28">
             <h3 className="mb-6 text-xs font-black tracking-[0.3em] text-blue-500 uppercase md:mb-8 md:text-sm">
@@ -711,7 +711,7 @@ const Home = () => {
       {/* Feature Section */}
       <section
         id="features"
-        className="relative overflow-hidden bg-[#F5F4F0] px-5 py-24 md:px-8 md:py-48"
+        className="relative overflow-hidden bg-[#1e2235] px-5 py-24 md:px-8 md:py-48"
       >
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] bg-[size:40px_40px]"></div>
 
@@ -721,14 +721,14 @@ const Home = () => {
               <h3 className="mb-4 text-xs font-black tracking-[0.2em] text-blue-500 uppercase md:mb-6 md:text-base">
                 Core Strength
               </h3>
-              <h2 className="text-3xl leading-[1.4] font-bold text-slate-900 md:text-5xl">
+              <h2 className="text-3xl leading-[1.4] font-bold text-white md:text-5xl">
                 진짜를 아는 실무진은
                 <br />
                 수익화에만 에너지를 씁니다.
               </h2>
             </div>
             <div className="border-l-4 border-blue-500 bg-blue-500/5 p-6 text-left md:max-w-sm md:p-8">
-              <p className="text-lg leading-[1.8] text-slate-600 md:text-xl">
+              <p className="text-lg leading-[1.8] text-slate-300 md:text-xl">
                 수만 개의 영상을 직접 제작하며 증명된 로직을 시스템에 그대로 옮겼습니다.
               </p>
             </div>
@@ -755,7 +755,7 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section id="pricing" className="bg-[#F5F4F0] px-5 py-24 md:px-8 md:py-48">
+      <section id="pricing" className="bg-white px-5 py-24 md:px-8 md:py-48">
         <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-xl md:rounded-[4rem]">
           <div className="relative z-10 p-5 text-center sm:p-8 md:p-32">
             <h2 className="mb-8 text-3xl leading-[1.3] font-black tracking-tight text-slate-900 md:mb-12 md:text-[56px]">
@@ -1104,14 +1104,14 @@ const Home = () => {
 }
 
 const FeatureCard = ({ icon, title, description }) => (
-  <div className="group rounded-[1.5rem] border border-white/5 bg-gradient-to-b from-white/[0.04] to-transparent p-6 shadow-2xl transition-all duration-700 hover:border-blue-500/30 sm:rounded-[2rem] sm:p-8 md:rounded-[4rem] md:p-14">
-    <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-[#03081c] shadow-xl transition-all duration-500 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white md:mb-12 md:h-20 md:w-20 md:rounded-3xl">
-      {React.cloneElement(icon, { size: 32, className: 'group-hover:text-white' })}
+  <div className="group rounded-2xl border border-white/10 bg-white/5 p-6 shadow-sm transition-all duration-300 hover:border-blue-400 hover:bg-white/10 sm:rounded-3xl sm:p-8">
+    <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50 transition-all duration-300 group-hover:scale-110 group-hover:bg-blue-50">
+      {React.cloneElement(icon, { size: 28 })}
     </div>
-    <h4 className="mb-4 text-xl leading-[1.4] font-bold transition-colors group-hover:text-blue-400 md:mb-8 md:text-2xl">
+    <h4 className="mb-3 text-xl font-bold text-white md:text-2xl">
       {title}
     </h4>
-    <p className="text-lg leading-[1.8] font-medium text-slate-400 md:text-xl md:leading-[1.9]">
+    <p className="text-base leading-[1.8] text-slate-300 md:text-lg">
       {description}
     </p>
   </div>
@@ -1189,10 +1189,10 @@ const DemoCarousel = () => {
   if (!n) return null
 
   return (
-    <section className="relative overflow-hidden bg-[#F5F4F0] pt-56 pb-16 md:pt-64 md:pb-24">
+    <section className="relative overflow-hidden bg-white pt-56 pb-16 md:pt-64 md:pb-24">
       <div className="mb-10 text-center md:mb-14">
         <p className="mb-2 text-xs font-bold tracking-[0.3em] text-blue-400 uppercase md:text-sm">DEMO</p>
-        <h2 className="text-2xl font-black tracking-tight text-slate-900 md:text-4xl">
+        <h2 className="text-2xl font-black tracking-tight text-gray-900 md:text-4xl">
           {"실제 제작된 영상을 확인하세요"}
         </h2>
       </div>
