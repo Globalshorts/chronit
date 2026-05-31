@@ -499,7 +499,7 @@ const Home = () => {
 
 
       {/* Hero Section — 노트북 오버레이 구조 */}
-      <section className="relative text-white" style={{background: '#1e2235', paddingBottom: '220px', overflow: 'visible'}}>
+      <section className="relative text-white" style={{background: '#1e2235', paddingBottom: '160px', overflow: 'visible'}}>
 
         {/* 배경 글로우 */}
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background: 'rgba(59,130,246,0.07)', filter: 'blur(130px)'}} />
@@ -507,9 +507,9 @@ const Home = () => {
 
         {/* 사선 배경 — z-0, 노트북 뒤 */}
         <div style={{
-          position: 'absolute', bottom: 0, left: 0, width: '100%', height: '200px',
+          position: 'absolute', bottom: 0, left: 0, width: '100%', height: '340px',
           background: '#F5F4F0', zIndex: 0,
-          clipPath: 'polygon(0 50%, 100% 0%, 100% 100%, 0% 100%)',
+          clipPath: 'polygon(0 55%, 100% 0%, 100% 100%, 0% 100%)',
         }} />
 
         <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-5 pt-32 md:grid-cols-[7fr_5fr] md:gap-4 md:px-16" style={{paddingBottom: '0'}}>
@@ -553,7 +553,7 @@ const Home = () => {
           </div>
 
           {/* 우측: 노트북 — 마이너스 마진으로 아래 삐져나옴 */}
-          <div className="hidden md:flex justify-center items-end relative z-10" style={{marginBottom: '-180px'}}>
+          <div className="hidden md:flex justify-center items-end relative z-10" style={{marginBottom: '-120px'}}>
             <div style={{position: 'relative'}}>
               {/* 앰비언트 라이트 */}
               <div style={{
