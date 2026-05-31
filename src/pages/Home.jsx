@@ -834,8 +834,12 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      {/* ── 구분선: 네이비→흰 ── */}
       <section id="pricing" className="relative bg-white px-5 pt-20 pb-16 md:px-8 md:pt-24 md:pb-28" style={{marginTop:"-82px"}}>
+        <div style={{position:"absolute",top:"-2px",left:0,width:"100%",height:"84px",zIndex:1,pointerEvents:"none"}}>
+          <svg viewBox="0 0 1440 84" preserveAspectRatio="none" style={{width:"100%",height:"100%"}}>
+            <polygon points="0,0 0,84 1440,0" fill="#1e2235"/>
+          </svg>
+        </div>
         <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-xl md:rounded-[4rem]">
           <div className="relative z-10 p-5 text-center sm:p-8 md:p-32">
             <h2 className="mb-6 text-2xl leading-[1.3] font-black tracking-tight text-slate-900 md:mb-10 md:text-[44px]">
