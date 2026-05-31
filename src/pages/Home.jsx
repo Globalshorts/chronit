@@ -603,16 +603,22 @@ const Home = () => {
             </div>
           </div>
 
-          {/* 모바일 */}
-          <div className="flex md:hidden flex-col items-center gap-4" style={{zIndex: 30}}>
-            <div style={{width: '220px', background: 'linear-gradient(160deg, #2a2a2a, #111)', borderRadius: '2.6rem', padding: '8px', boxShadow: '0 40px 80px -10px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.12)'}}>
-              <div style={{background: '#0a0a0a', borderRadius: '2.2rem 2.2rem 0 0', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                <div style={{width: '55px', height: '18px', background: '#000', borderRadius: '10px'}} />
-              </div>
-              <div style={{background: '#000', overflow: 'hidden'}}><HeroPhoneVideo /></div>
-              <div style={{background: '#0a0a0a', borderRadius: '0 0 2.2rem 2.2rem', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                <div style={{width: '70px', height: '3px', background: 'rgba(255,255,255,0.25)', borderRadius: '2px'}} />
-              </div>
+          {/* 모바일 — 노트북 */}
+          <div className="flex md:hidden justify-center items-center w-full px-4 pb-8">
+            <div style={{position: 'relative', width: '100%', maxWidth: '420px'}}>
+              <div style={{
+                position: 'absolute', top: '10%', left: '50%',
+                transform: 'translateX(-50%)',
+                width: '80%', height: '200px',
+                background: 'rgba(37,99,235,0.25)',
+                borderRadius: '50%', filter: 'blur(60px)',
+                zIndex: 0, pointerEvents: 'none',
+              }} />
+              <img
+                src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/macbook_mockup.png"
+                alt="Chronit 노트북"
+                style={{position: 'relative', zIndex: 1, width: '100%', height: 'auto', objectFit: 'contain', display: 'block', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.4))'}}
+              />
             </div>
           </div>
         </div>
