@@ -604,7 +604,19 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 다크→다크 (웨이브 제거, 배경 동일) */}
+      {/* 사선 구분선 — 다크→오프화이트 */}
+      <div style={{
+        height: '80px',
+        background: '#1e2235',
+        position: 'relative',
+        overflow: 'hidden',
+        marginBottom: '-1px',
+      }}>
+        <svg viewBox="0 0 1440 80" preserveAspectRatio="none"
+          style={{position: 'absolute', bottom: 0, left: 0, width: '100%', height: '100%'}}>
+          <polygon points="0,80 1440,0 1440,80" fill="#F5F4F0" />
+        </svg>
+      </div>
 
       {/* ── 데모 영상 캐러셀 ── */}
       <div id="demo">
@@ -612,7 +624,7 @@ const Home = () => {
       </div>
 
       {/* Stats Section */}
-      <section className="relative overflow-hidden bg-[#0B0D17] px-5 py-20 md:px-8 md:py-32">
+      <section className="relative overflow-hidden bg-[#F5F4F0] px-5 py-20 md:px-8 md:py-32">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_60%,transparent_100%)]"></div>
 
         <div className="relative z-10 mx-auto max-w-5xl">
@@ -666,7 +678,7 @@ const Home = () => {
       </section>
 
       {/* Problem Section */}
-      <section className="relative bg-[#010411] px-5 py-24 md:px-8 md:py-48">
+      <section className="relative bg-[#F5F4F0] px-5 py-24 md:px-8 md:py-48">
         <div className="mx-auto max-w-5xl">
           <div className="mb-16 text-center md:mb-28">
             <h3 className="mb-6 text-xs font-black tracking-[0.3em] text-blue-500 uppercase md:mb-8 md:text-sm">
@@ -711,7 +723,7 @@ const Home = () => {
       {/* Feature Section */}
       <section
         id="features"
-        className="relative overflow-hidden bg-[#0B0D17] px-5 py-24 md:px-8 md:py-48"
+        className="relative overflow-hidden bg-[#F5F4F0] px-5 py-24 md:px-8 md:py-48"
       >
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] bg-[size:40px_40px]"></div>
 
