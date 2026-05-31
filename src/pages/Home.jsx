@@ -767,22 +767,55 @@ const Home = () => {
             </div>
           </div>
 
-          <div className="grid gap-6 md:gap-10 lg:grid-cols-3">
-            <FeatureCard
-              icon={<ShieldCheck className="text-blue-500" />}
-              title="실제 리뷰 데이터 기반"
-              description="AI 가상 이미지가 아닌 실제 상품의 사용감과 디테일이 담긴 소스로 시청자의 의심을 확신으로 바꿉니다."
-            />
-            <FeatureCard
-              icon={<Cpu className="text-cyan-500" />}
-              title="실전 자막 리듬 로직"
-              description="단순 자막이 아닙니다. 이탈률을 최소화하는 자막 절단 알고리즘과 스토리텔링 체인 기술이 탑재되었습니다."
-            />
-            <FeatureCard
-              icon={<Zap className="text-indigo-500" />}
-              title="GPT-4o 후킹 엔진"
-              description="0.5초 만에 시선을 고정시키는 썸네일 카피와 대본을 생성하여 조회수 파이프라인을 구축합니다."
-            />
+          <div className="mx-auto max-w-2xl space-y-4">
+            {/* Q1 */}
+            <div className="flex justify-end">
+              <div className="flex items-center gap-2">
+                <div className="rounded-2xl rounded-tr-sm bg-blue-600 px-5 py-3 text-base font-bold text-white shadow-lg">
+                  실제 상품 소스로만 만들 수 있나요?
+                </div>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">Q</div>
+              </div>
+            </div>
+            {/* A1 */}
+            <div className="flex items-start gap-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-black text-white">A</div>
+              <div className="rounded-2xl rounded-tl-sm bg-white/10 px-5 py-3 text-base leading-relaxed text-slate-200 shadow">
+                AI 가상 이미지가 아닌 실제 상품의 사용감과 디테일이 담긴 소스로 시청자의 의심을 확신으로 바꿉니다.
+              </div>
+            </div>
+            {/* Q2 */}
+            <div className="flex justify-end">
+              <div className="flex items-center gap-2">
+                <div className="rounded-2xl rounded-tr-sm bg-blue-600 px-5 py-3 text-base font-bold text-white shadow-lg">
+                  자막이 어색하게 잘리지 않나요?
+                </div>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">Q</div>
+              </div>
+            </div>
+            {/* A2 */}
+            <div className="flex items-start gap-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-black text-white">A</div>
+              <div className="rounded-2xl rounded-tl-sm bg-white/10 px-5 py-3 text-base leading-relaxed text-slate-200 shadow">
+                단순 자막이 아닙니다. 이탈률을 최소화하는 자막 절단 알고리즘과 스토리텔링 체인 기술이 탑재되었습니다.
+              </div>
+            </div>
+            {/* Q3 */}
+            <div className="flex justify-end">
+              <div className="flex items-center gap-2">
+                <div className="rounded-2xl rounded-tr-sm bg-blue-600 px-5 py-3 text-base font-bold text-white shadow-lg">
+                  후킹 카피는 직접 써야 하나요?
+                </div>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">Q</div>
+              </div>
+            </div>
+            {/* A3 */}
+            <div className="flex items-start gap-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-black text-white">A</div>
+              <div className="rounded-2xl rounded-tl-sm bg-white/10 px-5 py-3 text-base leading-relaxed text-slate-200 shadow">
+                0.5초 만에 시선을 고정시키는 썸네일 카피와 대본을 GPT-4o가 자동 생성합니다.
+              </div>
+            </div>
           </div>
         </div>
       </section>
