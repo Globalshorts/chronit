@@ -546,9 +546,9 @@ const Home = () => {
                 <Monitor size={20} /> Windows 다운로드
               </a>
             </div>
-            <p className="mt-4 text-sm font-medium text-slate-500">
-              Windows 10/11 · 약 1.9GB · 첫 실행 시 "PC 보호" 경고 →{' '}
-              <span className="text-slate-400">추가 정보 → 실행</span>
+            <p className="mt-4 text-sm font-medium text-slate-300">
+              Windows 10/11 · 약 1.9GB · 첫 실행 시{' '}
+              <span className="font-black text-green-400">"PC 보호" 경고 → 추가 정보 → 실행</span>
             </p>
           </div>
 
