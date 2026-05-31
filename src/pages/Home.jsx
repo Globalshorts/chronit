@@ -588,21 +588,20 @@ const Home = () => {
               </div>
 
               {/* 폰 — 영상(z-10) 밑, 베젤PNG(z-20) 위 */}
-              {/* 500x500 정사각형 이미지 → 컨테이너도 정사각형 → contain이 꽉 참 */}
               <div style={{
                 position: 'relative',
-                width: '300px',
-                height: '300px',
+                width: '390px',
+                height: '390px',
               }}>
-                {/* 1층: 영상 — 화면좌표(500px 기준) % 그대로 */}
+                {/* 1층: 영상 */}
                 <div style={{
                   position: 'absolute',
                   top: '11.4%',
                   left: '31.6%',
                   width: '36.8%',
-                  height: '77%',
+                  height: '74.6%',
                   overflow: 'hidden',
-                  borderRadius: '4px',
+                  borderRadius: '23px',
                   zIndex: 10,
                   background: '#000',
                 }}>
