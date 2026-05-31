@@ -715,7 +715,7 @@ const Home = () => {
               { emoji: '💻', title: '안정적인 PC 구동 환경', desc: '대량 연산과 자동화에 가장 최적화된 Windows 전용 프로그램으로 멈춤 없이 쾌적하게 작동합니다.', right: false },
             ].map(({ emoji, title, desc, right }) => (
               <div key={title} className={`flex items-center gap-8 md:gap-16 ${right ? 'flex-row-reverse' : 'flex-row'}`}>
-                <div className="shrink-0 w-28 h-28 md:w-40 md:h-40 rounded-3xl border border-gray-100 bg-[#FAFAFA] shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center justify-center text-5xl md:text-6xl">
+                <div className="shrink-0 w-28 h-28 md:w-40 md:h-40 rounded-3xl border border-gray-200 bg-[#FAFAFA] shadow-[0_8px_30px_rgba(0,0,0,0.10)] flex items-center justify-center text-5xl md:text-6xl">
                   {emoji}
                 </div>
                 <div className={`flex-1 ${right ? 'text-right' : 'text-left'}`}>
