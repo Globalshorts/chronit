@@ -1345,11 +1345,48 @@ const DemoCarousel = () => {
           {videos.map((_, i) => (
             <button key={i} onClick={() => setActive(i)}
               className="h-1.5 rounded-full transition-all duration-300"
-              style={{ width: i === active ? '24px' : '6px', background: i === active ? '#3b82f6' : 'rgba(255,255,255,0.2)' }}
+              style={{ width: i === active ? '24px' : '6px', background: i === active ? '#3b82f6' : '#cbd5e1' }}
             />
           ))}
         </div>
         <button onClick={next} className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-slate-300 bg-white text-slate-700 shadow transition-all hover:border-blue-500 hover:text-blue-500 active:scale-95 md:h-12 md:w-12">{">"}</button>
+      </div>
+
+      {/* 3단계 수익화 섹션 */}
+      <div className="mx-auto max-w-4xl px-5 pt-16 pb-4 md:px-8 md:pt-20">
+        <div className="mb-10 text-center">
+          <p className="mb-2 text-xs font-bold tracking-[0.3em] text-blue-500 uppercase md:text-sm">HOW IT WORKS</p>
+          <h2 className="mb-3 text-2xl font-black text-gray-900 md:text-4xl">크로닛으로 구축하는 3단계 자동화</h2>
+          <p className="text-base text-gray-500 md:text-lg">복잡한 과정은 없습니다. 시스템이 스스로 작동하는 파이프라인을 확인하세요.</p>
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
+          {[
+            {
+              step: '01', label: 'Click', title: '상품 링크 복사',
+              desc: '릴스나 쇼츠의 판매하고 싶은 상품 링크를 크로닛에 넣습니다.',
+              emoji: '🔗', color: 'border-blue-200 bg-blue-50', badge: 'text-blue-600 bg-blue-100',
+            },
+            {
+              step: '02', label: 'Create', title: 'AI 릴스 제작',
+              desc: 'AI가 상품에 맞는 자막과 편집으로 2분 만에 숏폼 영상을 찍어냅니다.',
+              emoji: '🎬', color: 'border-indigo-200 bg-indigo-50', badge: 'text-indigo-600 bg-indigo-100',
+            },
+            {
+              step: '03', label: 'Earn', title: '프로필 링크로 수익 창출',
+              desc: '완성된 영상을 업로드하고 프로필에 수익화 링크를 걸어두면, 시청자 구매 시마다 리워드가 쌓입니다.',
+              emoji: '💰', color: 'border-emerald-200 bg-emerald-50', badge: 'text-emerald-600 bg-emerald-100',
+            },
+          ].map(({ step, label, title, desc, emoji, color, badge }) => (
+            <div key={step} className={`relative rounded-2xl border p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] ${color}`}>
+              <div className="mb-4 flex items-center gap-3">
+                <span className={`rounded-full px-3 py-1 text-xs font-black ${badge}`}>Step {step} · {label}</span>
+              </div>
+              <div className="mb-3 text-4xl">{emoji}</div>
+              <h3 className="mb-2 text-lg font-black text-gray-900">{title}</h3>
+              <p className="text-sm leading-relaxed text-gray-500">{desc}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   )
