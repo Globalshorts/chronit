@@ -663,10 +663,10 @@ const Home = () => {
           </div>
         </div>
 
-        {/* 하단 곡선 웨이브 — 폰 목업과 겹치도록 */}
-        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]" style={{zIndex: 20}}>
-          <svg viewBox="0 0 1440 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{display:'block', width:'100%', height:'120px'}}>
-            <path d="M0,60 C480,120 960,0 1440,80 L1440,120 L0,120 Z" fill="#020617" />
+        {/* 하단 곡선 웨이브 — 폰 하단 1/3 지점에 겹치도록 */}
+        <div className="absolute left-0 w-full overflow-hidden leading-[0]" style={{bottom: '100px', zIndex: 25}}>
+          <svg viewBox="0 0 1440 160" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{display:'block', width:'100%', height:'160px'}}>
+            <path d="M0,80 C480,160 960,20 1440,100 L1440,160 L0,160 Z" fill="#020617" />
           </svg>
         </div>
       </section>
