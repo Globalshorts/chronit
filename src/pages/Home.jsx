@@ -615,10 +615,15 @@ const Home = () => {
       {/* ── 구분선: 흰→네이비 ── */}
       <div style={{position:'relative',height:'80px',background:'#1e2235',marginTop:'-1px'}}>
         <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{position:'absolute',top:0,left:0,width:'100%',height:'100%'}}>
-          <polygon points="0,0 1440,80 0,80" fill="white"/>
+          <polygon points="0,80 1440,0 1440,80" fill="white"/>
         </svg>
       </div>
-      <section className="relative overflow-hidden bg-[#1e2235] px-5 py-20 md:px-8 md:py-32">
+      <section className="relative bg-[#1e2235] px-5 pt-28 pb-20 md:px-8 md:pt-36 md:pb-32" style={{marginTop:"-80px"}}>
+        <div style={{position:"absolute",top:0,left:0,width:"100%",height:"80px",zIndex:1,pointerEvents:"none"}}>
+          <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{width:"100%",height:"100%"}}>
+            <polygon points="0,0 1440,80 1440,0" fill="white"/>
+          </svg>
+        </div>
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_60%,transparent_100%)]"></div>
 
         <div className="relative z-10 mx-auto max-w-5xl">
@@ -675,10 +680,15 @@ const Home = () => {
       {/* ── 구분선: 네이비→흰 ── */}
       <div style={{position:'relative',height:'80px',background:'white',marginTop:'-1px'}}>
         <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{position:'absolute',top:0,left:0,width:'100%',height:'100%'}}>
-          <polygon points="0,0 1440,80 0,80" fill="#1e2235"/>
+          <polygon points="0,80 1440,0 1440,80" fill="#1e2235"/>
         </svg>
       </div>
-      <section className="relative bg-white px-5 py-24 md:px-8 md:py-48">
+      <section className="relative bg-white px-5 pt-28 pb-24 md:px-8 md:pt-36 md:pb-48" style={{marginTop:"-80px"}}>
+        <div style={{position:"absolute",top:0,left:0,width:"100%",height:"80px",zIndex:1,pointerEvents:"none"}}>
+          <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{width:"100%",height:"100%"}}>
+            <polygon points="0,0 0,80 1440,0" fill="#1e2235"/>
+          </svg>
+        </div>
         <div className="mx-auto max-w-5xl">
           <div className="mb-16 text-center md:mb-28">
             <h3 className="mb-6 text-xs font-black tracking-[0.3em] text-blue-500 uppercase md:mb-8 md:text-sm">
@@ -724,13 +734,18 @@ const Home = () => {
       {/* ── 구분선: 흰→네이비 ── */}
       <div style={{position:'relative',height:'80px',background:'#1e2235',marginTop:'-1px'}}>
         <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{position:'absolute',top:0,left:0,width:'100%',height:'100%'}}>
-          <polygon points="0,0 1440,80 0,80" fill="white"/>
+          <polygon points="0,80 1440,0 1440,80" fill="white"/>
         </svg>
       </div>
       <section
         id="features"
-        className="relative overflow-hidden bg-[#1e2235] px-5 py-24 md:px-8 md:py-48"
+        className="relative bg-[#1e2235] px-5 pt-28 pb-24 md:px-8 md:pt-36 md:pb-48" style={{marginTop:"-80px"}}
       >
+        <div style={{position:"absolute",top:0,left:0,width:"100%",height:"80px",zIndex:1,pointerEvents:"none"}}>
+          <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{width:"100%",height:"100%"}}>
+            <polygon points="0,0 1440,80 1440,0" fill="white"/>
+          </svg>
+        </div>
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] bg-[size:40px_40px]"></div>
 
         <div className="relative z-10 mx-auto max-w-7xl">
@@ -776,10 +791,10 @@ const Home = () => {
       {/* ── 구분선: 네이비→흰 ── */}
       <div style={{position:'relative',height:'80px',background:'white',marginTop:'-1px'}}>
         <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{position:'absolute',top:0,left:0,width:'100%',height:'100%'}}>
-          <polygon points="0,0 1440,80 0,80" fill="#1e2235"/>
+          <polygon points="0,80 1440,0 1440,80" fill="#1e2235"/>
         </svg>
       </div>
-      <section id="pricing" className="relative bg-white px-5 py-24 md:px-8 md:py-48">
+      <section id="pricing" className="relative bg-white px-5 pt-28 pb-24 md:px-8 md:pt-36 md:pb-48" style={{marginTop:"-80px"}}>
         <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-xl md:rounded-[4rem]">
           <div className="relative z-10 p-5 text-center sm:p-8 md:p-32">
             <h2 className="mb-8 text-3xl leading-[1.3] font-black tracking-tight text-slate-900 md:mb-12 md:text-[56px]">
@@ -1213,7 +1228,7 @@ const DemoCarousel = () => {
   if (!n) return null
 
   return (
-    <section className="relative overflow-hidden bg-white pt-56 pb-16 md:pt-64 md:pb-24">
+    <section className="relative bg-white pt-56 pb-16 md:pt-64 md:pb-24">
       <div className="mb-10 text-center md:mb-14">
         <p className="mb-2 text-xs font-bold tracking-[0.3em] text-blue-400 uppercase md:text-sm">DEMO</p>
         <h2 className="text-2xl font-black tracking-tight text-gray-900 md:text-4xl">
