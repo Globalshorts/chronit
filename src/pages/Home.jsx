@@ -608,10 +608,10 @@ const Home = () => {
             <div style={{position: 'relative', width: '100%', maxWidth: '420px'}}>
               {/* 앰비언트 */}
               <div style={{
-                position: 'absolute', top: '10%', left: '50%',
+                position: 'absolute', top: '5%', left: '50%',
                 transform: 'translateX(-50%)',
-                width: '80%', height: '200px',
-                background: 'rgba(37,99,235,0.25)',
+                width: '100%', height: '260px',
+                background: 'rgba(37,99,235,0.45)',
                 borderRadius: '50%', filter: 'blur(50px)',
                 zIndex: 0, pointerEvents: 'none',
               }} />
