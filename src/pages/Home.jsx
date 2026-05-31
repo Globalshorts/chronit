@@ -533,7 +533,7 @@ const Home = () => {
             <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="group flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-8 py-4 text-lg font-extrabold text-white shadow-[0_20px_50px_-15px_rgba(37,99,235,0.5)] transition-all hover:bg-blue-500 active:scale-95"
+                className="group flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-gradient-to-r from-blue-600 to-indigo-600 px-10 py-5 text-lg font-extrabold text-white shadow-[0_20px_50px_-12px_rgba(37,99,235,0.6)] transition-all hover:from-blue-500 hover:to-indigo-500 hover:shadow-[0_24px_55px_-10px_rgba(37,99,235,0.7)] active:scale-95"
               >
                 무료로 시작하기{' '}
                 <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
@@ -541,7 +541,7 @@ const Home = () => {
               <a
                 href={DOWNLOAD_URL}
                 onClick={() => window.gtag?.('event', 'download', { event_category: 'conversion', event_label: 'windows_download' })}
-                className="group flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/5 px-6 py-4 text-lg font-extrabold text-white transition-all hover:bg-white/10 active:scale-95"
+                className="group flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/8 px-8 py-5 text-lg font-extrabold text-white backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/12 active:scale-95"
               >
                 <Monitor size={20} /> Windows 다운로드
               </a>
@@ -555,10 +555,22 @@ const Home = () => {
           {/* 우측: 노트북 — 마이너스 마진으로 아래 삐져나옴 */}
           <div className="hidden md:flex justify-center items-end relative z-10" style={{marginBottom: '-180px'}}>
             <div style={{position: 'relative'}}>
+              {/* 앰비언트 라이트 */}
+              <div style={{
+                position: 'absolute',
+                top: '20%', left: '50%',
+                transform: 'translateX(-50%)',
+                width: '420px', height: '280px',
+                background: 'rgba(37,99,235,0.18)',
+                borderRadius: '50%',
+                filter: 'blur(80px)',
+                zIndex: 0,
+                pointerEvents: 'none',
+              }} />
               <img
                 src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/macbook_mockup.png"
                 alt="Chronit 노트북"
-                style={{width: '560px', height: 'auto', objectFit: 'contain', background: 'transparent', display: 'block', filter: 'drop-shadow(0 40px 60px rgba(0,0,0,0.5))'}}
+                style={{position: 'relative', zIndex: 1, width: '560px', height: 'auto', objectFit: 'contain', background: 'transparent', display: 'block', filter: 'drop-shadow(0 40px 60px rgba(0,0,0,0.5))'}}
               />
 
               {/* 팝업 1 — 우측 상단 */}
