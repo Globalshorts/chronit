@@ -499,38 +499,37 @@ const Home = () => {
 
 
       {/* Hero Section */}
-      <section className="relative flex min-h-screen items-center overflow-hidden" style={{background: '#0B0D17'}}>
+      <section className="relative flex min-h-screen items-center overflow-visible" style={{background: '#F4F6F9'}}>
 
-        {/* 배경 글로우 — 좌상단 블루, 우측 인디고 */}
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background: 'rgba(59,130,246,0.08)', filter: 'blur(130px)'}} />
-        <div className="absolute bottom-[10%] right-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background: 'rgba(99,102,241,0.08)', filter: 'blur(150px)'}} />
-        <div className="absolute top-[30%] right-[10%] w-[400px] h-[400px] rounded-full pointer-events-none" style={{background: 'rgba(59,130,246,0.05)', filter: 'blur(100px)'}} />
+        {/* 배경 글로우 — 오프화이트 위 은은한 블루 */}
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background: 'rgba(59,130,246,0.06)', filter: 'blur(130px)'}} />
+        <div className="absolute bottom-[10%] right-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background: 'rgba(99,102,241,0.05)', filter: 'blur(150px)'}} />
 
         <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-5 py-24 md:grid-cols-2 md:gap-8 md:px-12 md:pb-0 md:pt-32">
 
           {/* 좌측: 카피 + 버튼 */}
           <div className="flex flex-col items-start">
-            <div className="animate-fade-in mb-6 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1.5 text-sm font-bold text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.15)] md:px-4 md:text-base">
+            <div className="animate-fade-in mb-6 inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1.5 text-sm font-bold text-blue-600 md:px-4 md:text-base">
               <Zap size={14} fill="currentColor" /> <span>쇼핑 릴스 자동화 v1.0.1</span>
             </div>
 
-            <h1 className="mb-3 whitespace-nowrap text-3xl font-black leading-tight tracking-tight text-white md:text-4xl lg:text-5xl">
+            <h1 className="mb-3 whitespace-nowrap text-3xl font-black leading-tight tracking-tight text-[#111827] md:text-4xl lg:text-5xl">
               클릭에 <span style={{color: '#ff6b00'}}>수익</span>을 입히다,
             </h1>
-            <h2 className="mb-6 bg-gradient-to-r from-blue-400 via-white to-indigo-400 bg-clip-text text-5xl font-black tracking-tighter text-transparent md:text-6xl lg:text-7xl">
+            <h2 className="mb-6 text-5xl font-black tracking-tighter text-[#111827] md:text-6xl lg:text-7xl">
               크로닛
             </h2>
             <span className="sr-only">크로닛(Chronit) — 쇼핑 릴스 영상 편집 자동화 솔루션. 링크만 입력하면 영상이 완성됩니다.</span>
 
-            <p className="mb-8 text-lg leading-[1.9] text-slate-300 md:text-xl">
+            <p className="mb-8 text-lg leading-[1.9] text-[#4B5563] md:text-xl">
               링크만 넣고 영상은 AI에게 맡기세요.<br />
-              <strong className="text-white">2분이면 충분합니다.</strong>
+              <strong className="text-[#111827]">2분이면 충분합니다.</strong>
             </p>
 
             <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="group flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-8 py-4 text-lg font-extrabold text-white shadow-[0_20px_50px_-15px_rgba(37,99,235,0.6)] transition-all hover:bg-blue-500 active:scale-95"
+                className="group flex items-center justify-center gap-2 rounded-2xl bg-[#1E293B] px-8 py-4 text-lg font-extrabold text-white shadow-[0_20px_50px_-15px_rgba(30,41,59,0.4)] transition-all hover:bg-[#0f172a] active:scale-95"
               >
                 무료로 시작하기{' '}
                 <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
@@ -538,36 +537,39 @@ const Home = () => {
               <a
                 href={DOWNLOAD_URL}
                 onClick={() => window.gtag?.('event', 'download', { event_category: 'conversion', event_label: 'windows_download' })}
-                className="group flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/[0.04] px-6 py-4 text-lg font-extrabold text-white backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/10 active:scale-95"
+                className="group flex items-center justify-center gap-2 rounded-2xl border border-[#1E293B]/20 bg-white px-6 py-4 text-lg font-extrabold text-[#1E293B] shadow-sm transition-all hover:border-[#1E293B]/40 hover:shadow-md active:scale-95"
               >
                 <Monitor size={20} /> Windows 다운로드
               </a>
             </div>
-            <p className="mt-4 text-sm font-medium text-slate-500">
+            <p className="mt-4 text-sm font-medium text-[#9CA3AF]">
               Windows 10/11 · 약 1.9GB · 첫 실행 시 "PC 보호" 경고 →{' '}
-              <span className="text-slate-400">추가 정보 → 실행</span>
+              <span className="text-[#6B7280]">추가 정보 → 실행</span>
             </p>
           </div>
 
-          {/* 우측: 노트북(뒤 왼쪽 크게) + 스마트폰(앞 오른쪽) */}
-          <div className="hidden md:flex items-center justify-center" style={{position: 'relative', height: '560px', marginBottom: '-120px', zIndex: 30}}>
+          {/* 우측: LG Gram 사선 노트북 + 스마트폰 */}
+          <div className="hidden md:block" style={{position: 'relative', height: '520px', marginBottom: '-160px', zIndex: 30}}>
 
-            {/* 노트북 목업 — 왼쪽에 크게 */}
-            <div style={{position: 'relative', zIndex: 10, width: '380px'}}>
-              {/* 화면 */}
+            {/* LG Gram 스타일 노트북 — 사선 기울기 */}
+            <div style={{
+              position: 'absolute', left: '0px', top: '20px', zIndex: 10, width: '380px',
+              transform: 'perspective(1200px) rotateY(8deg) rotateX(2deg)',
+              transformOrigin: 'left center',
+            }}>
+              {/* 화면 테두리 — LG Gram: 실버/라이트그레이 */}
               <div style={{
-                background: 'linear-gradient(160deg, #2e2e2e, #1c1c1c)',
-                borderRadius: '14px 14px 0 0',
+                background: 'linear-gradient(160deg, #d0d0d0 0%, #b8b8b8 100%)',
+                borderRadius: '12px 12px 0 0',
                 padding: '10px 10px 0',
-                boxShadow: '0 30px 80px rgba(0,0,0,0.6)',
-                border: '1px solid rgba(255,255,255,0.12)',
+                boxShadow: '0 30px 80px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.08)',
               }}>
-                <div style={{background: '#111', borderRadius: '8px 8px 0 0', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'}}>
-                  <div style={{width: '8px', height: '8px', borderRadius: '50%', background: '#ff5f57'}} />
-                  <div style={{width: '8px', height: '8px', borderRadius: '50%', background: '#febc2e'}} />
-                  <div style={{width: '8px', height: '8px', borderRadius: '50%', background: '#28c840'}} />
+                {/* 웹캠 */}
+                <div style={{height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                  <div style={{width: '6px', height: '6px', borderRadius: '50%', background: '#999'}} />
                 </div>
-                <div style={{background: '#0d1526', height: '220px', overflow: 'hidden', padding: '12px'}}>
+                {/* 화면 내용 */}
+                <div style={{background: '#0d1526', height: '220px', overflow: 'hidden', padding: '12px', borderRadius: '2px'}}>
                   <div style={{fontSize: '9px', color: '#27CFFE', fontWeight: 700, marginBottom: '8px'}}>⚡ Chronit v1.0.1</div>
                   <div style={{display: 'flex', gap: '4px', marginBottom: '10px', flexWrap: 'wrap'}}>
                     {['영상 분석','영상 선택','대본 생성','스타일','보이스','내보내기'].map((s,i) => (
@@ -588,25 +590,25 @@ const Home = () => {
                   </div>
                 </div>
               </div>
-              {/* 노트북 힌지 */}
-              <div style={{background: 'linear-gradient(#2a2a2a, #1a1a1a)', height: '14px', borderRadius: '0 0 4px 4px', border: '1px solid rgba(255,255,255,0.08)', borderTop: 'none', position: 'relative'}}>
-                <div style={{position: 'absolute', top: '5px', left: '50%', transform: 'translateX(-50%)', width: '50px', height: '4px', background: '#333', borderRadius: '2px'}} />
+              {/* 힌지 */}
+              <div style={{background: 'linear-gradient(#c0c0c0, #a8a8a8)', height: '12px', borderRadius: '0 0 4px 4px', position: 'relative'}}>
+                <div style={{position: 'absolute', top: '4px', left: '50%', transform: 'translateX(-50%)', width: '60px', height: '4px', background: '#b0b0b0', borderRadius: '2px'}} />
               </div>
-              {/* 노트북 바닥 */}
-              <div style={{background: 'linear-gradient(#222, #181818)', height: '10px', borderRadius: '0 0 10px 10px', boxShadow: '0 12px 40px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.06)', borderTop: 'none'}} />
-              {/* 노트북 글로우 */}
-              <div style={{position: 'absolute', inset: '-20px', zIndex: -1, background: 'radial-gradient(ellipse at 40% 60%, rgba(39,207,254,0.12) 0%, transparent 70%)', borderRadius: '50%'}} />
+              {/* 바닥 */}
+              <div style={{background: 'linear-gradient(#c8c8c8, #b0b0b0)', height: '10px', borderRadius: '0 0 10px 10px', boxShadow: '0 8px 30px rgba(0,0,0,0.15)'}} />
+              {/* LG 로고 */}
+              <div style={{position: 'absolute', bottom: '-6px', right: '20px', fontSize: '9px', color: '#999', fontWeight: 700, letterSpacing: '1px'}}>LG gram</div>
             </div>
 
             {/* 스마트폰 — 오른쪽 앞에 겹치게 */}
-            <div style={{position: 'absolute', right: '0px', bottom: '20px', zIndex: 30, width: '180px'}}>
-              {/* 팝업 카드 1 — 수익 */}
+            <div style={{position: 'absolute', right: '20px', bottom: '0px', zIndex: 30, width: '175px'}}>
+              {/* 수익 팝업 */}
               <div style={{
-                position: 'absolute', top: '8%', right: '-30%', zIndex: 50,
+                position: 'absolute', top: '6%', right: '-32%', zIndex: 50,
                 background: 'rgba(15,17,32,0.97)', backdropFilter: 'blur(16px)',
                 border: '1px solid rgba(255,107,0,0.35)', borderRadius: '14px',
                 padding: '10px 12px', width: '118px',
-                boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
+                boxShadow: '0 12px 40px rgba(0,0,0,0.2)',
                 transform: 'rotate(3deg)',
               }}>
                 <div style={{fontSize: '9px', color: '#94a3b8', marginBottom: '3px'}}>이번 달 수익</div>
@@ -616,13 +618,13 @@ const Home = () => {
                   <div style={{fontSize: '9px', color: '#22c55e', fontWeight: 600}}>↑ 32% 증가</div>
                 </div>
               </div>
-              {/* 팝업 카드 2 — AI 자막 */}
+              {/* AI 자막 팝업 */}
               <div style={{
-                position: 'absolute', bottom: '18%', left: '-38%', zIndex: 50,
+                position: 'absolute', bottom: '22%', left: '-42%', zIndex: 50,
                 background: 'rgba(15,17,32,0.97)', backdropFilter: 'blur(16px)',
                 border: '1px solid rgba(39,207,254,0.3)', borderRadius: '14px',
                 padding: '10px 12px', width: '120px',
-                boxShadow: '0 12px 40px rgba(39,207,254,0.1)',
+                boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
               }}>
                 <div style={{fontSize: '9px', color: '#27CFFE', marginBottom: '3px', fontWeight: 600}}>AI 자막 생성</div>
                 <div style={{fontSize: '11px', fontWeight: 700, color: '#fff', lineHeight: 1.4}}>"이 가격에 이 퀄리티?"</div>
@@ -631,36 +633,25 @@ const Home = () => {
               {/* 아이폰 프레임 */}
               <div style={{
                 background: 'linear-gradient(160deg, #2a2a2a 0%, #111 100%)',
-                borderRadius: '2.2rem',
-                padding: '7px',
-                boxShadow: '0 40px 80px -10px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.12), inset 0 1px 0 rgba(255,255,255,0.18)',
+                borderRadius: '2.2rem', padding: '7px',
+                boxShadow: '0 40px 80px -10px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.12)',
               }}>
-                <div style={{background: '#0a0a0a', borderRadius: '2rem 2rem 0 0', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 10px'}}>
+                <div style={{background: '#0a0a0a', borderRadius: '2rem 2rem 0 0', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 10px', position: 'relative'}}>
                   <span style={{fontSize: '9px', fontWeight: 700, color: '#fff'}}>9:41</span>
-                  <div style={{position: 'absolute', left: '50%', top: '8px', transform: 'translateX(-50%)', width: '52px', height: '16px', background: '#000', borderRadius: '10px'}} />
-                  <div style={{display: 'flex', gap: '3px', alignItems: 'center'}}>
-                    <svg width="10" height="8" viewBox="0 0 12 9" fill="white" opacity="0.9"><rect x="0" y="3" width="2" height="6" rx="0.5"/><rect x="3" y="2" width="2" height="7" rx="0.5"/><rect x="6" y="1" width="2" height="8" rx="0.5"/><rect x="9" y="0" width="2" height="9" rx="0.5"/></svg>
-                    <svg width="18" height="8" viewBox="0 0 22 10" fill="none"><rect x="0.5" y="0.5" width="18" height="9" rx="2.5" stroke="white" strokeOpacity="0.35"/><rect x="1.5" y="1.5" width="13" height="7" rx="1.5" fill="white"/></svg>
-                  </div>
+                  <div style={{position: 'absolute', left: '50%', top: '5px', transform: 'translateX(-50%)', width: '52px', height: '16px', background: '#000', borderRadius: '10px'}} />
+                  <svg width="18" height="8" viewBox="0 0 22 10" fill="none"><rect x="0.5" y="0.5" width="18" height="9" rx="2.5" stroke="white" strokeOpacity="0.35"/><rect x="1.5" y="1.5" width="13" height="7" rx="1.5" fill="white"/></svg>
                 </div>
-                <div style={{background: '#000', overflow: 'hidden'}}>
-                  <HeroPhoneVideo />
-                </div>
+                <div style={{background: '#000', overflow: 'hidden'}}><HeroPhoneVideo /></div>
                 <div style={{background: '#0a0a0a', borderRadius: '0 0 2rem 2rem', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
                   <div style={{width: '70px', height: '3px', background: 'rgba(255,255,255,0.25)', borderRadius: '2px'}} />
                 </div>
               </div>
             </div>
-
-            {/* 연결 화살표 */}
-            <div style={{position: 'absolute', bottom: '45%', left: '52%', transform: 'translateX(-50%)', zIndex: 25, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px'}}>
-              <div style={{fontSize: '18px', color: '#27CFFE', opacity: 0.7}}>→</div>
-            </div>
           </div>
 
-          {/* 모바일: 폰만 표시 */}
+          {/* 모바일: 폰만 */}
           <div className="flex md:hidden flex-col items-center gap-4" style={{marginBottom: '-80px', zIndex: 30}}>
-            <div style={{width: '200px', background: 'linear-gradient(160deg, #2a2a2a, #111)', borderRadius: '2.2rem', padding: '7px', boxShadow: '0 40px 80px -10px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.12)'}}>
+            <div style={{width: '200px', background: 'linear-gradient(160deg, #2a2a2a, #111)', borderRadius: '2.2rem', padding: '7px', boxShadow: '0 40px 80px -10px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.12)'}}>
               <div style={{background: '#0a0a0a', borderRadius: '2rem 2rem 0 0', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
                 <div style={{width: '52px', height: '16px', background: '#000', borderRadius: '10px'}} />
               </div>
@@ -669,8 +660,16 @@ const Home = () => {
                 <div style={{width: '70px', height: '3px', background: 'rgba(255,255,255,0.25)', borderRadius: '2px'}} />
               </div>
             </div>
-            <a href="#demo" onClick={e => { e.preventDefault(); document.getElementById('demo')?.scrollIntoView({behavior:'smooth'}) }} className="flex items-center gap-2 text-sm font-bold text-blue-400 hover:text-blue-300">실제 제작된 영상을 확인하세요 ↓</a>
           </div>
+        </div>
+
+        {/* 하단 곡선 웨이브 */}
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]" style={{zIndex: 15}}>
+          <svg viewBox="0 0 1440 160" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{display:'block', width:'100%', height:'160px'}}>
+            <path d="M0,80 C480,160 960,20 1440,100 L1440,160 L0,160 Z" fill="#0B0D17" />
+          </svg>
+        </div>
+      </section>
         </div>
 
         {/* 하단 곡선 웨이브 */}
