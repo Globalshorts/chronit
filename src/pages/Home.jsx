@@ -949,12 +949,12 @@ const Home = () => {
 
       {/* 이벤트 게시판 */}
       {events.length > 0 && (
-        <section id="events" className="bg-[#0B0D17] px-5 py-20 md:px-8">
+        <section id="events" className="bg-white px-5 py-20 md:px-8">
           <div className="mx-auto max-w-4xl">
-            <h2 className="mb-8 text-2xl font-black tracking-tight text-white">이벤트</h2>
+            <h2 className="mb-8 text-2xl font-black tracking-tight text-gray-900">이벤트</h2>
 
             {/* 탭 */}
-            <div className="mb-1 flex border-b border-white/10">
+            <div className="mb-1 flex border-b border-gray-200">
               {[
                 { key: 'active', label: '진행중인 이벤트' },
                 { key: 'ended',  label: '종료된 이벤트' },
@@ -965,12 +965,12 @@ const Home = () => {
                   onClick={() => setEventTab(tab.key)}
                   className={`px-5 py-3 text-sm font-bold transition-colors border-b-2 -mb-px ${
                     eventTab === tab.key
-                      ? 'border-blue-500 text-white'
-                      : 'border-transparent text-slate-500 hover:text-slate-300'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-slate-400 hover:text-slate-600'
                   }`}
                 >
                   {tab.label}
-                  <span className="ml-1.5 rounded-full bg-white/8 px-1.5 py-0.5 text-xs text-slate-400">
+                  <span className="ml-1.5 rounded-full bg-gray-100 px-1.5 py-0.5 text-xs text-slate-500">
                     {events.filter(e => e.status === tab.key).length}
                   </span>
                 </button>
@@ -978,19 +978,19 @@ const Home = () => {
             </div>
 
             {/* 목록 */}
-            <div className="divide-y divide-white/6">
+            <div className="divide-y divide-gray-100">
               {events.filter(e => e.status === eventTab).length === 0 ? (
-                <p className="py-12 text-center text-sm text-slate-600">해당 이벤트가 없습니다</p>
+                <p className="py-12 text-center text-sm text-slate-400">해당 이벤트가 없습니다</p>
               ) : (
                 events.filter(e => e.status === eventTab).map(ev => (
                   <button
                     key={ev.id}
                     onClick={() => setSelectedEvent(ev)}
-                    className="flex w-full items-center gap-4 px-2 py-4 text-left transition-colors hover:bg-white/[0.03]"
+                    className="flex w-full items-center gap-4 px-2 py-4 text-left transition-colors hover:bg-gray-50"
                   >
                     <EventBadge status={ev.status} label={ev.label} />
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-200">{ev.title}</span>
-                    <span className="shrink-0 text-xs text-slate-500">
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-800">{ev.title}</span>
+                    <span className="shrink-0 text-xs text-slate-400">
                       {new Date(ev.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '')}
                     </span>
                   </button>
@@ -1002,14 +1002,14 @@ const Home = () => {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-white/5 bg-[#01030a] px-5 py-16 md:px-8 md:py-32">
+      <footer className="border-t border-gray-200 bg-[#F5F4F0] px-5 py-16 md:px-8 md:py-32">
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-12 md:flex-row md:gap-16">
           <div className="max-w-md">
             <div className="mb-6 flex items-center gap-3 md:mb-10">
               <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-8 w-8" />
-              <h1 className="text-2xl font-black tracking-tighter">Chronit</h1>
+              <h1 className="text-2xl font-black tracking-tighter text-gray-900">Chronit</h1>
             </div>
-            <p className="text-lg leading-[1.8] font-medium text-slate-500 md:text-xl">
+            <p className="text-lg leading-[1.8] font-medium text-slate-600 md:text-xl">
               우리는 당신의 '시간'이 가장 가치 있는 자산이라 믿습니다.
               <br />
               실무진의 고뇌가 담긴 도구로 숏폼 비즈니스의 격을 높이세요.
@@ -1017,7 +1017,7 @@ const Home = () => {
           </div>
           <div className="grid w-full grid-cols-3 gap-6 sm:gap-12 md:w-auto md:gap-20">
             <div className="flex flex-col gap-4 md:gap-6">
-              <span className="text-sm font-bold tracking-widest text-white uppercase md:text-base">
+              <span className="text-sm font-bold tracking-widest text-gray-900 uppercase md:text-base">
                 서비스
               </span>
               <a
@@ -1040,7 +1040,7 @@ const Home = () => {
               </a>
             </div>
             <div className="flex flex-col gap-4 md:gap-6">
-              <span className="text-sm font-bold tracking-widest text-white uppercase md:text-base">
+              <span className="text-sm font-bold tracking-widest text-gray-900 uppercase md:text-base">
                 회사
               </span>
               <a
@@ -1057,7 +1057,7 @@ const Home = () => {
               </a>
             </div>
             <div className="flex flex-col gap-4 md:gap-6">
-              <span className="text-sm font-bold tracking-widest text-white uppercase md:text-base">
+              <span className="text-sm font-bold tracking-widest text-gray-900 uppercase md:text-base">
                 법적고지
               </span>
               <Link
@@ -1075,15 +1075,15 @@ const Home = () => {
             </div>
           </div>
         </div>
-        <div className="mx-auto mt-16 flex max-w-7xl flex-col items-center justify-between gap-6 border-t border-white/5 pt-8 md:mt-32 md:flex-row md:gap-8 md:pt-10">
-          <p className="text-center text-[10px] font-bold tracking-[0.3em] text-slate-600 uppercase md:text-sm md:tracking-[0.4em]">
+        <div className="mx-auto mt-16 flex max-w-7xl flex-col items-center justify-between gap-6 border-t border-gray-200 pt-8 md:mt-32 md:flex-row md:gap-8 md:pt-10">
+          <p className="text-center text-[10px] font-bold tracking-[0.3em] text-slate-400 uppercase md:text-sm md:tracking-[0.4em]">
             &copy; 2026 Chronit Labs. Crafting Future Efficiency.
           </p>
           <div className="flex gap-6 md:gap-8">
-            <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-white/5 transition-all hover:bg-blue-600">
+            <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-gray-200 text-gray-600 transition-all hover:bg-blue-600 hover:text-white">
               <Users size={20} />
             </div>
-            <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-white/5 transition-all hover:bg-blue-600">
+            <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-gray-200 text-gray-600 transition-all hover:bg-blue-600 hover:text-white">
               <MessageCircle size={20} />
             </div>
           </div>
