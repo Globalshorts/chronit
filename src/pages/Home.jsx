@@ -338,7 +338,7 @@ const Home = () => {
               alt="Chronit"
               className="h-8 w-8 shrink-0 md:h-10 md:w-10"
             />
-            <h1 className="bg-gradient-to-r from-white to-slate-400 bg-clip-text text-2xl font-black tracking-tighter text-transparent md:text-3xl">
+            <h1 className="bg-gradient-to-r from-[#111827] to-[#374151] bg-clip-text text-2xl font-black tracking-tighter text-transparent md:text-3xl">
               Chronit
             </h1>
           </a>
@@ -551,53 +551,76 @@ const Home = () => {
           {/* 우측: LG Gram 사선 노트북 + 스마트폰 */}
           <div className="hidden md:block" style={{position: 'relative', height: '520px', marginBottom: '-160px', zIndex: 30}}>
 
-            {/* LG Gram 스타일 노트북 — 사선 기울기 */}
+            {/* LG Gram 스타일 노트북 — isometric 뷰 (화면+키보드 함께) */}
             <div style={{
-              position: 'absolute', left: '0px', top: '20px', zIndex: 10, width: '380px',
-              transform: 'perspective(1200px) rotateY(8deg) rotateX(2deg)',
-              transformOrigin: 'left center',
+              position: 'absolute', left: '0px', top: '30px', zIndex: 10, width: '400px',
+              transform: 'perspective(1000px) rotateX(8deg) rotateY(-6deg)',
+              transformOrigin: 'center center',
+              filter: 'drop-shadow(0 30px 60px rgba(0,0,0,0.18))',
             }}>
-              {/* 화면 테두리 — LG Gram: 실버/라이트그레이 */}
+              {/* 화면 상단 베젤 */}
               <div style={{
-                background: 'linear-gradient(160deg, #d0d0d0 0%, #b8b8b8 100%)',
+                background: 'linear-gradient(180deg, #e8e8e8 0%, #d8d8d8 100%)',
                 borderRadius: '12px 12px 0 0',
-                padding: '10px 10px 0',
-                boxShadow: '0 30px 80px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.08)',
+                padding: '8px 8px 0',
+                border: '1px solid rgba(0,0,0,0.1)',
+                borderBottom: 'none',
               }}>
                 {/* 웹캠 */}
-                <div style={{height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                  <div style={{width: '6px', height: '6px', borderRadius: '50%', background: '#999'}} />
+                <div style={{height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                  <div style={{width: '5px', height: '5px', borderRadius: '50%', background: '#aaa', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.3)'}} />
                 </div>
                 {/* 화면 내용 */}
-                <div style={{background: '#0d1526', height: '220px', overflow: 'hidden', padding: '12px', borderRadius: '2px'}}>
+                <div style={{background: '#0d1526', height: '210px', overflow: 'hidden', padding: '10px', borderRadius: '2px 2px 0 0'}}>
                   <div style={{fontSize: '9px', color: '#27CFFE', fontWeight: 700, marginBottom: '8px'}}>⚡ Chronit v1.0.1</div>
-                  <div style={{display: 'flex', gap: '4px', marginBottom: '10px', flexWrap: 'wrap'}}>
+                  <div style={{display: 'flex', gap: '4px', marginBottom: '8px', flexWrap: 'wrap'}}>
                     {['영상 분석','영상 선택','대본 생성','스타일','보이스','내보내기'].map((s,i) => (
                       <div key={i} style={{fontSize: '7px', padding: '3px 6px', borderRadius: '4px', background: i===0 ? '#27CFFE20' : '#ffffff08', color: i===0 ? '#27CFFE' : '#475569', border: i===0 ? '1px solid #27CFFE40' : '1px solid #ffffff10'}}>{s}</div>
                     ))}
                   </div>
                   <div style={{background: '#131c2e', borderRadius: '8px', padding: '10px', marginBottom: '8px'}}>
-                    <div style={{fontSize: '8px', color: '#64748b', marginBottom: '6px'}}>쇼핑 릴스 링크 입력</div>
-                    <div style={{background: '#1e2a3d', borderRadius: '6px', padding: '6px 10px', fontSize: '8px', color: '#94a3b8', marginBottom: '8px'}}>https://www.instagram.com/reel/...</div>
+                    <div style={{fontSize: '8px', color: '#64748b', marginBottom: '5px'}}>쇼핑 릴스 링크 입력</div>
+                    <div style={{background: '#1e2a3d', borderRadius: '6px', padding: '5px 8px', fontSize: '7px', color: '#94a3b8', marginBottom: '7px'}}>https://www.instagram.com/reel/...</div>
                     <div style={{display: 'flex', gap: '6px'}}>
-                      <div style={{flex: 1, background: '#27CFFE', borderRadius: '6px', padding: '6px', textAlign: 'center', fontSize: '8px', color: '#0B0D17', fontWeight: 800}}>▶ 실행</div>
-                      <div style={{flex: 1, background: '#1e2a3d', borderRadius: '6px', padding: '6px', textAlign: 'center', fontSize: '8px', color: '#475569'}}>설정</div>
+                      <div style={{flex: 1, background: '#27CFFE', borderRadius: '6px', padding: '5px', textAlign: 'center', fontSize: '8px', color: '#0B0D17', fontWeight: 800}}>▶ 실행</div>
+                      <div style={{flex: 1, background: '#1e2a3d', borderRadius: '6px', padding: '5px', textAlign: 'center', fontSize: '8px', color: '#475569'}}>설정</div>
                     </div>
                   </div>
-                  <div style={{display: 'flex', alignItems: 'center', gap: '6px', background: '#0a1628', borderRadius: '6px', padding: '8px 10px'}}>
-                    <div style={{width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', flexShrink: 0}} />
-                    <div style={{fontSize: '8px', color: '#22c55e', fontWeight: 600}}>영상 3개 완성 · 방금 전 · 총 6분 소요</div>
+                  <div style={{display: 'flex', alignItems: 'center', gap: '6px', background: '#0a1628', borderRadius: '6px', padding: '7px 10px'}}>
+                    <div style={{width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e', flexShrink: 0}} />
+                    <div style={{fontSize: '7px', color: '#22c55e', fontWeight: 600}}>영상 3개 완성 · 방금 전 · 총 6분 소요</div>
                   </div>
                 </div>
               </div>
-              {/* 힌지 */}
-              <div style={{background: 'linear-gradient(#c0c0c0, #a8a8a8)', height: '12px', borderRadius: '0 0 4px 4px', position: 'relative'}}>
-                <div style={{position: 'absolute', top: '4px', left: '50%', transform: 'translateX(-50%)', width: '60px', height: '4px', background: '#b0b0b0', borderRadius: '2px'}} />
+              {/* 힌지 연결부 */}
+              <div style={{background: 'linear-gradient(#c8c8c8, #b8b8b8)', height: '6px', border: '1px solid rgba(0,0,0,0.08)', borderTop: 'none', borderBottom: 'none'}} />
+              {/* 키보드 바디 */}
+              <div style={{
+                background: 'linear-gradient(180deg, #e0e0e0 0%, #d0d0d0 100%)',
+                borderRadius: '0 0 10px 10px',
+                padding: '10px 12px 12px',
+                border: '1px solid rgba(0,0,0,0.1)',
+                borderTop: 'none',
+              }}>
+                {/* 터치패드 */}
+                <div style={{display: 'flex', justifyContent: 'center', marginBottom: '8px'}}>
+                  <div style={{width: '100px', height: '60px', background: 'linear-gradient(#d8d8d8, #c8c8c8)', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.1)'}} />
+                </div>
+                {/* 키보드 행 */}
+                {[10, 12, 11, 9].map((count, row) => (
+                  <div key={row} style={{display: 'flex', gap: '3px', marginBottom: '3px', justifyContent: 'center'}}>
+                    {Array.from({length: count}).map((_,k) => (
+                      <div key={k} style={{flex: row === 3 && k === 0 ? 2 : 1, height: '14px', background: 'linear-gradient(#ddd, #ccc)', borderRadius: '3px', border: '1px solid rgba(0,0,0,0.1)', boxShadow: '0 1px 2px rgba(0,0,0,0.1)'}} />
+                    ))}
+                  </div>
+                ))}
+                {/* 스페이스바 */}
+                <div style={{display: 'flex', justifyContent: 'center', marginTop: '3px'}}>
+                  <div style={{width: '50%', height: '14px', background: 'linear-gradient(#ddd, #ccc)', borderRadius: '3px', border: '1px solid rgba(0,0,0,0.1)', boxShadow: '0 1px 2px rgba(0,0,0,0.1)'}} />
+                </div>
               </div>
-              {/* 바닥 */}
-              <div style={{background: 'linear-gradient(#c8c8c8, #b0b0b0)', height: '10px', borderRadius: '0 0 10px 10px', boxShadow: '0 8px 30px rgba(0,0,0,0.15)'}} />
-              {/* LG 로고 */}
-              <div style={{position: 'absolute', bottom: '-6px', right: '20px', fontSize: '9px', color: '#999', fontWeight: 700, letterSpacing: '1px'}}>LG gram</div>
+              {/* LG gram 로고 */}
+              <div style={{position: 'absolute', bottom: '16px', right: '18px', fontSize: '8px', color: '#999', fontWeight: 700, letterSpacing: '0.5px'}}>LG gram</div>
             </div>
 
             {/* 스마트폰 — 오른쪽 앞에 겹치게 */}
@@ -671,12 +694,12 @@ const Home = () => {
         </div>
       </section>
 
-        {/* 하단 곡선 웨이브 */}
-        <div className="relative z-10 bg-[#0B0D17]" style={{marginTop: '-2px'}}>
-          <svg viewBox="0 0 1440 160" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{display:'block', width:'100%', height:'160px', background:'#F4F6F9'}}>
-            <path d="M0,80 C480,160 960,20 1440,100 L1440,160 L0,160 Z" fill="#0B0D17" />
-          </svg>
-        </div>
+      {/* 화이트→다크 웨이브 전환 */}
+      <div style={{background: '#F4F6F9', marginBottom: '-2px'}}>
+        <svg viewBox="0 0 1440 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{display:'block', width:'100%', height:'120px'}}>
+          <path d="M0,60 C480,120 960,20 1440,80 L1440,120 L0,120 Z" fill="#0B0D17" />
+        </svg>
+      </div>
 
       {/* ── 데모 영상 캐러셀 ── */}
       <div id="demo">
