@@ -587,32 +587,31 @@ const Home = () => {
                 <div style={{fontSize: '9px', color: '#27CFFE', marginTop: '3px'}}>인스타그램 업로드...</div>
               </div>
 
-              {/* 폰 — 고정 크기 + object-contain 베젤 */}
+              {/* 폰 — 320x640, 영상(z-10) + 투명 베젤(z-20) */}
               <div style={{
                 position: 'relative',
-                width: '260px',
-                height: '533px',
-                overflow: 'hidden',
+                width: '320px',
+                height: '640px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                overflow: 'hidden',
               }}>
-                {/* 1층: 영상 — 베젤 안쪽 패딩 */}
+                {/* 1층: 릴스 영상 — 베젤 안에 딱 맞게 */}
                 <div style={{
                   position: 'absolute',
-                  inset: 0,
-                  padding: '12px 16px',
+                  width: '91%',
+                  height: '95%',
+                  overflow: 'hidden',
+                  borderRadius: '40px',
                   zIndex: 10,
                   background: '#000',
-                  borderRadius: '44px',
                 }}>
-                  <div style={{width: '100%', height: '100%', overflow: 'hidden', borderRadius: '32px'}}>
-                    <HeroPhoneVideo />
-                  </div>
+                  <HeroPhoneVideo />
                 </div>
-                {/* 2층: 폰 베젤 PNG — object-contain으로 온전히 */}
+                {/* 2층: 투명 폰 베젤 프레임 — 영상 위에 덮음 */}
                 <img
-                  src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/phone_mockup.png"
+                  src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/phone_frame.png"
                   alt="폰 베젤"
                   style={{
                     position: 'absolute',
@@ -622,6 +621,7 @@ const Home = () => {
                     objectFit: 'contain',
                     zIndex: 20,
                     pointerEvents: 'none',
+                    filter: 'drop-shadow(0 30px 60px rgba(0,0,0,0.5))',
                   }}
                 />
               </div>
