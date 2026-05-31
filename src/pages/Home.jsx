@@ -558,12 +558,12 @@ const Home = () => {
               {/* 앰비언트 라이트 */}
               <div style={{
                 position: 'absolute',
-                top: '20%', left: '50%',
+                top: '10%', left: '50%',
                 transform: 'translateX(-50%)',
-                width: '420px', height: '280px',
-                background: 'rgba(37,99,235,0.18)',
+                width: '620px', height: '380px',
+                background: 'rgba(37,99,235,0.28)',
                 borderRadius: '50%',
-                filter: 'blur(80px)',
+                filter: 'blur(90px)',
                 zIndex: 0,
                 pointerEvents: 'none',
               }} />
