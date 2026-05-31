@@ -755,9 +755,7 @@ const Home = () => {
                 Core Strength
               </h3>
               <h2 className="text-3xl leading-[1.4] font-bold text-white md:text-5xl">
-                진짜를 아는 실무진은
-                <br />
-                수익화에만 에너지를 씁니다.
+                시작하기 전, 가장 많이<br />하시는 질문
               </h2>
             </div>
             <div className="border-l-4 border-blue-500 bg-blue-500/5 p-6 text-left md:max-w-sm md:p-8">
@@ -772,7 +770,7 @@ const Home = () => {
             <div className="flex justify-end">
               <div className="flex items-center gap-2">
                 <div className="rounded-2xl rounded-tr-sm bg-blue-600 px-5 py-3 text-base font-bold text-white shadow-lg">
-                  실제 상품 소스로만 만들 수 있나요?
+                  초보자도 할 수 있나요?
                 </div>
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">Q</div>
               </div>
@@ -781,14 +779,14 @@ const Home = () => {
             <div className="flex items-start gap-2">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-black text-white">A</div>
               <div className="rounded-2xl rounded-tl-sm bg-white/10 px-5 py-3 text-base leading-relaxed text-slate-200 shadow">
-                AI 가상 이미지가 아닌 실제 상품의 사용감과 디테일이 담긴 소스로 시청자의 의심을 확신으로 바꿉니다.
+                네, 클릭만 할 줄 안다면 오늘 바로 가능합니다. 프로그램 내 초간단 튜토리얼과 가이드를 제공하여 누구나 쉽게 따라 할 수 있습니다.
               </div>
             </div>
             {/* Q2 */}
             <div className="flex justify-end">
               <div className="flex items-center gap-2">
                 <div className="rounded-2xl rounded-tr-sm bg-blue-600 px-5 py-3 text-base font-bold text-white shadow-lg">
-                  자막이 어색하게 잘리지 않나요?
+                  정말 링크만 넣는다고 수익이 나나요?
                 </div>
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">Q</div>
               </div>
@@ -797,14 +795,14 @@ const Home = () => {
             <div className="flex items-start gap-2">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-black text-white">A</div>
               <div className="rounded-2xl rounded-tl-sm bg-white/10 px-5 py-3 text-base leading-relaxed text-slate-200 shadow">
-                단순 자막이 아닙니다. 이탈률을 최소화하는 자막 절단 알고리즘과 스토리텔링 체인 기술이 탑재되었습니다.
+                크로닛은 자동화 툴일 뿐입니다. 다만, 시스템을 통해 지치지 않고 꾸준히 대량 발행을 이어간다면 수익 가능성은 충분합니다.
               </div>
             </div>
             {/* Q3 */}
             <div className="flex justify-end">
               <div className="flex items-center gap-2">
                 <div className="rounded-2xl rounded-tr-sm bg-blue-600 px-5 py-3 text-base font-bold text-white shadow-lg">
-                  후킹 카피는 직접 써야 하나요?
+                  매달 결제하는 비용이 부담스러워요.
                 </div>
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">Q</div>
               </div>
@@ -813,7 +811,7 @@ const Home = () => {
             <div className="flex items-start gap-2">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-black text-white">A</div>
               <div className="rounded-2xl rounded-tl-sm bg-white/10 px-5 py-3 text-base leading-relaxed text-slate-200 shadow">
-                0.5초 만에 시선을 고정시키는 썸네일 카피와 대본을 GPT-4o가 자동 생성합니다.
+                하루 커피 한 잔 값으로, 퇴근 후 영상 편집에 쓰는 3~4시간을 완전히 아끼는 가장 합리적인 기회비용 투자입니다.
               </div>
             </div>
           </div>
