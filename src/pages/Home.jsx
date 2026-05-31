@@ -587,27 +587,39 @@ const Home = () => {
                 <div style={{fontSize: '9px', color: '#27CFFE', marginTop: '3px'}}>인스타그램 업로드...</div>
               </div>
 
-              {/* 폰 — overflow-hidden으로 영상 클립, 베젤이 위에 */}
+              {/* 폰 — 고정 크기 + object-contain 베젤 */}
               <div style={{
                 position: 'relative',
-                width: '300px',
-                height: '600px',
-                borderRadius: '44px',
+                width: '280px',
+                height: '560px',
                 overflow: 'hidden',
-                boxShadow: '0 50px 100px rgba(0,0,0,0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}>
-                {/* 1층: 영상 */}
-                <div style={{position: 'absolute', inset: 0, zIndex: 10, background: '#000'}}>
-                  <HeroPhoneVideo />
+                {/* 1층: 영상 — 베젤 안쪽 패딩 */}
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  padding: '14px 20px',
+                  zIndex: 10,
+                  background: '#000',
+                  borderRadius: '44px',
+                }}>
+                  <div style={{width: '100%', height: '100%', overflow: 'hidden', borderRadius: '32px'}}>
+                    <HeroPhoneVideo />
+                  </div>
                 </div>
-                {/* 2층: 투명 폰 베젤 PNG */}
+                {/* 2층: 폰 베젤 PNG — object-contain으로 온전히 */}
                 <img
                   src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/phone_mockup.png"
                   alt="폰 베젤"
                   style={{
-                    position: 'absolute', inset: 0,
-                    width: '100%', height: '100%',
-                    objectFit: 'cover',
+                    position: 'absolute',
+                    inset: 0,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
                     zIndex: 20,
                     pointerEvents: 'none',
                   }}
