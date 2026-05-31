@@ -545,23 +545,24 @@ const Home = () => {
             </p>
           </div>
 
-          {/* 우측: 노트북 목업 + 스마트폰 겹침 */}
-          <div className="hidden md:block" style={{position: 'relative', height: '580px'}}>
+          {/* 우측: 노트북 + 스마트폰 */}
+          <div className="hidden md:flex items-end justify-center" style={{position: 'relative', height: '560px', gap: '0'}}>
 
-            {/* 노트북 목업 이미지 */}
-            <div style={{position: 'absolute', left: '0', top: '40px', zIndex: 10, width: '420px', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.3))'}}>
+            {/* 노트북 — bg-transparent, object-contain */}
+            <div style={{position: 'absolute', left: '0', top: '60px', zIndex: 10}}>
               <img
                 src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/macbook_mockup.png"
-                alt="Chronit 앱 화면"
-                style={{width: '100%', height: 'auto', display: 'block'}}
+                alt="Chronit 노트북"
+                style={{width: '420px', height: 'auto', objectFit: 'contain', background: 'transparent', display: 'block'}}
               />
             </div>
 
-            {/* 스마트폰 — 노트북 오른쪽 앞에 겹침 */}
-            <div style={{position: 'absolute', right: '-20px', bottom: '10px', zIndex: 30, width: '300px'}}>
-              {/* 팝업 1 — 영상 생성 완료 */}
+            {/* 스마트폰 — 영상(z-10) 밑, 베젤PNG(z-20) 위 */}
+            <div style={{position: 'absolute', right: '-10px', bottom: '30px', zIndex: 30}}>
+
+              {/* 팝업 1 */}
               <div style={{
-                position: 'absolute', top: '8%', right: '-35%', zIndex: 50,
+                position: 'absolute', top: '8%', right: '-40%', zIndex: 50,
                 background: 'rgba(15,17,32,0.97)', backdropFilter: 'blur(16px)',
                 border: '1px solid rgba(34,197,94,0.35)', borderRadius: '14px',
                 padding: '10px 14px', width: '140px',
@@ -572,9 +573,10 @@ const Home = () => {
                 <div style={{fontSize: '12px', fontWeight: 700, color: '#fff', lineHeight: 1.4}}>수익형 영상<br/>생성 완료!</div>
                 <div style={{fontSize: '9px', color: '#94a3b8', marginTop: '3px'}}>방금 전 · 2분 소요</div>
               </div>
-              {/* 팝업 2 — AI 릴스 발행 중 */}
+
+              {/* 팝업 2 */}
               <div style={{
-                position: 'absolute', bottom: '22%', left: '-42%', zIndex: 50,
+                position: 'absolute', bottom: '22%', left: '-48%', zIndex: 50,
                 background: 'rgba(15,17,32,0.97)', backdropFilter: 'blur(16px)',
                 border: '1px solid rgba(39,207,254,0.3)', borderRadius: '14px',
                 padding: '10px 14px', width: '135px',
@@ -584,37 +586,36 @@ const Home = () => {
                 <div style={{fontSize: '12px', fontWeight: 700, color: '#fff', lineHeight: 1.4}}>AI 릴스<br/>자동 발행 중</div>
                 <div style={{fontSize: '9px', color: '#27CFFE', marginTop: '3px'}}>인스타그램 업로드...</div>
               </div>
-              {/* 폰 컨테이너 — 영상 + 프레임 겹침 */}
-              <div style={{position: 'relative', width: '100%'}}>
-                {/* 영상 (폰 화면 크기에 맞게 절대 위치) */}
-                <div style={{
-                  position: 'absolute',
-                  top: '11%',
-                  left: '31%',
-                  width: '38.5%',
-                  height: '79%',
-                  zIndex: 1,
-                  overflow: 'hidden',
-                  borderRadius: '8px',
-                  background: '#000',
-                }}>
+
+              {/* 폰 프레임 컨테이너 */}
+              <div style={{
+                position: 'relative',
+                width: '260px',
+                height: '530px',
+                borderRadius: '44px',
+                overflow: 'hidden',
+                background: '#000',
+                boxShadow: '0 50px 100px rgba(0,0,0,0.5)',
+              }}>
+                {/* 영상 레이어 — z-10 */}
+                <div style={{position: 'absolute', inset: 0, zIndex: 10}}>
                   <HeroPhoneVideo />
                 </div>
-                {/* 폰 프레임 PNG (화면 뚫린 투명 이미지) — 영상 위에 올라감 */}
+                {/* 폰 베젤 PNG — z-20, pointer-events-none */}
                 <img
                   src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/phone_mockup.png"
-                  alt="스마트폰 목업"
+                  alt="폰 베젤"
                   style={{
-                    position: 'relative',
-                    zIndex: 2,
-                    width: '100%',
-                    height: 'auto',
-                    display: 'block',
-                    filter: 'drop-shadow(0 40px 80px rgba(0,0,0,0.5))',
+                    position: 'absolute', inset: 0,
+                    width: '100%', height: '100%',
+                    objectFit: 'cover',
+                    zIndex: 20,
+                    pointerEvents: 'none',
                   }}
                 />
               </div>
             </div>
+          </div>
           </div>
 
           {/* 모바일: 폰만 */}
