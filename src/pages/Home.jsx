@@ -587,30 +587,35 @@ const Home = () => {
                 <div style={{fontSize: '9px', color: '#27CFFE', marginTop: '3px'}}>인스타그램 업로드...</div>
               </div>
 
-              {/* 폰 프레임 컨테이너 */}
-              <div style={{
-                position: 'relative',
-                width: '260px',
-                height: '530px',
-                borderRadius: '44px',
-                overflow: 'hidden',
-                background: '#000',
-                boxShadow: '0 50px 100px rgba(0,0,0,0.5)',
-              }}>
-                {/* 영상 레이어 — z-10 */}
-                <div style={{position: 'absolute', inset: 0, zIndex: 10}}>
+              {/* 폰 컨테이너 — 상대 위치 기준 */}
+              <div style={{position: 'relative', width: '320px'}}>
+
+                {/* 영상 — 안쪽 베젤 좌표에 정확히 맞춤 (z-10) */}
+                <div style={{
+                  position: 'absolute',
+                  top: '12.2%',
+                  left: '32.3%',
+                  width: '35.2%',
+                  height: '75.5%',
+                  zIndex: 10,
+                  overflow: 'hidden',
+                  borderRadius: '6px',
+                  background: '#000',
+                }}>
                   <HeroPhoneVideo />
                 </div>
-                {/* 폰 베젤 PNG — z-20, pointer-events-none */}
+
+                {/* 폰 베젤 PNG — 영상 위에 (z-20) */}
                 <img
                   src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/phone_mockup.png"
                   alt="폰 베젤"
                   style={{
-                    position: 'absolute', inset: 0,
-                    width: '100%', height: '100%',
-                    objectFit: 'cover',
+                    position: 'relative',
                     zIndex: 20,
-                    pointerEvents: 'none',
+                    width: '100%',
+                    height: 'auto',
+                    display: 'block',
+                    filter: 'drop-shadow(0 40px 80px rgba(0,0,0,0.5))',
                   }}
                 />
               </div>
