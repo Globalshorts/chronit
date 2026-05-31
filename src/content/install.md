@@ -1,6 +1,6 @@
 ## 1단계: Windows 설치 파일 다운로드
 
-홈페이지 상단의 **Windows 다운로드** 버튼을 클릭하거나, [여기를 클릭](https://github.com/Globalshorts/chronit/releases/latest/download/Chronit_Setup_1.0.1.exe)해서 최신 버전을 받아주세요.
+홈페이지 상단의 **Windows 다운로드** 버튼을 클릭하거나, [여기를 클릭](https://github.com/Globalshorts/chronit/releases/latest/download/Chronit_Setup.exe)해서 최신 버전을 받아주세요.
 
 - 파일 크기: 약 513MB
 - 지원 OS: Windows 10 / 11
