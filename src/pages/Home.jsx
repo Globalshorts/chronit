@@ -1257,7 +1257,7 @@ const DemoCarousel = () => {
   if (!n) return null
 
   return (
-    <section className="relative bg-white pt-40 pb-10 md:pt-52 md:pb-16">
+    <section className="relative bg-white pt-16 pb-10 md:pt-20 md:pb-16">
       <div className="mb-10 text-center md:mb-14">
         <p className="mb-2 text-xs font-bold tracking-[0.3em] text-blue-400 uppercase md:text-sm">DEMO</p>
         <h2 className="text-2xl font-black tracking-tight text-gray-900 md:text-4xl">
