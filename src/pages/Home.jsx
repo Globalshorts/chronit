@@ -600,7 +600,7 @@ const Home = () => {
               <div style={{
                 background: 'linear-gradient(160deg, #2a2a2a 0%, #111 100%)',
                 borderRadius: '2.8rem', padding: '8px',
-                boxShadow: '0 60px 120px -20px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.12)',
+                boxShadow: '0 60px 120px -20px rgba(0,0,0,0.4), 0 30px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.12)',
               }}>
                 <div style={{background: '#0a0a0a', borderRadius: '2.4rem 2.4rem 0 0', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 14px', position: 'relative'}}>
                   <span style={{fontSize: '10px', fontWeight: 700, color: '#fff'}}>9:41</span>
