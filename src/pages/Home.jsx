@@ -499,11 +499,11 @@ const Home = () => {
 
 
       {/* Hero Section — 노트북 오버레이 구조 */}
-      <section className="relative text-white" style={{background: '#1e2235', paddingBottom: '160px', overflow: 'visible'}}>
+      <section className="relative text-white" style={{background: '#1e2235', paddingBottom: '160px', overflow: 'visible', willChange: 'transform'}}>
 
         {/* 배경 글로우 */}
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background: 'rgba(59,130,246,0.07)', filter: 'blur(130px)'}} />
-        <div className="absolute bottom-[10%] right-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background: 'rgba(99,102,241,0.07)', filter: 'blur(120px)'}} />
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none hidden md:block" style={{background: 'rgba(59,130,246,0.07)', filter: 'blur(80px)'}} />
+        <div className="absolute bottom-[10%] right-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none hidden md:block" style={{background: 'rgba(99,102,241,0.07)', filter: 'blur(80px)'}} />
 
         {/* 사선 배경 — z-0, 노트북 뒤 */}
         <div style={{
@@ -563,20 +563,20 @@ const Home = () => {
                 width: '620px', height: '380px',
                 background: 'rgba(37,99,235,0.28)',
                 borderRadius: '50%',
-                filter: 'blur(90px)',
+                filter: 'blur(70px)',
                 zIndex: 0,
                 pointerEvents: 'none',
               }} />
               <img
                 src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/macbook_mockup.png"
                 alt="Chronit 노트북"
-                style={{position: 'relative', zIndex: 1, width: '560px', height: 'auto', objectFit: 'contain', background: 'transparent', display: 'block', filter: 'drop-shadow(0 40px 60px rgba(0,0,0,0.5))'}}
+                style={{position: 'relative', zIndex: 1, width: '560px', height: 'auto', objectFit: 'contain', background: 'transparent', display: 'block', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.4))'}}
               />
 
               {/* 팝업 1 — 우측 상단 */}
               <div style={{
                 position: 'absolute', top: '18%', right: '-16%', zIndex: 50,
-                background: 'rgba(15,17,32,0.97)', backdropFilter: 'blur(16px)',
+                background: 'rgba(15,17,32,0.97)',
                 border: '1px solid rgba(34,197,94,0.35)', borderRadius: '14px',
                 padding: '10px 14px', width: '148px',
                 boxShadow: '0 12px 40px rgba(0,0,0,0.4)',
@@ -591,7 +591,7 @@ const Home = () => {
               {/* 팝업 2 — 좌측 하단 */}
               <div style={{
                 position: 'absolute', bottom: '28%', left: '-16%', zIndex: 50,
-                background: 'rgba(15,17,32,0.97)', backdropFilter: 'blur(16px)',
+                background: 'rgba(15,17,32,0.97)',
                 border: '1px solid rgba(39,207,254,0.3)', borderRadius: '14px',
                 padding: '10px 14px', width: '142px',
                 boxShadow: '0 12px 40px rgba(39,207,254,0.1)',
