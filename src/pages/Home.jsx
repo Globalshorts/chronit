@@ -615,7 +615,6 @@ const Home = () => {
               </div>
             </div>
           </div>
-          </div>
 
           {/* 모바일: 폰만 */}
           <div className="flex md:hidden flex-col items-center gap-4" style={{zIndex: 30}}>
