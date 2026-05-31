@@ -498,17 +498,24 @@ const Home = () => {
       `}</style>
 
 
-      {/* Hero Section — 캐치셀 스타일 */}
-      <section className="relative flex min-h-screen items-center overflow-hidden" style={{background: '#1e2235'}}>
+      {/* Hero Section — 노트북 오버레이 구조 */}
+      <section className="relative text-white" style={{background: '#1e2235', paddingBottom: '160px', overflow: 'visible'}}>
 
         {/* 배경 글로우 */}
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background: 'rgba(59,130,246,0.07)', filter: 'blur(130px)'}} />
         <div className="absolute bottom-[10%] right-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background: 'rgba(99,102,241,0.07)', filter: 'blur(120px)'}} />
 
-        <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-5 py-24 md:grid-cols-2 md:gap-8 md:px-16 md:py-32">
+        {/* 사선 배경 — z-0, 노트북 뒤 */}
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, width: '100%', height: '200px',
+          background: '#F5F4F0', zIndex: 0,
+          clipPath: 'polygon(0 60%, 100% 0%, 100% 100%, 0% 100%)',
+        }} />
+
+        <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-5 pt-32 md:grid-cols-2 md:gap-8 md:px-16" style={{paddingBottom: '0'}}>
 
           {/* 좌측: 카피 + 버튼 */}
-          <div className="flex flex-col items-start">
+          <div className="flex flex-col items-start pb-20 md:pb-32">
             <div className="animate-fade-in mb-6 inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-400/10 px-3 py-1.5 text-sm font-bold text-blue-400 md:px-4 md:text-base">
               <Zap size={14} fill="currentColor" /> <span>쇼핑 릴스 자동화 v1.0.1</span>
             </div>
@@ -545,28 +552,24 @@ const Home = () => {
             </p>
           </div>
 
-          {/* 우측: 노트북 + 팝업 */}
-          <div className="hidden md:flex items-end justify-center" style={{position: 'relative', height: '560px', gap: '0'}}>
-
-            {/* 노트북 — 1.2배, 오른쪽으로 */}
-            <div style={{position: 'absolute', right: '-40px', top: '40px', zIndex: 10}}>
+          {/* 우측: 노트북 — 마이너스 마진으로 아래 삐져나옴 */}
+          <div className="hidden md:flex justify-center items-end relative z-10" style={{marginBottom: '-180px'}}>
+            <div style={{position: 'relative'}}>
               <img
                 src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/macbook_mockup.png"
                 alt="Chronit 노트북"
-                style={{width: '504px', height: 'auto', objectFit: 'contain', background: 'transparent', display: 'block'}}
+                style={{width: '560px', height: 'auto', objectFit: 'contain', background: 'transparent', display: 'block', filter: 'drop-shadow(0 40px 60px rgba(0,0,0,0.5))'}}
               />
 
               {/* 팝업 1 — 우측 상단 */}
               <div style={{
-                position: 'absolute', top: '18%', right: '-18%', zIndex: 50,
+                position: 'absolute', top: '18%', right: '-16%', zIndex: 50,
                 background: 'rgba(15,17,32,0.97)', backdropFilter: 'blur(16px)',
                 border: '1px solid rgba(34,197,94,0.35)', borderRadius: '14px',
                 padding: '10px 14px', width: '148px',
                 boxShadow: '0 12px 40px rgba(0,0,0,0.4)',
                 transform: 'rotate(3deg)',
-                willChange: 'transform',
-                backfaceVisibility: 'hidden',
-                WebkitFontSmoothing: 'antialiased',
+                willChange: 'transform', backfaceVisibility: 'hidden', WebkitFontSmoothing: 'antialiased',
               }}>
                 <div style={{fontSize: '9px', color: '#22c55e', marginBottom: '3px', fontWeight: 600}}>✅ 생성 완료</div>
                 <div style={{fontSize: '12px', fontWeight: 700, color: '#fff', lineHeight: 1.4}}>수익형 영상<br/>생성 완료!</div>
@@ -575,7 +578,7 @@ const Home = () => {
 
               {/* 팝업 2 — 좌측 하단 */}
               <div style={{
-                position: 'absolute', bottom: '20%', left: '-14%', zIndex: 50,
+                position: 'absolute', bottom: '28%', left: '-16%', zIndex: 50,
                 background: 'rgba(15,17,32,0.97)', backdropFilter: 'blur(16px)',
                 border: '1px solid rgba(39,207,254,0.3)', borderRadius: '14px',
                 padding: '10px 14px', width: '142px',
@@ -586,10 +589,9 @@ const Home = () => {
                 <div style={{fontSize: '9px', color: '#27CFFE', marginTop: '3px'}}>인스타그램 업로드...</div>
               </div>
             </div>
-
           </div>
 
-          {/* 모바일: 폰만 */}
+          {/* 모바일 */}
           <div className="flex md:hidden flex-col items-center gap-4" style={{zIndex: 30}}>
             <div style={{width: '220px', background: 'linear-gradient(160deg, #2a2a2a, #111)', borderRadius: '2.6rem', padding: '8px', boxShadow: '0 40px 80px -10px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.12)'}}>
               <div style={{background: '#0a0a0a', borderRadius: '2.2rem 2.2rem 0 0', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
@@ -603,20 +605,6 @@ const Home = () => {
           </div>
         </div>
       </section>
-
-      {/* 사선 구분선 — 다크→오프화이트 */}
-      <div style={{
-        height: '80px',
-        background: '#1e2235',
-        position: 'relative',
-        overflow: 'hidden',
-        marginBottom: '-1px',
-      }}>
-        <svg viewBox="0 0 1440 80" preserveAspectRatio="none"
-          style={{position: 'absolute', bottom: 0, left: 0, width: '100%', height: '100%'}}>
-          <polygon points="0,80 1440,0 1440,80" fill="#F5F4F0" />
-        </svg>
-      </div>
 
       {/* ── 데모 영상 캐러셀 ── */}
       <div id="demo">
@@ -1201,7 +1189,7 @@ const DemoCarousel = () => {
   if (!n) return null
 
   return (
-    <section className="relative overflow-hidden bg-[#F5F4F0] py-16 md:py-24">
+    <section className="relative overflow-hidden bg-[#F5F4F0] pt-56 pb-16 md:pt-64 md:pb-24">
       <div className="mb-10 text-center md:mb-14">
         <p className="mb-2 text-xs font-bold tracking-[0.3em] text-blue-400 uppercase md:text-sm">DEMO</p>
         <h2 className="text-2xl font-black tracking-tight text-slate-900 md:text-4xl">
