@@ -548,65 +548,68 @@ const Home = () => {
             </p>
           </div>
 
-          {/* 우측: LG Gram 사선 노트북 + 스마트폰 */}
-          <div className="hidden md:block" style={{position: 'relative', height: '520px', marginBottom: '-160px', zIndex: 30}}>
+          {/* 우측: 스마트폰 + 팝업 카드 3개 */}
+          <div className="hidden md:flex items-center justify-center" style={{position: 'relative', height: '520px', marginBottom: '-120px', zIndex: 30}}>
 
-            {/* LG Gram 노트북 목업 이미지 */}
+            {/* 팝업 카드 1 — 영상 완성 */}
             <div style={{
-              position: 'absolute', left: '-20px', top: '0px', zIndex: 10, width: '430px',
-              filter: 'drop-shadow(0 30px 60px rgba(0,0,0,0.15))',
+              position: 'absolute', top: '12%', left: '-10px', zIndex: 40,
+              background: 'rgba(15,17,32,0.97)', backdropFilter: 'blur(16px)',
+              border: '1px solid rgba(39,207,254,0.25)', borderRadius: '16px',
+              padding: '14px 16px', width: '150px',
+              boxShadow: '0 12px 40px rgba(0,0,0,0.2)',
+              transform: 'rotate(-4deg)',
             }}>
-              <img
-                src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/laptop_mockup.png"
-                alt="Chronit 노트북"
-                style={{width: '100%', height: 'auto', display: 'block'}}
-              />
+              <div style={{fontSize: '11px', color: '#27CFFE', marginBottom: '4px', fontWeight: 600}}>영상 완성 🎉</div>
+              <div style={{fontSize: '14px', fontWeight: 700, color: '#fff'}}>+1 릴스 완성</div>
+              <div style={{fontSize: '11px', color: '#94a3b8', marginTop: '3px'}}>방금 전 · 2분 소요</div>
             </div>
 
-            {/* 스마트폰 — 오른쪽 앞에 겹치게 */}
-            <div style={{position: 'absolute', right: '20px', bottom: '0px', zIndex: 30, width: '175px'}}>
-              {/* 수익 팝업 */}
-              <div style={{
-                position: 'absolute', top: '6%', right: '-32%', zIndex: 50,
-                background: 'rgba(15,17,32,0.97)', backdropFilter: 'blur(16px)',
-                border: '1px solid rgba(255,107,0,0.35)', borderRadius: '14px',
-                padding: '10px 12px', width: '118px',
-                boxShadow: '0 12px 40px rgba(0,0,0,0.2)',
-                transform: 'rotate(3deg)',
-              }}>
-                <div style={{fontSize: '9px', color: '#94a3b8', marginBottom: '3px'}}>이번 달 수익</div>
-                <div style={{fontSize: '15px', fontWeight: 800, color: '#ff6b00'}}>₩842,000</div>
-                <div style={{display: 'flex', alignItems: 'center', gap: '3px', marginTop: '3px'}}>
-                  <div style={{width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e'}} />
-                  <div style={{fontSize: '9px', color: '#22c55e', fontWeight: 600}}>↑ 32% 증가</div>
-                </div>
+            {/* 팝업 카드 2 — 수익 */}
+            <div style={{
+              position: 'absolute', top: '8%', right: '-20px', zIndex: 40,
+              background: 'rgba(15,17,32,0.97)', backdropFilter: 'blur(16px)',
+              border: '1px solid rgba(255,107,0,0.35)', borderRadius: '16px',
+              padding: '14px 16px', width: '138px',
+              boxShadow: '0 12px 40px rgba(0,0,0,0.2)',
+              transform: 'rotate(3deg)',
+            }}>
+              <div style={{fontSize: '10px', color: '#94a3b8', marginBottom: '4px'}}>이번 달 수익</div>
+              <div style={{fontSize: '17px', fontWeight: 800, color: '#ff6b00'}}>₩842,000</div>
+              <div style={{display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px'}}>
+                <div style={{width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e'}} />
+                <div style={{fontSize: '10px', color: '#22c55e', fontWeight: 600}}>↑ 32% 증가</div>
               </div>
-              {/* AI 자막 팝업 */}
-              <div style={{
-                position: 'absolute', bottom: '22%', left: '-42%', zIndex: 50,
-                background: 'rgba(15,17,32,0.97)', backdropFilter: 'blur(16px)',
-                border: '1px solid rgba(39,207,254,0.3)', borderRadius: '14px',
-                padding: '10px 12px', width: '120px',
-                boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
-              }}>
-                <div style={{fontSize: '9px', color: '#27CFFE', marginBottom: '3px', fontWeight: 600}}>AI 자막 생성</div>
-                <div style={{fontSize: '11px', fontWeight: 700, color: '#fff', lineHeight: 1.4}}>"이 가격에 이 퀄리티?"</div>
-                <div style={{fontSize: '9px', color: '#22c55e', marginTop: '3px'}}>자동 완성됨 ✓</div>
-              </div>
-              {/* 아이폰 프레임 */}
+            </div>
+
+            {/* 팝업 카드 3 — AI 자막 */}
+            <div style={{
+              position: 'absolute', bottom: '22%', left: '-5px', zIndex: 40,
+              background: 'rgba(15,17,32,0.97)', backdropFilter: 'blur(16px)',
+              border: '1px solid rgba(39,207,254,0.3)', borderRadius: '16px',
+              padding: '14px 16px', width: '145px',
+              boxShadow: '0 12px 40px rgba(39,207,254,0.12)',
+            }}>
+              <div style={{fontSize: '10px', color: '#27CFFE', marginBottom: '4px', fontWeight: 600}}>AI 자막 생성</div>
+              <div style={{fontSize: '12px', fontWeight: 700, color: '#fff', lineHeight: 1.5}}>"이 가격에 이 퀄리티?"</div>
+              <div style={{fontSize: '10px', color: '#22c55e', marginTop: '4px'}}>자동 완성됨 ✓</div>
+            </div>
+
+            {/* 아이폰 */}
+            <div style={{width: '200px', zIndex: 20}}>
               <div style={{
                 background: 'linear-gradient(160deg, #2a2a2a 0%, #111 100%)',
-                borderRadius: '2.2rem', padding: '7px',
-                boxShadow: '0 40px 80px -10px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.12)',
+                borderRadius: '2.8rem', padding: '8px',
+                boxShadow: '0 60px 120px -20px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.12)',
               }}>
-                <div style={{background: '#0a0a0a', borderRadius: '2rem 2rem 0 0', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 10px', position: 'relative'}}>
-                  <span style={{fontSize: '9px', fontWeight: 700, color: '#fff'}}>9:41</span>
-                  <div style={{position: 'absolute', left: '50%', top: '5px', transform: 'translateX(-50%)', width: '52px', height: '16px', background: '#000', borderRadius: '10px'}} />
-                  <svg width="18" height="8" viewBox="0 0 22 10" fill="none"><rect x="0.5" y="0.5" width="18" height="9" rx="2.5" stroke="white" strokeOpacity="0.35"/><rect x="1.5" y="1.5" width="13" height="7" rx="1.5" fill="white"/></svg>
+                <div style={{background: '#0a0a0a', borderRadius: '2.4rem 2.4rem 0 0', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 14px', position: 'relative'}}>
+                  <span style={{fontSize: '10px', fontWeight: 700, color: '#fff'}}>9:41</span>
+                  <div style={{position: 'absolute', left: '50%', top: '6px', transform: 'translateX(-50%)', width: '64px', height: '20px', background: '#000', borderRadius: '12px'}} />
+                  <svg width="20" height="9" viewBox="0 0 22 10" fill="none"><rect x="0.5" y="0.5" width="18" height="9" rx="2.5" stroke="white" strokeOpacity="0.35"/><rect x="1.5" y="1.5" width="14" height="7" rx="1.5" fill="white"/></svg>
                 </div>
                 <div style={{background: '#000', overflow: 'hidden'}}><HeroPhoneVideo /></div>
-                <div style={{background: '#0a0a0a', borderRadius: '0 0 2rem 2rem', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                  <div style={{width: '70px', height: '3px', background: 'rgba(255,255,255,0.25)', borderRadius: '2px'}} />
+                <div style={{background: '#0a0a0a', borderRadius: '0 0 2.4rem 2.4rem', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                  <div style={{width: '80px', height: '4px', background: 'rgba(255,255,255,0.25)', borderRadius: '2px'}} />
                 </div>
               </div>
             </div>
