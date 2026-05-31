@@ -631,13 +631,8 @@ const Home = () => {
 
       {/* Stats Section */}
       {/* ── 구분선: 흰→네이비 ── */}
-      <div style={{position:'relative',height:'80px',background:'#1e2235',marginTop:'-1px'}}>
-        <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{position:'absolute',top:0,left:0,width:'100%',height:'100%'}}>
-          <polygon points="0,80 1440,0 1440,80" fill="white"/>
-        </svg>
-      </div>
-      <section className="relative bg-[#1e2235] px-5 pt-20 pb-14 md:px-8 md:pt-24 md:pb-20" style={{marginTop:"-80px"}}>
-        <div style={{position:"absolute",top:0,left:0,width:"100%",height:"80px",zIndex:1,pointerEvents:"none"}}>
+      <section className="relative bg-[#1e2235] px-5 pt-20 pb-14 md:px-8 md:pt-24 md:pb-20" style={{marginTop:"-82px"}}>
+        <div style={{position:"absolute",top:"-2px",left:0,width:"100%",height:"84px",zIndex:1,pointerEvents:"none"}}>
           <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{width:"100%",height:"100%"}}>
             <polygon points="0,0 1440,80 1440,0" fill="white"/>
           </svg>
@@ -696,13 +691,8 @@ const Home = () => {
 
       {/* Problem Section */}
       {/* ── 구분선: 네이비→흰 ── */}
-      <div style={{position:'relative',height:'80px',background:'white',marginTop:'-1px'}}>
-        <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{position:'absolute',top:0,left:0,width:'100%',height:'100%'}}>
-          <polygon points="0,80 1440,0 1440,80" fill="#1e2235"/>
-        </svg>
-      </div>
-      <section className="relative bg-white px-5 pt-20 pb-16 md:px-8 md:pt-24 md:pb-28" style={{marginTop:"-80px"}}>
-        <div style={{position:"absolute",top:0,left:0,width:"100%",height:"80px",zIndex:1,pointerEvents:"none"}}>
+      <section className="relative bg-white px-5 pt-20 pb-16 md:px-8 md:pt-24 md:pb-28" style={{marginTop:"-82px"}}>
+        <div style={{position:"absolute",top:"-2px",left:0,width:"100%",height:"84px",zIndex:1,pointerEvents:"none"}}>
           <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{width:"100%",height:"100%"}}>
             <polygon points="0,0 0,80 1440,0" fill="#1e2235"/>
           </svg>
@@ -736,16 +726,11 @@ const Home = () => {
 
       {/* Feature Section */}
       {/* ── 구분선: 흰→네이비 ── */}
-      <div style={{position:'relative',height:'80px',background:'#1e2235',marginTop:'-1px'}}>
-        <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{position:'absolute',top:0,left:0,width:'100%',height:'100%'}}>
-          <polygon points="0,80 1440,0 1440,80" fill="white"/>
-        </svg>
-      </div>
       <section
         id="features"
-        className="relative bg-[#1e2235] px-5 pt-20 pb-16 md:px-8 md:pt-24 md:pb-28" style={{marginTop:"-80px"}}
+        className="relative bg-[#1e2235] px-5 pt-20 pb-16 md:px-8 md:pt-24 md:pb-28" style={{marginTop:"-82px"}}
       >
-        <div style={{position:"absolute",top:0,left:0,width:"100%",height:"80px",zIndex:1,pointerEvents:"none"}}>
+        <div style={{position:"absolute",top:"-2px",left:0,width:"100%",height:"84px",zIndex:1,pointerEvents:"none"}}>
           <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{width:"100%",height:"100%"}}>
             <polygon points="0,0 1440,80 1440,0" fill="white"/>
           </svg>
@@ -824,12 +809,7 @@ const Home = () => {
 
       {/* CTA Section */}
       {/* ── 구분선: 네이비→흰 ── */}
-      <div style={{position:'relative',height:'80px',background:'white',marginTop:'-1px'}}>
-        <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{position:'absolute',top:0,left:0,width:'100%',height:'100%'}}>
-          <polygon points="0,80 1440,0 1440,80" fill="#1e2235"/>
-        </svg>
-      </div>
-      <section id="pricing" className="relative bg-white px-5 pt-20 pb-16 md:px-8 md:pt-24 md:pb-28" style={{marginTop:"-80px"}}>
+      <section id="pricing" className="relative bg-white px-5 pt-20 pb-16 md:px-8 md:pt-24 md:pb-28" style={{marginTop:"-82px"}}>
         <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-xl md:rounded-[4rem]">
           <div className="relative z-10 p-5 text-center sm:p-8 md:p-32">
             <h2 className="mb-6 text-2xl leading-[1.3] font-black tracking-tight text-slate-900 md:mb-10 md:text-[44px]">
