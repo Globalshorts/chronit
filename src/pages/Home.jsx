@@ -510,34 +510,23 @@ const Home = () => {
 
         <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center px-5 py-24 md:px-8 md:py-32">
           <div className="animate-fade-in mb-8 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1.5 text-sm font-bold text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.15)] md:mb-10 md:px-4 md:text-base">
-            <Zap size={14} fill="currentColor" /> <span>시간을 선물하는 AI 솔루션 v1.0.1</span>
+            <Zap size={14} fill="currentColor" /> <span>쇼핑 릴스 자동화 v1.0.1</span>
           </div>
 
           <div className="mb-10 flex w-full flex-col items-center md:mb-12">
-            <h2 className="animate-burn mb-3 text-4xl font-black tracking-tight text-white md:text-6xl">
-              복잡함은 빼고,
+            <h2 className="animate-burn mb-4 text-center text-3xl font-black tracking-tight text-white md:text-5xl">
+              쇼핑 릴스로 수익 내고 싶은데,<br />
+              <span className="text-slate-400">어디서부터 시작해야 할지 막막하셨나요?</span>
             </h2>
-            <span className="mb-2 text-center text-lg font-medium text-slate-400 opacity-80 md:text-xl">
-              영상 제작 시간, <strong className="text-blue-400">단 1분</strong>이면 충분합니다.
-            </span>
-            <span className="mb-4 text-center text-lg font-medium text-slate-400 opacity-80 md:mb-6 md:text-xl">
-              원클릭으로 시작하는 스마트 쇼핑 크리에이터,
-            </span>
             <h2 className="bg-gradient-to-r from-blue-400 via-white to-indigo-400 bg-clip-text text-[64px] leading-[1] font-black tracking-tighter text-transparent drop-shadow-[0_10px_20px_rgba(59,130,246,0.3)] md:text-[110px]">
               크로닛
             </h2>
             <span className="sr-only">크로닛(Chronit) — 쇼핑 릴스 영상 편집 자동화 솔루션. 링크만 입력하면 영상이 완성됩니다.</span>
           </div>
 
-          <p className="mb-10 max-w-3xl px-2 text-lg leading-[1.8] font-medium text-slate-300 md:mb-14 md:text-xl">
-            "수익 인증 대신, 제가 아껴드린{' '}
-            <strong className="border-b-2 border-blue-500/50 text-white">시간</strong>을
-            인증합니다."
-            <br />
-            하루 단 <span className="font-bold text-blue-400">1,633원</span>. 1시간의 노가다를 1분의
-            자동화로 바꾸고
-            <br className="hidden md:block" />
-            당신은 오직 수익화에만 집중하세요.
+          <p className="mb-10 max-w-2xl px-2 text-center text-lg leading-[1.9] text-slate-300 md:mb-14 md:text-xl">
+            링크만 넣으면 <strong className="text-white">2분 만에</strong> 완성돼요.<br />
+            자막·썸네일·목소리까지 <strong className="text-blue-400">전부 자동</strong>으로.
           </p>
 
           <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
