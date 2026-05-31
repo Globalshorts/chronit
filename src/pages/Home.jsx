@@ -596,10 +596,10 @@ const Home = () => {
                 {/* 1층: 영상 */}
                 <div style={{
                   position: 'absolute',
-                  top: '11.4%',
-                  left: '31.6%',
-                  width: '36.8%',
-                  height: '74.6%',
+                  top: '15.80%',
+                  left: '32.40%',
+                  width: '35.20%',
+                  height: '72.00%',
                   overflow: 'hidden',
                   borderRadius: '23px',
                   zIndex: 10,
