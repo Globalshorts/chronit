@@ -587,26 +587,41 @@ const Home = () => {
                 <div style={{fontSize: '9px', color: '#27CFFE', marginTop: '3px'}}>인스타그램 업로드...</div>
               </div>
 
-              {/* 폰 — 영상(z-10) 밑, 베젤PNG(z-20) 위 */}
+              {/* 폰 — 패딩 방식: 베젤 두께만큼 패딩, 영상 object-cover로 꽉 채움 */}
+              {/* 500x500 이미지 기준: 베젤 x=154~343(189px), y=56~446(390px) */}
+              {/* 화면 내부: x=162~338(176px), y=79~439(360px) */}
+              {/* 베젤 두께: 좌=8px, 우=5px, 상=23px, 하=7px (화면 기준) */}
+              {/* 390x390 컨테이너 스케일: 각 수치 * (390/500) */}
               <div style={{
                 position: 'relative',
                 width: '390px',
                 height: '390px',
               }}>
-                {/* 1층: 영상 */}
+                {/* 1층: 영상 — 패딩으로 베젤 안쪽에 정확히 가둠 */}
                 <div style={{
                   position: 'absolute',
-                  top: '15.80%',
-                  left: '32.40%',
-                  width: '35.20%',
-                  height: '72.00%',
+                  top: `${79/500*390}px`,
+                  left: `${162/500*390}px`,
+                  width: `${176/500*390}px`,
+                  height: `${360/500*390}px`,
                   overflow: 'hidden',
-                  borderRadius: '23px',
+                  borderRadius: '18px',
                   zIndex: 10,
-                  background: '#000',
                 }}>
                   <HeroPhoneVideo />
                 </div>
+                {/* 다이나믹 아일랜드 막기 — 베젤 위에 검정 블록 */}
+                <div style={{
+                  position: 'absolute',
+                  top: `${79/500*390}px`,
+                  left: `${162/500*390}px`,
+                  width: `${176/500*390}px`,
+                  height: `${23/500*390}px`,
+                  background: '#000',
+                  borderRadius: '18px 18px 0 0',
+                  zIndex: 25,
+                  pointerEvents: 'none',
+                }} />
                 {/* 2층: 투명 폰 베젤 */}
                 <img
                   src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/phone_frame.png"
