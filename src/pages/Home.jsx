@@ -606,12 +606,13 @@ const Home = () => {
           {/* 모바일 — 노트북 */}
           <div className="flex md:hidden justify-center items-center w-full px-4 pb-8">
             <div style={{position: 'relative', width: '100%', maxWidth: '420px'}}>
+              {/* 앰비언트 */}
               <div style={{
                 position: 'absolute', top: '10%', left: '50%',
                 transform: 'translateX(-50%)',
                 width: '80%', height: '200px',
                 background: 'rgba(37,99,235,0.25)',
-                borderRadius: '50%', filter: 'blur(60px)',
+                borderRadius: '50%', filter: 'blur(50px)',
                 zIndex: 0, pointerEvents: 'none',
               }} />
               <img
@@ -619,6 +620,31 @@ const Home = () => {
                 alt="Chronit 노트북"
                 style={{position: 'relative', zIndex: 1, width: '100%', height: 'auto', objectFit: 'contain', display: 'block', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.4))'}}
               />
+              {/* 팝업 1 */}
+              <div style={{
+                position: 'absolute', top: '12%', right: '-2%', zIndex: 10,
+                background: 'rgba(15,17,32,0.97)',
+                border: '1px solid rgba(34,197,94,0.35)', borderRadius: '12px',
+                padding: '8px 12px', width: '120px',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                transform: 'rotate(3deg)',
+              }}>
+                <div style={{fontSize: '8px', color: '#22c55e', marginBottom: '2px', fontWeight: 600}}>✅ 생성 완료</div>
+                <div style={{fontSize: '11px', fontWeight: 700, color: '#fff', lineHeight: 1.4}}>수익형 영상<br/>생성 완료!</div>
+                <div style={{fontSize: '8px', color: '#94a3b8', marginTop: '2px'}}>방금 전 · 2분 소요</div>
+              </div>
+              {/* 팝업 2 */}
+              <div style={{
+                position: 'absolute', bottom: '22%', left: '-2%', zIndex: 10,
+                background: 'rgba(15,17,32,0.97)',
+                border: '1px solid rgba(39,207,254,0.3)', borderRadius: '12px',
+                padding: '8px 12px', width: '116px',
+                boxShadow: '0 8px 24px rgba(39,207,254,0.1)',
+              }}>
+                <div style={{fontSize: '8px', color: '#27CFFE', marginBottom: '2px', fontWeight: 600}}>🔄 발행 중</div>
+                <div style={{fontSize: '11px', fontWeight: 700, color: '#fff', lineHeight: 1.4}}>AI 릴스<br/>자동 발행 중</div>
+                <div style={{fontSize: '8px', color: '#27CFFE', marginTop: '2px'}}>인스타그램 업로드...</div>
+              </div>
             </div>
           </div>
         </div>
