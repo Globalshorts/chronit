@@ -670,15 +670,13 @@ const Home = () => {
           </svg>
         </div>
       </section>
-        </div>
 
         {/* 하단 곡선 웨이브 */}
-        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]" style={{zIndex: 15}}>
-          <svg viewBox="0 0 1440 160" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{display:'block', width:'100%', height:'160px'}}>
-            <path d="M0,80 C480,160 960,20 1440,100 L1440,160 L0,160 Z" fill="#020617" />
+        <div className="relative z-10 bg-[#0B0D17]" style={{marginTop: '-2px'}}>
+          <svg viewBox="0 0 1440 160" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{display:'block', width:'100%', height:'160px', background:'#F4F6F9'}}>
+            <path d="M0,80 C480,160 960,20 1440,100 L1440,160 L0,160 Z" fill="#0B0D17" />
           </svg>
         </div>
-      </section>
 
       {/* ── 데모 영상 캐러셀 ── */}
       <div id="demo">
