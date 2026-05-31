@@ -558,7 +558,7 @@ const Home = () => {
             </div>
 
             {/* 스마트폰 — 노트북 오른쪽 앞에 겹침 */}
-            <div style={{position: 'absolute', right: '-10px', bottom: '20px', zIndex: 30, width: '240px'}}>
+            <div style={{position: 'absolute', right: '-20px', bottom: '10px', zIndex: 30, width: '300px'}}>
               {/* 팝업 1 — 영상 생성 완료 */}
               <div style={{
                 position: 'absolute', top: '8%', right: '-35%', zIndex: 50,
@@ -574,7 +574,7 @@ const Home = () => {
               </div>
               {/* 팝업 2 — AI 릴스 발행 중 */}
               <div style={{
-                position: 'absolute', bottom: '22%', left: '-48%', zIndex: 50,
+                position: 'absolute', bottom: '22%', left: '-42%', zIndex: 50,
                 background: 'rgba(15,17,32,0.97)', backdropFilter: 'blur(16px)',
                 border: '1px solid rgba(39,207,254,0.3)', borderRadius: '14px',
                 padding: '10px 14px', width: '135px',
@@ -584,24 +584,34 @@ const Home = () => {
                 <div style={{fontSize: '12px', fontWeight: 700, color: '#fff', lineHeight: 1.4}}>AI 릴스<br/>자동 발행 중</div>
                 <div style={{fontSize: '9px', color: '#27CFFE', marginTop: '3px'}}>인스타그램 업로드...</div>
               </div>
-              {/* 폰 목업 — 영상 뒤에, 프레임 앞에 */}
-              <div style={{position: 'relative'}}>
-                {/* 영상 레이어 (폰 프레임 뒤) */}
+              {/* 폰 컨테이너 — 영상 + 프레임 겹침 */}
+              <div style={{position: 'relative', width: '100%'}}>
+                {/* 영상 (폰 화면 크기에 맞게 절대 위치) */}
                 <div style={{
                   position: 'absolute',
-                  top: '11%', left: '31.2%',
-                  width: '38%', height: '79%',
-                  overflow: 'hidden',
-                  borderRadius: '6px',
+                  top: '11%',
+                  left: '31%',
+                  width: '38.5%',
+                  height: '79%',
                   zIndex: 1,
+                  overflow: 'hidden',
+                  borderRadius: '8px',
+                  background: '#000',
                 }}>
                   <HeroPhoneVideo />
                 </div>
-                {/* 폰 프레임 이미지 (영상 앞) */}
+                {/* 폰 프레임 PNG (화면 뚫린 투명 이미지) — 영상 위에 올라감 */}
                 <img
                   src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/phone_mockup.png"
                   alt="스마트폰 목업"
-                  style={{width: '100%', height: 'auto', display: 'block', position: 'relative', zIndex: 2, filter: 'drop-shadow(0 40px 80px rgba(0,0,0,0.5))'}}
+                  style={{
+                    position: 'relative',
+                    zIndex: 2,
+                    width: '100%',
+                    height: 'auto',
+                    display: 'block',
+                    filter: 'drop-shadow(0 40px 80px rgba(0,0,0,0.5))',
+                  }}
                 />
               </div>
             </div>
