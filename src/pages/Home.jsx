@@ -524,8 +524,8 @@ const Home = () => {
           </div>
 
           <p className="mb-10 max-w-2xl px-2 text-center text-lg leading-[1.9] text-slate-300 md:mb-14 md:text-xl">
-            쇼핑 릴스 링크만 넣고 영상은 AI에게 맡기세요.<br />
-            <strong className="text-white">2분이면 충분합니다,</strong> 매일 자동으로 쌓이는 나만의 <strong className="text-blue-400">부업 엔진.</strong>
+            링크만 넣고 영상은 AI에게 맡기세요.<br />
+            <strong className="text-white">2분이면 충분합니다.</strong>
           </p>
 
           <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
