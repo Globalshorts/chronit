@@ -504,7 +504,7 @@ const Home = () => {
         {/* 배경 — 그리드 제거, 은은한 글로우만 */}
         <div className="absolute inset-0" style={{background: 'radial-gradient(ellipse 80% 60% at 30% 50%, rgba(59,130,246,0.08) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 80% 30%, rgba(99,102,241,0.06) 0%, transparent 60%)'}} />
 
-        <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-5 py-24 md:grid-cols-2 md:gap-8 md:px-12 md:py-32">
+        <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-5 py-24 md:grid-cols-2 md:gap-8 md:px-12 md:pb-0 md:pt-32">
 
           {/* 좌측: 카피 + 버튼 */}
           <div className="flex flex-col items-start">
@@ -548,7 +548,7 @@ const Home = () => {
           </div>
 
           {/* 우측: 스마트폰 목업 + 레이어드 팝업 카드 */}
-          <div className="flex flex-col items-center justify-center gap-4" style={{marginBottom: '-60px', paddingBottom: '0'}}>
+          <div className="flex flex-col items-center justify-center gap-4" style={{marginBottom: '-140px', paddingBottom: '0'}}>
             <div className="relative" style={{width: 'min(260px, 58vw)', margin: '0 60px'}}>
 
               {/* 팝업 카드 1 — 영상 완성 (폰 왼쪽 앞으로) */}
