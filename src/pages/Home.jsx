@@ -741,7 +741,7 @@ const Home = () => {
                   {emoji}
                 </div>
                 <div className={`flex-1 ${right ? 'text-right' : 'text-left'}`}>
-                  <h4 className="mb-2 text-xl font-black text-gray-900 md:text-2xl">{title}</h4>
+                  <h4 className="mb-2 text-base font-black text-gray-900 md:text-2xl">{title}</h4>
                   <p className="text-base leading-relaxed text-gray-500 md:text-lg">{desc}</p>
                 </div>
               </div>
