@@ -499,7 +499,7 @@ const Home = () => {
 
 
       {/* Hero Section — 노트북 오버레이 구조 */}
-      <section className="relative text-white" style={{background: '#1e2235', paddingBottom: '160px', overflow: 'visible'}}>
+      <section className="relative text-white" style={{background: '#1e2235', paddingBottom: '220px', overflow: 'visible'}}>
 
         {/* 배경 글로우 */}
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background: 'rgba(59,130,246,0.07)', filter: 'blur(130px)'}} />
@@ -509,10 +509,10 @@ const Home = () => {
         <div style={{
           position: 'absolute', bottom: 0, left: 0, width: '100%', height: '200px',
           background: '#F5F4F0', zIndex: 0,
-          clipPath: 'polygon(0 30%, 100% 0%, 100% 100%, 0% 100%)',
+          clipPath: 'polygon(0 50%, 100% 0%, 100% 100%, 0% 100%)',
         }} />
 
-        <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-5 pt-32 md:grid-cols-2 md:gap-8 md:px-16" style={{paddingBottom: '0'}}>
+        <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-5 pt-32 md:grid-cols-[7fr_5fr] md:gap-4 md:px-16" style={{paddingBottom: '0'}}>
 
           {/* 좌측: 카피 + 버튼 */}
           <div className="flex flex-col items-start pb-20 md:pb-32">
@@ -521,7 +521,7 @@ const Home = () => {
             </div>
 
             <h1 className="mb-4 text-4xl font-black leading-tight tracking-tight text-white md:text-5xl lg:text-6xl">
-              클릭에 <span style={{color: '#ff6b00'}}>수익</span>을 입히다,<br />크로닛
+              클릭에 <span style={{color: '#ff6b00'}}>수익</span>을 입히다, 크로닛
             </h1>
             <span className="sr-only">크로닛(Chronit) — 쇼핑 릴스 영상 편집 자동화 솔루션.</span>
 
