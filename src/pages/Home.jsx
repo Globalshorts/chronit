@@ -295,7 +295,7 @@ const Home = () => {
   }, [menuOpen])
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#020617] font-sans break-keep text-slate-100 selection:bg-blue-500/30">
+    <div className="min-h-screen overflow-x-hidden bg-[#0B0D17] font-sans break-keep text-slate-100 selection:bg-blue-500/30">
       {/* 추천인 코드 배너 */}
       {refFromUrl && (
         <div className="fixed top-0 right-0 left-0 z-[61] flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-purple-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg">
@@ -329,7 +329,7 @@ const Home = () => {
 
       {/* Header */}
       <header
-        className={`fixed top-0 right-0 left-0 z-50 transition-all duration-500 ${scrolled ? 'border-b border-white/10 bg-[#020617]/90 py-3 backdrop-blur-xl md:py-4' : 'bg-transparent py-5 md:py-8'}`}
+        className={`fixed top-0 right-0 left-0 z-50 transition-all duration-500 ${scrolled ? 'border-b border-white/8 bg-[#0B0D17]/70 py-3 backdrop-blur-md md:py-4' : 'bg-transparent py-5 md:py-8'}`}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
           <a href="/" className="flex min-w-0 items-center gap-2 md:gap-3">
@@ -406,7 +406,7 @@ const Home = () => {
         }`}
         style={{ paddingTop: '80px' }}
       >
-        <div className="border-b border-white/10 bg-[#020617]/95 px-6 py-6 backdrop-blur-xl">
+        <div className="border-b border-white/10 bg-[#0B0D17]/95 px-6 py-6 backdrop-blur-xl">
           <nav className="flex flex-col gap-1">
             <a href="#features" onClick={() => setMenuOpen(false)}
               className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400">
@@ -499,10 +499,12 @@ const Home = () => {
 
 
       {/* Hero Section */}
-      <section className="relative flex min-h-screen items-center overflow-hidden" style={{background: 'linear-gradient(135deg, #1a1f35 0%, #1e2340 50%, #1a2038 100%)'}}>
+      <section className="relative flex min-h-screen items-center overflow-hidden" style={{background: '#0B0D17'}}>
 
-        {/* 배경 — 그리드 제거, 은은한 글로우만 */}
-        <div className="absolute inset-0" style={{background: 'radial-gradient(ellipse 80% 60% at 30% 50%, rgba(59,130,246,0.08) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 80% 30%, rgba(99,102,241,0.06) 0%, transparent 60%)'}} />
+        {/* 배경 글로우 — 좌상단 블루, 우측 인디고 */}
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background: 'rgba(59,130,246,0.08)', filter: 'blur(130px)'}} />
+        <div className="absolute bottom-[10%] right-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background: 'rgba(99,102,241,0.08)', filter: 'blur(150px)'}} />
+        <div className="absolute top-[30%] right-[10%] w-[400px] h-[400px] rounded-full pointer-events-none" style={{background: 'rgba(59,130,246,0.05)', filter: 'blur(100px)'}} />
 
         <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-5 py-24 md:grid-cols-2 md:gap-8 md:px-12 md:pb-0 md:pt-32">
 
@@ -550,6 +552,75 @@ const Home = () => {
           {/* 우측: 스마트폰 목업 + 레이어드 팝업 카드 */}
           <div className="flex flex-col items-center justify-center gap-4" style={{marginBottom: '-120px', position: 'relative', zIndex: 30}}>
             <div className="relative" style={{width: 'min(260px, 58vw)', margin: '0 60px'}}>
+
+              {/* 노트북 목업 — 폰 뒤에 배치 */}
+              <div style={{
+                position: 'absolute',
+                bottom: '-40px',
+                left: '-130px',
+                zIndex: 5,
+                width: '280px',
+                opacity: 0.85,
+              }}>
+                {/* 노트북 화면 */}
+                <div style={{
+                  background: 'linear-gradient(160deg, #2a2a2a, #1a1a1a)',
+                  borderRadius: '10px 10px 0 0',
+                  padding: '8px',
+                  boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                }}>
+                  {/* 화면 베젤 상단 */}
+                  <div style={{background: '#111', borderRadius: '6px 6px 0 0', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                    <div style={{width: '6px', height: '6px', borderRadius: '50%', background: '#333'}} />
+                  </div>
+                  {/* 화면 내용 */}
+                  <div style={{
+                    background: '#0d1526',
+                    height: '160px',
+                    borderRadius: '0 0 4px 4px',
+                    overflow: 'hidden',
+                    padding: '10px',
+                  }}>
+                    {/* 크로닛 앱 UI 미니 */}
+                    <div style={{fontSize: '7px', color: '#27CFFE', fontWeight: 700, marginBottom: '6px'}}>⚡ Chronit v1.0.1</div>
+                    <div style={{display: 'flex', gap: '4px', marginBottom: '6px'}}>
+                      {['영상 분석','영상 선택','대본 생성','스타일','보이스','내보내기'].map((s,i) => (
+                        <div key={i} style={{fontSize: '5px', padding: '2px 4px', borderRadius: '4px', background: i===0 ? '#27CFFE20' : '#ffffff10', color: i===0 ? '#27CFFE' : '#64748b', border: `1px solid ${i===0 ? '#27CFFE40' : '#ffffff10'}`}}>{s}</div>
+                      ))}
+                    </div>
+                    <div style={{background: '#131c2e', borderRadius: '6px', padding: '8px', marginBottom: '6px'}}>
+                      <div style={{fontSize: '6px', color: '#94a3b8', marginBottom: '4px'}}>쇼핑 릴스 링크 입력</div>
+                      <div style={{background: '#1e2a3d', borderRadius: '4px', padding: '4px 8px', fontSize: '6px', color: '#475569'}}>https://www.instagram.com/reel/...</div>
+                    </div>
+                    <div style={{display: 'flex', gap: '4px'}}>
+                      <div style={{flex: 1, background: '#27CFFE15', border: '1px solid #27CFFE30', borderRadius: '4px', padding: '4px', textAlign: 'center', fontSize: '6px', color: '#27CFFE', fontWeight: 700}}>▶ 실행</div>
+                      <div style={{flex: 1, background: '#1e2a3d', borderRadius: '4px', padding: '4px', textAlign: 'center', fontSize: '6px', color: '#475569'}}>설정</div>
+                    </div>
+                    <div style={{marginTop: '6px', fontSize: '6px', color: '#22c55e'}}>✓ 영상 3개 완성 · 방금 전</div>
+                  </div>
+                </div>
+                {/* 노트북 하단 바디 */}
+                <div style={{
+                  background: 'linear-gradient(160deg, #2a2a2a, #1a1a1a)',
+                  height: '12px',
+                  borderRadius: '0 0 6px 6px',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  borderTop: 'none',
+                  position: 'relative',
+                }}>
+                  <div style={{position: 'absolute', top: '4px', left: '50%', transform: 'translateX(-50%)', width: '40px', height: '4px', background: '#333', borderRadius: '2px'}} />
+                </div>
+                {/* 노트북 바닥 */}
+                <div style={{
+                  background: 'linear-gradient(160deg, #222, #181818)',
+                  height: '8px',
+                  borderRadius: '0 0 8px 8px',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  borderTop: 'none',
+                }} />
+              </div>
 
               {/* 팝업 카드 1 — 영상 완성 (폰 왼쪽 앞으로) */}
               <div style={{
@@ -677,7 +748,7 @@ const Home = () => {
       </div>
 
       {/* Stats Section */}
-      <section className="relative overflow-hidden bg-[#020617] px-5 py-20 md:px-8 md:py-32">
+      <section className="relative overflow-hidden bg-[#0B0D17] px-5 py-20 md:px-8 md:py-32">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_60%,transparent_100%)]"></div>
 
         <div className="relative z-10 mx-auto max-w-5xl">
@@ -776,7 +847,7 @@ const Home = () => {
       {/* Feature Section */}
       <section
         id="features"
-        className="relative overflow-hidden bg-[#020617] px-5 py-24 md:px-8 md:py-48"
+        className="relative overflow-hidden bg-[#0B0D17] px-5 py-24 md:px-8 md:py-48"
       >
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] bg-[size:40px_40px]"></div>
 
@@ -958,7 +1029,7 @@ const Home = () => {
 
       {/* 이벤트 게시판 */}
       {events.length > 0 && (
-        <section id="events" className="bg-[#020617] px-5 py-20 md:px-8">
+        <section id="events" className="bg-[#0B0D17] px-5 py-20 md:px-8">
           <div className="mx-auto max-w-4xl">
             <h2 className="mb-8 text-2xl font-black tracking-tight text-white">이벤트</h2>
 
@@ -1254,7 +1325,7 @@ const DemoCarousel = () => {
   if (!n) return null
 
   return (
-    <section className="relative overflow-hidden bg-[#020617] py-16 md:py-24">
+    <section className="relative overflow-hidden bg-[#0B0D17] py-16 md:py-24">
       <div className="mb-10 text-center md:mb-14">
         <p className="mb-2 text-xs font-bold tracking-[0.3em] text-blue-400 uppercase md:text-sm">DEMO</p>
         <h2 className="text-2xl font-black tracking-tight text-white md:text-4xl">
