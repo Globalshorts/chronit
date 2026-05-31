@@ -638,7 +638,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="group relative overflow-hidden rounded-[1.5rem] border border-white/10 bg-gradient-to-b from-blue-500/[0.08] to-transparent p-6 text-center shadow-[0_0_60px_-20px_rgba(37,99,235,0.5)] transition-all duration-500 hover:border-blue-500/40 md:rounded-[2rem] md:p-10">
+            <div className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white p-6 text-center shadow-2xl transition-all duration-500 hover:border-blue-400 md:rounded-[2rem] md:p-10">
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400 transition-transform group-hover:scale-110 md:mb-6 md:h-14 md:w-14">
                 <TrendingDown size={24} />
               </div>
@@ -672,7 +672,7 @@ const Home = () => {
             <h3 className="mb-6 text-xs font-black tracking-[0.3em] text-blue-500 uppercase md:mb-8 md:text-sm">
               The Real Problem
             </h3>
-            <h2 className="text-3xl leading-[1.4] font-bold md:text-5xl md:leading-[1.5]">
+            <h2 className="text-3xl leading-[1.4] font-bold text-slate-900 md:text-5xl md:leading-[1.5]">
               노력의 부족이 아니라,
               <br />
               도구의 선택이 잘못된 것입니다.
@@ -684,10 +684,10 @@ const Home = () => {
               <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10 text-red-500 transition-transform group-hover:scale-110 md:mb-10 md:h-16 md:w-16">
                 <Clock size={28} />
               </div>
-              <h4 className="mb-4 text-xl leading-[1.4] font-bold md:mb-6 md:text-2xl">
+              <h4 className="mb-4 text-xl leading-[1.4] font-bold text-slate-900 md:mb-6 md:text-2xl">
                 매일 반복되는 1시간의 노가다
               </h4>
-              <p className="text-lg leading-[1.8] text-slate-400 md:text-xl">
+              <p className="text-lg leading-[1.8] text-slate-600 md:text-xl">
                 영상 소스 찾기, 대본 짜기, 자막 복붙... 조회수는 제자리인데 당신의 시간만 의미 없이
                 소모되고 있지는 않나요?
               </p>
@@ -696,10 +696,10 @@ const Home = () => {
               <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-yellow-500/10 text-yellow-500 transition-transform group-hover:scale-110 md:mb-10 md:h-16 md:w-16">
                 <TrendingUp size={28} />
               </div>
-              <h4 className="mb-4 text-xl leading-[1.4] font-bold md:mb-6 md:text-2xl">
+              <h4 className="mb-4 text-xl leading-[1.4] font-bold text-slate-900 md:mb-6 md:text-2xl">
                 어설픈 AI의 '광고 필터'
               </h4>
-              <p className="text-lg leading-[1.8] text-slate-400 md:text-xl">
+              <p className="text-lg leading-[1.8] text-slate-600 md:text-xl">
                 시청자는 0.1초 만에 가짜를 알아봅니다. 자연스럽지 못한 AI 영상은 오히려 브랜드
                 신뢰도를 깎아먹습니다.
               </p>
@@ -721,14 +721,14 @@ const Home = () => {
               <h3 className="mb-4 text-xs font-black tracking-[0.2em] text-blue-500 uppercase md:mb-6 md:text-base">
                 Core Strength
               </h3>
-              <h2 className="text-3xl leading-[1.4] font-bold md:text-5xl">
+              <h2 className="text-3xl leading-[1.4] font-bold text-slate-900 md:text-5xl">
                 진짜를 아는 실무진은
                 <br />
                 수익화에만 에너지를 씁니다.
               </h2>
             </div>
             <div className="border-l-4 border-blue-500 bg-blue-500/5 p-6 text-left md:max-w-sm md:p-8">
-              <p className="text-lg leading-[1.8] text-slate-400 md:text-xl">
+              <p className="text-lg leading-[1.8] text-slate-600 md:text-xl">
                 수만 개의 영상을 직접 제작하며 증명된 로직을 시스템에 그대로 옮겼습니다.
               </p>
             </div>
@@ -755,14 +755,14 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section id="pricing" className="px-5 py-24 md:px-8 md:py-48">
-        <div className="shadow-3xl relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-blue-900/60 via-[#03081c] to-indigo-900/40 md:rounded-[4rem]">
+      <section id="pricing" className="bg-[#F5F4F0] px-5 py-24 md:px-8 md:py-48">
+        <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-xl md:rounded-[4rem]">
           <div className="relative z-10 p-5 text-center sm:p-8 md:p-32">
-            <h2 className="mb-8 text-3xl leading-[1.3] font-black tracking-tight md:mb-12 md:text-[56px]">
+            <h2 className="mb-8 text-3xl leading-[1.3] font-black tracking-tight text-slate-900 md:mb-12 md:text-[56px]">
               당신의 1시간은
               <br className="hidden md:block" /> 1600원보다 훨씬 고귀합니다.
             </h2>
-            <p className="mx-auto mb-12 max-w-3xl text-lg leading-[1.8] font-medium text-slate-300 md:mb-20 md:text-xl">
+            <p className="mx-auto mb-12 max-w-3xl text-lg leading-[1.8] font-medium text-slate-600 md:mb-20 md:text-xl">
               하루 커피 한 잔 값으로,
               <br />
               당신의 성장을 가로막던 제작 노가다에서 해방되세요.
@@ -775,19 +775,19 @@ const Home = () => {
               className="mx-auto mb-16 grid max-w-6xl gap-6 text-left md:mb-24 md:grid-cols-3 md:gap-8"
             >
               {/* 스타터 */}
-              <div onClick={() => openPayment('starter')} className="flex cursor-pointer flex-col rounded-[1.5rem] border border-white/10 bg-black/40 p-6 backdrop-blur-2xl transition-all hover:border-blue-400/40 sm:rounded-[2rem] md:rounded-[2.5rem] md:p-10">
-                <p className="mb-2 text-[10px] font-bold tracking-widest text-slate-400 uppercase md:text-sm">
+              <div onClick={() => openPayment('starter')} className="flex cursor-pointer flex-col rounded-[1.5rem] border border-slate-200 bg-slate-50 p-6 transition-all hover:border-blue-400 sm:rounded-[2rem] md:rounded-[2.5rem] md:p-10">
+                <p className="mb-2 text-[10px] font-bold tracking-widest text-slate-500 uppercase md:text-sm">
                   Starter
                 </p>
                 <h4 className="mb-3 text-xl font-black text-white md:text-2xl">스타터</h4>
-                <p className="mb-6 text-base leading-relaxed text-slate-400 md:text-lg">
+                <p className="mb-6 text-base leading-relaxed text-slate-600 md:text-lg">
                   나만의 숏폼 자동화 공장 맛보기
                 </p>
                 <div className="mb-8 flex items-baseline gap-1">
                   <span className="text-4xl font-black text-white md:text-5xl">49,000</span>
-                  <span className="text-lg font-bold text-slate-400 md:text-xl">원 / 월</span>
+                  <span className="text-lg font-bold text-slate-500 md:text-xl">원 / 월</span>
                 </div>
-                <ul className="space-y-3 text-base leading-relaxed font-medium text-slate-300 md:space-y-4 md:text-lg">
+                <ul className="space-y-3 text-base leading-relaxed font-medium text-slate-700 md:space-y-4 md:text-lg">
                   <li className="flex items-start gap-2 md:gap-3">
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-400" />
                     <span><strong className="text-white">월 15개</strong> 영상 완성본 제작</span>
@@ -852,19 +852,19 @@ const Home = () => {
               </div>
 
               {/* 마스터 */}
-              <div onClick={() => openPayment('master')} className="flex cursor-pointer flex-col rounded-[1.5rem] border border-white/10 bg-gradient-to-b from-indigo-900/30 to-black/40 p-6 backdrop-blur-2xl transition-all hover:border-indigo-400/40 sm:rounded-[2rem] md:rounded-[2.5rem] md:p-10">
-                <p className="mb-2 text-[10px] font-bold tracking-widest text-indigo-300 uppercase md:text-sm">
+              <div onClick={() => openPayment('master')} className="flex cursor-pointer flex-col rounded-[1.5rem] border border-slate-200 bg-slate-50 p-6 transition-all hover:border-blue-400 sm:rounded-[2rem] md:rounded-[2.5rem] md:p-10">
+                <p className="mb-2 text-[10px] font-bold tracking-widest text-slate-500 uppercase md:text-sm">
                   Master
                 </p>
                 <h4 className="mb-3 text-xl font-black text-white md:text-2xl">마스터</h4>
-                <p className="mb-6 text-base leading-relaxed text-slate-400 md:text-lg">
+                <p className="mb-6 text-base leading-relaxed text-slate-600 md:text-lg">
                   전문 크리에이터 및 대형 대행사를 위한 마스터 패키지
                 </p>
                 <div className="mb-8 flex items-baseline gap-1">
                   <span className="text-4xl font-black text-white md:text-5xl">199,000</span>
-                  <span className="text-lg font-bold text-slate-400 md:text-xl">원 / 월</span>
+                  <span className="text-lg font-bold text-slate-500 md:text-xl">원 / 월</span>
                 </div>
-                <ul className="space-y-3 text-base leading-relaxed font-medium text-slate-300 md:space-y-4 md:text-lg">
+                <ul className="space-y-3 text-base leading-relaxed font-medium text-slate-700 md:space-y-4 md:text-lg">
                   <li className="flex items-start gap-2 md:gap-3">
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-indigo-400" />
                     <span><strong className="text-white">월 300개</strong> 영상 완성본 제작 (채널 수십 개 동시 운영, 대량 생산)</span>
