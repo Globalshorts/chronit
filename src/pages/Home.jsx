@@ -689,43 +689,29 @@ const Home = () => {
             <polygon points="0,0 0,80 1440,0" fill="#1e2235"/>
           </svg>
         </div>
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-16 text-center md:mb-28">
-            <h3 className="mb-6 text-xs font-black tracking-[0.3em] text-blue-500 uppercase md:mb-8 md:text-sm">
-              The Real Problem
-            </h3>
-            <h2 className="text-3xl leading-[1.4] font-bold text-slate-900 md:text-5xl md:leading-[1.5]">
-              노력의 부족이 아니라,
-              <br />
-              도구의 선택이 잘못된 것입니다.
-            </h2>
+        <div className="relative z-10 mx-auto max-w-4xl">
+          <div className="mb-16 text-center md:mb-20">
+            <h3 className="mb-3 text-xs font-black tracking-[0.3em] text-blue-500 uppercase md:text-sm">Why Chronit</h3>
+            <h2 className="text-3xl font-black text-gray-900 md:text-5xl">왜 크로닛을 선택해야 할까?</h2>
           </div>
-
-          <div className="grid gap-6 md:grid-cols-2 md:gap-12">
-            <div className="group rounded-[1.5rem] border-2 border-slate-200 bg-transparent p-6 transition-all duration-500 hover:border-blue-400 sm:rounded-[2rem] sm:p-8 md:rounded-[3rem] md:p-14">
-              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10 text-red-500 transition-transform group-hover:scale-110 md:mb-10 md:h-16 md:w-16">
-                <Clock size={28} />
+          <div className="space-y-8 md:space-y-12">
+            {[
+              { emoji: '🖱️', title: '편집 기술 무관', desc: '영상 편집을 전혀 몰라도 괜찮습니다. 마우스 클릭 몇 번이면 AI가 알아서 고품질 릴스를 완성합니다.', right: false },
+              { emoji: '☕', title: '커피 한 잔 값으로 대량 생산', desc: '영상 1개당 약 100크레딧으로 부담 없이 구동됩니다. 하루 커피 한 잔 수준의 가벼운 비용으로 매일 여러 개의 영상을 가성비 있게 찍어내세요.', right: true },
+              { emoji: '👆', title: '딸깍으로 끝', desc: '링크 넣고 영상 선택만 하면 대시보드 안에서 AI가 편집부터 합성, 제목과 해시태그 추천까지 완료합니다.', right: false },
+              { emoji: '⏰', title: '퇴근 후 10분이면 충분', desc: '퇴근 후 컷 편집하고 자막 넣던 지루한 시간은 끝내고, 이제 채널의 방향성에만 에너지를 쓰세요.', right: true },
+              { emoji: '💻', title: '안정적인 PC 구동 환경', desc: '대량 연산과 자동화에 가장 최적화된 Windows 전용 프로그램으로 멈춤 없이 쾌적하게 작동합니다.', right: false },
+            ].map(({ emoji, title, desc, right }) => (
+              <div key={title} className={`flex items-center gap-8 md:gap-16 ${right ? 'flex-row-reverse' : 'flex-row'}`}>
+                <div className="shrink-0 w-28 h-28 md:w-40 md:h-40 rounded-3xl border border-gray-100 bg-white shadow-md flex items-center justify-center text-5xl md:text-6xl">
+                  {emoji}
+                </div>
+                <div className={`flex-1 ${right ? 'text-right' : 'text-left'}`}>
+                  <h4 className="mb-2 text-xl font-black text-gray-900 md:text-2xl">{title}</h4>
+                  <p className="text-base leading-relaxed text-gray-500 md:text-lg">{desc}</p>
+                </div>
               </div>
-              <h4 className="mb-4 text-xl leading-[1.4] font-bold text-slate-900 md:mb-6 md:text-2xl">
-                매일 반복되는 1시간의 노가다
-              </h4>
-              <p className="text-lg leading-[1.8] text-slate-600 md:text-xl">
-                영상 소스 찾기, 대본 짜기, 자막 복붙... 조회수는 제자리인데 당신의 시간만 의미 없이
-                소모되고 있지는 않나요?
-              </p>
-            </div>
-            <div className="group rounded-[1.5rem] border-2 border-slate-200 bg-transparent p-6 transition-all duration-500 hover:border-blue-400 sm:rounded-[2rem] sm:p-8 md:rounded-[3rem] md:p-14">
-              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-yellow-500/10 text-yellow-500 transition-transform group-hover:scale-110 md:mb-10 md:h-16 md:w-16">
-                <TrendingUp size={28} />
-              </div>
-              <h4 className="mb-4 text-xl leading-[1.4] font-bold text-slate-900 md:mb-6 md:text-2xl">
-                어설픈 AI의 '광고 필터'
-              </h4>
-              <p className="text-lg leading-[1.8] text-slate-600 md:text-xl">
-                시청자는 0.1초 만에 가짜를 알아봅니다. 자연스럽지 못한 AI 영상은 오히려 브랜드
-                신뢰도를 깎아먹습니다.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
