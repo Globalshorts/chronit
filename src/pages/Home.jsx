@@ -521,7 +521,7 @@ const Home = () => {
             </div>
 
             <h1 className="mb-4 text-4xl font-black leading-tight tracking-tight text-white md:text-5xl lg:text-6xl">
-              클릭에 <span style={{color: '#ff6b00'}}>수익</span>을 입히다, 크로닛
+              클릭에 <span style={{color: '#ff6b00'}}>수익</span>을 입히다,<br />크로닛
             </h1>
             <span className="sr-only">크로닛(Chronit) — 쇼핑 릴스 영상 편집 자동화 솔루션.</span>
 
