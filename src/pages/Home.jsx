@@ -549,71 +549,73 @@ const Home = () => {
 
           {/* 우측: 스마트폰 목업 + 레이어드 팝업 카드 */}
           <div className="flex flex-col items-center justify-center gap-4" style={{marginBottom: '-60px', paddingBottom: '0'}}>
-            <div className="relative" style={{width: 'min(280px, 62vw)'}}>
+            <div className="relative" style={{width: 'min(260px, 58vw)', margin: '0 60px'}}>
 
-              {/* 뒤쪽 팝업 카드 1 — 자동화 완료 알림 */}
+              {/* 팝업 카드 1 — 영상 완성 (폰 왼쪽 앞으로) */}
               <div style={{
-                position: 'absolute', top: '10%', left: '-30%', zIndex: 0,
-                background: 'rgba(30,35,64,0.92)', backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px',
-                padding: '12px 16px', width: '140px',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-                transform: 'rotate(-6deg)',
+                position: 'absolute', top: '18%', left: '-45%', zIndex: 40,
+                background: 'rgba(15,17,32,0.96)', backdropFilter: 'blur(16px)',
+                border: '1px solid rgba(39,207,254,0.25)', borderRadius: '16px',
+                padding: '12px 14px', width: '138px',
+                boxShadow: '0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)',
+                transform: 'rotate(-4deg)',
               }}>
-                <div style={{fontSize: '10px', color: '#94a3b8', marginBottom: '4px'}}>영상 완성 🎉</div>
+                <div style={{fontSize: '10px', color: '#27CFFE', marginBottom: '4px', fontWeight: 600}}>영상 완성 🎉</div>
                 <div style={{fontSize: '13px', fontWeight: 700, color: '#fff'}}>+1 릴스 완성</div>
-                <div style={{fontSize: '11px', color: '#27CFFE', marginTop: '2px'}}>방금 전 · 2분 소요</div>
+                <div style={{fontSize: '11px', color: '#94a3b8', marginTop: '2px'}}>방금 전 · 2분 소요</div>
               </div>
 
-              {/* 뒤쪽 팝업 카드 2 — 수익 현황 */}
+              {/* 팝업 카드 2 — 수익 현황 (폰 오른쪽 앞으로) */}
               <div style={{
-                position: 'absolute', top: '15%', right: '-28%', zIndex: 0,
-                background: 'rgba(30,35,64,0.92)', backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px',
-                padding: '12px 16px', width: '130px',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-                transform: 'rotate(5deg)',
+                position: 'absolute', top: '12%', right: '-45%', zIndex: 40,
+                background: 'rgba(15,17,32,0.96)', backdropFilter: 'blur(16px)',
+                border: '1px solid rgba(255,107,0,0.3)', borderRadius: '16px',
+                padding: '12px 14px', width: '128px',
+                boxShadow: '0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)',
+                transform: 'rotate(4deg)',
               }}>
                 <div style={{fontSize: '10px', color: '#94a3b8', marginBottom: '4px'}}>이번 달 수익</div>
-                <div style={{fontSize: '15px', fontWeight: 800, color: '#ff6b00'}}>₩ 84,200</div>
+                <div style={{fontSize: '16px', fontWeight: 800, color: '#ff6b00'}}>₩84,200</div>
                 <div style={{display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px'}}>
-                  <div style={{width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e'}} />
-                  <div style={{fontSize: '10px', color: '#22c55e'}}>↑ 32% 증가</div>
+                  <div style={{width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e'}} />
+                  <div style={{fontSize: '10px', color: '#22c55e', fontWeight: 600}}>↑ 32% 증가</div>
                 </div>
               </div>
 
-              {/* 앞쪽 팝업 카드 3 — AI 자막 생성 */}
+              {/* 팝업 카드 3 — AI 자막 (폰 오른쪽 하단 앞으로) */}
               <div style={{
-                position: 'absolute', bottom: '12%', right: '-25%', zIndex: 30,
-                background: 'rgba(30,35,64,0.95)', backdropFilter: 'blur(12px)',
+                position: 'absolute', bottom: '20%', right: '-42%', zIndex: 40,
+                background: 'rgba(15,17,32,0.96)', backdropFilter: 'blur(16px)',
                 border: '1px solid rgba(39,207,254,0.3)', borderRadius: '16px',
-                padding: '12px 16px', width: '136px',
-                boxShadow: '0 8px 32px rgba(39,207,254,0.15)',
+                padding: '12px 14px', width: '132px',
+                boxShadow: '0 12px 40px rgba(39,207,254,0.12), 0 0 0 1px rgba(255,255,255,0.05)',
               }}>
-                <div style={{fontSize: '10px', color: '#27CFFE', marginBottom: '4px'}}>AI 자막 생성</div>
-                <div style={{fontSize: '12px', fontWeight: 700, color: '#fff', lineHeight: 1.4}}>"이 가격에 이 퀄리티?"</div>
-                <div style={{fontSize: '10px', color: '#94a3b8', marginTop: '4px'}}>자동 완성됨 ✓</div>
+                <div style={{fontSize: '10px', color: '#27CFFE', marginBottom: '4px', fontWeight: 600}}>AI 자막 생성</div>
+                <div style={{fontSize: '12px', fontWeight: 700, color: '#fff', lineHeight: 1.5}}>"이 가격에 이 퀄리티?"</div>
+                <div style={{fontSize: '10px', color: '#22c55e', marginTop: '4px'}}>자동 완성됨 ✓</div>
               </div>
 
-              {/* 스마트폰 프레임 */}
+              {/* 스마트폰 프레임 — 배경과 확실히 구분되는 밝은 톤 */}
               <div style={{
-                position: 'relative', zIndex: 10,
-                background: 'linear-gradient(145deg, #2a2f45, #1a1f35)',
-                borderRadius: '2.5rem',
-                padding: '10px',
-                boxShadow: '0 40px 80px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.15)',
+                position: 'relative', zIndex: 20,
+                background: 'linear-gradient(160deg, #3d4466 0%, #252a42 50%, #1e2340 100%)',
+                borderRadius: '2.8rem',
+                padding: '12px',
+                boxShadow: '0 50px 100px -20px rgba(0,0,0,0.7), 0 0 0 1.5px rgba(255,255,255,0.18), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.3)',
               }}>
-                <div style={{background: '#0f1120', borderRadius: '2rem 2rem 0 0', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                  <div style={{width: '60px', height: '6px', background: '#2a2f45', borderRadius: '3px'}} />
+                {/* 상단 노치 */}
+                <div style={{background: '#0a0d1a', borderRadius: '2.2rem 2.2rem 0 0', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                  <div style={{width: '56px', height: '6px', background: '#1e2340', borderRadius: '3px'}} />
                 </div>
                 <HeroPhoneVideo />
-                <div style={{background: '#0f1120', borderRadius: '0 0 2rem 2rem', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                  <div style={{width: '80px', height: '4px', background: '#2a2f45', borderRadius: '2px'}} />
+                {/* 하단 홈바 */}
+                <div style={{background: '#0a0d1a', borderRadius: '0 0 2.2rem 2.2rem', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                  <div style={{width: '80px', height: '4px', background: '#1e2340', borderRadius: '2px'}} />
                 </div>
               </div>
 
               {/* 글로우 */}
-              <div style={{position: 'absolute', inset: '-20px', zIndex: -1, background: 'radial-gradient(ellipse at center, rgba(59,130,246,0.2) 0%, transparent 70%)', borderRadius: '50%'}} />
+              <div style={{position: 'absolute', inset: '-30px', zIndex: -1, background: 'radial-gradient(ellipse at 60% 40%, rgba(59,130,246,0.25) 0%, transparent 65%)', borderRadius: '50%'}} />
             </div>
 
             {/* 하단 문구 */}
@@ -621,6 +623,7 @@ const Home = () => {
               href="#demo"
               onClick={e => { e.preventDefault(); document.getElementById('demo')?.scrollIntoView({behavior:'smooth'}) }}
               className="flex items-center gap-2 text-sm font-bold text-blue-400 transition-colors hover:text-blue-300"
+              style={{position: 'relative', zIndex: 25}}
             >
               실제 제작된 영상을 확인하세요 ↓
             </a>
