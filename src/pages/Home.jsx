@@ -814,11 +814,11 @@ const Home = () => {
       <section id="pricing" className="relative bg-white px-5 pt-28 pb-24 md:px-8 md:pt-36 md:pb-48" style={{marginTop:"-80px"}}>
         <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-xl md:rounded-[4rem]">
           <div className="relative z-10 p-5 text-center sm:p-8 md:p-32">
-            <h2 className="mb-8 text-3xl leading-[1.3] font-black tracking-tight text-slate-900 md:mb-12 md:text-[56px]">
+            <h2 className="mb-6 text-2xl leading-[1.3] font-black tracking-tight text-slate-900 md:mb-10 md:text-[44px]">
               당신의 1시간은
               <br className="hidden md:block" /> 1600원보다 훨씬 고귀합니다.
             </h2>
-            <p className="mx-auto mb-12 max-w-3xl text-lg leading-[1.8] font-medium text-slate-600 md:mb-20 md:text-xl">
+            <p className="mx-auto mb-10 max-w-3xl text-base leading-[1.8] font-medium text-slate-600 md:mb-16 md:text-lg">
               하루 커피 한 잔 값으로,
               <br />
               당신의 성장을 가로막던 제작 노가다에서 해방되세요.
@@ -835,18 +835,18 @@ const Home = () => {
                 <p className="mb-2 text-[10px] font-bold tracking-widest text-slate-500 uppercase md:text-sm">
                   Starter
                 </p>
-                <h4 className="mb-3 text-xl font-black text-white md:text-2xl">스타터</h4>
-                <p className="mb-6 text-base leading-relaxed text-slate-600 md:text-lg">
+                <h4 className="mb-3 text-lg font-black text-gray-900 md:text-xl">스타터</h4>
+                <p className="mb-5 text-sm leading-relaxed text-slate-600 md:text-base">
                   나만의 숏폼 자동화 공장 맛보기
                 </p>
                 <div className="mb-8 flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-white md:text-5xl">49,000</span>
+                  <span className="text-3xl font-black text-gray-900 md:text-4xl">49,000</span>
                   <span className="text-lg font-bold text-slate-500 md:text-xl">원 / 월</span>
                 </div>
-                <ul className="space-y-3 text-base leading-relaxed font-medium text-slate-700 md:space-y-4 md:text-lg">
+                <ul className="space-y-2 text-sm leading-relaxed font-medium text-slate-700 md:space-y-3 md:text-base">
                   <li className="flex items-start gap-2 md:gap-3">
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-400" />
-                    <span><strong className="text-white">월 15개</strong> 영상 완성본 제작</span>
+                    <span><strong className="text-gray-900">월 15개</strong> 영상 완성본 제작</span>
                   </li>
                   <li className="flex items-start gap-2 md:gap-3">
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-400" />
@@ -879,15 +879,15 @@ const Home = () => {
                 <p className="mb-2 text-[10px] font-bold tracking-widest text-blue-100 uppercase md:text-sm">
                   Pro
                 </p>
-                <h4 className="mb-3 text-xl font-black text-white md:text-2xl">프로</h4>
-                <p className="mb-6 text-base leading-relaxed text-blue-100 md:text-lg">
+                <h4 className="mb-3 text-lg font-black text-white md:text-xl">프로</h4>
+                <p className="mb-5 text-sm leading-relaxed text-blue-100 md:text-base">
                   다중 채널 폭발 및 대량 수익화를 위한 핵심 패키지
                 </p>
                 <div className="mb-8 flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-white md:text-6xl">99,000</span>
+                  <span className="text-3xl font-black text-white md:text-5xl">99,000</span>
                   <span className="text-lg font-bold text-blue-100 md:text-xl">원 / 월</span>
                 </div>
-                <ul className="space-y-3 text-base leading-relaxed font-medium text-white md:space-y-4 md:text-lg">
+                <ul className="space-y-2 text-sm leading-relaxed font-medium text-white md:space-y-3 md:text-base">
                   <li className="flex items-start gap-2 md:gap-3">
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-200" />
                     <span><strong>월 100개</strong> 영상 완성본 제작 (하루 3~4개, 본격 양산용)</span>
@@ -912,18 +912,18 @@ const Home = () => {
                 <p className="mb-2 text-[10px] font-bold tracking-widest text-slate-500 uppercase md:text-sm">
                   Master
                 </p>
-                <h4 className="mb-3 text-xl font-black text-white md:text-2xl">마스터</h4>
-                <p className="mb-6 text-base leading-relaxed text-slate-600 md:text-lg">
+                <h4 className="mb-3 text-lg font-black text-gray-900 md:text-xl">마스터</h4>
+                <p className="mb-5 text-sm leading-relaxed text-slate-600 md:text-base">
                   전문 크리에이터 및 대형 대행사를 위한 마스터 패키지
                 </p>
                 <div className="mb-8 flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-white md:text-5xl">199,000</span>
+                  <span className="text-3xl font-black text-gray-900 md:text-4xl">199,000</span>
                   <span className="text-lg font-bold text-slate-500 md:text-xl">원 / 월</span>
                 </div>
-                <ul className="space-y-3 text-base leading-relaxed font-medium text-slate-700 md:space-y-4 md:text-lg">
+                <ul className="space-y-2 text-sm leading-relaxed font-medium text-slate-700 md:space-y-3 md:text-base">
                   <li className="flex items-start gap-2 md:gap-3">
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-indigo-400" />
-                    <span><strong className="text-white">월 300개</strong> 영상 완성본 제작 (채널 수십 개 동시 운영, 대량 생산)</span>
+                    <span><strong className="text-gray-900">월 300개</strong> 영상 완성본 제작 (채널 수십 개 동시 운영, 대량 생산)</span>
                   </li>
                   <li className="flex items-start gap-2 md:gap-3">
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-indigo-400" />
