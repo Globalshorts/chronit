@@ -588,33 +588,35 @@ const Home = () => {
               </div>
 
               {/* 폰 — bg-black 컨테이너 + 패딩으로 베젤 맞춤 + 베젤PNG 위에 덮기 */}
-              {/* 500x500 이미지 기준 화면: x=162~338(176px), y=79~439(360px) */}
-              {/* 베젤 영역: x=154~343(189px), y=56~446(390px) */}
-              {/* 컨테이너 = 베젤 비율 189:390 → 높이 390px 기준 너비 189px */}
               <div style={{
                 position: 'relative',
                 width: '189px',
                 height: '390px',
-                borderRadius: '44px',
-                overflow: 'hidden',
-                background: '#000',
               }}>
-                {/* 1층: 영상 — 패딩으로 화면 영역만 채움 */}
-                {/* 베젤 y=56~446(390px) 기준 화면 y=79~439: top=(79-56)/390=5.9%, bottom=(446-439)/390=1.8% */}
-                {/* 베젤 x=154~343(189px) 기준 화면 x=162~338: left=(162-154)/189=4.2%, right=(343-338)/189=2.6% */}
+                {/* bg-black + overflow hidden — 영상만 가두는 내부 레이어 */}
                 <div style={{
                   position: 'absolute',
-                  top: '5.9%',
-                  left: '4.2%',
-                  right: '2.6%',
-                  bottom: '1.8%',
-                  zIndex: 10,
-                  borderRadius: '36px',
+                  inset: 0,
+                  borderRadius: '44px',
                   overflow: 'hidden',
+                  background: '#000',
+                  zIndex: 0,
                 }}>
-                  <HeroPhoneVideo />
+                  {/* 1층: 영상 — 베젤 두께만큼 패딩 */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '5.9%',
+                    left: '4.2%',
+                    right: '2.6%',
+                    bottom: '1.8%',
+                    borderRadius: '36px',
+                    overflow: 'hidden',
+                    zIndex: 10,
+                  }}>
+                    <HeroPhoneVideo />
+                  </div>
                 </div>
-                {/* 2층: 베젤 PNG — 위에 덮기, 화면 영역은 투명이므로 영상이 비침 */}
+                {/* 2층: 베젤 PNG — overflow hidden 밖에서 크롭 없이 표시 */}
                 <img
                   src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/phone_frame.png"
                   alt="폰 베젤"
