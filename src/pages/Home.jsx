@@ -499,65 +499,122 @@ const Home = () => {
 
 
       {/* Hero Section */}
-      <section className="relative flex min-h-screen items-center justify-center overflow-hidden text-center">
-        <div className="absolute inset-0 z-0 overflow-hidden">
-          <SplineScene scene="https://prod.spline.design/f6eUUnJ7Yn2V5uXM/scene.splinecode" />
-        </div>
+      <section className="relative flex min-h-screen items-center overflow-hidden" style={{background: 'linear-gradient(135deg, #1a1f35 0%, #1e2340 50%, #1a2038 100%)'}}>
 
-        {/* Overlays for depth and readability */}
-        <div className="absolute inset-0 z-[1] bg-[#020617]/10"></div>
-        <div className="absolute inset-0 z-[1] bg-gradient-to-b from-[#020617]/10 via-transparent to-[#020617]"></div>
+        {/* 배경 그리드 */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:60px_60px]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#1a1f35]/80" />
 
-        <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center px-5 py-24 md:px-8 md:py-32">
-          <div className="animate-fade-in mb-8 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1.5 text-sm font-bold text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.15)] md:mb-10 md:px-4 md:text-base">
-            <Zap size={14} fill="currentColor" /> <span>쇼핑 릴스 자동화 v1.0.1</span>
-          </div>
+        <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-5 py-24 md:grid-cols-2 md:gap-8 md:px-12 md:py-32">
 
-          <div className="mb-6 flex w-full flex-col items-center md:mb-8">
-            <h2 className="animate-burn mb-4 text-center text-3xl font-black tracking-tight text-white md:text-5xl">
-              클릭에 수익을 입히다,
-            </h2>
-            <h2 className="bg-gradient-to-r from-blue-400 via-white to-indigo-400 bg-clip-text text-[64px] leading-[1] font-black tracking-tighter text-transparent drop-shadow-[0_10px_20px_rgba(59,130,246,0.3)] md:text-[110px]">
+          {/* 좌측: 카피 + 버튼 */}
+          <div className="flex flex-col items-start">
+            <div className="animate-fade-in mb-6 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1.5 text-sm font-bold text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.15)] md:px-4 md:text-base">
+              <Zap size={14} fill="currentColor" /> <span>쇼핑 릴스 자동화 v1.0.1</span>
+            </div>
+
+            <h1 className="mb-3 text-4xl font-black leading-tight tracking-tight text-white md:text-5xl lg:text-6xl">
+              클릭에 <span className="text-blue-400">수익</span>을<br />입히다,
+            </h1>
+            <h2 className="mb-6 bg-gradient-to-r from-blue-400 via-white to-indigo-400 bg-clip-text text-5xl font-black tracking-tighter text-transparent md:text-6xl lg:text-7xl">
               크로닛
             </h2>
             <span className="sr-only">크로닛(Chronit) — 쇼핑 릴스 영상 편집 자동화 솔루션. 링크만 입력하면 영상이 완성됩니다.</span>
+
+            <p className="mb-8 text-lg leading-[1.9] text-slate-300 md:text-xl">
+              링크만 넣고 영상은 AI에게 맡기세요.<br />
+              <strong className="text-white">2분이면 충분합니다.</strong>
+            </p>
+
+            <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="group flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-8 py-4 text-lg font-extrabold text-white shadow-[0_20px_50px_-15px_rgba(37,99,235,0.6)] transition-all hover:bg-blue-500 active:scale-95"
+              >
+                무료로 시작하기{' '}
+                <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
+              </button>
+              <a
+                href={DOWNLOAD_URL}
+                onClick={() => window.gtag?.('event', 'download', { event_category: 'conversion', event_label: 'windows_download' })}
+                className="group flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/[0.04] px-6 py-4 text-lg font-extrabold text-white backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/10 active:scale-95"
+              >
+                <Monitor size={20} /> Windows 다운로드
+              </a>
+            </div>
+            <p className="mt-4 text-sm font-medium text-slate-500">
+              Windows 10/11 · 약 1.9GB · 첫 실행 시 "PC 보호" 경고 →{' '}
+              <span className="text-slate-400">추가 정보 → 실행</span>
+            </p>
           </div>
 
-          <p className="mb-10 max-w-2xl px-2 text-center text-lg leading-[1.9] text-slate-300 md:mb-14 md:text-xl">
-            링크만 넣고 영상은 AI에게 맡기세요.<br />
-            <strong className="text-white">2분이면 충분합니다.</strong>
-          </p>
+          {/* 우측: 스마트폰 목업 + 영상 */}
+          <div className="flex flex-col items-center justify-center gap-4">
+            {/* 스마트폰 목업 프레임 */}
+            <div className="relative" style={{width: 'min(260px, 58vw)'}}>
+              {/* 폰 외곽 프레임 */}
+              <div style={{
+                background: 'linear-gradient(145deg, #2a2f45, #1a1f35)',
+                borderRadius: '2.5rem',
+                padding: '10px',
+                boxShadow: '0 40px 80px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.15)',
+              }}>
+                {/* 상단 노치 */}
+                <div style={{
+                  background: '#0f1120',
+                  borderRadius: '2rem 2rem 0 0',
+                  height: '28px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <div style={{width: '60px', height: '6px', background: '#2a2f45', borderRadius: '3px'}} />
+                </div>
+                {/* 영상 화면 */}
+                <HeroPhoneVideo />
+                {/* 하단 홈바 */}
+                <div style={{
+                  background: '#0f1120',
+                  borderRadius: '0 0 2rem 2rem',
+                  height: '28px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <div style={{width: '80px', height: '4px', background: '#2a2f45', borderRadius: '2px'}} />
+                </div>
+              </div>
+              {/* 글로우 효과 */}
+              <div style={{
+                position: 'absolute', inset: '-20px', zIndex: -1,
+                background: 'radial-gradient(ellipse at center, rgba(59,130,246,0.15) 0%, transparent 70%)',
+                borderRadius: '50%',
+              }} />
+            </div>
 
-          <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
-            <button
-              onClick={() => setShowAuthModal(true)}
-              className="group flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-4 text-lg font-extrabold text-white shadow-[0_20px_50px_-15px_rgba(37,99,235,0.6)] transition-all hover:bg-blue-500 active:scale-95 md:gap-3 md:px-12 md:py-5 md:text-xl"
-            >
-              무료로 시작하기{' '}
-              <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
-            </button>
+            {/* 하단 문구 */}
             <a
-              href={DOWNLOAD_URL}
-              onClick={() => window.gtag?.('event', 'download', { event_category: 'conversion', event_label: 'windows_download' })}
-              className="group flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/[0.04] px-6 py-4 text-lg font-extrabold text-white backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/10 active:scale-95 md:gap-3 md:px-10 md:py-5 md:text-xl"
+              href="#demo"
+              onClick={e => { e.preventDefault(); document.getElementById('demo')?.scrollIntoView({behavior:'smooth'}) }}
+              className="flex items-center gap-2 text-sm font-bold text-blue-400 transition-colors hover:text-blue-300"
             >
-              <Monitor size={20} /> Windows 다운로드
+              실제 제작된 영상을 확인하세요 ↓
             </a>
           </div>
-          <p className="mt-4 text-sm font-medium text-slate-500 md:text-base">
-            Windows 10/11 · 약 1.9GB · 첫 실행 시 "PC 보호" 경고 발생 →{' '}
-            <span className="text-slate-300">추가 정보 → 실행</span> 클릭
-          </p>
+        </div>
 
-          <div className="mt-16 flex animate-pulse flex-col items-center gap-4 text-sm font-bold tracking-[0.5em] text-slate-500 md:mt-20">
-            <div className="h-12 w-[1px] bg-gradient-to-b from-transparent via-slate-700 to-transparent"></div>
-            <span>SCROLL TO EXPLORE</span>
-          </div>
+        {/* 하단 곡선 웨이브 */}
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]">
+          <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{display:'block', width:'100%', height:'80px'}}>
+            <path d="M0,40 C360,80 1080,0 1440,50 L1440,80 L0,80 Z" fill="#020617" />
+          </svg>
         </div>
       </section>
 
       {/* ── 데모 영상 캐러셀 ── */}
-      <DemoCarousel />
+      <div id="demo">
+        <DemoCarousel />
+      </div>
 
       {/* Stats Section */}
       <section className="relative overflow-hidden bg-[#020617] px-5 py-20 md:px-8 md:py-32">
@@ -1064,6 +1121,27 @@ const FeatureCard = ({ icon, title, description }) => (
     </p>
   </div>
 )
+
+/* ──────────────────────────────────────────────────────
+   히어로 폰 목업 영상 — demo_videos 첫 번째 영상 자동재생
+────────────────────────────────────────────────────── */
+const HeroPhoneVideo = () => {
+  const [url, setUrl] = useState(null)
+  useEffect(() => {
+    supabase.from('demo_videos').select('url').order('sort_order').limit(1)
+      .then(({ data }) => { if (data?.[0]) setUrl(data[0].url) })
+  }, [])
+  return (
+    <div style={{ background: '#0f1120', aspectRatio: '9/16', overflow: 'hidden' }}>
+      {url
+        ? <video src={url} muted loop playsInline autoPlay style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '300px' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '3px solid #3b82f6', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
+          </div>
+      }
+    </div>
+  )
+}
 
 /* ──────────────────────────────────────────────────────
    데모 영상 캐러셀
