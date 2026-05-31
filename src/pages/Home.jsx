@@ -590,8 +590,8 @@ const Home = () => {
               {/* 폰 — 고정 크기 + object-contain 베젤 */}
               <div style={{
                 position: 'relative',
-                width: '280px',
-                height: '560px',
+                width: '260px',
+                height: '533px',
                 overflow: 'hidden',
                 display: 'flex',
                 alignItems: 'center',
@@ -601,7 +601,7 @@ const Home = () => {
                 <div style={{
                   position: 'absolute',
                   inset: 0,
-                  padding: '14px 20px',
+                  padding: '12px 16px',
                   zIndex: 10,
                   background: '#000',
                   borderRadius: '44px',
