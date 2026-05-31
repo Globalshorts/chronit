@@ -8,25 +8,25 @@ const CARDS = [
     emoji: '🚀',
     title: '크로닛 시작하기',
     desc: '설치부터 첫 영상 완성까지\n단계별 가이드',
-    color: 'from-blue-500/20 to-cyan-500/10 border-blue-500/30 hover:border-blue-400/50',
+    color: 'from-blue-50 to-cyan-50 border-blue-200 hover:border-blue-400 bg-white',
     badge: '필수',
-    badgeColor: 'bg-blue-500/20 text-blue-300',
+    badgeColor: 'bg-blue-100 text-blue-600',
   },
   {
     to: '/manual/features',
     emoji: '⚙️',
     title: '필수 기능',
     desc: '자동화 흐름과\n핵심 기능 한눈에 보기',
-    color: 'from-violet-500/20 to-purple-500/10 border-violet-500/30 hover:border-violet-400/50',
+    color: 'from-violet-50 to-purple-50 border-violet-200 hover:border-violet-400 bg-white',
     badge: '추천',
-    badgeColor: 'bg-violet-500/20 text-violet-300',
+    badgeColor: 'bg-violet-100 text-violet-600',
   },
   {
     to: '/manual/tips',
     emoji: '💡',
     title: '꿀팁',
     desc: '더 빠르고 스마트하게\n사용하는 방법',
-    color: 'from-yellow-500/20 to-orange-500/10 border-yellow-500/30 hover:border-yellow-400/50',
+    color: 'from-yellow-50 to-orange-50 border-yellow-200 hover:border-yellow-400 bg-white',
     badge: null,
     badgeColor: '',
   },
@@ -35,7 +35,7 @@ const CARDS = [
     emoji: '❓',
     title: '자주 묻는 질문',
     desc: '사용 중 막힐 때\n바로 찾는 FAQ',
-    color: 'from-slate-500/20 to-slate-600/10 border-slate-500/30 hover:border-slate-400/50',
+    color: 'from-slate-50 to-gray-50 border-slate-200 hover:border-slate-400 bg-white',
     badge: null,
     badgeColor: '',
   },
@@ -44,28 +44,28 @@ const CARDS = [
 const Manual = () => {
   const { pathname } = useLocation()
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#020617] font-sans text-slate-100 selection:bg-blue-500/30">
+    <div className="min-h-screen overflow-x-hidden bg-white font-sans text-gray-900 selection:bg-blue-500/30">
       <ManualHeader currentPath={pathname} />
 
       {/* 히어로 */}
       <section className="relative px-5 pt-32 pb-12 md:px-8 md:pt-48 md:pb-16">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_60%,transparent_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_60%,transparent_100%)]" />
         <div className="relative z-10 mx-auto max-w-4xl text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-1.5 text-sm font-bold text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.15)] md:text-base">
             <Sparkles size={14} fill="currentColor" /> <span>크로닛 사용 매뉴얼</span>
           </div>
-          <h1 className="mb-4 text-4xl font-black tracking-tight md:text-6xl">매뉴얼</h1>
-          <p className="text-lg leading-[1.8] text-slate-400 md:text-xl">설치부터 첫 영상 제작까지, 5분 안에 익히는 크로닛 사용법.</p>
+          <h1 className="mb-4 text-4xl font-black tracking-tight text-gray-900 md:text-6xl">매뉴얼</h1>
+          <p className="text-lg leading-[1.8] text-slate-500 md:text-xl">설치부터 첫 영상 제작까지, 5분 안에 익히는 크로닛 사용법.</p>
         </div>
       </section>
 
       {/* 핵심 안내 배너 */}
       <div className="px-5 pb-10 md:px-8">
-        <div className="mx-auto max-w-3xl rounded-2xl border border-yellow-400/40 bg-gradient-to-r from-yellow-500/15 to-orange-500/10 px-6 py-5">
-          <p className="text-base font-bold text-yellow-100 md:text-lg">
-            ⚡ 링크만 입력하면 영상 1개 완성까지 <span className="text-yellow-300">약 2분</span>, 당신이 할 일은 없습니다.
+        <div className="mx-auto max-w-3xl rounded-2xl border border-yellow-300 bg-gradient-to-r from-yellow-50 to-orange-50 px-6 py-5">
+          <p className="text-base font-bold text-yellow-800 md:text-lg">
+            ⚡ 링크만 입력하면 영상 1개 완성까지 <span className="text-yellow-600">약 2분</span>, 당신이 할 일은 없습니다.
           </p>
-          <p className="mt-1 text-sm text-yellow-200/70 md:text-base">
+          <p className="mt-1 text-sm text-yellow-700 md:text-base">
             단, 처음 한 번만 2·3·4·5단계에서 영상 길이·목소리·자막·썸네일 스타일을 설정해두세요.
           </p>
         </div>
@@ -87,8 +87,8 @@ const Manual = () => {
               )}
               <span className="text-3xl">{card.emoji}</span>
               <div>
-                <h2 className="text-lg font-black text-white">{card.title}</h2>
-                <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-slate-400">{card.desc}</p>
+                <h2 className="text-lg font-black text-gray-900">{card.title}</h2>
+                <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-slate-500">{card.desc}</p>
               </div>
               <div className="mt-auto flex items-center gap-1 text-sm font-bold text-blue-400 transition-gap group-hover:gap-2">
                 바로가기 <ChevronRight size={16} />
@@ -99,7 +99,7 @@ const Manual = () => {
       </section>
 
       <section className="px-5 py-8 text-center md:px-8">
-        <Link to="/" className="group inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-base font-bold text-slate-200 transition-all hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-400 md:text-lg">
+        <Link to="/" className="group inline-flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-3 text-base font-bold text-slate-700 transition-all hover:border-blue-400 hover:text-blue-600 md:text-lg">
           홈으로 돌아가기
         </Link>
       </section>

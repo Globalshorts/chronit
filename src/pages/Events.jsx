@@ -46,16 +46,16 @@ const Events = () => {
   ]
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#020617] font-sans break-keep text-slate-100">
+    <div className="min-h-screen overflow-x-hidden bg-white font-sans break-keep text-gray-900">
 
       {/* 헤더 */}
-      <header className={`fixed top-0 right-0 left-0 z-50 transition-all duration-500 ${scrolled ? 'border-b border-white/10 bg-[#020617]/90 py-3 backdrop-blur-xl md:py-4' : 'bg-transparent py-5 md:py-8'}`}>
+      <header className={`fixed top-0 right-0 left-0 z-50 transition-all duration-500 ${scrolled ? 'border-b border-gray-200 bg-white/90 py-3 backdrop-blur-xl md:py-4' : 'bg-transparent py-5 md:py-8'}`}>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
           <Link to="/" className="flex min-w-0 items-center gap-2 md:gap-3">
             <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-8 w-8 shrink-0 rounded-lg md:h-10 md:w-10" />
-            <h1 className="bg-gradient-to-r from-white to-slate-400 bg-clip-text text-2xl font-black tracking-tighter text-transparent md:text-3xl">Chronit</h1>
+            <h1 className="text-2xl font-black tracking-tighter text-gray-900 md:text-3xl">Chronit</h1>
           </Link>
-          <nav className="hidden gap-12 text-base font-bold tracking-wide text-slate-400 md:flex">
+          <nav className="hidden gap-12 text-base font-bold tracking-wide text-slate-500 md:flex">
             <Link to="/#features" className="uppercase transition-colors hover:text-blue-400">기능</Link>
             <Link to="/manual"    className="uppercase transition-colors hover:text-blue-400">사용 방법</Link>
             <Link to="/#pricing"  className="uppercase transition-colors hover:text-blue-400">요금제</Link>
@@ -69,13 +69,13 @@ const Events = () => {
 
       {/* 히어로 */}
       <section className="relative px-5 pt-32 pb-12 md:px-8 md:pt-48 md:pb-16">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_60%,transparent_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_60%,transparent_100%)]" />
         <div className="relative z-10 mx-auto max-w-4xl text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-1.5 text-sm font-bold text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.15)] md:text-base">
             <Megaphone size={14} /> <span>크로닛 이벤트</span>
           </div>
-          <h1 className="mb-4 text-4xl font-black tracking-tight md:text-6xl">이벤트</h1>
-          <p className="text-lg leading-[1.8] text-slate-400 md:text-xl">크로닛의 다양한 이벤트와 혜택을 확인하세요.</p>
+          <h1 className="mb-4 text-4xl font-black tracking-tight text-gray-900 md:text-6xl">이벤트</h1>
+          <p className="text-lg leading-[1.8] text-slate-500 md:text-xl">크로닛의 다양한 이벤트와 혜택을 확인하세요.</p>
         </div>
       </section>
 
@@ -83,7 +83,7 @@ const Events = () => {
       <section className="px-5 pb-32 md:px-8">
         <div className="mx-auto max-w-4xl">
           {/* 탭 */}
-          <div className="mb-1 flex border-b border-white/10">
+          <div className="mb-1 flex border-b border-gray-200">
             {tabs.map(tab => (
               <button
                 key={tab.key}
@@ -95,7 +95,7 @@ const Events = () => {
                 }`}
               >
                 {tab.label}
-                <span className="ml-1.5 rounded-full bg-white/8 px-1.5 py-0.5 text-xs text-slate-400">
+                <span className="ml-1.5 rounded-full bg-gray-100 px-1.5 py-0.5 text-xs text-slate-500">
                   {events.filter(e => e.status === tab.key).length}
                 </span>
               </button>
@@ -103,7 +103,7 @@ const Events = () => {
           </div>
 
           {/* 목록 */}
-          <div className="divide-y divide-white/6">
+          <div className="divide-y divide-gray-100">
             {loading ? (
               <p className="py-12 text-center text-sm text-slate-600">불러오는 중...</p>
             ) : events.filter(e => e.status === eventTab).length === 0 ? (
@@ -113,10 +113,10 @@ const Events = () => {
                 <button
                   key={ev.id}
                   onClick={() => setSelectedEvent(ev)}
-                  className="flex w-full items-center gap-4 px-2 py-4 text-left transition-colors hover:bg-white/[0.03]"
+                  className="flex w-full items-center gap-4 px-2 py-4 text-left transition-colors hover:bg-gray-50"
                 >
                   <EventBadge status={ev.status} label={ev.label} />
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-200">{ev.title}</span>
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-800">{ev.title}</span>
                   <span className="shrink-0 text-xs text-slate-500">
                     {new Date(ev.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '')}
                   </span>
@@ -134,15 +134,15 @@ const Events = () => {
           onClick={() => setSelectedEvent(null)}
         >
           <div
-            className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl bg-[#0d1526] md:rounded-3xl"
+            className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl bg-white md:rounded-3xl"
             onClick={e => e.stopPropagation()}
           >
-            <div className="sticky top-0 flex items-center justify-between gap-3 border-b border-white/10 bg-[#0d1526]/95 px-6 py-4 backdrop-blur-xl">
+            <div className="sticky top-0 flex items-center justify-between gap-3 border-b border-gray-200 bg-white/95 px-6 py-4 backdrop-blur-xl">
               <div className="flex items-center gap-2 min-w-0">
                 <EventBadge status={selectedEvent.status} label={selectedEvent.label} />
-                <h3 className="truncate text-base font-bold text-slate-100">{selectedEvent.title}</h3>
+                <h3 className="truncate text-base font-bold text-gray-900">{selectedEvent.title}</h3>
               </div>
-              <button onClick={() => setSelectedEvent(null)} className="shrink-0 rounded-full p-1.5 text-slate-400 hover:bg-white/10 hover:text-white">
+              <button onClick={() => setSelectedEvent(null)} className="shrink-0 rounded-full p-1.5 text-slate-400 hover:bg-gray-100 hover:text-gray-700">
                 <X size={18} />
               </button>
             </div>
