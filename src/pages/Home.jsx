@@ -599,10 +599,10 @@ const Home = () => {
                 {/* 1층: 릴스 영상 — 실측 좌표 */}
                 <div style={{
                   position: 'absolute',
-                  top: '17.2%',
-                  left: '33%',
-                  width: '33.6%',
-                  height: '69.4%',
+                  top: '22%',
+                  left: '32.4%',
+                  width: '34.4%',
+                  height: '64.2%',
                   overflow: 'hidden',
                   borderRadius: '8px',
                   zIndex: 10,
