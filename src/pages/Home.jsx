@@ -587,44 +587,48 @@ const Home = () => {
                 <div style={{fontSize: '9px', color: '#27CFFE', marginTop: '3px'}}>인스타그램 업로드...</div>
               </div>
 
-              {/* 폰 — 이미지 500x500 정사각형 기준 */}
+              {/* 폰 — CSS 순수 구현 (아이폰 14 Pro 스타일) */}
               <div style={{
                 position: 'relative',
-                width: '340px',
+                width: '168px',
                 height: '340px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                background: 'linear-gradient(145deg, #2a2a2e, #1a1a1e)',
+                borderRadius: '44px',
+                padding: '10px',
+                boxShadow: '0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.13), inset 0 0 0 1px rgba(255,255,255,0.06)',
               }}>
-                {/* 1층: 릴스 영상 — 실측 좌표 */}
+                {/* 화면 */}
                 <div style={{
-                  position: 'absolute',
-                  top: '22%',
-                  left: '32.4%',
-                  width: '34.4%',
-                  height: '64.2%',
-                  overflow: 'hidden',
-                  borderRadius: '8px',
-                  zIndex: 10,
+                  width: '100%',
+                  height: '100%',
                   background: '#000',
+                  borderRadius: '36px',
+                  overflow: 'hidden',
+                  position: 'relative',
                 }}>
-                  <HeroPhoneVideo />
-                </div>
-                {/* 2층: 투명 폰 베젤 */}
-                <img
-                  src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/phone_frame.png"
-                  alt="폰 베젤"
-                  style={{
+                  {/* 다이나믹 아일랜드 */}
+                  <div style={{
                     position: 'absolute',
-                    inset: 0,
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain',
-                    zIndex: 20,
-                    pointerEvents: 'none',
-                    filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.5))',
-                  }}
-                />
+                    top: '12px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: '72px',
+                    height: '22px',
+                    background: '#000',
+                    borderRadius: '12px',
+                    zIndex: 30,
+                    boxShadow: '0 0 0 2px #1a1a1e',
+                  }} />
+                  {/* 영상 */}
+                  <div style={{ width: '100%', height: '100%' }}>
+                    <HeroPhoneVideo />
+                  </div>
+                </div>
+                {/* 사이드 버튼 */}
+                <div style={{ position: 'absolute', left: '-3px', top: '80px', width: '3px', height: '32px', background: 'rgba(255,255,255,0.15)', borderRadius: '2px 0 0 2px' }} />
+                <div style={{ position: 'absolute', left: '-3px', top: '122px', width: '3px', height: '56px', background: 'rgba(255,255,255,0.15)', borderRadius: '2px 0 0 2px' }} />
+                <div style={{ position: 'absolute', left: '-3px', top: '188px', width: '3px', height: '56px', background: 'rgba(255,255,255,0.15)', borderRadius: '2px 0 0 2px' }} />
+                <div style={{ position: 'absolute', right: '-3px', top: '130px', width: '3px', height: '72px', background: 'rgba(255,255,255,0.15)', borderRadius: '0 2px 2px 0' }} />
               </div>
             </div>
           </div>
