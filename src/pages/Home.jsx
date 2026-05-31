@@ -512,7 +512,7 @@ const Home = () => {
               <Zap size={14} fill="currentColor" /> <span>쇼핑 릴스 자동화 v1.0.1</span>
             </div>
 
-            <h1 className="mb-3 text-4xl font-black leading-tight tracking-tight text-white md:text-5xl lg:text-6xl">
+            <h1 className="mb-3 whitespace-nowrap text-3xl font-black leading-tight tracking-tight text-white md:text-4xl lg:text-5xl">
               클릭에 <span style={{color: '#ff6b00'}}>수익</span>을 입히다,
             </h1>
             <h2 className="mb-6 bg-gradient-to-r from-blue-400 via-white to-indigo-400 bg-clip-text text-5xl font-black tracking-tighter text-transparent md:text-6xl lg:text-7xl">
@@ -548,7 +548,7 @@ const Home = () => {
           </div>
 
           {/* 우측: 스마트폰 목업 + 레이어드 팝업 카드 */}
-          <div className="flex flex-col items-center justify-center gap-4">
+          <div className="flex flex-col items-center justify-center gap-4" style={{marginBottom: '-60px', paddingBottom: '0'}}>
             <div className="relative" style={{width: 'min(280px, 62vw)'}}>
 
               {/* 뒤쪽 팝업 카드 1 — 자동화 완료 알림 */}
@@ -627,10 +627,10 @@ const Home = () => {
           </div>
         </div>
 
-        {/* 하단 곡선 웨이브 */}
-        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]">
-          <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{display:'block', width:'100%', height:'80px'}}>
-            <path d="M0,40 C360,80 1080,0 1440,50 L1440,80 L0,80 Z" fill="#020617" />
+        {/* 하단 곡선 웨이브 — 폰 목업과 겹치도록 */}
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]" style={{zIndex: 20}}>
+          <svg viewBox="0 0 1440 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{display:'block', width:'100%', height:'120px'}}>
+            <path d="M0,60 C480,120 960,0 1440,80 L1440,120 L0,120 Z" fill="#020617" />
           </svg>
         </div>
       </section>
