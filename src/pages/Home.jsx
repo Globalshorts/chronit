@@ -630,7 +630,7 @@ const Home = () => {
           <polygon points="0,80 1440,0 1440,80" fill="white"/>
         </svg>
       </div>
-      <section className="relative bg-[#1e2235] px-5 pt-28 pb-20 md:px-8 md:pt-36 md:pb-32" style={{marginTop:"-80px"}}>
+      <section className="relative bg-[#1e2235] px-5 pt-20 pb-14 md:px-8 md:pt-24 md:pb-20" style={{marginTop:"-80px"}}>
         <div style={{position:"absolute",top:0,left:0,width:"100%",height:"80px",zIndex:1,pointerEvents:"none"}}>
           <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{width:"100%",height:"100%"}}>
             <polygon points="0,0 1440,80 1440,0" fill="white"/>
@@ -695,7 +695,7 @@ const Home = () => {
           <polygon points="0,80 1440,0 1440,80" fill="#1e2235"/>
         </svg>
       </div>
-      <section className="relative bg-white px-5 pt-28 pb-24 md:px-8 md:pt-36 md:pb-48" style={{marginTop:"-80px"}}>
+      <section className="relative bg-white px-5 pt-20 pb-16 md:px-8 md:pt-24 md:pb-28" style={{marginTop:"-80px"}}>
         <div style={{position:"absolute",top:0,left:0,width:"100%",height:"80px",zIndex:1,pointerEvents:"none"}}>
           <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{width:"100%",height:"100%"}}>
             <polygon points="0,0 0,80 1440,0" fill="#1e2235"/>
@@ -737,7 +737,7 @@ const Home = () => {
       </div>
       <section
         id="features"
-        className="relative bg-[#1e2235] px-5 pt-28 pb-24 md:px-8 md:pt-36 md:pb-48" style={{marginTop:"-80px"}}
+        className="relative bg-[#1e2235] px-5 pt-20 pb-16 md:px-8 md:pt-24 md:pb-28" style={{marginTop:"-80px"}}
       >
         <div style={{position:"absolute",top:0,left:0,width:"100%",height:"80px",zIndex:1,pointerEvents:"none"}}>
           <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{width:"100%",height:"100%"}}>
@@ -823,7 +823,7 @@ const Home = () => {
           <polygon points="0,80 1440,0 1440,80" fill="#1e2235"/>
         </svg>
       </div>
-      <section id="pricing" className="relative bg-white px-5 pt-28 pb-24 md:px-8 md:pt-36 md:pb-48" style={{marginTop:"-80px"}}>
+      <section id="pricing" className="relative bg-white px-5 pt-20 pb-16 md:px-8 md:pt-24 md:pb-28" style={{marginTop:"-80px"}}>
         <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-xl md:rounded-[4rem]">
           <div className="relative z-10 p-5 text-center sm:p-8 md:p-32">
             <h2 className="mb-6 text-2xl leading-[1.3] font-black tracking-tight text-slate-900 md:mb-10 md:text-[44px]">
@@ -961,7 +961,7 @@ const Home = () => {
 
       {/* 이벤트 게시판 */}
       {events.length > 0 && (
-        <section id="events" className="bg-white px-5 py-20 md:px-8">
+        <section id="events" className="bg-white px-5 py-12 md:px-8">
           <div className="mx-auto max-w-4xl">
             <h2 className="mb-8 text-2xl font-black tracking-tight text-gray-900">이벤트</h2>
 
@@ -1014,7 +1014,7 @@ const Home = () => {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-gray-200 bg-[#F5F4F0] px-5 py-16 md:px-8 md:py-32">
+      <footer className="border-t border-gray-200 bg-[#F5F4F0] px-5 py-12 md:px-8 md:py-16">
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-12 md:flex-row md:gap-16">
           <div className="max-w-md">
             <div className="mb-6 flex items-center gap-3 md:mb-10">
@@ -1257,7 +1257,7 @@ const DemoCarousel = () => {
   if (!n) return null
 
   return (
-    <section className="relative bg-white pt-56 pb-16 md:pt-64 md:pb-24">
+    <section className="relative bg-white pt-40 pb-10 md:pt-52 md:pb-16">
       <div className="mb-10 text-center md:mb-14">
         <p className="mb-2 text-xs font-bold tracking-[0.3em] text-blue-400 uppercase md:text-sm">DEMO</p>
         <h2 className="text-2xl font-black tracking-tight text-gray-900 md:text-4xl">
