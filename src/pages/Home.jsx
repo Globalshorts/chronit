@@ -548,7 +548,7 @@ const Home = () => {
           </div>
 
           {/* 우측: 스마트폰 목업 + 레이어드 팝업 카드 */}
-          <div className="flex flex-col items-center justify-center gap-4" style={{marginBottom: '-140px', paddingBottom: '0'}}>
+          <div className="flex flex-col items-center justify-center gap-4" style={{marginBottom: '-120px', position: 'relative', zIndex: 30}}>
             <div className="relative" style={{width: 'min(260px, 58vw)', margin: '0 60px'}}>
 
               {/* 팝업 카드 1 — 영상 완성 (폰 왼쪽 앞으로) */}
@@ -663,8 +663,8 @@ const Home = () => {
           </div>
         </div>
 
-        {/* 하단 곡선 웨이브 — 폰 하단 1/3 지점에 겹치도록 */}
-        <div className="absolute left-0 w-full overflow-hidden leading-[0]" style={{bottom: '100px', zIndex: 25}}>
+        {/* 하단 곡선 웨이브 */}
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]" style={{zIndex: 15}}>
           <svg viewBox="0 0 1440 160" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{display:'block', width:'100%', height:'160px'}}>
             <path d="M0,80 C480,160 960,20 1440,100 L1440,160 L0,160 Z" fill="#020617" />
           </svg>
