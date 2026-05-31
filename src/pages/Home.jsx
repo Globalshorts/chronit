@@ -1077,7 +1077,7 @@ const Home = () => {
         </div>
         <div className="mx-auto mt-16 flex max-w-7xl flex-col items-center justify-between gap-6 border-t border-gray-200 pt-8 md:mt-32 md:flex-row md:gap-8 md:pt-10">
           <p className="text-center text-[10px] font-bold tracking-[0.3em] text-slate-400 uppercase md:text-sm md:tracking-[0.4em]">
-            &copy; 2025-2026 Chronit Labs. Crafting Future Efficiency.
+            &copy; 2026 Chronit Labs. Crafting Future Efficiency.
           </p>
           <div className="flex gap-6 md:gap-8">
             <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-gray-200 text-gray-600 transition-all hover:bg-blue-600 hover:text-white">
