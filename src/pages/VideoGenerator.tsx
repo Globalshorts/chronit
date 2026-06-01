@@ -1,10 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+import { supabase } from "../lib/supabase";
 
 const CATEGORIES = ["생활용품", "식품", "전자제품", "패션/의류", "뷰티", "스포츠", "반려동물", "기타"];
 
