@@ -299,26 +299,7 @@ export default function VideoGenerator() {
           {/* ── STAGE 2 ── */}
           <StagePanel n={2} title="영상 선택" subtitle="대본 스타일과 영상 길이를 설정하세요" current={stage}>
             <div className="space-y-6">
-              <div>
-                <label className="mb-3 block text-sm font-bold text-gray-300">대본 스타일</label>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                  {[
-                    { id: "auto", label: "자동 (AI 추천)", desc: "영상 내용에 맞게 자동 선택" },
-                    { id: "energetic", label: "활기찬", desc: "빠르고 강렬한 에너지" },
-                    { id: "calm", label: "차분한", desc: "신뢰감 있는 설명형" },
-                  ].map(s => (
-                    <button key={s.id} onClick={() => setStyleProfileId(s.id)}
-                      className={`rounded-xl border p-4 text-left transition ${
-                        styleProfileId === s.id
-                          ? "border-cyan-500 bg-cyan-500/10"
-                          : "border-gray-700 hover:border-gray-500"
-                      }`}>
-                      <p className={`text-sm font-bold ${styleProfileId === s.id ? "text-cyan-400" : "text-white"}`}>{s.label}</p>
-                      <p className="mt-0.5 text-xs text-gray-500">{s.desc}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <StyleSelector selected={styleProfileId} onSelect={setStyleProfileId} session={session} />
 
               <div>
                 <label className="mb-3 block text-sm font-bold text-gray-300">영상 길이</label>
@@ -694,6 +675,109 @@ function JobCard({ job }: { job: Job }) {
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent shrink-0" />
         )}
       </div>
+    </div>
+  );
+}
+
+// ── StyleSelector ─────────────────────────────────────────────
+type StyleProfile = {
+  id: string; label: string;
+  source_channel: string; source_title: string;
+  tone?: { speaker?: string; signatures?: string[] };
+  structure?: { hook?: string };
+};
+
+function StyleSelector({ selected, onSelect, session }: {
+  selected: string;
+  onSelect: (id: string) => void;
+  session: Session | null;
+}) {
+  const [profiles, setProfiles]   = useState<StyleProfile[]>([]);
+  const [loading, setLoading]     = useState(false);
+
+  useEffect(() => {
+    if (!session) return;
+    setLoading(true);
+    fetch(FN("get-style-profiles"), {
+      headers: { "Authorization": `Bearer ${session.access_token}` },
+    })
+      .then(r => r.json())
+      .then(d => { if (d.ok) setProfiles(d.profiles ?? []); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [session]);
+
+  const selectedProfile = profiles.find(p => p.id === selected);
+
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between">
+        <label className="text-sm font-bold text-gray-300">대본 스타일</label>
+        {loading && <span className="text-xs text-gray-500">불러오는 중...</span>}
+      </div>
+
+      {/* 자동 선택 옵션 */}
+      <div className="grid grid-cols-1 gap-2 mb-3">
+        <button onClick={() => onSelect("auto")}
+          className={`rounded-xl border p-3 text-left transition ${
+            selected === "auto" ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"
+          }`}>
+          <p className={`text-sm font-bold ${selected === "auto" ? "text-cyan-400" : "text-white"}`}>
+            ✨ 자동 (AI 추천)
+          </p>
+          <p className="text-xs text-gray-500 mt-0.5">영상 내용에 맞게 자동으로 스타일 결정</p>
+        </button>
+      </div>
+
+      {/* 내 스타일 라이브러리 */}
+      {profiles.length > 0 && (
+        <div>
+          <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">내 스타일 라이브러리</p>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 max-h-64 overflow-y-auto pr-1">
+            {profiles.map(p => (
+              <button key={p.id} onClick={() => onSelect(p.id)}
+                className={`rounded-xl border p-3 text-left transition ${
+                  selected === p.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"
+                }`}>
+                <div className="flex items-start justify-between gap-2">
+                  <p className={`text-sm font-bold truncate ${selected === p.id ? "text-cyan-400" : "text-white"}`}>
+                    📌 {p.label || "(이름 없음)"}
+                  </p>
+                  {selected === p.id && (
+                    <span className="shrink-0 text-xs text-cyan-400 font-bold">선택됨</span>
+                  )}
+                </div>
+                {p.source_channel && (
+                  <p className="text-xs text-gray-500 mt-0.5">@{p.source_channel}</p>
+                )}
+                {p.tone?.signatures?.length ? (
+                  <p className="text-xs text-gray-600 mt-1 truncate">
+                    {p.tone.signatures.slice(0, 3).join(" · ")}
+                  </p>
+                ) : p.structure?.hook ? (
+                  <p className="text-xs text-gray-600 mt-1 truncate">{p.structure.hook}</p>
+                ) : null}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!loading && profiles.length === 0 && (
+        <div className="rounded-xl border border-dashed border-gray-700 p-4 text-center">
+          <p className="text-sm text-gray-500">저장된 스타일이 없습니다</p>
+          <p className="text-xs text-gray-600 mt-1">앱의 <span className="text-gray-400 font-bold">스타일 찾기</span> 탭에서 스타일을 저장하면 여기에 표시됩니다</p>
+        </div>
+      )}
+
+      {/* 선택된 스타일 미리보기 */}
+      {selectedProfile && (
+        <div className="mt-3 rounded-xl bg-gray-800 p-3 text-xs text-gray-400 space-y-1">
+          {selectedProfile.tone?.speaker && <p>화자: <span className="text-gray-200">{selectedProfile.tone.speaker}</span></p>}
+          {selectedProfile.structure?.hook && <p>훅: <span className="text-gray-200">{selectedProfile.structure.hook}</span></p>}
+          {selectedProfile.source_title && <p>원본: <span className="text-gray-200">{selectedProfile.source_title}</span></p>}
+        </div>
+      )}
     </div>
   );
 }
