@@ -625,16 +625,19 @@ function proxyThumb(url: string) {
 
 function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean; onToggle: () => void }) {
   const [imgError, setImgError] = useState(false);
-  const thumbSrc = !imgError && clip.thumbnail_url ? proxyThumb(clip.thumbnail_url) : "";
+  const thumbSrc = !imgError && clip.thumbnail_url
+    ? `https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/thumbnail-proxy?url=${encodeURIComponent(clip.thumbnail_url)}`
+    : "";
   return (
     <div onClick={onToggle} className={`relative cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
       selected ? "border-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.3)]" : "border-gray-700 hover:border-gray-500"
     }`}>
       <div className="aspect-[9/16] bg-gray-800 relative">
-        {thumbSrc
-          ? <img src={thumbSrc} alt={clip.title} onError={() => setImgError(true)} className="w-full h-full object-cover" />
-          : <div className="w-full h-full flex items-center justify-center text-3xl text-gray-600">🎬</div>
-        }
+        {thumbSrc ? (
+          <img src={thumbSrc} alt={clip.title} onError={() => setImgError(true)} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-3xl text-gray-600">🎬</div>
+        )}
         {clip.duration > 0 && (
           <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1 py-0.5 text-xs text-white font-bold">{clip.duration}s</div>
         )}
