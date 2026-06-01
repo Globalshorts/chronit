@@ -21,7 +21,7 @@ type Job = {
 };
 
 export default function VideoGenerator() {
-  const [productUrl, setProductUrl]   = useState("");
+  const [sourceUrl, setSourceUrl]     = useState("");
   const [productName, setProductName] = useState("");
   const [category, setCategory]       = useState("기타");
   const [caseB, setCaseB]             = useState(false);
@@ -30,7 +30,6 @@ export default function VideoGenerator() {
   const [jobs, setJobs]               = useState<Job[]>([]);
   const [balance, setBalance]         = useState<number | null>(null);
 
-  // 내 job 목록 + 잔액 로드
   const loadJobs = useCallback(async () => {
     const { data } = await supabase
       .from("video_jobs")
@@ -49,7 +48,6 @@ export default function VideoGenerator() {
     loadJobs();
     loadBalance();
 
-    // Realtime 구독 — job 상태 변경 즉시 반영
     const channel = supabase
       .channel("video_jobs_changes")
       .on(
@@ -64,8 +62,15 @@ export default function VideoGenerator() {
 
   const handleSubmit = async () => {
     setError("");
-    if (!productUrl.trim()) {
-      setError("쿠팡 상품 링크를 입력해주세요");
+    if (!sourceUrl.trim()) {
+      setError("쇼핑 릴스 또는 쇼츠 URL을 입력해주세요");
+      return;
+    }
+    // URL 형식 간단 검증
+    const urlLower = sourceUrl.toLowerCase();
+    const validPlatforms = ["instagram.com", "youtube.com", "youtu.be", "tiktok.com"];
+    if (!validPlatforms.some((p) => urlLower.includes(p))) {
+      setError("Instagram, YouTube Shorts, TikTok URL을 입력해주세요");
       return;
     }
 
@@ -83,7 +88,7 @@ export default function VideoGenerator() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            product_url: productUrl.trim(),
+            source_url: sourceUrl.trim(),   // ← 변경: product_url → source_url
             product_name: productName.trim(),
             category,
             case_b: caseB,
@@ -97,8 +102,7 @@ export default function VideoGenerator() {
         return;
       }
 
-      // 입력 초기화
-      setProductUrl("");
+      setSourceUrl("");
       setProductName("");
       setBalance(result.balance ?? null);
       await loadJobs();
@@ -114,10 +118,9 @@ export default function VideoGenerator() {
     <div className="mx-auto max-w-3xl px-4 py-10">
       <h1 className="mb-2 text-2xl font-black text-gray-900">영상 생성</h1>
       <p className="mb-8 text-sm text-gray-500">
-        쿠팡 상품 링크를 넣으면 AI가 2분 만에 숏폼 릴스를 만들어드립니다.
+        쇼핑 릴스나 쇼츠 URL을 넣으면 AI가 같은 상품의 리뷰 숏폼 영상을 만들어드립니다.
       </p>
 
-      {/* 크레딧 잔액 */}
       {balance !== null && (
         <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2 text-sm font-bold text-blue-700">
           💎 잔여 크레딧: {balance.toLocaleString()}
@@ -125,19 +128,21 @@ export default function VideoGenerator() {
         </div>
       )}
 
-      {/* 입력 폼 */}
       <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="mb-4">
           <label className="mb-1.5 block text-sm font-bold text-gray-700">
-            쿠팡 상품 링크 *
+            쇼핑 릴스 / 쇼츠 URL *
           </label>
           <input
             type="url"
-            value={productUrl}
-            onChange={(e) => setProductUrl(e.target.value)}
-            placeholder="https://link.coupang.com/a/..."
+            value={sourceUrl}
+            onChange={(e) => setSourceUrl(e.target.value)}
+            placeholder="https://www.instagram.com/reel/... 또는 https://youtube.com/shorts/..."
             className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
+          <p className="mt-1 text-xs text-gray-400">
+            Instagram Reels · YouTube Shorts · TikTok 지원
+          </p>
         </div>
 
         <div className="mb-4">
@@ -148,7 +153,7 @@ export default function VideoGenerator() {
             type="text"
             value={productName}
             onChange={(e) => setProductName(e.target.value)}
-            placeholder="예: 청소기, 에어팟, 운동화..."
+            placeholder="예: 무선 청소기, 에어팟, 운동화..."
             className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
@@ -194,7 +199,6 @@ export default function VideoGenerator() {
         </button>
       </div>
 
-      {/* 생성 내역 */}
       <h2 className="mb-4 text-lg font-black text-gray-900">생성 내역</h2>
       {jobs.length === 0 ? (
         <p className="text-sm text-gray-400">아직 생성된 영상이 없습니다.</p>
@@ -256,7 +260,6 @@ function JobCard({ job }: { job: Job }) {
         )}
       </div>
 
-      {/* 영상 미리보기 */}
       {job.status === "done" && job.video_url && (
         <div className="mt-4">
           <video
