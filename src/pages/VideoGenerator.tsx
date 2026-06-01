@@ -88,7 +88,7 @@ export default function VideoGenerator() {
       if (!session) { setError("로그인이 필요합니다"); return; }
 
       const resp = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-video`,
+        `https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/generate-video`,
         {
           method: "POST",
           headers: {
