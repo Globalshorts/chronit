@@ -623,19 +623,64 @@ function proxyThumb(url: string) {
   return ;
 }
 
+// ── 클립 미리보기 모달 ──────────────────────────────────────
+function ClipPreviewModal({ clip, selected, onClose, onToggle }: {
+  clip: Clip; selected: boolean; onClose: () => void; onToggle: () => void;
+}) {
+  const embedUrl = clip.video_id ? `https://www.tiktok.com/embed/v2/${clip.video_id}` : "";
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+      onClick={onClose}>
+      <div className="relative flex gap-4 items-start" onClick={e => e.stopPropagation()}>
+        {/* 영상 embed */}
+        <div className="rounded-2xl overflow-hidden bg-black" style={{ width: 320, height: 568 }}>
+          {embedUrl ? (
+            <iframe src={embedUrl} width="320" height="568"
+              style={{ border: "none" }} allowFullScreen allow="autoplay" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-500">재생 불가</div>
+          )}
+        </div>
+        {/* 오른쪽 액션 */}
+        <div className="flex flex-col gap-3 pt-2">
+          <button onClick={onClose}
+            className="rounded-full bg-gray-800 border border-gray-700 h-10 w-10 flex items-center justify-center text-white hover:bg-gray-700 transition">
+            ✕
+          </button>
+          <button onClick={() => { onToggle(); onClose(); }}
+            className={`rounded-2xl px-5 py-3 text-sm font-black transition ${
+              selected
+                ? "bg-red-500/20 border-2 border-red-500 text-red-400 hover:bg-red-500/30"
+                : "bg-cyan-500 text-white hover:bg-cyan-400"
+            }`}>
+            {selected ? "− 빼기" : "+ 담기"}
+          </button>
+          {clip.page_url && (
+            <a href={clip.page_url} target="_blank" rel="noopener"
+              className="rounded-2xl border border-gray-700 px-4 py-2.5 text-xs text-gray-400 hover:text-white text-center transition">
+              TikTok 열기
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean; onToggle: () => void }) {
   const [imgError, setImgError] = useState(false);
+  const [preview, setPreview] = useState(false);
   const thumbSrc = !imgError && clip.thumbnail_url
     ? `https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/thumbnail-proxy?url=${encodeURIComponent(clip.thumbnail_url)}`
     : "";
 
-  const handlePlayClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // 담기 토글 방지
-    if (clip.page_url) window.open(clip.page_url, "_blank");
-  };
-
   return (
-    <div onClick={onToggle} className={`relative cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
+    <>
+      {preview && (
+        <ClipPreviewModal clip={clip} selected={selected}
+          onClose={() => setPreview(false)} onToggle={onToggle} />
+      )}
+    <div onClick={() => setPreview(true)} className={`relative cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
       selected ? "border-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.3)]" : "border-gray-700 hover:border-gray-500"
     }`}>
       <div className="aspect-[9/16] bg-gray-800 relative">
@@ -644,11 +689,8 @@ function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean;
         ) : (
           <div className="w-full h-full flex items-center justify-center text-3xl text-gray-600">🎬</div>
         )}
-        {/* 재생 버튼 — 호버 시 표시, 클릭 시 새 탭으로 TikTok 열기 */}
-        <div
-          onClick={handlePlayClick}
-          className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 bg-black/40 transition-opacity"
-        >
+        {/* 호버 시 재생 아이콘 */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 bg-black/40 transition-opacity">
           <div className="rounded-full bg-white/90 h-12 w-12 flex items-center justify-center shadow-lg">
             <span className="text-black text-xl ml-1">▶</span>
           </div>
@@ -672,6 +714,7 @@ function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean;
         </div>
       )}
     </div>
+    </>
   );
 }
 
