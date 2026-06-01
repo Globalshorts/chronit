@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import VideoGenerator from './pages/VideoGenerator'
 import Home from './pages/Home'
 import Manual from './pages/Manual'
 import ManualDetail from './pages/ManualDetail'
@@ -25,6 +26,7 @@ const App = () => (
       <Route path="/terms" element={<Terms />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/admin" element={<Admin />} />
+      <Route path="/generate" element={<VideoGenerator />} />
     </Routes>
   </BrowserRouter>
 )

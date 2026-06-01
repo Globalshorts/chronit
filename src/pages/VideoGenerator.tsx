@@ -1,0 +1,272 @@
+import { useState, useEffect, useCallback } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+
+const CATEGORIES = ["생활용품", "식품", "전자제품", "패션/의류", "뷰티", "스포츠", "반려동물", "기타"];
+
+type Job = {
+  id: string;
+  status: "pending" | "processing" | "done" | "error";
+  product_url: string;
+  product_name: string;
+  category: string;
+  video_url: string;
+  error_message: string;
+  created_at: string;
+  credits_used: number;
+};
+
+export default function VideoGenerator() {
+  const [productUrl, setProductUrl]   = useState("");
+  const [productName, setProductName] = useState("");
+  const [category, setCategory]       = useState("기타");
+  const [caseB, setCaseB]             = useState(false);
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState("");
+  const [jobs, setJobs]               = useState<Job[]>([]);
+  const [balance, setBalance]         = useState<number | null>(null);
+
+  // 내 job 목록 + 잔액 로드
+  const loadJobs = useCallback(async () => {
+    const { data } = await supabase
+      .from("video_jobs")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (data) setJobs(data as Job[]);
+  }, []);
+
+  const loadBalance = useCallback(async () => {
+    const { data } = await supabase.rpc("get_my_balance_rpc").single();
+    if (data?.balance !== undefined) setBalance(data.balance);
+  }, []);
+
+  useEffect(() => {
+    loadJobs();
+    loadBalance();
+
+    // Realtime 구독 — job 상태 변경 즉시 반영
+    const channel = supabase
+      .channel("video_jobs_changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "video_jobs" },
+        () => { loadJobs(); loadBalance(); }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [loadJobs, loadBalance]);
+
+  const handleSubmit = async () => {
+    setError("");
+    if (!productUrl.trim()) {
+      setError("쿠팡 상품 링크를 입력해주세요");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { setError("로그인이 필요합니다"); return; }
+
+      const resp = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-video`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            product_url: productUrl.trim(),
+            product_name: productName.trim(),
+            category,
+            case_b: caseB,
+          }),
+        }
+      );
+
+      const result = await resp.json();
+      if (!result.ok) {
+        setError(result.error ?? "요청 실패");
+        return;
+      }
+
+      // 입력 초기화
+      setProductUrl("");
+      setProductName("");
+      setBalance(result.balance ?? null);
+      await loadJobs();
+
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="mx-auto max-w-3xl px-4 py-10">
+      <h1 className="mb-2 text-2xl font-black text-gray-900">영상 생성</h1>
+      <p className="mb-8 text-sm text-gray-500">
+        쿠팡 상품 링크를 넣으면 AI가 2분 만에 숏폼 릴스를 만들어드립니다.
+      </p>
+
+      {/* 크레딧 잔액 */}
+      {balance !== null && (
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2 text-sm font-bold text-blue-700">
+          💎 잔여 크레딧: {balance.toLocaleString()}
+          <span className="font-normal text-blue-500">(영상 1개 = 100 크레딧)</span>
+        </div>
+      )}
+
+      {/* 입력 폼 */}
+      <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="mb-4">
+          <label className="mb-1.5 block text-sm font-bold text-gray-700">
+            쿠팡 상품 링크 *
+          </label>
+          <input
+            type="url"
+            value={productUrl}
+            onChange={(e) => setProductUrl(e.target.value)}
+            placeholder="https://link.coupang.com/a/..."
+            className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="mb-1.5 block text-sm font-bold text-gray-700">
+            상품명 <span className="font-normal text-gray-400">(없으면 자동 추출)</span>
+          </label>
+          <input
+            type="text"
+            value={productName}
+            onChange={(e) => setProductName(e.target.value)}
+            placeholder="예: 청소기, 에어팟, 운동화..."
+            className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          />
+        </div>
+
+        <div className="mb-6 grid grid-cols-2 gap-4">
+          <div>
+            <label className="mb-1.5 block text-sm font-bold text-gray-700">카테고리</label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-blue-500"
+            >
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-end pb-0.5">
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={caseB}
+                onChange={(e) => setCaseB(e.target.checked)}
+                className="h-4 w-4 rounded"
+              />
+              <span className="text-sm font-medium text-gray-700">짧은 컷 편집 (Case B)</span>
+            </label>
+          </div>
+        </div>
+
+        {error && (
+          <div className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+            {error}
+          </div>
+        )}
+
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-4 text-base font-extrabold text-white shadow-lg transition hover:from-blue-500 hover:to-indigo-500 disabled:opacity-60"
+        >
+          {loading ? "요청 중..." : "🎬 영상 생성하기 (100 크레딧)"}
+        </button>
+      </div>
+
+      {/* 생성 내역 */}
+      <h2 className="mb-4 text-lg font-black text-gray-900">생성 내역</h2>
+      {jobs.length === 0 ? (
+        <p className="text-sm text-gray-400">아직 생성된 영상이 없습니다.</p>
+      ) : (
+        <div className="space-y-3">
+          {jobs.map((job) => (
+            <JobCard key={job.id} job={job} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function JobCard({ job }: { job: Job }) {
+  const statusConfig = {
+    pending:    { label: "대기 중",   color: "bg-yellow-100 text-yellow-700", icon: "⏳" },
+    processing: { label: "생성 중",   color: "bg-blue-100 text-blue-700",    icon: "🎬" },
+    done:       { label: "완료",      color: "bg-green-100 text-green-700",  icon: "✅" },
+    error:      { label: "오류",      color: "bg-red-100 text-red-700",      icon: "❌" },
+  };
+  const s = statusConfig[job.status];
+
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="mb-1 flex items-center gap-2">
+            <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${s.color}`}>
+              {s.icon} {s.label}
+            </span>
+            <span className="text-xs text-gray-400">{job.category}</span>
+          </div>
+          <p className="truncate text-sm font-medium text-gray-800">
+            {job.product_name || job.product_url}
+          </p>
+          <p className="mt-0.5 text-xs text-gray-400">
+            {new Date(job.created_at).toLocaleString("ko-KR")} · {job.credits_used} 크레딧
+          </p>
+          {job.status === "error" && job.error_message && (
+            <p className="mt-1 text-xs text-red-500">{job.error_message}</p>
+          )}
+        </div>
+
+        {job.status === "done" && job.video_url && (
+          <a
+            href={job.video_url}
+            download
+            className="shrink-0 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-blue-500"
+          >
+            다운로드
+          </a>
+        )}
+
+        {(job.status === "pending" || job.status === "processing") && (
+          <div className="shrink-0">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+          </div>
+        )}
+      </div>
+
+      {/* 영상 미리보기 */}
+      {job.status === "done" && job.video_url && (
+        <div className="mt-4">
+          <video
+            src={job.video_url}
+            controls
+            className="w-full max-w-xs rounded-xl"
+            style={{ aspectRatio: "9/16", maxHeight: "320px" }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
