@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabase";
+import type { Session } from "@supabase/supabase-js";
 
 const CATEGORIES = ["생활용품", "식품", "전자제품", "패션/의류", "뷰티", "스포츠", "반려동물", "기타"];
 
@@ -16,6 +17,8 @@ type Job = {
 };
 
 export default function VideoGenerator() {
+  const [session, setSession]         = useState<Session | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [sourceUrl, setSourceUrl]     = useState("");
   const [productName, setProductName] = useState("");
   const [category, setCategory]       = useState("기타");
@@ -40,6 +43,16 @@ export default function VideoGenerator() {
   }, []);
 
   useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setAuthLoading(false);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, s) => setSession(s));
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!session) return;
     loadJobs();
     loadBalance();
 
@@ -108,6 +121,25 @@ export default function VideoGenerator() {
       setLoading(false);
     }
   };
+
+  if (authLoading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+    </div>
+  );
+
+  if (!session) return (
+    <div className="flex flex-col items-center justify-center min-h-screen gap-6">
+      <h1 className="text-2xl font-black text-gray-900">로그인이 필요합니다</h1>
+      <p className="text-gray-500">영상 생성 기능을 사용하려면 로그인해주세요.</p>
+      <button
+        onClick={() => supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.href } })}
+        className="rounded-xl bg-blue-600 px-6 py-3 font-bold text-white hover:bg-blue-500"
+      >
+        Google로 로그인
+      </button>
+    </div>
+  );
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
