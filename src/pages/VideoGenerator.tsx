@@ -643,97 +643,60 @@ function proxyThumb(url: string) {
 // ── 클립 미리보기 모달 ──────────────────────────────────────
 
 
-function ClipPreviewModal({ clip, selected, onClose, onToggle }: {
-  clip: Clip; selected: boolean; onClose: () => void; onToggle: () => void;
-}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-      onClick={onClose}>
-      <div className="relative flex gap-4 items-start" onClick={e => e.stopPropagation()}>
-        {/* 영상 직접 재생 (download_url mp4) */}
-        <div className="rounded-2xl overflow-hidden bg-black" style={{ width: 320, height: 568 }}>
-          {clip.download_url ? (
-            <video src={clip.download_url} controls autoPlay playsInline muted={false}
-              style={{ width: 320, height: 568, objectFit: "cover" }} />
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center gap-3 p-6 text-center">
-              <span className="text-3xl">🔒</span>
-              <p className="text-gray-400 text-sm">재생 URL이 없습니다.</p>
-              {clip.page_url && (
-                <a href={clip.page_url} target="_blank" rel="noopener"
-                  className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-400 transition">
-                  TikTok에서 보기 →
-                </a>
-              )}
-            </div>
-          )}
-        </div>
-        {/* 오른쪽 액션 */}
-        <div className="flex flex-col gap-3 pt-2">
-          <button onClick={onClose}
-            className="rounded-full bg-gray-800 border border-gray-700 h-10 w-10 flex items-center justify-center text-white hover:bg-gray-700 transition">
-            ✕
-          </button>
-          <button onClick={() => { onToggle(); onClose(); }}
-            className={`rounded-2xl px-5 py-3 text-sm font-black transition ${
-              selected
-                ? "bg-red-500/20 border-2 border-red-500 text-red-400 hover:bg-red-500/30"
-                : "bg-cyan-500 text-white hover:bg-cyan-400"
-            }`}>
-            {selected ? "− 빼기" : "+ 담기"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean; onToggle: () => void }) {
   const [imgError, setImgError] = useState(false);
-  const [preview, setPreview] = useState(false);
+  const [playing, setPlaying] = useState(false);
   const thumbSrc = !imgError && clip.thumbnail_url ? clip.thumbnail_url : "";
 
   return (
-    <>
-      {preview && (
-        <ClipPreviewModal clip={clip} selected={selected}
-          onClose={() => setPreview(false)} onToggle={onToggle} />
-      )}
-    <div onClick={() => setPreview(true)} className={`relative cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
+    <div className={`relative rounded-xl overflow-hidden border-2 transition-all ${
       selected ? "border-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.3)]" : "border-gray-700 hover:border-gray-500"
     }`}>
-      <div className="aspect-[9/16] bg-gray-800 relative">
-        {thumbSrc ? (
-          <img src={thumbSrc} alt={clip.title} onError={() => setImgError(true)} className="w-full h-full object-cover" />
+      <div className="aspect-[9/16] bg-gray-800 relative cursor-pointer"
+        onClick={() => clip.download_url ? setPlaying(p => !p) : undefined}>
+        {playing && clip.download_url ? (
+          <video src={clip.download_url} autoPlay playsInline controls={false}
+            className="w-full h-full object-cover"
+            onClick={e => { e.stopPropagation(); setPlaying(false); }} />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-3xl text-gray-600">🎬</div>
+          <>
+            {thumbSrc ? (
+              <img src={thumbSrc} alt={clip.title} onError={() => setImgError(true)} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-3xl text-gray-600">🎬</div>
+            )}
+            {/* 재생 아이콘 오버레이 */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 bg-black/40 transition-opacity">
+              <div className="rounded-full bg-white/90 h-12 w-12 flex items-center justify-center shadow-lg">
+                <span className="text-black text-xl ml-1">▶</span>
+              </div>
+            </div>
+          </>
         )}
-        {/* 호버 시 재생 아이콘 */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 bg-black/40 transition-opacity">
-          <div className="rounded-full bg-white/90 h-12 w-12 flex items-center justify-center shadow-lg">
-            <span className="text-black text-xl ml-1">▶</span>
-          </div>
-        </div>
-        {clip.duration > 0 && (
+        {clip.duration > 0 && !playing && (
           <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1 py-0.5 text-xs text-white font-bold">{clip.duration}s</div>
         )}
-        <div className={`absolute inset-0 flex items-center justify-center transition-opacity ${
-          selected ? "opacity-100 bg-cyan-500/20" : "opacity-0 hover:opacity-100 bg-black/30"
-        }`}>
-          <span className="text-2xl">{selected ? "✅" : "➕"}</span>
-        </div>
+        {selected && (
+          <div className="absolute top-1.5 left-1.5 h-5 w-5 rounded-full bg-cyan-500 flex items-center justify-center">
+            <span className="text-white text-xs font-black">✓</span>
+          </div>
+        )}
       </div>
-      <div className="p-1.5 bg-gray-900">
-        <p className="text-xs text-white font-medium line-clamp-1">{clip.title || "(제목 없음)"}</p>
-        <p className="text-xs text-gray-500">@{clip.author || "?"}</p>
-      </div>
-      {selected && (
-        <div className="absolute top-1.5 left-1.5 h-5 w-5 rounded-full bg-cyan-500 flex items-center justify-center">
-          <span className="text-white text-xs font-black">✓</span>
+      <div className="p-1.5 bg-gray-900 flex items-center justify-between gap-1">
+        <div className="min-w-0">
+          <p className="text-xs text-white font-medium line-clamp-1">{clip.title || "(제목 없음)"}</p>
+          <p className="text-xs text-gray-500">@{clip.author || "?"}</p>
         </div>
-      )}
+        <button onClick={e => { e.stopPropagation(); onToggle(); }}
+          className={`shrink-0 rounded-lg px-2 py-1 text-xs font-black transition ${
+            selected
+              ? "bg-red-500/20 border border-red-500 text-red-400 hover:bg-red-500/30"
+              : "bg-cyan-500 text-white hover:bg-cyan-400"
+          }`}>
+          {selected ? "빼기" : "담기"}
+        </button>
+      </div>
     </div>
-    </>
   );
 }
 
