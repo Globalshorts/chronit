@@ -135,7 +135,7 @@ export default function VideoGenerator() {
       // Step 1: 영상 분석 + TikTok 검색 (search-clips, ~60초)
       const resp1 = await fetch(FN("search-clips"), {
         method: "POST", headers,
-        body: JSON.stringify({ source_url: sourceUrl.trim(), clip_count: 20 }),
+        body: JSON.stringify({ source_url: sourceUrl.trim(), clip_count: 80 }),
       });
       const data1 = await resp1.json();
       if (!data1.ok) { setSearchError(data1.error ?? "분석 실패"); return; }
@@ -150,7 +150,7 @@ export default function VideoGenerator() {
       // Step 2: CLIP filter (clip-filter, ~60초)
       const resp2 = await fetch(FN("clip-filter"), {
         method: "POST", headers,
-        body: JSON.stringify({ reference_frames: refFrames, candidates: rawClips, clip_count: 20 }),
+        body: JSON.stringify({ reference_frames: refFrames, candidates: rawClips, clip_count: 80 }),
       });
       const data2 = await resp2.json();
       const finalClips: Clip[] = data2.ok ? (data2.clips ?? rawClips) : rawClips.slice(0, 20);
