@@ -645,17 +645,28 @@ function ClipPreviewModal({ clip, selected, onClose, onToggle }: {
   clip: Clip; selected: boolean; onClose: () => void; onToggle: () => void;
 }) {
   const embedUrl = clip.video_id ? `https://www.tiktok.com/embed/v2/${clip.video_id}` : "";
+  const [embedFailed, setEmbedFailed] = useState(false);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
       onClick={onClose}>
       <div className="relative flex gap-4 items-start" onClick={e => e.stopPropagation()}>
         {/* 영상 embed */}
-        <div className="rounded-2xl overflow-hidden bg-black" style={{ width: 320, height: 568 }}>
-          {embedUrl ? (
+        <div className="rounded-2xl overflow-hidden bg-black flex flex-col items-center justify-center" style={{ width: 320, height: 568 }}>
+          {embedUrl && !embedFailed ? (
             <iframe src={embedUrl} width="320" height="568"
-              style={{ border: "none" }} allowFullScreen allow="autoplay" />
+              style={{ border: "none" }} allowFullScreen allow="autoplay"
+              onError={() => setEmbedFailed(true)} />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-500">재생 불가</div>
+            <div className="flex flex-col items-center gap-3 p-6 text-center">
+              <span className="text-3xl">🔒</span>
+              <p className="text-gray-400 text-sm">TikTok에서 embed가 차단된 영상입니다.</p>
+              {clip.page_url && (
+                <a href={clip.page_url} target="_blank" rel="noopener"
+                  className="mt-1 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-400 transition">
+                  TikTok에서 보기 →
+                </a>
+              )}
+            </div>
           )}
         </div>
         {/* 오른쪽 액션 */}
