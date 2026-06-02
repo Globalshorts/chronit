@@ -351,7 +351,29 @@ export default function VideoGenerator() {
           </button>
         </div>
 
-        <div className="mt-8 space-y-0">
+        <div className="mt-8 flex gap-6">
+          {/* ── 왼쪽: 프로젝트 목록 ── */}
+          <div className="w-52 shrink-0 hidden lg:block">
+            <ProjectSidebar
+              current={{ stage, sourceUrl, clips, cart: [...cart], script, targetSeconds, styleProfileId, subtitleStyle, thumbnailStyle, showThumbnail, voiceId, voiceSpeed }}
+              onLoad={(d: any) => {
+                if (d.sourceUrl) setSourceUrl(d.sourceUrl);
+                if (d.clips?.length) setClips(d.clips);
+                if (d.cart?.length) setCart(new Set(d.cart));
+                if (d.script) setScript(d.script);
+                if (d.targetSeconds) setTargetSeconds(d.targetSeconds);
+                if (d.styleProfileId) setStyleProfileId(d.styleProfileId);
+                if (d.subtitleStyle) setSubtitleStyle(d.subtitleStyle);
+                if (d.thumbnailStyle) setThumbnailStyle(d.thumbnailStyle);
+                if (d.showThumbnail !== undefined) setShowThumbnail(d.showThumbnail);
+                if (d.voiceId) setVoiceId(d.voiceId);
+                if (d.voiceSpeed) setVoiceSpeed(d.voiceSpeed);
+                if (d.stage) setStage(d.stage);
+              }}
+            />
+          </div>
+          {/* ── 오른쪽: 스테이지 ── */}
+          <div className="flex-1 min-w-0 space-y-0">
 
           {/* ── STAGE 1 ── */}
           <StagePanel n={1} title="영상 분석" subtitle="URL 입력 → 관련 TikTok 클립 검색 → 담기" current={stage}>
@@ -619,6 +641,7 @@ export default function VideoGenerator() {
             </div>
           </StagePanel>
 
+          </div>
         </div>
 
         {/* 이전 내역 */}
@@ -679,303 +702,276 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
 }) {
   const [tab, setTab] = useState<"subtitle"|"thumbnail">("subtitle");
   const [frameIdx, setFrameIdx] = useState(0);
-  const activeStyle = tab === "subtitle" ? subtitleStyle : thumbnailStyle;
-  const setActive = tab === "subtitle" ? setSubtitleStyle : setThumbnailStyle;
-  const set = (k: keyof SubtitleStyle, v: any) => setActive({ ...activeStyle, [k]: v });
 
-  const previewText = "와, 드디어";
+  const s = tab === "subtitle" ? subtitleStyle : thumbnailStyle;
+  const setS = tab === "subtitle" ? setSubtitleStyle : setThumbnailStyle;
+  const upd = (k: keyof SubtitleStyle, v: any) => setS({ ...s, [k]: v });
+
   const frame = previewFrames[frameIdx] || "";
+  const previewText = "와, 드디어";
 
-  const makeStyle = (s: SubtitleStyle): React.CSSProperties => ({
-    fontFamily: s.fontFamily,
-    color: s.color,
-    fontSize: s.fontSize,
-    fontWeight: s.fontWeight,
-    WebkitTextStroke: s.strokeOn ? `${s.strokeWidth}px ${s.strokeColor}` : "none",
-    background: s.bgOn
-      ? `${s.bgColor}${Math.round(s.bgOpacity*2.55).toString(16).padStart(2,"0")}` : "transparent",
-    padding: s.bgOn ? "3px 10px" : "0",
-    borderRadius: s.bgOn ? "4px" : "0",
-    lineHeight: 1.25, whiteSpace: "nowrap", display: "inline-block",
+  const toStyle = (st: SubtitleStyle): React.CSSProperties => ({
+    fontFamily: st.fontFamily,
+    color: st.color,
+    fontSize: `${st.fontSize}px`,
+    fontWeight: st.fontWeight,
+    WebkitTextStroke: st.strokeOn ? `${st.strokeWidth}px ${st.strokeColor}` : undefined,
+    backgroundColor: st.bgOn
+      ? `${st.bgColor}${Math.round(st.bgOpacity * 2.55).toString(16).padStart(2, "0")}` : "transparent",
+    padding: st.bgOn ? "3px 10px" : undefined,
+    borderRadius: st.bgOn ? "5px" : undefined,
+    lineHeight: 1.3,
+    whiteSpace: "nowrap",
+    display: "inline-block",
   });
-  const textStyle = makeStyle(activeStyle);
+
+  const stylePanel = (
+    <div className="space-y-4">
+      {/* 글씨체 */}
+      <div>
+        <label className="text-xs font-bold text-gray-400 block mb-1.5">글씨체</label>
+        <select value={s.fontFamily} onChange={e => upd("fontFamily", e.target.value)}
+          className="w-full rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-500"
+          style={{ fontFamily: s.fontFamily }}>
+          {FONTS.map(f => <option key={f.value} value={f.value} style={{ fontFamily: f.value }}>{f.label}</option>)}
+        </select>
+      </div>
+      {/* 색상 + 두께 */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-bold text-gray-400 block mb-1.5">색상</label>
+          <div className="flex items-center gap-2">
+            <input type="color" value={s.color} onChange={e => upd("color", e.target.value)}
+              className="h-9 w-12 rounded-lg cursor-pointer border border-gray-700" />
+            <span className="text-xs text-gray-300 font-mono">{s.color.toUpperCase()}</span>
+          </div>
+        </div>
+        <div>
+          <label className="text-xs font-bold text-gray-400 block mb-1.5">두께</label>
+          <div className="flex gap-1">
+            {([["400","보통"],["700","굵게"],["900","아주"]] as [string,string][]).map(([w,l]) => (
+              <button key={w} onClick={() => upd("fontWeight", w as any)}
+                className={`flex-1 rounded-lg py-2 text-xs font-bold transition border ${s.fontWeight===w ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400"}`}>{l}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+      {/* 크기 */}
+      <div>
+        <label className="text-xs font-bold text-gray-400 block mb-1.5">
+          크기 <span className="text-cyan-400">{s.fontSize}px</span>
+        </label>
+        <input type="range" min={12} max={48} step={1} value={s.fontSize}
+          onChange={e => upd("fontSize", Number(e.target.value))} className="w-full accent-cyan-500" />
+      </div>
+      {/* 위치 */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-bold text-gray-400 block mb-1.5">Y <span className="text-cyan-400">{s.yPos}%</span></label>
+          <input type="range" min={5} max={95} value={s.yPos}
+            onChange={e => upd("yPos", Number(e.target.value))} className="w-full accent-cyan-500" />
+        </div>
+        <div>
+          <label className="text-xs font-bold text-gray-400 block mb-1.5">X <span className="text-cyan-400">{s.xPos}%</span></label>
+          <input type="range" min={5} max={95} value={s.xPos}
+            onChange={e => upd("xPos", Number(e.target.value))} className="w-full accent-cyan-500" />
+        </div>
+      </div>
+      <button onClick={() => setS({ ...s, yPos: 75, xPos: 50 })}
+        className="text-xs text-gray-500 hover:text-cyan-400 transition underline">↺ 위치 초기화</button>
+      {/* 외곽선 */}
+      <div>
+        <div className="flex items-center justify-between mb-1.5">
+          <label className="text-xs font-bold text-gray-400">외곽선</label>
+          <button onClick={() => upd("strokeOn", !s.strokeOn)}
+            className={`rounded-full px-3 py-1 text-xs font-black transition ${s.strokeOn ? "bg-cyan-500 text-white" : "bg-gray-700 text-gray-400"}`}>
+            {s.strokeOn ? "ON" : "OFF"}
+          </button>
+        </div>
+        {s.strokeOn && (
+          <div className="grid grid-cols-2 gap-3 mt-2">
+            <div className="flex items-center gap-2">
+              <input type="color" value={s.strokeColor} onChange={e => upd("strokeColor", e.target.value)}
+                className="h-8 w-10 rounded cursor-pointer border border-gray-700" />
+              <span className="text-xs text-gray-400 font-mono">{s.strokeColor.toUpperCase()}</span>
+            </div>
+            <div>
+              <label className="text-xs text-gray-400">두께 {s.strokeWidth}px</label>
+              <input type="range" min={1} max={8} step={0.5} value={s.strokeWidth}
+                onChange={e => upd("strokeWidth", Number(e.target.value))} className="w-full accent-cyan-500 mt-1" />
+            </div>
+          </div>
+        )}
+      </div>
+      {/* 배경 */}
+      <div>
+        <div className="flex items-center justify-between mb-1.5">
+          <label className="text-xs font-bold text-gray-400">배경</label>
+          <button onClick={() => upd("bgOn", !s.bgOn)}
+            className={`rounded-full px-3 py-1 text-xs font-black transition ${s.bgOn ? "bg-cyan-500 text-white" : "bg-gray-700 text-gray-400"}`}>
+            {s.bgOn ? "ON" : "OFF"}
+          </button>
+        </div>
+        {s.bgOn && (
+          <div className="grid grid-cols-2 gap-3 mt-2">
+            <div className="flex items-center gap-2">
+              <input type="color" value={s.bgColor} onChange={e => upd("bgColor", e.target.value)}
+                className="h-8 w-10 rounded cursor-pointer border border-gray-700" />
+              <span className="text-xs text-gray-400 font-mono">{s.bgColor.toUpperCase()}</span>
+            </div>
+            <div>
+              <label className="text-xs text-gray-400">불투명도 {s.bgOpacity}%</label>
+              <input type="range" min={10} max={100} step={5} value={s.bgOpacity}
+                onChange={e => upd("bgOpacity", Number(e.target.value))} className="w-full accent-cyan-500 mt-1" />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex gap-6 flex-col lg:flex-row">
-      {/* 왼쪽: 설정 */}
-      <div className="flex-1 space-y-4 min-w-0">
+      {/* 왼쪽 설정 */}
+      <div className="flex-1 min-w-0 space-y-4">
         {/* 탭 */}
         <div className="flex gap-2">
           {(["subtitle","thumbnail"] as const).map(v => (
             <button key={v} onClick={() => setTab(v)}
-              className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition border ${tab===v ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400 hover:border-gray-500"}`}>
-              {v === "subtitle" ? "자막 스타일" : "썸네일"}
+              className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition border ${tab===v ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400"}`}>
+              {v === "subtitle" ? "자막 스타일" : "썸네일 스타일"}
             </button>
           ))}
         </div>
 
-        {tab === "subtitle" && (
-          <div className="space-y-4">
-            {/* 글씨체 */}
-            <div>
-              <label className="text-xs font-bold text-gray-400 block mb-1.5">글씨체</label>
-              <select value={activeStyle.fontFamily} onChange={e => set("fontFamily", e.target.value)}
-                className="w-full rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-500">
-                {FONTS.map(f => <option key={f.value} value={f.value} style={{ fontFamily: f.value }}>{f.label}</option>)}
-              </select>
-            </div>
-
-            {/* 색상 + 두께 */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-bold text-gray-400 block mb-1.5">색상</label>
-                <div className="flex items-center gap-2">
-                  <input type="color" value={activeStyle.color} onChange={e => set("color", e.target.value)}
-                    className="h-9 w-12 rounded-lg cursor-pointer bg-transparent border border-gray-700" />
-                  <span className="text-sm text-gray-300 font-mono">{activeStyle.color.toUpperCase()}</span>
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-bold text-gray-400 block mb-1.5">두께</label>
-                <div className="flex gap-1">
-                  {([["400","보통"],["700","굵게"],["900","아주 굵게"]] as [string,string][]).map(([w,l]) => (
-                    <button key={w} onClick={() => set("fontWeight", w as any)}
-                      className={`flex-1 rounded-lg py-2 text-xs font-bold transition border ${activeStyle.fontWeight===w ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400 hover:border-gray-500"}`}>
-                      {l}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* 크기 */}
-            <div>
-              <label className="text-xs font-bold text-gray-400 block mb-1.5">
-                크기 <span className="text-cyan-400">{activeStyle.fontSize}px</span>
-              </label>
-              <input type="range" min={12} max={48} step={1} value={activeStyle.fontSize}
-                onChange={e => set("fontSize", Number(e.target.value))}
-                className="w-full accent-cyan-500" />
-            </div>
-
-            {/* 위치 */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-bold text-gray-400 block mb-1.5">
-                  Y위치 <span className="text-cyan-400">{activeStyle.yPos}%</span>
-                </label>
-                <input type="range" min={5} max={95} step={1} value={activeStyle.yPos}
-                  onChange={e => set("yPos", Number(e.target.value))}
-                  className="w-full accent-cyan-500" />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-gray-400 block mb-1.5">
-                  X위치 <span className="text-cyan-400">{activeStyle.xPos}%</span>
-                </label>
-                <input type="range" min={5} max={95} step={1} value={activeStyle.xPos}
-                  onChange={e => set("xPos", Number(e.target.value))}
-                  className="w-full accent-cyan-500" />
-              </div>
-            </div>
-            <button onClick={() => setSubtitleStyle({ ...subtitleStyle, yPos: 75, xPos: 50 })}
-              className="text-xs text-gray-500 hover:text-cyan-400 transition underline underline-offset-2">
-              ↺ 위치 초기화
-            </button>
-
-            {/* 외곽선 */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold text-gray-400">외곽선</label>
-                <button onClick={() => set("strokeOn", !activeStyle.strokeOn)}
-                  className={`rounded-full px-3 py-1 text-xs font-black transition ${subtitleStyle.strokeOn ? "bg-cyan-500 text-white" : "bg-gray-700 text-gray-400"}`}>
-                  {subtitleStyle.strokeOn ? "ON" : "OFF"}
-                </button>
-              </div>
-              {subtitleStyle.strokeOn && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <input type="color" value={activeStyle.strokeColor} onChange={e => set("strokeColor", e.target.value)}
-                      className="h-8 w-10 rounded cursor-pointer bg-transparent border border-gray-700" />
-                    <span className="text-xs text-gray-400 font-mono">{activeStyle.strokeColor.toUpperCase()}</span>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-400 block">두께 {activeStyle.strokeWidth}px</label>
-                    <input type="range" min={1} max={8} step={0.5} value={activeStyle.strokeWidth}
-                      onChange={e => set("strokeWidth", Number(e.target.value))}
-                      className="w-full accent-cyan-500 mt-1" />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 배경 */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold text-gray-400">배경</label>
-                <button onClick={() => set("bgOn", !activeStyle.bgOn)}
-                  className={`rounded-full px-3 py-1 text-xs font-black transition ${subtitleStyle.bgOn ? "bg-cyan-500 text-white" : "bg-gray-700 text-gray-400"}`}>
-                  {subtitleStyle.bgOn ? "ON" : "OFF"}
-                </button>
-              </div>
-              {subtitleStyle.bgOn && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <input type="color" value={activeStyle.bgColor} onChange={e => set("bgColor", e.target.value)}
-                      className="h-8 w-10 rounded cursor-pointer bg-transparent border border-gray-700" />
-                    <span className="text-xs text-gray-400 font-mono">{activeStyle.bgColor.toUpperCase()}</span>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-400 block">불투명도 {activeStyle.bgOpacity}%</label>
-                    <input type="range" min={10} max={100} step={5} value={activeStyle.bgOpacity}
-                      onChange={e => set("bgOpacity", Number(e.target.value))}
-                      className="w-full accent-cyan-500 mt-1" />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        {tab === "subtitle" && stylePanel}
 
         {tab === "thumbnail" && (
           <div className="space-y-4">
-            {/* 썸네일 ON/OFF */}
             <div className="flex gap-2">
               {[true, false].map(v => (
                 <button key={String(v)} onClick={() => setShowThumbnail(v)}
-                  className={`flex-1 rounded-xl border py-2.5 text-sm font-bold transition ${showThumbnail===v ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400 hover:border-gray-500"}`}>
+                  className={`flex-1 rounded-xl border py-2.5 text-sm font-bold transition ${showThumbnail===v ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400"}`}>
                   {v ? "✓ 썸네일 추가" : "✗ 없음"}
                 </button>
               ))}
             </div>
-            {showThumbnail && (<>
-            {/* 글씨체 */}
-            <div>
-              <label className="text-xs font-bold text-gray-400 block mb-1.5">글씨체</label>
-              <select value={activeStyle.fontFamily} onChange={e => set("fontFamily", e.target.value)}
-                className="w-full rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-500">
-                {FONTS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
-              </select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-bold text-gray-400 block mb-1.5">색상</label>
-                <div className="flex items-center gap-2">
-                  <input type="color" value={activeStyle.color} onChange={e => set("color", e.target.value)}
-                    className="h-9 w-12 rounded-lg cursor-pointer bg-transparent border border-gray-700" />
-                  <span className="text-sm text-gray-300 font-mono">{activeStyle.color.toUpperCase()}</span>
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-bold text-gray-400 block mb-1.5">두께</label>
-                <div className="flex gap-1">
-                  {([["400","보통"],["700","굵게"],["900","아주 굵게"]] as [string,string][]).map(([w,l]) => (
-                    <button key={w} onClick={() => set("fontWeight", w as any)}
-                      className={`flex-1 rounded-lg py-2 text-xs font-bold transition border ${activeStyle.fontWeight===w ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400 hover:border-gray-500"}`}>{l}</button>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div>
-              <label className="text-xs font-bold text-gray-400 block mb-1.5">크기 <span className="text-cyan-400">{activeStyle.fontSize}px</span></label>
-              <input type="range" min={12} max={48} step={1} value={activeStyle.fontSize}
-                onChange={e => set("fontSize", Number(e.target.value))} className="w-full accent-cyan-500" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-bold text-gray-400 block mb-1.5">Y위치 <span className="text-cyan-400">{activeStyle.yPos}%</span></label>
-                <input type="range" min={5} max={95} step={1} value={activeStyle.yPos}
-                  onChange={e => set("yPos", Number(e.target.value))} className="w-full accent-cyan-500" />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-gray-400 block mb-1.5">X위치 <span className="text-cyan-400">{activeStyle.xPos}%</span></label>
-                <input type="range" min={5} max={95} step={1} value={activeStyle.xPos}
-                  onChange={e => set("xPos", Number(e.target.value))} className="w-full accent-cyan-500" />
-              </div>
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold text-gray-400">외곽선</label>
-                <button onClick={() => set("strokeOn", !activeStyle.strokeOn)}
-                  className={`rounded-full px-3 py-1 text-xs font-black transition ${activeStyle.strokeOn ? "bg-cyan-500 text-white" : "bg-gray-700 text-gray-400"}`}>
-                  {activeStyle.strokeOn ? "ON" : "OFF"}
-                </button>
-              </div>
-              {activeStyle.strokeOn && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <input type="color" value={activeStyle.strokeColor} onChange={e => set("strokeColor", e.target.value)}
-                      className="h-8 w-10 rounded cursor-pointer bg-transparent border border-gray-700" />
-                    <span className="text-xs text-gray-400 font-mono">{activeStyle.strokeColor.toUpperCase()}</span>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-400 block">두께 {activeStyle.strokeWidth}px</label>
-                    <input type="range" min={1} max={8} step={0.5} value={activeStyle.strokeWidth}
-                      onChange={e => set("strokeWidth", Number(e.target.value))} className="w-full accent-cyan-500 mt-1" />
-                  </div>
-                </div>
-              )}
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold text-gray-400">배경</label>
-                <button onClick={() => set("bgOn", !activeStyle.bgOn)}
-                  className={`rounded-full px-3 py-1 text-xs font-black transition ${activeStyle.bgOn ? "bg-cyan-500 text-white" : "bg-gray-700 text-gray-400"}`}>
-                  {activeStyle.bgOn ? "ON" : "OFF"}
-                </button>
-              </div>
-              {activeStyle.bgOn && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <input type="color" value={activeStyle.bgColor} onChange={e => set("bgColor", e.target.value)}
-                      className="h-8 w-10 rounded cursor-pointer bg-transparent border border-gray-700" />
-                    <span className="text-xs text-gray-400 font-mono">{activeStyle.bgColor.toUpperCase()}</span>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-400 block">불투명도 {activeStyle.bgOpacity}%</label>
-                    <input type="range" min={10} max={100} step={5} value={activeStyle.bgOpacity}
-                      onChange={e => set("bgOpacity", Number(e.target.value))} className="w-full accent-cyan-500 mt-1" />
-                  </div>
-                </div>
-              )}
-            </div>
-            </>)}
+            {showThumbnail && stylePanel}
           </div>
         )}
       </div>
 
-      {/* 오른쪽: 프리뷰 */}
+      {/* 오른쪽 프리뷰 */}
       <div className="flex flex-col items-center gap-3 shrink-0">
         <p className="text-xs font-bold text-gray-400">실시간 프리뷰</p>
         <div className="relative rounded-2xl overflow-hidden bg-gray-800 border border-gray-700"
-          style={{ width: 200, height: 356 }}>
+          style={{ width: 220, height: 390 }}>
           {frame
-            ? <img src={frame} className="absolute inset-0 w-full h-full object-cover" />
+            ? <img src={frame} className="absolute inset-0 w-full h-full object-cover" alt="" />
             : <div className="absolute inset-0 bg-gradient-to-b from-gray-700 to-gray-900" />
           }
-          {tab === "subtitle" && (
-            <div className="absolute inset-0" style={{ pointerEvents: "none" }}>
-              <div style={{
-                position: "absolute",
-                top: `${activeStyle.yPos}%`,
-                left: `${activeStyle.xPos}%`,
-                transform: "translate(-50%, -50%)",
-                maxWidth: "90%",
-                textAlign: "center",
-              }}>
-                <span style={textStyle}>{previewText}</span>
-              </div>
+          <div className="absolute inset-0" style={{ pointerEvents: "none" }}>
+            <div style={{
+              position: "absolute",
+              top: `${s.yPos}%`,
+              left: `${s.xPos}%`,
+              transform: "translate(-50%, -50%)",
+              maxWidth: "90%",
+              textAlign: "center",
+            }}>
+              <span style={toStyle(s)}>{previewText}</span>
             </div>
-          )}
+          </div>
         </div>
         {previewFrames.length > 1 && (
-          <div className="flex gap-1">
+          <div className="flex gap-1.5">
             {previewFrames.slice(0,5).map((_, i) => (
               <button key={i} onClick={() => setFrameIdx(i)}
-                className={`h-2 w-2 rounded-full transition ${i===frameIdx ? "bg-cyan-400" : "bg-gray-600 hover:bg-gray-400"}`} />
+                className={`h-2 w-2 rounded-full transition ${i===frameIdx ? "bg-cyan-400" : "bg-gray-600"}`} />
             ))}
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+
+// ── ProjectSidebar ───────────────────────────────────────────
+const PROJECTS_KEY = "chronit_projects_v1";
+
+function getProjects(): any[] {
+  try { return JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]"); } catch { return []; }
+}
+
+function saveProjects(ps: any[]) {
+  localStorage.setItem(PROJECTS_KEY, JSON.stringify(ps.slice(0, 10)));
+}
+
+function ProjectSidebar({ current, onLoad }: { current: any; onLoad: (d: any) => void }) {
+  const [projects, setProjects] = useState<any[]>(() => getProjects());
+  const [activeId, setActiveId] = useState<string|null>(null);
+
+  const save = () => {
+    const id = activeId || `proj_${Date.now()}`;
+    const name = current.sourceUrl
+      ? new URL(current.sourceUrl).pathname.split("/").filter(Boolean).slice(-1)[0] || "프로젝트"
+      : "프로젝트";
+    const entry = { id, name: name.slice(0, 20), savedAt: Date.now(), stage: current.stage, data: current };
+    const ps = [entry, ...getProjects().filter(p => p.id !== id)];
+    saveProjects(ps);
+    setProjects(ps);
+    setActiveId(id);
+  };
+
+  const del = (id: string) => {
+    const ps = getProjects().filter(p => p.id !== id);
+    saveProjects(ps);
+    setProjects(ps);
+    if (activeId === id) setActiveId(null);
+  };
+
+  const load = (p: any) => {
+    onLoad(p.data);
+    setActiveId(p.id);
+  };
+
+  const stageLabel = (n: number) => ["분석","선택","대본","스타일","보이스","완료"][n-1] || "";
+
+  return (
+    <div className="rounded-2xl border border-gray-800 bg-gray-900 p-4 space-y-3 sticky top-4">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-black text-white">프로젝트</p>
+        <button onClick={save}
+          className="rounded-lg bg-cyan-500/10 border border-cyan-500/30 px-2.5 py-1 text-xs font-bold text-cyan-400 hover:bg-cyan-500/20 transition">
+          💾 저장
+        </button>
+      </div>
+
+      {projects.length === 0 ? (
+        <p className="text-xs text-gray-600 text-center py-4">저장된 프로젝트가<br/>없습니다</p>
+      ) : (
+        <div className="space-y-1.5">
+          {projects.map(p => (
+            <div key={p.id}
+              className={`rounded-xl border p-2.5 cursor-pointer transition group ${activeId===p.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"}`}
+              onClick={() => load(p)}>
+              <div className="flex items-start justify-between gap-1">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-white truncate">{p.name}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {stageLabel(p.stage)}단계 · {new Date(p.savedAt).toLocaleDateString("ko")}
+                  </p>
+                </div>
+                <button onClick={e => { e.stopPropagation(); del(p.id); }}
+                  className="shrink-0 text-gray-700 hover:text-red-400 transition text-xs opacity-0 group-hover:opacity-100">
+                  ✕
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
