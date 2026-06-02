@@ -660,7 +660,11 @@ function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean;
         {playing && proxyUrl ? (
           <video src={proxyUrl} autoPlay playsInline controls={false}
             className="w-full h-full object-cover"
-            onClick={e => { e.stopPropagation(); setPlaying(false); }} />
+            onClick={e => { e.stopPropagation(); setPlaying(false); }}
+            onError={() => {
+              setPlaying(false);
+              if (clip.page_url) window.open(clip.page_url, "_blank");
+            }} />
         ) : (
           <>
             {thumbSrc ? (
