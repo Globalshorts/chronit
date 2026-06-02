@@ -641,73 +641,16 @@ function proxyThumb(url: string) {
 }
 
 // ── 클립 미리보기 모달 ──────────────────────────────────────
-function ClipPreviewModal({ clip, selected, onClose, onToggle }: {
-  clip: Clip; selected: boolean; onClose: () => void; onToggle: () => void;
-}) {
-  const embedUrl = clip.video_id ? `https://www.tiktok.com/embed/v2/${clip.video_id}` : "";
-  const [embedFailed, setEmbedFailed] = useState(false);
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-      onClick={onClose}>
-      <div className="relative flex gap-4 items-start" onClick={e => e.stopPropagation()}>
-        {/* 영상 embed */}
-        <div className="rounded-2xl overflow-hidden bg-black flex flex-col items-center justify-center" style={{ width: 320, height: 568 }}>
-          {embedUrl && !embedFailed ? (
-            <iframe src={embedUrl} width="320" height="568"
-              style={{ border: "none" }} allowFullScreen allow="autoplay"
-              onError={() => setEmbedFailed(true)} />
-          ) : (
-            <div className="flex flex-col items-center gap-3 p-6 text-center">
-              <span className="text-3xl">🔒</span>
-              <p className="text-gray-400 text-sm">TikTok에서 embed가 차단된 영상입니다.</p>
-              {clip.page_url && (
-                <a href={clip.page_url} target="_blank" rel="noopener"
-                  className="mt-1 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-400 transition">
-                  TikTok에서 보기 →
-                </a>
-              )}
-            </div>
-          )}
-        </div>
-        {/* 오른쪽 액션 */}
-        <div className="flex flex-col gap-3 pt-2">
-          <button onClick={onClose}
-            className="rounded-full bg-gray-800 border border-gray-700 h-10 w-10 flex items-center justify-center text-white hover:bg-gray-700 transition">
-            ✕
-          </button>
-          <button onClick={() => { onToggle(); onClose(); }}
-            className={`rounded-2xl px-5 py-3 text-sm font-black transition ${
-              selected
-                ? "bg-red-500/20 border-2 border-red-500 text-red-400 hover:bg-red-500/30"
-                : "bg-cyan-500 text-white hover:bg-cyan-400"
-            }`}>
-            {selected ? "− 빼기" : "+ 담기"}
-          </button>
-          {clip.page_url && (
-            <a href={clip.page_url} target="_blank" rel="noopener"
-              className="rounded-2xl border border-gray-700 px-4 py-2.5 text-xs text-gray-400 hover:text-white text-center transition">
-              TikTok 열기
-            </a>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+
 
 function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean; onToggle: () => void }) {
   const [imgError, setImgError] = useState(false);
-  const [preview, setPreview] = useState(false);
   // 브라우저에서 직접 로드 (TikTok CDN은 브라우저에서는 접근 가능)
   const thumbSrc = !imgError && clip.thumbnail_url ? clip.thumbnail_url : "";
 
   return (
     <>
-      {preview && (
-        <ClipPreviewModal clip={clip} selected={selected}
-          onClose={() => setPreview(false)} onToggle={onToggle} />
-      )}
-    <div onClick={() => setPreview(true)} className={`relative cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
+    <div onClick={() => clip.page_url && window.open(clip.page_url, "_blank")} className={`relative cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
       selected ? "border-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.3)]" : "border-gray-700 hover:border-gray-500"
     }`}>
       <div className="aspect-[9/16] bg-gray-800 relative">
