@@ -670,9 +670,8 @@ function ClipPreviewModal({ clip, selected, onClose, onToggle }: {
 function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean; onToggle: () => void }) {
   const [imgError, setImgError] = useState(false);
   const [preview, setPreview] = useState(false);
-  const thumbSrc = !imgError && clip.thumbnail_url
-    ? `https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/thumbnail-proxy?url=${encodeURIComponent(clip.thumbnail_url)}`
-    : "";
+  // 브라우저에서 직접 로드 (TikTok CDN은 브라우저에서는 접근 가능)
+  const thumbSrc = !imgError && clip.thumbnail_url ? clip.thumbnail_url : "";
 
   return (
     <>
