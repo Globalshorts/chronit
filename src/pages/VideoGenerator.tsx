@@ -301,10 +301,11 @@ export default function VideoGenerator() {
                     ))}
                   </div>
                   {cart.size > 0 && (
-                    <div className="mt-4 flex justify-end">
+                    <div className="fixed bottom-6 right-6 z-40">
                       <button onClick={() => setStage(2)}
-                        className="rounded-xl bg-cyan-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-cyan-400 transition">
-                        다음 단계 → ({cart.size}개 선택됨)
+                        className="rounded-2xl bg-cyan-500 px-6 py-3.5 text-sm font-black text-white hover:bg-cyan-400 shadow-[0_4px_20px_rgba(6,182,212,0.4)] transition flex items-center gap-2">
+                        <span className="h-5 w-5 rounded-full bg-white/20 flex items-center justify-center text-xs font-black">{cart.size}</span>
+                        다음 단계 →
                       </button>
                     </div>
                   )}
@@ -346,6 +347,7 @@ export default function VideoGenerator() {
                   다음 단계 →
                 </button>
               </div>
+              <FloatingNext label="다음" onClick={() => setStage(3)} />
             </div>
           </StagePanel>
 
@@ -400,10 +402,13 @@ export default function VideoGenerator() {
                         className="rounded-xl bg-cyan-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-cyan-400 disabled:opacity-40 transition">
                         {scriptLoading ? "생성 중..." : "✨ 대본 생성하기"}
                       </button>
-                    : <button onClick={() => setStage(4)}
-                        className="rounded-xl bg-cyan-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-cyan-400 transition">
-                        다음 단계 →
-                      </button>
+                    : <>
+                        <button onClick={() => setStage(4)}
+                          className="rounded-xl bg-cyan-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-cyan-400 transition">
+                          다음 단계 →
+                        </button>
+                        <FloatingNext label="다음" onClick={() => setStage(4)} />
+                      </>
                   }
                 </div>
               </div>
@@ -412,41 +417,13 @@ export default function VideoGenerator() {
 
           {/* ── STAGE 4 ── */}
           <StagePanel n={4} title="스타일" subtitle="자막과 썸네일 스타일을 설정하세요" current={stage}>
-            <div className="space-y-6">
-              <div>
-                <label className="mb-3 block text-sm font-bold text-gray-300">자막 스타일</label>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {SUBTITLE_PRESETS.map(p => (
-                    <button key={p.id} onClick={() => setSubtitlePreset(p.id)}
-                      className={`rounded-xl border p-3 text-center transition ${
-                        subtitlePreset === p.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"
-                      }`}>
-                      <div className={`rounded-lg px-2 py-1 text-xs font-bold mb-2 ${p.preview}`}>{p.label}</div>
-                      <p className={`text-xs ${subtitlePreset === p.id ? "text-cyan-400" : "text-gray-400"}`}>{p.label}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-3 block text-sm font-bold text-gray-300">썸네일 (첫 프레임)</label>
-                <div className="flex gap-2">
-                  {[true, false].map(v => (
-                    <button key={String(v)} onClick={() => setShowThumbnail(v)}
-                      className={`flex-1 rounded-xl border py-2.5 text-sm font-bold transition ${
-                        showThumbnail === v ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400 hover:border-gray-500"
-                      }`}>{v ? "✓ 썸네일 추가" : "✗ 없음"}</button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <button onClick={() => setStage(5)}
-                  className="rounded-xl bg-cyan-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-cyan-400 transition">
-                  다음 단계 →
-                </button>
-              </div>
-            </div>
+            <Stage4Panel
+              subtitlePreset={subtitlePreset} setSubtitlePreset={setSubtitlePreset}
+              showThumbnail={showThumbnail} setShowThumbnail={setShowThumbnail}
+              previewFrames={clips.filter(c => cart.has(c.video_id)).slice(0,5).map(c => c.thumbnail_url).filter(Boolean)}
+              onNext={() => setStage(5)}
+            />
+            <FloatingNext label="다음" onClick={() => setStage(5)} />
           </StagePanel>
 
           {/* ── STAGE 5 ── */}
@@ -568,6 +545,132 @@ export default function VideoGenerator() {
 
 // ── Stage Bar ─────────────────────────────────────────────────
 const STAGE_LABELS = ["영상 분석", "영상 선택", "컷편집 & 대본 생성", "스타일", "보이스", "SEO + 내보내기"];
+// ── 플로팅 다음 버튼 ──────────────────────────────────────────
+function FloatingNext({ label, onClick, disabled = false }: {
+  label: string; onClick: () => void; disabled?: boolean;
+}) {
+  return (
+    <div className="fixed right-6 top-1/2 -translate-y-1/2 z-40">
+      <button onClick={onClick} disabled={disabled}
+        className="rounded-2xl bg-cyan-500 shadow-2xl shadow-cyan-500/40 px-5 py-4 text-sm font-black text-white hover:bg-cyan-400 disabled:opacity-40 transition flex flex-col items-center gap-1.5 writing-mode-vertical"
+        style={{ writingMode: "vertical-rl", textOrientation: "mixed", transform: "rotate(180deg)" }}>
+        <span style={{ transform: "rotate(180deg)", writingMode: "horizontal-tb" }}>→</span>
+        <span style={{ transform: "rotate(180deg)", writingMode: "horizontal-tb" }} className="text-xs opacity-80">{label}</span>
+      </button>
+    </div>
+  );
+}
+
+// ── Stage 4 Panel ────────────────────────────────────────────
+function Stage4Panel({ subtitlePreset, setSubtitlePreset, showThumbnail, setShowThumbnail, previewFrames, onNext }: {
+  subtitlePreset: string;
+  setSubtitlePreset: (v: string) => void;
+  showThumbnail: boolean;
+  setShowThumbnail: (v: boolean) => void;
+  previewFrames: string[];
+  onNext: () => void;
+}) {
+  const [tab, setTab] = useState<"subtitle" | "thumbnail">("subtitle");
+  const [frameIdx, setFrameIdx] = useState(0);
+  const previewText = "와, 드디어";
+
+  const presetStyles: Record<string, { color: string; fontWeight: string; fontSize: string; WebkitTextStroke?: string; textShadow?: string; background?: string; padding?: string; borderRadius?: string }> = {
+    bold_white:  { color: "#fff", fontWeight: "900", fontSize: "22px", WebkitTextStroke: "1.5px #000" },
+    yellow:      { color: "#FFE600", fontWeight: "900", fontSize: "22px", WebkitTextStroke: "1.5px #000" },
+    outline:     { color: "#fff", fontWeight: "900", fontSize: "22px", textShadow: "-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000" },
+    dark_bg:     { color: "#fff", fontWeight: "700", fontSize: "20px", background: "rgba(0,0,0,0.65)", padding: "4px 12px", borderRadius: "6px" },
+  };
+
+  const style = presetStyles[subtitlePreset] ?? presetStyles.bold_white;
+  const frame = previewFrames[frameIdx] || "";
+
+  return (
+    <div className="flex gap-6 flex-col lg:flex-row">
+      {/* 왼쪽: 설정 */}
+      <div className="flex-1 space-y-4">
+        {/* 탭 */}
+        <div className="flex gap-2">
+          {[["subtitle","자막 스타일"], ["thumbnail","썸네일"]].map(([v,l]) => (
+            <button key={v} onClick={() => setTab(v as any)}
+              className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition border ${tab===v ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400 hover:border-gray-500"}`}>
+              {l}
+            </button>
+          ))}
+        </div>
+
+        {tab === "subtitle" && (
+          <div className="space-y-3">
+            <p className="text-xs font-bold text-gray-400">자막 스타일 선택</p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { id: "bold_white", label: "굵은 흰색", style: { color:"#fff", fontWeight:"900", WebkitTextStroke:"1px #000" } },
+                { id: "yellow",     label: "노란색",    style: { color:"#FFE600", fontWeight:"900", WebkitTextStroke:"1px #000" } },
+                { id: "outline",    label: "아웃라인",  style: { color:"#fff", fontWeight:"900", textShadow:"-1px -1px 0 #000,1px 1px 0 #000" } },
+                { id: "dark_bg",    label: "다크 배경", style: { color:"#fff", background:"rgba(0,0,0,0.65)", padding:"2px 8px", borderRadius:"4px" } },
+              ].map(p => (
+                <button key={p.id} onClick={() => setSubtitlePreset(p.id)}
+                  className={`rounded-xl border p-3 text-left transition ${subtitlePreset===p.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"}`}>
+                  <span style={{ fontSize:"15px", fontWeight:"700", ...p.style }}>{p.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {tab === "thumbnail" && (
+          <div className="space-y-3">
+            <p className="text-xs font-bold text-gray-400">썸네일 (첫 프레임)</p>
+            <div className="flex gap-2">
+              {[true, false].map(v => (
+                <button key={String(v)} onClick={() => setShowThumbnail(v)}
+                  className={`flex-1 rounded-xl border py-3 text-sm font-bold transition ${showThumbnail===v ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400 hover:border-gray-500"}`}>
+                  {v ? "✓ 썸네일 추가" : "✗ 없음"}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500">썸네일은 원본 영상의 첫 번째 프레임으로 설정됩니다.</p>
+          </div>
+        )}
+      </div>
+
+      {/* 오른쪽: 프리뷰 */}
+      <div className="flex flex-col items-center gap-3 shrink-0">
+        <p className="text-xs font-bold text-gray-400">실시간 프리뷰</p>
+        <div className="relative rounded-2xl overflow-hidden bg-gray-800 border border-gray-700 flex items-end justify-center"
+          style={{ width: 160, height: 284 }}>
+          {frame ? (
+            <img src={frame} className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-b from-gray-700 to-gray-900" />
+          )}
+          {tab === "subtitle" && (
+            <div className="relative z-10 w-full text-center pb-8 px-3">
+              <span style={{ fontFamily: "inherit", ...style }}>{previewText}</span>
+            </div>
+          )}
+          {tab === "thumbnail" && showThumbnail && frame && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="bg-black/30 rounded-full h-12 w-12 flex items-center justify-center">
+                <span className="text-white text-2xl">▶</span>
+              </div>
+            </div>
+          )}
+        </div>
+        {/* 프레임 선택 */}
+        {previewFrames.length > 1 && (
+          <div className="flex gap-1">
+            {previewFrames.slice(0,5).map((_, i) => (
+              <button key={i} onClick={() => setFrameIdx(i)}
+                className={`h-2 w-2 rounded-full transition ${i===frameIdx ? "bg-cyan-400" : "bg-gray-600 hover:bg-gray-400"}`} />
+            ))}
+          </div>
+        )}
+        <p className="text-xs text-gray-600">{frameIdx+1} / {Math.min(previewFrames.length,5) || 1}</p>
+      </div>
+    </div>
+  );
+}
+
 function StageBar({ current, onSelect }: { current: number; onSelect: (n: number) => void }) {
   return (
     <div className="flex items-center gap-0 overflow-x-auto pb-1">
@@ -602,33 +705,19 @@ function StageBar({ current, onSelect }: { current: number; onSelect: (n: number
 function StagePanel({ n, title, subtitle, current, children }: {
   n: number; title: string; subtitle: string; current: number; children: React.ReactNode;
 }) {
-  const active = n === current;
-  const done = n < current;
-  if (!active && !done) return null; // 아직 안 온 단계는 숨김
-
+  if (n !== current) return null; // 현재 단계만 표시
   return (
-    <div className={`mb-4 rounded-2xl border transition-all ${
-      active ? "border-cyan-500/50 bg-gray-900 shadow-[0_0_20px_rgba(6,182,212,0.08)]" :
-      "border-gray-800 bg-gray-900/50"
-    }`}>
-      {/* 패널 헤더 */}
-      <div className={`px-6 py-4 flex items-center gap-3 ${done ? "opacity-60" : ""}`}>
-        <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${
-          done ? "bg-cyan-500 text-white" :
-          active ? "bg-cyan-500/20 border-2 border-cyan-500 text-cyan-400" : "bg-gray-800 text-gray-500"
-        }`}>{done ? "✓" : n}</div>
+    <div className="rounded-2xl border border-cyan-500/50 bg-gray-900 shadow-[0_0_20px_rgba(6,182,212,0.08)]">
+      <div className="px-6 py-4 flex items-center gap-3">
+        <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 bg-cyan-500/20 border-2 border-cyan-500 text-cyan-400">{n}</div>
         <div>
-          <p className={`text-sm font-black ${active ? "text-white" : "text-gray-400"}`}>{title}</p>
-          {active && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
+          <p className="text-sm font-black text-white">{title}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>
         </div>
-        {done && <span className="ml-auto text-xs text-cyan-500 font-bold">완료</span>}
       </div>
-      {/* 패널 본문 */}
-      {active && (
-        <div className="px-6 pb-6 border-t border-gray-800">
-          <div className="pt-5">{children}</div>
-        </div>
-      )}
+      <div className="px-6 pb-6 border-t border-gray-800">
+        <div className="pt-5">{children}</div>
+      </div>
     </div>
   );
 }
