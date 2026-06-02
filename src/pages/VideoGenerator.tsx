@@ -779,19 +779,20 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, showThumbnail, setShowTh
             ? <img src={frame} className="absolute inset-0 w-full h-full object-cover" />
             : <div className="absolute inset-0 bg-gradient-to-b from-gray-700 to-gray-900" />
           }
-          {/* 자막 오버레이 — 항상 표시 (자막/썸네일 탭 공통) */}
-          <div className="absolute inset-0" style={{ pointerEvents: "none" }}>
-            <div style={{
-              position: "absolute",
-              top: `${subtitleStyle.yPos}%`,
-              left: `${subtitleStyle.xPos}%`,
-              transform: "translate(-50%, -50%)",
-              maxWidth: "90%",
-              textAlign: "center",
-            }}>
-              <span style={textStyle}>{previewText}</span>
+          {tab === "subtitle" && (
+            <div className="absolute inset-0" style={{ pointerEvents: "none" }}>
+              <div style={{
+                position: "absolute",
+                top: `${subtitleStyle.yPos}%`,
+                left: `${subtitleStyle.xPos}%`,
+                transform: "translate(-50%, -50%)",
+                maxWidth: "90%",
+                textAlign: "center",
+              }}>
+                <span style={textStyle}>{previewText}</span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
         {previewFrames.length > 1 && (
           <div className="flex gap-1">
