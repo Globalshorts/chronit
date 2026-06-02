@@ -67,7 +67,7 @@ export default function VideoGenerator() {
 
   // Stage 4
   const [subtitleStyle, setSubtitleStyle] = useState({
-    fontFamily: "Noto Sans KR",
+    fontFamily: "'Noto Sans KR', sans-serif",
     color: "#FFFFFF",
     fontSize: 22,
     fontWeight: "900" as "400"|"700"|"900",
@@ -316,13 +316,8 @@ export default function VideoGenerator() {
                     ))}
                   </div>
                   {cart.size > 0 && (
-                    <div className="fixed bottom-6 right-6 z-40">
-                      <button onClick={() => setStage(2)}
-                        className="rounded-2xl bg-cyan-500 px-6 py-3.5 text-sm font-black text-white hover:bg-cyan-400 shadow-[0_4px_20px_rgba(6,182,212,0.4)] transition flex items-center gap-2">
-                        <span className="h-5 w-5 rounded-full bg-white/20 flex items-center justify-center text-xs font-black">{cart.size}</span>
-                        다음 단계 →
-                      </button>
-                    </div>
+                    <>
+                      <FloatingNext label={`다음 (${cart.size}개)`} onClick={() => setStage(2)} />
                   )}
                 </div>
               )}
@@ -577,8 +572,13 @@ function FloatingNext({ label, onClick, disabled = false }: {
 
 // ── Stage 4 Panel ────────────────────────────────────────────
 const FONTS = [
-  "Noto Sans KR", "NanumGothic", "NanumMyeongjo", "Pretendard",
-  "Black Han Sans", "Jua", "Do Hyeon",
+  { label: "Noto Sans KR",  value: "'Noto Sans KR', sans-serif" },
+  { label: "나눔고딕",       value: "'Nanum Gothic', sans-serif" },
+  { label: "나눔명조",       value: "'NanumMyeongjo', serif" },
+  { label: "Pretendard",    value: "'Pretendard', sans-serif" },
+  { label: "블랙한산스",     value: "'Black Han Sans', sans-serif" },
+  { label: "주아체",         value: "'Jua', sans-serif" },
+  { label: "도현체",         value: "'Do Hyeon', sans-serif" },
 ];
 
 type SubtitleStyle = {
@@ -639,7 +639,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, showThumbnail, setShowTh
               <label className="text-xs font-bold text-gray-400 block mb-1.5">글씨체</label>
               <select value={subtitleStyle.fontFamily} onChange={e => set("fontFamily", e.target.value)}
                 className="w-full rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-500">
-                {FONTS.map(f => <option key={f} value={f}>{f}</option>)}
+                {FONTS.map(f => <option key={f.value} value={f.value} style={{ fontFamily: f.value }}>{f.label}</option>)}
               </select>
             </div>
 
@@ -774,25 +774,24 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, showThumbnail, setShowTh
       <div className="flex flex-col items-center gap-3 shrink-0">
         <p className="text-xs font-bold text-gray-400">실시간 프리뷰</p>
         <div className="relative rounded-2xl overflow-hidden bg-gray-800 border border-gray-700"
-          style={{ width: 160, height: 284 }}>
+          style={{ width: 200, height: 356 }}>
           {frame
             ? <img src={frame} className="absolute inset-0 w-full h-full object-cover" />
             : <div className="absolute inset-0 bg-gradient-to-b from-gray-700 to-gray-900" />
           }
-          {tab === "subtitle" && (
-            <div className="absolute inset-0" style={{ pointerEvents: "none" }}>
-              <div style={{
-                position: "absolute",
-                top: `${subtitleStyle.yPos}%`,
-                left: `${subtitleStyle.xPos}%`,
-                transform: "translate(-50%, -50%)",
-                maxWidth: "90%",
-                textAlign: "center",
-              }}>
-                <span style={textStyle}>{previewText}</span>
-              </div>
+          {/* 자막 오버레이 — 항상 표시 (자막/썸네일 탭 공통) */}
+          <div className="absolute inset-0" style={{ pointerEvents: "none" }}>
+            <div style={{
+              position: "absolute",
+              top: `${subtitleStyle.yPos}%`,
+              left: `${subtitleStyle.xPos}%`,
+              transform: "translate(-50%, -50%)",
+              maxWidth: "90%",
+              textAlign: "center",
+            }}>
+              <span style={textStyle}>{previewText}</span>
             </div>
-          )}
+          </div>
         </div>
         {previewFrames.length > 1 && (
           <div className="flex gap-1">
