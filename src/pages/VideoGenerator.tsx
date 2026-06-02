@@ -66,8 +66,23 @@ export default function VideoGenerator() {
   const [scriptPredId, setScriptPredId] = useState("");
 
   // Stage 4
-  const [subtitlePreset, setSubtitlePreset] = useState("bold_white");
-  const [showThumbnail, setShowThumbnail]   = useState(true);
+  const [subtitleStyle, setSubtitleStyle] = useState({
+    fontFamily: "Noto Sans KR",
+    color: "#FFFFFF",
+    fontSize: 22,
+    fontWeight: "900" as "400"|"700"|"900",
+    strokeColor: "#000000",
+    strokeWidth: 2,
+    strokeOn: true,
+    bgOn: false,
+    bgColor: "#000000",
+    bgOpacity: 60,
+    yPos: 75,  // % from top
+    xPos: 50,  // % from left (center)
+  });
+  const [showThumbnail, setShowThumbnail] = useState(true);
+  // 렌더링용 preset 문자열 (generate-video에 전달)
+  const subtitlePreset = "custom";
 
   // Stage 5
   const [voiceId, setVoiceId]       = useState("nova");
@@ -418,9 +433,9 @@ export default function VideoGenerator() {
           {/* ── STAGE 4 ── */}
           <StagePanel n={4} title="스타일" subtitle="자막과 썸네일 스타일을 설정하세요" current={stage}>
             <Stage4Panel
-              subtitlePreset={subtitlePreset} setSubtitlePreset={setSubtitlePreset}
+              subtitleStyle={subtitleStyle} setSubtitleStyle={setSubtitleStyle}
               showThumbnail={showThumbnail} setShowThumbnail={setShowThumbnail}
-              previewFrames={clips.filter(c => cart.has(c.video_id)).slice(0,5).map(c => c.thumbnail_url).filter(Boolean)}
+              previewFrames={clips.filter(c => cart.has(c.video_id)).slice(0,5).map(c => c.thumbnail_url).filter(Boolean) as string[]}
               onNext={() => setStage(5)}
             />
             <FloatingNext label="다음" onClick={() => setStage(5)} />
@@ -550,69 +565,191 @@ function FloatingNext({ label, onClick, disabled = false }: {
   label: string; onClick: () => void; disabled?: boolean;
 }) {
   return (
-    <div className="fixed right-6 top-1/2 -translate-y-1/2 z-40">
+    <div className="fixed bottom-8 right-8 z-40">
       <button onClick={onClick} disabled={disabled}
-        className="rounded-2xl bg-cyan-500 shadow-2xl shadow-cyan-500/40 px-5 py-4 text-sm font-black text-white hover:bg-cyan-400 disabled:opacity-40 transition flex flex-col items-center gap-1.5 writing-mode-vertical"
-        style={{ writingMode: "vertical-rl", textOrientation: "mixed", transform: "rotate(180deg)" }}>
-        <span style={{ transform: "rotate(180deg)", writingMode: "horizontal-tb" }}>→</span>
-        <span style={{ transform: "rotate(180deg)", writingMode: "horizontal-tb" }} className="text-xs opacity-80">{label}</span>
+        className="rounded-2xl bg-cyan-500 shadow-2xl shadow-cyan-500/40 px-6 py-3 text-sm font-black text-white hover:bg-cyan-400 disabled:opacity-40 transition flex items-center gap-2">
+        <span>{label}</span>
+        <span>→</span>
       </button>
     </div>
   );
 }
 
 // ── Stage 4 Panel ────────────────────────────────────────────
-function Stage4Panel({ subtitlePreset, setSubtitlePreset, showThumbnail, setShowThumbnail, previewFrames, onNext }: {
-  subtitlePreset: string;
-  setSubtitlePreset: (v: string) => void;
-  showThumbnail: boolean;
-  setShowThumbnail: (v: boolean) => void;
-  previewFrames: string[];
-  onNext: () => void;
+const FONTS = [
+  "Noto Sans KR", "NanumGothic", "NanumMyeongjo", "Pretendard",
+  "Black Han Sans", "Jua", "Do Hyeon",
+];
+
+type SubtitleStyle = {
+  fontFamily: string; color: string; fontSize: number;
+  fontWeight: "400"|"700"|"900";
+  strokeColor: string; strokeWidth: number; strokeOn: boolean;
+  bgOn: boolean; bgColor: string; bgOpacity: number;
+  yPos: number; xPos: number;
+};
+
+function Stage4Panel({ subtitleStyle, setSubtitleStyle, showThumbnail, setShowThumbnail, previewFrames, onNext }: {
+  subtitleStyle: SubtitleStyle;
+  setSubtitleStyle: (v: SubtitleStyle) => void;
+  showThumbnail: boolean; setShowThumbnail: (v: boolean) => void;
+  previewFrames: string[]; onNext: () => void;
 }) {
-  const [tab, setTab] = useState<"subtitle" | "thumbnail">("subtitle");
+  const [tab, setTab] = useState<"subtitle"|"thumbnail">("subtitle");
   const [frameIdx, setFrameIdx] = useState(0);
+  const set = (k: keyof SubtitleStyle, v: any) => setSubtitleStyle({ ...subtitleStyle, [k]: v });
+
   const previewText = "와, 드디어";
-
-  const presetStyles: Record<string, { color: string; fontWeight: string; fontSize: string; WebkitTextStroke?: string; textShadow?: string; background?: string; padding?: string; borderRadius?: string }> = {
-    bold_white:  { color: "#fff", fontWeight: "900", fontSize: "22px", WebkitTextStroke: "1.5px #000" },
-    yellow:      { color: "#FFE600", fontWeight: "900", fontSize: "22px", WebkitTextStroke: "1.5px #000" },
-    outline:     { color: "#fff", fontWeight: "900", fontSize: "22px", textShadow: "-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000" },
-    dark_bg:     { color: "#fff", fontWeight: "700", fontSize: "20px", background: "rgba(0,0,0,0.65)", padding: "4px 12px", borderRadius: "6px" },
-  };
-
-  const style = presetStyles[subtitlePreset] ?? presetStyles.bold_white;
   const frame = previewFrames[frameIdx] || "";
+
+  const textStyle: React.CSSProperties = {
+    fontFamily: subtitleStyle.fontFamily,
+    color: subtitleStyle.color,
+    fontSize: subtitleStyle.fontSize,
+    fontWeight: subtitleStyle.fontWeight,
+    WebkitTextStroke: subtitleStyle.strokeOn
+      ? `${subtitleStyle.strokeWidth}px ${subtitleStyle.strokeColor}` : "none",
+    background: subtitleStyle.bgOn
+      ? `${subtitleStyle.bgColor}${Math.round(subtitleStyle.bgOpacity*2.55).toString(16).padStart(2,"0")}` : "transparent",
+    padding: subtitleStyle.bgOn ? "3px 10px" : "0",
+    borderRadius: subtitleStyle.bgOn ? "4px" : "0",
+    lineHeight: 1.25,
+    whiteSpace: "nowrap",
+    display: "inline-block",
+  };
 
   return (
     <div className="flex gap-6 flex-col lg:flex-row">
       {/* 왼쪽: 설정 */}
-      <div className="flex-1 space-y-4">
+      <div className="flex-1 space-y-4 min-w-0">
         {/* 탭 */}
         <div className="flex gap-2">
-          {[["subtitle","자막 스타일"], ["thumbnail","썸네일"]].map(([v,l]) => (
-            <button key={v} onClick={() => setTab(v as any)}
+          {(["subtitle","thumbnail"] as const).map(v => (
+            <button key={v} onClick={() => setTab(v)}
               className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition border ${tab===v ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400 hover:border-gray-500"}`}>
-              {l}
+              {v === "subtitle" ? "자막 스타일" : "썸네일"}
             </button>
           ))}
         </div>
 
         {tab === "subtitle" && (
-          <div className="space-y-3">
-            <p className="text-xs font-bold text-gray-400">자막 스타일 선택</p>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { id: "bold_white", label: "굵은 흰색", style: { color:"#fff", fontWeight:"900", WebkitTextStroke:"1px #000" } },
-                { id: "yellow",     label: "노란색",    style: { color:"#FFE600", fontWeight:"900", WebkitTextStroke:"1px #000" } },
-                { id: "outline",    label: "아웃라인",  style: { color:"#fff", fontWeight:"900", textShadow:"-1px -1px 0 #000,1px 1px 0 #000" } },
-                { id: "dark_bg",    label: "다크 배경", style: { color:"#fff", background:"rgba(0,0,0,0.65)", padding:"2px 8px", borderRadius:"4px" } },
-              ].map(p => (
-                <button key={p.id} onClick={() => setSubtitlePreset(p.id)}
-                  className={`rounded-xl border p-3 text-left transition ${subtitlePreset===p.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"}`}>
-                  <span style={{ fontSize:"15px", fontWeight:"700", ...p.style }}>{p.label}</span>
+          <div className="space-y-4">
+            {/* 글씨체 */}
+            <div>
+              <label className="text-xs font-bold text-gray-400 block mb-1.5">글씨체</label>
+              <select value={subtitleStyle.fontFamily} onChange={e => set("fontFamily", e.target.value)}
+                className="w-full rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-500">
+                {FONTS.map(f => <option key={f} value={f}>{f}</option>)}
+              </select>
+            </div>
+
+            {/* 색상 + 두께 */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-bold text-gray-400 block mb-1.5">색상</label>
+                <div className="flex items-center gap-2">
+                  <input type="color" value={subtitleStyle.color} onChange={e => set("color", e.target.value)}
+                    className="h-9 w-12 rounded-lg cursor-pointer bg-transparent border border-gray-700" />
+                  <span className="text-sm text-gray-300 font-mono">{subtitleStyle.color.toUpperCase()}</span>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-400 block mb-1.5">두께</label>
+                <div className="flex gap-1">
+                  {([["400","보통"],["700","굵게"],["900","아주 굵게"]] as [string,string][]).map(([w,l]) => (
+                    <button key={w} onClick={() => set("fontWeight", w as any)}
+                      className={`flex-1 rounded-lg py-2 text-xs font-bold transition border ${subtitleStyle.fontWeight===w ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400 hover:border-gray-500"}`}>
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 크기 */}
+            <div>
+              <label className="text-xs font-bold text-gray-400 block mb-1.5">
+                크기 <span className="text-cyan-400">{subtitleStyle.fontSize}px</span>
+              </label>
+              <input type="range" min={12} max={48} step={1} value={subtitleStyle.fontSize}
+                onChange={e => set("fontSize", Number(e.target.value))}
+                className="w-full accent-cyan-500" />
+            </div>
+
+            {/* 위치 */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-bold text-gray-400 block mb-1.5">
+                  Y위치 <span className="text-cyan-400">{subtitleStyle.yPos}%</span>
+                </label>
+                <input type="range" min={5} max={95} step={1} value={subtitleStyle.yPos}
+                  onChange={e => set("yPos", Number(e.target.value))}
+                  className="w-full accent-cyan-500" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-400 block mb-1.5">
+                  X위치 <span className="text-cyan-400">{subtitleStyle.xPos}%</span>
+                </label>
+                <input type="range" min={5} max={95} step={1} value={subtitleStyle.xPos}
+                  onChange={e => set("xPos", Number(e.target.value))}
+                  className="w-full accent-cyan-500" />
+              </div>
+            </div>
+            <button onClick={() => setSubtitleStyle({ ...subtitleStyle, yPos: 75, xPos: 50 })}
+              className="text-xs text-gray-500 hover:text-cyan-400 transition underline underline-offset-2">
+              ↺ 위치 초기화
+            </button>
+
+            {/* 외곽선 */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-bold text-gray-400">외곽선</label>
+                <button onClick={() => set("strokeOn", !subtitleStyle.strokeOn)}
+                  className={`rounded-full px-3 py-1 text-xs font-black transition ${subtitleStyle.strokeOn ? "bg-cyan-500 text-white" : "bg-gray-700 text-gray-400"}`}>
+                  {subtitleStyle.strokeOn ? "ON" : "OFF"}
                 </button>
-              ))}
+              </div>
+              {subtitleStyle.strokeOn && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={subtitleStyle.strokeColor} onChange={e => set("strokeColor", e.target.value)}
+                      className="h-8 w-10 rounded cursor-pointer bg-transparent border border-gray-700" />
+                    <span className="text-xs text-gray-400 font-mono">{subtitleStyle.strokeColor.toUpperCase()}</span>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-400 block">두께 {subtitleStyle.strokeWidth}px</label>
+                    <input type="range" min={1} max={8} step={0.5} value={subtitleStyle.strokeWidth}
+                      onChange={e => set("strokeWidth", Number(e.target.value))}
+                      className="w-full accent-cyan-500 mt-1" />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 배경 */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-bold text-gray-400">배경</label>
+                <button onClick={() => set("bgOn", !subtitleStyle.bgOn)}
+                  className={`rounded-full px-3 py-1 text-xs font-black transition ${subtitleStyle.bgOn ? "bg-cyan-500 text-white" : "bg-gray-700 text-gray-400"}`}>
+                  {subtitleStyle.bgOn ? "ON" : "OFF"}
+                </button>
+              </div>
+              {subtitleStyle.bgOn && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={subtitleStyle.bgColor} onChange={e => set("bgColor", e.target.value)}
+                      className="h-8 w-10 rounded cursor-pointer bg-transparent border border-gray-700" />
+                    <span className="text-xs text-gray-400 font-mono">{subtitleStyle.bgColor.toUpperCase()}</span>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-400 block">불투명도 {subtitleStyle.bgOpacity}%</label>
+                    <input type="range" min={10} max={100} step={5} value={subtitleStyle.bgOpacity}
+                      onChange={e => set("bgOpacity", Number(e.target.value))}
+                      className="w-full accent-cyan-500 mt-1" />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -628,7 +765,7 @@ function Stage4Panel({ subtitlePreset, setSubtitlePreset, showThumbnail, setShow
                 </button>
               ))}
             </div>
-            <p className="text-xs text-gray-500">썸네일은 원본 영상의 첫 번째 프레임으로 설정됩니다.</p>
+            <p className="text-xs text-gray-500">원본 영상의 첫 번째 프레임이 썸네일로 설정됩니다.</p>
           </div>
         )}
       </div>
@@ -636,27 +773,27 @@ function Stage4Panel({ subtitlePreset, setSubtitlePreset, showThumbnail, setShow
       {/* 오른쪽: 프리뷰 */}
       <div className="flex flex-col items-center gap-3 shrink-0">
         <p className="text-xs font-bold text-gray-400">실시간 프리뷰</p>
-        <div className="relative rounded-2xl overflow-hidden bg-gray-800 border border-gray-700 flex items-end justify-center"
+        <div className="relative rounded-2xl overflow-hidden bg-gray-800 border border-gray-700"
           style={{ width: 160, height: 284 }}>
-          {frame ? (
-            <img src={frame} className="absolute inset-0 w-full h-full object-cover" />
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-b from-gray-700 to-gray-900" />
-          )}
+          {frame
+            ? <img src={frame} className="absolute inset-0 w-full h-full object-cover" />
+            : <div className="absolute inset-0 bg-gradient-to-b from-gray-700 to-gray-900" />
+          }
           {tab === "subtitle" && (
-            <div className="relative z-10 w-full text-center pb-8 px-3">
-              <span style={{ fontFamily: "inherit", ...style }}>{previewText}</span>
-            </div>
-          )}
-          {tab === "thumbnail" && showThumbnail && frame && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="bg-black/30 rounded-full h-12 w-12 flex items-center justify-center">
-                <span className="text-white text-2xl">▶</span>
+            <div className="absolute inset-0" style={{ pointerEvents: "none" }}>
+              <div style={{
+                position: "absolute",
+                top: `${subtitleStyle.yPos}%`,
+                left: `${subtitleStyle.xPos}%`,
+                transform: "translate(-50%, -50%)",
+                maxWidth: "90%",
+                textAlign: "center",
+              }}>
+                <span style={textStyle}>{previewText}</span>
               </div>
             </div>
           )}
         </div>
-        {/* 프레임 선택 */}
         {previewFrames.length > 1 && (
           <div className="flex gap-1">
             {previewFrames.slice(0,5).map((_, i) => (
@@ -665,7 +802,6 @@ function Stage4Panel({ subtitlePreset, setSubtitlePreset, showThumbnail, setShow
             ))}
           </div>
         )}
-        <p className="text-xs text-gray-600">{frameIdx+1} / {Math.min(previewFrames.length,5) || 1}</p>
       </div>
     </div>
   );
