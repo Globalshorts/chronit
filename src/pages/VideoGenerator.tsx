@@ -649,6 +649,19 @@ function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean;
   const proxyUrl = clip.download_url
     ? `https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/video-proxy?url=${encodeURIComponent(clip.download_url)}`
     : "";
+  const handlePlay = async () => {
+    if (!proxyUrl) return;
+    try {
+      const res = await fetch(proxyUrl, { method: "HEAD" });
+      if (res.ok && res.headers.get("content-type")?.includes("video")) {
+        setPlaying(true);
+      } else {
+        if (clip.page_url) window.open(clip.page_url, "_blank");
+      }
+    } catch {
+      if (clip.page_url) window.open(clip.page_url, "_blank");
+    }
+  };
   const thumbSrc = !imgError && clip.thumbnail_url ? clip.thumbnail_url : "";
 
   return (
@@ -656,7 +669,7 @@ function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean;
       selected ? "border-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.3)]" : "border-gray-700 hover:border-gray-500"
     }`}>
       <div className="aspect-[9/16] bg-gray-800 relative cursor-pointer"
-        onClick={() => proxyUrl ? setPlaying(p => !p) : undefined}>
+        onClick={() => playing ? setPlaying(false) : handlePlay()}>
         {playing && proxyUrl ? (
           <video src={proxyUrl} autoPlay playsInline controls={false}
             className="w-full h-full object-cover"
