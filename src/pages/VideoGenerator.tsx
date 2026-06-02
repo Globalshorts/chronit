@@ -646,6 +646,9 @@ function proxyThumb(url: string) {
 function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean; onToggle: () => void }) {
   const [imgError, setImgError] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const proxyUrl = clip.download_url
+    ? `https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/video-proxy?url=${encodeURIComponent(clip.download_url)}`
+    : "";
   const thumbSrc = !imgError && clip.thumbnail_url ? clip.thumbnail_url : "";
 
   return (
@@ -653,9 +656,9 @@ function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean;
       selected ? "border-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.3)]" : "border-gray-700 hover:border-gray-500"
     }`}>
       <div className="aspect-[9/16] bg-gray-800 relative cursor-pointer"
-        onClick={() => clip.download_url ? setPlaying(p => !p) : undefined}>
-        {playing && clip.download_url ? (
-          <video src={clip.download_url} autoPlay playsInline controls={false}
+        onClick={() => proxyUrl ? setPlaying(p => !p) : undefined}>
+        {playing && proxyUrl ? (
+          <video src={proxyUrl} autoPlay playsInline controls={false}
             className="w-full h-full object-cover"
             onClick={e => { e.stopPropagation(); setPlaying(false); }} />
         ) : (
