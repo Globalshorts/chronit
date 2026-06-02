@@ -130,15 +130,32 @@ export default function VideoGenerator() {
     try {
       const { data: { session: s } } = await supabase.auth.getSession();
       if (!s) { setSearchError("로그인이 필요합니다"); return; }
-      const resp = await fetch(FN("search-clips"), {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" },
+      const headers = { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" };
+
+      // Step 1: 영상 분석 + TikTok 검색 (search-clips, ~60초)
+      const resp1 = await fetch(FN("search-clips"), {
+        method: "POST", headers,
         body: JSON.stringify({ source_url: sourceUrl.trim(), clip_count: 20 }),
       });
-      const data = await resp.json();
-      if (!data.ok) { setSearchError(data.error ?? "검색 실패"); return; }
-      setClips(data.clips ?? []);
-      if (!(data.clips ?? []).length) setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요.");
+      const data1 = await resp1.json();
+      if (!data1.ok) { setSearchError(data1.error ?? "분석 실패"); return; }
+
+      const rawClips: Clip[] = data1.clips ?? [];
+      const refFrames: string[] = data1.reference_frames ?? [];
+      if (!rawClips.length) { setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요."); return; }
+
+      // reference_frames 없으면 CLIP filter 스킵
+      if (!refFrames.length) { setClips(rawClips); return; }
+
+      // Step 2: CLIP filter (clip-filter, ~60초)
+      const resp2 = await fetch(FN("clip-filter"), {
+        method: "POST", headers,
+        body: JSON.stringify({ reference_frames: refFrames, candidates: rawClips, clip_count: 20 }),
+      });
+      const data2 = await resp2.json();
+      const finalClips: Clip[] = data2.ok ? (data2.clips ?? rawClips) : rawClips.slice(0, 20);
+      setClips(finalClips);
+      if (!finalClips.length) setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요.");
     } catch (e) { setSearchError(String(e)); }
     finally { setSearching(false); }
   };
