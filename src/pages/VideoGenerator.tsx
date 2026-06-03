@@ -476,7 +476,7 @@ export default function VideoGenerator() {
                     <p className="text-xs text-gray-500">
                       {ctaText
                         ? `→ "${ctaText}라고 댓글 남겨주시면 링크 보내드릴게요"`
-                        : "→ "프로필 링크에서 확인하세요" (기본값)"}
+                        : "→ '프로필 링크에서 확인하세요' (기본값)"}
                     </p>
                   </div>
                 </div>
