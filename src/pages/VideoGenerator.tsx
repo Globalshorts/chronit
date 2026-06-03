@@ -680,7 +680,7 @@ export default function VideoGenerator() {
             <div className="max-w-2xl mx-auto">
               <h2 className="text-xl font-black text-white mb-2">🔍 스타일 찾기</h2>
               <p className="text-sm text-gray-400 mb-6">숏폼 영상 URL을 분석해서 대본 스타일을 라이브러리에 저장합니다.</p>
-              <StyleFinderFull session={session} onImport={(id) => { setStyleProfileId(id); setActiveView("generator"); }} />
+              <StyleFinderFull session={session} styleProfileId={styleProfileId} onImport={(id) => { setStyleProfileId(id); setActiveView("generator"); }} />
             </div>
           </div>
         )}
@@ -1103,7 +1103,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
             <div className="max-w-2xl mx-auto">
               <h2 className="text-xl font-black text-white mb-2">🔍 스타일 찾기</h2>
               <p className="text-sm text-gray-400 mb-6">숏폼 영상 URL을 분석해서 대본 스타일을 라이브러리에 저장합니다.</p>
-              <StyleFinderFull session={session} onImport={(id) => { setStyleProfileId(id); setActiveView("generator"); }} />
+              <StyleFinderFull session={session} styleProfileId={styleProfileId} onImport={(id) => { setStyleProfileId(id); setActiveView("generator"); }} />
             </div>
           </div>
         )}
@@ -1264,7 +1264,7 @@ function StyleFinderTab({ session, onImport }: { session: any; onImport: (id:str
 }
 
 // ── StyleFinderFull (메인 뷰용 — 크게) ──────────────────────
-function StyleFinderFull({ session, onImport }: { session: any; onImport: (id:string)=>void }) {
+function StyleFinderFull({ session, onImport, styleProfileId }: { session: any; onImport: (id:string)=>void; styleProfileId: string }) {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -1802,7 +1802,7 @@ function AppSidebar({ current, onLoad, onReset, balance, userPlan, userRole, ses
             <div className="max-w-2xl mx-auto">
               <h2 className="text-xl font-black text-white mb-2">🔍 스타일 찾기</h2>
               <p className="text-sm text-gray-400 mb-6">숏폼 영상 URL을 분석해서 대본 스타일을 라이브러리에 저장합니다.</p>
-              <StyleFinderFull session={session} onImport={(id) => { setStyleProfileId(id); setActiveView("generator"); }} />
+              <StyleFinderFull session={session} styleProfileId={styleProfileId} onImport={(id) => { setStyleProfileId(id); setActiveView("generator"); }} />
             </div>
           </div>
         )}
@@ -2032,7 +2032,7 @@ function JobCard({ job }: { job: Job }) {
             <div className="max-w-2xl mx-auto">
               <h2 className="text-xl font-black text-white mb-2">🔍 스타일 찾기</h2>
               <p className="text-sm text-gray-400 mb-6">숏폼 영상 URL을 분석해서 대본 스타일을 라이브러리에 저장합니다.</p>
-              <StyleFinderFull session={session} onImport={(id) => { setStyleProfileId(id); setActiveView("generator"); }} />
+              <StyleFinderFull session={session} styleProfileId={styleProfileId} onImport={(id) => { setStyleProfileId(id); setActiveView("generator"); }} />
             </div>
           </div>
         )}
