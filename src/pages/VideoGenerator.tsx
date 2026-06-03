@@ -488,13 +488,7 @@ export default function VideoGenerator() {
                         className="rounded-xl bg-cyan-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-cyan-400 disabled:opacity-40 transition">
                         {scriptLoading ? "생성 중..." : "✨ 대본 생성하기"}
                       </button>
-                    : <>
-                        <button onClick={() => setStage(4)}
-                          className="rounded-xl bg-cyan-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-cyan-400 transition">
-                          다음 단계 →
-                        </button>
-                        <FloatingNext label="다음" onClick={() => setStage(4)} />
-                      </>
+                    : <FloatingNext label="다음" onClick={() => setStage(4)} />
                   }
                 </div>
               </div>
@@ -523,7 +517,7 @@ export default function VideoGenerator() {
               </div>
             </div>
           )}
-          <FloatingNext label="다음" onClick={() => setStage(5)} />
+          {stage === 4 && <FloatingNext label="다음" onClick={() => setStage(5)} />}
 
           {/* ── STAGE 5 ── */}
           <StagePanel n={5} title="보이스" subtitle="음성을 선택하고 영상을 생성합니다" current={stage}>
