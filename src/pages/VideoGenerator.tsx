@@ -331,11 +331,17 @@ export default function VideoGenerator() {
     setStage(d.stage ?? 1);
   };
 
+  const handleReset = () => {
+    setStage(1); setSourceUrl(""); setClips([]); setCart(new Set());
+    setScript(null); setScriptPredId(""); setSearchError("");
+    setCurrentJobId("");
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-950 text-white">
       {/* ── 왼쪽 사이드바 ── */}
       <div className="w-64 shrink-0 border-r border-gray-800 flex flex-col">
-        <AppSidebar current={currentData} onLoad={handleLoad} balance={balance} session={session} />
+        <AppSidebar current={currentData} onLoad={handleLoad} onReset={handleReset} balance={balance} session={session} />
       </div>
 
       {/* ── 메인 콘텐츠 ── */}
@@ -482,14 +488,15 @@ export default function VideoGenerator() {
                     🔄 재생성
                   </button>
                 )}
-                <div className="ml-auto flex gap-2">
+                <div className="ml-auto flex gap-2 items-center">
                   {!script
                     ? <button onClick={handleGenerateScript} disabled={scriptLoading}
                         className="rounded-xl bg-cyan-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-cyan-400 disabled:opacity-40 transition">
                         {scriptLoading ? "생성 중..." : "✨ 대본 생성하기"}
                       </button>
-                    : <FloatingNext label="다음" onClick={() => setStage(4)} />
+                    : null
                   }
+                  {script && <FloatingNext label="다음" onClick={() => setStage(4)} />}
                 </div>
               </div>
             </div>
@@ -927,7 +934,7 @@ const PROJECTS_KEY = "chronit_projects_v2";
 function getProjects(): any[] { try { return JSON.parse(localStorage.getItem(PROJECTS_KEY)||"[]"); } catch { return []; } }
 function saveProjects(ps: any[]) { localStorage.setItem(PROJECTS_KEY, JSON.stringify(ps.slice(0,20))); }
 
-function AppSidebar({ current, onLoad, balance, session }: { current: any; onLoad: (d:any)=>void; balance: number|null; session: any }) {
+function AppSidebar({ current, onLoad, onReset, balance, session }: { current: any; onLoad: (d:any)=>void; onReset: ()=>void; balance: number|null; session: any }) {
   const [tab, setTab] = useState<"project"|"style"|"settings">("project");
   const [projects, setProjects] = useState<any[]>(()=>getProjects());
   const [activeProjectId, setActiveProjectId] = useState<string|null>(null);
@@ -953,6 +960,7 @@ function AppSidebar({ current, onLoad, balance, session }: { current: any; onLoa
     saveProjects(ps); setProjects(ps);
     setActiveProjectId(id);
     setNewProjectName(null);
+    onReset(); // 화면 초기화 → 새 프로젝트 빈 상태로 시작
   };
 
   const delProject = (id: string, e: React.MouseEvent) => {
