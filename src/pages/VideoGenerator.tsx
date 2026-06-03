@@ -315,19 +315,20 @@ export default function VideoGenerator() {
 
   const currentData = { stage, sourceUrl, clips, cart: [...cart], script, targetSeconds, styleProfileId, subtitleStyle, thumbnailStyle, showThumbnail, voiceId, voiceSpeed, voiceVolume };
   const handleLoad = (d: any) => {
-    if (d.sourceUrl) setSourceUrl(d.sourceUrl);
-    if (d.clips?.length) setClips(d.clips);
-    if (d.cart?.length) setCart(new Set(d.cart));
-    if (d.script) setScript(d.script);
-    if (d.targetSeconds) setTargetSeconds(d.targetSeconds);
-    if (d.styleProfileId) setStyleProfileId(d.styleProfileId);
+    // 모든 필드를 무조건 복원 (조건부 건너뜀 없음)
+    setSourceUrl(d.sourceUrl ?? "");
+    setClips(d.clips ?? []);
+    setCart(new Set(d.cart ?? []));
+    setScript(d.script ?? null);
+    setTargetSeconds(d.targetSeconds ?? 15);
+    setStyleProfileId(d.styleProfileId ?? "auto");
     if (d.subtitleStyle) setSubtitleStyle(d.subtitleStyle);
     if (d.thumbnailStyle) setThumbnailStyle(d.thumbnailStyle);
-    if (d.showThumbnail !== undefined) setShowThumbnail(d.showThumbnail);
-    if (d.voiceId) setVoiceId(d.voiceId);
-    if (d.voiceSpeed) setVoiceSpeed(d.voiceSpeed);
-    if (d.voiceVolume) setVoiceVolume(d.voiceVolume);
-    if (d.stage) setStage(d.stage);
+    setShowThumbnail(d.showThumbnail ?? true);
+    setVoiceId(d.voiceId ?? "nova");
+    setVoiceSpeed(d.voiceSpeed ?? 130);
+    setVoiceVolume(d.voiceVolume ?? 100);
+    setStage(d.stage ?? 1);
   };
 
   return (
