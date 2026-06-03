@@ -431,7 +431,8 @@ export default function VideoGenerator() {
             )}
           </div>
         )}
-        {/* 상단 바 */}
+        {/* 영상 생성 뷰 — generator일 때만 표시 */}
+        {activeView === "generator" && <>
         <div className="border-b border-gray-800 px-8 py-4 flex items-center justify-between">
           <StageBar current={stage} onSelect={(s) => s < stage && setStage(s)} />
           {balance !== null && (
@@ -440,8 +441,6 @@ export default function VideoGenerator() {
             </div>
           )}
         </div>
-
-        {/* 스테이지 콘텐츠 */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
           <div className="space-y-0">
 
@@ -708,15 +707,7 @@ export default function VideoGenerator() {
 
           </div>
         </div>
-        {/* 이전 내역 */}
-        {jobs.filter(j => j.id !== currentJobId).length > 0 && (
-          <div className="mt-10">
-            <h2 className="mb-4 text-lg font-black text-white">이전 생성 내역</h2>
-            <div className="space-y-3">
-              {jobs.filter(j => j.id !== currentJobId).map(job => <JobCard key={job.id} job={job} />)}
-            </div>
-          </div>
-        )}
+        </> /* generator view end */}
       </div>
     </div>
   );
