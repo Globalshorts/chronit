@@ -8,7 +8,7 @@
  * Stage 5: 음성 선택 → 렌더링 시작
  * Stage 6: 제목/해시태그 + 내보내기
  */
-import { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabase";
 import type { Session } from "@supabase/supabase-js";
 
@@ -380,8 +380,20 @@ export default function VideoGenerator() {
         </div>
       )}
       {/* ── 왼쪽 사이드바 ── */}
-      <div className="w-64 shrink-0 border-r border-gray-800 flex flex-col">
-        <AppSidebar current={currentData} onLoad={handleLoad} onReset={handleReset} balance={balance} userPlan={userPlan} session={session} activeView={activeView} onViewChange={setActiveView} />
+      {/* ── 좌측 탭 네비 (좁게) ── */}
+      <div className="w-52 shrink-0 border-r border-gray-800 flex flex-col">
+        <NavSidebar activeView={activeView} onViewChange={setActiveView} userRole={userRole}
+          balance={balance} userPlan={userPlan} session={session} />
+      </div>
+
+      {/* ── 중간 패널 (프로젝트 목록 or 탭별 콘텐츠) ── */}
+      <div className="w-60 shrink-0 border-r border-gray-800 flex flex-col overflow-y-auto">
+        <ProjectPanel
+          activeView={activeView}
+          current={currentData} onLoad={handleLoad} onReset={handleReset}
+          session={session}
+          styleProfileId={styleProfileId} onSelectStyle={setStyleProfileId}
+        />
       </div>
 
       {/* ── 메인 콘텐츠 ── */}
@@ -1164,6 +1176,210 @@ function HistoryPanel({ session }: { session: any }) {
             </a>
           )}
           <p className="text-xs text-gray-600">{new Date(j.created_at).toLocaleDateString("ko")}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── NavSidebar — 좌측 좁은 탭 네비 ───────────────────────────
+function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, session }: {
+  activeView: string; onViewChange: (v:string)=>void; userRole: string;
+  balance: number|null; userPlan: string|null; session: any;
+}) {
+  const NAV = [
+    { v: "generator",    icon: "📁", label: "프로젝트" },
+    { v: "style-finder", icon: "🔍", label: "스타일 찾기" },
+    { v: "history",      icon: "📹", label: "생성 내역" },
+    { v: "settings",     icon: "⚙️", label: "설정" },
+    ...(userRole === "partner" || userRole === "super_admin"
+      ? [{ v: "partner", icon: "📊", label: "파트너스" }] : []),
+    ...(userRole === "super_admin"
+      ? [{ v: "admin", icon: "👑", label: "관리자" }] : []),
+  ];
+  return (
+    <div className="flex flex-col h-full">
+      {/* 로고 */}
+      <div className="px-5 py-5 border-b border-gray-800">
+        <p className="text-sm font-black text-white tracking-tight">CHRONIT</p>
+        <p className="text-xs text-gray-600 mt-0.5">쇼핑 릴스 자동화</p>
+      </div>
+      {/* 탭 */}
+      <div className="px-2 py-3 space-y-0.5 flex-1">
+        {NAV.map(({ v, icon, label }) => (
+          <button key={v} onClick={() => onViewChange(v)}
+            className={`w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold transition flex items-center gap-2.5 ${activeView === v ? "bg-cyan-500/15 text-cyan-400" : "text-gray-400 hover:bg-gray-800 hover:text-white"}`}>
+            <span>{icon}</span><span>{label}</span>
+          </button>
+        ))}
+      </div>
+      {/* 하단 계정/플랜/크레딧 */}
+      <div className="border-t border-gray-800 px-4 py-3 space-y-1.5">
+        <p className="text-xs text-gray-600 truncate">{session?.user?.email}</p>
+        {userPlan && (
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-500">플랜</span>
+            <span className="font-bold text-white capitalize">{userPlan}</span>
+          </div>
+        )}
+        {balance !== null && (
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-500">크레딧</span>
+            <span className="font-black text-cyan-400">💎 {balance.toLocaleString()}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── ProjectPanel — 중간 패널 (탭별 내용) ─────────────────────
+const PROJ_KEY = "chronit_projects_v2";
+function getProjs(): any[] { try { return JSON.parse(localStorage.getItem(PROJ_KEY)||"[]"); } catch { return []; } }
+function saveProjs(ps: any[]) { localStorage.setItem(PROJ_KEY, JSON.stringify(ps.slice(0,20))); }
+
+function ProjectPanel({ activeView, current, onLoad, onReset, session, styleProfileId, onSelectStyle }: {
+  activeView: string; current: any; onLoad: (d:any)=>void; onReset: ()=>void;
+  session: any; styleProfileId: string; onSelectStyle: (id:string)=>void;
+}) {
+  const [projects, setProjects] = useState<any[]>(() => getProjs());
+  const [activeId, setActiveId] = useState<string|null>(() => localStorage.getItem("chronit_active_proj") || null);
+  const [editingId, setEditingId] = useState<string|null>(null);
+  const [newName, setNewName] = useState<string|null>(null);
+  const STAGE_LABELS = ["영상 분석","영상 선택","대본 생성","스타일","보이스","완료"];
+
+  const createProject = (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    if (getProjs().some(p => p.name === trimmed)) { alert(`"${trimmed}" 이름이 이미 있습니다.`); return; }
+    const id = `proj_${Date.now()}`;
+    const entry = { id, name: trimmed, savedAt: Date.now(), stage: 1, data: {} };
+    const ps = [entry, ...getProjs()];
+    saveProjs(ps); setProjects(ps); setActiveId(id);
+    localStorage.setItem("chronit_active_proj", id);
+    onReset();
+    setNewName(null);
+  };
+
+  const saveProject = () => {
+    if (!activeId) { setNewName(""); return; }
+    const ps = getProjs().map(p => p.id === activeId
+      ? { ...p, savedAt: Date.now(), stage: current.stage, data: current } : p);
+    saveProjs(ps); setProjects(ps);
+  };
+
+  const loadProject = (p: any) => {
+    onLoad(p.data || {});
+    setActiveId(p.id);
+    localStorage.setItem("chronit_active_proj", p.id);
+  };
+
+  const delProject = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const ps = getProjs().filter(p => p.id !== id);
+    saveProjs(ps); setProjects(ps);
+    if (activeId === id) { setActiveId(null); localStorage.removeItem("chronit_active_proj"); }
+  };
+
+  const renameProject = (id: string, name: string) => {
+    const ps = getProjs().map(p => p.id === id ? { ...p, name: name.trim() || p.name } : p);
+    saveProjs(ps); setProjects(ps); setEditingId(null);
+  };
+
+  if (activeView === "generator") return (
+    <div className="flex flex-col h-full">
+      <div className="px-4 py-4 border-b border-gray-800 flex items-center justify-between">
+        <p className="text-xs font-black text-white">프로젝트</p>
+        <button onClick={saveProject} className="text-xs text-gray-500 hover:text-cyan-400 transition">💾</button>
+      </div>
+      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
+        {/* 새 프로젝트 */}
+        {newName === null ? (
+          <button onClick={() => setNewName("")}
+            className="w-full rounded-xl bg-cyan-500 py-2 text-xs font-black text-white hover:bg-cyan-400 transition">
+            + 새 프로젝트
+          </button>
+        ) : (
+          <div className="space-y-1.5">
+            <input autoFocus value={newName} onChange={e => setNewName(e.target.value)}
+              onKeyDown={e => { if (e.key==="Enter") createProject(newName); if (e.key==="Escape") setNewName(null); }}
+              placeholder="프로젝트 이름"
+              className="w-full rounded-xl bg-gray-800 border border-cyan-500 px-3 py-2 text-xs text-white outline-none" />
+            <div className="flex gap-1.5">
+              <button onClick={() => createProject(newName)} className="flex-1 rounded-lg bg-cyan-500 py-1.5 text-xs font-black text-white">확인</button>
+              <button onClick={() => setNewName(null)} className="rounded-lg border border-gray-700 px-3 py-1.5 text-xs text-gray-400">✕</button>
+            </div>
+          </div>
+        )}
+        {/* 프로젝트 목록 */}
+        {projects.length === 0
+          ? <p className="text-xs text-gray-600 text-center py-6">저장된 프로젝트가 없습니다</p>
+          : projects.map(p => (
+            <div key={p.id} onClick={() => loadProject(p)}
+              className={`rounded-xl border p-2.5 cursor-pointer transition group ${activeId===p.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"}`}>
+              <div className="flex items-start justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  {editingId === p.id ? (
+                    <input autoFocus defaultValue={p.name}
+                      className="w-full bg-gray-800 text-xs font-bold text-white rounded px-1 py-0.5 outline-none border border-cyan-500"
+                      onBlur={e => renameProject(p.id, e.target.value)}
+                      onKeyDown={e => { if (e.key==="Enter") renameProject(p.id, (e.target as HTMLInputElement).value); }}
+                      onClick={e => e.stopPropagation()} />
+                  ) : (
+                    <p className="text-xs font-bold text-white truncate">{p.name}</p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-0.5">{STAGE_LABELS[(p.stage||1)-1]} · {new Date(p.savedAt).toLocaleDateString("ko")}</p>
+                </div>
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition shrink-0">
+                  <button onClick={e=>{e.stopPropagation();setEditingId(p.id);}} className="text-gray-500 hover:text-cyan-400 text-xs">✎</button>
+                  <button onClick={e=>delProject(p.id,e)} className="text-gray-500 hover:text-red-400 text-xs">✕</button>
+                </div>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  );
+
+  if (activeView === "style-finder") return (
+    <div className="flex flex-col h-full">
+      <div className="px-4 py-4 border-b border-gray-800">
+        <p className="text-xs font-black text-white">스타일 찾기</p>
+        <p className="text-xs text-gray-500 mt-0.5">URL → AI 분석 → 저장</p>
+      </div>
+      <div className="flex-1 overflow-y-auto px-3 py-3">
+        <StyleLibraryList session={session} onSelect={onSelectStyle} selectedId={styleProfileId} />
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="px-4 py-4">
+      <p className="text-xs font-black text-white capitalize">{activeView}</p>
+    </div>
+  );
+}
+
+// ── StyleLibraryList — 저장된 스타일 목록 ───────────────────
+function StyleLibraryList({ session, onSelect, selectedId }: { session: any; onSelect: (id:string)=>void; selectedId: string }) {
+  const [items, setItems] = useState<any[]>([]);
+  useEffect(() => {
+    if (!session) return;
+    (async () => {
+      const r = await fetch("https://oxygqtbdpnxxcgzwdlzi.supabase.co/rest/v1/style_profiles?select=*&order=updated_at.desc",
+        { headers: { Authorization: `Bearer ${session.access_token}`, apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNTQ3MTIsImV4cCI6MjA5NTgzMDcxMn0.bHBnYJDRabumBJGtknRjkb63wm2nLI9IHYAaHTw5Qf8" }});
+      const d = await r.json(); setItems(Array.isArray(d) ? d : []);
+    })();
+  }, [session]);
+  if (!items.length) return <p className="text-xs text-gray-600 text-center py-6">저장된 스타일이 없습니다</p>;
+  return (
+    <div className="space-y-1.5">
+      {items.map(s => (
+        <div key={s.id} onClick={() => onSelect(s.id)}
+          className={`rounded-xl border p-2.5 cursor-pointer transition ${selectedId===s.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"}`}>
+          <p className="text-xs font-bold text-white truncate">{s.label}</p>
+          {s.source_channel && <p className="text-xs text-gray-500">@{s.source_channel}</p>}
         </div>
       ))}
     </div>
