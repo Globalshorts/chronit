@@ -423,12 +423,6 @@ export default function VideoGenerator() {
                 </div>
               </div>
 
-              <div className="flex justify-end">
-                <button onClick={() => setStage(3)}
-                  className="rounded-xl bg-cyan-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-cyan-400 transition">
-                  다음 단계 →
-                </button>
-              </div>
               <FloatingNext label="다음" onClick={() => setStage(3)} />
             </div>
           </StagePanel>
@@ -513,6 +507,7 @@ export default function VideoGenerator() {
                   thumbnailStyle={thumbnailStyle} setThumbnailStyle={setThumbnailStyle}
                   showThumbnail={showThumbnail} setShowThumbnail={setShowThumbnail}
                   previewFrames={clips.filter(c => cart.has(c.video_id)).slice(0,5).map(c => c.thumbnail_url).filter(Boolean) as string[]}
+                  previewScript={script ? script.map(s => s.text || s.sentence || "").filter(Boolean) : []}
                   onNext={() => setStage(5)}
                 />
               </div>
@@ -673,21 +668,23 @@ type SubtitleStyle = {
   yPos: number; xPos: number;
 };
 
-function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumbnailStyle, showThumbnail, setShowThumbnail, previewFrames, onNext }: {
+function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumbnailStyle, showThumbnail, setShowThumbnail, previewFrames, previewScript, onNext }: {
   subtitleStyle: SubtitleStyle; setSubtitleStyle: (v: SubtitleStyle) => void;
   thumbnailStyle: SubtitleStyle; setThumbnailStyle: (v: SubtitleStyle) => void;
   showThumbnail: boolean; setShowThumbnail: (v: boolean) => void;
-  previewFrames: string[]; onNext: () => void;
+  previewFrames: string[]; previewScript: string[]; onNext: () => void;
 }) {
   const [tab, setTab] = useState<"subtitle"|"thumbnail">("subtitle");
   const [frameIdx, setFrameIdx] = useState(0);
+  const [scriptIdx, setScriptIdx] = useState(0);
 
   const s = tab === "subtitle" ? subtitleStyle : thumbnailStyle;
   const setS = tab === "subtitle" ? setSubtitleStyle : setThumbnailStyle;
   const upd = (k: keyof SubtitleStyle, v: any) => setS({ ...s, [k]: v });
 
   const frame = previewFrames[frameIdx] || "";
-  const previewText = "와, 드디어";
+  // 대본에서 프리뷰 문구 — 없으면 기본값
+  const previewText = (previewScript.length > 0 ? previewScript[scriptIdx % previewScript.length] : null) || "와, 드디어";
 
   const makeTextShadow = (sw: number, sc: string) => {
     const d = sw;
@@ -700,8 +697,8 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
     fontWeight: st.fontWeight,
     textShadow: st.strokeOn ? makeTextShadow(st.strokeWidth, st.strokeColor) : undefined,
     lineHeight: 1.3,
-    whiteSpace: "pre-wrap",
-    wordBreak: "keep-all" as any,
+    whiteSpace: "nowrap",
+    display: "inline-block",
   });
   const toBgStyle = (st: SubtitleStyle): React.CSSProperties => st.bgOn ? {
     backgroundColor: `${st.bgColor}${Math.round(st.bgOpacity * 2.55).toString(16).padStart(2, "0")}`,
@@ -732,7 +729,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
         <div>
           <label className="text-xs font-bold text-gray-400 block mb-1.5">두께</label>
           <div className="flex gap-1">
-            {([["400","보통"],["700","굵게"],["900","아주"]] as [string,string][]).map(([w,l]) => (
+            {([["400","보통"],["700","굵게"]] as [string,string][]).map(([w,l]) => (
               <button key={w} onClick={() => upd("fontWeight", w as any)}
                 className={`flex-1 rounded-lg py-2 text-xs font-bold transition border ${s.fontWeight===w ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400"}`}>{l}</button>
             ))}
@@ -874,6 +871,13 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
             ))}
           </div>
         )}
+        {previewScript.length > 1 && (
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <button onClick={() => setScriptIdx(i => Math.max(0, i-1))} className="hover:text-white">‹</button>
+            <span>{(scriptIdx % previewScript.length)+1}/{previewScript.length}</span>
+            <button onClick={() => setScriptIdx(i => i+1)} className="hover:text-white">›</button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -888,6 +892,13 @@ function saveProjects(ps: any[]) { localStorage.setItem(PROJECTS_KEY, JSON.strin
 function AppSidebar({ current, onLoad, balance, session }: { current: any; onLoad: (d:any)=>void; balance: number|null; session: any }) {
   const [tab, setTab] = useState<"project"|"style"|"settings">("project");
   const [projects, setProjects] = useState<any[]>(()=>getProjects());
+  const [activeProjectId, setActiveProjectId] = useState<string|null>(null);
+  const [editingId, setEditingId] = useState<string|null>(null);
+
+  const renameProject = (id: string, name: string) => {
+    const ps = getProjects().map(p => p.id===id ? { ...p, name: name.trim() || p.name } : p);
+    saveProjects(ps); setProjects(ps);
+  };
 
   const saveProject = () => {
     const id = `proj_${Date.now()}`;
@@ -925,26 +936,45 @@ function AppSidebar({ current, onLoad, balance, session }: { current: any; onLoa
       {/* 콘텐츠 */}
       <div className="flex-1 overflow-y-auto px-3 pb-4">
         {tab === "project" && (
-          <div className="space-y-3">
+          <div className="space-y-2">
+            {/* 새 프로젝트 버튼 */}
             <button onClick={saveProject}
-              className="w-full rounded-xl bg-cyan-500 py-2.5 text-sm font-black text-white hover:bg-cyan-400 transition">
-              + 현재 작업 저장
+              className="w-full rounded-xl bg-cyan-500 py-2.5 text-sm font-black text-white hover:bg-cyan-400 transition flex items-center justify-center gap-1.5">
+              <span>+</span><span>새 프로젝트</span>
             </button>
-            {projects.length === 0
-              ? <p className="text-xs text-gray-600 text-center py-8">저장된 프로젝트가 없습니다</p>
-              : projects.map(p=>(
-                <div key={p.id} onClick={()=>onLoad(p.data)}
-                  className="rounded-xl border border-gray-700 p-3 cursor-pointer hover:border-cyan-500/50 transition group">
-                  <div className="flex items-start justify-between gap-1">
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-white truncate">{p.name}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{STAGE_LABELS[(p.stage||1)-1]} · {new Date(p.savedAt).toLocaleDateString("ko")}</p>
+
+            {projects.length === 0 ? (
+              <p className="text-xs text-gray-600 text-center py-8">저장된 프로젝트가 없습니다</p>
+            ) : (
+              <div className="space-y-1">
+                {projects.map(p=>(
+                  <div key={p.id}
+                    className={`rounded-xl border p-2.5 cursor-pointer transition group ${activeProjectId===p.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"}`}
+                    onClick={()=>{ onLoad(p.data); setActiveProjectId(p.id); }}>
+                    <div className="flex items-start justify-between gap-1">
+                      <div className="min-w-0 flex-1">
+                        {editingId === p.id ? (
+                          <input autoFocus defaultValue={p.name}
+                            className="w-full bg-gray-800 text-xs font-bold text-white rounded px-1 py-0.5 outline-none border border-cyan-500"
+                            onBlur={e => { renameProject(p.id, e.target.value); setEditingId(null); }}
+                            onKeyDown={e => { if (e.key==="Enter") { renameProject(p.id, (e.target as HTMLInputElement).value); setEditingId(null); } }}
+                            onClick={e => e.stopPropagation()} />
+                        ) : (
+                          <p className="text-xs font-bold text-white truncate">{p.name}</p>
+                        )}
+                        <p className="text-xs text-gray-500 mt-0.5">{STAGE_LABELS[(p.stage||1)-1]} · {new Date(p.savedAt).toLocaleDateString("ko")}</p>
+                      </div>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition shrink-0">
+                        <button onClick={e=>{e.stopPropagation();setEditingId(p.id);}}
+                          className="text-gray-500 hover:text-cyan-400 text-xs">✎</button>
+                        <button onClick={e=>delProject(p.id,e)}
+                          className="text-gray-500 hover:text-red-400 text-xs">✕</button>
+                      </div>
                     </div>
-                    <button onClick={e=>delProject(p.id,e)} className="text-gray-700 hover:text-red-400 transition text-xs opacity-0 group-hover:opacity-100 shrink-0">✕</button>
                   </div>
-                </div>
-              ))
-            }
+                ))}
+              </div>
+            )}
           </div>
         )}
         {tab === "style" && (
