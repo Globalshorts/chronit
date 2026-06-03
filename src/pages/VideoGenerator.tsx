@@ -27,12 +27,18 @@ type Job = {
 };
 type ScriptSegment = { text: string; duration_sec: number };
 
-const VOICES = [
-  { id: "nova",    label: "한국어 여성 1 (밝음)" },
-  { id: "shimmer", label: "한국어 여성 2 (차분)" },
-  { id: "onyx",    label: "한국어 남성 1 (활기)" },
-  { id: "echo",    label: "한국어 남성 2 (안정)" },
-  { id: "fable",   label: "한국어 여아 (귀여움)" },
+const VOICES_BASIC = [
+  { id: "nova",    label: "여성 1", desc: "밝고 친근함" },
+  { id: "shimmer", label: "여성 2", desc: "차분하고 안정" },
+  { id: "onyx",    label: "남성 1", desc: "활기차고 자신감" },
+  { id: "echo",    label: "남성 2", desc: "깊고 안정적" },
+  { id: "fable",   label: "여성 3", desc: "부드럽고 감성적" },
+];
+const VOICES_PRO = [
+  { id: "el_rachel", label: "Rachel", desc: "자연스럽고 따뜻함 (ElevenLabs)" },
+  { id: "el_adam",   label: "Adam",   desc: "차분하고 전문적 (ElevenLabs)" },
+  { id: "el_bella",  label: "Bella",  desc: "밝고 에너지 넘침 (ElevenLabs)" },
+  { id: "el_elli",   label: "Elli",   desc: "친근하고 명랑 (ElevenLabs)" },
 ];
 
 const SUBTITLE_PRESETS = [
@@ -88,6 +94,7 @@ export default function VideoGenerator() {
   // Stage 5
   const [voiceId, setVoiceId]       = useState("nova");
   const [voiceSpeed, setVoiceSpeed] = useState(130); // %
+  const [voiceVolume, setVoiceVolume] = useState(100); // %
   const [rendering, setRendering]   = useState(false);
   const [renderError, setRenderError] = useState("");
   const [currentJobId, setCurrentJobId] = useState("");
@@ -273,6 +280,7 @@ export default function VideoGenerator() {
           target_seconds: targetSeconds,
           voice_id: voiceId,
           voice_speed: voiceSpeed / 100,
+          voice_volume: voiceVolume / 100,
           subtitle_preset: subtitlePreset,
           show_thumbnail: showThumbnail,
           script_segments: script,
@@ -305,7 +313,7 @@ export default function VideoGenerator() {
 
   const currentJob = jobs.find(j => j.id === currentJobId);
 
-  const currentData = { stage, sourceUrl, clips, cart: [...cart], script, targetSeconds, styleProfileId, subtitleStyle, thumbnailStyle, showThumbnail, voiceId, voiceSpeed };
+  const currentData = { stage, sourceUrl, clips, cart: [...cart], script, targetSeconds, styleProfileId, subtitleStyle, thumbnailStyle, showThumbnail, voiceId, voiceSpeed, voiceVolume };
   const handleLoad = (d: any) => {
     if (d.sourceUrl) setSourceUrl(d.sourceUrl);
     if (d.clips?.length) setClips(d.clips);
@@ -318,6 +326,7 @@ export default function VideoGenerator() {
     if (d.showThumbnail !== undefined) setShowThumbnail(d.showThumbnail);
     if (d.voiceId) setVoiceId(d.voiceId);
     if (d.voiceSpeed) setVoiceSpeed(d.voiceSpeed);
+    if (d.voiceVolume) setVoiceVolume(d.voiceVolume);
     if (d.stage) setStage(d.stage);
   };
 
@@ -518,33 +527,9 @@ export default function VideoGenerator() {
           {/* ── STAGE 5 ── */}
           <StagePanel n={5} title="보이스" subtitle="음성을 선택하고 영상을 생성합니다" current={stage}>
             <div className="space-y-6">
-              <div>
-                <label className="mb-3 block text-sm font-bold text-gray-300">음성 선택</label>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {VOICES.map(v => (
-                    <button key={v.id} onClick={() => setVoiceId(v.id)}
-                      className={`rounded-xl border px-4 py-3 text-left transition ${
-                        voiceId === v.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"
-                      }`}>
-                      <span className={`text-sm font-bold ${voiceId === v.id ? "text-cyan-400" : "text-white"}`}>
-                        {voiceId === v.id ? "● " : "○ "}{v.label}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-3 block text-sm font-bold text-gray-300">
-                  말하기 속도 <span className="text-cyan-400 font-black">{voiceSpeed}%</span>
-                </label>
-                <input type="range" min={80} max={160} step={5} value={voiceSpeed}
-                  onChange={e => setVoiceSpeed(Number(e.target.value))}
-                  className="w-full accent-cyan-500" />
-                <div className="mt-1 flex justify-between text-xs text-gray-500">
-                  <span>느림 (80%)</span><span>기본 (100%)</span><span>빠름 (160%)</span>
-                </div>
-              </div>
+              <VoicePanel voiceId={voiceId} setVoiceId={setVoiceId}
+                voiceSpeed={voiceSpeed} setVoiceSpeed={setVoiceSpeed}
+                voiceVolume={voiceVolume} setVoiceVolume={setVoiceVolume} />
 
               {renderError && <p className="text-sm text-red-400">{renderError}</p>}
 
@@ -635,15 +620,73 @@ export default function VideoGenerator() {
 // ── Stage Bar ─────────────────────────────────────────────────
 const STAGE_LABELS = ["영상 분석", "영상 선택", "컷편집 & 대본 생성", "스타일", "보이스", "SEO + 내보내기"];
 // ── 플로팅 다음 버튼 ──────────────────────────────────────────
+// ── VoicePanel ───────────────────────────────────────────────
+function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolume, setVoiceVolume }: {
+  voiceId: string; setVoiceId: (v: string) => void;
+  voiceSpeed: number; setVoiceSpeed: (v: number) => void;
+  voiceVolume: number; setVoiceVolume: (v: number) => void;
+}) {
+  const isPro = voiceId.startsWith("el_");
+  const [tab, setTab] = useState<"basic"|"pro">(isPro ? "pro" : "basic");
+
+  return (
+    <div className="space-y-5">
+      {/* 탭 */}
+      <div className="flex gap-2">
+        {([["basic","일반 음성"],["pro","고급 음성 (ElevenLabs)"]] as [string,string][]).map(([v,l]) => (
+          <button key={v} onClick={() => setTab(v as any)}
+            className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition border ${tab===v ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400 hover:border-gray-500"}`}>
+            {l}
+          </button>
+        ))}
+      </div>
+
+      {/* 음성 목록 */}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        {(tab === "basic" ? VOICES_BASIC : VOICES_PRO).map(v => (
+          <button key={v.id} onClick={() => setVoiceId(v.id)}
+            className={`rounded-xl border px-4 py-3 text-left transition ${voiceId===v.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"}`}>
+            <p className={`text-sm font-bold ${voiceId===v.id ? "text-cyan-400" : "text-white"}`}>{v.label}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{v.desc}</p>
+          </button>
+        ))}
+      </div>
+
+      {/* 속도 + 볼륨 */}
+      <div className="grid grid-cols-2 gap-6">
+        <div>
+          <label className="mb-2 block text-sm font-bold text-gray-300">
+            말하기 속도 <span className="text-cyan-400 font-black">{voiceSpeed}%</span>
+          </label>
+          <input type="range" min={80} max={160} step={5} value={voiceSpeed}
+            onChange={e => setVoiceSpeed(Number(e.target.value))} className="w-full accent-cyan-500" />
+          <div className="mt-1 flex justify-between text-xs text-gray-500">
+            <span>느림</span><span>기본</span><span>빠름</span>
+          </div>
+        </div>
+        <div>
+          <label className="mb-2 block text-sm font-bold text-gray-300">
+            소리 크기 <span className="text-cyan-400 font-black">{voiceVolume}%</span>
+          </label>
+          <input type="range" min={50} max={150} step={5} value={voiceVolume}
+            onChange={e => setVoiceVolume(Number(e.target.value))} className="w-full accent-cyan-500" />
+          <div className="mt-1 flex justify-between text-xs text-gray-500">
+            <span>작게</span><span>기본</span><span>크게</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function FloatingNext({ label, onClick, disabled = false }: {
   label: string; onClick: () => void; disabled?: boolean;
 }) {
   return (
-    <div className="flex justify-end mt-6">
+    <div className="fixed bottom-24 right-4 z-40">
       <button onClick={onClick} disabled={disabled}
-        className="rounded-2xl bg-cyan-500 shadow-lg px-8 py-3 text-sm font-black text-white hover:bg-cyan-400 disabled:opacity-40 transition flex items-center gap-2">
-        <span>{label}</span>
-        <span>→</span>
+        className="rounded-2xl bg-cyan-500 shadow-2xl shadow-cyan-500/40 px-6 py-3 text-sm font-black text-white hover:bg-cyan-400 disabled:opacity-40 transition flex items-center gap-2">
+        <span>{label}</span><span>→</span>
       </button>
     </div>
   );
@@ -894,19 +937,27 @@ function AppSidebar({ current, onLoad, balance, session }: { current: any; onLoa
   const [projects, setProjects] = useState<any[]>(()=>getProjects());
   const [activeProjectId, setActiveProjectId] = useState<string|null>(null);
   const [editingId, setEditingId] = useState<string|null>(null);
+  const [newProjectName, setNewProjectName] = useState<string|null>(null); // null=비표시, ""=입력중
 
   const renameProject = (id: string, name: string) => {
     const ps = getProjects().map(p => p.id===id ? { ...p, name: name.trim() || p.name } : p);
     saveProjects(ps); setProjects(ps);
   };
 
-  const saveProject = () => {
+  const saveProject = (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    const existing = getProjects();
+    if (existing.some(p => p.name === trimmed)) {
+      alert(`"${trimmed}" 이름의 프로젝트가 이미 있습니다.`);
+      return;
+    }
     const id = `proj_${Date.now()}`;
-    const url = current.sourceUrl || "";
-    const name = url ? url.split("/").filter(Boolean).slice(-1)[0]?.slice(0,18) || "프로젝트" : `프로젝트 ${projects.length+1}`;
-    const entry = { id, name, savedAt: Date.now(), stage: current.stage, data: current };
-    const ps = [entry, ...getProjects()];
+    const entry = { id, name: trimmed, savedAt: Date.now(), stage: current.stage, data: current };
+    const ps = [entry, ...existing];
     saveProjects(ps); setProjects(ps);
+    setActiveProjectId(id);
+    setNewProjectName(null);
   };
 
   const delProject = (id: string, e: React.MouseEvent) => {
@@ -926,7 +977,7 @@ function AppSidebar({ current, onLoad, balance, session }: { current: any; onLoa
       </div>
       {/* 탭 네비 */}
       <div className="px-3 py-3 space-y-0.5">
-        {([["project","📁  프로젝트"],["style","🎨  스타일 찾기"],["settings","⚙️  설정"]] as [string,string][]).map(([v,l])=>(
+        {([["project","📁  프로젝트"],["style","🎨  스타일 찾기"]] as [string,string][]).map(([v,l])=>(
           <button key={v} onClick={()=>setTab(v as any)}
             className={`w-full text-left rounded-xl px-4 py-2.5 text-sm font-bold transition ${tab===v ? "bg-cyan-500/15 text-cyan-400" : "text-gray-400 hover:bg-gray-800 hover:text-white"}`}>
             {l}
@@ -934,14 +985,38 @@ function AppSidebar({ current, onLoad, balance, session }: { current: any; onLoa
         ))}
       </div>
       {/* 콘텐츠 */}
-      <div className="flex-1 overflow-y-auto px-3 pb-4">
+      <div className="flex-1 overflow-y-auto px-3 pb-2">
         {tab === "project" && (
           <div className="space-y-2">
-            {/* 새 프로젝트 버튼 */}
-            <button onClick={saveProject}
-              className="w-full rounded-xl bg-cyan-500 py-2.5 text-sm font-black text-white hover:bg-cyan-400 transition flex items-center justify-center gap-1.5">
-              <span>+</span><span>새 프로젝트</span>
-            </button>
+            {/* 새 프로젝트 버튼 + 이름 입력 */}
+            {newProjectName === null ? (
+              <button onClick={() => setNewProjectName("")}
+                className="w-full rounded-xl bg-cyan-500 py-2.5 text-sm font-black text-white hover:bg-cyan-400 transition flex items-center justify-center gap-1.5">
+                <span>+</span><span>새 프로젝트</span>
+              </button>
+            ) : (
+              <div className="space-y-2">
+                <input autoFocus
+                  value={newProjectName}
+                  onChange={e => setNewProjectName(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === "Enter") saveProject(newProjectName);
+                    if (e.key === "Escape") setNewProjectName(null);
+                  }}
+                  placeholder="프로젝트 이름 입력"
+                  className="w-full rounded-xl bg-gray-800 border border-cyan-500 px-3 py-2 text-sm text-white outline-none placeholder-gray-500" />
+                <div className="flex gap-2">
+                  <button onClick={() => saveProject(newProjectName)}
+                    className="flex-1 rounded-xl bg-cyan-500 py-2 text-xs font-black text-white hover:bg-cyan-400 transition">
+                    확인
+                  </button>
+                  <button onClick={() => setNewProjectName(null)}
+                    className="rounded-xl border border-gray-700 px-3 py-2 text-xs text-gray-400 hover:text-white transition">
+                    취소
+                  </button>
+                </div>
+              </div>
+            )}
 
             {projects.length === 0 ? (
               <p className="text-xs text-gray-600 text-center py-8">저장된 프로젝트가 없습니다</p>
@@ -980,20 +1055,17 @@ function AppSidebar({ current, onLoad, balance, session }: { current: any; onLoa
         {tab === "style" && (
           <div className="text-xs text-gray-500 text-center py-8">스타일 라이브러리<br/>준비 중</div>
         )}
-        {tab === "settings" && (
-          <div className="space-y-4 pt-2">
-            <div>
-              <p className="text-xs font-bold text-gray-400 mb-1">계정</p>
-              <p className="text-xs text-gray-500 truncate">{session?.user?.email}</p>
-            </div>
-            {balance !== null && (
-              <div className="rounded-xl bg-gray-800 p-3">
-                <p className="text-xs text-gray-400">잔여 크레딧</p>
-                <p className="text-lg font-black text-cyan-400 mt-0.5">💎 {balance.toLocaleString()} CR</p>
-              </div>
-            )}
+      </div>
+
+      {/* 하단 계정/크레딧 고정 */}
+      <div className="border-t border-gray-800 px-4 py-4 space-y-2 shrink-0">
+        {balance !== null && (
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-500">크레딧</span>
+            <span className="text-sm font-black text-cyan-400">💎 {balance.toLocaleString()} CR</span>
           </div>
         )}
+        <p className="text-xs text-gray-600 truncate">{session?.user?.email}</p>
       </div>
     </div>
   );
