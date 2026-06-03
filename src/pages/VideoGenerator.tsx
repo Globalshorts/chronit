@@ -386,15 +386,17 @@ export default function VideoGenerator() {
           balance={balance} userPlan={userPlan} session={session} />
       </div>
 
-      {/* ── 중간 패널 (프로젝트 목록 or 탭별 콘텐츠) ── */}
-      <div className="w-60 shrink-0 border-r border-gray-800 flex flex-col overflow-y-auto">
-        <ProjectPanel
-          activeView={activeView}
-          current={currentData} onLoad={handleLoad} onReset={handleReset}
-          session={session}
-          styleProfileId={styleProfileId} onSelectStyle={setStyleProfileId}
-        />
-      </div>
+      {/* ── 중간 패널 — 프로젝트 탭일 때만 표시 ── */}
+      {activeView === "generator" && (
+        <div className="w-60 shrink-0 border-r border-gray-800 flex flex-col overflow-y-auto">
+          <ProjectPanel
+            activeView={activeView}
+            current={currentData} onLoad={handleLoad} onReset={handleReset}
+            session={session}
+            styleProfileId={styleProfileId} onSelectStyle={setStyleProfileId}
+          />
+        </div>
+      )}
 
       {/* ── 메인 콘텐츠 ── */}
       <div className="flex-1 min-w-0 flex flex-col">
@@ -434,7 +436,7 @@ export default function VideoGenerator() {
         {/* 영상 생성 뷰 — generator일 때만 표시 */}
         {activeView === "generator" && <>
         <div className="border-b border-gray-800 px-8 py-4 flex items-center justify-between">
-          <StageBar current={stage} onSelect={(s) => s < stage && setStage(s)} />
+          <StageBar current={stage} onSelect={(s) => setStage(s)} />
           {balance !== null && (
             <div className="shrink-0 ml-4 rounded-full bg-gray-800 px-4 py-1.5 text-sm font-bold text-cyan-400">
               💎 {balance.toLocaleString()} CR
