@@ -1035,6 +1035,105 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
 }
 
 
+// ── StyleFinderTab ────────────────────────────────────────────
+function StyleFinderTab({ session, onImport }: { session: any; onImport: (id:string)=>void }) {
+  const [url, setUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [result, setResult] = useState<any>(null);
+  const [saved, setSaved] = useState(false);
+
+  const handleAnalyze = async () => {
+    if (!url.trim() || !session) return;
+    setLoading(true); setError(""); setResult(null); setSaved(false);
+    try {
+      const resp = await fetch(FN("analyze-style"), {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ source_url: url.trim() }),
+      });
+      const data = await resp.json();
+      if (!data.ok) throw new Error(data.error ?? "분석 실패");
+      setResult(data.profile);
+      setSaved(true);
+    } catch(e) {
+      setError(String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      {/* 안내 */}
+      {!result && !loading && (
+        <div className="rounded-xl bg-gray-800/60 border border-gray-700 p-3 space-y-1">
+          <p className="text-xs font-bold text-white">🔍 스타일 분석</p>
+          <p className="text-xs text-gray-400">숏폼 영상 URL을 입력하면 AI가 대본 스타일을 분석해 내 라이브러리에 저장합니다.</p>
+          <ul className="text-xs text-gray-500 space-y-0.5 mt-1">
+            <li>· 스타일을 따라하고 싶은 숏폼 영상</li>
+            <li>· 60초 이내 권장</li>
+          </ul>
+        </div>
+      )}
+
+      {/* URL 입력 */}
+      {!result && (
+        <>
+          <input
+            value={url} onChange={e => setUrl(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleAnalyze()}
+            placeholder="숏폼 링크 붙여넣기"
+            disabled={loading}
+            className="w-full rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-xs text-white placeholder-gray-600 outline-none focus:border-cyan-500 transition disabled:opacity-50" />
+          <button onClick={handleAnalyze} disabled={loading || !url.trim()}
+            className="w-full rounded-xl bg-cyan-500 py-2.5 text-xs font-black text-white hover:bg-cyan-400 disabled:opacity-40 transition">
+            {loading ? "분석 중... (1~2분)" : "분석 시작"}
+          </button>
+          {error && <p className="text-xs text-red-400">{error}</p>}
+        </>
+      )}
+
+      {/* 결과 */}
+      {result && (
+        <div className="space-y-3">
+          <div className="rounded-xl bg-gray-800 p-3 space-y-2">
+            <p className="text-xs font-black text-white">{result.label}</p>
+            {result.source_channel && <p className="text-xs text-gray-500">@{result.source_channel}</p>}
+            {result.tone?.speaker && (
+              <p className="text-xs text-gray-400"><span className="text-cyan-400 font-bold">화자</span> {result.tone.speaker}</p>
+            )}
+            {result.tone?.signatures?.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1">
+                {result.tone.signatures.slice(0,6).map((s:string,i:number) => (
+                  <span key={i} className="rounded-full bg-gray-700 px-2 py-0.5 text-xs text-gray-300">{s}</span>
+                ))}
+              </div>
+            )}
+            {result.structure?.hook && (
+              <p className="text-xs text-gray-400 mt-1"><span className="text-purple-400 font-bold">훅</span> {result.structure.hook.slice(0,80)}</p>
+            )}
+          </div>
+
+          {saved && (
+            <div className="space-y-2">
+              <p className="text-xs text-green-400 font-bold">✓ 라이브러리에 저장됐습니다</p>
+              <button onClick={() => { onImport(result.id); }}
+                className="w-full rounded-xl bg-cyan-500/10 border border-cyan-500/30 py-2 text-xs font-bold text-cyan-400 hover:bg-cyan-500/20 transition">
+                이 스타일로 대본 생성하기 →
+              </button>
+              <button onClick={() => { setResult(null); setUrl(""); setSaved(false); }}
+                className="w-full rounded-xl border border-gray-700 py-2 text-xs text-gray-400 hover:text-white transition">
+                다른 영상 분석하기
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── StyleLibrary ─────────────────────────────────────────────
 function StyleLibrary({ onLoad, session }: { onLoad: (s:any)=>void; session: any }) {
   const [styles, setStyles] = useState<any[]>([]);
@@ -1190,7 +1289,12 @@ function AppSidebar({ current, onLoad, onReset, balance, userPlan, session, styl
       </div>
       {/* 탭 네비 */}
       <div className="px-3 py-3 space-y-0.5">
-        {([["project","📁  프로젝트"],["style","🎨  스타일 찾기"],["history","📹  생성 내역"]] as [string,string][]).map(([v,l])=>(
+        {([
+          ["project","📁  프로젝트"],
+          ["style","🔍  스타일 찾기"],
+          ["history","📹  생성 내역"],
+          ["settings","⚙️  설정"],
+        ] as [string,string][]).map(([v,l])=>(
           <button key={v} onClick={()=>setTab(v as any)}
             className={`w-full text-left rounded-xl px-4 py-2.5 text-sm font-bold transition ${tab===v ? "bg-cyan-500/15 text-cyan-400" : "text-gray-400 hover:bg-gray-800 hover:text-white"}`}>
             {l}
@@ -1266,14 +1370,21 @@ function AppSidebar({ current, onLoad, onReset, balance, userPlan, session, styl
           </div>
         )}
         {tab === "style" && (
-          <div className="space-y-2">
-            <p className="text-xs text-gray-500 pb-1">2단계(대본 스타일)에서 사용할 스타일을 선택합니다.</p>
-            <StyleSelector selected={styleProfileId} onSelect={onSelectStyle} session={session} />
-          </div>
+          <StyleFinderTab session={session} onImport={(id) => { onSelectStyle(id); setTab("project"); }} />
         )}
       </div>
-      {tab === "history" && (
-        <HistoryPanel session={session} />
+      {tab === "history" && <HistoryPanel session={session} />}
+      {tab === "settings" && (
+        <div className="px-3 py-2 space-y-3">
+          <div className="rounded-xl bg-gray-800 p-3 space-y-2">
+            <p className="text-xs font-bold text-gray-400">계정</p>
+            <p className="text-xs text-gray-300 truncate">{session?.user?.email}</p>
+          </div>
+          <a href="https://chronit.vercel.app" target="_blank" rel="noopener"
+            className="block rounded-xl border border-gray-700 p-3 text-xs text-gray-400 hover:text-white hover:border-gray-500 transition">
+            🌐 랜딩 페이지
+          </a>
+        </div>
       )}
 
       {/* 하단 계정/플랜/크레딧 고정 */}
