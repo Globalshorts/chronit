@@ -110,6 +110,7 @@ export default function VideoGenerator() {
 
   // Stage 6
   const [jobs, setJobs]             = useState<Job[]>([]);
+  const [completionAlert, setCompletionAlert] = useState<string|null>(null);
   const [balance, setBalance]       = useState<number | null>(null);
 
   // auth
@@ -129,7 +130,14 @@ export default function VideoGenerator() {
   const loadBalance = useCallback(async () => {
     const { data } = await supabase.rpc("get_my_balance_rpc").single();
     if (data?.balance !== undefined) setBalance(data.balance);
-  }, []);
+    if (data?.plan) setUserPlan(data.plan);
+    else {
+      // plan 별도 조회
+      const { data: sub } = await supabase.from("subscriptions")
+        .select("plan").eq("user_id", session?.user?.id ?? "").maybeSingle();
+      if (sub?.plan) setUserPlan(sub.plan);
+    }
+  }, [session]);
 
   useEffect(() => {
     if (!session) return;
@@ -147,6 +155,9 @@ export default function VideoGenerator() {
     const job = jobs.find(j => j.id === currentJobId);
     if (job?.status === "done" && stage === 5) {
       setStage(6);
+      setCompletionAlert("영상 생성 완료! 아래에서 확인하세요.");
+      // 완성음 재생
+      try { new Audio("https://www.soundjay.com/buttons/sounds/button-09a.mp3").play(); } catch {}
     }
   }, [jobs, currentJobId, stage]);
 
@@ -293,6 +304,8 @@ export default function VideoGenerator() {
           // 여성 EL 보이스는 실제 렌더링 시 1.5배 적용
           voice_volume: (voiceVolume / 100) * (EL_FEMALE_IDS.has(voiceId) ? 1.5 : 1.0),
           subtitle_preset: subtitlePreset,
+          subtitle_style: subtitleStyle,
+          thumbnail_style: thumbnailStyle,
           show_thumbnail: showThumbnail,
           script_segments: script,
         }),
@@ -351,9 +364,20 @@ export default function VideoGenerator() {
 
   return (
     <div className="flex min-h-screen bg-gray-950 text-white">
+      {/* 완성 알림 팝업 */}
+      {completionAlert && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 rounded-2xl bg-green-500 shadow-2xl shadow-green-500/40 px-6 py-4 flex items-center gap-3 text-white">
+          <span className="text-2xl">🎉</span>
+          <div>
+            <p className="font-black text-sm">{completionAlert}</p>
+            <p className="text-xs text-green-100 mt-0.5">6번 탭에서 다운로드하세요</p>
+          </div>
+          <button onClick={() => setCompletionAlert(null)} className="ml-4 text-green-200 hover:text-white text-lg">✕</button>
+        </div>
+      )}
       {/* ── 왼쪽 사이드바 ── */}
       <div className="w-64 shrink-0 border-r border-gray-800 flex flex-col">
-        <AppSidebar current={currentData} onLoad={handleLoad} onReset={handleReset} balance={balance} session={session} />
+        <AppSidebar current={currentData} onLoad={handleLoad} onReset={handleReset} balance={balance} userPlan={userPlan} session={session} />
       </div>
 
       {/* ── 메인 콘텐츠 ── */}
@@ -1010,12 +1034,111 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
 }
 
 
+// ── StyleLibrary ─────────────────────────────────────────────
+function StyleLibrary({ onLoad, session }: { onLoad: (s:any)=>void; session: any }) {
+  const [styles, setStyles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!session) return;
+    (async () => {
+      try {
+        const resp = await fetch(
+          "https://oxygqtbdpnxxcgzwdlzi.supabase.co/rest/v1/style_profiles?select=*&order=updated_at.desc",
+          { headers: {
+            "Authorization": `Bearer ${session.access_token}`,
+            "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNTQ3MTIsImV4cCI6MjA5NTgzMDcxMn0.bHBnYJDRabumBJGtknRjkb63wm2nLI9IHYAaHTw5Qf8",
+          }}
+        );
+        const data = await resp.json();
+        setStyles(Array.isArray(data) ? data : []);
+      } catch { setStyles([]); }
+      finally { setLoading(false); }
+    })();
+  }, [session]);
+
+  if (loading) return <div className="text-xs text-gray-500 text-center py-8">불러오는 중...</div>;
+
+  if (!styles.length) return (
+    <div className="text-xs text-gray-500 text-center py-8">
+      저장된 스타일이 없습니다.<br/>
+      <span className="text-gray-600">4단계에서 스타일을 저장해보세요</span>
+    </div>
+  );
+
+  return (
+    <div className="space-y-2">
+      {styles.map(s => (
+        <div key={s.id} onClick={() => onLoad(s.profile_json ? JSON.parse(s.profile_json) : {})}
+          className="rounded-xl border border-gray-700 p-2.5 cursor-pointer hover:border-cyan-500/50 transition">
+          <p className="text-xs font-bold text-white truncate">{s.label || "스타일"}</p>
+          {s.source_channel && <p className="text-xs text-gray-500">@{s.source_channel}</p>}
+          <p className="text-xs text-gray-600">{new Date(s.updated_at).toLocaleDateString("ko")}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── HistoryPanel ──────────────────────────────────────────────
+function HistoryPanel({ session }: { session: any }) {
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!session) return;
+    (async () => {
+      try {
+        const resp = await fetch(
+          "https://oxygqtbdpnxxcgzwdlzi.supabase.co/rest/v1/video_jobs?select=*&order=created_at.desc&limit=20",
+          { headers: {
+            "Authorization": `Bearer ${session.access_token}`,
+            "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNTQ3MTIsImV4cCI6MjA5NTgzMDcxMn0.bHBnYJDRabumBJGtknRjkb63wm2nLI9IHYAaHTw5Qf8",
+          }}
+        );
+        const data = await resp.json();
+        setJobs(Array.isArray(data) ? data : []);
+      } catch { setJobs([]); }
+      finally { setLoading(false); }
+    })();
+  }, [session]);
+
+  const STATUS: Record<string, string> = { succeeded: "완료", processing: "생성 중", failed: "실패", queued: "대기" };
+
+  if (loading) return <div className="text-xs text-gray-500 text-center py-8">불러오는 중...</div>;
+  if (!jobs.length) return <div className="text-xs text-gray-500 text-center py-8">생성 내역이 없습니다</div>;
+
+  return (
+    <div className="space-y-2">
+      {jobs.map(j => (
+        <div key={j.id} className="rounded-xl border border-gray-700 p-2.5 space-y-1">
+          <div className="flex items-center justify-between gap-1">
+            <p className="text-xs font-bold text-white truncate">{j.product_name || j.id?.slice(0,8)}</p>
+            <span className={`text-xs font-bold shrink-0 ${
+              j.status==="succeeded" ? "text-green-400" :
+              j.status==="processing" ? "text-cyan-400 animate-pulse" : "text-gray-500"}`}>
+              {STATUS[j.status] || j.status}
+            </span>
+          </div>
+          {j.output_url && (
+            <a href={j.output_url} target="_blank" rel="noopener"
+              className="block text-xs text-cyan-500 hover:text-cyan-400 underline truncate">
+              다운로드
+            </a>
+          )}
+          <p className="text-xs text-gray-600">{new Date(j.created_at).toLocaleDateString("ko")}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── AppSidebar ───────────────────────────────────────────────
 const PROJECTS_KEY = "chronit_projects_v2";
 function getProjects(): any[] { try { return JSON.parse(localStorage.getItem(PROJECTS_KEY)||"[]"); } catch { return []; } }
 function saveProjects(ps: any[]) { localStorage.setItem(PROJECTS_KEY, JSON.stringify(ps.slice(0,20))); }
 
-function AppSidebar({ current, onLoad, onReset, balance, session }: { current: any; onLoad: (d:any)=>void; onReset: ()=>void; balance: number|null; session: any }) {
+function AppSidebar({ current, onLoad, onReset, balance, userPlan, session }: { current: any; onLoad: (d:any)=>void; onReset: ()=>void; balance: number|null; userPlan: string|null; session: any }) {
   const [tab, setTab] = useState<"project"|"style"|"settings">("project");
   const [projects, setProjects] = useState<any[]>(()=>getProjects());
   const [activeProjectId, setActiveProjectId] = useState<string|null>(
@@ -1038,7 +1161,8 @@ function AppSidebar({ current, onLoad, onReset, balance, session }: { current: a
       return;
     }
     const id = `proj_${Date.now()}`;
-    const entry = { id, name: trimmed, savedAt: Date.now(), stage: current.stage, data: current };
+    // 새 프로젝트는 빈 상태로 생성 (현재 작업 데이터 복사 안 함)
+    const entry = { id, name: trimmed, savedAt: Date.now(), stage: 1, data: {} };
     const ps = [entry, ...existing];
     saveProjects(ps); setProjects(ps);
     setActiveProjectId(id);
@@ -1065,7 +1189,7 @@ function AppSidebar({ current, onLoad, onReset, balance, session }: { current: a
       </div>
       {/* 탭 네비 */}
       <div className="px-3 py-3 space-y-0.5">
-        {([["project","📁  프로젝트"],["style","🎨  스타일 찾기"]] as [string,string][]).map(([v,l])=>(
+        {([["project","📁  프로젝트"],["style","🎨  스타일 찾기"],["history","📹  생성 내역"]] as [string,string][]).map(([v,l])=>(
           <button key={v} onClick={()=>setTab(v as any)}
             className={`w-full text-left rounded-xl px-4 py-2.5 text-sm font-bold transition ${tab===v ? "bg-cyan-500/15 text-cyan-400" : "text-gray-400 hover:bg-gray-800 hover:text-white"}`}>
             {l}
@@ -1141,19 +1265,30 @@ function AppSidebar({ current, onLoad, onReset, balance, session }: { current: a
           </div>
         )}
         {tab === "style" && (
-          <div className="text-xs text-gray-500 text-center py-8">스타일 라이브러리<br/>준비 중</div>
+          <StyleLibrary onLoad={(style: any) => {
+            if (style.subtitleStyle) onLoad({ ...current, subtitleStyle: style.subtitleStyle });
+          }} session={session} />
         )}
       </div>
+      {tab === "history" && (
+        <HistoryPanel session={session} />
+      )}
 
-      {/* 하단 계정/크레딧 고정 */}
-      <div className="border-t border-gray-800 px-4 py-4 space-y-2 shrink-0">
+      {/* 하단 계정/플랜/크레딧 고정 */}
+      <div className="border-t border-gray-800 px-4 py-3 space-y-1.5 shrink-0">
+        <p className="text-xs text-gray-600 truncate">{session?.user?.email}</p>
+        {userPlan && (
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-500">플랜</span>
+            <span className="text-xs font-bold text-white capitalize">{userPlan}</span>
+          </div>
+        )}
         {balance !== null && (
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-500">크레딧</span>
             <span className="text-sm font-black text-cyan-400">💎 {balance.toLocaleString()} CR</span>
           </div>
         )}
-        <p className="text-xs text-gray-600 truncate">{session?.user?.email}</p>
       </div>
     </div>
   );
