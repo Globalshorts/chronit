@@ -639,9 +639,9 @@ function FloatingNext({ label, onClick, disabled = false }: {
   label: string; onClick: () => void; disabled?: boolean;
 }) {
   return (
-    <div className="fixed bottom-8 right-8 z-40">
+    <div className="flex justify-end mt-6">
       <button onClick={onClick} disabled={disabled}
-        className="rounded-2xl bg-cyan-500 shadow-2xl shadow-cyan-500/40 px-6 py-3 text-sm font-black text-white hover:bg-cyan-400 disabled:opacity-40 transition flex items-center gap-2">
+        className="rounded-2xl bg-cyan-500 shadow-lg px-8 py-3 text-sm font-black text-white hover:bg-cyan-400 disabled:opacity-40 transition flex items-center gap-2">
         <span>{label}</span>
         <span>→</span>
       </button>
