@@ -112,6 +112,8 @@ export default function VideoGenerator() {
   const [jobs, setJobs]             = useState<Job[]>([]);
   const [completionAlert, setCompletionAlert] = useState<string|null>(null);
   const [balance, setBalance]       = useState<number | null>(null);
+  const [userPlan, setUserPlan]     = useState<string | null>(null);
+  const [userRole, setUserRole]     = useState<string>("user");
   const [activeView, setActiveView] = useState("generator");
 
   // auth
@@ -135,8 +137,9 @@ export default function VideoGenerator() {
     else {
       // plan 별도 조회
       const { data: sub } = await supabase.from("subscriptions")
-        .select("plan").eq("user_id", session?.user?.id ?? "").maybeSingle();
+        .select("plan, role").eq("user_id", session?.user?.id ?? "").maybeSingle();
       if (sub?.plan) setUserPlan(sub.plan);
+      if (sub?.role) setUserRole(sub.role);
     }
   }, [session]);
 
