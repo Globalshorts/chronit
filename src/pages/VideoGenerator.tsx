@@ -880,81 +880,91 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
 }
 
 
-// ── ProjectSidebar ───────────────────────────────────────────
-const PROJECTS_KEY = "chronit_projects_v1";
+// ── AppSidebar ───────────────────────────────────────────────
+const PROJECTS_KEY = "chronit_projects_v2";
+function getProjects(): any[] { try { return JSON.parse(localStorage.getItem(PROJECTS_KEY)||"[]"); } catch { return []; } }
+function saveProjects(ps: any[]) { localStorage.setItem(PROJECTS_KEY, JSON.stringify(ps.slice(0,20))); }
 
-function getProjects(): any[] {
-  try { return JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]"); } catch { return []; }
-}
+function AppSidebar({ current, onLoad, balance, session }: { current: any; onLoad: (d:any)=>void; balance: number|null; session: any }) {
+  const [tab, setTab] = useState<"project"|"style"|"settings">("project");
+  const [projects, setProjects] = useState<any[]>(()=>getProjects());
 
-function saveProjects(ps: any[]) {
-  localStorage.setItem(PROJECTS_KEY, JSON.stringify(ps.slice(0, 10)));
-}
-
-function ProjectSidebar({ current, onLoad }: { current: any; onLoad: (d: any) => void }) {
-  const [projects, setProjects] = useState<any[]>(() => getProjects());
-  const [activeId, setActiveId] = useState<string|null>(null);
-
-  const save = () => {
-    const id = activeId || `proj_${Date.now()}`;
-    const name = current.sourceUrl
-      ? new URL(current.sourceUrl).pathname.split("/").filter(Boolean).slice(-1)[0] || "프로젝트"
-      : "프로젝트";
-    const entry = { id, name: name.slice(0, 20), savedAt: Date.now(), stage: current.stage, data: current };
-    const ps = [entry, ...getProjects().filter(p => p.id !== id)];
-    saveProjects(ps);
-    setProjects(ps);
-    setActiveId(id);
+  const saveProject = () => {
+    const id = `proj_${Date.now()}`;
+    const url = current.sourceUrl || "";
+    const name = url ? url.split("/").filter(Boolean).slice(-1)[0]?.slice(0,18) || "프로젝트" : `프로젝트 ${projects.length+1}`;
+    const entry = { id, name, savedAt: Date.now(), stage: current.stage, data: current };
+    const ps = [entry, ...getProjects()];
+    saveProjects(ps); setProjects(ps);
   };
 
-  const del = (id: string) => {
-    const ps = getProjects().filter(p => p.id !== id);
-    saveProjects(ps);
-    setProjects(ps);
-    if (activeId === id) setActiveId(null);
+  const delProject = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const ps = getProjects().filter(p=>p.id!==id);
+    saveProjects(ps); setProjects(ps);
   };
 
-  const load = (p: any) => {
-    onLoad(p.data);
-    setActiveId(p.id);
-  };
-
-  const stageLabel = (n: number) => ["분석","선택","대본","스타일","보이스","완료"][n-1] || "";
+  const STAGE_LABELS = ["영상 분석","영상 선택","대본 생성","스타일","보이스","완료"];
 
   return (
-    <div className="rounded-2xl border border-gray-800 bg-gray-900 p-4 space-y-3 sticky top-4">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-black text-white">프로젝트</p>
-        <button onClick={save}
-          className="rounded-lg bg-cyan-500/10 border border-cyan-500/30 px-2.5 py-1 text-xs font-bold text-cyan-400 hover:bg-cyan-500/20 transition">
-          💾 저장
-        </button>
+    <div className="flex flex-col h-full">
+      {/* 로고 */}
+      <div className="px-6 py-5 border-b border-gray-800">
+        <h1 className="text-lg font-black text-white tracking-tight">CHRONIT</h1>
+        <p className="text-xs text-gray-500 mt-0.5">쇼핑 릴스 자동화</p>
       </div>
-
-      {projects.length === 0 ? (
-        <p className="text-xs text-gray-600 text-center py-4">저장된 프로젝트가<br/>없습니다</p>
-      ) : (
-        <div className="space-y-1.5">
-          {projects.map(p => (
-            <div key={p.id}
-              className={`rounded-xl border p-2.5 cursor-pointer transition group ${activeId===p.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"}`}
-              onClick={() => load(p)}>
-              <div className="flex items-start justify-between gap-1">
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-white truncate">{p.name}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {stageLabel(p.stage)}단계 · {new Date(p.savedAt).toLocaleDateString("ko")}
-                  </p>
+      {/* 탭 네비 */}
+      <div className="px-3 py-3 space-y-0.5">
+        {([["project","📁  프로젝트"],["style","🎨  스타일 찾기"],["settings","⚙️  설정"]] as [string,string][]).map(([v,l])=>(
+          <button key={v} onClick={()=>setTab(v as any)}
+            className={`w-full text-left rounded-xl px-4 py-2.5 text-sm font-bold transition ${tab===v ? "bg-cyan-500/15 text-cyan-400" : "text-gray-400 hover:bg-gray-800 hover:text-white"}`}>
+            {l}
+          </button>
+        ))}
+      </div>
+      {/* 콘텐츠 */}
+      <div className="flex-1 overflow-y-auto px-3 pb-4">
+        {tab === "project" && (
+          <div className="space-y-3">
+            <button onClick={saveProject}
+              className="w-full rounded-xl bg-cyan-500 py-2.5 text-sm font-black text-white hover:bg-cyan-400 transition">
+              + 현재 작업 저장
+            </button>
+            {projects.length === 0
+              ? <p className="text-xs text-gray-600 text-center py-8">저장된 프로젝트가 없습니다</p>
+              : projects.map(p=>(
+                <div key={p.id} onClick={()=>onLoad(p.data)}
+                  className="rounded-xl border border-gray-700 p-3 cursor-pointer hover:border-cyan-500/50 transition group">
+                  <div className="flex items-start justify-between gap-1">
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-white truncate">{p.name}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{STAGE_LABELS[(p.stage||1)-1]} · {new Date(p.savedAt).toLocaleDateString("ko")}</p>
+                    </div>
+                    <button onClick={e=>delProject(p.id,e)} className="text-gray-700 hover:text-red-400 transition text-xs opacity-0 group-hover:opacity-100 shrink-0">✕</button>
+                  </div>
                 </div>
-                <button onClick={e => { e.stopPropagation(); del(p.id); }}
-                  className="shrink-0 text-gray-700 hover:text-red-400 transition text-xs opacity-0 group-hover:opacity-100">
-                  ✕
-                </button>
-              </div>
+              ))
+            }
+          </div>
+        )}
+        {tab === "style" && (
+          <div className="text-xs text-gray-500 text-center py-8">스타일 라이브러리<br/>준비 중</div>
+        )}
+        {tab === "settings" && (
+          <div className="space-y-4 pt-2">
+            <div>
+              <p className="text-xs font-bold text-gray-400 mb-1">계정</p>
+              <p className="text-xs text-gray-500 truncate">{session?.user?.email}</p>
             </div>
-          ))}
-        </div>
-      )}
+            {balance !== null && (
+              <div className="rounded-xl bg-gray-800 p-3">
+                <p className="text-xs text-gray-400">잔여 크레딧</p>
+                <p className="text-lg font-black text-cyan-400 mt-0.5">💎 {balance.toLocaleString()} CR</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
