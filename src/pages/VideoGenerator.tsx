@@ -1711,8 +1711,7 @@ function AppSidebar({ current, onLoad, onReset, balance, userPlan, userRole, ses
       </div>
       {/* 콘텐츠 */}
       <div className="flex-1 overflow-y-auto px-3 pb-2">
-        {tab === "project" && (
-          <div className="space-y-2">
+        <div className="space-y-2">
             {/* 새 프로젝트 버튼 + 이름 입력 */}
             {newProjectName === null ? (
               <button onClick={() => setNewProjectName("")}
@@ -1776,7 +1775,6 @@ function AppSidebar({ current, onLoad, onReset, balance, userPlan, userRole, ses
               </div>
             )}
           </div>
-        )}
       </div>
 
       {/* 하단 계정/플랜/크레딧 고정 */}
