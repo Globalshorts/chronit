@@ -378,7 +378,7 @@ export default function VideoGenerator() {
       )}
       {/* ── 왼쪽 사이드바 ── */}
       <div className="w-64 shrink-0 border-r border-gray-800 flex flex-col">
-        <AppSidebar current={currentData} onLoad={handleLoad} onReset={handleReset} balance={balance} userPlan={userPlan} session={session} />
+        <AppSidebar current={currentData} onLoad={handleLoad} onReset={handleReset} balance={balance} userPlan={userPlan} session={session} styleProfileId={styleProfileId} onSelectStyle={setStyleProfileId} />
       </div>
 
       {/* ── 메인 콘텐츠 ── */}
@@ -1139,7 +1139,7 @@ const PROJECTS_KEY = "chronit_projects_v2";
 function getProjects(): any[] { try { return JSON.parse(localStorage.getItem(PROJECTS_KEY)||"[]"); } catch { return []; } }
 function saveProjects(ps: any[]) { localStorage.setItem(PROJECTS_KEY, JSON.stringify(ps.slice(0,20))); }
 
-function AppSidebar({ current, onLoad, onReset, balance, userPlan, session }: { current: any; onLoad: (d:any)=>void; onReset: ()=>void; balance: number|null; userPlan: string|null; session: any }) {
+function AppSidebar({ current, onLoad, onReset, balance, userPlan, session, styleProfileId, onSelectStyle }: { current: any; onLoad: (d:any)=>void; onReset: ()=>void; balance: number|null; userPlan: string|null; session: any; styleProfileId: string; onSelectStyle: (id:string)=>void }) {
   const [tab, setTab] = useState<"project"|"style"|"settings">("project");
   const [projects, setProjects] = useState<any[]>(()=>getProjects());
   const [activeProjectId, setActiveProjectId] = useState<string|null>(
@@ -1266,9 +1266,10 @@ function AppSidebar({ current, onLoad, onReset, balance, userPlan, session }: { 
           </div>
         )}
         {tab === "style" && (
-          <StyleLibrary onLoad={(style: any) => {
-            if (style.subtitleStyle) onLoad({ ...current, subtitleStyle: style.subtitleStyle });
-          }} session={session} />
+          <div className="space-y-2">
+            <p className="text-xs text-gray-500 pb-1">2단계(대본 스타일)에서 사용할 스타일을 선택합니다.</p>
+            <StyleSelector selected={styleProfileId} onSelect={onSelectStyle} session={session} />
+          </div>
         )}
       </div>
       {tab === "history" && (
