@@ -8,7 +8,7 @@
  * Stage 5: 음성 선택 → 렌더링 시작
  * Stage 6: 제목/해시태그 + 내보내기
  */
-import { useState, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabase";
 import type { Session } from "@supabase/supabase-js";
 
@@ -101,9 +101,9 @@ export default function VideoGenerator() {
   const subtitlePreset = "custom";
 
   // Stage 5
-  const [voiceId, setVoiceId]       = useState("nova");
-  const [voiceSpeed, setVoiceSpeed] = useState(130); // %
-  const [voiceVolume, setVoiceVolume] = useState(100); // %
+  const [voiceId, setVoiceId]       = useState(() => localStorage.getItem("chronit_voice_id") || "nova");
+  const [voiceSpeed, setVoiceSpeed] = useState(() => Number(localStorage.getItem("chronit_voice_speed")) || 130);
+  const [voiceVolume, setVoiceVolume] = useState(() => Number(localStorage.getItem("chronit_voice_volume")) || 100);
   const [rendering, setRendering]   = useState(false);
   const [renderError, setRenderError] = useState("");
   const [currentJobId, setCurrentJobId] = useState("");
@@ -263,6 +263,7 @@ export default function VideoGenerator() {
           selected_clips: selected,
           target_seconds: targetSeconds,
           style_profile_id: styleProfileId,
+          cta_text: ctaText.trim(),
         }),
       });
       const data = await resp.json();
@@ -289,7 +290,8 @@ export default function VideoGenerator() {
           target_seconds: targetSeconds,
           voice_id: voiceId,
           voice_speed: voiceSpeed / 100,
-          voice_volume: voiceVolume / 100,
+          // 여성 EL 보이스는 실제 렌더링 시 1.5배 적용
+          voice_volume: (voiceVolume / 100) * (EL_FEMALE_IDS.has(voiceId) ? 1.5 : 1.0),
           subtitle_preset: subtitlePreset,
           show_thumbnail: showThumbnail,
           script_segments: script,
@@ -651,37 +653,73 @@ export default function VideoGenerator() {
 const STAGE_LABELS = ["영상 분석", "영상 선택", "컷편집 & 대본 생성", "스타일", "보이스", "SEO + 내보내기"];
 // ── 플로팅 다음 버튼 ──────────────────────────────────────────
 // ── VoicePanel ───────────────────────────────────────────────
+const VOICE_PREVIEW_URL = "https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/voice-preview";
+
 function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolume, setVoiceVolume }: {
   voiceId: string; setVoiceId: (v: string) => void;
   voiceSpeed: number; setVoiceSpeed: (v: number) => void;
   voiceVolume: number; setVoiceVolume: (v: number) => void;
 }) {
-  const isPro = voiceId.startsWith("el_");
-  const [tab, setTab] = useState<"basic"|"pro">(isPro ? "pro" : "basic");
+  const isProVoice = (id: string) => VOICES_PRO.some(v => v.id === id);
+  const [tab, setTab] = useState<"basic"|"pro">(isProVoice(voiceId) ? "pro" : "basic");
+  const [previewing, setPreviewing] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const handlePreview = async () => {
+    if (previewing) { audioRef.current?.pause(); setPreviewing(false); return; }
+    try {
+      setPreviewing(true);
+      const engine = tab === "pro" ? "elevenlabs" : "openai";
+      const resp = await fetch(VOICE_PREVIEW_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ voice_id: voiceId, engine }),
+      });
+      if (!resp.ok) throw new Error("미리듣기 실패");
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => { setPreviewing(false); URL.revokeObjectURL(url); };
+      audio.play();
+    } catch (e) { console.error(e); setPreviewing(false); }
+  };
+
+  const handleSetVoiceId = (id: string) => {
+    setVoiceId(id);
+    localStorage.setItem("chronit_voice_id", id);
+  };
+  const handleSetSpeed = (v: number) => { setVoiceSpeed(v); localStorage.setItem("chronit_voice_speed", String(v)); };
+  const handleSetVolume = (v: number) => { setVoiceVolume(v); localStorage.setItem("chronit_voice_volume", String(v)); };
 
   return (
     <div className="space-y-5">
-      {/* 탭 */}
-      <div className="flex gap-2">
-        {([["basic","일반 음성"],["pro","고급 음성 (ElevenLabs)"]] as [string,string][]).map(([v,l]) => (
+      {/* 탭 + 미리듣기 */}
+      <div className="flex gap-2 items-center">
+        {([["basic","일반 음성"],["pro","고급 음성"]] as [string,string][]).map(([v,l]) => (
           <button key={v} onClick={() => setTab(v as any)}
             className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition border ${tab===v ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400 hover:border-gray-500"}`}>
-            {l}
+            {v === "pro" ? "✨ " : ""}{l}
           </button>
         ))}
+        <button onClick={handlePreview}
+          className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-bold transition border ${previewing ? "border-cyan-500 bg-cyan-500/10 text-cyan-400 animate-pulse" : "border-gray-700 text-gray-400 hover:border-gray-500 hover:text-white"}`}>
+          {previewing ? "⏸" : "▶"} 미리듣기
+        </button>
       </div>
 
       {/* 음성 목록 */}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {(tab === "basic" ? VOICES_BASIC : VOICES_PRO).map(v => (
           <button key={v.id} onClick={() => {
-            setVoiceId(v.id);
-            // EL 여성 보이스 선택 시 볼륨 150% 자동 설정
-            if (tab === "pro" && EL_FEMALE_IDS.has(v.id)) setVoiceVolume(150);
+            handleSetVoiceId(v.id);
           }}
             className={`rounded-xl border px-4 py-3 text-left transition ${voiceId===v.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"}`}>
             <p className={`text-sm font-bold ${voiceId===v.id ? "text-cyan-400" : "text-white"}`}>{v.label}</p>
             <p className="text-xs text-gray-500 mt-0.5">{v.desc}</p>
+            {tab === "pro" && EL_FEMALE_IDS.has(v.id) && (
+              <p className="text-xs text-cyan-600 mt-0.5">볼륨 ×1.5 자동 적용</p>
+            )}
           </button>
         ))}
       </div>
@@ -693,7 +731,7 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
             말하기 속도 <span className="text-cyan-400 font-black">{voiceSpeed}%</span>
           </label>
           <input type="range" min={80} max={160} step={5} value={voiceSpeed}
-            onChange={e => setVoiceSpeed(Number(e.target.value))} className="w-full accent-cyan-500" />
+            onChange={e => handleSetSpeed(Number(e.target.value))} className="w-full accent-cyan-500" />
           <div className="mt-1 flex justify-between text-xs text-gray-500">
             <span>느림</span><span>기본</span><span>빠름</span>
           </div>
