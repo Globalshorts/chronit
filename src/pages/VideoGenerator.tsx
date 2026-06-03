@@ -35,11 +35,19 @@ const VOICES_BASIC = [
   { id: "fable",   label: "여성 3", desc: "부드럽고 감성적" },
 ];
 const VOICES_PRO = [
-  { id: "el_rachel", label: "Rachel", desc: "자연스럽고 따뜻함 (ElevenLabs)" },
-  { id: "el_adam",   label: "Adam",   desc: "차분하고 전문적 (ElevenLabs)" },
-  { id: "el_bella",  label: "Bella",  desc: "밝고 에너지 넘침 (ElevenLabs)" },
-  { id: "el_elli",   label: "Elli",   desc: "친근하고 명랑 (ElevenLabs)" },
+  { id: "Ir7oQcBXWiq4oFGROCfj", label: "태민 (남)", desc: "남성, 자연스러운 한국어" },
+  { id: "sQ3a15DhENXU8pKTHlcc", label: "Mr. K (남)", desc: "남성, 차분하고 전문적" },
+  { id: "m3gJBS8OofDJfycyA2Ip", label: "태형 (남)", desc: "남성, 활기차고 친근함" },
+  { id: "zgDzx5jLLCqEp6Fl7Kl7", label: "한나 (여)", desc: "여성, 밝고 자연스러움" },
+  { id: "8jHHF8rMqMlg8if2mOUe", label: "한 (여)",   desc: "여성, 차분하고 안정적" },
+  { id: "ksaI0TCD9BstzEzlxj4q", label: "슬기 (여)", desc: "여성, 부드럽고 감성적" },
+  { id: "5I7B1di44aCL15NkP0jn", label: "칸나 (여)", desc: "여성, 에너지 넘침" },
+  { id: "JAglhVijAfMW2NotYUoH", label: "피터 (여)", desc: "여성, 친근하고 명랑" },
+  { id: "6Vgh4FaCc0SCcWPwcyXa", label: "혜진 (여)", desc: "여성, 따뜻하고 신뢰감" },
+  { id: "uyVNoMrnUku1dZyVEXwD", label: "안나 (여)", desc: "여성, 밝고 활발함" },
 ];
+// 여성 EL 보이스는 볼륨 150% 기본값
+const EL_FEMALE_IDS = new Set(["zgDzx5jLLCqEp6Fl7Kl7","8jHHF8rMqMlg8if2mOUe","ksaI0TCD9BstzEzlxj4q","5I7B1di44aCL15NkP0jn","JAglhVijAfMW2NotYUoH","6Vgh4FaCc0SCcWPwcyXa","uyVNoMrnUku1dZyVEXwD"]);
 
 const SUBTITLE_PRESETS = [
   { id: "bold_white",  label: "굵은 흰색",  preview: "bg-white text-black" },
@@ -66,6 +74,7 @@ export default function VideoGenerator() {
   const [styleProfileId, setStyleProfileId] = useState("auto");
 
   // Stage 3
+  const [ctaText, setCtaText] = useState("");  // CTA 입력 (비우면 프로필 링크 안내)
   const [scriptLoading, setScriptLoading] = useState(false);
   const [scriptError, setScriptError] = useState("");
   const [script, setScript]         = useState<ScriptSegment[] | null>(null);
@@ -313,7 +322,7 @@ export default function VideoGenerator() {
 
   const currentJob = jobs.find(j => j.id === currentJobId);
 
-  const currentData = { stage, sourceUrl, clips, cart: [...cart], script, targetSeconds, styleProfileId, subtitleStyle, thumbnailStyle, showThumbnail, voiceId, voiceSpeed, voiceVolume };
+  const currentData = { stage, sourceUrl, clips, cart: [...cart], script, ctaText, targetSeconds, styleProfileId, subtitleStyle, thumbnailStyle, showThumbnail, voiceId, voiceSpeed, voiceVolume };
   const handleLoad = (d: any) => {
     // 모든 필드를 무조건 복원 (조건부 건너뜀 없음)
     setSourceUrl(d.sourceUrl ?? "");
@@ -328,13 +337,14 @@ export default function VideoGenerator() {
     setVoiceId(d.voiceId ?? "nova");
     setVoiceSpeed(d.voiceSpeed ?? 130);
     setVoiceVolume(d.voiceVolume ?? 100);
+    setCtaText(d.ctaText ?? "");
     setStage(d.stage ?? 1);
   };
 
   const handleReset = () => {
     setStage(1); setSourceUrl(""); setClips([]); setCart(new Set());
     setScript(null); setScriptPredId(""); setSearchError("");
-    setCurrentJobId("");
+    setCurrentJobId(""); setCtaText("");
   };
 
   return (
@@ -439,6 +449,7 @@ export default function VideoGenerator() {
                 </div>
               </div>
 
+              <FloatingPrev onClick={() => setStage(1)} />
               <FloatingNext label="다음" onClick={() => setStage(3)} />
             </div>
           </StagePanel>
@@ -447,10 +458,27 @@ export default function VideoGenerator() {
           <StagePanel n={3} title="컷편집 & 대본 생성" subtitle="AI가 대본을 작성하고 클립을 편집합니다" current={stage}>
             <div className="space-y-4">
               {!script && !scriptLoading && (
-                <div className="rounded-xl bg-gray-800 p-4 text-sm text-gray-300">
-                  <p className="font-bold text-white mb-1">준비 완료</p>
-                  <p>선택된 클립 <span className="text-cyan-400 font-bold">{cart.size}개</span> · {targetSeconds}초 영상</p>
-                  <p className="mt-1 text-gray-400 text-xs">대본 생성 + 클립 컷편집을 AI가 자동으로 진행합니다 (약 30~60초)</p>
+                <div className="space-y-4">
+                  <div className="rounded-xl bg-gray-800 p-4 text-sm text-gray-300">
+                    <p className="font-bold text-white mb-1">준비 완료</p>
+                    <p>선택된 클립 <span className="text-cyan-400 font-bold">{cart.size}개</span> · {targetSeconds}초 영상</p>
+                    <p className="mt-1 text-gray-400 text-xs">대본 생성 + 클립 컷편집을 AI가 자동으로 진행합니다 (약 30~60초)</p>
+                  </div>
+                  {/* CTA 입력 */}
+                  <div className="rounded-xl bg-gray-800/60 border border-gray-700 p-4 space-y-2">
+                    <label className="text-xs font-bold text-gray-300 block">
+                      CTA 문구 <span className="text-gray-500 font-normal">(선택사항)</span>
+                    </label>
+                    <input
+                      value={ctaText} onChange={e => setCtaText(e.target.value)}
+                      placeholder="예: 구매링크  →  비우면 '프로필 링크에서 확인하세요' 삽입"
+                      className="w-full rounded-xl bg-gray-900 border border-gray-700 px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-cyan-500 transition" />
+                    <p className="text-xs text-gray-500">
+                      {ctaText
+                        ? `→ "${ctaText}라고 댓글 남겨주시면 링크 보내드릴게요"`
+                        : "→ "프로필 링크에서 확인하세요" (기본값)"}
+                    </p>
+                  </div>
                 </div>
               )}
 
@@ -496,7 +524,7 @@ export default function VideoGenerator() {
                       </button>
                     : null
                   }
-                  {script && <FloatingNext label="다음" onClick={() => setStage(4)} />}
+                  {script && <><FloatingPrev onClick={() => setStage(2)} /><FloatingNext label="다음" onClick={() => setStage(4)} /></>}
                 </div>
               </div>
             </div>
@@ -524,7 +552,7 @@ export default function VideoGenerator() {
               </div>
             </div>
           )}
-          {stage === 4 && <FloatingNext label="다음" onClick={() => setStage(5)} />}
+          {stage === 4 && <><FloatingPrev onClick={() => setStage(3)} /><FloatingNext label="다음" onClick={() => setStage(5)} /></>}
 
           {/* ── STAGE 5 ── */}
           <StagePanel n={5} title="보이스" subtitle="음성을 선택하고 영상을 생성합니다" current={stage}>
@@ -646,7 +674,11 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
       {/* 음성 목록 */}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {(tab === "basic" ? VOICES_BASIC : VOICES_PRO).map(v => (
-          <button key={v.id} onClick={() => setVoiceId(v.id)}
+          <button key={v.id} onClick={() => {
+            setVoiceId(v.id);
+            // EL 여성 보이스 선택 시 볼륨 150% 자동 설정
+            if (tab === "pro" && EL_FEMALE_IDS.has(v.id)) setVoiceVolume(150);
+          }}
             className={`rounded-xl border px-4 py-3 text-left transition ${voiceId===v.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"}`}>
             <p className={`text-sm font-bold ${voiceId===v.id ? "text-cyan-400" : "text-white"}`}>{v.label}</p>
             <p className="text-xs text-gray-500 mt-0.5">{v.desc}</p>
@@ -677,6 +709,17 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function FloatingPrev({ onClick }: { onClick: () => void }) {
+  return (
+    <div className="fixed bottom-24 right-36 z-40">
+      <button onClick={onClick}
+        className="rounded-2xl bg-gray-700 shadow-lg px-5 py-3 text-sm font-black text-white hover:bg-gray-600 transition flex items-center gap-2">
+        <span>←</span><span>이전</span>
+      </button>
     </div>
   );
 }
@@ -937,7 +980,9 @@ function saveProjects(ps: any[]) { localStorage.setItem(PROJECTS_KEY, JSON.strin
 function AppSidebar({ current, onLoad, onReset, balance, session }: { current: any; onLoad: (d:any)=>void; onReset: ()=>void; balance: number|null; session: any }) {
   const [tab, setTab] = useState<"project"|"style"|"settings">("project");
   const [projects, setProjects] = useState<any[]>(()=>getProjects());
-  const [activeProjectId, setActiveProjectId] = useState<string|null>(null);
+  const [activeProjectId, setActiveProjectId] = useState<string|null>(
+    () => localStorage.getItem("chronit_active_project") || null
+  );
   const [editingId, setEditingId] = useState<string|null>(null);
   const [newProjectName, setNewProjectName] = useState<string|null>(null); // null=비표시, ""=입력중
 
@@ -959,6 +1004,7 @@ function AppSidebar({ current, onLoad, onReset, balance, session }: { current: a
     const ps = [entry, ...existing];
     saveProjects(ps); setProjects(ps);
     setActiveProjectId(id);
+    localStorage.setItem('chronit_active_project', id);
     setNewProjectName(null);
     onReset(); // 화면 초기화 → 새 프로젝트 빈 상태로 시작
   };
@@ -967,6 +1013,7 @@ function AppSidebar({ current, onLoad, onReset, balance, session }: { current: a
     e.stopPropagation();
     const ps = getProjects().filter(p=>p.id!==id);
     saveProjects(ps); setProjects(ps);
+    if (activeProjectId === id) { setActiveProjectId(null); localStorage.removeItem('chronit_active_project'); }
   };
 
   const STAGE_LABELS = ["영상 분석","영상 선택","대본 생성","스타일","보이스","완료"];
