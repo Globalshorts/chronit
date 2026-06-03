@@ -305,75 +305,44 @@ export default function VideoGenerator() {
 
   const currentJob = jobs.find(j => j.id === currentJobId);
 
-  return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      <div className="mx-auto max-w-4xl px-4 py-10">
+  const currentData = { stage, sourceUrl, clips, cart: [...cart], script, targetSeconds, styleProfileId, subtitleStyle, thumbnailStyle, showThumbnail, voiceId, voiceSpeed };
+  const handleLoad = (d: any) => {
+    if (d.sourceUrl) setSourceUrl(d.sourceUrl);
+    if (d.clips?.length) setClips(d.clips);
+    if (d.cart?.length) setCart(new Set(d.cart));
+    if (d.script) setScript(d.script);
+    if (d.targetSeconds) setTargetSeconds(d.targetSeconds);
+    if (d.styleProfileId) setStyleProfileId(d.styleProfileId);
+    if (d.subtitleStyle) setSubtitleStyle(d.subtitleStyle);
+    if (d.thumbnailStyle) setThumbnailStyle(d.thumbnailStyle);
+    if (d.showThumbnail !== undefined) setShowThumbnail(d.showThumbnail);
+    if (d.voiceId) setVoiceId(d.voiceId);
+    if (d.voiceSpeed) setVoiceSpeed(d.voiceSpeed);
+    if (d.stage) setStage(d.stage);
+  };
 
-        {/* 헤더 */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-black text-white">영상 생성</h1>
-            <p className="mt-1 text-sm text-gray-400">쇼핑 릴스 URL → 분석 → 클립 선택 → 숏폼 제작</p>
-          </div>
+  return (
+    <div className="flex min-h-screen bg-gray-950 text-white">
+      {/* ── 왼쪽 사이드바 ── */}
+      <div className="w-64 shrink-0 border-r border-gray-800 flex flex-col">
+        <AppSidebar current={currentData} onLoad={handleLoad} balance={balance} session={session} />
+      </div>
+
+      {/* ── 메인 콘텐츠 ── */}
+      <div className="flex-1 min-w-0 flex flex-col">
+        {/* 상단 바 */}
+        <div className="border-b border-gray-800 px-8 py-4 flex items-center justify-between">
+          <StageBar current={stage} onSelect={(s) => s < stage && setStage(s)} />
           {balance !== null && (
-            <div className="rounded-full bg-gray-800 px-4 py-2 text-sm font-bold text-cyan-400">
+            <div className="shrink-0 ml-4 rounded-full bg-gray-800 px-4 py-1.5 text-sm font-bold text-cyan-400">
               💎 {balance.toLocaleString()} CR
             </div>
           )}
         </div>
 
-        {/* 저장된 프로젝트 복원 배너 */}
-        {hasSaved && stage === 1 && !clips.length && (
-          <div className="mb-4 rounded-xl bg-cyan-500/10 border border-cyan-500/30 px-4 py-3 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-bold text-cyan-400">저장된 작업이 있습니다</p>
-              <p className="text-xs text-gray-400 mt-0.5">이전에 진행하던 프로젝트를 이어서 하시겠어요?</p>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => { loadProject(); setHasSaved(false); }}
-                className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-400 transition">
-                이어하기
-              </button>
-              <button onClick={() => { clearProject(); setHasSaved(false); }}
-                className="rounded-xl border border-gray-700 px-3 py-2 text-sm text-gray-400 hover:text-white transition">
-                무시
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Stage 인디케이터 */}
-        <div className="flex items-center justify-between mb-0">
-          <StageBar current={stage} onSelect={(s) => s < stage && setStage(s)} />
-          <button onClick={() => { saveProject(); alert("저장됐습니다"); }}
-            className="shrink-0 ml-3 rounded-xl border border-gray-700 px-3 py-1.5 text-xs text-gray-400 hover:text-cyan-400 hover:border-cyan-500/50 transition">
-            💾 저장
-          </button>
-        </div>
-
-        <div className="mt-8 flex gap-6">
-          {/* ── 왼쪽: 프로젝트 목록 ── */}
-          <div className="w-52 shrink-0 hidden lg:block">
-            <ProjectSidebar
-              current={{ stage, sourceUrl, clips, cart: [...cart], script, targetSeconds, styleProfileId, subtitleStyle, thumbnailStyle, showThumbnail, voiceId, voiceSpeed }}
-              onLoad={(d: any) => {
-                if (d.sourceUrl) setSourceUrl(d.sourceUrl);
-                if (d.clips?.length) setClips(d.clips);
-                if (d.cart?.length) setCart(new Set(d.cart));
-                if (d.script) setScript(d.script);
-                if (d.targetSeconds) setTargetSeconds(d.targetSeconds);
-                if (d.styleProfileId) setStyleProfileId(d.styleProfileId);
-                if (d.subtitleStyle) setSubtitleStyle(d.subtitleStyle);
-                if (d.thumbnailStyle) setThumbnailStyle(d.thumbnailStyle);
-                if (d.showThumbnail !== undefined) setShowThumbnail(d.showThumbnail);
-                if (d.voiceId) setVoiceId(d.voiceId);
-                if (d.voiceSpeed) setVoiceSpeed(d.voiceSpeed);
-                if (d.stage) setStage(d.stage);
-              }}
-            />
-          </div>
-          {/* ── 오른쪽: 스테이지 ── */}
-          <div className="flex-1 min-w-0 space-y-0">
+        {/* 스테이지 콘텐츠 */}
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          <div className="space-y-0">
 
           {/* ── STAGE 1 ── */}
           <StagePanel n={1} title="영상 분석" subtitle="URL 입력 → 관련 TikTok 클립 검색 → 담기" current={stage}>
@@ -411,7 +380,7 @@ export default function VideoGenerator() {
                     </span>
                     <span className="text-sm font-bold text-cyan-400">{cart.size}개 담음</span>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
+                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7">
                     {clips.map(clip => (
                       <ClipCard key={clip.video_id} clip={clip}
                         selected={cart.has(clip.video_id)} onToggle={() => toggleCart(clip.video_id)} />
@@ -529,23 +498,34 @@ export default function VideoGenerator() {
           </StagePanel>
 
           {/* ── STAGE 4 ── */}
-          <StagePanel n={4} title="스타일" subtitle="자막과 썸네일 스타일을 설정하세요" current={stage}>
-            <Stage4Panel
-              subtitleStyle={subtitleStyle} setSubtitleStyle={setSubtitleStyle}
-              thumbnailStyle={thumbnailStyle} setThumbnailStyle={setThumbnailStyle}
-              showThumbnail={showThumbnail} setShowThumbnail={setShowThumbnail}
-              previewFrames={clips.filter(c => cart.has(c.video_id)).slice(0,5).map(c => c.thumbnail_url).filter(Boolean) as string[]}
-              onNext={() => setStage(5)}
-            />
-            <FloatingNext label="다음" onClick={() => setStage(5)} />
-          </StagePanel>
+          {stage === 4 && (
+            <div className="rounded-2xl border border-cyan-500/50 bg-gray-900 shadow-[0_0_20px_rgba(6,182,212,0.08)]">
+              <div className="px-6 py-4 flex items-center gap-3 border-b border-gray-800">
+                <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 bg-cyan-500/20 border-2 border-cyan-500 text-cyan-400">4</div>
+                <div>
+                  <p className="text-sm font-black text-white">스타일</p>
+                  <p className="text-xs text-gray-500 mt-0.5">자막과 썸네일 스타일을 설정하세요</p>
+                </div>
+              </div>
+              <div className="p-6">
+                <Stage4Panel
+                  subtitleStyle={subtitleStyle} setSubtitleStyle={setSubtitleStyle}
+                  thumbnailStyle={thumbnailStyle} setThumbnailStyle={setThumbnailStyle}
+                  showThumbnail={showThumbnail} setShowThumbnail={setShowThumbnail}
+                  previewFrames={clips.filter(c => cart.has(c.video_id)).slice(0,5).map(c => c.thumbnail_url).filter(Boolean) as string[]}
+                  onNext={() => setStage(5)}
+                />
+              </div>
+            </div>
+          )}
+          <FloatingNext label="다음" onClick={() => setStage(5)} />
 
           {/* ── STAGE 5 ── */}
           <StagePanel n={5} title="보이스" subtitle="음성을 선택하고 영상을 생성합니다" current={stage}>
             <div className="space-y-6">
               <div>
                 <label className="mb-3 block text-sm font-bold text-gray-300">음성 선택</label>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {VOICES.map(v => (
                     <button key={v.id} onClick={() => setVoiceId(v.id)}
                       className={`rounded-xl border px-4 py-3 text-left transition ${
@@ -643,7 +623,6 @@ export default function VideoGenerator() {
 
           </div>
         </div>
-
         {/* 이전 내역 */}
         {jobs.filter(j => j.id !== currentJobId).length > 0 && (
           <div className="mt-10">
@@ -710,20 +689,24 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
   const frame = previewFrames[frameIdx] || "";
   const previewText = "와, 드디어";
 
-  const toStyle = (st: SubtitleStyle): React.CSSProperties => ({
+  const makeTextShadow = (sw: number, sc: string) => {
+    const d = sw;
+    return `${-d}px ${-d}px 0 ${sc}, ${d}px ${-d}px 0 ${sc}, ${-d}px ${d}px 0 ${sc}, ${d}px ${d}px 0 ${sc}, 0 ${-d}px 0 ${sc}, 0 ${d}px 0 ${sc}, ${-d}px 0 0 ${sc}, ${d}px 0 0 ${sc}`;
+  };
+  const toTextStyle = (st: SubtitleStyle): React.CSSProperties => ({
     fontFamily: st.fontFamily,
     color: st.color,
     fontSize: `${st.fontSize}px`,
     fontWeight: st.fontWeight,
-    WebkitTextStroke: st.strokeOn ? `${st.strokeWidth}px ${st.strokeColor}` : undefined,
-    backgroundColor: st.bgOn
-      ? `${st.bgColor}${Math.round(st.bgOpacity * 2.55).toString(16).padStart(2, "0")}` : "transparent",
-    padding: st.bgOn ? "3px 10px" : undefined,
-    borderRadius: st.bgOn ? "5px" : undefined,
+    textShadow: st.strokeOn ? makeTextShadow(st.strokeWidth, st.strokeColor) : undefined,
     lineHeight: 1.3,
-    whiteSpace: "nowrap",
-    display: "inline-block",
+    whiteSpace: "pre-wrap",
+    wordBreak: "keep-all" as any,
   });
+  const toBgStyle = (st: SubtitleStyle): React.CSSProperties => st.bgOn ? {
+    backgroundColor: `${st.bgColor}${Math.round(st.bgOpacity * 2.55).toString(16).padStart(2, "0")}`,
+    padding: "4px 12px", borderRadius: "6px", display: "inline-block",
+  } : { display: "inline-block" };
 
   const stylePanel = (
     <div className="space-y-4">
@@ -831,7 +814,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
   );
 
   return (
-    <div className="flex gap-6 flex-col lg:flex-row">
+    <div className="flex gap-6 flex-col md:flex-row">
       {/* 왼쪽 설정 */}
       <div className="flex-1 min-w-0 space-y-4">
         {/* 탭 */}
@@ -865,7 +848,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
       <div className="flex flex-col items-center gap-3 shrink-0">
         <p className="text-xs font-bold text-gray-400">실시간 프리뷰</p>
         <div className="relative rounded-2xl overflow-hidden bg-gray-800 border border-gray-700"
-          style={{ width: 220, height: 390 }}>
+          style={{ width: 300, height: 533 }}>
           {frame
             ? <img src={frame} className="absolute inset-0 w-full h-full object-cover" alt="" />
             : <div className="absolute inset-0 bg-gradient-to-b from-gray-700 to-gray-900" />
@@ -876,10 +859,10 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
               top: `${s.yPos}%`,
               left: `${s.xPos}%`,
               transform: "translate(-50%, -50%)",
-              maxWidth: "90%",
+              maxWidth: "88%",
               textAlign: "center",
             }}>
-              <span style={toStyle(s)}>{previewText}</span>
+              <span style={{ ...toTextStyle(s), ...toBgStyle(s) }}>{previewText}</span>
             </div>
           </div>
         </div>
@@ -1021,7 +1004,7 @@ function StagePanel({ n, title, subtitle, current, children }: {
         </div>
       </div>
       <div className="px-6 pb-6 border-t border-gray-800">
-        <div className="pt-5">{children}</div>
+        <div className="pt-4">{children}</div>
       </div>
     </div>
   );
@@ -1031,7 +1014,7 @@ function StagePanel({ n, title, subtitle, current, children }: {
 const THUMB_PROXY = "https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/thumbnail-proxy";
 function proxyThumb(url: string) {
   if (!url) return "";
-  return ;
+  return url;
 }
 
 // ── 클립 미리보기 모달 ──────────────────────────────────────
