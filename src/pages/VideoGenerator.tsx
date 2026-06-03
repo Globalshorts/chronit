@@ -112,6 +112,7 @@ export default function VideoGenerator() {
   const [jobs, setJobs]             = useState<Job[]>([]);
   const [completionAlert, setCompletionAlert] = useState<string|null>(null);
   const [balance, setBalance]       = useState<number | null>(null);
+  const [userPlan, setUserPlan]      = useState<string | null>(null);
 
   // auth
   useEffect(() => {
