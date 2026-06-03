@@ -112,9 +112,6 @@ export default function VideoGenerator() {
   const [jobs, setJobs]             = useState<Job[]>([]);
   const [completionAlert, setCompletionAlert] = useState<string|null>(null);
   const [balance, setBalance]       = useState<number | null>(null);
-  const [userPlan, setUserPlan]      = useState<string | null>(null);
-  const [userRole, setUserRole]      = useState<string>("user"); // user | partner | super_admin
-  const [activeView, setActiveView]  = useState<string>("generator"); // 메인 뷰 전환
 
   // auth
   useEffect(() => {
@@ -134,7 +131,6 @@ export default function VideoGenerator() {
     const { data } = await supabase.rpc("get_my_balance_rpc").single();
     if (data?.balance !== undefined) setBalance(data.balance);
     if (data?.plan) setUserPlan(data.plan);
-    if (data?.role) setUserRole(data.role);
     else {
       // plan 별도 조회
       const { data: sub } = await supabase.from("subscriptions")
@@ -342,7 +338,7 @@ export default function VideoGenerator() {
 
   const currentJob = jobs.find(j => j.id === currentJobId);
 
-  const currentData = { stage, sourceUrl, clips, cart: [...cart], script, ctaText, targetSeconds, styleProfileId, subtitleStyle, thumbnailStyle, showThumbnail, voiceId, voiceSpeed, voiceVolume };
+  const currentData = { stage, sourceUrl, clips, cart: [...cart], script, ctaText, targetSeconds, styleProfileId, subtitleStyle, thumbnailStyle, showThumbnail, voiceId, voiceSpeed, voiceVolume, activeView };
   const handleLoad = (d: any) => {
     // 모든 필드를 무조건 복원 (조건부 건너뜀 없음)
     setSourceUrl(d.sourceUrl ?? "");
@@ -359,12 +355,13 @@ export default function VideoGenerator() {
     setVoiceVolume(d.voiceVolume ?? 100);
     setCtaText(d.ctaText ?? "");
     setStage(d.stage ?? 1);
+    if (d.activeView) setActiveView(d.activeView);
   };
 
   const handleReset = () => {
     setStage(1); setSourceUrl(""); setClips([]); setCart(new Set());
     setScript(null); setScriptPredId(""); setSearchError("");
-    setCurrentJobId(""); setCtaText("");
+    setCurrentJobId(""); setCtaText(""); setActiveView("generator");
   };
 
   return (
@@ -382,12 +379,11 @@ export default function VideoGenerator() {
       )}
       {/* ── 왼쪽 사이드바 ── */}
       <div className="w-64 shrink-0 border-r border-gray-800 flex flex-col">
-        <AppSidebar current={currentData} onLoad={handleLoad} onReset={handleReset} balance={balance} userPlan={userPlan} userRole={userRole} session={session} styleProfileId={styleProfileId} onSelectStyle={setStyleProfileId} activeView={activeView} onViewChange={setActiveView} />
+        <AppSidebar current={currentData} onLoad={handleLoad} onReset={handleReset} balance={balance} userPlan={userPlan} userRole={userRole} session={session} activeView={activeView} onViewChange={setActiveView} />
       </div>
 
       {/* ── 메인 콘텐츠 ── */}
       <div className="flex-1 min-w-0 flex flex-col">
-        {/* 영상 생성 뷰 */}
         {activeView === "generator" && <>
         <div className="border-b border-gray-800 px-8 py-4 flex items-center justify-between">
           <StageBar current={stage} onSelect={(s) => s < stage && setStage(s)} />
@@ -397,6 +393,8 @@ export default function VideoGenerator() {
             </div>
           )}
         </div>
+
+        {/* 스테이지 콘텐츠 */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
           <div className="space-y-0">
 
@@ -672,9 +670,9 @@ export default function VideoGenerator() {
             </div>
           </div>
         )}
-      </> /* generator view end */}
+        </> /* end generator view */}
 
-        {/* 스타일 찾기 뷰 */}
+        {/* ── 스타일 찾기 뷰 ── */}
         {activeView === "style-finder" && (
           <div className="flex-1 overflow-y-auto px-8 py-6">
             <div className="max-w-2xl mx-auto">
@@ -684,57 +682,38 @@ export default function VideoGenerator() {
             </div>
           </div>
         )}
-
-        {/* 생성 내역 뷰 */}
+        {/* ── 생성 내역 뷰 ── */}
         {activeView === "history" && (
           <div className="flex-1 overflow-y-auto px-8 py-6">
             <h2 className="text-xl font-black text-white mb-6">📹 생성 내역</h2>
             <HistoryFull session={session} />
           </div>
         )}
-
-        {/* 설정 뷰 */}
+        {/* ── 설정 뷰 ── */}
         {activeView === "settings" && (
           <div className="flex-1 overflow-y-auto px-8 py-6 max-w-xl">
             <h2 className="text-xl font-black text-white mb-6">⚙️ 설정</h2>
-            <div className="space-y-4">
-              <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5">
-                <p className="text-xs font-bold text-gray-400 mb-3">계정 정보</p>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">이메일</span>
-                    <span className="text-white">{session?.user?.email}</span>
-                  </div>
-                  {userPlan && <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">플랜</span>
-                    <span className="font-bold text-white capitalize">{userPlan}</span>
-                  </div>}
-                  {balance !== null && <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">크레딧</span>
-                    <span className="font-black text-cyan-400">💎 {balance.toLocaleString()} CR</span>
-                  </div>}
-                </div>
-              </div>
+            <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 space-y-3">
+              <div className="flex justify-between text-sm"><span className="text-gray-400">이메일</span><span className="text-white">{session?.user?.email}</span></div>
+              {userPlan && <div className="flex justify-between text-sm"><span className="text-gray-400">플랜</span><span className="font-bold text-white capitalize">{userPlan}</span></div>}
+              {balance !== null && <div className="flex justify-between text-sm"><span className="text-gray-400">크레딧</span><span className="font-black text-cyan-400">💎 {balance.toLocaleString()} CR</span></div>}
             </div>
           </div>
         )}
-
-        {/* 관리자 뷰 */}
-        {activeView === "admin" && (userRole === "super_admin") && (
+        {/* ── 관리자 뷰 ── */}
+        {activeView === "admin" && userRole === "super_admin" && (
           <div className="flex-1 overflow-y-auto px-8 py-6">
             <h2 className="text-xl font-black text-white mb-6">👑 관리자</h2>
             <AdminPanel session={session} supabase={supabase} />
           </div>
         )}
-
-        {/* 파트너스 뷰 */}
+        {/* ── 파트너스 뷰 ── */}
         {activeView === "partner" && (userRole === "partner" || userRole === "super_admin") && (
           <div className="flex-1 overflow-y-auto px-8 py-6">
             <h2 className="text-xl font-black text-white mb-6">📊 파트너스</h2>
             <PartnerPanel session={session} supabase={supabase} />
           </div>
         )}
-
       </div>
     </div>
   );
@@ -1095,283 +1074,15 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
             <button onClick={() => setScriptIdx(i => i+1)} className="hover:text-white">›</button>
           </div>
         )}
-      
-
-        {/* 스타일 찾기 뷰 */}
-        {activeView === "style-finder" && (
-          <div className="flex-1 overflow-y-auto px-8 py-6">
-            <div className="max-w-2xl mx-auto">
-              <h2 className="text-xl font-black text-white mb-2">🔍 스타일 찾기</h2>
-              <p className="text-sm text-gray-400 mb-6">숏폼 영상 URL을 분석해서 대본 스타일을 라이브러리에 저장합니다.</p>
-              <StyleFinderFull session={session} styleProfileId={styleProfileId} onImport={(id) => { setStyleProfileId(id); setActiveView("generator"); }} />
-            </div>
-          </div>
-        )}
-
-        {/* 생성 내역 뷰 */}
-        {activeView === "history" && (
-          <div className="flex-1 overflow-y-auto px-8 py-6">
-            <h2 className="text-xl font-black text-white mb-6">📹 생성 내역</h2>
-            <HistoryFull session={session} />
-          </div>
-        )}
-
-        {/* 설정 뷰 */}
-        {activeView === "settings" && (
-          <div className="flex-1 overflow-y-auto px-8 py-6 max-w-xl">
-            <h2 className="text-xl font-black text-white mb-6">⚙️ 설정</h2>
-            <div className="space-y-4">
-              <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5">
-                <p className="text-xs font-bold text-gray-400 mb-3">계정 정보</p>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">이메일</span>
-                    <span className="text-white">{session?.user?.email}</span>
-                  </div>
-                  {userPlan && <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">플랜</span>
-                    <span className="font-bold text-white capitalize">{userPlan}</span>
-                  </div>}
-                  {balance !== null && <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">크레딧</span>
-                    <span className="font-black text-cyan-400">💎 {balance.toLocaleString()} CR</span>
-                  </div>}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 관리자 뷰 */}
-        {activeView === "admin" && (userRole === "super_admin") && (
-          <div className="flex-1 overflow-y-auto px-8 py-6">
-            <h2 className="text-xl font-black text-white mb-6">👑 관리자</h2>
-            <AdminPanel session={session} supabase={supabase} />
-          </div>
-        )}
-
-        {/* 파트너스 뷰 */}
-        {activeView === "partner" && (userRole === "partner" || userRole === "super_admin") && (
-          <div className="flex-1 overflow-y-auto px-8 py-6">
-            <h2 className="text-xl font-black text-white mb-6">📊 파트너스</h2>
-            <PartnerPanel session={session} supabase={supabase} />
-          </div>
-        )}
-
       </div>
     </div>
   );
 }
 
 
-// ── StyleFinderTab ────────────────────────────────────────────
-function StyleFinderTab({ session, onImport }: { session: any; onImport: (id:string)=>void }) {
-  const [url, setUrl] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [result, setResult] = useState<any>(null);
-  const [saved, setSaved] = useState(false);
-
-  const handleAnalyze = async () => {
-    if (!url.trim() || !session) return;
-    setLoading(true); setError(""); setResult(null); setSaved(false);
-    try {
-      const resp = await fetch(FN("analyze-style"), {
-        method: "POST",
-        headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ source_url: url.trim() }),
-      });
-      const data = await resp.json();
-      if (!data.ok) throw new Error(data.error ?? "분석 실패");
-      setResult(data.profile);
-      setSaved(true);
-    } catch(e) {
-      setError(String(e));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="space-y-3">
-      {/* 안내 */}
-      {!result && !loading && (
-        <div className="rounded-xl bg-gray-800/60 border border-gray-700 p-3 space-y-1">
-          <p className="text-xs font-bold text-white">🔍 스타일 분석</p>
-          <p className="text-xs text-gray-400">숏폼 영상 URL을 입력하면 AI가 대본 스타일을 분석해 내 라이브러리에 저장합니다.</p>
-          <ul className="text-xs text-gray-500 space-y-0.5 mt-1">
-            <li>· 스타일을 따라하고 싶은 숏폼 영상</li>
-            <li>· 60초 이내 권장</li>
-          </ul>
-        </div>
-      )}
-
-      {/* URL 입력 */}
-      {!result && (
-        <>
-          <input
-            value={url} onChange={e => setUrl(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && handleAnalyze()}
-            placeholder="숏폼 링크 붙여넣기"
-            disabled={loading}
-            className="w-full rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-xs text-white placeholder-gray-600 outline-none focus:border-cyan-500 transition disabled:opacity-50" />
-          <button onClick={handleAnalyze} disabled={loading || !url.trim()}
-            className="w-full rounded-xl bg-cyan-500 py-2.5 text-xs font-black text-white hover:bg-cyan-400 disabled:opacity-40 transition">
-            {loading ? "분석 중... (1~2분)" : "분석 시작"}
-          </button>
-          {error && <p className="text-xs text-red-400">{error}</p>}
-        </>
-      )}
-
-      {/* 결과 */}
-      {result && (
-        <div className="space-y-3">
-          <div className="rounded-xl bg-gray-800 p-3 space-y-2">
-            <p className="text-xs font-black text-white">{result.label}</p>
-            {result.source_channel && <p className="text-xs text-gray-500">@{result.source_channel}</p>}
-            {result.tone?.speaker && (
-              <p className="text-xs text-gray-400"><span className="text-cyan-400 font-bold">화자</span> {result.tone.speaker}</p>
-            )}
-            {result.tone?.signatures?.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-1">
-                {result.tone.signatures.slice(0,6).map((s:string,i:number) => (
-                  <span key={i} className="rounded-full bg-gray-700 px-2 py-0.5 text-xs text-gray-300">{s}</span>
-                ))}
-              </div>
-            )}
-            {result.structure?.hook && (
-              <p className="text-xs text-gray-400 mt-1"><span className="text-purple-400 font-bold">훅</span> {result.structure.hook.slice(0,80)}</p>
-            )}
-          </div>
-
-          {saved && (
-            <div className="space-y-2">
-              <p className="text-xs text-green-400 font-bold">✓ 라이브러리에 저장됐습니다</p>
-              <button onClick={() => { onImport(result.id); }}
-                className="w-full rounded-xl bg-cyan-500/10 border border-cyan-500/30 py-2 text-xs font-bold text-cyan-400 hover:bg-cyan-500/20 transition">
-                이 스타일로 대본 생성하기 →
-              </button>
-              <button onClick={() => { setResult(null); setUrl(""); setSaved(false); }}
-                className="w-full rounded-xl border border-gray-700 py-2 text-xs text-gray-400 hover:text-white transition">
-                다른 영상 분석하기
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── StyleFinderFull (메인 뷰용 — 크게) ──────────────────────
-function StyleFinderFull({ session, onImport, styleProfileId }: { session: any; onImport: (id:string)=>void; styleProfileId: string }) {
-  const [url, setUrl] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [result, setResult] = useState<any>(null);
-
-  const handleAnalyze = async () => {
-    if (!url.trim() || !session) return;
-    setLoading(true); setError(""); setResult(null);
-    try {
-      const resp = await fetch(FN("analyze-style"), {
-        method: "POST",
-        headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ source_url: url.trim() }),
-      });
-      const data = await resp.json();
-      if (!data.ok) throw new Error(data.error ?? "분석 실패");
-      setResult(data.profile);
-    } catch(e) { setError(String(e)); }
-    finally { setLoading(false); }
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* URL 입력 */}
-      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-6 space-y-4">
-        <div className="space-y-1">
-          <label className="text-sm font-bold text-white">숏폼 링크 붙여넣기</label>
-          <p className="text-xs text-gray-500">스타일을 따라하고 싶은 숏폼 영상 (60초 이내 권장)</p>
-        </div>
-        <div className="flex gap-3">
-          <input value={url} onChange={e => setUrl(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && handleAnalyze()}
-            placeholder="https://www.instagram.com/p/..." disabled={loading}
-            className="flex-1 rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm text-white placeholder-gray-600 outline-none focus:border-cyan-500 transition disabled:opacity-50" />
-          <button onClick={handleAnalyze} disabled={loading || !url.trim()}
-            className="rounded-xl bg-cyan-500 px-6 py-3 text-sm font-black text-white hover:bg-cyan-400 disabled:opacity-40 transition whitespace-nowrap">
-            {loading ? "분석 중..." : "분석 시작"}
-          </button>
-        </div>
-        {loading && <p className="text-xs text-cyan-400 animate-pulse">AI가 영상을 분석하는 중입니다 (1~2분 소요)...</p>}
-        {error && <p className="text-xs text-red-400">{error}</p>}
-      </div>
-
-      {/* 분석 결과 */}
-      {result && (
-        <div className="rounded-2xl bg-gray-900 border border-gray-800 p-6 space-y-5">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h3 className="text-lg font-black text-white">{result.label}</h3>
-              {result.source_channel && <p className="text-sm text-gray-500 mt-0.5">@{result.source_channel}</p>}
-            </div>
-            <button onClick={() => onImport(result.id)}
-              className="shrink-0 rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-black text-white hover:bg-cyan-400 transition">
-              이 스타일 가져오기 →
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            {/* 톤 */}
-            {result.tone && (
-              <div className="rounded-xl bg-gray-800 p-4 space-y-2">
-                <p className="text-xs font-black text-cyan-400 uppercase tracking-wide">톤 & 화자</p>
-                {result.tone.speaker && <p className="text-sm text-gray-300">{result.tone.speaker}</p>}
-                {result.tone.energy && <p className="text-xs text-gray-400">{result.tone.energy}</p>}
-                {result.tone.signatures?.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {result.tone.signatures.map((s:string,i:number) => (
-                      <span key={i} className="rounded-full bg-gray-700 px-2.5 py-1 text-xs text-gray-200">{s}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-            {/* 구조 */}
-            {result.structure && (
-              <div className="rounded-xl bg-gray-800 p-4 space-y-2">
-                <p className="text-xs font-black text-purple-400 uppercase tracking-wide">구조</p>
-                {result.structure.hook && <p className="text-sm text-gray-300"><span className="text-gray-500 text-xs">훅</span> {result.structure.hook.slice(0,100)}</p>}
-                {result.structure.body && <p className="text-xs text-gray-400">{result.structure.body.slice(0,120)}</p>}
-                {result.structure.cta && <p className="text-xs text-gray-500"><span className="text-yellow-500">CTA</span> {result.structure.cta.slice(0,80)}</p>}
-              </div>
-            )}
-            {/* 자막 */}
-            {result.subtitle && (
-              <div className="rounded-xl bg-gray-800 p-4 space-y-2 lg:col-span-2">
-                <p className="text-xs font-black text-yellow-400 uppercase tracking-wide">자막 패턴</p>
-                {result.subtitle.split_rule && <p className="text-sm text-gray-300">{result.subtitle.split_rule}</p>}
-                {result.subtitle.rhythm && <p className="text-xs text-gray-400">{result.subtitle.rhythm}</p>}
-              </div>
-            )}
-          </div>
-          <p className="text-xs text-green-400">✓ 라이브러리에 저장됐습니다. 2단계에서 이 스타일을 선택하세요.</p>
-        </div>
-      )}
-
-      {/* 내 스타일 라이브러리 */}
-      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-6">
-        <h3 className="text-sm font-black text-white mb-4">내 스타일 라이브러리</h3>
-        <StyleSelector selected={styleProfileId || "auto"} onSelect={() => {}} session={session} />
-      </div>
-    </div>
-  );
-}
-
-// ── HistoryFull (메인 뷰용 — 크게) ──────────────────────────
-function HistoryFull({ session }: { session: any }) {
-  const [jobs, setJobs] = useState<any[]>([]);
+// ── StyleLibrary ─────────────────────────────────────────────
+function StyleLibrary({ onLoad, session }: { onLoad: (s:any)=>void; session: any }) {
+  const [styles, setStyles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -1379,209 +1090,38 @@ function HistoryFull({ session }: { session: any }) {
     (async () => {
       try {
         const resp = await fetch(
-          "https://oxygqtbdpnxxcgzwdlzi.supabase.co/rest/v1/video_jobs?select=*&order=created_at.desc&limit=50",
+          "https://oxygqtbdpnxxcgzwdlzi.supabase.co/rest/v1/style_profiles?select=*&order=updated_at.desc",
           { headers: {
             "Authorization": `Bearer ${session.access_token}`,
             "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNTQ3MTIsImV4cCI6MjA5NTgzMDcxMn0.bHBnYJDRabumBJGtknRjkb63wm2nLI9IHYAaHTw5Qf8",
           }}
         );
         const data = await resp.json();
-        setJobs(Array.isArray(data) ? data : []);
-      } catch { } finally { setLoading(false); }
+        setStyles(Array.isArray(data) ? data : []);
+      } catch { setStyles([]); }
+      finally { setLoading(false); }
     })();
   }, [session]);
 
-  const STATUS: Record<string, string> = { succeeded:"✅ 완료", processing:"⏳ 생성 중", failed:"❌ 실패", queued:"🕐 대기" };
+  if (loading) return <div className="text-xs text-gray-500 text-center py-8">불러오는 중...</div>;
 
-  if (loading) return <div className="text-sm text-gray-500 py-8 text-center">불러오는 중...</div>;
-  if (!jobs.length) return <div className="text-sm text-gray-500 py-8 text-center">생성 내역이 없습니다</div>;
+  if (!styles.length) return (
+    <div className="text-xs text-gray-500 text-center py-8">
+      저장된 스타일이 없습니다.<br/>
+      <span className="text-gray-600">4단계에서 스타일을 저장해보세요</span>
+    </div>
+  );
 
   return (
-    <div className="space-y-3">
-      {jobs.map(j => (
-        <div key={j.id} className="rounded-2xl bg-gray-900 border border-gray-800 p-5 flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <p className="font-bold text-white truncate">{j.product_name || j.id?.slice(0,12)}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{new Date(j.created_at).toLocaleString("ko")}</p>
-            {j.error_message && <p className="text-xs text-red-400 mt-1">{j.error_message.slice(0,80)}</p>}
-          </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <span className={`text-sm font-bold ${j.status==="succeeded"?"text-green-400":j.status==="processing"?"text-cyan-400 animate-pulse":"text-gray-400"}`}>
-              {STATUS[j.status] ?? j.status}
-            </span>
-            {j.output_url && (
-              <a href={j.output_url} target="_blank" rel="noopener"
-                className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-400 transition">
-                다운로드
-              </a>
-            )}
-          </div>
+    <div className="space-y-2">
+      {styles.map(s => (
+        <div key={s.id} onClick={() => onLoad(s.profile_json ? JSON.parse(s.profile_json) : {})}
+          className="rounded-xl border border-gray-700 p-2.5 cursor-pointer hover:border-cyan-500/50 transition">
+          <p className="text-xs font-bold text-white truncate">{s.label || "스타일"}</p>
+          {s.source_channel && <p className="text-xs text-gray-500">@{s.source_channel}</p>}
+          <p className="text-xs text-gray-600">{new Date(s.updated_at).toLocaleDateString("ko")}</p>
         </div>
       ))}
-    </div>
-  );
-}
-
-// ── AdminPanel ───────────────────────────────────────────────
-function AdminPanel({ session, supabase }: { session: any; supabase: any }) {
-  const [users, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [reviews, setReviews] = useState<any[]>([]);
-
-  useEffect(() => {
-    if (!session) return;
-    (async () => {
-      try {
-        const { data } = await supabase.from("subscriptions")
-          .select("user_id, user_email, plan, role, created_at, credits_used")
-          .order("created_at", { ascending: false })
-          .limit(50);
-        setUsers(data ?? []);
-
-        const { data: rv } = await supabase.from("review_submissions")
-          .select("*").eq("status", "pending").limit(20);
-        setReviews(rv ?? []);
-      } catch {} finally { setLoading(false); }
-    })();
-  }, [session]);
-
-  const setRole = async (userId: string, role: string) => {
-    await supabase.from("subscriptions").update({ role }).eq("user_id", userId);
-    setUsers(u => u.map(x => x.user_id === userId ? { ...x, role } : x));
-  };
-
-  const approveReview = async (id: string, userId: string) => {
-    await supabase.rpc("approve_review_rpc", { p_submission_id: id, p_admin_id: session.user.id });
-    setReviews(r => r.filter(x => x.id !== id));
-  };
-
-  if (loading) return <div className="text-gray-500">불러오는 중...</div>;
-
-  return (
-    <div className="space-y-8">
-      {/* 후기 승인 */}
-      {reviews.length > 0 && (
-        <div>
-          <h3 className="text-sm font-black text-white mb-3">📝 후기 승인 대기 ({reviews.length})</h3>
-          <div className="space-y-2">
-            {reviews.map(r => (
-              <div key={r.id} className="rounded-xl bg-gray-800 p-4 flex items-center justify-between gap-4">
-                <div>
-                  <a href={r.url} target="_blank" rel="noopener" className="text-cyan-400 text-sm hover:underline truncate block max-w-md">{r.url}</a>
-                  <p className="text-xs text-gray-500">{r.user_id?.slice(0,12)}</p>
-                </div>
-                <button onClick={() => approveReview(r.id, r.user_id)}
-                  className="rounded-lg bg-green-500 px-4 py-2 text-xs font-bold text-white hover:bg-green-400 transition">
-                  승인 (+1000 CR)
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* 사용자 목록 */}
-      <div>
-        <h3 className="text-sm font-black text-white mb-3">👥 사용자 목록 ({users.length})</h3>
-        <div className="rounded-2xl bg-gray-900 border border-gray-800 overflow-hidden">
-          <table className="w-full text-xs">
-            <thead className="border-b border-gray-800">
-              <tr className="text-gray-400">
-                <th className="px-4 py-3 text-left">이메일</th>
-                <th className="px-4 py-3 text-left">플랜</th>
-                <th className="px-4 py-3 text-left">역할</th>
-                <th className="px-4 py-3 text-left">크레딧</th>
-                <th className="px-4 py-3 text-left">역할 변경</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map(u => (
-                <tr key={u.user_id} className="border-b border-gray-800/50 hover:bg-gray-800/30">
-                  <td className="px-4 py-3 text-gray-300 truncate max-w-[180px]">{u.user_email}</td>
-                  <td className="px-4 py-3 text-white capitalize">{u.plan || "-"}</td>
-                  <td className="px-4 py-3">
-                    <span className={`font-bold ${u.role==="super_admin"?"text-yellow-400":u.role==="partner"?"text-blue-400":"text-gray-400"}`}>
-                      {u.role || "user"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-400">{u.credits_used || 0}</td>
-                  <td className="px-4 py-3">
-                    <select value={u.role || "user"} onChange={e => setRole(u.user_id, e.target.value)}
-                      className="rounded-lg bg-gray-700 border border-gray-600 px-2 py-1 text-xs text-white outline-none">
-                      <option value="user">user</option>
-                      <option value="partner">partner</option>
-                      <option value="super_admin">super_admin</option>
-                    </select>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── PartnerPanel ─────────────────────────────────────────────
-function PartnerPanel({ session, supabase }: { session: any; supabase: any }) {
-  const [stats, setStats] = useState<any>(null);
-  const [referralCode, setReferralCode] = useState("");
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    if (!session) return;
-    (async () => {
-      try {
-        const result = await supabase.rpc("get_referral_info_rpc", { p_user_id: session.user.id });
-        if (result.data) {
-          setStats(result.data);
-          setReferralCode(result.data.referral_code || "");
-        }
-      } catch {}
-    })();
-  }, [session]);
-
-  const referralLink = `https://chronit.vercel.app?ref=${referralCode}`;
-
-  const copy = () => {
-    navigator.clipboard.writeText(referralLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-
-  return (
-    <div className="space-y-6 max-w-2xl">
-      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-6">
-        <h3 className="text-sm font-black text-white mb-4">🔗 추천 링크</h3>
-        <div className="flex gap-3">
-          <input readOnly value={referralLink}
-            className="flex-1 rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm text-cyan-400 outline-none" />
-          <button onClick={copy}
-            className="rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-cyan-400 transition">
-            {copied ? "✓ 복사됨" : "복사"}
-          </button>
-        </div>
-        {stats && (
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            <div className="rounded-xl bg-gray-800 p-3">
-              <p className="text-xs text-gray-400">초대한 사람</p>
-              <p className="text-2xl font-black text-white mt-1">{stats.invite_count ?? 0}명</p>
-            </div>
-            <div className="rounded-xl bg-gray-800 p-3">
-              <p className="text-xs text-gray-400">적립 크레딧</p>
-              <p className="text-2xl font-black text-cyan-400 mt-1">💎 {(stats.invite_count ?? 0) * 500}</p>
-            </div>
-          </div>
-        )}
-      </div>
-      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-6">
-        <h3 className="text-sm font-black text-white mb-2">파트너스 안내</h3>
-        <ul className="text-sm text-gray-400 space-y-1.5">
-          <li>· 지인이 추천 링크로 가입하면 양쪽 모두 500 CR 지급</li>
-          <li>· 크레딧은 영상 생성에 사용 가능</li>
-        </ul>
-      </div>
     </div>
   );
 }
@@ -1644,8 +1184,7 @@ const PROJECTS_KEY = "chronit_projects_v2";
 function getProjects(): any[] { try { return JSON.parse(localStorage.getItem(PROJECTS_KEY)||"[]"); } catch { return []; } }
 function saveProjects(ps: any[]) { localStorage.setItem(PROJECTS_KEY, JSON.stringify(ps.slice(0,20))); }
 
-function AppSidebar({ current, onLoad, onReset, balance, userPlan, userRole, session, styleProfileId, onSelectStyle, activeView, onViewChange }: { current: any; onLoad: (d:any)=>void; onReset: ()=>void; balance: number|null; userPlan: string|null; userRole: string; session: any; styleProfileId: string; onSelectStyle: (id:string)=>void; activeView: string; onViewChange: (v:string)=>void }) {
-
+function AppSidebar({ current, onLoad, onReset, balance, userPlan, userRole, session, activeView, onViewChange }: { current: any; onLoad: (d:any)=>void; onReset: ()=>void; balance: number|null; userPlan: string|null; userRole: string; session: any; activeView: string; onViewChange: (v:string)=>void }) {
   const [projects, setProjects] = useState<any[]>(()=>getProjects());
   const [activeProjectId, setActiveProjectId] = useState<string|null>(
     () => localStorage.getItem("chronit_active_project") || null
@@ -1775,6 +1314,7 @@ function AppSidebar({ current, onLoad, onReset, balance, userPlan, userRole, ses
               </div>
             )}
           </div>
+
       </div>
 
       {/* 하단 계정/플랜/크레딧 고정 */}
@@ -1792,69 +1332,6 @@ function AppSidebar({ current, onLoad, onReset, balance, userPlan, userRole, ses
             <span className="text-sm font-black text-cyan-400">💎 {balance.toLocaleString()} CR</span>
           </div>
         )}
-      
-
-        {/* 스타일 찾기 뷰 */}
-        {activeView === "style-finder" && (
-          <div className="flex-1 overflow-y-auto px-8 py-6">
-            <div className="max-w-2xl mx-auto">
-              <h2 className="text-xl font-black text-white mb-2">🔍 스타일 찾기</h2>
-              <p className="text-sm text-gray-400 mb-6">숏폼 영상 URL을 분석해서 대본 스타일을 라이브러리에 저장합니다.</p>
-              <StyleFinderFull session={session} styleProfileId={styleProfileId} onImport={(id) => { setStyleProfileId(id); setActiveView("generator"); }} />
-            </div>
-          </div>
-        )}
-
-        {/* 생성 내역 뷰 */}
-        {activeView === "history" && (
-          <div className="flex-1 overflow-y-auto px-8 py-6">
-            <h2 className="text-xl font-black text-white mb-6">📹 생성 내역</h2>
-            <HistoryFull session={session} />
-          </div>
-        )}
-
-        {/* 설정 뷰 */}
-        {activeView === "settings" && (
-          <div className="flex-1 overflow-y-auto px-8 py-6 max-w-xl">
-            <h2 className="text-xl font-black text-white mb-6">⚙️ 설정</h2>
-            <div className="space-y-4">
-              <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5">
-                <p className="text-xs font-bold text-gray-400 mb-3">계정 정보</p>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">이메일</span>
-                    <span className="text-white">{session?.user?.email}</span>
-                  </div>
-                  {userPlan && <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">플랜</span>
-                    <span className="font-bold text-white capitalize">{userPlan}</span>
-                  </div>}
-                  {balance !== null && <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">크레딧</span>
-                    <span className="font-black text-cyan-400">💎 {balance.toLocaleString()} CR</span>
-                  </div>}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 관리자 뷰 */}
-        {activeView === "admin" && (userRole === "super_admin") && (
-          <div className="flex-1 overflow-y-auto px-8 py-6">
-            <h2 className="text-xl font-black text-white mb-6">👑 관리자</h2>
-            <AdminPanel session={session} supabase={supabase} />
-          </div>
-        )}
-
-        {/* 파트너스 뷰 */}
-        {activeView === "partner" && (userRole === "partner" || userRole === "super_admin") && (
-          <div className="flex-1 overflow-y-auto px-8 py-6">
-            <h2 className="text-xl font-black text-white mb-6">📊 파트너스</h2>
-            <PartnerPanel session={session} supabase={supabase} />
-          </div>
-        )}
-
       </div>
     </div>
   );
@@ -1998,6 +1475,128 @@ function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean;
   );
 }
 
+// ── StyleFinderFull ──────────────────────────────────────────
+function StyleFinderFull({ session, styleProfileId, onImport }: { session: any; styleProfileId: string; onImport: (id:string)=>void }) {
+  const [url, setUrl] = useState(""); const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(""); const [result, setResult] = useState<any>(null);
+  const handleAnalyze = async () => {
+    if (!url.trim() || !session) return;
+    setLoading(true); setError(""); setResult(null);
+    try {
+      const resp = await fetch(FN("analyze-style"), { method:"POST", headers:{Authorization:`Bearer ${session.access_token}`,"Content-Type":"application/json"}, body:JSON.stringify({source_url:url.trim()}) });
+      const data = await resp.json();
+      if (!data.ok) throw new Error(data.error ?? "분석 실패");
+      setResult(data.profile);
+    } catch(e) { setError(String(e)); } finally { setLoading(false); }
+  };
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-6 space-y-4">
+        <div><label className="text-sm font-bold text-white">숏폼 링크 붙여넣기</label><p className="text-xs text-gray-500">스타일을 따라하고 싶은 숏폼 영상 (60초 이내 권장)</p></div>
+        <div className="flex gap-3">
+          <input value={url} onChange={e=>setUrl(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleAnalyze()} placeholder="https://www.instagram.com/p/..." disabled={loading} className="flex-1 rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm text-white placeholder-gray-600 outline-none focus:border-cyan-500 disabled:opacity-50" />
+          <button onClick={handleAnalyze} disabled={loading||!url.trim()} className="rounded-xl bg-cyan-500 px-6 py-3 text-sm font-black text-white hover:bg-cyan-400 disabled:opacity-40 transition whitespace-nowrap">{loading?"분석 중...":"분석 시작"}</button>
+        </div>
+        {loading&&<p className="text-xs text-cyan-400 animate-pulse">AI가 영상을 분석하는 중입니다 (1~2분 소요)...</p>}
+        {error&&<p className="text-xs text-red-400">{error}</p>}
+      </div>
+      {result&&(
+        <div className="rounded-2xl bg-gray-900 border border-gray-800 p-6 space-y-4">
+          <div className="flex items-start justify-between gap-4">
+            <div><h3 className="text-lg font-black text-white">{result.label}</h3>{result.source_channel&&<p className="text-sm text-gray-500">@{result.source_channel}</p>}</div>
+            <button onClick={()=>onImport(result.id)} className="shrink-0 rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-black text-white hover:bg-cyan-400 transition">이 스타일 가져오기 →</button>
+          </div>
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {result.tone&&<div className="rounded-xl bg-gray-800 p-4 space-y-2"><p className="text-xs font-black text-cyan-400">톤 & 화자</p>{result.tone.speaker&&<p className="text-sm text-gray-300">{result.tone.speaker}</p>}{result.tone.signatures?.length>0&&<div className="flex flex-wrap gap-1.5">{result.tone.signatures.slice(0,6).map((s:string,i:number)=><span key={i} className="rounded-full bg-gray-700 px-2.5 py-1 text-xs text-gray-200">{s}</span>)}</div>}</div>}
+            {result.structure&&<div className="rounded-xl bg-gray-800 p-4 space-y-2"><p className="text-xs font-black text-purple-400">구조</p>{result.structure.hook&&<p className="text-sm text-gray-300"><span className="text-gray-500 text-xs">훅 </span>{result.structure.hook.slice(0,100)}</p>}</div>}
+          </div>
+          <p className="text-xs text-green-400">✓ 라이브러리에 저장됐습니다.</p>
+        </div>
+      )}
+      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-6">
+        <h3 className="text-sm font-black text-white mb-4">내 스타일 라이브러리</h3>
+        <StyleSelector selected={styleProfileId} onSelect={()=>{}} session={session} />
+      </div>
+    </div>
+  );
+}
+
+// ── HistoryFull ───────────────────────────────────────────────
+function HistoryFull({ session }: { session: any }) {
+  const [jobs, setJobs] = useState<any[]>([]); const [loading, setLoading] = useState(true);
+  useEffect(()=>{
+    if(!session) return;
+    (async()=>{
+      try {
+        const resp = await fetch("https://oxygqtbdpnxxcgzwdlzi.supabase.co/rest/v1/video_jobs?select=*&order=created_at.desc&limit=50",{headers:{Authorization:`Bearer ${session.access_token}`,apikey:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNTQ3MTIsImV4cCI6MjA5NTgzMDcxMn0.bHBnYJDRabumBJGtknRjkb63wm2nLI9IHYAaHTw5Qf8"}});
+        const d = await resp.json(); setJobs(Array.isArray(d)?d:[]);
+      } catch {} finally { setLoading(false); }
+    })();
+  },[session]);
+  const S: Record<string,string> = {succeeded:"✅ 완료",processing:"⏳ 생성 중",failed:"❌ 실패",queued:"🕐 대기"};
+  if(loading) return <div className="text-sm text-gray-500 py-8 text-center">불러오는 중...</div>;
+  if(!jobs.length) return <div className="text-sm text-gray-500 py-8 text-center">생성 내역이 없습니다</div>;
+  return (
+    <div className="space-y-3">
+      {jobs.map(j=>(
+        <div key={j.id} className="rounded-2xl bg-gray-900 border border-gray-800 p-5 flex items-center justify-between gap-4">
+          <div className="min-w-0"><p className="font-bold text-white truncate">{j.product_name||j.id?.slice(0,12)}</p><p className="text-xs text-gray-500 mt-0.5">{new Date(j.created_at).toLocaleString("ko")}</p></div>
+          <div className="flex items-center gap-3 shrink-0">
+            <span className={`text-sm font-bold ${j.status==="succeeded"?"text-green-400":j.status==="processing"?"text-cyan-400 animate-pulse":"text-gray-400"}`}>{S[j.status]??j.status}</span>
+            {j.output_url&&<a href={j.output_url} target="_blank" rel="noopener" className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-400 transition">다운로드</a>}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── AdminPanel ────────────────────────────────────────────────
+function AdminPanel({ session, supabase }: { session: any; supabase: any }) {
+  const [users, setUsers] = useState<any[]>([]); const [loading, setLoading] = useState(true);
+  useEffect(()=>{
+    if(!session) return;
+    (async()=>{try{const{data}=await supabase.from("subscriptions").select("user_id,plan,role,created_at").order("created_at",{ascending:false}).limit(50); setUsers(data??[]);}catch{}finally{setLoading(false);}})();
+  },[session]);
+  const setRole=async(uid:string,role:string)=>{await supabase.from("subscriptions").update({role}).eq("user_id",uid);setUsers(u=>u.map(x=>x.user_id===uid?{...x,role}:x));};
+  if(loading) return <div className="text-gray-500">불러오는 중...</div>;
+  return (
+    <div className="rounded-2xl bg-gray-900 border border-gray-800 overflow-hidden">
+      <table className="w-full text-xs">
+        <thead className="border-b border-gray-800"><tr className="text-gray-400"><th className="px-4 py-3 text-left">user_id</th><th className="px-4 py-3 text-left">플랜</th><th className="px-4 py-3 text-left">역할</th><th className="px-4 py-3 text-left">역할 변경</th></tr></thead>
+        <tbody>{users.map(u=>(
+          <tr key={u.user_id} className="border-b border-gray-800/50 hover:bg-gray-800/30">
+            <td className="px-4 py-3 text-gray-400 font-mono text-xs truncate max-w-[120px]">{u.user_id?.slice(0,12)}</td>
+            <td className="px-4 py-3 text-white capitalize">{u.plan||"-"}</td>
+            <td className="px-4 py-3"><span className={`font-bold ${u.role==="super_admin"?"text-yellow-400":u.role==="partner"?"text-blue-400":"text-gray-400"}`}>{u.role||"user"}</span></td>
+            <td className="px-4 py-3"><select value={u.role||"user"} onChange={e=>setRole(u.user_id,e.target.value)} className="rounded-lg bg-gray-700 border border-gray-600 px-2 py-1 text-xs text-white outline-none"><option value="user">user</option><option value="partner">partner</option><option value="super_admin">super_admin</option></select></td>
+          </tr>
+        ))}</tbody>
+      </table>
+    </div>
+  );
+}
+
+// ── PartnerPanel ──────────────────────────────────────────────
+function PartnerPanel({ session, supabase }: { session: any; supabase: any }) {
+  const [referralCode, setReferralCode] = useState(""); const [copied, setCopied] = useState(false); const [stats, setStats] = useState<any>(null);
+  useEffect(()=>{
+    if(!session) return;
+    (async()=>{try{const r=await supabase.rpc("get_referral_info_rpc",{p_user_id:session.user.id});if(r.data){setStats(r.data);setReferralCode(r.data.referral_code||"");}}catch{}})();
+  },[session]);
+  const link=`https://chronit.vercel.app?ref=${referralCode}`;
+  const copy=()=>{navigator.clipboard.writeText(link);setCopied(true);setTimeout(()=>setCopied(false),1500);};
+  return (
+    <div className="space-y-6 max-w-2xl">
+      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-6 space-y-4">
+        <h3 className="text-sm font-black text-white">🔗 추천 링크</h3>
+        <div className="flex gap-3"><input readOnly value={link} className="flex-1 rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm text-cyan-400 outline-none" /><button onClick={copy} className="rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-cyan-400 transition">{copied?"✓ 복사됨":"복사"}</button></div>
+        {stats&&<div className="grid grid-cols-2 gap-3"><div className="rounded-xl bg-gray-800 p-3"><p className="text-xs text-gray-400">초대한 사람</p><p className="text-2xl font-black text-white mt-1">{stats.invite_count??0}명</p></div><div className="rounded-xl bg-gray-800 p-3"><p className="text-xs text-gray-400">적립 크레딧</p><p className="text-2xl font-black text-cyan-400 mt-1">💎 {(stats.invite_count??0)*500}</p></div></div>}
+      </div>
+    </div>
+  );
+}
+
 // ── Job Card ──────────────────────────────────────────────────
 function JobCard({ job }: { job: Job }) {
   const S = {
@@ -2022,69 +1621,6 @@ function JobCard({ job }: { job: Job }) {
         {(job.status === "pending" || job.status === "processing") && (
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent shrink-0" />
         )}
-      
-
-        {/* 스타일 찾기 뷰 */}
-        {activeView === "style-finder" && (
-          <div className="flex-1 overflow-y-auto px-8 py-6">
-            <div className="max-w-2xl mx-auto">
-              <h2 className="text-xl font-black text-white mb-2">🔍 스타일 찾기</h2>
-              <p className="text-sm text-gray-400 mb-6">숏폼 영상 URL을 분석해서 대본 스타일을 라이브러리에 저장합니다.</p>
-              <StyleFinderFull session={session} styleProfileId={styleProfileId} onImport={(id) => { setStyleProfileId(id); setActiveView("generator"); }} />
-            </div>
-          </div>
-        )}
-
-        {/* 생성 내역 뷰 */}
-        {activeView === "history" && (
-          <div className="flex-1 overflow-y-auto px-8 py-6">
-            <h2 className="text-xl font-black text-white mb-6">📹 생성 내역</h2>
-            <HistoryFull session={session} />
-          </div>
-        )}
-
-        {/* 설정 뷰 */}
-        {activeView === "settings" && (
-          <div className="flex-1 overflow-y-auto px-8 py-6 max-w-xl">
-            <h2 className="text-xl font-black text-white mb-6">⚙️ 설정</h2>
-            <div className="space-y-4">
-              <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5">
-                <p className="text-xs font-bold text-gray-400 mb-3">계정 정보</p>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">이메일</span>
-                    <span className="text-white">{session?.user?.email}</span>
-                  </div>
-                  {userPlan && <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">플랜</span>
-                    <span className="font-bold text-white capitalize">{userPlan}</span>
-                  </div>}
-                  {balance !== null && <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">크레딧</span>
-                    <span className="font-black text-cyan-400">💎 {balance.toLocaleString()} CR</span>
-                  </div>}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 관리자 뷰 */}
-        {activeView === "admin" && (userRole === "super_admin") && (
-          <div className="flex-1 overflow-y-auto px-8 py-6">
-            <h2 className="text-xl font-black text-white mb-6">👑 관리자</h2>
-            <AdminPanel session={session} supabase={supabase} />
-          </div>
-        )}
-
-        {/* 파트너스 뷰 */}
-        {activeView === "partner" && (userRole === "partner" || userRole === "super_admin") && (
-          <div className="flex-1 overflow-y-auto px-8 py-6">
-            <h2 className="text-xl font-black text-white mb-6">📊 파트너스</h2>
-            <PartnerPanel session={session} supabase={supabase} />
-          </div>
-        )}
-
       </div>
     </div>
   );
