@@ -1070,29 +1070,38 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
   );
 }
 
+// 이전/다음 버튼은 같은 fixed 컨테이너에서 렌더링되어야 수직 정렬이 맞음
+// → FloatingPrev/Next를 portal로 document.body에 직접 렌더링
 function FloatingPrev({ onClick }: { onClick: () => void }) {
-  return (
-    <div className="fixed bottom-24 right-[160px] z-40 flex items-center">
+  return React.createPortal(
+    <div style={{ position:"fixed", bottom:"96px", right:"164px", zIndex:40, display:"flex", alignItems:"center" }}>
       <button onClick={onClick}
-        className="rounded-2xl bg-gray-700 shadow-lg px-5 text-sm font-black text-white hover:bg-gray-600 transition flex items-center gap-2"
-        style={{ height: "46px" }}>
+        style={{ height:"46px", display:"flex", alignItems:"center", gap:"8px",
+                 background:"#374151", borderRadius:"16px", padding:"0 20px",
+                 fontSize:"14px", fontWeight:900, color:"white", border:"none", cursor:"pointer" }}>
         <span>←</span><span>이전</span>
       </button>
-    </div>
+    </div>,
+    document.body
   );
 }
 
 function FloatingNext({ label, onClick, disabled = false }: {
   label: string; onClick: () => void; disabled?: boolean;
 }) {
-  return (
-    <div className="fixed bottom-24 right-4 z-40 flex items-center">
+  return React.createPortal(
+    <div style={{ position:"fixed", bottom:"96px", right:"16px", zIndex:40, display:"flex", alignItems:"center" }}>
       <button onClick={onClick} disabled={disabled}
-        className="rounded-2xl bg-cyan-500 shadow-2xl shadow-cyan-500/40 px-6 text-sm font-black text-white hover:bg-cyan-400 disabled:opacity-40 transition flex items-center gap-2"
-        style={{ height: "46px" }}>
+        style={{ height:"46px", display:"flex", alignItems:"center", gap:"8px",
+                 background: disabled ? "rgba(6,182,212,0.4)" : "#06b6d4",
+                 borderRadius:"16px", padding:"0 24px",
+                 fontSize:"14px", fontWeight:900, color:"white", border:"none",
+                 cursor: disabled ? "not-allowed" : "pointer",
+                 boxShadow:"0 25px 50px -12px rgba(6,182,212,0.4)" }}>
         <span>{label}</span><span>→</span>
       </button>
-    </div>
+    </div>,
+    document.body
   );
 }
 
