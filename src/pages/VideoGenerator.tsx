@@ -170,7 +170,7 @@ export default function VideoGenerator() {
     if (!currentJobId) return;
     const job = jobs.find(j => j.id === currentJobId);
     if (job?.status === "done" && stage === 5) {
-      setStage(6);
+      setStage(1); // 렌더링 완료 — 자동 생성 흐름이므로 1단계로 복귀
       setCompletionAlert("영상 생성 완료! 아래에서 확인하세요.");
       // 완성음 재생
       try { new Audio("https://www.soundjay.com/buttons/sounds/button-09a.mp3").play(); } catch {}
@@ -541,7 +541,7 @@ export default function VideoGenerator() {
     setVoiceSpeed(d.voiceSpeed ?? 130);
     setVoiceVolume(d.voiceVolume ?? 100);
     setCtaText(d.ctaText ?? "");
-    setStage(d.stage ?? 1);
+    setStage(1); // 6단계 흐름 제거 후 항상 Stage 1
   };
 
   // 새 프로젝트 생성 시 초기화
@@ -1990,12 +1990,13 @@ function proxyThumb(url: string) {
 function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean; onToggle: () => void }) {
   const [imgError, setImgError] = useState(false);
   const [playing, setPlaying] = useState(false);
-  const proxyUrl = clip.download_url
-    ? `https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/video-proxy?url=${encodeURIComponent(clip.download_url)}`
+  const rawUrl = clip.download_url || clip.video_url || "";
+  const proxyUrl = rawUrl
+    ? `https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/video-proxy?url=${encodeURIComponent(rawUrl)}`
     : "";
   const handlePlay = async () => {
-    if (!proxyUrl) return;
-    setPlaying(true); // 바로 인라인 재생 시도
+    if (!proxyUrl && !rawUrl) return;
+    setPlaying(true);
   };
   const thumbSrc = !imgError && clip.thumbnail_url ? clip.thumbnail_url : "";
 
@@ -2005,8 +2006,8 @@ function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean;
     }`}>
       <div className="aspect-[9/16] bg-gray-800 relative cursor-pointer"
         onClick={() => playing ? setPlaying(false) : handlePlay()}>
-        {playing && proxyUrl ? (
-          <video src={proxyUrl} autoPlay playsInline controls={false}
+        {playing && (proxyUrl || rawUrl) ? (
+          <video src={proxyUrl || rawUrl} autoPlay playsInline controls={false}
             className="w-full h-full object-cover"
             onClick={e => { e.stopPropagation(); setPlaying(false); }}
             onError={() => { setPlaying(false); }} />
