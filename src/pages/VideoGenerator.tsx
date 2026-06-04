@@ -1002,8 +1002,19 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
   const previewText = (previewScript.length > 0 ? previewScript[scriptIdx % previewScript.length] : null) || "와, 드디어";
 
   const makeTextShadow = (sw: number, sc: string) => {
+    // 16방향으로 촘촘하게 배치해 빈틈 없는 외곽선 생성
     const d = sw;
-    return `${-d}px ${-d}px 0 ${sc}, ${d}px ${-d}px 0 ${sc}, ${-d}px ${d}px 0 ${sc}, ${d}px ${d}px 0 ${sc}, 0 ${-d}px 0 ${sc}, 0 ${d}px 0 ${sc}, ${-d}px 0 0 ${sc}, ${d}px 0 0 ${sc}`;
+    const h = d * 0.5;
+    return [
+      `${-d}px ${-d}px 0 ${sc}`, `${d}px ${-d}px 0 ${sc}`,
+      `${-d}px ${d}px 0 ${sc}`, `${d}px ${d}px 0 ${sc}`,
+      `0 ${-d}px 0 ${sc}`, `0 ${d}px 0 ${sc}`,
+      `${-d}px 0 0 ${sc}`, `${d}px 0 0 ${sc}`,
+      `${-h}px ${-d}px 0 ${sc}`, `${h}px ${-d}px 0 ${sc}`,
+      `${-h}px ${d}px 0 ${sc}`, `${h}px ${d}px 0 ${sc}`,
+      `${-d}px ${-h}px 0 ${sc}`, `${d}px ${-h}px 0 ${sc}`,
+      `${-d}px ${h}px 0 ${sc}`, `${d}px ${h}px 0 ${sc}`,
+    ].join(", ");
   };
   const toTextStyle = (st: SubtitleStyle): React.CSSProperties => ({
     fontFamily: st.fontFamily,
@@ -1011,6 +1022,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
     fontSize: `${st.fontSize}px`,
     fontWeight: st.fontWeight,
     textShadow: st.strokeOn ? makeTextShadow(st.strokeWidth, st.strokeColor) : undefined,
+    WebkitTextStroke: st.strokeOn ? `${st.strokeWidth * 0.5}px ${st.strokeColor}` : undefined,
     lineHeight: 1.3,
     whiteSpace: "nowrap",
     display: "inline-block",
@@ -1693,19 +1705,6 @@ function AutoSettingsView({
       <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 space-y-3">
         <p className="text-sm font-black text-white">🎨 대본 스타일</p>
         <StyleSelector selected={styleProfileId} onSelect={setStyleProfileId} session={session} />
-      </div>
-
-      {/* CTA */}
-      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 space-y-3">
-        <p className="text-sm font-black text-white">💬 CTA 키워드</p>
-        <input value={ctaText} onChange={e => setCtaText(e.target.value)}
-          placeholder="예: 관심, 💚, 알려줘 (비우면 프로필 링크 안내)"
-          className="w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm text-white outline-none focus:border-cyan-500 transition" />
-        <p className="text-xs text-cyan-500">
-          {ctaText.trim()
-            ? `→ "댓글에 ${ctaText.trim()} 남겨주시면 링크 보내드릴게요"`
-            : `→ "프로필 링크를 확인하세요"`}
-        </p>
       </div>
 
       {/* 음성 설정 */}
