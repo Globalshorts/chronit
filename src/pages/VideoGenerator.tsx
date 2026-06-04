@@ -491,8 +491,7 @@ export default function VideoGenerator() {
           target_seconds: targetSeconds,
           voice_id: voiceId,
           voice_speed: voiceSpeed / 100,
-          // 여성 EL 보이스는 실제 렌더링 시 1.5배 적용
-          voice_volume: (voiceVolume / 100) * (EL_FEMALE_IDS.has(voiceId) ? 1.5 : 1.0),
+          voice_volume: voiceVolume / 100,
           subtitle_preset: subtitlePreset,
           subtitle_style: subtitleStyle,
           thumbnail_style: thumbnailStyle,
