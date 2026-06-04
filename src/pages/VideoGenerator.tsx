@@ -1018,28 +1018,14 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
   // 대본에서 프리뷰 문구 — 없으면 기본값
   const previewText = (previewScript.length > 0 ? previewScript[scriptIdx % previewScript.length] : null) || "와, 드디어";
 
-  const makeTextShadow = (sw: number, sc: string) => {
-    // 16방향으로 촘촘하게 배치해 빈틈 없는 외곽선 생성
-    const d = sw;
-    const h = d * 0.5;
-    return [
-      `${-d}px ${-d}px 0 ${sc}`, `${d}px ${-d}px 0 ${sc}`,
-      `${-d}px ${d}px 0 ${sc}`, `${d}px ${d}px 0 ${sc}`,
-      `0 ${-d}px 0 ${sc}`, `0 ${d}px 0 ${sc}`,
-      `${-d}px 0 0 ${sc}`, `${d}px 0 0 ${sc}`,
-      `${-h}px ${-d}px 0 ${sc}`, `${h}px ${-d}px 0 ${sc}`,
-      `${-h}px ${d}px 0 ${sc}`, `${h}px ${d}px 0 ${sc}`,
-      `${-d}px ${-h}px 0 ${sc}`, `${d}px ${-h}px 0 ${sc}`,
-      `${-d}px ${h}px 0 ${sc}`, `${d}px ${h}px 0 ${sc}`,
-    ].join(", ");
-  };
   const toTextStyle = (st: SubtitleStyle): React.CSSProperties => ({
     fontFamily: st.fontFamily,
     color: st.color,
     fontSize: `${st.fontSize}px`,
     fontWeight: st.fontWeight,
-    textShadow: st.strokeOn ? makeTextShadow(st.strokeWidth, st.strokeColor) : undefined,
-    WebkitTextStroke: st.strokeOn ? `${st.strokeWidth * 0.5}px ${st.strokeColor}` : undefined,
+    // WebkitTextStroke: 텍스트 획 외곽선 — text-shadow보다 훨씬 자연스러움
+    WebkitTextStroke: st.strokeOn ? `${st.strokeWidth}px ${st.strokeColor}` : undefined,
+    paintOrder: st.strokeOn ? "stroke fill" : undefined,
     lineHeight: 1.3,
     whiteSpace: "nowrap",
     display: "inline-block",
