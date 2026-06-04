@@ -277,6 +277,8 @@ export default function VideoGenerator() {
       const { data: { session: s } } = await supabase.auth.getSession();
       if (!s) { setScriptError("로그인이 필요합니다"); return; }
       const selected = clips.filter(c => cart.has(c.video_id));
+
+      // 1단계: prediction 생성 (빠르게 반환)
       const resp = await fetch(FN("generate-script"), {
         method: "POST",
         headers: { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" },
@@ -290,8 +292,34 @@ export default function VideoGenerator() {
       });
       const data = await resp.json();
       if (!data.ok) { setScriptError(data.error ?? "대본 생성 실패"); return; }
-      setScript(data.segments ?? []);
-      setScriptPredId(data.prediction_id ?? "");
+
+      const predId = data.prediction_id;
+      setScriptPredId(predId ?? "");
+
+      // 이미 완료된 경우 (구버전 호환)
+      if (data.status === "succeeded" && data.segments) {
+        setScript(data.segments); return;
+      }
+
+      // 2단계: 프론트에서 폴링 (5분 최대)
+      const startTime = Date.now();
+      while (Date.now() - startTime < 300_000) {
+        await new Promise(r => setTimeout(r, 5000));
+        const pollResp = await fetch(FN("generate-script"), {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ poll: true, prediction_id: predId }),
+        });
+        const pollData = await pollResp.json();
+        if (pollData.status === "succeeded") {
+          setScript(pollData.segments ?? []); return;
+        }
+        if (pollData.status === "failed" || pollData.status === "canceled") {
+          setScriptError(pollData.error ?? "대본 생성 실패"); return;
+        }
+        // starting/processing → 계속 폴링
+      }
+      setScriptError("대본 생성 시간 초과 (5분)");
     } catch (e) { setScriptError(String(e)); }
     finally { setScriptLoading(false); }
   };
@@ -691,8 +719,8 @@ export default function VideoGenerator() {
               {/* 대본 생성 버튼 */}
               {!script && !scriptLoading && (
                 <button onClick={handleGenerateScript} disabled={scriptLoading}
-                  className="w-full rounded-xl bg-gray-700 hover:bg-gray-600 border border-gray-600 py-3.5 text-sm font-black text-white transition flex items-center justify-center gap-2">
-                  📄 대본 생성 (20 CR)
+                  className="w-full rounded-xl bg-gray-700 hover:bg-gray-600 border border-gray-600 py-3.5 text-sm font-black text-white disabled:opacity-50 transition flex items-center justify-center gap-2">
+                  {scriptLoading ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>&nbsp;생성 중...</> : "📄 대본 생성 (20 CR)"}
                 </button>
               )}
 
@@ -1034,7 +1062,7 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
 
 function FloatingPrev({ onClick }: { onClick: () => void }) {
   return (
-    <div className="fixed bottom-24 right-28 z-40">
+    <div className="fixed bottom-24 right-[120px] z-40">
       <button onClick={onClick}
         className="rounded-2xl bg-gray-700 shadow-lg px-5 py-3 text-sm font-black text-white hover:bg-gray-600 transition flex items-center gap-2">
         <span>←</span><span>이전</span>
@@ -1098,14 +1126,19 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
     const d = await r.json(); setPresets(Array.isArray(d) ? d : []);
   };
 
-  const savePreset = async () => {
+  const savePreset = async (currentStyle: any, currentTab: string) => {
     if (!session || !presetName.trim()) return;
-    await fetch(`${SB_URL}/rest/v1/subtitle_presets`, {
+    const resp = await fetch(`${SB_URL}/rest/v1/subtitle_presets`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${session.access_token}`, apikey: SB_ANON, "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: session.user.id, name: presetName.trim(), type: tab, style_json: s })
+      headers: { Authorization: `Bearer ${session.access_token}`, apikey: SB_ANON, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify({ user_id: session.user.id, name: presetName.trim(), type: currentTab, style_json: currentStyle })
     });
-    setPresetName(""); loadPresets();
+    if (resp.ok || resp.status === 201) {
+      setPresetName(""); setShowPresets(false); loadPresets();
+    } else {
+      const err = await resp.text();
+      console.error("프리셋 저장 실패:", resp.status, err);
+    }
   };
 
   const deletePreset = async (id: string) => {
@@ -1295,11 +1328,11 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
           {showPresets && (
             <div className="flex gap-2 pt-1">
               <input value={presetName} onChange={e => setPresetName(e.target.value)}
-                onKeyDown={e => { if (e.key==="Enter") savePreset(); if (e.key==="Escape") setShowPresets(false); }}
+                onKeyDown={e => { if (e.key==="Enter") savePreset(s, tab); if (e.key==="Escape") setShowPresets(false); }}
                 placeholder="프리셋 이름 입력"
                 autoFocus
                 className="flex-1 rounded-lg bg-gray-800 border border-cyan-500 px-3 py-1.5 text-xs text-white outline-none" />
-              <button onClick={savePreset} disabled={!presetName.trim()}
+              <button onClick={() => savePreset(s, tab)} disabled={!presetName.trim()}
                 className="rounded-lg bg-cyan-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-cyan-400 disabled:opacity-40 transition">
                 확인
               </button>
