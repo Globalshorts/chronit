@@ -1107,7 +1107,9 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
   });
   const toBgStyle = (st: SubtitleStyle): React.CSSProperties => st.bgOn ? {
     backgroundColor: `${st.bgColor}${Math.round(st.bgOpacity * 2.55).toString(16).padStart(2, "0")}`,
-    padding: `${4 * PREVIEW_SCALE}px ${12 * PREVIEW_SCALE}px`, borderRadius: "6px", display: "inline-block",
+    padding: `${4 * PREVIEW_SCALE}px ${12 * PREVIEW_SCALE}px`, borderRadius: "6px",
+    // 박스 안에서 글씨를 수직 중앙 정렬 — line-height 여백으로 박스가 처지는 문제 해결
+    display: "inline-flex", alignItems: "center", lineHeight: 1,
   } : { display: "inline-block" };
 
   const stylePanel = (
