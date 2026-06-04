@@ -736,7 +736,7 @@ export default function VideoGenerator() {
               )}
 
               {stage === 3 && <FloatingPrev onClick={() => setStage(2)} />}
-              {script && stage === 3 && <FloatingNext label="다음" onClick={() => setStage(4)} />}
+              {stage === 3 && <FloatingNext label="다음" onClick={() => setStage(4)} />}
             </div>
           </StagePanel>
 
