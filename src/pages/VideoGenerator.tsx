@@ -108,6 +108,8 @@ export default function VideoGenerator() {
   const [rendering, setRendering]   = useState(false);
   const [renderError, setRenderError] = useState("");
   const [voiceGenerated, setVoiceGenerated] = useState(false);  // Stage 5 음성 생성 완료
+  const [autoRunning, setAutoRunning]   = useState(false);
+  const [autoRunStep, setAutoRunStep]   = useState("");   // 자동화 진행 단계 메시지
   const [voiceSegments, setVoiceSegments] = useState<any[]>([]);  // 장면별 편집용
   const [freeRegen, setFreeRegen] = useState(3);  // Stage 3 무료 재생성 횟수
   const [seoTitle, setSeoTitle] = useState("");
@@ -414,6 +416,60 @@ export default function VideoGenerator() {
     finally { setSeoLoading(false); }
   };
 
+  // ── 자동 생성 (Stage 2~6 순서 실행) ─────────────────────────
+  const handleAutoRun = async () => {
+    if (cart.size === 0 || autoRunning) return;
+    setAutoRunning(true);
+    try {
+      // Step 1: 대본 생성
+      setAutoRunStep("1/3  대본 생성 중...");
+      await new Promise<void>(async (resolve, reject) => {
+        setScriptError(""); setScriptLoading(true); setScript(null);
+        const { data: { session: s } } = await supabase.auth.getSession();
+        if (!s) { reject(new Error("로그인 필요")); return; }
+        const selected = clips.filter(c => cart.has(c.video_id));
+        const resp = await fetch(FN("generate-script"), {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ source_url: sourceUrl.trim(), selected_clips: selected,
+            target_seconds: targetSeconds, style_profile_id: styleProfileId, cta_text: ctaText.trim() }),
+        });
+        const data = await resp.json();
+        if (!data.ok) { reject(new Error(data.error ?? "대본 생성 실패")); return; }
+        const predId = data.prediction_id;
+        setScriptPredId(predId ?? "");
+        if (data.status === "succeeded" && data.segments) { setScript(data.segments); setScriptLoading(false); resolve(); return; }
+        // 폴링
+        const start = Date.now();
+        while (Date.now() - start < 300_000) {
+          await new Promise(r => setTimeout(r, 5000));
+          const poll = await (await fetch(FN("generate-script"), {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ poll: true, prediction_id: predId }),
+          })).json();
+          if (poll.status === "succeeded") { setScript(poll.segments ?? []); setScriptLoading(false); resolve(); return; }
+          if (poll.status === "failed") { reject(new Error(poll.error ?? "대본 실패")); return; }
+        }
+        reject(new Error("대본 생성 시간 초과"));
+      });
+
+      // Step 2: 음성 생성
+      setAutoRunStep("2/3  음성 생성 중...");
+      await handleVoiceGenerate();
+
+      // Step 3: 영상 합성
+      setAutoRunStep("3/3  영상 합성 중...");
+      await handleRender();
+
+      setAutoRunStep("✅ 완료!");
+    } catch (e) {
+      setAutoRunStep(`❌ 오류: ${String(e).slice(0,60)}`);
+    } finally {
+      setAutoRunning(false);
+    }
+  };
+
   const handleRender = async () => {
     setRenderError(""); setRendering(true);
     try {
@@ -541,6 +597,21 @@ export default function VideoGenerator() {
       <div className="flex-1 min-w-0 flex flex-col">
         {activeView !== "generator" && (
           <div className="flex-1 overflow-y-auto px-8 py-6">
+            {/* ── 자동화 세팅 ── */}
+            {activeView === "auto-settings" && (
+              <AutoSettingsView
+                targetSeconds={targetSeconds} setTargetSeconds={setTargetSeconds}
+                styleProfileId={styleProfileId} setStyleProfileId={setStyleProfileId}
+                ctaText={ctaText} setCtaText={setCtaText}
+                subtitleStyle={subtitleStyle} setSubtitleStyle={setSubtitleStyle}
+                thumbnailStyle={thumbnailStyle} setThumbnailStyle={setThumbnailStyle}
+                showThumbnail={showThumbnail} setShowThumbnail={setShowThumbnail}
+                voiceId={voiceId} setVoiceId={setVoiceId}
+                voiceSpeed={voiceSpeed} setVoiceSpeed={setVoiceSpeed}
+                voiceVolume={voiceVolume} setVoiceVolume={setVoiceVolume}
+                session={session}
+              />
+            )}
             {activeView === "style-finder" && (
               <div className="max-w-2xl mx-auto">
                 <h2 className="text-xl font-black text-white mb-2">🔍 스타일 찾기</h2>
@@ -630,6 +701,19 @@ export default function VideoGenerator() {
                   {cart.size > 0 && (
                     <>
                       <FloatingNext label={`다음 (${cart.size}개)`} onClick={() => setStage(2)} />
+                      <div style={{ position:"fixed", bottom:"96px", right:"300px", zIndex:50 }}>
+                        <button onClick={handleAutoRun} disabled={autoRunning}
+                          style={{ height:"46px", display:"inline-flex", alignItems:"center", gap:"8px",
+                                   background: autoRunning ? "rgba(234,179,8,0.5)" : "#eab308",
+                                   borderRadius:"16px", padding:"0 20px",
+                                   fontSize:"14px", fontWeight:900, color:"white", border:"none",
+                                   cursor: autoRunning ? "not-allowed" : "pointer",
+                                   boxShadow:"0 10px 25px rgba(234,179,8,0.3)", whiteSpace:"nowrap" }}>
+                          {autoRunning
+                            ? <>{autoRunStep || "처리 중..."}</>
+                            : <><span>🚀</span>&nbsp;<span>자동 생성</span></>}
+                        </button>
+                      </div>
                     </>
                   )}
                 </div>
@@ -1532,10 +1616,11 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
   balance: number|null; userPlan: string|null; session: any;
 }) {
   const NAV = [
-    { v: "generator",    icon: "📁", label: "프로젝트" },
-    { v: "style-finder", icon: "🔍", label: "스타일 찾기" },
-    { v: "history",      icon: "📹", label: "생성 내역" },
-    { v: "settings",     icon: "⚙️", label: "설정" },
+    { v: "generator",     icon: "📁", label: "프로젝트" },
+    { v: "auto-settings", icon: "⚙️", label: "자동화 세팅" },
+    { v: "style-finder",  icon: "🔍", label: "스타일 찾기" },
+    { v: "history",       icon: "📹", label: "생성 내역" },
+    { v: "settings",      icon: "🛠", label: "설정" },
     ...(userRole === "partner" || userRole === "super_admin"
       ? [{ v: "partner", icon: "📊", label: "파트너스" }] : []),
     ...(userRole === "super_admin"
@@ -1806,6 +1891,99 @@ function SyncPreview({ voiceSegments, clips }: { voiceSegments: any[]; clips: an
           </p>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── AutoSettingsView — 자동화 세팅 (Stage 2~5 통합) ────────
+function AutoSettingsView({
+  targetSeconds, setTargetSeconds,
+  styleProfileId, setStyleProfileId,
+  ctaText, setCtaText,
+  subtitleStyle, setSubtitleStyle,
+  thumbnailStyle, setThumbnailStyle,
+  showThumbnail, setShowThumbnail,
+  voiceId, setVoiceId,
+  voiceSpeed, setVoiceSpeed,
+  voiceVolume, setVoiceVolume,
+  session,
+}: {
+  targetSeconds: number; setTargetSeconds: (v:number)=>void;
+  styleProfileId: string; setStyleProfileId: (v:string)=>void;
+  ctaText: string; setCtaText: (v:string)=>void;
+  subtitleStyle: any; setSubtitleStyle: (v:any)=>void;
+  thumbnailStyle: any; setThumbnailStyle: (v:any)=>void;
+  showThumbnail: boolean; setShowThumbnail: (v:boolean)=>void;
+  voiceId: string; setVoiceId: (v:string)=>void;
+  voiceSpeed: number; setVoiceSpeed: (v:number)=>void;
+  voiceVolume: number; setVoiceVolume: (v:number)=>void;
+  session: any;
+}) {
+  const DURATIONS = [
+    { s: 10, label: "10초", sub: "숏 / 2~3 클립" },
+    { s: 15, label: "15초", sub: "기본 / 4~5 클립" },
+    { s: 20, label: "20초", sub: "미들 / 5~6 클립" },
+    { s: 30, label: "30초", sub: "롱 / 6+ 클립" },
+  ];
+
+  return (
+    <div className="max-w-2xl space-y-8">
+      <div>
+        <h2 className="text-xl font-black text-white mb-1">⚙️ 자동화 세팅</h2>
+        <p className="text-sm text-gray-400">한 번 설정해두면 자동 생성마다 그대로 사용됩니다.</p>
+      </div>
+
+      {/* 영상 길이 */}
+      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 space-y-4">
+        <p className="text-sm font-black text-white">📐 영상 길이</p>
+        <div className="grid grid-cols-4 gap-2">
+          {DURATIONS.map(({ s, label, sub }) => (
+            <button key={s} onClick={() => setTargetSeconds(s)}
+              className={`rounded-xl border p-3 text-center transition ${targetSeconds===s ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"}`}>
+              <p className={`text-sm font-black ${targetSeconds===s ? "text-cyan-400" : "text-white"}`}>{label}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{sub}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 대본 스타일 */}
+      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 space-y-3">
+        <p className="text-sm font-black text-white">🎨 대본 스타일</p>
+        <StyleSelector selected={styleProfileId} onSelect={setStyleProfileId} session={session} />
+      </div>
+
+      {/* CTA */}
+      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 space-y-3">
+        <p className="text-sm font-black text-white">💬 CTA 키워드</p>
+        <input value={ctaText} onChange={e => setCtaText(e.target.value)}
+          placeholder="예: 관심, 💚, 알려줘 (비우면 프로필 링크 안내)"
+          className="w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm text-white outline-none focus:border-cyan-500 transition" />
+        <p className="text-xs text-cyan-500">
+          {ctaText.trim()
+            ? `→ "댓글에 ${ctaText.trim()} 남겨주시면 링크 보내드릴게요"`
+            : `→ "프로필 링크를 확인하세요"`}
+        </p>
+      </div>
+
+      {/* 음성 설정 */}
+      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 space-y-3">
+        <p className="text-sm font-black text-white">🔊 음성 설정</p>
+        <VoicePanel voiceId={voiceId} setVoiceId={setVoiceId}
+          voiceSpeed={voiceSpeed} setVoiceSpeed={setVoiceSpeed}
+          voiceVolume={voiceVolume} setVoiceVolume={setVoiceVolume} />
+      </div>
+
+      {/* 자막 스타일 */}
+      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 space-y-3">
+        <p className="text-sm font-black text-white">📝 자막 스타일</p>
+        <Stage4Panel
+          subtitleStyle={subtitleStyle} setSubtitleStyle={setSubtitleStyle}
+          thumbnailStyle={thumbnailStyle} setThumbnailStyle={setThumbnailStyle}
+          showThumbnail={showThumbnail} setShowThumbnail={setShowThumbnail}
+          previewFrames={[]} previewScript={[]}
+          session={session} onNext={() => {}} />
+      </div>
     </div>
   );
 }
