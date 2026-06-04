@@ -301,18 +301,35 @@ export default function VideoGenerator() {
   const handleVoiceGenerate = () => {
     if (!script || script.length === 0) return;
     const selected = clips.filter(c => cart.has(c.video_id));
-    // 각 클립에 세그먼트 자동 배분
-    const segsPerClip = Math.ceil(script.length / (selected.length || 1));
-    const newVoiceSegs = selected.map((clip, i) => ({
-      clip_id: clip.video_id,
-      clip_title: clip.title || `클립 ${i+1}`,
-      clip_duration: clip.duration_sec || targetSeconds / selected.length,
-      segments: script.slice(i * segsPerClip, (i+1) * segsPerClip).map((s, si) => ({
-        idx: i * segsPerClip + si,
-        text: s.text || s.sentence || "",
-        duration: s.duration_sec || 2,
-      })),
-    }));
+    const clipCount = selected.length || 1;
+    const segsPerClip = Math.ceil(script.length / clipCount);
+
+    let newVoiceSegs: any[];
+    if (selected.length > 0) {
+      // 클립이 있으면 클립별로 세그먼트 배분
+      newVoiceSegs = selected.map((clip, i) => ({
+        clip_id: clip.video_id,
+        clip_title: clip.title || `클립 ${i+1}`,
+        clip_duration: clip.duration_sec || (targetSeconds / clipCount),
+        segments: script.slice(i * segsPerClip, (i+1) * segsPerClip).map((s, si) => ({
+          idx: i * segsPerClip + si,
+          text: s.text || s.sentence || "",
+          duration: s.duration_sec || 2,
+        })),
+      }));
+    } else {
+      // 클립 없어도 1개짜리 더미 클립에 전체 세그먼트 배분
+      newVoiceSegs = [{
+        clip_id: "dummy",
+        clip_title: "전체 대본",
+        clip_duration: targetSeconds,
+        segments: script.map((s, i) => ({
+          idx: i,
+          text: s.text || s.sentence || "",
+          duration: s.duration_sec || 2,
+        })),
+      }];
+    }
     setVoiceSegments(newVoiceSegs);
     setVoiceGenerated(true);
   };
@@ -692,7 +709,7 @@ export default function VideoGenerator() {
                 </div>
 
                 {/* 음성 생성 버튼 */}
-                <button onClick={handleVoiceGenerate} disabled={!script || script.length === 0}
+                <button onClick={handleVoiceGenerate} disabled={!script}
                   className="w-full rounded-xl bg-cyan-500/10 border border-cyan-500/30 py-3 text-sm font-black text-cyan-400 hover:bg-cyan-500/20 disabled:opacity-40 transition flex items-center justify-center gap-2">
                   🔊 음성 생성 ({VOICES_PRO.some(v => v.id === voiceId) ? "20 CR" : "무료"})
                 </button>
@@ -1208,52 +1225,69 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
     <div className="flex gap-6 flex-col md:flex-row">
       {/* 왼쪽 설정 */}
       <div className="flex-1 min-w-0 space-y-4">
-        {/* 탭 + 프리셋 버튼 */}
-        <div className="flex gap-2 items-center">
+        {/* 탭 */}
+        <div className="flex gap-2">
           {(["subtitle","thumbnail"] as const).map(v => (
             <button key={v} onClick={() => setTab(v)}
               className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition border ${tab===v ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400"}`}>
               {v === "subtitle" ? "자막 스타일" : "썸네일 스타일"}
             </button>
           ))}
-          <button onClick={() => setShowPresets(p => !p)}
-            className="shrink-0 rounded-xl border border-gray-700 px-3 py-2.5 text-xs font-bold text-gray-400 hover:border-cyan-500 hover:text-cyan-400 transition">
-            📋 프리셋
-          </button>
         </div>
 
-        {/* 프리셋 패널 */}
-        {showPresets && (
-          <div className="rounded-xl bg-gray-800 border border-gray-700 p-3 space-y-3">
-            {/* 현재 스타일 저장 */}
-            <div className="flex gap-2">
+        {/* 내 대본 스타일 — 드롭다운 */}
+        <div className="rounded-xl bg-gray-900 border border-gray-700 p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold text-white">내 대본 스타일</p>
+            <button onClick={() => loadPresets()}
+              className="text-xs text-gray-500 hover:text-white transition px-1.5">⟳</button>
+          </div>
+          <div className="flex gap-2">
+            <select
+              value={""}
+              onChange={e => {
+                const p = presets.find(p => p.id === e.target.value);
+                if (p) setS(p.style_json);
+              }}
+              className="flex-1 rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-xs text-white outline-none focus:border-cyan-500"
+            >
+              <option value="">✕  스타일 없음 (기본)</option>
+              {presets.map(p => (
+                <option key={p.id} value={p.id}>📌  {p.name}</option>
+              ))}
+            </select>
+            <button onClick={() => setShowPresets(v => !v)}
+              className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-bold transition ${showPresets ? "border-cyan-500 text-cyan-400 bg-cyan-500/10" : "border-gray-700 text-gray-400 hover:border-gray-500"}`}>
+              저장
+            </button>
+          </div>
+          {/* 저장 폼 */}
+          {showPresets && (
+            <div className="flex gap-2 pt-1">
               <input value={presetName} onChange={e => setPresetName(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && savePreset()}
+                onKeyDown={e => { if (e.key==="Enter") savePreset(); if (e.key==="Escape") setShowPresets(false); }}
                 placeholder="프리셋 이름 입력"
-                className="flex-1 rounded-lg bg-gray-700 border border-gray-600 px-3 py-1.5 text-xs text-white outline-none focus:border-cyan-500" />
+                autoFocus
+                className="flex-1 rounded-lg bg-gray-800 border border-cyan-500 px-3 py-1.5 text-xs text-white outline-none" />
               <button onClick={savePreset} disabled={!presetName.trim()}
                 className="rounded-lg bg-cyan-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-cyan-400 disabled:opacity-40 transition">
-                저장
+                확인
               </button>
+              <button onClick={() => setShowPresets(false)}
+                className="rounded-lg border border-gray-700 px-2 py-1.5 text-xs text-gray-400">✕</button>
             </div>
-            {/* 저장된 프리셋 목록 */}
-            {presets.length === 0
-              ? <p className="text-xs text-gray-500 text-center py-2">저장된 프리셋이 없습니다</p>
-              : <div className="space-y-1.5 max-h-40 overflow-y-auto">
-                  {presets.map(p => (
-                    <div key={p.id} className="flex items-center gap-2 group">
-                      <button onClick={() => { setS(p.style_json); }}
-                        className="flex-1 text-left rounded-lg bg-gray-700 hover:bg-gray-600 px-3 py-1.5 text-xs text-white transition truncate">
-                        {p.name}
-                      </button>
-                      <button onClick={() => deletePreset(p.id)}
-                        className="text-gray-600 hover:text-red-400 text-xs opacity-0 group-hover:opacity-100 transition">✕</button>
-                    </div>
-                  ))}
-                </div>
-            }
-          </div>
-        )}
+          )}
+          {/* 삭제 버튼 — 선택된 프리셋이 있을 때만 */}
+          {presets.length > 0 && (
+            <p className="text-xs text-gray-600">
+              항목 위에서 삭제하려면 드롭다운에서 선택 후{" "}
+              <button onClick={() => {
+                const sel = (document.querySelector('select[data-preset]') as HTMLSelectElement)?.value;
+                if (sel) deletePreset(sel);
+              }} className="text-red-400 hover:text-red-300 underline">삭제</button>
+            </p>
+          )}
+        </div>
 
         {tab === "subtitle" && stylePanel}
 
