@@ -2309,8 +2309,10 @@ function HistoryView({ session }: { session: any }) {
         <div key={j.id} className="rounded-2xl bg-gray-900 border border-gray-800 p-4 flex items-center justify-between gap-4">
           <div className="min-w-0"><p className="font-bold text-white truncate">{j.product_name||j.id?.slice(0,12)}</p><p className="text-xs text-gray-500">{new Date(j.created_at).toLocaleString("ko")}</p></div>
           <div className="flex items-center gap-3 shrink-0">
-            <span className={`text-sm font-bold ${j.status==="succeeded"?"text-green-400":j.status==="processing"?"text-cyan-400 animate-pulse":"text-gray-400"}`}>{j.status==="succeeded"?"✅ 완료":j.status==="processing"?"⏳ 생성 중":"❌"}</span>
-            {j.output_url&&<a href={j.output_url} target="_blank" rel="noopener" className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-400 transition">다운로드</a>}
+            <span className={`text-sm font-bold ${j.status==="done"?"text-green-400":j.status==="processing"?"text-cyan-400 animate-pulse":j.status==="error"?"text-red-400":"text-gray-400"}`}>
+              {j.status==="done"?"✅ 완료":j.status==="processing"?"⏳ 생성 중":j.status==="error"?"❌ 실패":"⏳ 대기"}
+            </span>
+            {j.status==="done"&&j.video_url&&<a href={j.video_url} target="_blank" rel="noopener" className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-400 transition">⬇ 다운로드</a>}
           </div>
         </div>
       ))}
