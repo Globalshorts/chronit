@@ -9,6 +9,7 @@
  * Stage 6: 제목/해시태그 + 내보내기
  */
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabase";
 import type { Session } from "@supabase/supabase-js";
 
@@ -1071,24 +1072,25 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
 }
 
 function FloatingPrev({ onClick }: { onClick: () => void }) {
-  return (
-    <div style={{ position:"fixed", bottom:"24px", right:"160px", zIndex:40 }}>
+  return createPortal(
+    <div style={{ position:"fixed", bottom:"96px", right:"160px", zIndex:50 }}>
       <button onClick={onClick}
         style={{ height:"46px", display:"inline-flex", alignItems:"center", gap:"8px",
                  background:"#374151", borderRadius:"16px", padding:"0 20px",
                  fontSize:"14px", fontWeight:900, color:"white", border:"none",
-                 cursor:"pointer", boxShadow:"0 4px 6px -1px rgba(0,0,0,0.3)" }}>
+                 cursor:"pointer", boxShadow:"0 4px 6px rgba(0,0,0,0.4)" }}>
         <span>←</span><span>이전</span>
       </button>
-    </div>
+    </div>,
+    document.body
   );
 }
 
 function FloatingNext({ label, onClick, disabled = false }: {
   label: string; onClick: () => void; disabled?: boolean;
 }) {
-  return (
-    <div style={{ position:"fixed", bottom:"24px", right:"16px", zIndex:40 }}>
+  return createPortal(
+    <div style={{ position:"fixed", bottom:"96px", right:"16px", zIndex:50 }}>
       <button onClick={onClick} disabled={disabled}
         style={{ height:"46px", display:"inline-flex", alignItems:"center", gap:"8px",
                  background: disabled ? "rgba(6,182,212,0.4)" : "#06b6d4",
@@ -1098,7 +1100,8 @@ function FloatingNext({ label, onClick, disabled = false }: {
                  boxShadow:"0 25px 50px -12px rgba(6,182,212,0.4)" }}>
         <span>{label}</span><span>→</span>
       </button>
-    </div>
+    </div>,
+    document.body
   );
 }
 
