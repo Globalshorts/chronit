@@ -1154,7 +1154,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
         {/* 내 대본 스타일 — 드롭다운 */}
         <div className="rounded-xl bg-gray-900 border border-gray-700 p-3 space-y-2">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold text-white">내 대본 스타일</p>
+            <p className="text-xs font-bold text-white">{tab === "subtitle" ? "자막 프리셋" : "썸네일 프리셋"}</p>
             <button onClick={() => loadPresets()}
               className="text-xs text-gray-500 hover:text-white transition px-1.5">⟳</button>
           </div>
