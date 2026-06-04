@@ -882,7 +882,7 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
         ))}
       </div>
 
-      {/* 속도 + 볼륨 — 권장: 120%~150% */
+      {/* 속도 + 볼륨 — 권장: 120%~150% */}
       <div className="grid grid-cols-2 gap-6">
         <div>
           <label className="mb-2 block text-sm font-bold text-gray-300">
