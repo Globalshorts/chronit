@@ -1017,6 +1017,14 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
     setPreviewCaption(v);
     localStorage.setItem("chronit_preview_caption", v);
   };
+  // 프리뷰 배경 — 흰/검 선택 (자막 가독성 확인용)
+  const [previewBg, setPreviewBg] = useState<"black" | "white">(
+    () => (localStorage.getItem("chronit_preview_bg") as "black" | "white") || "black"
+  );
+  const updPreviewBg = (v: "black" | "white") => {
+    setPreviewBg(v);
+    localStorage.setItem("chronit_preview_bg", v);
+  };
 
   const showToast = (msg: string) => {
     setPresetToast(msg);
@@ -1093,7 +1101,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
     WebkitTextStroke: st.strokeOn ? `${st.strokeWidth * PREVIEW_SCALE}px ${st.strokeColor}` : undefined,
     paintOrder: st.strokeOn ? "stroke fill" : undefined,
     lineHeight: 1.3,
-    whiteSpace: "pre-line",
+    whiteSpace: "nowrap",
     textAlign: "center",
     display: "inline-block",
   });
@@ -1309,22 +1317,26 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
       {/* 오른쪽 프리뷰 */}
       <div className="flex flex-col items-center gap-3 shrink-0">
         <p className="text-xs font-bold text-gray-400">실시간 프리뷰</p>
-        <div className="relative rounded-2xl overflow-hidden bg-gray-800 border border-gray-700"
-          style={{ width: 300, height: 533 }}>
-          <img src={frame || "/preview-default.jpg"}
-               className="absolute inset-0 w-full h-full object-cover" alt="" />
+        <div className="relative rounded-2xl overflow-hidden border border-gray-700"
+          style={{ width: 300, height: 533, backgroundColor: previewBg === "white" ? "#FFFFFF" : "#000000" }}>
           <div className="absolute inset-0" style={{ pointerEvents: "none" }}>
             <div style={{
               position: "absolute",
               top: `${s.yPos}%`,
               left: `${s.xPos}%`,
               transform: "translate(-50%, -50%)",
-              maxWidth: "88%",
               textAlign: "center",
             }}>
               <span style={{ ...toTextStyle(s), ...toBgStyle(s) }}>{previewText}</span>
             </div>
           </div>
+        </div>
+        {/* 배경 흰/검 선택 */}
+        <div className="flex gap-1.5">
+          {([["black","검정"],["white","흰색"]] as ["black"|"white",string][]).map(([v,l]) => (
+            <button key={v} onClick={() => updPreviewBg(v)}
+              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition border ${previewBg===v ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400"}`}>{l} 배경</button>
+          ))}
         </div>
         {/* 프리뷰 문구 직접 수정 */}
         <input
