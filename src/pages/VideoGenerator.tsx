@@ -298,40 +298,58 @@ export default function VideoGenerator() {
 
   // ── Stage 5: 렌더링 ──────────────────────────────────────
   // Stage 5: 음성 세그먼트 자동 배분
-  const handleVoiceGenerate = () => {
-    if (!script || script.length === 0) return;
-    const selected = clips.filter(c => cart.has(c.video_id));
-    const clipCount = selected.length || 1;
-    const segsPerClip = Math.ceil(script.length / clipCount);
+  const [voiceLoading, setVoiceLoading] = useState(false);
+  const [voiceError, setVoiceError] = useState("");
 
-    let newVoiceSegs: any[];
-    if (selected.length > 0) {
-      // 클립이 있으면 클립별로 세그먼트 배분
-      newVoiceSegs = selected.map((clip, i) => ({
-        clip_id: clip.video_id,
-        clip_title: clip.title || `클립 ${i+1}`,
-        clip_duration: clip.duration_sec || (targetSeconds / clipCount),
-        segments: script.slice(i * segsPerClip, (i+1) * segsPerClip).map((s, si) => ({
-          idx: i * segsPerClip + si,
-          text: s.text || s.sentence || "",
-          duration: s.duration_sec || 2,
+  const handleVoiceGenerate = async () => {
+    if (!script || script.length === 0) return;
+    setVoiceLoading(true); setVoiceError("");
+    try {
+      const { data: { session: s } } = await supabase.auth.getSession();
+      if (!s) { setVoiceError("로그인이 필요합니다"); return; }
+
+      const selected = clips.filter(c => cart.has(c.video_id));
+      const clipDuration = targetSeconds / (selected.length || 1);
+
+      const resp = await fetch(FN("generate-voice"), {
+        method: "POST",
+        headers: { Authorization: `Bearer ${s.access_token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          voice_id: voiceId,
+          voice_speed: voiceSpeed / 100,
+          segments: script.map((s, i) => ({
+            idx: i,
+            text: s.text || s.sentence || "",
+            duration_hint: s.duration_sec || 2,
+          })),
+          clips: selected.length > 0
+            ? selected.map(c => ({ clip_id: c.video_id, clip_title: c.title || "", clip_duration: c.duration_sec || clipDuration }))
+            : [{ clip_id: "dummy", clip_title: "전체 대본", clip_duration: targetSeconds }],
+        }),
+      });
+      const data = await resp.json();
+      if (!data.ok) throw new Error(data.error ?? "음성 생성 실패");
+
+      // voice_clips를 voiceSegments 형태로 변환
+      const newVoiceSegs = data.voice_clips.map((vc: any) => ({
+        clip_id: vc.clip_id,
+        clip_title: vc.clip_title || vc.clip_id,
+        clip_duration: vc.clip_duration,
+        used_duration: vc.used_duration,
+        segments: vc.segments.map((seg: any) => ({
+          idx: seg.idx,
+          text: seg.text,
+          duration: seg.duration_sec,
+          audio_url: seg.audio_url,
         })),
       }));
-    } else {
-      // 클립 없어도 1개짜리 더미 클립에 전체 세그먼트 배분
-      newVoiceSegs = [{
-        clip_id: "dummy",
-        clip_title: "전체 대본",
-        clip_duration: targetSeconds,
-        segments: script.map((s, i) => ({
-          idx: i,
-          text: s.text || s.sentence || "",
-          duration: s.duration_sec || 2,
-        })),
-      }];
+      setVoiceSegments(newVoiceSegs);
+      setVoiceGenerated(true);
+    } catch (e) {
+      setVoiceError(String(e));
+    } finally {
+      setVoiceLoading(false);
     }
-    setVoiceSegments(newVoiceSegs);
-    setVoiceGenerated(true);
   };
 
   // Stage 3: 재생성 (무료 횟수 차감)
@@ -432,10 +450,25 @@ export default function VideoGenerator() {
     setStage(d.stage ?? 1);
   };
 
+  // 새 프로젝트 생성 시 초기화
+  // ★ 프로젝트별 데이터만 리셋 — 자막 스타일, 보이스, 영상 길이 등 전역 설정은 유지
   const handleReset = () => {
-    setStage(1); setSourceUrl(""); setClips([]); setCart(new Set());
-    setScript(null); setScriptPredId(""); setSearchError("");
-    setCurrentJobId(""); setCtaText("");
+    setStage(1);
+    setSourceUrl("");
+    setClips([]);
+    setCart(new Set());
+    setScript(null);
+    setScriptPredId("");
+    setSearchError("");
+    setCurrentJobId("");
+    setCtaText("");
+    setVoiceGenerated(false);
+    setVoiceSegments([]);
+    setSeoTitle("");
+    setSeoDesc("");
+    setSeoTags("");
+    // 유지: subtitleStyle, thumbnailStyle, voiceId, voiceSpeed, voiceVolume,
+    //       targetSeconds, styleProfileId, showThumbnail
   };
 
   return (
@@ -709,10 +742,13 @@ export default function VideoGenerator() {
                 </div>
 
                 {/* 음성 생성 버튼 */}
-                <button onClick={handleVoiceGenerate} disabled={!script}
+                <button onClick={handleVoiceGenerate} disabled={!script || voiceLoading}
                   className="w-full rounded-xl bg-cyan-500/10 border border-cyan-500/30 py-3 text-sm font-black text-cyan-400 hover:bg-cyan-500/20 disabled:opacity-40 transition flex items-center justify-center gap-2">
-                  🔊 음성 생성 ({VOICES_PRO.some(v => v.id === voiceId) ? "20 CR" : "무료"})
+                  {voiceLoading
+                    ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent" />생성 중...</>
+                    : <>🔊 음성 생성 ({VOICES_PRO.some(v => v.id === voiceId) ? "20 CR" : "무료"})</>}
                 </button>
+                {voiceError && <p className="text-xs text-red-400">{voiceError}</p>}
 
                 {/* 힌트 */}
                 <div className="rounded-xl bg-yellow-500/5 border border-yellow-500/20 p-3">
@@ -774,15 +810,9 @@ export default function VideoGenerator() {
 
               {/* 우측: 동기 프리뷰 */}
               <div className="w-56 shrink-0">
-                <div className="rounded-xl bg-gray-800 border border-gray-700 overflow-hidden" style={{ aspectRatio: "9/16", position: "relative" }}>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
-                    <p className="text-xs text-gray-400">동기 프리뷰</p>
-                    <p className="text-xs text-gray-600 mt-2">음성 생성 후 재생 가능</p>
-                  </div>
-                </div>
-                <button className="mt-2 w-full rounded-xl border border-gray-700 py-2 text-xs text-gray-400 hover:text-white transition">
-                  ▶ 동기 재생
-                </button>
+                <p className="text-xs font-bold text-gray-400 mb-2 text-center">동기 프리뷰</p>
+                <SyncPreview voiceSegments={voiceSegments}
+                  clips={clips.filter(c => cart.has(c.video_id))} />
               </div>
             </div>
 
@@ -1631,6 +1661,103 @@ function ProjectPanel({ activeView, current, onLoad, onReset, session, styleProf
   return (
     <div className="px-4 py-4">
       <p className="text-xs font-black text-white capitalize">{activeView}</p>
+    </div>
+  );
+}
+
+// ── SyncPreview — 클립 영상 + TTS 오디오 동기 재생 ──────────
+function SyncPreview({ voiceSegments, clips }: { voiceSegments: any[]; clips: any[] }) {
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const audioRefs = React.useRef<HTMLAudioElement[]>([]);
+  const [playing, setPlaying] = React.useState(false);
+  const [currentClipIdx, setCurrentClipIdx] = React.useState(0);
+
+  const currentClip = clips[currentClipIdx] || null;
+  const currentVoiceClip = voiceSegments[currentClipIdx] || null;
+  const firstAudioUrl = currentVoiceClip?.segments?.[0]?.audio_url || null;
+
+  const handlePlay = async () => {
+    if (!videoRef.current) return;
+    if (playing) {
+      videoRef.current.pause();
+      audioRefs.current.forEach(a => a.pause());
+      setPlaying(false);
+      return;
+    }
+    videoRef.current.currentTime = 0;
+    videoRef.current.play();
+    setPlaying(true);
+
+    // 세그먼트 오디오 순차 재생
+    if (currentVoiceClip?.segments) {
+      let delay = 0;
+      for (const seg of currentVoiceClip.segments) {
+        if (!seg.audio_url) { delay += (seg.duration || 2) * 1000; continue; }
+        await new Promise(resolve => setTimeout(resolve, delay));
+        const audio = new Audio(seg.audio_url);
+        audio.play().catch(() => {});
+        delay = 0;
+        await new Promise(resolve => {
+          audio.onended = resolve;
+          audio.onerror = resolve;
+        });
+      }
+    }
+    setPlaying(false);
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="rounded-xl bg-gray-800 border border-gray-700 overflow-hidden"
+        style={{ aspectRatio: "9/16", position: "relative" }}>
+        {currentClip?.thumbnail_url ? (
+          <video ref={videoRef} src={currentClip.video_url || ""}
+            poster={currentClip.thumbnail_url}
+            className="absolute inset-0 w-full h-full object-cover"
+            muted playsInline />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+            <p className="text-xs text-gray-500 text-center px-4">
+              {voiceSegments.length > 0 ? "클립 선택 필요" : "음성 생성 후 재생 가능"}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* 클립 선택 탭 */}
+      {voiceSegments.length > 1 && (
+        <div className="flex gap-1 overflow-x-auto">
+          {voiceSegments.map((_, i) => (
+            <button key={i} onClick={() => { setCurrentClipIdx(i); setPlaying(false); }}
+              className={`shrink-0 rounded-lg px-2 py-1 text-xs font-bold transition ${currentClipIdx===i ? "bg-cyan-500 text-white" : "bg-gray-800 text-gray-400"}`}>
+              #{i+1}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <button onClick={handlePlay}
+        className="w-full rounded-xl border border-gray-700 py-2 text-xs font-bold text-gray-300 hover:text-white hover:border-gray-500 transition flex items-center justify-center gap-1.5">
+        {playing ? "⏸ 일시정지" : "▶ 동기 재생"}
+      </button>
+
+      {/* 세그먼트 타임라인 */}
+      {currentVoiceClip && (
+        <div className="space-y-1">
+          {currentVoiceClip.segments?.map((seg: any) => (
+            <div key={seg.idx} className="flex items-center gap-1.5 text-xs">
+              <span className="text-cyan-400 font-bold w-5 shrink-0">#{seg.idx+1}</span>
+              <span className="flex-1 text-gray-300 truncate">{seg.text}</span>
+              <span className={`shrink-0 ${seg.audio_url ? "text-green-400" : "text-gray-600"}`}>
+                {seg.duration?.toFixed(1)}s
+              </span>
+            </div>
+          ))}
+          <p className="text-xs text-gray-500 pt-1">
+            사용 시간: {currentVoiceClip.used_duration?.toFixed(1)}s / {currentVoiceClip.clip_duration?.toFixed(1)}s
+          </p>
+        </div>
+      )}
     </div>
   );
 }
