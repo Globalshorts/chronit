@@ -1709,6 +1709,8 @@ function AutoSettingsView({
   voiceSpeed, setVoiceSpeed,
   voiceVolume, setVoiceVolume,
   userPlan,
+  selectedSubtitlePresetId, setSelectedSubtitlePresetId,
+  selectedThumbnailPresetId, setSelectedThumbnailPresetId,
   session,
 }: {
   targetSeconds: number; setTargetSeconds: (v:number)=>void;
@@ -1721,6 +1723,8 @@ function AutoSettingsView({
   voiceSpeed: number; setVoiceSpeed: (v:number)=>void;
   voiceVolume: number; setVoiceVolume: (v:number)=>void;
   userPlan?: string | null;
+  selectedSubtitlePresetId: string; setSelectedSubtitlePresetId: (v:string)=>void;
+  selectedThumbnailPresetId: string; setSelectedThumbnailPresetId: (v:string)=>void;
   session: any;
 }) {
   const DURATIONS = [
