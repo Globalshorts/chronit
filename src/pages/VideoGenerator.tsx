@@ -1072,9 +1072,9 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
 
 function FloatingPrev({ onClick }: { onClick: () => void }) {
   return (
-    <div className="fixed bottom-24 right-[152px] z-40" style={{ bottom: "96px" }}>
+    <div className="fixed bottom-24 right-[160px] z-40 flex items-center">
       <button onClick={onClick}
-        className="rounded-2xl bg-gray-700 shadow-lg px-5 py-3 text-sm font-black text-white hover:bg-gray-600 transition flex items-center gap-2"
+        className="rounded-2xl bg-gray-700 shadow-lg px-5 text-sm font-black text-white hover:bg-gray-600 transition flex items-center gap-2"
         style={{ height: "46px" }}>
         <span>←</span><span>이전</span>
       </button>
@@ -1086,9 +1086,9 @@ function FloatingNext({ label, onClick, disabled = false }: {
   label: string; onClick: () => void; disabled?: boolean;
 }) {
   return (
-    <div className="fixed bottom-24 right-4 z-40" style={{ bottom: "96px" }}>
+    <div className="fixed bottom-24 right-4 z-40 flex items-center">
       <button onClick={onClick} disabled={disabled}
-        className="rounded-2xl bg-cyan-500 shadow-2xl shadow-cyan-500/40 px-6 py-3 text-sm font-black text-white hover:bg-cyan-400 disabled:opacity-40 transition flex items-center gap-2"
+        className="rounded-2xl bg-cyan-500 shadow-2xl shadow-cyan-500/40 px-6 text-sm font-black text-white hover:bg-cyan-400 disabled:opacity-40 transition flex items-center gap-2"
         style={{ height: "46px" }}>
         <span>{label}</span><span>→</span>
       </button>
