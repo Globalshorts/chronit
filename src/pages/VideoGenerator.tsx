@@ -85,7 +85,7 @@ export default function VideoGenerator() {
   const DEFAULT_STYLE = {
     fontFamily: "'Noto Sans KR', sans-serif",
     color: "#FFFFFF",
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: "900" as "400"|"700"|"900",
     strokeColor: "#000000",
     strokeWidth: 2,
@@ -93,6 +93,7 @@ export default function VideoGenerator() {
     bgOn: false,
     bgColor: "#000000",
     bgOpacity: 60,
+    bgRadius: 8,
     yPos: 75,
     xPos: 50,
   };
@@ -980,7 +981,7 @@ type SubtitleStyle = {
   fontFamily: string; color: string; fontSize: number;
   fontWeight: "400"|"700"|"900";
   strokeColor: string; strokeWidth: number; strokeOn: boolean;
-  bgOn: boolean; bgColor: string; bgOpacity: number;
+  bgOn: boolean; bgColor: string; bgOpacity: number; bgRadius?: number;
   yPos: number; xPos: number;
 };
 
@@ -1107,7 +1108,8 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
   });
   const toBgStyle = (st: SubtitleStyle): React.CSSProperties => st.bgOn ? {
     backgroundColor: `${st.bgColor}${Math.round(st.bgOpacity * 2.55).toString(16).padStart(2, "0")}`,
-    padding: `${4 * PREVIEW_SCALE}px ${12 * PREVIEW_SCALE}px`, borderRadius: "6px",
+    padding: `${4 * PREVIEW_SCALE}px ${12 * PREVIEW_SCALE}px`,
+    borderRadius: `${st.bgRadius ?? 6}px`,
     // 박스 안에서 글씨를 수직 중앙 정렬 — line-height 여백으로 박스가 처지는 문제 해결
     display: "inline-flex", alignItems: "center", lineHeight: 1,
   } : { display: "inline-block" };
@@ -1148,7 +1150,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
         <label className="text-xs font-bold text-gray-400 block mb-1.5">
           크기 <span className="text-cyan-400">{s.fontSize}px</span>
         </label>
-        <input type="range" min={12} max={48} step={1} value={s.fontSize}
+        <input type="range" min={10} max={20} step={1} value={s.fontSize}
           onChange={e => upd("fontSize", Number(e.target.value))} className="w-full accent-cyan-500" />
       </div>
       {/* 위치 */}
@@ -1210,6 +1212,11 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
               <label className="text-xs text-gray-400">불투명도 {s.bgOpacity}%</label>
               <input type="range" min={10} max={100} step={5} value={s.bgOpacity}
                 onChange={e => upd("bgOpacity", Number(e.target.value))} className="w-full accent-cyan-500 mt-1" />
+            </div>
+            <div className="col-span-2">
+              <label className="text-xs text-gray-400">모서리 곡률 {s.bgRadius ?? 6}px</label>
+              <input type="range" min={0} max={16} step={1} value={s.bgRadius ?? 6}
+                onChange={e => upd("bgRadius", Number(e.target.value))} className="w-full accent-cyan-500 mt-1" />
             </div>
           </div>
         )}
