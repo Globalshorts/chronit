@@ -1146,8 +1146,9 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
   };
 
   const savePreset = async (currentStyle: any, currentTab: string) => {
-    if (!presetName.trim()) return;
+    if (!presetName.trim() || !session?.user?.id) return;
     const { error } = await supabase.from("subtitle_presets").insert({
+      user_id: session.user.id,
       name: presetName.trim(),
       type: currentTab,
       style_json: currentStyle,
