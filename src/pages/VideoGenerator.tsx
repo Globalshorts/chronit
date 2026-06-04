@@ -351,8 +351,13 @@ export default function VideoGenerator() {
             duration_hint: s.duration_sec || 2,
           })),
           clips: selected.length > 0
-            ? selected.map(c => ({ clip_id: c.video_id, clip_title: c.title || "", clip_duration: c.duration_sec || clipDuration }))
-            : [{ clip_id: "dummy", clip_title: "전체 대본", clip_duration: targetSeconds }],
+            ? selected.map(c => ({
+                clip_id: c.video_id,
+                clip_title: c.title || "",
+                // 클립 사용 시간: 2~5초 규칙 (5초 초과는 5초까지만, 2초 미만은 제외됨)
+                clip_duration: Math.min(5, Math.max(2, c.duration_sec || clipDuration)),
+              }))
+            : [{ clip_id: "dummy", clip_title: "전체 대본", clip_duration: Math.min(5, Math.max(2, clipDuration)) }],
         }),
       });
       const data = await resp.json();
@@ -671,12 +676,17 @@ export default function VideoGenerator() {
               <div className="space-y-2">
                 <p className="text-sm font-black text-white">댓글 유도 단어 (CTA)</p>
                 <p className="text-xs text-gray-400">
-                  대본 마지막 자막이 "댓글에 OO남겨주시면 링크 보내드릴게요" 형태로 자동 생성됩니다.<br/>
-                  비워두면 "프로필 링크에서 확인하세요" 로 마무리됩니다.
+                  대본 마지막 자막이 "댓글에 OO 남겨주시면 링크 보내드릴게요" 형태로 자동 생성됩니다.<br/>
+                  비워두면 "프로필 링크를 확인하세요" 로 마무리됩니다.
                 </p>
                 <input value={ctaText} onChange={e => setCtaText(e.target.value)}
                   placeholder="예: 관심, 💚, 알려줘 (선택)"
                   className="w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-500 transition" />
+                <p className="text-xs text-cyan-500">
+                  {ctaText.trim()
+                    ? `→ "댓글에 ${ctaText.trim()} 남겨주시면 링크 보내드릴게요"`
+                    : `→ "프로필 링크를 확인하세요"`}
+                </p>
               </div>
 
               {/* 대본 생성 결과 */}
@@ -1062,7 +1072,7 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
 
 function FloatingPrev({ onClick }: { onClick: () => void }) {
   return (
-    <div className="fixed bottom-24 left-4 z-40">
+    <div className="fixed bottom-24 right-[152px] z-40">
       <button onClick={onClick}
         className="rounded-2xl bg-gray-700 shadow-lg px-5 py-3 text-sm font-black text-white hover:bg-gray-600 transition flex items-center gap-2">
         <span>←</span><span>이전</span>
