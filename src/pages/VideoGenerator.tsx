@@ -697,6 +697,9 @@ export default function VideoGenerator() {
                 voiceId={voiceId} setVoiceId={setVoiceId}
                 voiceSpeed={voiceSpeed} setVoiceSpeed={setVoiceSpeed}
                 voiceVolume={voiceVolume} setVoiceVolume={setVoiceVolume}
+                userPlan={userPlan}
+                selectedSubtitlePresetId={selectedSubtitlePresetId} setSelectedSubtitlePresetId={setSelectedSubtitlePresetId}
+                selectedThumbnailPresetId={selectedThumbnailPresetId} setSelectedThumbnailPresetId={setSelectedThumbnailPresetId}
                 session={session}
               />
             )}
@@ -1005,19 +1008,26 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
 
   const savePreset = async (currentStyle: any, currentTab: string) => {
     if (!presetName.trim() || !session?.user?.id) return;
-    const { error } = await supabase.from("subtitle_presets").insert({
-      user_id: session.user.id,
-      name: presetName.trim(),
-      type: currentTab,
-      style_json: currentStyle,
+    // supabase 클라이언트 대신 명시적 token 전달 (RLS auth.uid() 보장)
+    const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NTU4NTYsImV4cCI6MjA5MjMzMTg1Nn0.G8ZtLSZf9rWRbKlrEUchEmFUEBdV4J2L1s_5rGEPZjY";
+    const resp = await fetch("https://oxygqtbdpnxxcgzwdlzi.supabase.co/rest/v1/subtitle_presets", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${session.access_token}`,
+        "apikey": SB_ANON,
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal",
+      },
+      body: JSON.stringify({ user_id: session.user.id, name: presetName.trim(), type: currentTab, style_json: currentStyle }),
     });
-    if (!error) {
+    if (resp.ok || resp.status === 201) {
       const kind = currentTab === "subtitle" ? "자막" : "썸네일";
       showToast(`✅ ${kind} "${presetName.trim()}" 프리셋 저장됨`);
       setPresetName(""); setShowPresets(false);
       loadPresets(currentTab);
     } else {
-      console.error("프리셋 저장 실패:", error.message);
+      const err = await resp.text();
+      console.error("프리셋 저장 실패:", resp.status, err);
     }
   };
 
@@ -1698,6 +1708,7 @@ function AutoSettingsView({
   voiceId, setVoiceId,
   voiceSpeed, setVoiceSpeed,
   voiceVolume, setVoiceVolume,
+  userPlan,
   session,
 }: {
   targetSeconds: number; setTargetSeconds: (v:number)=>void;
@@ -1709,6 +1720,7 @@ function AutoSettingsView({
   voiceId: string; setVoiceId: (v:string)=>void;
   voiceSpeed: number; setVoiceSpeed: (v:number)=>void;
   voiceVolume: number; setVoiceVolume: (v:number)=>void;
+  userPlan?: string | null;
   session: any;
 }) {
   const DURATIONS = [
