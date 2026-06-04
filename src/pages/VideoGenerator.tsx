@@ -877,18 +877,17 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
             className={`rounded-xl border px-4 py-3 text-left transition ${voiceId===v.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"}`}>
             <p className={`text-sm font-bold ${voiceId===v.id ? "text-cyan-400" : "text-white"}`}>{v.label}</p>
             <p className="text-xs text-gray-500 mt-0.5">{v.desc}</p>
-            {tab === "pro" && EL_FEMALE_IDS.has(v.id) && (
-              <p className="text-xs text-cyan-600 mt-0.5">볼륨 ×1.5 자동 적용</p>
-            )}
+
           </button>
         ))}
       </div>
 
-      {/* 속도 + 볼륨 */}
+      {/* 속도 + 볼륨 — 권장: 120%~150% */
       <div className="grid grid-cols-2 gap-6">
         <div>
           <label className="mb-2 block text-sm font-bold text-gray-300">
             말하기 속도 <span className="text-cyan-400 font-black">{voiceSpeed}%</span>
+            <span className="text-xs text-gray-500 ml-1.5">120~150% 권장</span>
           </label>
           <input type="range" min={80} max={160} step={5} value={voiceSpeed}
             onChange={e => handleSetSpeed(Number(e.target.value))} className="w-full accent-cyan-500" />
@@ -899,6 +898,7 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
         <div>
           <label className="mb-2 block text-sm font-bold text-gray-300">
             소리 크기 <span className="text-cyan-400 font-black">{voiceVolume}%</span>
+            <span className="text-xs text-gray-500 ml-1.5">120~150% 권장</span>
           </label>
           <input type="range" min={50} max={150} step={5} value={voiceVolume}
             onChange={e => setVoiceVolume(Number(e.target.value))} className="w-full accent-cyan-500" />
