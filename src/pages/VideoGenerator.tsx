@@ -336,8 +336,9 @@ export default function VideoGenerator() {
   const [voiceLoading, setVoiceLoading] = useState(false);
   const [voiceError, setVoiceError] = useState("");
 
-  const handleVoiceGenerate = async () => {
+  const handleVoiceGenerate = async (overrideVoiceId?: string) => {
     if (!script || script.length === 0) return;
+    const _voiceId = overrideVoiceId ?? voiceId;
     setVoiceLoading(true); setVoiceError("");
     try {
       const { data: { session: s } } = await supabase.auth.getSession();
@@ -350,7 +351,7 @@ export default function VideoGenerator() {
         method: "POST",
         headers: { Authorization: `Bearer ${s.access_token}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          voice_id: voiceId,
+          voice_id: _voiceId,
           voice_speed: voiceSpeed / 100,
           segments: script.map((s, i) => ({
             idx: i,
@@ -460,13 +461,13 @@ export default function VideoGenerator() {
         reject(new Error("대본 생성 시간 초과"));
       });
 
-      // Step 2: 음성 생성
+      // Step 2: 음성 생성 — voiceId 직접 전달 (state 비동기 문제 방지)
       setAutoRunStep("2/3  음성 생성 중...");
-      await handleVoiceGenerate();
+      await handleVoiceGenerate(voiceId);
 
-      // Step 3: 영상 합성
+      // Step 3: 영상 합성 — state 비동기 문제 방지: ctaOverride, voiceId 직접 전달
       setAutoRunStep("3/3  영상 합성 중...");
-      await handleRender();
+      await handleRender({ voiceId, ctaText: ctaOverride ?? ctaText });
 
       setAutoRunStep("✅ 완료!");
     } catch (e) {
@@ -476,8 +477,9 @@ export default function VideoGenerator() {
     }
   };
 
-  const handleRender = async () => {
+  const handleRender = async (overrides?: { voiceId?: string; ctaText?: string }) => {
     setRenderError(""); setRendering(true);
+    const _voiceId = overrides?.voiceId ?? voiceId;
     try {
       const { data: { session: s } } = await supabase.auth.getSession();
       if (!s) { setRenderError("로그인이 필요합니다"); return; }
@@ -489,7 +491,7 @@ export default function VideoGenerator() {
           source_url: sourceUrl.trim(),
           selected_clips: selected,
           target_seconds: targetSeconds,
-          voice_id: voiceId,
+          voice_id: _voiceId,
           voice_speed: voiceSpeed / 100,
           voice_volume: voiceVolume / 100,
           subtitle_preset: subtitlePreset,
@@ -497,6 +499,7 @@ export default function VideoGenerator() {
           thumbnail_style: thumbnailStyle,
           show_thumbnail: showThumbnail,
           script_segments: script,
+          cta_text: overrides?.ctaText ?? ctaText,
         }),
       });
       const data = await resp.json();
