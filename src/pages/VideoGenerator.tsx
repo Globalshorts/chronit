@@ -525,36 +525,36 @@ export default function VideoGenerator() {
                 </div>
               </div>
 
-              <FloatingPrev onClick={() => setStage(1)} />
-              <FloatingNext label="다음" onClick={() => setStage(3)} />
+              {stage === 2 && <FloatingPrev onClick={() => setStage(1)} />}
+              {stage === 2 && <FloatingNext label="다음" onClick={() => setStage(3)} />}
             </div>
           </StagePanel>
 
           {/* ── STAGE 3 ── */}
           <StagePanel n={3} title="컷편집 & 대본 생성" subtitle="AI가 대본을 작성하고 클립을 편집합니다" current={stage}>
             <div className="space-y-4">
+              {/* CTA 입력 — 항상 표시 */}
+              <div className="rounded-xl bg-gray-800/60 border border-gray-700 p-4 space-y-2">
+                <label className="text-xs font-bold text-gray-300 block">
+                  CTA 문구 <span className="text-gray-500 font-normal">(선택사항)</span>
+                </label>
+                <input
+                  value={ctaText} onChange={e => setCtaText(e.target.value)}
+                  placeholder="예: 구매링크  →  비우면 '프로필 링크에서 확인하세요' 삽입"
+                  className="w-full rounded-xl bg-gray-900 border border-gray-700 px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-cyan-500 transition" />
+                <p className="text-xs text-gray-500">
+                  {ctaText
+                    ? `→ "${ctaText}라고 댓글 남겨주시면 링크 보내드릴게요"`
+                    : "→ '프로필 링크에서 확인하세요' (기본값)"}
+                </p>
+              </div>
+
+              {/* 준비 완료 안내 — 대본 없을 때만 */}
               {!script && !scriptLoading && (
-                <div className="space-y-4">
-                  <div className="rounded-xl bg-gray-800 p-4 text-sm text-gray-300">
-                    <p className="font-bold text-white mb-1">준비 완료</p>
-                    <p>선택된 클립 <span className="text-cyan-400 font-bold">{cart.size}개</span> · {targetSeconds}초 영상</p>
-                    <p className="mt-1 text-gray-400 text-xs">대본 생성 + 클립 컷편집을 AI가 자동으로 진행합니다 (약 30~60초)</p>
-                  </div>
-                  {/* CTA 입력 */}
-                  <div className="rounded-xl bg-gray-800/60 border border-gray-700 p-4 space-y-2">
-                    <label className="text-xs font-bold text-gray-300 block">
-                      CTA 문구 <span className="text-gray-500 font-normal">(선택사항)</span>
-                    </label>
-                    <input
-                      value={ctaText} onChange={e => setCtaText(e.target.value)}
-                      placeholder="예: 구매링크  →  비우면 '프로필 링크에서 확인하세요' 삽입"
-                      className="w-full rounded-xl bg-gray-900 border border-gray-700 px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-cyan-500 transition" />
-                    <p className="text-xs text-gray-500">
-                      {ctaText
-                        ? `→ "${ctaText}라고 댓글 남겨주시면 링크 보내드릴게요"`
-                        : "→ '프로필 링크에서 확인하세요' (기본값)"}
-                    </p>
-                  </div>
+                <div className="rounded-xl bg-gray-800 p-4 text-sm text-gray-300">
+                  <p className="font-bold text-white mb-1">준비 완료</p>
+                  <p>선택된 클립 <span className="text-cyan-400 font-bold">{cart.size}개</span> · {targetSeconds}초 영상</p>
+                  <p className="mt-1 text-gray-400 text-xs">대본 생성을 시작하세요 (약 30~60초)</p>
                 </div>
               )}
 
@@ -600,7 +600,7 @@ export default function VideoGenerator() {
                       </button>
                     : null
                   }
-                  {script && <><FloatingPrev onClick={() => setStage(2)} /><FloatingNext label="다음" onClick={() => setStage(4)} /></>}
+                  {script && stage === 3 && <><FloatingPrev onClick={() => setStage(2)} /><FloatingNext label="다음" onClick={() => setStage(4)} /></>}
                 </div>
               </div>
             </div>
@@ -628,7 +628,8 @@ export default function VideoGenerator() {
               </div>
             </div>
           )}
-          {stage === 4 && <><FloatingPrev onClick={() => setStage(3)} /><FloatingNext label="다음" onClick={() => setStage(5)} /></>}
+          {stage === 4 && <FloatingPrev onClick={() => setStage(3)} />}
+          {stage === 4 && <FloatingNext label="다음" onClick={() => setStage(5)} />}
 
           {/* ── STAGE 5 ── */}
           <StagePanel n={5} title="보이스" subtitle="음성을 선택하고 영상을 생성합니다" current={stage}>
@@ -819,7 +820,7 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
 
 function FloatingPrev({ onClick }: { onClick: () => void }) {
   return (
-    <div className="fixed bottom-24 right-36 z-40">
+    <div className="fixed bottom-24 right-28 z-40">
       <button onClick={onClick}
         className="rounded-2xl bg-gray-700 shadow-lg px-5 py-3 text-sm font-black text-white hover:bg-gray-600 transition flex items-center gap-2">
         <span>←</span><span>이전</span>
@@ -1554,12 +1555,12 @@ function StageBar({ current, onSelect }: { current: number; onSelect: (n: number
         const active = n === current;
         return (
           <div key={n} className="flex items-center shrink-0">
-            <button onClick={() => done && onSelect(n)}
-              className={`flex items-center gap-1.5 ${done ? "cursor-pointer" : "cursor-default"}`}>
+            <button onClick={() => onSelect(n)}
+              className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
               <div className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-black transition-all ${
                 done ? "bg-cyan-500 text-white" :
                 active ? "bg-cyan-500/20 border-2 border-cyan-500 text-cyan-400" :
-                "bg-gray-800 text-gray-500"
+                "bg-gray-800 text-gray-500 hover:bg-gray-700"
               }`}>{done ? "✓" : n}</div>
               <span className={`text-xs font-bold hidden md:block whitespace-nowrap ${
                 active ? "text-cyan-400" : done ? "text-white" : "text-gray-500"
