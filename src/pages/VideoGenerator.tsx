@@ -531,21 +531,16 @@ export default function VideoGenerator() {
 
   const currentData = { stage, sourceUrl, clips, cart: [...cart], script, ctaText, targetSeconds, styleProfileId, subtitleStyle, thumbnailStyle, showThumbnail, voiceId, voiceSpeed, voiceVolume };
   const handleLoad = (d: any) => {
-    // 모든 필드를 무조건 복원 (조건부 건너뜀 없음)
+    // ★ 프로젝트별 데이터만 복원 — 전역 설정(음성/스타일/길이)은 자동화 세팅 유지
     setSourceUrl(d.sourceUrl ?? "");
     setClips(d.clips ?? []);
     setCart(new Set(d.cart ?? []));
     setScript(d.script ?? null);
-    setTargetSeconds(d.targetSeconds ?? 15);
-    setStyleProfileId(d.styleProfileId ?? "auto");
-    if (d.subtitleStyle) setSubtitleStyle(d.subtitleStyle);
-    if (d.thumbnailStyle) setThumbnailStyle(d.thumbnailStyle);
-    setShowThumbnail(d.showThumbnail ?? true);
-    setVoiceId(d.voiceId ?? "nova");
-    setVoiceSpeed(d.voiceSpeed ?? 130);
-    setVoiceVolume(d.voiceVolume ?? 100);
     setCtaText(d.ctaText ?? "");
     setStage(1); // 6단계 흐름 제거 후 항상 Stage 1
+    // 전역 설정은 복원하지 않음:
+    // voiceId, voiceSpeed, voiceVolume, targetSeconds, subtitleStyle, thumbnailStyle, styleProfileId
+    // → 자동화 세팅 탭에서 설정한 값을 항상 사용
   };
 
   // 새 프로젝트 생성 시 초기화
