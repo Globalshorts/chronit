@@ -158,15 +158,57 @@ export default function VideoGenerator() {
     }
   }, [session]);
 
+  // ── 계정별 설정 동기화 (user_settings) ───────────────────────
+  const settingsLoaded = useRef(false);
+  const loadUserSettings = useCallback(async () => {
+    const uid = session?.user?.id;
+    if (!uid) return;
+    try {
+      const { data } = await supabase.from("user_settings")
+        .select("voice_id, voice_speed, voice_volume, subtitle_style, thumbnail_style")
+        .eq("user_id", uid).maybeSingle();
+      if (data) {
+        if (data.voice_id) setVoiceId(data.voice_id);
+        if (data.voice_speed != null) setVoiceSpeed(Number(data.voice_speed));
+        if (data.voice_volume != null) setVoiceVolume(Number(data.voice_volume));
+        if (data.subtitle_style) setSubtitleStyle((p: any) => ({ ...p, ...data.subtitle_style }));
+        if (data.thumbnail_style) setThumbnailStyle((p: any) => ({ ...p, ...data.thumbnail_style }));
+      }
+    } catch { /* 무시 — localStorage 기본값 유지 */ }
+    finally { settingsLoaded.current = true; }
+  }, [session]);
+
   useEffect(() => {
     if (!session) return;
     loadJobs(); loadBalance();
+    loadUserSettings();
     const ch = supabase.channel("vj")
       .on("postgres_changes", { event: "*", schema: "public", table: "video_jobs" }, () => {
         loadJobs(); loadBalance();
       }).subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [session, loadJobs, loadBalance]);
+  }, [session, loadJobs, loadBalance, loadUserSettings]);
+
+  // 변경 시 계정에 디바운스 저장 (+ localStorage 즉시 캐시)
+  useEffect(() => {
+    const uid = session?.user?.id;
+    if (!uid || !settingsLoaded.current) return;
+    localStorage.setItem("chronit_voice_id", voiceId);
+    localStorage.setItem("chronit_voice_speed", String(voiceSpeed));
+    localStorage.setItem("chronit_voice_volume", String(voiceVolume));
+    const t = setTimeout(() => {
+      supabase.from("user_settings").upsert({
+        user_id: uid,
+        voice_id: voiceId,
+        voice_speed: voiceSpeed,
+        voice_volume: voiceVolume,
+        subtitle_style: subtitleStyle,
+        thumbnail_style: thumbnailStyle,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "user_id" }).then(() => {});
+    }, 800);
+    return () => clearTimeout(t);
+  }, [session, voiceId, voiceSpeed, voiceVolume, subtitleStyle, thumbnailStyle]);
 
   // 현재 job 완료 감지 → Stage 6 이동
   useEffect(() => {
