@@ -1070,29 +1070,27 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
   );
 }
 
-// 이전/다음 버튼은 같은 fixed 컨테이너에서 렌더링되어야 수직 정렬이 맞음
-// → FloatingPrev/Next를 portal로 document.body에 직접 렌더링
 function FloatingPrev({ onClick }: { onClick: () => void }) {
-  return React.createPortal(
-    <div style={{ position:"fixed", bottom:"96px", right:"164px", zIndex:40, display:"flex", alignItems:"center" }}>
+  return (
+    <div style={{ position:"fixed", bottom:"24px", right:"160px", zIndex:40 }}>
       <button onClick={onClick}
-        style={{ height:"46px", display:"flex", alignItems:"center", gap:"8px",
+        style={{ height:"46px", display:"inline-flex", alignItems:"center", gap:"8px",
                  background:"#374151", borderRadius:"16px", padding:"0 20px",
-                 fontSize:"14px", fontWeight:900, color:"white", border:"none", cursor:"pointer" }}>
+                 fontSize:"14px", fontWeight:900, color:"white", border:"none",
+                 cursor:"pointer", boxShadow:"0 4px 6px -1px rgba(0,0,0,0.3)" }}>
         <span>←</span><span>이전</span>
       </button>
-    </div>,
-    document.body
+    </div>
   );
 }
 
 function FloatingNext({ label, onClick, disabled = false }: {
   label: string; onClick: () => void; disabled?: boolean;
 }) {
-  return React.createPortal(
-    <div style={{ position:"fixed", bottom:"96px", right:"16px", zIndex:40, display:"flex", alignItems:"center" }}>
+  return (
+    <div style={{ position:"fixed", bottom:"24px", right:"16px", zIndex:40 }}>
       <button onClick={onClick} disabled={disabled}
-        style={{ height:"46px", display:"flex", alignItems:"center", gap:"8px",
+        style={{ height:"46px", display:"inline-flex", alignItems:"center", gap:"8px",
                  background: disabled ? "rgba(6,182,212,0.4)" : "#06b6d4",
                  borderRadius:"16px", padding:"0 24px",
                  fontSize:"14px", fontWeight:900, color:"white", border:"none",
@@ -1100,8 +1098,7 @@ function FloatingNext({ label, onClick, disabled = false }: {
                  boxShadow:"0 25px 50px -12px rgba(6,182,212,0.4)" }}>
         <span>{label}</span><span>→</span>
       </button>
-    </div>,
-    document.body
+    </div>
   );
 }
 
@@ -1136,38 +1133,31 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
   const [presets, setPresets] = useState<any[]>([]);
   const [presetName, setPresetName] = useState("");
   const [showPresets, setShowPresets] = useState(false);
-  const SB_URL = "https://oxygqtbdpnxxcgzwdlzi.supabase.co";
-  const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNTQ3MTIsImV4cCI6MjA5NTgzMDcxMn0.bHBnYJDRabumBJGtknRjkb63wm2nLI9IHYAaHTw5Qf8";
-
   const loadPresets = async () => {
-    if (!session) return;
-    const r = await fetch(`${SB_URL}/rest/v1/subtitle_presets?type=eq.${tab}&select=*&order=created_at.desc`, {
-      headers: { Authorization: `Bearer ${session.access_token}`, apikey: SB_ANON }
-    });
-    const d = await r.json(); setPresets(Array.isArray(d) ? d : []);
+    const { data } = await supabase
+      .from("subtitle_presets")
+      .select("*")
+      .eq("type", tab)
+      .order("created_at", { ascending: false });
+    setPresets(data ?? []);
   };
 
   const savePreset = async (currentStyle: any, currentTab: string) => {
-    if (!session || !presetName.trim()) return;
-    const resp = await fetch(`${SB_URL}/rest/v1/subtitle_presets`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${session.access_token}`, apikey: SB_ANON, "Content-Type": "application/json", Prefer: "return=minimal" },
-      body: JSON.stringify({ user_id: session.user.id, name: presetName.trim(), type: currentTab, style_json: currentStyle })
+    if (!presetName.trim()) return;
+    const { error } = await supabase.from("subtitle_presets").insert({
+      name: presetName.trim(),
+      type: currentTab,
+      style_json: currentStyle,
     });
-    if (resp.ok || resp.status === 201) {
+    if (!error) {
       setPresetName(""); setShowPresets(false); loadPresets();
     } else {
-      const err = await resp.text();
-      console.error("프리셋 저장 실패:", resp.status, err);
+      console.error("프리셋 저장 실패:", error.message);
     }
   };
 
   const deletePreset = async (id: string) => {
-    if (!session) return;
-    await fetch(`${SB_URL}/rest/v1/subtitle_presets?id=eq.${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${session.access_token}`, apikey: SB_ANON }
-    });
+    await supabase.from("subtitle_presets").delete().eq("id", id);
     loadPresets();
   };
 
@@ -1446,7 +1436,7 @@ function StyleLibrary({ onLoad, session }: { onLoad: (s:any)=>void; session: any
           "https://oxygqtbdpnxxcgzwdlzi.supabase.co/rest/v1/style_profiles?select=*&order=updated_at.desc",
           { headers: {
             "Authorization": `Bearer ${session.access_token}`,
-            "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNTQ3MTIsImV4cCI6MjA5NTgzMDcxMn0.bHBnYJDRabumBJGtknRjkb63wm2nLI9IHYAaHTw5Qf8",
+            "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NTU4NTYsImV4cCI6MjA5MjMzMTg1Nn0.G8ZtLSZf9rWRbKlrEUchEmFUEBdV4J2L1s_5rGEPZjY",
           }}
         );
         const data = await resp.json();
@@ -1492,7 +1482,7 @@ function HistoryPanel({ session }: { session: any }) {
           "https://oxygqtbdpnxxcgzwdlzi.supabase.co/rest/v1/video_jobs?select=*&order=created_at.desc&limit=20",
           { headers: {
             "Authorization": `Bearer ${session.access_token}`,
-            "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNTQ3MTIsImV4cCI6MjA5NTgzMDcxMn0.bHBnYJDRabumBJGtknRjkb63wm2nLI9IHYAaHTw5Qf8",
+            "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NTU4NTYsImV4cCI6MjA5MjMzMTg1Nn0.G8ZtLSZf9rWRbKlrEUchEmFUEBdV4J2L1s_5rGEPZjY",
           }}
         );
         const data = await resp.json();
@@ -1823,7 +1813,7 @@ function StyleLibraryList({ session, onSelect, selectedId }: { session: any; onS
     if (!session) return;
     (async () => {
       const r = await fetch("https://oxygqtbdpnxxcgzwdlzi.supabase.co/rest/v1/style_profiles?select=*&order=updated_at.desc",
-        { headers: { Authorization: `Bearer ${session.access_token}`, apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNTQ3MTIsImV4cCI6MjA5NTgzMDcxMn0.bHBnYJDRabumBJGtknRjkb63wm2nLI9IHYAaHTw5Qf8" }});
+        { headers: { Authorization: `Bearer ${session.access_token}`, apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NTU4NTYsImV4cCI6MjA5MjMzMTg1Nn0.G8ZtLSZf9rWRbKlrEUchEmFUEBdV4J2L1s_5rGEPZjY" }});
       const d = await r.json(); setItems(Array.isArray(d) ? d : []);
     })();
   }, [session]);
@@ -2338,7 +2328,7 @@ function HistoryView({ session }: { session: any }) {
     (async()=>{
       try {
         const r = await fetch("https://oxygqtbdpnxxcgzwdlzi.supabase.co/rest/v1/video_jobs?select=*&order=created_at.desc&limit=50",
-          {headers:{Authorization:`Bearer ${session.access_token}`,apikey:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNTQ3MTIsImV4cCI6MjA5NTgzMDcxMn0.bHBnYJDRabumBJGtknRjkb63wm2nLI9IHYAaHTw5Qf8"}});
+          {headers:{Authorization:`Bearer ${session.access_token}`,apikey:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NTU4NTYsImV4cCI6MjA5MjMzMTg1Nn0.G8ZtLSZf9rWRbKlrEUchEmFUEBdV4J2L1s_5rGEPZjY"}});
         const d = await r.json(); setJobs(Array.isArray(d)?d:[]);
       } catch {} finally { setLoading(false); }
     })();
