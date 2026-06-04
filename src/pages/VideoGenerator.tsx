@@ -944,13 +944,36 @@ function FloatingNext({ label, onClick, disabled = false }: {
 
 // ── Stage 4 Panel ────────────────────────────────────────────
 const FONTS = [
-  { label: "Noto Sans KR",  value: "'Noto Sans KR', sans-serif" },
-  { label: "나눔고딕",       value: "'Nanum Gothic', sans-serif" },
-  { label: "나눔명조",       value: "'NanumMyeongjo', serif" },
-  { label: "Pretendard",    value: "'Pretendard', sans-serif" },
-  { label: "블랙한산스",     value: "'Black Han Sans', sans-serif" },
-  { label: "주아체",         value: "'Jua', sans-serif" },
-  { label: "도현체",         value: "'Do Hyeon', sans-serif" },
+  // 기본 (Google Fonts / CDN 로딩)
+  { label: "노토 산스",            value: "'Noto Sans KR', sans-serif" },
+  { label: "프리텐다드",           value: "'Pretendard', sans-serif" },
+  { label: "나눔고딕",             value: "'Nanum Gothic', sans-serif" },
+  { label: "나눔명조",             value: "'NanumMyeongjo', serif" },
+  { label: "검은고딕",             value: "'Black Han Sans', sans-serif" },
+  { label: "배달의민족 주아체",     value: "'Jua', sans-serif" },
+  { label: "배달의민족 도현체",     value: "'Do Hyeon', sans-serif" },
+  // 추가 번들 (self-host woff2)
+  { label: "에스코어 드림",        value: "'S-Core Dream', sans-serif" },
+  { label: "G마켓 산스",           value: "'Gmarket Sans', sans-serif" },
+  { label: "티몬 소리체",          value: "'TmonMonsori', sans-serif" },
+  { label: "나눔스퀘어 네오",      value: "'NanumSquare Neo', sans-serif" },
+  { label: "리디바탕",             value: "'RIDIBatang', serif" },
+  { label: "카페24 동동체",        value: "'Cafe24 Dongdong', sans-serif" },
+  { label: "배달의민족 연성체",     value: "'BM YEONSUNG', sans-serif" },
+  { label: "레시피코리아체",       value: "'Recipekorea', sans-serif" },
+  { label: "티웨이 항공체",        value: "'tway_air', sans-serif" },
+  { label: "여기어때 잘난체",      value: "'Jalnan', sans-serif" },
+  { label: "넷마블체",             value: "'netmarble', sans-serif" },
+  { label: "쿠키런체",             value: "'CookieRun', sans-serif" },
+  { label: "서울남산체",           value: "'SeoulNamsan', sans-serif" },
+  { label: "라인 Seed",            value: "'LINE Seed Sans KR', sans-serif" },
+  { label: "창원단감아삭체",       value: "'ChangwonDangamAsac', sans-serif" },
+  { label: "스웨거체",             value: "'Swagger TTF', sans-serif" },
+  { label: "원스토어 모바일고딕",   value: "'ONE Mobile', sans-serif" },
+  { label: "온글잎 의연체",        value: "'Ownglyph EuiyeonChae', sans-serif" },
+  { label: "미리내체",             value: "'Ownglyph mirinaeman', sans-serif" },
+  { label: "빙그레 싸만코체",      value: "'Binggrae Samanco', sans-serif" },
+  { label: "이순신돋움체",         value: "'YiSunShin Dotum M', sans-serif" },
 ];
 
 type SubtitleStyle = {
@@ -986,6 +1009,14 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
     else setSelectedThumbnailPresetId(id);
   };
   const [presetToast, setPresetToast] = useState("");
+  // 프리뷰 문구 — 사용자가 직접 수정, localStorage 저장
+  const [previewCaption, setPreviewCaption] = useState<string>(
+    () => localStorage.getItem("chronit_preview_caption") || ""
+  );
+  const updPreviewCaption = (v: string) => {
+    setPreviewCaption(v);
+    localStorage.setItem("chronit_preview_caption", v);
+  };
 
   const showToast = (msg: string) => {
     setPresetToast(msg);
@@ -1043,24 +1074,32 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
   const upd = (k: keyof SubtitleStyle, v: any) => setS({ ...s, [k]: v });
 
   const frame = previewFrames[frameIdx] || "";
-  // 대본에서 프리뷰 문구 — 없으면 기본값
-  const previewText = (previewScript.length > 0 ? previewScript[scriptIdx % previewScript.length] : null) || "와, 드디어";
+  // ★ 프리뷰 스케일 — 출력은 1080px 기준 fontSize×6.4, 프리뷰 박스는 300px.
+  //   둘을 같은 비율로 보이게: 6.4 × (300/1080) ≈ 1.778 배로 프리뷰에 표시 ★
+  const PREVIEW_SCALE = 6.4 * (300 / 1080);
+  // 프리뷰는 "한 장면"만 보여줌 — 출력의 KSS 장면별 줄바꿈은 프리뷰에 적용하지 않음.
+  //   사용자가 입력한 문구를 그대로 표시 (줄바꿈은 직접 입력한 경우만 반영).
+  const previewText =
+    previewCaption.trim() ||
+    (previewScript.length > 0 ? previewScript[scriptIdx % previewScript.length] : "") ||
+    "와, 드디어 샀다";
 
   const toTextStyle = (st: SubtitleStyle): React.CSSProperties => ({
     fontFamily: st.fontFamily,
     color: st.color,
-    fontSize: `${st.fontSize}px`,
+    fontSize: `${st.fontSize * PREVIEW_SCALE}px`,
     fontWeight: st.fontWeight,
-    // WebkitTextStroke: 텍스트 획 외곽선 — text-shadow보다 훨씬 자연스러움
-    WebkitTextStroke: st.strokeOn ? `${st.strokeWidth}px ${st.strokeColor}` : undefined,
+    // WebkitTextStroke: 외곽선도 동일 스케일로 — 출력 외곽선(strokeWidth×6.4)과 비율 일치
+    WebkitTextStroke: st.strokeOn ? `${st.strokeWidth * PREVIEW_SCALE}px ${st.strokeColor}` : undefined,
     paintOrder: st.strokeOn ? "stroke fill" : undefined,
     lineHeight: 1.3,
-    whiteSpace: "nowrap",
+    whiteSpace: "pre-line",
+    textAlign: "center",
     display: "inline-block",
   });
   const toBgStyle = (st: SubtitleStyle): React.CSSProperties => st.bgOn ? {
     backgroundColor: `${st.bgColor}${Math.round(st.bgOpacity * 2.55).toString(16).padStart(2, "0")}`,
-    padding: "4px 12px", borderRadius: "6px", display: "inline-block",
+    padding: `${4 * PREVIEW_SCALE}px ${12 * PREVIEW_SCALE}px`, borderRadius: "6px", display: "inline-block",
   } : { display: "inline-block" };
 
   const stylePanel = (
@@ -1071,7 +1110,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
         <select value={s.fontFamily} onChange={e => upd("fontFamily", e.target.value)}
           className="w-full rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-500"
           style={{ fontFamily: s.fontFamily }}>
-          {FONTS.map(f => <option key={f.value} value={f.value} style={{ fontFamily: f.value }}>{f.label}</option>)}
+          {FONTS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
         </select>
       </div>
       {/* 색상 + 두께 */}
@@ -1272,10 +1311,8 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
         <p className="text-xs font-bold text-gray-400">실시간 프리뷰</p>
         <div className="relative rounded-2xl overflow-hidden bg-gray-800 border border-gray-700"
           style={{ width: 300, height: 533 }}>
-          {frame
-            ? <img src={frame} className="absolute inset-0 w-full h-full object-cover" alt="" />
-            : <div className="absolute inset-0 bg-gradient-to-b from-gray-700 to-gray-900" />
-          }
+          <img src={frame || "/preview-default.jpg"}
+               className="absolute inset-0 w-full h-full object-cover" alt="" />
           <div className="absolute inset-0" style={{ pointerEvents: "none" }}>
             <div style={{
               position: "absolute",
@@ -1289,6 +1326,14 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
             </div>
           </div>
         </div>
+        {/* 프리뷰 문구 직접 수정 */}
+        <input
+          type="text"
+          value={previewCaption}
+          onChange={e => updPreviewCaption(e.target.value)}
+          placeholder="프리뷰 문구 입력 (비우면 기본 문구)"
+          className="w-[300px] rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs text-gray-200 placeholder-gray-500 focus:border-cyan-500 focus:outline-none"
+        />
         {previewFrames.length > 1 && (
           <div className="flex gap-1.5">
             {previewFrames.slice(0,5).map((_, i) => (
