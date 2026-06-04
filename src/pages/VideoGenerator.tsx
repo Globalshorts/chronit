@@ -959,16 +959,27 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
   const [tab, setTab] = useState<"subtitle"|"thumbnail">("subtitle");
   const [frameIdx, setFrameIdx] = useState(0);
   const [scriptIdx, setScriptIdx] = useState(0);
-  const [presets, setPresets] = useState<any[]>([]);
+  const [subtitlePresets, setSubtitlePresets] = useState<any[]>([]);
+  const [thumbnailPresets, setThumbnailPresets] = useState<any[]>([]);
   const [presetName, setPresetName] = useState("");
   const [showPresets, setShowPresets] = useState(false);
-  const loadPresets = async () => {
+  const [selectedPresetId, setSelectedPresetId] = useState("");
+  const [presetToast, setPresetToast] = useState("");
+
+  const showToast = (msg: string) => {
+    setPresetToast(msg);
+    setTimeout(() => setPresetToast(""), 2500);
+  };
+
+  const loadPresets = async (targetTab?: string) => {
+    const t = targetTab ?? tab;
     const { data } = await supabase
       .from("subtitle_presets")
       .select("*")
-      .eq("type", tab)
+      .eq("type", t)
       .order("created_at", { ascending: false });
-    setPresets(data ?? []);
+    if (t === "subtitle") setSubtitlePresets(data ?? []);
+    else setThumbnailPresets(data ?? []);
   };
 
   const savePreset = async (currentStyle: any, currentTab: string) => {
@@ -980,18 +991,24 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
       style_json: currentStyle,
     });
     if (!error) {
-      setPresetName(""); setShowPresets(false); loadPresets();
+      const kind = currentTab === "subtitle" ? "자막" : "썸네일";
+      showToast(`✅ ${kind} "${presetName.trim()}" 프리셋 저장됨`);
+      setPresetName(""); setShowPresets(false);
+      loadPresets(currentTab);
     } else {
       console.error("프리셋 저장 실패:", error.message);
     }
   };
 
-  const deletePreset = async (id: string) => {
+  const deletePreset = async (id: string, name: string, kind: string) => {
     await supabase.from("subtitle_presets").delete().eq("id", id);
-    loadPresets();
+    showToast(`🗑 ${kind} "${name}" 프리셋 삭제됨`);
+    setSelectedPresetId("");
+    loadPresets(kind === "자막" ? "subtitle" : "thumbnail");
   };
 
-  React.useEffect(() => { if (showPresets) loadPresets(); }, [showPresets, tab]);
+  React.useEffect(() => { loadPresets("subtitle"); loadPresets("thumbnail"); }, []);
+  React.useEffect(() => { setSelectedPresetId(""); }, [tab]);
 
   const s = tab === "subtitle" ? subtitleStyle : thumbnailStyle;
   const setS = tab === "subtitle" ? setSubtitleStyle : setThumbnailStyle;
@@ -1151,59 +1168,73 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
           ))}
         </div>
 
-        {/* 내 대본 스타일 — 드롭다운 */}
-        <div className="rounded-xl bg-gray-900 border border-gray-700 p-3 space-y-2">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-bold text-white">{tab === "subtitle" ? "자막 프리셋" : "썸네일 프리셋"}</p>
-            <button onClick={() => loadPresets()}
-              className="text-xs text-gray-500 hover:text-white transition px-1.5">⟳</button>
-          </div>
-          <div className="flex gap-2">
-            <select
-              value={""}
-              onChange={e => {
-                const p = presets.find(p => p.id === e.target.value);
-                if (p) setS(p.style_json);
-              }}
-              className="flex-1 rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-xs text-white outline-none focus:border-cyan-500"
-            >
-              <option value="">✕  스타일 없음 (기본)</option>
-              {presets.map(p => (
-                <option key={p.id} value={p.id}>📌  {p.name}</option>
-              ))}
-            </select>
-            <button onClick={() => setShowPresets(v => !v)}
-              className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-bold transition ${showPresets ? "border-cyan-500 text-cyan-400 bg-cyan-500/10" : "border-gray-700 text-gray-400 hover:border-gray-500"}`}>
-              저장
-            </button>
-          </div>
-          {/* 저장 폼 */}
-          {showPresets && (
-            <div className="flex gap-2 pt-1">
-              <input value={presetName} onChange={e => setPresetName(e.target.value)}
-                onKeyDown={e => { if (e.key==="Enter") savePreset(s, tab); if (e.key==="Escape") setShowPresets(false); }}
-                placeholder="프리셋 이름 입력"
-                autoFocus
-                className="flex-1 rounded-lg bg-gray-800 border border-cyan-500 px-3 py-1.5 text-xs text-white outline-none" />
-              <button onClick={() => savePreset(s, tab)} disabled={!presetName.trim()}
-                className="rounded-lg bg-cyan-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-cyan-400 disabled:opacity-40 transition">
-                확인
-              </button>
-              <button onClick={() => setShowPresets(false)}
-                className="rounded-lg border border-gray-700 px-2 py-1.5 text-xs text-gray-400">✕</button>
+        {/* 프리셋 패널 */}
+        {(() => {
+          const presets = tab === "subtitle" ? subtitlePresets : thumbnailPresets;
+          const kind = tab === "subtitle" ? "자막" : "썸네일";
+          const selectedPreset = presets.find(p => p.id === selectedPresetId);
+          return (
+            <div className="rounded-xl bg-gray-900 border border-gray-700 p-3 space-y-2">
+              {/* 토스트 */}
+              {presetToast && (
+                <div className="rounded-lg bg-gray-800 border border-cyan-500/40 px-3 py-2 text-xs text-cyan-300 font-bold">
+                  {presetToast}
+                </div>
+              )}
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold text-white">{kind} 프리셋</p>
+                <button onClick={() => loadPresets(tab)}
+                  className="text-xs text-gray-500 hover:text-white transition px-1.5">⟳</button>
+              </div>
+              {/* 드롭다운 + 적용/삭제 */}
+              <div className="flex gap-1.5">
+                <select
+                  value={selectedPresetId}
+                  onChange={e => {
+                    setSelectedPresetId(e.target.value);
+                    const p = presets.find(p => p.id === e.target.value);
+                    if (p) setS(p.style_json);
+                  }}
+                  className="flex-1 rounded-lg bg-gray-800 border border-gray-700 px-2 py-2 text-xs text-white outline-none focus:border-cyan-500"
+                >
+                  <option value="">✕  없음 (기본)</option>
+                  {presets.map(p => (
+                    <option key={p.id} value={p.id}>📌  {p.name}</option>
+                  ))}
+                </select>
+                {selectedPresetId && (
+                  <button
+                    onClick={() => {
+                      if (selectedPreset) deletePreset(selectedPreset.id, selectedPreset.name, kind);
+                    }}
+                    className="shrink-0 rounded-lg border border-red-500/40 px-2.5 py-2 text-xs font-bold text-red-400 hover:bg-red-500/10 transition">
+                    삭제
+                  </button>
+                )}
+                <button onClick={() => setShowPresets(v => !v)}
+                  className={`shrink-0 rounded-lg border px-2.5 py-2 text-xs font-bold transition ${showPresets ? "border-cyan-500 text-cyan-400 bg-cyan-500/10" : "border-gray-700 text-gray-400 hover:border-gray-500"}`}>
+                  저장
+                </button>
+              </div>
+              {/* 저장 폼 */}
+              {showPresets && (
+                <div className="flex gap-1.5 pt-1">
+                  <input value={presetName} onChange={e => setPresetName(e.target.value)}
+                    onKeyDown={e => { if (e.key==="Enter") savePreset(s, tab); if (e.key==="Escape") setShowPresets(false); }}
+                    placeholder={`${kind} 프리셋 이름`}
+                    autoFocus
+                    className="flex-1 rounded-lg bg-gray-800 border border-cyan-500 px-3 py-1.5 text-xs text-white outline-none" />
+                  <button onClick={() => savePreset(s, tab)} disabled={!presetName.trim()}
+                    className="rounded-lg bg-cyan-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-cyan-400 disabled:opacity-40 transition">
+                    확인
+                  </button>
+                  <button onClick={() => setShowPresets(false)}
+                    className="rounded-lg border border-gray-700 px-2 py-1.5 text-xs text-gray-400">✕</button>
+                </div>
+              )}
             </div>
-          )}
-          {/* 삭제 버튼 — 선택된 프리셋이 있을 때만 */}
-          {presets.length > 0 && (
-            <p className="text-xs text-gray-600">
-              항목 위에서 삭제하려면 드롭다운에서 선택 후{" "}
-              <button onClick={() => {
-                const sel = (document.querySelector('select[data-preset]') as HTMLSelectElement)?.value;
-                if (sel) deletePreset(sel);
-              }} className="text-red-400 hover:text-red-300 underline">삭제</button>
-            </p>
-          )}
-        </div>
+          );
+        })()}
 
         {tab === "subtitle" && stylePanel}
 
