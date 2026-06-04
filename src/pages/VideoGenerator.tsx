@@ -668,6 +668,7 @@ export default function VideoGenerator() {
                   showThumbnail={showThumbnail} setShowThumbnail={setShowThumbnail}
                   previewFrames={clips.filter(c => cart.has(c.video_id)).slice(0,5).map(c => c.thumbnail_url).filter(Boolean) as string[]}
                   previewScript={script ? script.map(s => s.text || s.sentence || "").filter(Boolean) : []}
+                  session={session}
                   onNext={() => setStage(5)}
                 />
               </div>
@@ -1027,15 +1028,49 @@ type SubtitleStyle = {
   yPos: number; xPos: number;
 };
 
-function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumbnailStyle, showThumbnail, setShowThumbnail, previewFrames, previewScript, onNext }: {
+function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumbnailStyle, showThumbnail, setShowThumbnail, previewFrames, previewScript, session, onNext }: {
   subtitleStyle: SubtitleStyle; setSubtitleStyle: (v: SubtitleStyle) => void;
   thumbnailStyle: SubtitleStyle; setThumbnailStyle: (v: SubtitleStyle) => void;
   showThumbnail: boolean; setShowThumbnail: (v: boolean) => void;
-  previewFrames: string[]; previewScript: string[]; onNext: () => void;
+  previewFrames: string[]; previewScript: string[]; session: any; onNext: () => void;
 }) {
   const [tab, setTab] = useState<"subtitle"|"thumbnail">("subtitle");
   const [frameIdx, setFrameIdx] = useState(0);
   const [scriptIdx, setScriptIdx] = useState(0);
+  const [presets, setPresets] = useState<any[]>([]);
+  const [presetName, setPresetName] = useState("");
+  const [showPresets, setShowPresets] = useState(false);
+  const SB_URL = "https://oxygqtbdpnxxcgzwdlzi.supabase.co";
+  const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNTQ3MTIsImV4cCI6MjA5NTgzMDcxMn0.bHBnYJDRabumBJGtknRjkb63wm2nLI9IHYAaHTw5Qf8";
+
+  const loadPresets = async () => {
+    if (!session) return;
+    const r = await fetch(`${SB_URL}/rest/v1/subtitle_presets?type=eq.${tab}&select=*&order=created_at.desc`, {
+      headers: { Authorization: `Bearer ${session.access_token}`, apikey: SB_ANON }
+    });
+    const d = await r.json(); setPresets(Array.isArray(d) ? d : []);
+  };
+
+  const savePreset = async () => {
+    if (!session || !presetName.trim()) return;
+    await fetch(`${SB_URL}/rest/v1/subtitle_presets`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session.access_token}`, apikey: SB_ANON, "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: session.user.id, name: presetName.trim(), type: tab, style_json: s })
+    });
+    setPresetName(""); loadPresets();
+  };
+
+  const deletePreset = async (id: string) => {
+    if (!session) return;
+    await fetch(`${SB_URL}/rest/v1/subtitle_presets?id=eq.${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${session.access_token}`, apikey: SB_ANON }
+    });
+    loadPresets();
+  };
+
+  React.useEffect(() => { if (showPresets) loadPresets(); }, [showPresets, tab]);
 
   const s = tab === "subtitle" ? subtitleStyle : thumbnailStyle;
   const setS = tab === "subtitle" ? setSubtitleStyle : setThumbnailStyle;
@@ -1173,15 +1208,52 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
     <div className="flex gap-6 flex-col md:flex-row">
       {/* 왼쪽 설정 */}
       <div className="flex-1 min-w-0 space-y-4">
-        {/* 탭 */}
-        <div className="flex gap-2">
+        {/* 탭 + 프리셋 버튼 */}
+        <div className="flex gap-2 items-center">
           {(["subtitle","thumbnail"] as const).map(v => (
             <button key={v} onClick={() => setTab(v)}
               className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition border ${tab===v ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400"}`}>
               {v === "subtitle" ? "자막 스타일" : "썸네일 스타일"}
             </button>
           ))}
+          <button onClick={() => setShowPresets(p => !p)}
+            className="shrink-0 rounded-xl border border-gray-700 px-3 py-2.5 text-xs font-bold text-gray-400 hover:border-cyan-500 hover:text-cyan-400 transition">
+            📋 프리셋
+          </button>
         </div>
+
+        {/* 프리셋 패널 */}
+        {showPresets && (
+          <div className="rounded-xl bg-gray-800 border border-gray-700 p-3 space-y-3">
+            {/* 현재 스타일 저장 */}
+            <div className="flex gap-2">
+              <input value={presetName} onChange={e => setPresetName(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && savePreset()}
+                placeholder="프리셋 이름 입력"
+                className="flex-1 rounded-lg bg-gray-700 border border-gray-600 px-3 py-1.5 text-xs text-white outline-none focus:border-cyan-500" />
+              <button onClick={savePreset} disabled={!presetName.trim()}
+                className="rounded-lg bg-cyan-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-cyan-400 disabled:opacity-40 transition">
+                저장
+              </button>
+            </div>
+            {/* 저장된 프리셋 목록 */}
+            {presets.length === 0
+              ? <p className="text-xs text-gray-500 text-center py-2">저장된 프리셋이 없습니다</p>
+              : <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                  {presets.map(p => (
+                    <div key={p.id} className="flex items-center gap-2 group">
+                      <button onClick={() => { setS(p.style_json); }}
+                        className="flex-1 text-left rounded-lg bg-gray-700 hover:bg-gray-600 px-3 py-1.5 text-xs text-white transition truncate">
+                        {p.name}
+                      </button>
+                      <button onClick={() => deletePreset(p.id)}
+                        className="text-gray-600 hover:text-red-400 text-xs opacity-0 group-hover:opacity-100 transition">✕</button>
+                    </div>
+                  ))}
+                </div>
+            }
+          </div>
+        )}
 
         {tab === "subtitle" && stylePanel}
 
@@ -1412,12 +1484,20 @@ function ProjectPanel({ activeView, current, onLoad, onReset, session, styleProf
     const trimmed = name.trim();
     if (!trimmed) return;
     if (getProjs().some(p => p.name === trimmed)) { alert(`"${trimmed}" 이름이 이미 있습니다.`); return; }
+
+    // 현재 진행 중인 작업이 있으면 자동 저장
+    if (activeId && current && (current.stage > 1 || (current.clips && current.clips.length > 0))) {
+      const updated = getProjs().map(p => p.id === activeId
+        ? { ...p, savedAt: Date.now(), stage: current.stage, data: current } : p);
+      saveProjs(updated); setProjects(updated);
+    }
+
     const id = `proj_${Date.now()}`;
     const entry = { id, name: trimmed, savedAt: Date.now(), stage: 1, data: {} };
     const ps = [entry, ...getProjs()];
     saveProjs(ps); setProjects(ps); setActiveId(id);
     localStorage.setItem("chronit_active_proj", id);
-    onReset();
+    onReset(); // 화면은 초기화하되 이전 프로젝트는 저장됨
     setNewName(null);
   };
 
@@ -1573,15 +1653,20 @@ function AppSidebar({ current, onLoad, onReset, balance, userPlan, session, acti
       alert(`"${trimmed}" 이름의 프로젝트가 이미 있습니다.`);
       return;
     }
+    // 현재 진행 중인 작업 자동 저장
+    if (activeProjectId && current && (current.stage > 1 || (current.clips && current.clips.length > 0))) {
+      const updated = existing.map(p => p.id === activeProjectId
+        ? { ...p, savedAt: Date.now(), stage: current.stage, data: current } : p);
+      saveProjects(updated); setProjects(updated);
+    }
     const id = `proj_${Date.now()}`;
-    // 새 프로젝트는 빈 상태로 생성 (현재 작업 데이터 복사 안 함)
     const entry = { id, name: trimmed, savedAt: Date.now(), stage: 1, data: {} };
-    const ps = [entry, ...existing];
+    const ps = [entry, ...getProjects()];
     saveProjects(ps); setProjects(ps);
     setActiveProjectId(id);
     localStorage.setItem('chronit_active_project', id);
     setNewProjectName(null);
-    onReset(); // 화면 초기화 → 새 프로젝트 빈 상태로 시작
+    onReset();
   };
 
   const delProject = (id: string, e: React.MouseEvent) => {
