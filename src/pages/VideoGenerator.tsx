@@ -1062,7 +1062,7 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
 
 function FloatingPrev({ onClick }: { onClick: () => void }) {
   return (
-    <div className="fixed bottom-24 right-[120px] z-40">
+    <div className="fixed bottom-24 left-4 z-40">
       <button onClick={onClick}
         className="rounded-2xl bg-gray-700 shadow-lg px-5 py-3 text-sm font-black text-white hover:bg-gray-600 transition flex items-center gap-2">
         <span>←</span><span>이전</span>
