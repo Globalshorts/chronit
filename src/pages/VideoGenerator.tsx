@@ -106,6 +106,13 @@ export default function VideoGenerator() {
   const [voiceVolume, setVoiceVolume] = useState(() => Number(localStorage.getItem("chronit_voice_volume")) || 100);
   const [rendering, setRendering]   = useState(false);
   const [renderError, setRenderError] = useState("");
+  const [voiceGenerated, setVoiceGenerated] = useState(false);  // Stage 5 음성 생성 완료
+  const [voiceSegments, setVoiceSegments] = useState<any[]>([]);  // 장면별 편집용
+  const [freeRegen, setFreeRegen] = useState(3);  // Stage 3 무료 재생성 횟수
+  const [seoTitle, setSeoTitle] = useState("");
+  const [seoDesc, setSeoDesc] = useState("");
+  const [seoTags, setSeoTags] = useState("");
+  const [seoLoading, setSeoLoading] = useState(false);
   const [currentJobId, setCurrentJobId] = useState("");
 
   // Stage 6
@@ -290,6 +297,54 @@ export default function VideoGenerator() {
   };
 
   // ── Stage 5: 렌더링 ──────────────────────────────────────
+  // Stage 5: 음성 세그먼트 자동 배분
+  const handleVoiceGenerate = () => {
+    if (!script || script.length === 0) return;
+    const selected = clips.filter(c => cart.has(c.video_id));
+    // 각 클립에 세그먼트 자동 배분
+    const segsPerClip = Math.ceil(script.length / (selected.length || 1));
+    const newVoiceSegs = selected.map((clip, i) => ({
+      clip_id: clip.video_id,
+      clip_title: clip.title || `클립 ${i+1}`,
+      clip_duration: clip.duration_sec || targetSeconds / selected.length,
+      segments: script.slice(i * segsPerClip, (i+1) * segsPerClip).map((s, si) => ({
+        idx: i * segsPerClip + si,
+        text: s.text || s.sentence || "",
+        duration: s.duration_sec || 2,
+      })),
+    }));
+    setVoiceSegments(newVoiceSegs);
+    setVoiceGenerated(true);
+  };
+
+  // Stage 3: 재생성 (무료 횟수 차감)
+  const handleRegenerateScript = async () => {
+    if (freeRegen > 0) {
+      setFreeRegen(prev => prev - 1);
+    }
+    await handleGenerateScript();
+  };
+
+  // Stage 6: SEO AI 추천
+  const handleSeoGenerate = async () => {
+    if (!script || !sourceUrl) return;
+    setSeoLoading(true);
+    try {
+      const { data: { session: s } } = await supabase.auth.getSession();
+      if (!s) return;
+      const resp = await fetch(FN("generate-seo"), {
+        method: "POST",
+        headers: { Authorization: `Bearer ${s.access_token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ source_url: sourceUrl, script_segments: script }),
+      });
+      const data = await resp.json();
+      if (data.title) setSeoTitle(data.title);
+      if (data.description) setSeoDesc(data.description);
+      if (data.tags) setSeoTags(data.tags);
+    } catch {}
+    finally { setSeoLoading(false); }
+  };
+
   const handleRender = async () => {
     setRenderError(""); setRendering(true);
     try {
@@ -462,7 +517,7 @@ export default function VideoGenerator() {
                     className="shrink-0 rounded-xl bg-cyan-500 px-5 py-3 text-sm font-bold text-white hover:bg-cyan-400 disabled:opacity-40 transition flex items-center gap-2">
                     {searching
                       ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />분석 중...</>
-                      : "🔍 분석 시작"}
+                      : "🔍 분석 시작 (10 CR)"}
                   </button>
                 </div>
                 {searchError && <p className="mt-2 text-sm text-red-400">{searchError}</p>}
@@ -532,51 +587,49 @@ export default function VideoGenerator() {
 
           {/* ── STAGE 3 ── */}
           <StagePanel n={3} title="컷편집 & 대본 생성" subtitle="AI가 대본을 작성하고 클립을 편집합니다" current={stage}>
-            <div className="space-y-4">
-              {/* CTA 입력 — 항상 표시 */}
-              <div className="rounded-xl bg-gray-800/60 border border-gray-700 p-4 space-y-2">
-                <label className="text-xs font-bold text-gray-300 block">
-                  CTA 문구 <span className="text-gray-500 font-normal">(선택사항)</span>
-                </label>
-                <input
-                  value={ctaText} onChange={e => setCtaText(e.target.value)}
-                  placeholder="예: 구매링크  →  비우면 '프로필 링크에서 확인하세요' 삽입"
-                  className="w-full rounded-xl bg-gray-900 border border-gray-700 px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-cyan-500 transition" />
-                <p className="text-xs text-gray-500">
-                  {ctaText
-                    ? `→ "${ctaText}라고 댓글 남겨주시면 링크 보내드릴게요"`
-                    : "→ '프로필 링크에서 확인하세요' (기본값)"}
+            <div className="space-y-5">
+
+              {/* 댓글 유도 단어 (CTA) */}
+              <div className="space-y-2">
+                <p className="text-sm font-black text-white">댓글 유도 단어 (CTA)</p>
+                <p className="text-xs text-gray-400">
+                  대본 마지막 자막이 "댓글에 OO남겨주시면 링크 보내드릴게요" 형태로 자동 생성됩니다.<br/>
+                  비워두면 "프로필 링크에서 확인하세요" 로 마무리됩니다.
                 </p>
+                <input value={ctaText} onChange={e => setCtaText(e.target.value)}
+                  placeholder="예: 관심, 💚, 알려줘 (선택)"
+                  className="w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-500 transition" />
               </div>
 
-              {/* 준비 완료 안내 — 대본 없을 때만 */}
-              {!script && !scriptLoading && (
-                <div className="rounded-xl bg-gray-800 p-4 text-sm text-gray-300">
-                  <p className="font-bold text-white mb-1">준비 완료</p>
-                  <p>선택된 클립 <span className="text-cyan-400 font-bold">{cart.size}개</span> · {targetSeconds}초 영상</p>
-                  <p className="mt-1 text-gray-400 text-xs">대본 생성을 시작하세요 (약 30~60초)</p>
-                </div>
-              )}
-
+              {/* 대본 생성 결과 */}
               {scriptLoading && (
-                <div className="rounded-xl bg-gray-800 p-6 flex items-center gap-4">
-                  <span className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent shrink-0" />
+                <div className="rounded-xl bg-gray-800 p-5 flex items-center gap-4">
+                  <span className="h-7 w-7 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent shrink-0" />
                   <div>
-                    <p className="text-sm font-bold text-white">대본 생성 & 컷편집 중...</p>
-                    <p className="text-xs text-gray-400 mt-0.5">클립 분석 → 대본 작성 → 컷 분배 (30~60초 소요)</p>
+                    <p className="text-sm font-bold text-white">대본 생성 중...</p>
+                    <p className="text-xs text-gray-400 mt-0.5">클립 분석 → 대본 작성 → 컷 분배 (30~60초)</p>
                   </div>
                 </div>
               )}
 
               {script && (
                 <div className="rounded-xl bg-gray-800 p-4">
-                  <p className="text-sm font-bold text-white mb-3">생성된 대본 ({script.length}개 세그먼트)</p>
-                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-bold text-white">생성된 대본 ({script.length}개 세그먼트)</p>
+                    <button onClick={handleRegenerateScript} disabled={scriptLoading}
+                      className="text-xs text-gray-400 hover:text-cyan-400 transition flex items-center gap-1">
+                      🔄 재생성
+                      {freeRegen > 0
+                        ? <span className="text-green-400">({freeRegen}회 무료)</span>
+                        : <span className="text-gray-500">(20 CR)</span>}
+                    </button>
+                  </div>
+                  <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
                     {script.map((seg, i) => (
-                      <div key={i} className="flex gap-3 text-sm">
-                        <span className="shrink-0 text-cyan-400 font-bold w-5">{i+1}</span>
-                        <span className="text-gray-200">{seg.text}</span>
-                        <span className="shrink-0 text-gray-500 text-xs self-start mt-0.5">{seg.duration_sec}s</span>
+                      <div key={i} className="flex gap-2 text-sm items-baseline">
+                        <span className="shrink-0 text-cyan-400 font-black text-xs w-5">{i+1}</span>
+                        <span className="text-gray-200 flex-1">{seg.text || seg.sentence}</span>
+                        <span className="shrink-0 text-gray-500 text-xs">{seg.duration_sec}s</span>
                       </div>
                     ))}
                   </div>
@@ -585,24 +638,16 @@ export default function VideoGenerator() {
 
               {scriptError && <p className="text-sm text-red-400">{scriptError}</p>}
 
-              <div className="flex justify-between items-center">
-                {script && (
-                  <button onClick={handleGenerateScript}
-                    className="text-sm text-gray-400 hover:text-white transition underline underline-offset-2">
-                    🔄 재생성
-                  </button>
-                )}
-                <div className="ml-auto flex gap-2 items-center">
-                  {!script
-                    ? <button onClick={handleGenerateScript} disabled={scriptLoading}
-                        className="rounded-xl bg-cyan-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-cyan-400 disabled:opacity-40 transition">
-                        {scriptLoading ? "생성 중..." : "✨ 대본 생성하기"}
-                      </button>
-                    : null
-                  }
-                  {script && stage === 3 && <><FloatingPrev onClick={() => setStage(2)} /><FloatingNext label="다음" onClick={() => setStage(4)} /></>}
-                </div>
-              </div>
+              {/* 대본 생성 버튼 */}
+              {!script && !scriptLoading && (
+                <button onClick={handleGenerateScript} disabled={scriptLoading}
+                  className="w-full rounded-xl bg-gray-700 hover:bg-gray-600 border border-gray-600 py-3.5 text-sm font-black text-white transition flex items-center justify-center gap-2">
+                  📄 대본 생성 (20 CR)
+                </button>
+              )}
+
+              {stage === 3 && <FloatingPrev onClick={() => setStage(2)} />}
+              {script && stage === 3 && <FloatingNext label="다음" onClick={() => setStage(4)} />}
             </div>
           </StagePanel>
 
@@ -632,80 +677,201 @@ export default function VideoGenerator() {
           {stage === 4 && <FloatingNext label="다음" onClick={() => setStage(5)} />}
 
           {/* ── STAGE 5 ── */}
-          <StagePanel n={5} title="보이스" subtitle="음성을 선택하고 영상을 생성합니다" current={stage}>
-            <div className="space-y-6">
-              <VoicePanel voiceId={voiceId} setVoiceId={setVoiceId}
-                voiceSpeed={voiceSpeed} setVoiceSpeed={setVoiceSpeed}
-                voiceVolume={voiceVolume} setVoiceVolume={setVoiceVolume} />
+          <StagePanel n={5} title="음성 프리뷰" subtitle="TTS 음성을 생성하고, 영상과 동기 재생하여 자막 타이밍을 확인하세요." current={stage}>
+            <div className="flex gap-6">
+              {/* 좌측: 음성 옵션 + 장면별 편집 */}
+              <div className="flex-1 min-w-0 space-y-5">
 
-              {renderError && <p className="text-sm text-red-400">{renderError}</p>}
-
-              {currentJob && (
-                <div className={`rounded-xl p-4 text-sm flex items-center gap-3 ${
-                  currentJob.status === "processing" ? "bg-blue-500/10 text-blue-400" :
-                  currentJob.status === "done" ? "bg-green-500/10 text-green-400" :
-                  "bg-red-500/10 text-red-400"
-                }`}>
-                  {currentJob.status === "processing" && (
-                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent shrink-0" />
-                  )}
-                  <span className="font-bold">
-                    {currentJob.status === "processing" ? "🎬 영상 생성 중... (수 분 소요)" :
-                     currentJob.status === "done" ? "✅ 영상 생성 완료!" : "❌ " + currentJob.error_message}
-                  </span>
+                {/* 음성 옵션 */}
+                <div className="rounded-xl bg-gray-800 p-4 space-y-4">
+                  <p className="text-sm font-bold text-white">음성 옵션</p>
+                  <VoicePanel voiceId={voiceId} setVoiceId={setVoiceId}
+                    voiceSpeed={voiceSpeed} setVoiceSpeed={setVoiceSpeed}
+                    voiceVolume={voiceVolume} setVoiceVolume={setVoiceVolume} />
                 </div>
-              )}
 
-              <button onClick={handleRender}
-                disabled={rendering || currentJob?.status === "processing"}
-                className="w-full rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 py-4 text-base font-extrabold text-white shadow-lg hover:opacity-90 disabled:opacity-40 transition flex items-center justify-center gap-2">
-                {rendering
-                  ? <><span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />요청 중...</>
-                  : "🚀 영상 생성 시작 (100 CR)"}
-              </button>
+                {/* 음성 생성 버튼 */}
+                <button onClick={handleVoiceGenerate} disabled={!script || script.length === 0}
+                  className="w-full rounded-xl bg-cyan-500/10 border border-cyan-500/30 py-3 text-sm font-black text-cyan-400 hover:bg-cyan-500/20 disabled:opacity-40 transition flex items-center justify-center gap-2">
+                  🔊 음성 생성 ({VOICES_PRO.some(v => v.id === voiceId) ? "20 CR" : "무료"})
+                </button>
+
+                {/* 힌트 */}
+                <div className="rounded-xl bg-yellow-500/5 border border-yellow-500/20 p-3">
+                  <p className="text-xs text-yellow-300">
+                    💡 마지막 대사가 끝난 뒤에도 영상이 좀 더 이어질 수 있어요.<br/>
+                    음성이 끝난 후 무음 부분이 길면, 아래 자막 목록에서 영상 길이를 줄이거나 클립을 짧게 잘라 마무리해주세요.
+                  </p>
+                </div>
+
+                {/* 사용 안 된 클립 */}
+                {voiceGenerated && clips.filter(c => !cart.has(c.video_id)).length > 0 && (
+                  <button className="w-full rounded-xl border border-gray-700 py-2.5 text-sm text-gray-400 hover:text-white transition">
+                    사용 안 된 클립 {clips.filter(c => !cart.has(c.video_id)).length}개
+                  </button>
+                )}
+
+                {/* 장면별 편집 */}
+                {voiceSegments.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-black text-white">장면별 편집</p>
+                      <button onClick={handleVoiceGenerate}
+                        className="rounded-lg bg-cyan-500/10 border border-cyan-500/30 px-3 py-1.5 text-xs font-bold text-cyan-400 hover:bg-cyan-500/20 transition">
+                        🔀 자동 분배
+                      </button>
+                    </div>
+                    {voiceSegments.map((clip, ci) => (
+                      <div key={ci} className="rounded-xl bg-gray-800 border border-gray-700 overflow-hidden">
+                        <div className="px-4 py-2.5 bg-gray-700/50 flex items-center justify-between">
+                          <span className="text-xs font-black text-white">
+                            영상 #{ci+1} {clip.clip_title} ({clip.clip_duration?.toFixed(1)}초)
+                          </span>
+                          <div className="flex gap-1.5">
+                            <button className="rounded-lg border border-gray-600 px-2 py-1 text-xs text-gray-400 hover:text-white">영상 변경</button>
+                            <button className="rounded-lg border border-gray-600 px-2 py-1 text-xs text-gray-400 hover:text-white">복사</button>
+                            <button className="text-gray-600 hover:text-red-400 text-sm">✕</button>
+                          </div>
+                        </div>
+                        {clip.segments.map((seg: any, si: number) => (
+                          <div key={si} className="px-4 py-2 border-t border-gray-700/50 flex items-center gap-2 text-xs">
+                            <span className="text-cyan-400 font-bold w-6 shrink-0">#{seg.idx+1}</span>
+                            <span className="flex-1 text-gray-200 truncate">{seg.text}</span>
+                            <span className="text-gray-500 shrink-0">(음성 없음)</span>
+                            <div className="flex gap-0.5 shrink-0">
+                              <button className="text-gray-600 hover:text-white px-1">▲</button>
+                              <button className="text-gray-600 hover:text-white px-1">▼</button>
+                              <button className="text-gray-600 hover:text-red-400 px-1">✕</button>
+                            </div>
+                          </div>
+                        ))}
+                        <div className="px-4 py-2 border-t border-gray-700/50 text-xs text-gray-500">
+                          음성 없음 / 영상 {clip.clip_duration?.toFixed(1)}초
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 우측: 동기 프리뷰 */}
+              <div className="w-56 shrink-0">
+                <div className="rounded-xl bg-gray-800 border border-gray-700 overflow-hidden" style={{ aspectRatio: "9/16", position: "relative" }}>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+                    <p className="text-xs text-gray-400">동기 프리뷰</p>
+                    <p className="text-xs text-gray-600 mt-2">음성 생성 후 재생 가능</p>
+                  </div>
+                </div>
+                <button className="mt-2 w-full rounded-xl border border-gray-700 py-2 text-xs text-gray-400 hover:text-white transition">
+                  ▶ 동기 재생
+                </button>
+              </div>
             </div>
+
+            {stage === 5 && <FloatingPrev onClick={() => setStage(4)} />}
+            {stage === 5 && <FloatingNext label="다음" onClick={() => setStage(6)} />}
           </StagePanel>
 
           {/* ── STAGE 6 ── */}
-          <StagePanel n={6} title="SEO + 내보내기" subtitle="제목·해시태그 추천 및 완성본 다운로드" current={stage}>
+          <StagePanel n={6} title="SEO + 내보내기" subtitle="AI가 제목·설명·태그를 추천한 뒤 최종 mp4를 저장합니다." current={stage}>
             <div className="space-y-4">
-              {currentJob?.status === "done" && currentJob.video_url ? (
-                <>
-                  <div className="flex flex-col sm:flex-row gap-6 items-start">
-                    <video src={currentJob.video_url} controls
-                      className="w-full sm:w-48 rounded-2xl"
-                      style={{ aspectRatio: "9/16", maxHeight: "320px" }} />
-                    <div className="flex-1 space-y-4">
-                      <div className="rounded-xl bg-gray-800 p-4">
-                        <p className="text-xs text-gray-400 mb-1 font-bold">추천 제목</p>
-                        <p className="text-sm text-white">AI가 생성한 제목이 여기에 표시됩니다</p>
-                      </div>
-                      <div className="rounded-xl bg-gray-800 p-4">
-                        <p className="text-xs text-gray-400 mb-2 font-bold">해시태그</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {["#쇼핑", "#추천", "#리뷰", "#숏폼", "#쇼핑릴스"].map(tag => (
-                            <span key={tag} className="rounded-full bg-cyan-500/10 text-cyan-400 text-xs px-3 py-1 font-bold">{tag}</span>
-                          ))}
-                        </div>
-                      </div>
-                      <a href={currentJob.video_url} download
-                        className="block w-full rounded-xl bg-cyan-500 py-3 text-center text-sm font-extrabold text-white hover:bg-cyan-400 transition">
-                        ⬇ 완성본 다운로드
-                      </a>
-                    </div>
-                  </div>
-                  <button onClick={() => {
-                    setStage(1); setClips([]); setCart(new Set()); setScript(null); setCurrentJobId("");
-                  }} className="text-sm text-gray-400 hover:text-white transition underline underline-offset-2">
-                    + 새 영상 만들기
-                  </button>
-                </>
-              ) : (
-                <div className="rounded-xl bg-gray-800 p-6 text-center text-sm text-gray-400">
-                  Stage 5에서 영상 생성이 완료되면 여기서 다운로드할 수 있습니다.
+
+              {/* 상단 버튼 */}
+              <div className="flex gap-2 justify-end">
+                <button onClick={handleSeoGenerate} disabled={seoLoading}
+                  className="rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-2 text-sm font-black text-white hover:opacity-90 disabled:opacity-50 transition flex items-center gap-1.5">
+                  {seoLoading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : "✨"} AI 추천 생성
+                </button>
+                <button onClick={() => {
+                  const text = `${seoTitle}
+
+${seoDesc}
+
+${seoTags}`;
+                  navigator.clipboard.writeText(text);
+                }} className="rounded-xl border border-gray-700 px-4 py-2 text-sm font-bold text-gray-300 hover:text-white hover:border-gray-500 transition flex items-center gap-1.5">
+                  📋 복사
+                </button>
+              </div>
+
+              {/* 영상 제목 */}
+              <div className="rounded-xl border border-gray-700 overflow-hidden">
+                <div className="px-4 pt-3 pb-1 flex justify-between items-center">
+                  <p className="text-xs font-bold text-white">영상 제목</p>
+                  <p className="text-xs text-gray-500">{seoTitle.length} / 100</p>
                 </div>
+                <input value={seoTitle} onChange={e => setSeoTitle(e.target.value)} maxLength={100}
+                  placeholder="제목을 입력하거나 [AI 추천 생성] 클릭"
+                  className="w-full bg-transparent px-4 py-2.5 text-sm text-white outline-none placeholder-gray-600" />
+                {seoTitle && <p className="px-4 pb-2 text-xs text-cyan-400 cursor-pointer hover:underline">추천 제목 (클릭으로 적용)</p>}
+              </div>
+
+              {/* 영상 설명 */}
+              <div className="rounded-xl border border-gray-700 overflow-hidden">
+                <div className="px-4 pt-3 pb-1 flex justify-between items-center">
+                  <p className="text-xs font-bold text-white">영상 설명</p>
+                  <p className="text-xs text-gray-500">{seoDesc.length} / 5000</p>
+                </div>
+                <textarea value={seoDesc} onChange={e => setSeoDesc(e.target.value)} maxLength={5000} rows={5}
+                  placeholder="영상 설명..."
+                  className="w-full bg-transparent px-4 py-2.5 text-sm text-white outline-none resize-none placeholder-gray-600" />
+              </div>
+
+              {/* 태그 */}
+              <div className="rounded-xl border border-gray-700 overflow-hidden">
+                <div className="px-4 pt-3 pb-1">
+                  <p className="text-xs font-bold text-white">태그 (# 또는 , 구분)</p>
+                </div>
+                <input value={seoTags} onChange={e => setSeoTags(e.target.value)}
+                  placeholder="예: #쇼츠 #꿀팁 #일상"
+                  className="w-full bg-transparent px-4 py-2.5 text-sm text-white outline-none placeholder-gray-600" />
+              </div>
+
+              {/* 최종 영상 내보내기 */}
+              <div className="rounded-xl border-2 border-gray-600 bg-gray-800/40 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-cyan-400">📥</span>
+                  <p className="text-sm font-black text-white">최종 영상 내보내기</p>
+                </div>
+
+                {currentJob?.status === "succeeded" && currentJob.output_url ? (
+                  <div className="space-y-3">
+                    <div className="rounded-xl bg-green-500/10 border border-green-500/30 p-3 flex items-center gap-2">
+                      <span className="text-green-400">✅</span>
+                      <p className="text-sm text-green-400 font-bold">영상 생성 완료!</p>
+                    </div>
+                    <a href={currentJob.output_url} target="_blank" rel="noopener"
+                      className="block w-full rounded-xl bg-cyan-500 py-3 text-center text-sm font-extrabold text-white hover:bg-cyan-400 transition">
+                      ⬇ 완성본 다운로드
+                    </a>
+                  </div>
+                ) : currentJob?.status === "processing" ? (
+                  <div className="rounded-xl bg-blue-500/10 border border-blue-500/20 p-3 flex items-center gap-3">
+                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-blue-400 border-t-transparent shrink-0" />
+                    <p className="text-sm text-blue-400 font-bold">🎬 영상 생성 중... (수 분 소요)</p>
+                  </div>
+                ) : (
+                  <button onClick={handleRender} disabled={rendering}
+                    className="w-full rounded-xl bg-green-500 py-3.5 text-base font-extrabold text-white hover:bg-green-400 disabled:opacity-40 transition flex items-center justify-center gap-2">
+                    {rendering
+                      ? <><span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />요청 중...</>
+                      : "⬇ 내보내기 시작 (50 CR)"}
+                  </button>
+                )}
+
+                {renderError && <p className="text-sm text-red-400">{renderError}</p>}
+              </div>
+
+              {currentJob?.status === "succeeded" && (
+                <button onClick={() => {
+                  setStage(1); setClips([]); setCart(new Set()); setScript(null); setCurrentJobId("");
+                }} className="text-sm text-gray-400 hover:text-white transition underline underline-offset-2">
+                  + 새 영상 만들기
+                </button>
               )}
             </div>
+
+            {stage === 6 && <FloatingPrev onClick={() => setStage(5)} />}
           </StagePanel>
 
           </div>
