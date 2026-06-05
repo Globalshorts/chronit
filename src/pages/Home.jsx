@@ -430,7 +430,7 @@ const Home = () => {
                   <p className="text-base font-black text-gray-900">크로닛이 함께 만든 결과</p>
                 </div>
                 <div className="space-y-2">
-                  {[['누적 절약 시간', 7285, '시간'], ['생성 완료 영상', 8742, '개'], ['활성 사용자', 117, '명']].map(([label, n, u]) => (
+                  {[['누적 절약 시간', 7285, '시간'], ['생성 완료 영상', 8742, '개'], ['오늘 생성된 영상', 63, '개']].map(([label, n, u]) => (
                     <div key={label} className="flex items-center justify-between rounded-2xl bg-[#FAFAF8] px-4 py-3">
                       <span className="text-sm font-bold text-gray-600">{label}</span>
                       <span className="text-xl font-black text-[#03C75A] md:text-2xl">
