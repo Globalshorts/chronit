@@ -2806,8 +2806,22 @@ const COUPANG_RX = /https?:\/\/(?:[\w-]+\.)?coupang\.com\/[^\s'"]+|https?:\/\/li
 const PS_KEY = "chronit_product_urls";
 
 function ProductSearchView({ session, supabase }: { session:any; supabase:any }) {
-  const [projects] = React.useState<any[]>(()=>getProjs());
-  const [projId, setProjId] = React.useState(projects[0]?.id ?? "");
+  // 활성 프로젝트는 진행중 자동저장(chronit_project_v1)의 실시간 cart를 반영
+  const projOpts = React.useMemo(()=>{
+    const projects = getProjs();
+    let live:any = null; try { live = JSON.parse(localStorage.getItem("chronit_project_v1")||"null"); } catch {}
+    const activeId = localStorage.getItem("chronit_active_proj");
+    const opts = projects.map((p:any)=>{
+      const d = (p.id===activeId && live) ? { ...(p.data||{}), ...live } : (p.data||{});
+      return { id:p.id, name:p.name, src:d.sourceUrl||"", count:(d.cart?.length ?? d.clips?.length ?? 0) };
+    });
+    const hasActive = activeId && projects.some((p:any)=>p.id===activeId);
+    const liveCount = (live?.cart?.length ?? live?.clips?.length ?? 0);
+    if (live && !hasActive && liveCount>0)
+      opts.unshift({ id:"__live__", name:"현재 작업 중", src:live.sourceUrl||"", count:liveCount });
+    return opts;
+  }, []);
+  const [projId, setProjId] = React.useState(projOpts[0]?.id ?? "");
   const [url, setUrl]       = React.useState("");
   const [kw, setKw]         = React.useState<any>(null);
   const [extracting, setExtracting] = React.useState(false);
@@ -2849,8 +2863,7 @@ function ProductSearchView({ session, supabase }: { session:any; supabase:any })
     setExtracting(false);
   };
 
-  const proj = projects.find(p=>p.id===projId);
-  const projSrc = proj?.data?.sourceUrl ?? "";
+  const projSrc = projOpts.find(o=>o.id===projId)?.src ?? "";
   const copyAll = () => { navigator.clipboard.writeText(urls.join("\n")); setCopied(true); setTimeout(()=>setCopied(false),1500); };
 
   const Step = ({n,title,children}:{n:string;title:string;children:any}) => (
@@ -2869,8 +2882,8 @@ function ProductSearchView({ session, supabase }: { session:any; supabase:any })
           <div className="flex-1 min-w-[200px]">
             <label className="text-xs text-gray-500">프로젝트</label>
             <select value={projId} onChange={e=>setProjId(e.target.value)} className="w-full mt-1 rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white outline-none">
-              {projects.length===0 && <option value="">저장된 프로젝트 없음</option>}
-              {projects.map(p=><option key={p.id} value={p.id}>{p.name} ({(p.data?.cart?.length ?? p.data?.clips?.length ?? 0)}개 영상)</option>)}
+              {projOpts.length===0 && <option value="">저장된 프로젝트 없음</option>}
+              {projOpts.map(o=><option key={o.id} value={o.id}>{o.name} ({o.count}개 영상)</option>)}
             </select>
           </div>
           <button onClick={()=>extract(projSrc)} disabled={extracting||!projSrc} className="rounded-xl bg-green-600 hover:bg-green-500 disabled:opacity-40 px-4 py-2.5 text-sm font-bold text-white">📁 프로젝트로 추출</button>
