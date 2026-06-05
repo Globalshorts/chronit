@@ -1971,56 +1971,79 @@ function ProjectPanel({ activeView, current, onLoad, onReset, session, styleProf
   activeView: string; current: any; onLoad: (d:any)=>void; onReset: ()=>void;
   session: any; styleProfileId: string; onSelectStyle: (id:string)=>void; compact?: boolean;
 }) {
-  const [projects, setProjects] = useState<any[]>(() => getProjs());
-  const [activeId, setActiveId] = useState<string|null>(() => localStorage.getItem("chronit_active_proj") || null);
+  const uid = session?.user?.id;
+  const [projects, setProjects] = useState<any[]>([]);
+  const [activeId, setActiveId] = useState<string|null>(() => { try { return localStorage.getItem("chronit_active_proj") || null; } catch { return null; } });
   const [editingId, setEditingId] = useState<string|null>(null);
   const [newName, setNewName] = useState<string|null>(null);
   const STAGE_LABELS = ["영상 분석","영상 선택","대본 생성","스타일","보이스","완료"];
 
-  const createProject = (name: string) => {
+  const persistActive = (id: string|null) => { try { if (id) localStorage.setItem("chronit_active_proj", id); else localStorage.removeItem("chronit_active_proj"); } catch {} };
+  const rowToProj = (r: any) => ({ id: r.id, name: r.name, stage: r.stage, data: r.data, savedAt: new Date(r.saved_at).getTime() });
+
+  // DB에서 프로젝트 로드 (+ 기존 localStorage 1회 마이그레이션)
+  useEffect(() => {
+    if (!uid) return;
+    (async () => {
+      const { data } = await supabase.from("projects").select("id,name,stage,data,saved_at").eq("user_id", uid).order("saved_at", { ascending: false });
+      let rows = (data || []).map(rowToProj);
+      try {
+        const local = JSON.parse(localStorage.getItem(PROJ_KEY) || "[]");
+        if (rows.length === 0 && local.length > 0) {
+          const up = local.map((p: any) => ({ id: p.id, user_id: uid, name: p.name, stage: p.stage || 1, data: p.data || {}, saved_at: new Date(p.savedAt || Date.now()).toISOString() }));
+          await supabase.from("projects").upsert(up);
+          rows = local.map((p: any) => ({ id: p.id, name: p.name, stage: p.stage || 1, data: p.data || {}, savedAt: p.savedAt || Date.now() }));
+        }
+      } catch {}
+      setProjects(rows);
+    })();
+  }, [uid]);
+
+  const createProject = async (name: string) => {
     const trimmed = name.trim();
     if (!trimmed) return;
-    if (getProjs().some(p => p.name === trimmed)) { alert(`"${trimmed}" 이름이 이미 있습니다.`); return; }
+    if (projects.some(p => p.name === trimmed)) { alert(`"${trimmed}" 이름이 이미 있습니다.`); return; }
 
     // 현재 진행 중인 작업이 있으면 자동 저장
     if (activeId && current && (current.stage > 1 || (current.clips && current.clips.length > 0))) {
-      const updated = getProjs().map(p => p.id === activeId
-        ? { ...p, savedAt: Date.now(), stage: current.stage, data: current } : p);
-      saveProjs(updated); setProjects(updated);
+      await supabase.from("projects").update({ stage: current.stage, data: current, saved_at: new Date().toISOString() }).eq("user_id", uid).eq("id", activeId);
+      setProjects(ps => ps.map(p => p.id === activeId ? { ...p, savedAt: Date.now(), stage: current.stage, data: current } : p));
     }
 
-    const id = `proj_${Date.now()}`;
+    const id = `proj_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
     const entry = { id, name: trimmed, savedAt: Date.now(), stage: 1, data: {} };
-    const ps = [entry, ...getProjs()];
-    saveProjs(ps); setProjects(ps); setActiveId(id);
-    localStorage.setItem("chronit_active_proj", id);
+    await supabase.from("projects").insert({ id, user_id: uid, name: trimmed, stage: 1, data: {}, saved_at: new Date().toISOString() });
+    setProjects(ps => [entry, ...ps]); setActiveId(id); persistActive(id);
     onReset(); // 화면은 초기화하되 이전 프로젝트는 저장됨
     setNewName(null);
   };
 
-  const saveProject = () => {
+  const saveProject = async () => {
     if (!activeId) { setNewName(""); return; }
-    const ps = getProjs().map(p => p.id === activeId
-      ? { ...p, savedAt: Date.now(), stage: current.stage, data: current } : p);
-    saveProjs(ps); setProjects(ps);
+    await supabase.from("projects").update({ stage: current.stage, data: current, saved_at: new Date().toISOString() }).eq("user_id", uid).eq("id", activeId);
+    setProjects(ps => ps.map(p => p.id === activeId ? { ...p, savedAt: Date.now(), stage: current.stage, data: current } : p));
   };
 
   const loadProject = (p: any) => {
     onLoad(p.data || {});
     setActiveId(p.id);
-    localStorage.setItem("chronit_active_proj", p.id);
+    persistActive(p.id);
   };
 
-  const delProject = (id: string, e: React.MouseEvent) => {
+  const delProject = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const ps = getProjs().filter(p => p.id !== id);
-    saveProjs(ps); setProjects(ps);
-    if (activeId === id) { setActiveId(null); localStorage.removeItem("chronit_active_proj"); }
+    await supabase.from("projects").delete().eq("user_id", uid).eq("id", id);
+    setProjects(ps => ps.filter(p => p.id !== id));
+    if (activeId === id) { setActiveId(null); persistActive(null); }
   };
 
-  const renameProject = (id: string, name: string) => {
-    const ps = getProjs().map(p => p.id === id ? { ...p, name: name.trim() || p.name } : p);
-    saveProjs(ps); setProjects(ps); setEditingId(null);
+  const renameProject = async (id: string, name: string) => {
+    const nm = name.trim();
+    if (nm) {
+      await supabase.from("projects").update({ name: nm }).eq("user_id", uid).eq("id", id);
+      setProjects(ps => ps.map(p => p.id === id ? { ...p, name: nm } : p));
+    }
+    setEditingId(null);
   };
 
   if (activeView === "generator") return (
