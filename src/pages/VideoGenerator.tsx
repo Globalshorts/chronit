@@ -130,6 +130,7 @@ export default function VideoGenerator() {
   const [userPlan, setUserPlan]     = useState<string | null>(null);
   const [userRole, setUserRole]     = useState<string>("user");
   const [activeView, setActiveView] = useState("generator");
+  const [showTips, setShowTips] = useState(false);
 
   // auth
   useEffect(() => {
@@ -609,6 +610,44 @@ export default function VideoGenerator() {
 
   return (
     <div className="flex min-h-screen bg-gray-950 text-white">
+      {/* ── 영상 선택 팁 모달 ── */}
+      {showTips && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+          onClick={() => setShowTips(false)}>
+          <div className="rounded-2xl bg-gray-900 border border-amber-400/40 shadow-2xl w-full max-w-md p-6 space-y-4"
+            onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-black text-white">⭐ 좋은 결과를 위한 팁</h2>
+              <button onClick={() => setShowTips(false)} className="text-gray-500 hover:text-white text-xl">✕</button>
+            </div>
+            <p className="text-xs text-gray-400 -mt-1">관련 클립을 담을 때 참고하세요</p>
+            <ul className="space-y-2.5 text-sm text-gray-200">
+              {[
+                ["💬", "자막이 없거나 적은 영상 사용하기", "기존 자막이 우리 자막과 겹치지 않아요"],
+                ["📦", "영상을 최대한 많이 담기", "많을수록 편집·연출 선택지가 늘어나요"],
+                ["🎨", "분위기가 비슷한 영상들 담기", "톤이 일관돼 영상이 매끄러워요"],
+                ["🛍️", "같은 제품이 선명하게 보이는 영상", "제품이 또렷할수록 설득력이 높아요"],
+                ["🚫", "워터마크·로고·계정명이 적은 영상", "화면을 가리는 요소가 적어야 깔끔해요"],
+                ["📱", "세로(9:16) 영상 위주로 담기", "쇼츠/릴스 비율에 맞아 잘림이 적어요"],
+                ["🙌", "손으로 쓰는 사용 장면이 있는 영상", "실사용 컷이 신뢰감을 줘요"],
+                ["✨", "너무 어둡거나 흔들리는 영상은 피하기", "화질이 선명해야 완성도가 높아요"],
+              ].map(([emoji, title, desc], i) => (
+                <li key={i} className="flex gap-2.5">
+                  <span className="shrink-0">{emoji}</span>
+                  <div>
+                    <p className="font-bold text-white leading-snug">{title}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{desc}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <button onClick={() => setShowTips(false)}
+              className="w-full rounded-xl bg-amber-400/90 py-2.5 text-sm font-bold text-gray-900 hover:bg-amber-300 transition">
+              알겠어요
+            </button>
+          </div>
+        </div>
+      )}
       {/* ── 자동 생성 확인 모달 ── */}
       {showAutoModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
@@ -780,7 +819,13 @@ export default function VideoGenerator() {
           <div className="space-y-0">
 
           {/* ── STAGE 1 ── */}
-          <StagePanel n={1} title="영상 분석" subtitle="URL 입력 → 관련 TikTok 클립 검색 → 담기" current={stage}>
+          <StagePanel n={1} title="영상 분석" subtitle="URL 입력 → 관련 TikTok 클립 검색 → 담기" current={stage}
+            headerRight={
+              <button onClick={() => setShowTips(true)}
+                className="shrink-0 rounded-full border border-amber-400/60 bg-amber-400/10 px-3 py-1.5 text-xs font-bold text-amber-300 hover:bg-amber-400/20 transition flex items-center gap-1">
+                팁 ⭐
+              </button>
+            }>
             <div className="space-y-4">
               <div>
                 <label className="mb-2 block text-sm font-bold text-gray-300">쇼핑 릴스 / 쇼츠 URL</label>
@@ -2118,18 +2163,20 @@ function StageBar({ current, onSelect }: { current: number; onSelect: (n: number
 }
 
 // ── Stage Panel ───────────────────────────────────────────────
-function StagePanel({ n, title, subtitle, current, children }: {
+function StagePanel({ n, title, subtitle, current, children, headerRight }: {
   n: number; title: string; subtitle: string; current: number; children: React.ReactNode;
+  headerRight?: React.ReactNode;
 }) {
   if (n !== current) return null; // 현재 단계만 표시
   return (
     <div className="rounded-2xl border border-cyan-500/50 bg-gray-900 shadow-[0_0_20px_rgba(6,182,212,0.08)]">
       <div className="px-6 py-4 flex items-center gap-3">
         <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 bg-cyan-500/20 border-2 border-cyan-500 text-cyan-400">{n}</div>
-        <div>
+        <div className="flex-1 min-w-0">
           <p className="text-sm font-black text-white">{title}</p>
           <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>
         </div>
+        {headerRight}
       </div>
       <div className="px-6 pb-6 border-t border-gray-800">
         <div className="pt-4">{children}</div>
