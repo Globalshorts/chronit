@@ -12,6 +12,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabase";
 import type { Session } from "@supabase/supabase-js";
+import PaymentModal from "../components/PaymentModal";
 
 const SB = "https://oxygqtbdpnxxcgzwdlzi.supabase.co";
 const FN = (n: string) => `${SB}/functions/v1/${n}`;
@@ -836,19 +837,12 @@ export default function VideoGenerator() {
               </>
             )}
             {activeView === "settings" && (
-              <div className="max-w-md space-y-4">
-                <h2 className="text-xl font-black text-white mb-6">⚙️ 설정</h2>
-                <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 space-y-3">
-                  <div className="flex justify-between text-sm"><span className="text-gray-400">이메일</span><span className="text-white">{session?.user?.email}</span></div>
-                  {userPlan && <div className="flex justify-between text-sm"><span className="text-gray-400">플랜</span><span className="font-bold text-white capitalize">{userPlan}</span></div>}
-                  {balance !== null && <div className="flex justify-between text-sm"><span className="text-gray-400">크레딧</span><span className="font-black text-cyan-400">💎 {balance.toLocaleString()} CR</span></div>}
-                </div>
-              </div>
+              <SettingsView session={session} supabase={supabase} balance={balance} userPlan={userPlan} />
             )}
-            {activeView === "admin" && (
+            {activeView === "admin" && userRole === "super_admin" && (
               <AdminView session={session} supabase={supabase} />
             )}
-            {activeView === "partner" && (
+            {activeView === "partner" && (userRole === "partner" || userRole === "super_admin") && (
               <PartnerView session={session} supabase={supabase} />
             )}
           </div>
@@ -2643,6 +2637,107 @@ function HistoryView({ session }: { session: any }) {
 }
 
 // ── AdminView ─────────────────────────────────────────────────
+// ── SettingsView ──────────────────────────────────────────────
+function SettingsView({ session, supabase, balance, userPlan }:
+  { session: any; supabase: any; balance: number|null; userPlan: string|null }) {
+  const [info, setInfo]             = React.useState<any>(null);
+  const [code, setCode]             = React.useState("");
+  const [codeMsg, setCodeMsg]       = React.useState<{ok:boolean; text:string}|null>(null);
+  const [registering, setReg]       = React.useState(false);
+  const [showPay, setShowPay]       = React.useState(false);
+
+  React.useEffect(()=>{ if(!session) return; (async()=>{
+    try { const { data } = await supabase.rpc("get_my_balance_rpc").single(); setInfo(data); } catch {}
+  })(); }, [session]);
+
+  const email = session?.user?.email ?? "";
+  const plan  = info?.plan ?? userPlan ?? "free";
+  const maxC  = info?.max_credits ?? 0;
+  const bal   = info?.balance ?? balance ?? 0;
+  const pct   = maxC > 0 ? Math.max(0, Math.min(100, (bal / maxC) * 100)) : 0;
+  const nextBilling = info?.expires_at
+    ? new Date(info.expires_at).toLocaleDateString("ko-KR",{year:"numeric",month:"long",day:"numeric"})
+    : "-";
+  const planLabel = (p:string) =>
+    (({ starter:"스타터", pro:"프로", master:"마스터", enterprise:"엔터프라이즈", free:"무료" } as any)[p] ?? p);
+
+  const registerCode = async () => {
+    const c = code.trim(); if (!c) return;
+    setReg(true); setCodeMsg(null);
+    try {
+      const { data, error } = await supabase.rpc("redeem_teacher_code_rpc", { p_code: c });
+      if (error) setCodeMsg({ ok:false, text:"등록 실패: " + error.message });
+      else if (data?.ok) {
+        setCodeMsg({ ok:true, text: data.action==="already_mapped"
+          ? `이미 등록된 파트너입니다 (${data.teacher_email})`
+          : `파트너 등록 완료 (${data.teacher_email})` });
+        setCode("");
+      } else setCodeMsg({ ok:false, text: data?.error ?? "등록 실패" });
+    } catch(e){ setCodeMsg({ ok:false, text:String(e) }); }
+    finally { setReg(false); }
+  };
+
+  const Section = ({ title, children }:{ title:string; children:any }) => (
+    <div className="mb-5">
+      <p className="text-xs font-bold text-gray-500 mb-2">{title}</p>
+      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5">{children}</div>
+    </div>
+  );
+
+  return (
+    <div className="max-w-2xl">
+      <h2 className="text-xl font-black text-white mb-6">⚙️ 설정</h2>
+
+      <Section title="계정 정보">
+        <div className="flex items-center justify-between mb-4">
+          <div><p className="text-xs text-gray-500">이메일</p><p className="text-sm text-white mt-0.5">{email}</p></div>
+          <button onClick={()=>supabase.auth.signOut()}
+            className="rounded-xl border border-gray-700 px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition">로그아웃</button>
+        </div>
+        <div className="flex items-center justify-between">
+          <div><p className="text-xs text-gray-500">현재 요금제</p>
+            <p className="text-sm font-bold text-white mt-0.5">{planLabel(plan)} 요금제{plan!=="free" && " (구독 중)"}</p></div>
+          <button onClick={()=>setShowPay(true)}
+            className="rounded-xl border border-gray-700 px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition">구독 변경</button>
+        </div>
+      </Section>
+
+      <Section title="멤버십 크레딧">
+        <div className="flex items-baseline justify-between mb-2">
+          <span className="text-xs text-gray-500">남은 크레딧</span>
+          <span className="text-sm font-black text-cyan-400">{bal.toLocaleString()} CR / {maxC.toLocaleString()} CR</span>
+        </div>
+        <div className="h-2 rounded-full bg-gray-800 overflow-hidden mb-4">
+          <div className="h-full bg-cyan-500 transition-all" style={{ width:`${pct}%` }} />
+        </div>
+        <div className="flex justify-between text-sm"><span className="text-gray-500">다음 결제일</span><span className="text-white">{nextBilling}</span></div>
+      </Section>
+
+      <Section title="🎟 파트너 코드 등록">
+        <p className="text-xs text-gray-400 mb-3">파트너로부터 받은 코드를 입력하면 파트너가 회원님의 사용 현황(이메일·플랜·크레딧)을 조회할 수 있게 됩니다.</p>
+        <div className="flex gap-2">
+          <input value={code} onChange={e=>setCode(e.target.value)} placeholder="예: TEACHER_KIM"
+            onKeyDown={e=>{ if(e.key==="Enter") registerCode(); }}
+            className="flex-1 rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-500" />
+          <button onClick={registerCode} disabled={registering || !code.trim()}
+            className="rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-cyan-400 disabled:opacity-50 transition">{registering?"등록 중":"등록"}</button>
+        </div>
+        {codeMsg && <p className={`text-xs mt-2 ${codeMsg.ok?"text-green-400":"text-red-400"}`}>{codeMsg.text}</p>}
+      </Section>
+
+      <Section title="고객지원">
+        <div className="space-y-2">
+          <a href="/manual" className="block rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm text-white hover:border-cyan-500 transition">프로그램 사용 가이드 보기</a>
+          <a href="mailto:pv2066pv@gmail.com" className="block rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm text-white hover:border-cyan-500 transition">1:1 문의 (이메일)</a>
+          <a href="/terms" className="block rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm text-white hover:border-cyan-500 transition">이용약관 및 환불 규정 보기</a>
+        </div>
+      </Section>
+
+      {showPay && <PaymentModal open={showPay} onClose={()=>setShowPay(false)} defaultPlan={plan==="free"?"pro":plan} />}
+    </div>
+  );
+}
+
 function AdminView({ session, supabase }: { session: any; supabase: any }) {
   const [users, setUsers] = React.useState<any[]>([]);
   React.useEffect(()=>{ if(!session) return; (async()=>{ try{const{data}=await supabase.from("subscriptions").select("user_id,plan,role").order("created_at",{ascending:false}).limit(50);setUsers(data??[]);}catch{}})(); },[session]);
