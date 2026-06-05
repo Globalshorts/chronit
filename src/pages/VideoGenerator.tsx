@@ -2667,17 +2667,126 @@ function AdminView({ session, supabase }: { session: any; supabase: any }) {
 
 // ── PartnerView ───────────────────────────────────────────────
 function PartnerView({ session, supabase }: { session: any; supabase: any }) {
-  const [code, setCode] = React.useState(""); const [copied, setCopied] = React.useState(false);
-  React.useEffect(()=>{ if(!session) return; (async()=>{ try{const r=await supabase.rpc("get_referral_info_rpc",{p_user_id:session.user.id});if(r.data?.referral_code)setCode(r.data.referral_code);}catch{}})(); },[session]);
-  const link=`https://chronit.vercel.app?ref=${code}`;
-  const copy=()=>{navigator.clipboard.writeText(link);setCopied(true);setTimeout(()=>setCopied(false),1500);};
+  const [members, setMembers] = React.useState<any[]>([]);
+  const [codes, setCodes]     = React.useState<string[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [q, setQ]             = React.useState("");
+  const [copied, setCopied]   = React.useState("");
+
+  React.useEffect(() => {
+    if (!session) return;
+    (async () => {
+      setLoading(true);
+      try {
+        const { data } = await supabase.rpc("list_my_members_rpc");
+        setMembers(Array.isArray(data) ? data : []);
+      } catch { setMembers([]); }
+      try {
+        const email = session.user?.email ?? "";
+        if (email) {
+          const { data: cc } = await supabase.from("coupon_codes").select("code").eq("owner_email", email);
+          setCodes((cc ?? []).map((x:any)=>x.code).filter(Boolean));
+        }
+      } catch { setCodes([]); }
+      setLoading(false);
+    })();
+  }, [session]);
+
+  const now = new Date();
+  const isThisMonth = (d:string) => { if(!d) return false; const t=new Date(d); return t.getFullYear()===now.getFullYear() && t.getMonth()===now.getMonth(); };
+  const paid         = members.filter(m => m.plan && m.plan !== "free");
+  const newThisMonth = members.filter(m => isThisMonth(m.created_at));
+  const totalUsed    = members.reduce((s,m)=> s + (m.credits_used||0), 0);
+
+  const filtered = q.trim()
+    ? members.filter(m => (m.email||"").toLowerCase().includes(q.trim().toLowerCase()))
+    : members;
+
+  const copy = (text:string) => { navigator.clipboard.writeText(text); setCopied(text); setTimeout(()=>setCopied(""),1500); };
+  const fmtDate = (d:string) => d ? new Date(d).toLocaleDateString("ko-KR",{year:"2-digit",month:"2-digit",day:"2-digit"}) : "-";
+
+  const Stat = ({label, value, accent}:{label:string; value:any; accent?:string}) => (
+    <div className="rounded-2xl bg-gray-900 border border-gray-800 p-4">
+      <p className="text-xs text-gray-500">{label}</p>
+      <p className={`text-2xl font-black mt-1 ${accent||"text-white"}`}>{value}</p>
+    </div>
+  );
+
   return (
-    <div>
-      <h2 className="text-xl font-black text-white mb-5">📊 파트너스</h2>
-      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 space-y-3 max-w-lg">
-        <p className="text-sm font-bold text-white">추천 링크</p>
-        <div className="flex gap-3"><input readOnly value={link} className="flex-1 rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm text-cyan-400 outline-none" /><button onClick={copy} className="rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-bold text-white hover:bg-cyan-400 transition">{copied?"✓ 복사됨":"복사"}</button></div>
-        <p className="text-xs text-gray-400">지인이 추천 링크로 가입하면 양쪽 모두 500 CR 지급</p>
+    <div className="max-w-4xl">
+      <h2 className="text-xl font-black text-white mb-1">📊 파트너스</h2>
+      <p className="text-sm text-gray-400 mb-6">내 코드로 가입한 회원을 관리합니다.</p>
+
+      {/* 요약 통계 */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <Stat label="총 회원"        value={members.length} accent="text-cyan-400" />
+        <Stat label="유료 회원"      value={paid.length} />
+        <Stat label="이번 달 신규"   value={newThisMonth.length} />
+        <Stat label="총 사용 크레딧" value={totalUsed.toLocaleString()} />
+      </div>
+
+      {/* 내 쿠폰 코드 */}
+      {codes.length > 0 && (
+        <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 mb-6">
+          <p className="text-sm font-bold text-white mb-3">내 쿠폰 코드</p>
+          <div className="flex flex-wrap gap-2">
+            {codes.map(c => {
+              const cnt = members.filter(m => m.code === c).length;
+              return (
+                <button key={c} onClick={()=>copy(c)}
+                  className="group flex items-center gap-2 rounded-xl bg-gray-800 border border-gray-700 px-3 py-2 text-sm hover:border-cyan-500 transition">
+                  <span className="font-mono font-bold text-cyan-400">{c}</span>
+                  <span className="text-xs text-gray-500">{cnt}명</span>
+                  <span className="text-xs text-gray-500 group-hover:text-cyan-400">{copied===c?"✓ 복사됨":"복사"}</span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-gray-500 mt-3">회원이 가입·결제 시 이 코드를 입력하면 내 회원으로 등록됩니다.</p>
+        </div>
+      )}
+
+      {/* 회원 검색 */}
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <input value={q} onChange={e=>setQ(e.target.value)} placeholder="이메일 검색"
+          className="flex-1 max-w-xs rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-500" />
+        <span className="text-xs text-gray-500">{filtered.length}명</span>
+      </div>
+
+      {/* 회원 테이블 */}
+      <div className="rounded-2xl bg-gray-900 border border-gray-800 overflow-hidden">
+        {loading ? (
+          <div className="py-12 text-center text-gray-500 text-sm">불러오는 중...</div>
+        ) : filtered.length === 0 ? (
+          <div className="py-12 text-center text-gray-500 text-sm">{members.length===0 ? "아직 가입한 회원이 없습니다." : "검색 결과가 없습니다."}</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="border-b border-gray-800 text-gray-400">
+                <tr>
+                  <th className="px-4 py-3 text-left font-semibold">이메일</th>
+                  <th className="px-4 py-3 text-left font-semibold">플랜</th>
+                  <th className="px-4 py-3 text-right font-semibold">사용 / 잔여</th>
+                  <th className="px-4 py-3 text-left font-semibold">가입일</th>
+                  <th className="px-4 py-3 text-left font-semibold">만료일</th>
+                  <th className="px-4 py-3 text-left font-semibold">코드</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((m,i)=>(
+                  <tr key={i} className="border-b border-gray-800/50 hover:bg-gray-800/30">
+                    <td className="px-4 py-3 text-white truncate max-w-[180px]">{m.email||"-"}</td>
+                    <td className="px-4 py-3"><span className={`capitalize font-semibold ${m.plan&&m.plan!=="free"?"text-cyan-400":"text-gray-500"}`}>{m.plan||"free"}</span></td>
+                    <td className="px-4 py-3 text-right text-gray-300"><span className="text-gray-500">{(m.credits_used||0).toLocaleString()}</span> / <span className="text-white font-semibold">{(m.credits_left||0).toLocaleString()}</span></td>
+                    <td className="px-4 py-3 text-gray-400">{fmtDate(m.created_at)}</td>
+                    <td className="px-4 py-3 text-gray-400">{fmtDate(m.expires_at)}</td>
+                    <td className="px-4 py-3"><span className="font-mono text-gray-500">{m.code||"-"}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
