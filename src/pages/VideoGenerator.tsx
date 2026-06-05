@@ -2656,20 +2656,46 @@ function HistoryView({ session }: { session: any }) {
   },[session]);
   if(loading) return <div className="text-gray-500 text-center py-10">불러오는 중...</div>;
   if(!jobs.length) return <div className="text-gray-500 text-center py-10">생성 내역이 없습니다</div>;
+  const dlUrl = (j:any) => j.video_url
+    ? j.video_url + (j.video_url.includes("?")?"&":"?") + "download=" + encodeURIComponent((j.product_name||"chronit")+".mp4")
+    : "";
   return (
-    <div className="space-y-3">
-      {jobs.map(j=>(
-        <div key={j.id} className="rounded-2xl bg-gray-900 border border-gray-800 p-4 flex items-center justify-between gap-4">
-          <div className="min-w-0"><p className="font-bold text-white truncate">{j.product_name||j.id?.slice(0,12)}</p><p className="text-xs text-gray-500">{new Date(j.created_at).toLocaleString("ko")}</p></div>
-          <div className="flex items-center gap-3 shrink-0">
-            <span className={`text-sm font-bold ${j.status==="done"?"text-green-400":j.status==="processing"?"text-cyan-400 animate-pulse":j.status==="error"?"text-red-400":"text-gray-400"}`}>
-              {j.status==="done"?"✅ 완료":j.status==="processing"?"⏳ 생성 중":j.status==="error"?"❌ 실패":"⏳ 대기"}
-            </span>
-            {j.status==="done"&&j.video_url&&<a href={j.video_url} target="_blank" rel="noopener" className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-400 transition">⬇ 다운로드</a>}
-            {j.status==="done"&&!j.video_url&&j.expired&&<span className="text-xs text-gray-500">⌛ 보관 만료(7일)</span>}
+    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+      {jobs.map(j=>{
+        const done = j.status==="done" && j.video_url && !j.expired;
+        return (
+          <div key={j.id} className="rounded-2xl bg-gray-900 border border-gray-800 overflow-hidden flex flex-col">
+            <div className="relative aspect-[9/16] bg-black">
+              {done ? (
+                <video src={j.video_url + "#t=0.1"} preload="metadata" playsInline controls
+                  className="w-full h-full object-contain bg-black" />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center px-2 text-center">
+                  <span className={`text-sm font-bold ${j.status==="processing"?"text-cyan-400 animate-pulse":j.status==="error"?"text-red-400":"text-gray-500"}`}>
+                    {j.status==="processing"?"⏳ 생성 중":j.status==="error"?"❌ 실패":j.expired?"⌛ 보관 만료":"⏳ 대기"}
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="p-3 flex flex-col gap-2 flex-1">
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-white truncate">{j.product_name || "제목 없음"}</p>
+                <p className="text-[11px] text-gray-500">{new Date(j.created_at).toLocaleDateString("ko")}</p>
+              </div>
+              {done ? (
+                <a href={dlUrl(j)} download
+                  className="mt-auto block text-center rounded-xl bg-cyan-500 px-3 py-2.5 text-sm font-bold text-white hover:bg-cyan-400 active:bg-cyan-600 transition">
+                  ⬇ 다운로드
+                </a>
+              ) : (
+                <span className="mt-auto block text-center rounded-xl bg-gray-800 px-3 py-2.5 text-xs text-gray-500">
+                  {j.status==="error"?"실패":j.expired?"보관 만료(7일)":"생성 중"}
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
