@@ -2842,7 +2842,7 @@ function ProductSearchView({ session, supabase }: { session:any; supabase:any })
       while (Date.now()-start < 300000) {
         await new Promise(r=>setTimeout(r,4000));
         const p = await post({ poll:true, prediction_id: pid });
-        if (p.status==="succeeded") { setKw({ product_name:p.product_name, use_case:p.use_case, queries:p.queries||[] }); setKwMsg(""); break; }
+        if (p.status==="succeeded") { setKw({ product_name:p.product_name, use_case:p.use_case, queries:p.queries||[], keywords:p.keywords||[] }); setKwMsg(""); break; }
         if (p.status==="failed"||p.status==="canceled") { setKwMsg("추출 실패: "+(p.error??"")); break; }
       }
     } catch(e){ setKwMsg("추출 실패: "+String(e)); }
@@ -2884,10 +2884,10 @@ function ProductSearchView({ session, supabase }: { session:any; supabase:any })
         {kwMsg && <p className="text-xs text-gray-400 mt-3">{extracting && "⏳ "}{kwMsg}</p>}
         {kw && (
           <div className="mt-4">
-            <p className="text-xs text-gray-500 mb-2">추출된 검색어 (클릭 시 쿠팡 검색 열기)</p>
+            <p className="text-xs text-gray-500 mb-2">추출된 한국어 검색어 (클릭 시 쿠팡 파트너스 링크 생성 화면 열기)</p>
             <div className="flex flex-wrap gap-2">
-              {[kw.product_name, kw.use_case, ...(kw.queries||[])].filter(Boolean).map((k:string,i:number)=>(
-                <a key={i} href={`https://www.coupang.com/np/search?q=${encodeURIComponent(k)}`} target="_blank" rel="noreferrer"
+              {((kw.keywords?.length ? kw.keywords : [kw.product_name, ...(kw.queries||[])]).filter(Boolean) as string[]).map((k:string,i:number)=>(
+                <a key={i} href={`https://partners.coupang.com/#affiliate/ws/link/0/${k.trim().replace(/\s+/g,"%20")}`} target="_blank" rel="noreferrer"
                   className="rounded-lg bg-gray-800 border border-gray-700 px-3 py-1.5 text-sm text-cyan-300 hover:border-cyan-500 transition">{k}</a>
               ))}
             </div>
