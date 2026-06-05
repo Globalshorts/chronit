@@ -3,13 +3,10 @@ import { Link, useParams, useLocation } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { ManualHeader, ManualFooter, Markdown, Lightbox, parseFaq } from '../components/ManualLayout'
 
-import installMd    from '../content/install.md?raw'
 import usageMd      from '../content/usage.md?raw'
 import automationMd from '../content/automation.md?raw'
 import tipsMd       from '../content/tips.md?raw'
 import faqMd        from '../content/faq.md?raw'
-
-const startMd = installMd + '\n\n---\n\n' + usageMd
 
 /* ── tips.md 파서 ── */
 function parseTips(md) {
@@ -70,13 +67,53 @@ const TipsCards = ({ md }) => {
   )
 }
 
+/* ── 시작하기 STEP 카드 ── */
+const fmtInline = (s) => s
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/\*\*(.+?)\*\*/g, '<strong class="font-black text-[#03C75A]">$1</strong>')
+
+const StartSteps = ({ md }) => {
+  const steps = useMemo(() => parseTips(md), [md])
+  return (
+    <div className="space-y-4 md:space-y-5">
+      {steps.map((step, i) => {
+        const num = String(i + 1).padStart(2, '0')
+        const title = step.title.replace(/^STEP\s*\d+\s*[·.]\s*/i, '')
+        const bullets = step.body.split('\n').map(l => l.trim()).filter(l => l.startsWith('-')).map(l => l.replace(/^-\s*/, ''))
+        return (
+          <div key={i} className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm md:p-7">
+            <div className="flex items-start gap-4 md:gap-5">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#03C75A] text-lg font-black text-white shadow-md shadow-[#03C75A]/30 md:h-14 md:w-14 md:text-xl">{num}</div>
+              <div className="min-w-0 flex-1 pt-1">
+                <h3 className="mb-4 text-lg font-black leading-snug text-gray-900 md:text-xl">{title}</h3>
+                <ul className="space-y-3">
+                  {bullets.map((b, j) => (
+                    <li key={j} className="flex items-start gap-3 text-base leading-relaxed text-gray-700 md:text-lg">
+                      <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#03C75A]/15 text-[11px] font-black text-[#03C75A]">✓</span>
+                      <span className="[overflow-wrap:anywhere]" dangerouslySetInnerHTML={{ __html: fmtInline(b) }} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )
+      })}
+      <div className="rounded-3xl border border-[#03C75A]/30 bg-[#03C75A]/5 p-5 text-center md:p-6">
+        <p className="text-base font-black text-gray-900 md:text-lg">🎉 이게 전부예요! 딱 5단계면 충분해요.</p>
+        <p className="mt-1.5 text-sm text-gray-500 md:text-base">한 번만 설정해두면, 다음부터는 링크만 붙여넣으면 끝이에요.</p>
+      </div>
+    </div>
+  )
+}
+
 const SECTIONS = {
   start: {
     emoji: '🚀',
     title: '크로닛 시작하기',
-    callout: '아래 순서를 그대로 따라와주세요.',
-    type: 'markdown',
-    content: startMd,
+    callout: '설치 없이 웹에서 바로! [무료로 시작하기] → 구글 로그인 후, 아래 5단계만 따라오면 끝이에요.',
+    type: 'steps',
+    content: usageMd,
   },
   features: {
     emoji: '⚙️',
@@ -178,6 +215,10 @@ const ManualDetail = () => {
 
           {data.type === 'markdown' && (
             <Markdown onImageClick={setLightbox}>{data.content}</Markdown>
+          )}
+
+          {data.type === 'steps' && (
+            <StartSteps md={data.content} />
           )}
 
           {data.type === 'tips' && (
