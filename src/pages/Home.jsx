@@ -395,6 +395,10 @@ const Home = () => {
                 className="group flex items-center justify-center gap-2 rounded-2xl bg-[#03C75A] px-10 py-5 text-xl font-extrabold text-white shadow-lg shadow-[#03C75A]/30 transition-all hover:bg-[#02b350] active:scale-95">
                 무료로 시작하기 <ArrowRight size={22} className="transition-transform group-hover:translate-x-1" />
               </button>
+              <Link to="/manual"
+                className="flex items-center justify-center gap-2 rounded-2xl border-2 border-gray-300 bg-white px-8 py-5 text-xl font-extrabold text-gray-700 transition-all hover:border-[#03C75A] hover:text-[#03C75A] active:scale-95">
+                사용 방법 보기
+              </Link>
             </div>
             <p className="mt-4 text-sm font-medium text-gray-500">
               <span className="font-black text-[#03C75A]">설치 없이</span> 웹에서 바로 시작 · 구글 로그인이면 끝
