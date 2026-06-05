@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { X, Copy, Check, CreditCard, MessageCircle, Tag, Loader2 } from 'lucide-react'
+import { X, Copy, Check, CreditCard, MessageCircle, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 // 정가(취소선 표시) — 상시 할인 프레이밍용
@@ -26,15 +26,12 @@ const PLAN_META = {
 // 쿠폰에서 특정 플랜의 할인 설정을 해석
 const resolveDiscount = (coupon, planKey) => {
   if (!coupon) return null
-  // 플랜별 설정이 있으면 그것만 사용 (해당 플랜 키가 없으면 적용 안 됨)
   if (coupon.plan_discounts && typeof coupon.plan_discounts === 'object') {
     return coupon.plan_discounts[planKey] || null
   }
-  // allowed_plans 제한이 있으면 확인
   if (Array.isArray(coupon.allowed_plans) && coupon.allowed_plans.length && !coupon.allowed_plans.includes(planKey)) {
     return null
   }
-  // 레거시: 전역 type/value
   if (coupon.type && coupon.type !== 'none') return { type: coupon.type, value: coupon.value }
   return null
 }
@@ -45,19 +42,17 @@ const calcPrice = (original, coupon, planKey) => {
   if (d.type === 'percent') return Math.floor(original * (1 - d.value / 100))
   if (d.type === 'fixed') return Math.max(0, original - d.value)
   if (d.type === 'free') return 0
-  return original // free_days 등은 가격 변동 없음
+  return original
 }
 
 const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }) => {
   const [selectedPlan, setSelectedPlan] = useState(defaultPlan)
   const [copied, setCopied] = useState(null)
 
-  // 할인 코드
   const [codeInput, setCodeInput] = useState(initialCode || '')
   const [discount, setDiscount] = useState(null)
   const [codeStatus, setCodeStatus] = useState(null) // null | 'loading' | 'valid' | 'invalid' | 'expired'
 
-  // initialCode가 바뀌면 자동 적용 시도
   useEffect(() => {
     if (initialCode) {
       setCodeInput(initialCode)
@@ -76,16 +71,8 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
       .eq('code', trimmed)
       .single()
 
-    if (error || !data) {
-      setCodeStatus('invalid')
-      setDiscount(null)
-      return
-    }
-    if (data.expires_at && new Date(data.expires_at) < new Date()) {
-      setCodeStatus('expired')
-      setDiscount(null)
-      return
-    }
+    if (error || !data) { setCodeStatus('invalid'); setDiscount(null); return }
+    if (data.expires_at && new Date(data.expires_at) < new Date()) { setCodeStatus('expired'); setDiscount(null); return }
     setDiscount(data)
     setCodeStatus('valid')
   }
@@ -107,9 +94,9 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
   const buildPlan = (key) => ({
     name: PLAN_META[key].name,
     badge: PLAN_META[key].badge,
-    list: LIST_PRICES[key],          // 정가(취소선)
-    sale: SALE_PRICES[key],          // 상시 판매가
-    price: calcPrice(SALE_PRICES[key], discount, key), // 쿠폰(플랜별) 적용 최종가
+    list: LIST_PRICES[key],
+    sale: SALE_PRICES[key],
+    price: calcPrice(SALE_PRICES[key], discount, key),
   })
   const plans = {
     starter: buildPlan('starter'),
@@ -130,8 +117,8 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
   const plan = plans[selectedPlan]
   const isFreedays = discount?.type === 'free_days'
   const planDiscount = resolveDiscount(discount, selectedPlan)
-  const hasDiscount = discount && !isFreedays && plan.price < plan.sale  // 쿠폰 추가할인 여부
-  const notApplicable = discount && !isFreedays && !planDiscount        // 코드는 유효하나 이 플랜엔 미적용
+  const hasDiscount = discount && !isFreedays && plan.price < plan.sale
+  const notApplicable = discount && !isFreedays && !planDiscount
 
   const discountLabel = () => {
     const d = isFreedays ? { type: 'free_days', value: discount.value } : planDiscount
@@ -144,29 +131,29 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/70 px-4 py-4 backdrop-blur-sm sm:items-center sm:py-8"
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 px-4 py-4 backdrop-blur-sm sm:items-center sm:py-8"
       onClick={onClose}
     >
       <div
-        className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-white/10 bg-gradient-to-b from-[#0a0f1f] to-[#020617] p-6 shadow-2xl md:p-8"
+        className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl md:p-8"
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition-all hover:bg-white/5 hover:text-white"
+          className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-full text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600"
           onClick={onClose}
         >
           <X size={20} />
         </button>
 
         <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/15 text-blue-400">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#03C75A]/10 text-[#03C75A]">
             <CreditCard size={22} />
           </div>
           <div>
-            <h3 className="text-xl font-black tracking-tight text-white md:text-2xl">
+            <h3 className="text-xl font-black tracking-tight text-gray-900 md:text-2xl">
               {isFreedays ? '무료 체험 신청' : '결제 신청'}
             </h3>
-            <p className="text-sm font-medium text-slate-400 md:text-base">
+            <p className="text-sm font-medium text-gray-500 md:text-base">
               {isFreedays ? `${discount.value}일 무료 체험이 적용됩니다` : '계좌이체로 결제 후 활성화됩니다'}
             </p>
           </div>
@@ -174,7 +161,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
 
         {/* 할인 코드 입력 */}
         <div className="mb-6">
-          <p className="mb-2 text-sm font-bold tracking-widest text-slate-400 uppercase">할인 코드</p>
+          <p className="mb-2 text-sm font-bold tracking-widest text-gray-500 uppercase">할인 코드</p>
           <div className="flex gap-2">
             <input
               type="text"
@@ -182,37 +169,36 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
               onChange={(e) => { setCodeInput(e.target.value.toUpperCase()); setCodeStatus(null); setDiscount(null) }}
               onKeyDown={(e) => e.key === 'Enter' && applyCode()}
               placeholder="코드 입력 (선택)"
-              className="flex-1 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-bold text-white placeholder-slate-600 outline-none transition-all focus:border-blue-500/50 focus:bg-white/[0.07]"
+              className="flex-1 rounded-2xl border border-gray-200 bg-gray-100 px-4 py-2.5 text-sm font-bold text-gray-900 placeholder-gray-400 outline-none transition-all focus:border-[#03C75A] focus:bg-white"
             />
             <button
               onClick={() => applyCode()}
               disabled={codeStatus === 'loading' || !codeInput.trim()}
-              className="flex items-center gap-1.5 rounded-2xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-blue-500 disabled:opacity-40 active:scale-95"
+              className="flex items-center gap-1.5 rounded-2xl bg-[#03C75A] px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#02b350] disabled:opacity-40 active:scale-95"
             >
               {codeStatus === 'loading' ? <Loader2 size={14} className="animate-spin" /> : '적용'}
             </button>
           </div>
 
-          {/* 코드 상태 메시지 */}
           {codeStatus === 'valid' && discount && !notApplicable && (
-            <div className="mt-2 flex items-center gap-2 text-sm font-bold text-green-400">
+            <div className="mt-2 flex items-center gap-2 text-sm font-bold text-[#03C75A]">
               <Check size={14} /> {discountLabel()} 적용됨
             </div>
           )}
           {codeStatus === 'valid' && notApplicable && (
-            <p className="mt-2 text-sm font-bold text-amber-400">이 코드는 선택한 플랜에는 적용되지 않아요.</p>
+            <p className="mt-2 text-sm font-bold text-amber-600">이 코드는 선택한 플랜에는 적용되지 않아요.</p>
           )}
           {codeStatus === 'invalid' && (
-            <p className="mt-2 text-sm font-bold text-red-400">유효하지 않은 코드입니다.</p>
+            <p className="mt-2 text-sm font-bold text-red-500">유효하지 않은 코드입니다.</p>
           )}
           {codeStatus === 'expired' && (
-            <p className="mt-2 text-sm font-bold text-red-400">만료된 코드입니다.</p>
+            <p className="mt-2 text-sm font-bold text-red-500">만료된 코드입니다.</p>
           )}
         </div>
 
         {/* 플랜 선택 */}
         <div className="mb-6">
-          <p className="mb-3 text-sm font-bold tracking-widest text-slate-400 uppercase">요금제 선택</p>
+          <p className="mb-3 text-sm font-bold tracking-widest text-gray-500 uppercase">요금제 선택</p>
           <div className="grid grid-cols-3 gap-2">
             {['starter','pro','master'].map((key) => {
               const p = plans[key]
@@ -222,17 +208,17 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
                   onClick={() => setSelectedPlan(key)}
                   className={`rounded-2xl border px-3 py-3 text-center transition-all ${
                     selectedPlan === key
-                      ? 'border-blue-400 bg-blue-500/15 text-white shadow-[0_0_20px_-5px_rgba(59,130,246,0.5)]'
-                      : 'border-white/10 bg-white/[0.02] text-slate-400 hover:border-white/20 hover:text-white'
+                      ? 'border-[#03C75A] bg-[#03C75A]/10 text-gray-900 shadow-[0_0_20px_-8px_rgba(3,199,90,0.5)]'
+                      : 'border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300 hover:text-gray-900'
                   }`}
                 >
                   <div className="text-base font-bold">{p.name}</div>
                   {isFreedays ? (
-                    <div className="mt-1 text-sm font-medium text-blue-300">무료</div>
+                    <div className="mt-1 text-sm font-medium text-[#03C75A]">무료</div>
                   ) : (
                     <div className="mt-1 leading-tight">
-                      <div className="text-[11px] font-medium text-slate-500 line-through">{p.list.toLocaleString('ko-KR')}</div>
-                      <div className="text-sm font-bold text-blue-300">{p.price.toLocaleString('ko-KR')}원</div>
+                      <div className="text-[11px] font-medium text-gray-400 line-through">{p.list.toLocaleString('ko-KR')}</div>
+                      <div className="text-sm font-bold text-[#03C75A]">{p.price.toLocaleString('ko-KR')}원</div>
                     </div>
                   )}
                 </button>
@@ -246,20 +232,20 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
               onClick={() => setSelectedPlan('pkg6')}
               className={`mt-2 flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition-all ${
                 selectedPlan === 'pkg6'
-                  ? 'border-amber-400 bg-amber-400/10 shadow-[0_0_20px_-5px_rgba(251,191,36,0.5)]'
-                  : 'border-white/10 bg-white/[0.02] hover:border-amber-400/40'
+                  ? 'border-amber-400 bg-amber-50 shadow-[0_0_20px_-8px_rgba(251,191,36,0.5)]'
+                  : 'border-gray-200 bg-gray-50 hover:border-amber-400/50'
               }`}
             >
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-base font-bold text-white">프로 6개월</span>
-                  <span className="rounded-full bg-amber-400/20 px-2 py-0.5 text-[10px] font-black text-amber-300">안심 패키지</span>
+                  <span className="text-base font-bold text-gray-900">프로 6개월</span>
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-black text-amber-700">안심 패키지</span>
                 </div>
-                <div className="mt-0.5 text-xs text-slate-400">프로 요금제 6개월 유지 · 매월 크레딧 충전</div>
+                <div className="mt-0.5 text-xs text-gray-500">프로 요금제 6개월 유지 · 매월 크레딧 충전</div>
               </div>
               <div className="text-right leading-tight">
-                <div className="text-[11px] font-medium text-slate-500 line-through">{plans.pkg6.list.toLocaleString('ko-KR')}</div>
-                <div className="text-base font-black text-amber-300">{plans.pkg6.price.toLocaleString('ko-KR')}원</div>
+                <div className="text-[11px] font-medium text-gray-400 line-through">{plans.pkg6.list.toLocaleString('ko-KR')}</div>
+                <div className="text-base font-black text-amber-600">{plans.pkg6.price.toLocaleString('ko-KR')}원</div>
               </div>
             </button>
           )}
@@ -267,29 +253,28 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
 
         {/* free_days: 무료 체험 안내 */}
         {isFreedays ? (
-          <div className="mb-6 rounded-2xl border border-blue-500/20 bg-blue-500/[0.06] p-5">
-            <p className="mb-3 text-sm font-bold tracking-widest text-blue-300 uppercase">무료 체험 안내</p>
-            <div className="space-y-2 text-sm leading-relaxed text-slate-300 md:text-base">
-              <p>• 크로닛 앱에서 코드 <strong className="text-white">{discount.code}</strong>를 입력하세요.</p>
-              <p>• 로그인 후 <strong className="text-white">{discount.value}일간</strong> 무료로 이용 가능합니다.</p>
+          <div className="mb-6 rounded-2xl border border-[#03C75A]/20 bg-[#03C75A]/5 p-5">
+            <p className="mb-3 text-sm font-bold tracking-widest text-[#03C75A] uppercase">무료 체험 안내</p>
+            <div className="space-y-2 text-sm leading-relaxed text-gray-600 md:text-base">
+              <p>• 크로닛 앱에서 코드 <strong className="text-gray-900">{discount.code}</strong>를 입력하세요.</p>
+              <p>• 로그인 후 <strong className="text-gray-900">{discount.value}일간</strong> 무료로 이용 가능합니다.</p>
               <p>• 체험 종료 후 요금제를 선택해 계속 이용할 수 있습니다.</p>
             </div>
           </div>
         ) : (
-          /* 계좌이체 안내 */
-          <div className="mb-6 rounded-2xl border border-blue-500/20 bg-blue-500/[0.06] p-5">
-            <p className="mb-1 text-sm font-bold tracking-widest text-blue-300 uppercase">입금 금액</p>
+          <div className="mb-6 rounded-2xl border border-[#03C75A]/20 bg-[#03C75A]/5 p-5">
+            <p className="mb-1 text-sm font-bold tracking-widest text-[#03C75A] uppercase">입금 금액</p>
             <div className="mb-4 flex items-baseline gap-2 flex-wrap">
-              <span className="text-xl font-bold text-slate-500 line-through">
+              <span className="text-xl font-bold text-gray-400 line-through">
                 {plan.list.toLocaleString('ko-KR')}
               </span>
-              <span className="text-3xl font-black text-white md:text-4xl">
+              <span className="text-3xl font-black text-gray-900 md:text-4xl">
                 {plan.price.toLocaleString('ko-KR')}
               </span>
-              <span className="text-base font-bold text-slate-400">원</span>
-              <span className="rounded-full bg-blue-600/30 px-2 py-0.5 text-[10px] font-bold text-blue-200">{plan.name}</span>
+              <span className="text-base font-bold text-gray-500">원</span>
+              <span className="rounded-full bg-[#03C75A]/15 px-2 py-0.5 text-[10px] font-bold text-[#03C75A]">{plan.name}</span>
               {hasDiscount && (
-                <span className="rounded-full bg-green-500/20 px-2 py-0.5 text-[10px] font-bold text-green-300">+ {discountLabel()}</span>
+                <span className="rounded-full bg-[#03C75A]/15 px-2 py-0.5 text-[10px] font-bold text-[#03C75A]">+ {discountLabel()}</span>
               )}
             </div>
             <div className="space-y-2">
@@ -302,28 +287,28 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
 
         {/* 안내사항 */}
         {!isFreedays && (
-          <div className="mb-6 space-y-2 rounded-2xl border border-white/5 bg-white/[0.02] p-4 text-sm leading-relaxed text-slate-400 md:text-base">
-            <p>• <strong className="rounded bg-amber-400/15 px-1.5 py-0.5 font-black text-amber-300 ring-1 ring-amber-400/30">입금자명을 가입 이메일과</strong> 동일하게 적어주세요.</p>
-            <p>• 영업일 기준 <strong className="text-slate-200">1일 이내</strong> 요금제가 자동 활성화됩니다.</p>
+          <div className="mb-6 space-y-2 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm leading-relaxed text-gray-600 md:text-base">
+            <p>• <strong className="rounded bg-amber-100 px-1.5 py-0.5 font-black text-amber-700 ring-1 ring-amber-300">입금자명을 가입 이메일과</strong> 동일하게 적어주세요.</p>
+            <p>• 영업일 기준 <strong className="text-gray-800">1일 이내</strong> 요금제가 자동 활성화됩니다.</p>
             <p>• 활성화 후 크로닛 앱에서 동일 이메일로 로그인하시면 즉시 사용 가능합니다.</p>
           </div>
         )}
 
         {isFreedays ? (
-          <button onClick={onClose} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-10px_rgba(37,99,235,0.6)] transition-all hover:bg-blue-500 active:scale-[0.98]">
+          <button onClick={onClose} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#03C75A] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(3,199,90,0.6)] transition-all hover:bg-[#02b350] active:scale-[0.98]">
             확인
           </button>
         ) : (
           <button
             onClick={() => copyToClipboard(`${account.bank} ${account.number} ${account.holder} / ${plan.price.toLocaleString('ko-KR')}원 (${plan.name})`, 'all')}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-10px_rgba(37,99,235,0.6)] transition-all hover:bg-blue-500 active:scale-[0.98]"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#03C75A] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(3,199,90,0.6)] transition-all hover:bg-[#02b350] active:scale-[0.98]"
           >
             {copied === 'all' ? <><Check size={18} /> 입금 정보 복사됨</> : <><Copy size={18} /> 입금 정보 한 번에 복사</>}
           </button>
         )}
 
-        <p className="mt-4 flex items-center justify-center gap-2 text-sm text-slate-500 md:text-base">
-          <MessageCircle size={14} className="text-blue-500" />
+        <p className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-500 md:text-base">
+          <MessageCircle size={14} className="text-[#03C75A]" />
           문의는 추후 채널톡으로 안내 예정입니다
         </p>
       </div>
@@ -333,11 +318,11 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
 
 const Row = ({ label, value, copyKey, copied, onCopy }) => (
   <div className="flex items-center justify-between gap-3">
-    <span className="text-sm font-bold text-slate-500 md:text-base">{label}</span>
+    <span className="text-sm font-bold text-gray-500 md:text-base">{label}</span>
     <div className="flex items-center gap-2">
-      <span className="font-mono text-base font-bold text-white md:text-lg">{value}</span>
+      <span className="font-mono text-base font-bold text-gray-900 md:text-lg">{value}</span>
       {copyKey && (
-        <button onClick={onCopy} className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/5 text-slate-300 transition-all hover:bg-blue-600 hover:text-white">
+        <button onClick={onCopy} className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 text-gray-600 transition-all hover:bg-[#03C75A] hover:text-white">
           {copied ? <Check size={14} /> : <Copy size={14} />}
         </button>
       )}

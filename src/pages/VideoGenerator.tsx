@@ -1923,6 +1923,7 @@ function CreditMissionsModal({ open, onClose, session }: { open:boolean; onClose
   const [reviewMsg, setReviewMsg] = React.useState<{ok:boolean;text:string}|null>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
+  const [copiedCode, setCopiedCode] = React.useState(false);
 
   React.useEffect(()=>{ if(!open||!session) return; (async()=>{
     try { const { data } = await supabase.rpc("get_referral_info_rpc", { p_user_id: session.user.id }); setInfo(data); } catch {}
@@ -1935,6 +1936,7 @@ function CreditMissionsModal({ open, onClose, session }: { open:boolean; onClose
   const reviewStatus = info?.review_status ?? "none";
 
   const copyLink = async () => { if(!code) return; try { await navigator.clipboard.writeText(link); setCopied(true); setTimeout(()=>setCopied(false),1500);} catch {} };
+  const copyCode = async () => { if(!code) return; try { await navigator.clipboard.writeText(code); setCopiedCode(true); setTimeout(()=>setCopiedCode(false),1500);} catch {} };
   const shareKakao = async () => {
     if (!code) return;
     try {
@@ -1978,11 +1980,20 @@ function CreditMissionsModal({ open, onClose, session }: { open:boolean; onClose
 
         {/* 미션 A — 추천 */}
         <div className="rounded-2xl bg-gray-100/60 border border-gray-200 p-4 mb-3">
-          <span className="inline-block rounded-lg bg-blue-600 text-white text-xs font-bold px-2.5 py-1 mb-2">미션 A · +500 크레딧</span>
-          <p className="text-sm text-gray-700 mb-3">지인에게 내 추천 링크를 공유하세요. 지인이 가입하면 <b className="text-gray-900">양쪽 모두 500 크레딧</b>이 즉시 지급됩니다.</p>
+          <span className="inline-block rounded-lg bg-[#03C75A] text-white text-xs font-bold px-2.5 py-1 mb-2">미션 A · +500 크레딧</span>
+          <p className="text-sm text-gray-700 mb-3">지인에게 내 추천 코드/링크를 공유하세요. 지인이 가입하면 <b className="text-gray-900">양쪽 모두 500 크레딧</b>이 즉시 지급됩니다.</p>
+
+          {/* 내 추천 코드 (블로그·카페용) */}
+          <div className="flex items-center gap-2 mb-2 rounded-xl bg-white border border-[#03C75A]/40 px-3 py-2">
+            <span className="text-xs text-gray-500 shrink-0">내 추천 코드</span>
+            <span className="font-mono text-lg font-black tracking-[0.2em] text-[#03C75A]">{code || "생성 중..."}</span>
+            <button onClick={copyCode} disabled={!code} className="ml-auto shrink-0 rounded-lg bg-[#03C75A] hover:bg-[#02b350] disabled:opacity-40 px-3 py-1.5 text-xs font-bold text-white">{copiedCode?"✓ 복사됨":"코드 복사"}</button>
+          </div>
+          <p className="text-[11px] text-gray-500 mb-3">블로그·카페엔 코드만 적어도 돼요 — 예) "제 추천 코드는 <b className="text-gray-700">{code || "OOOO"}</b> 예요"</p>
+
           <div className="flex gap-2">
             <input readOnly value={link} className="flex-1 rounded-xl bg-white border border-gray-200 px-3 py-2 text-xs text-gray-700 outline-none truncate" />
-            <button onClick={copyLink} className="shrink-0 rounded-xl bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm font-bold text-white">{copied?"✓ 복사됨":"복사"}</button>
+            <button onClick={copyLink} className="shrink-0 rounded-xl bg-[#03C75A] hover:bg-[#02b350] px-4 py-2 text-sm font-bold text-white">{copied?"✓ 복사됨":"링크 복사"}</button>
             <button onClick={shareKakao} className="shrink-0 rounded-xl bg-[#FEE500] hover:brightness-95 px-3 py-2 text-sm font-bold text-[#3C1E1E]">💬 카톡</button>
           </div>
           <p className="text-xs text-gray-600 mt-2">현재 {invites}명 초대함</p>
