@@ -2431,6 +2431,43 @@ function StyleFinderView({ session, onImport }: { session: any; onImport: (id:st
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
   const [result, setResult] = React.useState<any>(null);
+  const ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NTU4NTYsImV4cCI6MjA5MjMzMTg1Nn0.G8ZtLSZf9rWRbKlrEUchEmFUEBdV4J2L1s_5rGEPZjY";
+  const PENDING_KEY = "chronit_pending_style";
+  const pollRef = React.useRef<any>(null);
+
+  const pollStyle = React.useCallback((id: string) => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    const tick = async () => {
+      try {
+        const r = await fetch(`https://oxygqtbdpnxxcgzwdlzi.supabase.co/rest/v1/style_profiles?id=eq.${id}&select=*`,
+          { headers: { Authorization: `Bearer ${session.access_token}`, apikey: ANON } });
+        const rows = await r.json();
+        const row = Array.isArray(rows) ? rows[0] : null;
+        if (!row) return;
+        if (row.status === "done") {
+          clearInterval(pollRef.current); pollRef.current = null;
+          localStorage.removeItem(PENDING_KEY);
+          const pj = typeof row.profile_json === "string" ? JSON.parse(row.profile_json || "{}") : (row.profile_json || {});
+          setResult({ id: row.id, label: row.label, source_channel: row.source_channel, ...pj });
+          setLoading(false);
+        } else if (row.status === "error") {
+          clearInterval(pollRef.current); pollRef.current = null;
+          localStorage.removeItem(PENDING_KEY);
+          setError(row.error || "분석 실패"); setLoading(false);
+        }
+      } catch { /* 네트워크 일시 오류는 다음 tick에서 재시도 */ }
+    };
+    pollRef.current = setInterval(tick, 3000);
+    tick();
+  }, [session]);
+
+  // 백그라운드 진행 중이던 작업 복원 (다른 탭 갔다 와도 / 새로고침 / 모바일 복귀)
+  React.useEffect(() => {
+    const pending = localStorage.getItem(PENDING_KEY);
+    if (pending && session) { setLoading(true); pollStyle(pending); }
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, [session, pollStyle]);
+
   const run = async () => {
     if (!url.trim() || !session) return;
     setLoading(true); setError(""); setResult(null);
@@ -2439,9 +2476,10 @@ function StyleFinderView({ session, onImport }: { session: any; onImport: (id:st
         method:"POST", headers:{Authorization:`Bearer ${session.access_token}`,"Content-Type":"application/json"},
         body:JSON.stringify({source_url:url.trim()})});
       const d = await r.json();
-      if (!d.ok) throw new Error(d.error ?? "분석 실패");
-      setResult(d.profile);
-    } catch(e) { setError(String(e)); } finally { setLoading(false); }
+      if (!d.ok || !d.profile_id) throw new Error(d.error ?? "분석 시작 실패");
+      localStorage.setItem(PENDING_KEY, d.profile_id);  // 백그라운드 안전: 닫아도 webhook이 완료
+      pollStyle(d.profile_id);
+    } catch(e) { setError(String(e)); setLoading(false); }
   };
   return (
     <div className="space-y-5">
@@ -2454,7 +2492,7 @@ function StyleFinderView({ session, onImport }: { session: any; onImport: (id:st
             {loading ? "분석 중..." : "분석 시작"}
           </button>
         </div>
-        {loading && <p className="text-xs text-cyan-400 animate-pulse">AI 분석 중 (1~2분)...</p>}
+        {loading && <p className="text-xs text-cyan-400 animate-pulse">AI 분석 중 (1~2분)... 다른 탭으로 이동하거나 앱을 닫아도 백그라운드에서 완료됩니다.</p>}
         {error && <p className="text-xs text-red-400">{error}</p>}
       </div>
       {result && (
