@@ -149,6 +149,7 @@ export default function VideoGenerator() {
   const [refCode, setRefCode] = useState("");
   const [refMsg, setRefMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [refLoading, setRefLoading] = useState(false);
+  const [refAlready, setRefAlready] = useState(false);  // 추천 코드가 이미 적용됨(링크 유입 등)
   const [modalCtaText, setModalCtaText]   = useState("");   // 자동화 진행 단계 메시지
   const [voiceSegments, setVoiceSegments] = useState<any[]>([]);  // 장면별 편집용
   const [freeRegen, setFreeRegen] = useState(3);  // Stage 3 무료 재생성 횟수
@@ -292,7 +293,20 @@ export default function VideoGenerator() {
     if (!session) return;
     try { if (localStorage.getItem("chronit_source_asked")) return; } catch {}
     supabase.rpc("get_signup_source_rpc").then((res: any) => {
-      if (!res?.data) setShowSourceSurvey(true);
+      if (!res?.data) {
+        setShowSourceSurvey(true);
+        // 추천 링크로 들어와 이미 적용됐는지 확인
+        supabase.rpc("has_referrer_rpc").then((r: any) => {
+          if (r?.data?.referred) setRefAlready(true);
+        }, () => {});
+        // 링크의 ref 코드를 입력칸 기본값으로 (자동 적용 안 된 경우 대비)
+        try {
+          const urlRef = new URLSearchParams(window.location.search).get("ref");
+          const stored = sessionStorage.getItem("chronit_ref");
+          const code = (urlRef || stored || "").toUpperCase();
+          if (code) setRefCode(code);
+        } catch {}
+      }
     }, () => {});
   }, [session]);
 
@@ -973,6 +987,16 @@ export default function VideoGenerator() {
                 <button disabled={sourceSaving} onClick={() => setSurveyPage(2)}
                   className="mt-3 w-full text-center text-xs text-gray-400 hover:text-gray-600">
                   건너뛰기
+                </button>
+              </>
+            ) : refAlready ? (
+              <>
+                <div className="mt-2 text-center text-4xl">🎉</div>
+                <p className="mt-2 text-center text-lg font-black text-gray-900">추천 코드가 적용됐어요!</p>
+                <p className="mt-1 text-center text-sm text-gray-500">추천 보너스 <b className="text-[#03C75A]">+500 CR</b>이 이미 지급됐어요.</p>
+                <button onClick={closeSurvey}
+                  className="mt-5 w-full rounded-xl bg-[#03C75A] px-4 py-3 text-sm font-black text-white transition hover:bg-[#02b350] active:scale-[0.98]">
+                  시작하기
                 </button>
               </>
             ) : (
