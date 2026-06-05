@@ -212,17 +212,29 @@ export default function VideoGenerator() {
     return () => clearTimeout(t);
   }, [session, voiceId, voiceSpeed, voiceVolume, subtitleStyle, thumbnailStyle]);
 
-  // 현재 job 완료 감지 → Stage 6 이동
+  // 현재 job 완료/실패 감지 → 알림 (단계와 무관하게)
   useEffect(() => {
     if (!currentJobId) return;
     const job = jobs.find(j => j.id === currentJobId);
-    if (job?.status === "done" && stage === 5) {
-      setStage(1); // 렌더링 완료 — 자동 생성 흐름이므로 1단계로 복귀
-      setCompletionAlert("영상 생성 완료! 아래에서 확인하세요.");
-      // 완성음 재생
+    if (!job) return;
+    if (job.status === "done") {
+      if (stage === 5) setStage(1); // 자동 생성 흐름이면 1단계로 복귀
+      setCompletionAlert("✅ 영상 생성 완료! 아래 생성 내역에서 확인하세요.");
       try { new Audio("https://www.soundjay.com/buttons/sounds/button-09a.mp3").play(); } catch {}
+      setCurrentJobId("");
+    } else if (job.status === "error") {
+      setCompletionAlert("❌ 영상 생성 실패: " + (job.error_message || "다시 시도해주세요."));
+      setCurrentJobId("");
     }
   }, [jobs, currentJobId, stage]);
+
+  // Realtime 보조 폴백: 진행 중 job이 있으면 12초마다 새로고침 (실시간 누락 대비)
+  useEffect(() => {
+    const inProgress = !!currentJobId || jobs.some(j => j.status === "pending" || j.status === "processing");
+    if (!session || !inProgress) return;
+    const iv = setInterval(() => { loadJobs(); loadBalance(); }, 12000);
+    return () => clearInterval(iv);
+  }, [session, jobs, currentJobId, loadJobs, loadBalance]);
 
 
   // ── 프로젝트 저장/복원 ────────────────────────────────────────
@@ -276,6 +288,22 @@ export default function VideoGenerator() {
       }
     } catch {}
   }, []);
+
+  // ★ 마운트 시 작업 자동 복원 (재접속/새로고침해도 이어짐) ★
+  useEffect(() => {
+    loadProject();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ★ 작업 상태 변경 시 자동 저장 (디바운스). 첫 렌더는 건너뛰어 빈 상태로 덮어쓰기 방지 ★
+  const _autosaveReady = useRef(false);
+  useEffect(() => {
+    if (!_autosaveReady.current) { _autosaveReady.current = true; return; }
+    const t = setTimeout(saveProject, 500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage, sourceUrl, clips, cart, script, scriptPredId, targetSeconds,
+      styleProfileId, subtitleStyle, thumbnailStyle, showThumbnail, voiceId, voiceSpeed]);
 
   // ── Stage 1: 검색 ────────────────────────────────────────
   const handleSearch = async () => {
@@ -733,13 +761,13 @@ export default function VideoGenerator() {
 
       {/* 완성 알림 팝업 */}
       {completionAlert && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 rounded-2xl bg-green-500 shadow-2xl shadow-green-500/40 px-6 py-4 flex items-center gap-3 text-white">
-          <span className="text-2xl">🎉</span>
+        <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 rounded-2xl shadow-2xl px-6 py-4 flex items-center gap-3 text-white ${completionAlert.startsWith("❌") ? "bg-red-500 shadow-red-500/40" : "bg-green-500 shadow-green-500/40"}`}>
+          <span className="text-2xl">{completionAlert.startsWith("❌") ? "⚠️" : "🎉"}</span>
           <div>
             <p className="font-black text-sm">{completionAlert}</p>
-            <p className="text-xs text-green-100 mt-0.5">6번 탭에서 다운로드하세요</p>
+            {!completionAlert.startsWith("❌") && <p className="text-xs text-green-100 mt-0.5">생성 내역 탭에서 다운로드하세요</p>}
           </div>
-          <button onClick={() => setCompletionAlert(null)} className="ml-4 text-green-200 hover:text-white text-lg">✕</button>
+          <button onClick={() => setCompletionAlert(null)} className="ml-4 text-white/70 hover:text-white text-lg">✕</button>
         </div>
       )}
       {/* ── 왼쪽 사이드바 ── */}
