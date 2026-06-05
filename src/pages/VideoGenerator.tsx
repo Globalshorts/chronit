@@ -131,9 +131,9 @@ export default function VideoGenerator() {
   const subtitlePreset = "custom";
 
   // Stage 5
-  const [voiceId, setVoiceId]       = useState(() => localStorage.getItem("chronit_voice_id") || "nova");
-  const [voiceSpeed, setVoiceSpeed] = useState(() => Number(localStorage.getItem("chronit_voice_speed")) || 130);
-  const [voiceVolume, setVoiceVolume] = useState(() => Number(localStorage.getItem("chronit_voice_volume")) || 100);
+  const [voiceId, setVoiceId]       = useState(() => { try { return localStorage.getItem("chronit_voice_id") || "nova"; } catch { return "nova"; } });
+  const [voiceSpeed, setVoiceSpeed] = useState(() => { try { return Number(localStorage.getItem("chronit_voice_speed")) || 130; } catch { return 130; } });
+  const [voiceVolume, setVoiceVolume] = useState(() => { try { return Number(localStorage.getItem("chronit_voice_volume")) || 100; } catch { return 100; } });
   const [rendering, setRendering]   = useState(false);
   const [renderError, setRenderError] = useState("");
   const [voiceGenerated, setVoiceGenerated] = useState(false);  // Stage 5 음성 생성 완료
