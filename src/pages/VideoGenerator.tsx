@@ -275,8 +275,8 @@ export default function VideoGenerator() {
       : /windows/i.test(ua) ? "Windows" : /mac/i.test(ua) ? "Mac" : "기타";
     const br = /edg/i.test(ua) ? "Edge" : /chrome/i.test(ua) ? "Chrome"
       : /firefox/i.test(ua) ? "Firefox" : /safari/i.test(ua) ? "Safari" : "브라우저";
-    supabase.rpc("register_device_rpc", { p_device_id: did, p_device_name: `${br} · ${os} (웹)` }).catch(() => {});
-    const hb = setInterval(() => { supabase.rpc("heartbeat_device_rpc", { p_device_id: did }).catch(() => {}); }, 5 * 60 * 1000);
+    supabase.rpc("register_device_rpc", { p_device_id: did, p_device_name: `${br} · ${os} (웹)` }).then(undefined, () => {});
+    const hb = setInterval(() => { supabase.rpc("heartbeat_device_rpc", { p_device_id: did }).then(undefined, () => {}); }, 5 * 60 * 1000);
     return () => clearInterval(hb);
   }, [session]);
 
