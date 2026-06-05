@@ -25,6 +25,7 @@ type Job = {
   id: string; status: "pending"|"processing"|"done"|"error";
   product_url: string; video_url: string; error_message: string;
   created_at: string; credits_used: number;
+  expired?: boolean; product_name?: string;
 };
 type ScriptSegment = { text: string; duration_sec: number };
 
@@ -2282,6 +2283,9 @@ function JobCard({ job }: { job: Job }) {
         {job.status === "done" && job.video_url && (
           <a href={job.video_url} download className="shrink-0 rounded-xl bg-cyan-500 px-3 py-2 text-xs font-bold text-white hover:bg-cyan-400 transition">다운로드</a>
         )}
+        {job.status === "done" && !job.video_url && job.expired && (
+          <span className="shrink-0 text-xs text-gray-500">⌛ 보관 만료(7일)</span>
+        )}
         {(job.status === "pending" || job.status === "processing") && (
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent shrink-0" />
         )}
@@ -2466,6 +2470,7 @@ function HistoryView({ session }: { session: any }) {
               {j.status==="done"?"✅ 완료":j.status==="processing"?"⏳ 생성 중":j.status==="error"?"❌ 실패":"⏳ 대기"}
             </span>
             {j.status==="done"&&j.video_url&&<a href={j.video_url} target="_blank" rel="noopener" className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white hover:bg-cyan-400 transition">⬇ 다운로드</a>}
+            {j.status==="done"&&!j.video_url&&j.expired&&<span className="text-xs text-gray-500">⌛ 보관 만료(7일)</span>}
           </div>
         </div>
       ))}
