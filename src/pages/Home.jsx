@@ -397,16 +397,49 @@ const Home = () => {
             </p>
           </div>
 
-          {/* 우측: 친근한 미리보기 */}
+          {/* 우측: 서비스 실제 화면 (숫자 카운트업) */}
           <div className="relative flex justify-center">
-            <div className="relative w-full max-w-md rounded-[2rem] border border-gray-200 bg-white p-3 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.18)]">
-              <img src="/preview-default.jpg" alt="크로닛 화면 미리보기"
-                className="w-full rounded-[1.5rem] object-cover" />
-              <div className="absolute -bottom-4 -left-3 flex items-center gap-2 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-lg">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#03C75A]/12 text-[#03C75A]"><CheckCircle2 size={18} /></span>
-                <div>
-                  <p className="text-sm font-black text-gray-900">영상 완성!</p>
-                  <p className="text-xs text-gray-400">자동으로 만들어졌어요</p>
+            <div className="w-full max-w-md space-y-4">
+              {/* 대시보드 카드 */}
+              <div className="rounded-3xl border border-gray-200 bg-white p-5 shadow-[0_16px_50px_-20px_rgba(0,0,0,0.18)]">
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#03C75A]/12 text-lg">📊</span>
+                    <p className="text-base font-black text-gray-900">대시보드</p>
+                  </div>
+                  <span className="flex items-center gap-1.5 text-xs font-bold text-[#03C75A]">
+                    <span className="badge-pulse h-1.5 w-1.5 rounded-full bg-[#03C75A]" />실시간
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {[['오늘 작업 현황', 8, '건'], ['생성 완료', 5, '개'], ['추천 상품 수', 23, '개']].map(([label, n, u]) => (
+                    <div key={label} className="rounded-2xl bg-[#FAFAF8] p-3 text-center">
+                      <div className="text-2xl font-black text-gray-900 md:text-3xl">
+                        <AnimatedCounter to={n} suffix={u} duration={1600} />
+                      </div>
+                      <div className="mt-1 text-[11px] font-bold text-gray-400 leading-tight">{label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 실제 사용 화면 카드 */}
+              <div className="rounded-3xl border border-gray-200 bg-white p-5 shadow-[0_16px_50px_-20px_rgba(0,0,0,0.18)]">
+                <div className="mb-4 flex items-center gap-2">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#03C75A]/12 text-lg">🎬</span>
+                  <p className="text-base font-black text-gray-900">실제 사용 화면</p>
+                </div>
+                <div className="space-y-2">
+                  {[['상품 선택', 3], ['자동 생성', 3], ['업로드 준비 완료', 3]].map(([label, n]) => (
+                    <div key={label} className="flex items-center justify-between rounded-2xl bg-[#FAFAF8] px-4 py-3">
+                      <span className="flex items-center gap-2 text-sm font-bold text-gray-700">
+                        <CheckCircle2 size={17} className="text-[#03C75A]" /> {label}
+                      </span>
+                      <span className="text-xl font-black text-gray-900">
+                        <AnimatedCounter to={n} suffix="개" duration={1600} />
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -440,30 +473,6 @@ const Home = () => {
 
       {/* ── 데모 캐러셀 ── */}
       <div id="demo"><DemoCarousel /></div>
-
-      {/* ── 숫자 ── */}
-      <section className="px-5 py-16 md:px-8 md:py-20">
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-12 text-center">
-            <h2 className="text-2xl font-black text-gray-900 md:text-4xl">실무에서 직접 만들어 보며 다듬었어요</h2>
-          </div>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-6">
-            {[
-              { icon: <Film size={26} />, to: 1500, suffix: '+', label: '직접 만든 영상' },
-              { icon: <TrendingDown size={26} />, to: 97, suffix: '%', label: '편집 시간 절감' },
-              { icon: <Clock size={26} />, to: 320, suffix: '시간', label: '아낀 시간' },
-            ].map(({ icon, to, suffix, label }) => (
-              <div key={label} className="rounded-3xl border border-gray-200 bg-white p-8 text-center shadow-[0_4px_20px_rgba(0,0,0,0.04)] md:p-10">
-                <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#03C75A]/10 text-[#03C75A]">{icon}</div>
-                <div className="text-4xl font-black tracking-tight text-gray-900 md:text-5xl">
-                  <AnimatedCounter to={to} suffix={suffix} />
-                </div>
-                <div className="mt-3 text-base font-bold text-gray-500 md:text-lg">{label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── 왜 크로닛 (시간 절약) ── */}
       <section className="px-5 py-16 md:px-8 md:py-20">
