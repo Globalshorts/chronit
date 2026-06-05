@@ -868,7 +868,7 @@ const Home = () => {
                   나만의 숏폼 자동화 공장 맛보기
                 </p>
                 <div className="mb-8 flex items-baseline gap-1">
-                  <span className="text-3xl font-black text-gray-900 md:text-4xl">49,000</span>
+                  <span className="text-3xl font-black text-gray-900 md:text-4xl">29,000</span>
                   <span className="text-lg font-bold text-slate-500 md:text-xl">원 / 월</span>
                 </div>
                 <ul className="space-y-2 text-sm leading-relaxed font-medium text-slate-700 md:space-y-3 md:text-base">
@@ -912,13 +912,13 @@ const Home = () => {
                   다중 채널 폭발 및 대량 수익화를 위한 핵심 패키지
                 </p>
                 <div className="mb-8 flex items-baseline gap-1">
-                  <span className="text-3xl font-black text-white md:text-5xl">99,000</span>
+                  <span className="text-3xl font-black text-white md:text-5xl">49,000</span>
                   <span className="text-lg font-bold text-blue-100 md:text-xl">원 / 월</span>
                 </div>
                 <ul className="space-y-2 text-sm leading-relaxed font-medium text-white md:space-y-3 md:text-base">
                   <li className="flex items-start gap-2 md:gap-3">
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-200" />
-                    <span><strong>월 100개</strong> 영상 완성본 제작 (하루 3~4개, 본격 양산용)</span>
+                    <span><strong>월 40개</strong> 영상 완성본 제작 (하루 1~2개, 본격 양산용)</span>
                   </li>
                   <li className="flex items-start gap-2 md:gap-3">
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-200" />
@@ -945,13 +945,13 @@ const Home = () => {
                   전문 크리에이터 및 대형 대행사를 위한 마스터 패키지
                 </p>
                 <div className="mb-8 flex items-baseline gap-1">
-                  <span className="text-3xl font-black text-gray-900 md:text-4xl">199,000</span>
+                  <span className="text-3xl font-black text-gray-900 md:text-4xl">79,000</span>
                   <span className="text-lg font-bold text-slate-500 md:text-xl">원 / 월</span>
                 </div>
                 <ul className="space-y-2 text-sm leading-relaxed font-medium text-slate-700 md:space-y-3 md:text-base">
                   <li className="flex items-start gap-2 md:gap-3">
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-indigo-400" />
-                    <span><strong className="text-gray-900">월 300개</strong> 영상 완성본 제작 (채널 수십 개 동시 운영, 대량 생산)</span>
+                    <span><strong className="text-gray-900">월 100개</strong> 영상 완성본 제작 (채널 여러 개 동시 운영, 대량 생산)</span>
                   </li>
                   <li className="flex items-start gap-2 md:gap-3">
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-indigo-400" />

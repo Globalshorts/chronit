@@ -3,9 +3,9 @@ import { X, Copy, Check, CreditCard, MessageCircle, Tag, Loader2 } from 'lucide-
 import { supabase } from '../lib/supabase'
 
 const ORIGINAL_PRICES = {
-  starter: 49000,
-  pro: 99000,
-  master: 199000,
+  starter: 29000,
+  pro: 49000,
+  master: 79000,
 }
 
 const calcPrice = (original, discount) => {
