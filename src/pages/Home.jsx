@@ -228,16 +228,6 @@ const Home = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [menuOpen])
 
-  // ── 날짜 기반 지표 (고정 베이스 + 매일 완만 증가, 두 카드가 서로 정합) ──
-  const BASE_DATE = new Date('2026-06-05T00:00:00+09:00').getTime()
-  const daysSince = Math.max(0, Math.floor((Date.now() - BASE_DATE) / 86400000))
-  const daySeed = (k) => { const x = Math.sin((daysSince + 1) * 9301 + k * 49297) * 233280; return x - Math.floor(x) }
-  const todayDone = 55 + Math.floor(daySeed(1) * 22)               // 오늘 완료(=오늘 생성된 영상) ~55~76
-  const todayJobs = todayDone + 3 + Math.floor(daySeed(2) * 9)     // 오늘 작업(들어온) ≥ 완료
-  const todayProducts = todayDone * 4 + 20 + Math.floor(daySeed(3) * 40) // 추천 상품(영상보다 많음)
-  const totalVideos = 8742 + daysSince * 63                        // 누적 생성 완료
-  const savedHours = Math.round(totalVideos * 5 / 6)               // 누적 절약 시간(영상당 ~50분)
-
   const navItems = (
     <>
       <a href="#features" className="transition-colors hover:text-[#03C75A]">기능</a>
@@ -407,74 +397,28 @@ const Home = () => {
             </p>
           </div>
 
-          {/* 우측: 서비스 실제 화면 (숫자 카운트업) */}
+          {/* 우측: 3단계 (이게 전부예요) */}
           <div className="relative flex justify-center">
-            <div className="w-full max-w-md space-y-4">
-              {/* 대시보드 카드 */}
-              <div className="rounded-3xl border border-gray-200 bg-white p-5 shadow-[0_16px_50px_-20px_rgba(0,0,0,0.18)]">
-                <div className="mb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#03C75A]/12 text-lg">📊</span>
-                    <p className="text-base font-black text-gray-900">대시보드</p>
+            <div className="w-full max-w-md space-y-3">
+              <p className="mb-1 text-center text-base font-black text-gray-900 md:text-left">정말 이게 전부예요 👇</p>
+              {[
+                { n: '1', emoji: '🔗', title: '링크 붙여넣기', desc: '쇼핑 영상 링크를 복사해서 붙여넣어요.' },
+                { n: '2', emoji: '🎬', title: '자동으로 제작', desc: '편집·자막·자르기까지 전부 자동이에요.' },
+                { n: '3', emoji: '✅', title: '올리기만 하면 끝', desc: '완성된 영상을 내 채널에 올리면 끝!' },
+              ].map(({ n, emoji, title, desc }) => (
+                <div key={n} className="flex items-center gap-4 rounded-3xl border border-gray-200 bg-white p-5 shadow-[0_10px_36px_-18px_rgba(0,0,0,0.15)]">
+                  <div className="relative shrink-0">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#03C75A]/10 text-3xl">{emoji}</div>
+                    <span className="absolute -top-2 -left-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#03C75A] text-xs font-black text-white">{n}</span>
                   </div>
-                  <span className="flex items-center gap-1.5 text-xs font-bold text-[#03C75A]">
-                    <span className="badge-pulse h-1.5 w-1.5 rounded-full bg-[#03C75A]" />실시간
-                  </span>
+                  <div>
+                    <h3 className="text-lg font-black text-gray-900">{title}</h3>
+                    <p className="text-sm leading-snug text-gray-500">{desc}</p>
+                  </div>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
-                  {[['오늘 작업 현황', todayJobs, '건'], ['생성 완료', todayDone, '개'], ['추천 상품 수', todayProducts, '개']].map(([label, n, u]) => (
-                    <div key={label} className="rounded-2xl bg-[#FAFAF8] p-3 text-center">
-                      <div className="text-2xl font-black text-gray-900 md:text-3xl">
-                        <AnimatedCounter to={n} suffix={u} duration={1600} />
-                      </div>
-                      <div className="mt-1 text-[11px] font-bold text-gray-400 leading-tight">{label}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* 누적 지표 카드 */}
-              <div className="rounded-3xl border border-gray-200 bg-white p-5 shadow-[0_16px_50px_-20px_rgba(0,0,0,0.18)]">
-                <div className="mb-4 flex items-center gap-2">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#03C75A]/12 text-lg">📈</span>
-                  <p className="text-base font-black text-gray-900">크로닛이 함께 만든 결과</p>
-                </div>
-                <div className="space-y-2">
-                  {[['누적 절약 시간', savedHours, '시간'], ['생성 완료 영상', totalVideos, '개'], ['오늘 생성된 영상', todayDone, '개']].map(([label, n, u]) => (
-                    <div key={label} className="flex items-center justify-between rounded-2xl bg-[#FAFAF8] px-4 py-3">
-                      <span className="text-sm font-bold text-gray-600">{label}</span>
-                      <span className="text-xl font-black text-[#03C75A] md:text-2xl">
-                        <AnimatedCounter to={n} suffix={u} duration={1800} />
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              ))}
+              <p className="pt-1 text-center text-sm font-bold text-[#03C75A]">딱 3단계, 5분이면 충분해요</p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 이렇게 쉬워요 (3단계) ── */}
-      <section className="px-5 py-16 md:px-8 md:py-20">
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-12 text-center">
-            <h2 className="text-3xl font-black text-gray-900 md:text-4xl">정말 이게 전부예요</h2>
-            <p className="mt-3 text-lg text-gray-500 md:text-xl">세 번만 따라 하면 영상이 완성됩니다</p>
-          </div>
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-3 md:gap-6">
-            {[
-              { n: '1', emoji: '🔗', title: '링크 붙여넣기', desc: '마음에 드는 쇼핑 영상의 링크를 복사해서 붙여넣어요.' },
-              { n: '2', emoji: '🎬', title: '자동으로 제작', desc: '편집·자막·자르기까지 전부 자동. 몇 분만 기다리면 돼요.' },
-              { n: '3', emoji: '✅', title: '올리기만 하면 끝', desc: '완성된 영상을 그대로 내 채널에 올리면 끝납니다.' },
-            ].map(({ n, emoji, title, desc }) => (
-              <div key={n} className="rounded-3xl border border-gray-200 bg-white p-8 text-center shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#03C75A]/10 text-4xl">{emoji}</div>
-                <span className="mb-2 inline-block rounded-full bg-[#03C75A]/12 px-3 py-1 text-sm font-black text-[#03C75A]">{n}단계</span>
-                <h3 className="mb-2 text-xl font-black text-gray-900">{title}</h3>
-                <p className="text-base leading-relaxed text-gray-500">{desc}</p>
-              </div>
-            ))}
           </div>
         </div>
       </section>
