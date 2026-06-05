@@ -1975,21 +1975,36 @@ function AutoSettingsView({
 // ── StyleLibraryList — 저장된 스타일 목록 ───────────────────
 function StyleLibraryList({ session, onSelect, selectedId }: { session: any; onSelect: (id:string)=>void; selectedId: string }) {
   const [items, setItems] = useState<any[]>([]);
+  const ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NTU4NTYsImV4cCI6MjA5MjMzMTg1Nn0.G8ZtLSZf9rWRbKlrEUchEmFUEBdV4J2L1s_5rGEPZjY";
   useEffect(() => {
     if (!session) return;
     (async () => {
-      const r = await fetch("https://oxygqtbdpnxxcgzwdlzi.supabase.co/rest/v1/style_profiles?select=*&order=updated_at.desc",
-        { headers: { Authorization: `Bearer ${session.access_token}`, apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NTU4NTYsImV4cCI6MjA5MjMzMTg1Nn0.G8ZtLSZf9rWRbKlrEUchEmFUEBdV4J2L1s_5rGEPZjY" }});
+      const r = await fetch("https://oxygqtbdpnxxcgzwdlzi.supabase.co/rest/v1/style_profiles?select=*&status=eq.done&order=updated_at.desc",
+        { headers: { Authorization: `Bearer ${session.access_token}`, apikey: ANON }});
       const d = await r.json(); setItems(Array.isArray(d) ? d : []);
     })();
   }, [session]);
+  const del = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm("이 스타일을 삭제할까요?")) return;
+    try {
+      await fetch(`https://oxygqtbdpnxxcgzwdlzi.supabase.co/rest/v1/style_profiles?id=eq.${id}`,
+        { method: "DELETE", headers: { Authorization: `Bearer ${session.access_token}`, apikey: ANON } });
+      setItems(prev => prev.filter(s => s.id !== id));
+      if (selectedId === id) onSelect("auto");
+    } catch {}
+  };
   if (!items.length) return <p className="text-xs text-gray-600 text-center py-6">저장된 스타일이 없습니다</p>;
   return (
     <div className="space-y-1.5">
       {items.map(s => (
         <div key={s.id} onClick={() => onSelect(s.id)}
-          className={`rounded-xl border p-2.5 cursor-pointer transition ${selectedId===s.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"}`}>
-          <p className="text-xs font-bold text-white truncate">{s.label}</p>
+          className={`group rounded-xl border p-2.5 cursor-pointer transition ${selectedId===s.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"}`}>
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-xs font-bold text-white truncate flex-1">{s.label}</p>
+            <button onClick={(e)=>del(s.id, e)} title="삭제"
+              className="shrink-0 text-gray-600 hover:text-red-400 text-xs leading-none px-1">✕</button>
+          </div>
           {s.source_channel && <p className="text-xs text-gray-500">@{s.source_channel}</p>}
         </div>
       ))}
@@ -2352,17 +2367,29 @@ function StyleSelector({ selected, onSelect, session }: {
       headers: { "Authorization": `Bearer ${session.access_token}` },
     })
       .then(r => r.json())
-      .then(d => { if (d.ok) setProfiles(d.profiles ?? []); })
+      .then(d => { if (d.ok) setProfiles((d.profiles ?? []).filter((p:any)=> p.status ? p.status==='done' : true)); })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [session]);
+
+  const ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NTU4NTYsImV4cCI6MjA5MjMzMTg1Nn0.G8ZtLSZf9rWRbKlrEUchEmFUEBdV4J2L1s_5rGEPZjY";
+  const del = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm("이 스타일을 삭제할까요?")) return;
+    try {
+      await fetch(`https://oxygqtbdpnxxcgzwdlzi.supabase.co/rest/v1/style_profiles?id=eq.${id}`,
+        { method: "DELETE", headers: { Authorization: `Bearer ${session?.access_token}`, apikey: ANON } });
+      setProfiles(prev => prev.filter(p => p.id !== id));
+      if (selected === id) onSelect("auto");
+    } catch {}
+  };
 
   const selectedProfile = profiles.find(p => p.id === selected);
 
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">
-        <label className="text-sm font-bold text-gray-300">대본 스타일</label>
+        <label className="text-sm font-bold text-gray-300">대본 스타일 <span className="text-xs font-normal text-cyan-400">(직접 추가 권장)</span></label>
         {loading && <span className="text-xs text-gray-500">불러오는 중...</span>}
       </div>
 
@@ -2385,17 +2412,19 @@ function StyleSelector({ selected, onSelect, session }: {
           <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">내 스타일 라이브러리</p>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 max-h-64 overflow-y-auto pr-1">
             {profiles.map(p => (
-              <button key={p.id} onClick={() => onSelect(p.id)}
-                className={`rounded-xl border p-3 text-left transition ${
+              <div key={p.id} onClick={() => onSelect(p.id)}
+                className={`relative rounded-xl border p-3 text-left transition cursor-pointer ${
                   selected === p.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"
                 }`}>
                 <div className="flex items-start justify-between gap-2">
                   <p className={`text-sm font-bold truncate ${selected === p.id ? "text-cyan-400" : "text-white"}`}>
                     📌 {p.label || "(이름 없음)"}
                   </p>
-                  {selected === p.id && (
-                    <span className="shrink-0 text-xs text-cyan-400 font-bold">선택됨</span>
-                  )}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {selected === p.id && <span className="text-xs text-cyan-400 font-bold">선택됨</span>}
+                    <button onClick={(e)=>del(p.id, e)} title="삭제"
+                      className="text-gray-600 hover:text-red-400 text-sm leading-none px-1">✕</button>
+                  </div>
                 </div>
                 {p.source_channel && (
                   <p className="text-xs text-gray-500 mt-0.5">@{p.source_channel}</p>
@@ -2407,7 +2436,7 @@ function StyleSelector({ selected, onSelect, session }: {
                 ) : p.structure?.hook ? (
                   <p className="text-xs text-gray-600 mt-1 truncate">{p.structure.hook}</p>
                 ) : null}
-              </button>
+              </div>
             ))}
           </div>
         </div>
