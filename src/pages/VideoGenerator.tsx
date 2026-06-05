@@ -610,6 +610,14 @@ export default function VideoGenerator() {
       if (!data.ok) { setRenderError(data.error ?? "렌더링 요청 실패"); return; }
       setCurrentJobId(data.job_id ?? "");
       setBalance(data.balance ?? null);
+      // 업로드용 SEO(제목/설명/해시태그) 자동 생성 — 백그라운드, 결과는 video_jobs에 저장됨
+      if (data.job_id && script?.length && sourceUrl) {
+        fetch(FN("generate-seo"), {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ source_url: sourceUrl.trim(), script_segments: script, job_id: data.job_id }),
+        }).then(() => loadJobs()).catch(() => {});
+      }
       await loadJobs();
     } catch (e) { setRenderError(String(e)); }
     finally { setRendering(false); }
@@ -2804,6 +2812,8 @@ function StyleFinderView({ session, onImport }: { session: any; onImport: (id:st
 function HistoryView({ session }: { session: any }) {
   const [jobs, setJobs] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [copied, setCopied] = React.useState<string|null>(null);
+  const [saving, setSaving] = React.useState<string|null>(null);
   React.useEffect(()=>{
     if(!session) return;
     (async()=>{
@@ -2819,6 +2829,41 @@ function HistoryView({ session }: { session: any }) {
   const dlUrl = (j:any) => j.video_url
     ? j.video_url + (j.video_url.includes("?")?"&":"?") + "download=" + encodeURIComponent((j.product_name||"chronit")+".mp4")
     : "";
+
+  // 갤러리에 저장 = 모바일 공유시트(사진에 저장) / 미지원 시 다운로드 폴백
+  const saveVideo = async (j:any) => {
+    if (!j.video_url) return;
+    const fname = (j.product_name||"chronit")+".mp4";
+    setSaving(j.id);
+    try {
+      const resp = await fetch(j.video_url);
+      const blob = await resp.blob();
+      const file = new File([blob], fname, { type: "video/mp4" });
+      if ((navigator as any).canShare && (navigator as any).canShare({ files: [file] })) {
+        await (navigator as any).share({ files: [file], title: j.product_name || "크로닛 영상" });
+        return;
+      }
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = fname; a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+    } catch (e:any) {
+      if (e?.name === "AbortError") return; // 사용자가 공유 취소
+      const a = document.createElement("a"); a.href = dlUrl(j); a.download = fname; a.click();
+    } finally { setSaving(null); }
+  };
+
+  const copyText = async (text:string, key:string) => {
+    try { await navigator.clipboard.writeText(text); setCopied(key); setTimeout(()=>setCopied(null), 1500); } catch {}
+  };
+  const seoFull = (j:any) =>
+    `[제목]\n${j.seo_title||""}\n\n[설명]\n${j.seo_description||""}\n\n[해시태그]\n${j.seo_tags||""}`;
+  // 메모/카톡 등으로 보내기 = 공유시트 / 미지원 시 복사
+  const shareSeo = async (j:any) => {
+    const text = seoFull(j);
+    try {
+      if ((navigator as any).share) { await (navigator as any).share({ text }); return; }
+    } catch (e:any) { if (e?.name === "AbortError") return; }
+    copyText(text, j.id+"-all");
+  };
   return (
     <div>
       <p className="text-xs text-gray-500 mb-4">생성된 영상은 생성 후 3일간 보관됩니다. 기간이 지나면 다운로드할 수 없으니 미리 받아두세요.</p>
@@ -2845,10 +2890,45 @@ function HistoryView({ session }: { session: any }) {
                 <p className="text-[11px] text-gray-500">{new Date(j.created_at).toLocaleDateString("ko")}</p>
               </div>
               {done ? (
-                <a href={dlUrl(j)} download
-                  className="mt-auto block text-center rounded-xl bg-cyan-500 px-3 py-2.5 text-sm font-bold text-white hover:bg-cyan-400 active:bg-cyan-600 transition">
-                  ⬇ 다운로드
-                </a>
+                <div className="mt-auto flex flex-col gap-2">
+                  <button onClick={()=>saveVideo(j)} disabled={saving===j.id}
+                    className="block text-center rounded-xl bg-cyan-500 px-3 py-2.5 text-sm font-bold text-white hover:bg-cyan-400 active:bg-cyan-600 disabled:opacity-50 transition">
+                    {saving===j.id ? "저장 준비 중…" : "📱 갤러리에 저장"}
+                  </button>
+                  <a href={dlUrl(j)} download
+                    className="block text-center rounded-lg px-3 py-1.5 text-[11px] font-medium text-gray-400 hover:text-gray-200 transition">
+                    또는 mp4 파일로 다운로드
+                  </a>
+
+                  {/* 업로드용 SEO */}
+                  {(j.seo_title || j.seo_description || j.seo_tags) ? (
+                    <div className="mt-1 rounded-xl bg-gray-800 border border-gray-700 p-2.5 text-left space-y-2">
+                      <p className="text-[11px] font-bold text-cyan-400">📋 업로드 정보 (AI 추천)</p>
+                      {[
+                        { label: "제목", value: j.seo_title, key: j.id+"-t" },
+                        { label: "설명", value: j.seo_description, key: j.id+"-d" },
+                        { label: "해시태그", value: j.seo_tags, key: j.id+"-g" },
+                      ].filter(r=>r.value).map(r => (
+                        <div key={r.key} className="flex items-start gap-1.5">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[10px] font-bold text-gray-500">{r.label}</p>
+                            <p className="text-[11px] text-gray-200 leading-snug break-words line-clamp-3">{r.value}</p>
+                          </div>
+                          <button onClick={()=>copyText(r.value, r.key)}
+                            className="shrink-0 rounded-md bg-gray-700 px-1.5 py-1 text-[10px] font-bold text-gray-200 hover:bg-gray-600 transition">
+                            {copied===r.key ? "✓" : "복사"}
+                          </button>
+                        </div>
+                      ))}
+                      <button onClick={()=>shareSeo(j)}
+                        className="w-full rounded-lg bg-gray-700 px-2 py-2 text-[11px] font-bold text-white hover:bg-gray-600 transition">
+                        {copied===j.id+"-all" ? "✓ 복사됨 (메모에 붙여넣기)" : "📝 메모·카톡으로 보내기"}
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-center text-[10px] text-gray-600">업로드 정보 생성 중…</p>
+                  )}
+                </div>
               ) : (
                 <span className="mt-auto block text-center rounded-xl bg-gray-800 px-3 py-2.5 text-xs text-gray-500">
                   {j.status==="error"?"실패":j.expired?"보관 만료(3일)":"생성 중"}
