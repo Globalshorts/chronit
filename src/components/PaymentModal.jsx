@@ -23,11 +23,29 @@ const PLAN_META = {
   pkg6:    { name: '프로 6개월', badge: '안심 패키지' },
 }
 
-const calcPrice = (original, discount) => {
-  if (!discount) return original
-  if (discount.type === 'percent') return Math.floor(original * (1 - discount.value / 100))
-  if (discount.type === 'fixed') return Math.max(0, original - discount.value)
-  return original
+// 쿠폰에서 특정 플랜의 할인 설정을 해석
+const resolveDiscount = (coupon, planKey) => {
+  if (!coupon) return null
+  // 플랜별 설정이 있으면 그것만 사용 (해당 플랜 키가 없으면 적용 안 됨)
+  if (coupon.plan_discounts && typeof coupon.plan_discounts === 'object') {
+    return coupon.plan_discounts[planKey] || null
+  }
+  // allowed_plans 제한이 있으면 확인
+  if (Array.isArray(coupon.allowed_plans) && coupon.allowed_plans.length && !coupon.allowed_plans.includes(planKey)) {
+    return null
+  }
+  // 레거시: 전역 type/value
+  if (coupon.type && coupon.type !== 'none') return { type: coupon.type, value: coupon.value }
+  return null
+}
+
+const calcPrice = (original, coupon, planKey) => {
+  const d = resolveDiscount(coupon, planKey)
+  if (!d) return original
+  if (d.type === 'percent') return Math.floor(original * (1 - d.value / 100))
+  if (d.type === 'fixed') return Math.max(0, original - d.value)
+  if (d.type === 'free') return 0
+  return original // free_days 등은 가격 변동 없음
 }
 
 const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }) => {
@@ -91,7 +109,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
     badge: PLAN_META[key].badge,
     list: LIST_PRICES[key],          // 정가(취소선)
     sale: SALE_PRICES[key],          // 상시 판매가
-    price: calcPrice(SALE_PRICES[key], discount), // 쿠폰 적용 최종가
+    price: calcPrice(SALE_PRICES[key], discount, key), // 쿠폰(플랜별) 적용 최종가
   })
   const plans = {
     starter: buildPlan('starter'),
@@ -111,13 +129,17 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
 
   const plan = plans[selectedPlan]
   const isFreedays = discount?.type === 'free_days'
+  const planDiscount = resolveDiscount(discount, selectedPlan)
   const hasDiscount = discount && !isFreedays && plan.price < plan.sale  // 쿠폰 추가할인 여부
+  const notApplicable = discount && !isFreedays && !planDiscount        // 코드는 유효하나 이 플랜엔 미적용
 
   const discountLabel = () => {
-    if (!discount) return null
-    if (discount.type === 'percent') return `${discount.value}% 할인`
-    if (discount.type === 'fixed') return `${discount.value.toLocaleString('ko-KR')}원 할인`
-    if (discount.type === 'free_days') return `${discount.value}일 무료 체험`
+    const d = isFreedays ? { type: 'free_days', value: discount.value } : planDiscount
+    if (!d) return null
+    if (d.type === 'percent') return `${d.value}% 할인`
+    if (d.type === 'fixed') return `${d.value.toLocaleString('ko-KR')}원 할인`
+    if (d.type === 'free') return `무료 (100% 할인)`
+    if (d.type === 'free_days') return `${d.value}일 무료 체험`
   }
 
   return (
@@ -172,10 +194,13 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
           </div>
 
           {/* 코드 상태 메시지 */}
-          {codeStatus === 'valid' && discount && (
+          {codeStatus === 'valid' && discount && !notApplicable && (
             <div className="mt-2 flex items-center gap-2 text-sm font-bold text-green-400">
               <Check size={14} /> {discountLabel()} 적용됨
             </div>
+          )}
+          {codeStatus === 'valid' && notApplicable && (
+            <p className="mt-2 text-sm font-bold text-amber-400">이 코드는 선택한 플랜에는 적용되지 않아요.</p>
           )}
           {codeStatus === 'invalid' && (
             <p className="mt-2 text-sm font-bold text-red-400">유효하지 않은 코드입니다.</p>

@@ -3727,8 +3727,11 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
   const [counts, setCounts] = React.useState<Record<string,number>>({});
   const [code, setCode]     = React.useState("");
   const [owner, setOwner]   = React.useState("");
-  const [type, setType]     = React.useState("none");
-  const [value, setValue]   = React.useState("0");
+  const COUPON_PLANS = [["starter","스타터"],["pro","프로"],["master","마스터"]];
+  const [planDisc, setPlanDisc] = React.useState<Record<string,{type:string;value:string}>>({
+    starter:{type:"none",value:""}, pro:{type:"none",value:""}, master:{type:"none",value:""},
+  });
+  const setPD = (k:string, patch:any) => setPlanDisc(p=>({ ...p, [k]:{ ...p[k], ...patch } }));
   const [exp, setExp]       = React.useState("");
   const [unlimited, setUnlimited] = React.useState(true);
   const [sel, setSel]       = React.useState<Set<string>>(new Set());
@@ -3736,7 +3739,7 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
 
   const load = React.useCallback(async ()=>{
     try {
-      const { data } = await supabase.from("coupon_codes").select("code,type,value,owner_email,expires_at,created_at").order("created_at",{ascending:false});
+      const { data } = await supabase.from("coupon_codes").select("code,type,value,owner_email,expires_at,created_at,plan_discounts,allowed_plans").order("created_at",{ascending:false});
       setCodes(data ?? []);
     } catch { setCodes([]); }
     try {
@@ -3749,20 +3752,50 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
   const create = async () => {
     const c = code.trim().toUpperCase();
     if (!c) { setMsg("코드를 입력하세요"); return; }
+    // 플랜별 할인 구성
+    const pd:Record<string,any> = {}; const allowed:string[] = [];
+    for (const [k] of COUPON_PLANS) {
+      const d = planDisc[k];
+      if (d.type === "none") continue;
+      pd[k] = d.type === "free" ? { type:"free" } : { type:d.type, value:Number(d.value)||0 };
+      allowed.push(k);
+    }
     setMsg("생성 중...");
-    const row:any = { code:c, type:(type==="none"?"free_days":type), value:Number(value)||0,
-      owner_email: owner.trim() || null, expires_at: unlimited ? null : (exp || null) };
+    const row:any = {
+      code:c, type:"none", value:0,
+      owner_email: owner.trim() || null,
+      expires_at: unlimited ? null : (exp || null),
+      plan_discounts: Object.keys(pd).length ? pd : null,
+      allowed_plans: allowed.length ? allowed : null,
+    };
     const { error } = await supabase.from("coupon_codes").insert(row);
     if (error) setMsg("생성 실패: "+error.message);
-    else { setMsg("코드 생성 완료"); setCode(""); setOwner(""); setValue("0"); await load(); }
+    else {
+      setMsg("코드 생성 완료"); setCode(""); setOwner("");
+      setPlanDisc({ starter:{type:"none",value:""}, pro:{type:"none",value:""}, master:{type:"none",value:""} });
+      await load();
+    }
   };
   const toggleSel = (c:string) => setSel(s=>{ const n=new Set(s); n.has(c)?n.delete(c):n.add(c); return n; });
   const delSel = async () => {
     if (sel.size===0) return;
-    if (!confirm(`${sel.size}개 코드를 삭제할까요?`)) return;
-    const { error } = await supabase.from("coupon_codes").delete().in("code", Array.from(sel));
-    if (error) setMsg("삭제 실패: "+error.message);
-    else { setSel(new Set()); await load(); }
+    if (!confirm(`${sel.size}개 코드를 삭제할까요?\n(해당 코드의 사용 기록도 함께 삭제됩니다)`)) return;
+    const { data, error } = await supabase.rpc("admin_delete_coupons_rpc", { p_codes: Array.from(sel) });
+    if (error || !data?.ok) setMsg("삭제 실패: "+(error?.message || data?.error || "알 수 없는 오류"));
+    else { setSel(new Set()); setMsg(`${data.deleted ?? sel.size}개 삭제 완료`); await load(); }
+  };
+  const summarize = (c:any) => {
+    const pd = c.plan_discounts;
+    if (pd && typeof pd === "object") {
+      const parts = COUPON_PLANS.filter(([k])=>pd[k]).map(([k,label])=>{
+        const d = pd[k];
+        const v = d.type==="percent" ? `${d.value}%` : d.type==="fixed" ? `${Number(d.value).toLocaleString()}원` : d.type==="free" ? "무료" : "";
+        return `${label} ${v}`;
+      });
+      return parts.length ? parts.join(" · ") : "파트너 전용(할인 없음)";
+    }
+    if (c.type && c.type!=="none") return c.type==="free_days" ? `${c.value}일 무료체험` : c.type==="percent" ? `${c.value}%` : `${Number(c.value).toLocaleString()}원`;
+    return "파트너 전용(할인 없음)";
   };
   const fmt = (d:string)=> d ? new Date(d).toLocaleDateString("ko-KR",{year:"2-digit",month:"2-digit",day:"2-digit"}) : "무기한";
 
@@ -3778,12 +3811,32 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
             <input value={owner} onChange={e=>setOwner(e.target.value)} placeholder="partner@example.com"
               className="w-full mt-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A]" /></div>
         </div>
+        <div className="mb-4">
+          <label className="text-xs text-gray-500">플랜별 할인 설정</label>
+          <div className="mt-1.5 space-y-2">
+            {COUPON_PLANS.map(([k,label])=>(
+              <div key={k} className="flex items-center gap-2">
+                <span className="w-14 text-sm font-bold text-gray-700">{label}</span>
+                <select value={planDisc[k].type} onChange={e=>setPD(k,{type:e.target.value})}
+                  className="rounded-xl bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none">
+                  <option value="none">미적용</option>
+                  <option value="percent">할인 %</option>
+                  <option value="fixed">정액 할인(원)</option>
+                  <option value="free">무료(100%)</option>
+                </select>
+                {(planDisc[k].type==="percent" || planDisc[k].type==="fixed") && (
+                  <input value={planDisc[k].value} onChange={e=>setPD(k,{value:e.target.value})}
+                    placeholder={planDisc[k].type==="percent"?"예: 20":"예: 10000"}
+                    className="w-28 rounded-xl bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#03C75A]" />
+                )}
+                {planDisc[k].type==="free" && <span className="text-xs text-[#03C75A] font-bold">결제 0원</span>}
+                {planDisc[k].type==="none" && <span className="text-xs text-gray-400">이 플랜엔 할인 없음</span>}
+              </div>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-gray-400">모두 "미적용"이면 할인 없는 파트너 전용 코드가 됩니다.</p>
+        </div>
         <div className="flex flex-wrap items-end gap-3 mb-4">
-          <div><label className="text-xs text-gray-500">타입</label>
-            <select value={type} onChange={e=>setType(e.target.value)} className="block mt-1 rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none">
-              <option value="none">미적용 (파트너 전용)</option><option value="free_days">무료기간(일)</option><option value="percent">할인 %</option><option value="amount">정액 할인</option></select></div>
-          <div><label className="text-xs text-gray-500">값</label>
-            <input value={value} onChange={e=>setValue(e.target.value)} className="block w-28 mt-1 rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none" /></div>
           <div><label className="text-xs text-gray-500">만료일</label>
             <input type="date" value={exp} disabled={unlimited} onChange={e=>setExp(e.target.value)} className="block mt-1 rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none disabled:opacity-40" /></div>
           <label className="flex items-center gap-2 text-sm text-gray-700 pb-2"><input type="checkbox" checked={unlimited} onChange={e=>setUnlimited(e.target.checked)} className="accent-[#03C75A]" /> 무기한</label>
@@ -3802,16 +3855,15 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
       <div className="rounded-2xl bg-white border border-gray-200 overflow-hidden">
         <table className="w-full text-xs">
           <thead className="border-b border-gray-200 text-gray-400">
-            <tr><th className="px-3 py-2.5 w-8"></th><th className="px-3 py-2.5 text-left">코드</th><th className="px-3 py-2.5 text-left">타입</th><th className="px-3 py-2.5 text-right">값</th><th className="px-3 py-2.5 text-left">파트너</th><th className="px-3 py-2.5 text-right">사용수</th><th className="px-3 py-2.5 text-left">만료일</th></tr>
+            <tr><th className="px-3 py-2.5 w-8"></th><th className="px-3 py-2.5 text-left">코드</th><th className="px-3 py-2.5 text-left">플랜별 할인</th><th className="px-3 py-2.5 text-left">파트너</th><th className="px-3 py-2.5 text-right">사용수</th><th className="px-3 py-2.5 text-left">만료일</th></tr>
           </thead>
           <tbody>
-            {codes.length===0 ? <tr><td colSpan={7} className="py-8 text-center text-gray-500">발급된 코드 없음</td></tr>
+            {codes.length===0 ? <tr><td colSpan={6} className="py-8 text-center text-gray-500">발급된 코드 없음</td></tr>
             : codes.map(c=>(
               <tr key={c.code} className="border-b border-gray-200/50 hover:bg-gray-100/40">
                 <td className="px-3 py-2.5"><input type="checkbox" checked={sel.has(c.code)} onChange={()=>toggleSel(c.code)} className="accent-[#03C75A]" /></td>
                 <td className="px-3 py-2.5 font-mono font-bold text-[#03C75A]">{c.code}</td>
-                <td className="px-3 py-2.5 text-gray-700">{c.type}</td>
-                <td className="px-3 py-2.5 text-right text-gray-700">{c.value}</td>
+                <td className="px-3 py-2.5 text-gray-700">{summarize(c)}</td>
                 <td className="px-3 py-2.5 text-gray-400 truncate max-w-[200px]">{c.owner_email || "—"}</td>
                 <td className="px-3 py-2.5 text-right text-gray-700">{counts[c.code] || 0}</td>
                 <td className="px-3 py-2.5 text-gray-400">{fmt(c.expires_at)}</td>
