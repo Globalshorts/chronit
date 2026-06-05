@@ -2646,10 +2646,35 @@ function SettingsView({ session, supabase, balance, userPlan }:
   const [codeMsg, setCodeMsg]       = React.useState<{ok:boolean; text:string}|null>(null);
   const [registering, setReg]       = React.useState(false);
   const [showPay, setShowPay]       = React.useState(false);
+  const [devices, setDevices]       = React.useState<any[]>([]);
+
+  const loadDevices = React.useCallback(async ()=>{
+    try {
+      const { data } = await supabase.from("user_devices")
+        .select("device_id,device_name,last_seen_at,registered_at")
+        .order("last_seen_at",{ascending:false});
+      setDevices(data ?? []);
+    } catch { setDevices([]); }
+  }, [supabase]);
 
   React.useEffect(()=>{ if(!session) return; (async()=>{
     try { const { data } = await supabase.rpc("get_my_balance_rpc").single(); setInfo(data); } catch {}
-  })(); }, [session]);
+    loadDevices();
+  })(); }, [session, loadDevices]);
+
+  const removeDevice = async (deviceId:string) => {
+    if (!confirm("이 기기 등록을 해제할까요?")) return;
+    try { await supabase.rpc("unregister_device_rpc", { p_device_id: deviceId }); } catch {}
+    loadDevices();
+  };
+  const relTime = (d:string) => {
+    if (!d) return "";
+    const diff = Date.now() - new Date(d).getTime();
+    const m = Math.floor(diff/60000);
+    if (m < 1) return "방금 전"; if (m < 60) return `${m}분 전`;
+    const h = Math.floor(m/60); if (h < 24) return `${h}시간 전`;
+    return `${Math.floor(h/24)}일 전`;
+  };
 
   const email = session?.user?.email ?? "";
   const plan  = info?.plan ?? userPlan ?? "free";
@@ -2724,6 +2749,29 @@ function SettingsView({ session, supabase, balance, userPlan }:
             className="rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-cyan-400 disabled:opacity-50 transition">{registering?"등록 중":"등록"}</button>
         </div>
         {codeMsg && <p className={`text-xs mt-2 ${codeMsg.ok?"text-green-400":"text-red-400"}`}>{codeMsg.text}</p>}
+      </Section>
+
+      <Section title="💻 등록된 디바이스">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs text-gray-500">기기 {devices.length}대</span>
+          <button onClick={loadDevices} className="rounded-lg border border-gray-700 px-3 py-1.5 text-xs text-gray-300 hover:bg-gray-800 transition">새로고침</button>
+        </div>
+        {devices.length === 0 ? (
+          <p className="py-4 text-center text-sm text-gray-500">등록된 기기가 없습니다.</p>
+        ) : (
+          <div className="space-y-2">
+            {devices.map(d=>(
+              <div key={d.device_id} className="flex items-center justify-between rounded-xl bg-gray-800 border border-gray-700 px-4 py-3">
+                <div className="min-w-0">
+                  <p className="text-sm text-green-400 font-semibold truncate">✓ {d.device_name || d.device_id}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{relTime(d.last_seen_at)}{d.registered_at && ` · 등록 ${new Date(d.registered_at).toLocaleDateString("ko-KR")}`}</p>
+                </div>
+                <button onClick={()=>removeDevice(d.device_id)} className="shrink-0 rounded-lg border border-red-500/30 text-red-400 px-3 py-1.5 text-xs hover:bg-red-500/10 transition">해제</button>
+              </div>
+            ))}
+          </div>
+        )}
+        <p className="text-xs text-gray-500 mt-3">한 계정당 최대 2개 디바이스 등록 가능. Master 플랜은 동시 사용도 허용됩니다.</p>
       </Section>
 
       <Section title="고객지원">
