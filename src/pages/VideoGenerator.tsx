@@ -1221,8 +1221,9 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
     color: st.color,
     fontSize: `${st.fontSize * PREVIEW_SCALE}px`,
     fontWeight: st.fontWeight,
-    // WebkitTextStroke: 외곽선도 동일 스케일로 — 출력 외곽선(strokeWidth×6.4)과 비율 일치
-    WebkitTextStroke: st.strokeOn ? `${st.strokeWidth * PREVIEW_SCALE}px ${st.strokeColor}` : undefined,
+    // WebkitTextStroke + paintOrder:stroke fill → 바깥쪽 절반만 보임.
+    //   렌더(ASS Outline은 글자 바깥 전체)와 두께를 맞추려면 ×2 해야 실제와 일치.
+    WebkitTextStroke: st.strokeOn ? `${st.strokeWidth * PREVIEW_SCALE * 2}px ${st.strokeColor}` : undefined,
     paintOrder: st.strokeOn ? "stroke fill" : undefined,
     lineHeight: 1.3,
     whiteSpace: "nowrap",
