@@ -1635,17 +1635,23 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
     _extractMgr.listeners.add(l);
     return ()=>{ _extractMgr.listeners.delete(l); };
   }, []);
-  const NAV = [
-    { v: "generator",     icon: "📁", label: "프로젝트" },
-    { v: "auto-settings", icon: "⚙️", label: "자동화 세팅" },
-    { v: "style-finder",  icon: "🔍", label: "스타일 찾기" },
-    { v: "product-search", icon: "🛒", label: "상품 검색" },
-    { v: "history",       icon: "📹", label: "생성 내역" },
-    { v: "settings",      icon: "🛠", label: "설정" },
-    ...(userRole === "partner" || userRole === "super_admin"
-      ? [{ v: "partner", icon: "📊", label: "파트너스" }] : []),
-    ...(userRole === "super_admin"
-      ? [{ v: "admin", icon: "👑", label: "관리자" }] : []),
+  const isPartner = userRole === "partner" || userRole === "super_admin";
+  const isAdmin = userRole === "super_admin";
+  const GROUPS = [
+    { title: "제작", items: [
+      { v: "generator",      label: "프로젝트" },
+      { v: "auto-settings",  label: "자동화 세팅" },
+      { v: "style-finder",   label: "스타일 찾기" },
+      { v: "product-search", label: "상품 검색" },
+    ]},
+    { title: "기록", items: [
+      { v: "history", label: "생성 내역" },
+    ]},
+    { title: "계정", items: [
+      { v: "settings", label: "설정" },
+      ...(isPartner ? [{ v: "partner", label: "파트너스", icon: "📊" }] : []),
+      ...(isAdmin ? [{ v: "admin", label: "관리자", icon: "👑" }] : []),
+    ]},
   ];
   return (
     <div className="flex flex-col h-full">
@@ -1655,15 +1661,21 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
         <p className="text-xs text-gray-600 mt-0.5">쇼핑 릴스 자동화</p>
       </div>
       {/* 탭 */}
-      <div className="px-2 py-3 space-y-0.5 flex-1">
-        {NAV.map(({ v, icon, label }) => (
-          <button key={v} onClick={() => onViewChange(v)}
-            className={`w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold transition flex items-center gap-2.5 ${activeView === v ? "bg-cyan-500/15 text-cyan-400" : "text-gray-400 hover:bg-gray-800 hover:text-white"}`}>
-            <span>{icon}</span><span>{label}</span>
-            {v==="product-search" && extractRunning && (
-              <span className="ml-auto w-2 h-2 rounded-full bg-cyan-400 animate-pulse" title="검색어 추출 중" />
-            )}
-          </button>
+      <div className="px-2 py-3 space-y-4 flex-1 overflow-y-auto">
+        {GROUPS.map((g)=>(
+          <div key={g.title} className="space-y-0.5">
+            <p className="px-3 pb-1 text-[11px] font-bold text-gray-600 uppercase tracking-wider">{g.title}</p>
+            {g.items.map(({ v, label, icon }:any)=>(
+              <button key={v} onClick={()=>onViewChange(v)}
+                className={`w-full text-left rounded-xl px-3 py-3 text-base font-bold transition flex items-center gap-2.5 ${activeView===v ? "bg-cyan-500/15 text-cyan-400" : "text-gray-300 hover:bg-gray-800 hover:text-white"}`}>
+                {icon && <span className="text-lg">{icon}</span>}
+                <span>{label}</span>
+                {v==="product-search" && extractRunning && (
+                  <span className="ml-auto w-2 h-2 rounded-full bg-cyan-400 animate-pulse" title="검색어 추출 중" />
+                )}
+              </button>
+            ))}
+          </div>
         ))}
       </div>
       {/* 하단 계정/플랜/크레딧 */}
