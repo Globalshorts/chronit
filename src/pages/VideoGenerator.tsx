@@ -142,6 +142,7 @@ export default function VideoGenerator() {
   const [autoRunError, setAutoRunError] = useState("");
   const [showAutoModal, setShowAutoModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);  // 모바일 사이드바 드로어
+  const [mobileProjOpen, setMobileProjOpen] = useState(false);  // 모바일 프로젝트 시트
   const [modalCtaText, setModalCtaText]   = useState("");   // 자동화 진행 단계 메시지
   const [voiceSegments, setVoiceSegments] = useState<any[]>([]);  // 장면별 편집용
   const [freeRegen, setFreeRegen] = useState(3);  // Stage 3 무료 재생성 횟수
@@ -905,6 +906,27 @@ export default function VideoGenerator() {
         </div>
       )}
 
+      {/* ── 모바일 프로젝트 시트 ── */}
+      {mobileProjOpen && (
+        <div className="fixed inset-0 z-[90] md:hidden" onClick={() => setMobileProjOpen(false)}>
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+          <div className="absolute right-0 top-0 flex h-full w-72 max-w-[85%] flex-col overflow-y-auto border-l border-gray-200 bg-[#ECEAE3] shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+              <p className="text-sm font-black text-gray-900">📁 내 프로젝트</p>
+              <button onClick={() => setMobileProjOpen(false)} className="text-xl text-gray-500 hover:text-gray-900">✕</button>
+            </div>
+            <ProjectPanel
+              activeView="generator"
+              current={currentData}
+              onLoad={(d) => { handleLoad(d); setMobileProjOpen(false); }}
+              onReset={() => { handleReset(); setMobileProjOpen(false); }}
+              session={session}
+              styleProfileId={styleProfileId} onSelectStyle={setStyleProfileId}
+            />
+          </div>
+        </div>
+      )}
+
       {/* ── 본문 행 (사이드바 + 패널 + 메인) ── */}
       <div className="flex flex-1">
       {/* ── 왼쪽 사이드바 (데스크탑) ── */}
@@ -979,7 +1001,12 @@ export default function VideoGenerator() {
         <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-5">
           <div className="space-y-0">
 
-          {/* ── STAGE 1 ── */}
+          {/* 모바일: 프로젝트 열기 */}
+          <button onClick={() => setMobileProjOpen(true)}
+            className="md:hidden mb-4 flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-gray-700 active:scale-[0.99] transition">
+            📁 내 프로젝트 — 생성 · 선택 · 삭제
+          </button>
+
           <StagePanel n={1} title="영상 분석" subtitle="URL 입력 → 관련 TikTok 클립 검색 → 담기" current={stage}
             headerRight={
               <button onClick={() => setShowTips(true)}
