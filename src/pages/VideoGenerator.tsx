@@ -160,8 +160,9 @@ export default function VideoGenerator() {
     const { data } = await supabase.rpc("get_my_balance_rpc").single();
     if (data?.balance !== undefined) setBalance(data.balance);
     if (data?.plan) setUserPlan(data.plan);
-    else {
-      // plan 별도 조회
+    if (data?.role) setUserRole(data.role);
+    if (!data?.plan || !data?.role) {
+      // 폴백 — plan/role 누락 시 직접 조회
       const { data: sub } = await supabase.from("subscriptions")
         .select("plan, role").eq("user_id", session?.user?.id ?? "").maybeSingle();
       if (sub?.plan) setUserPlan(sub.plan);
@@ -2728,7 +2729,6 @@ function SettingsView({ session, supabase, balance, userPlan }:
       <Section title="고객지원">
         <div className="space-y-2">
           <a href="/manual" className="block rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm text-white hover:border-cyan-500 transition">프로그램 사용 가이드 보기</a>
-          <a href="mailto:pv2066pv@gmail.com" className="block rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm text-white hover:border-cyan-500 transition">1:1 문의 (이메일)</a>
           <a href="/terms" className="block rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm text-white hover:border-cyan-500 transition">이용약관 및 환불 규정 보기</a>
         </div>
       </Section>
