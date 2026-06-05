@@ -228,6 +228,16 @@ const Home = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [menuOpen])
 
+  // ── 날짜 기반 지표 (고정 베이스 + 매일 완만 증가, 두 카드가 서로 정합) ──
+  const BASE_DATE = new Date('2026-06-05T00:00:00+09:00').getTime()
+  const daysSince = Math.max(0, Math.floor((Date.now() - BASE_DATE) / 86400000))
+  const daySeed = (k) => { const x = Math.sin((daysSince + 1) * 9301 + k * 49297) * 233280; return x - Math.floor(x) }
+  const todayDone = 55 + Math.floor(daySeed(1) * 22)               // 오늘 완료(=오늘 생성된 영상) ~55~76
+  const todayJobs = todayDone + 3 + Math.floor(daySeed(2) * 9)     // 오늘 작업(들어온) ≥ 완료
+  const todayProducts = todayDone * 4 + 20 + Math.floor(daySeed(3) * 40) // 추천 상품(영상보다 많음)
+  const totalVideos = 8742 + daysSince * 63                        // 누적 생성 완료
+  const savedHours = Math.round(totalVideos * 5 / 6)               // 누적 절약 시간(영상당 ~50분)
+
   const navItems = (
     <>
       <a href="#features" className="transition-colors hover:text-[#03C75A]">기능</a>
@@ -412,7 +422,7 @@ const Home = () => {
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  {[['오늘 작업 현황', 8, '건'], ['생성 완료', 5, '개'], ['추천 상품 수', 23, '개']].map(([label, n, u]) => (
+                  {[['오늘 작업 현황', todayJobs, '건'], ['생성 완료', todayDone, '개'], ['추천 상품 수', todayProducts, '개']].map(([label, n, u]) => (
                     <div key={label} className="rounded-2xl bg-[#FAFAF8] p-3 text-center">
                       <div className="text-2xl font-black text-gray-900 md:text-3xl">
                         <AnimatedCounter to={n} suffix={u} duration={1600} />
@@ -430,7 +440,7 @@ const Home = () => {
                   <p className="text-base font-black text-gray-900">크로닛이 함께 만든 결과</p>
                 </div>
                 <div className="space-y-2">
-                  {[['누적 절약 시간', 7285, '시간'], ['생성 완료 영상', 8742, '개'], ['오늘 생성된 영상', 63, '개']].map(([label, n, u]) => (
+                  {[['누적 절약 시간', savedHours, '시간'], ['생성 완료 영상', totalVideos, '개'], ['오늘 생성된 영상', todayDone, '개']].map(([label, n, u]) => (
                     <div key={label} className="flex items-center justify-between rounded-2xl bg-[#FAFAF8] px-4 py-3">
                       <span className="text-sm font-bold text-gray-600">{label}</span>
                       <span className="text-xl font-black text-[#03C75A] md:text-2xl">
