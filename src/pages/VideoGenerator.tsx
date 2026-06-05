@@ -112,6 +112,7 @@ export default function VideoGenerator() {
   const [voiceGenerated, setVoiceGenerated] = useState(false);  // Stage 5 음성 생성 완료
   const [autoRunning, setAutoRunning]   = useState(false);
   const [autoRunStep, setAutoRunStep]   = useState("");
+  const [autoRunError, setAutoRunError] = useState("");
   const [showAutoModal, setShowAutoModal] = useState(false);
   const [modalCtaText, setModalCtaText]   = useState("");   // 자동화 진행 단계 메시지
   const [voiceSegments, setVoiceSegments] = useState<any[]>([]);  // 장면별 편집용
@@ -506,6 +507,7 @@ export default function VideoGenerator() {
     if (cart.size === 0 || autoRunning) return;
     if (ctaOverride !== undefined) setCtaText(ctaOverride);
     setShowAutoModal(false);
+    setAutoRunError("");
     setAutoRunning(true);
     try {
       // Step 1: 대본 생성
@@ -551,7 +553,9 @@ export default function VideoGenerator() {
 
       setAutoRunStep("✅ 완료!");
     } catch (e) {
-      setAutoRunStep(`❌ 오류: ${String(e).slice(0,60)}`);
+      const msg = String(e).replace(/^Error:\s*/, "").slice(0, 120);
+      setAutoRunStep(`❌ 오류: ${msg.slice(0,60)}`);
+      setAutoRunError(msg);
     } finally {
       setAutoRunning(false);
     }
@@ -906,6 +910,17 @@ export default function VideoGenerator() {
                     <FloatingNext label={autoRunning ? (autoRunStep || "처리 중...") : `🚀 자동 생성 (${cart.size}개)`}
                       onClick={() => { if (!autoRunning) { setModalCtaText(ctaText); setShowAutoModal(true); } }}
                       disabled={autoRunning} />
+                  )}
+                  {!autoRunning && autoRunError && (
+                    <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300 flex items-start gap-2">
+                      <span>❌</span>
+                      <div className="flex-1">
+                        <div className="font-semibold">자동 생성 실패</div>
+                        <div className="text-red-300/80 mt-0.5">{autoRunError}</div>
+                        <div className="text-red-300/60 text-xs mt-1">크레딧은 영상 합성 단계에서만 차감되며, 그 전에 실패한 경우 차감되지 않습니다. 잠시 후 다시 시도해 주세요.</div>
+                      </div>
+                      <button onClick={() => setAutoRunError("")} className="text-red-300/60 hover:text-red-300">✕</button>
+                    </div>
                   )}
                 </div>
               )}
