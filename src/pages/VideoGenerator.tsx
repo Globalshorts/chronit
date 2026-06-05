@@ -783,6 +783,17 @@ export default function VideoGenerator() {
           <button onClick={() => setCompletionAlert(null)} className="ml-4 text-white/70 hover:text-white text-lg">✕</button>
         </div>
       )}
+      {/* ── 자동 생성 중 중앙 오버레이 ── */}
+      {autoRunning && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="rounded-3xl bg-gray-900 border border-gray-700 px-10 py-8 text-center shadow-2xl max-w-sm mx-4">
+            <div className="w-12 h-12 mx-auto mb-4 border-4 border-gray-700 border-t-cyan-400 rounded-full animate-spin" />
+            <p className="text-lg font-black text-white">자동 생성 중</p>
+            <p className="text-sm text-cyan-400 mt-1">{autoRunStep || "처리 중..."}</p>
+            <p className="text-xs text-gray-500 mt-3">완료까지 몇 분 걸릴 수 있어요.<br/>창을 닫지 말고 잠시 기다려 주세요.</p>
+          </div>
+        </div>
+      )}
       {/* ── 왼쪽 사이드바 ── */}
       {/* ── 좌측 탭 네비 (좁게) ── */}
       <div className="w-52 shrink-0 border-r border-gray-800 flex flex-col">
@@ -836,6 +847,9 @@ export default function VideoGenerator() {
                 <h2 className="text-xl font-black text-white mb-6">📹 생성 내역</h2>
                 <HistoryView session={session} />
               </>
+            )}
+            {activeView === "product-search" && (
+              <ProductSearchView session={session} supabase={supabase} />
             )}
             {activeView === "settings" && (
               <SettingsView session={session} supabase={supabase} balance={balance} userPlan={userPlan} />
@@ -1618,6 +1632,7 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
     { v: "generator",     icon: "📁", label: "프로젝트" },
     { v: "auto-settings", icon: "⚙️", label: "자동화 세팅" },
     { v: "style-finder",  icon: "🔍", label: "스타일 찾기" },
+    { v: "product-search", icon: "🛒", label: "상품 검색" },
     { v: "history",       icon: "📹", label: "생성 내역" },
     { v: "settings",      icon: "🛠", label: "설정" },
     ...(userRole === "partner" || userRole === "super_admin"
@@ -2782,6 +2797,136 @@ function SettingsView({ session, supabase, balance, userPlan }:
       </Section>
 
       {showPay && <PaymentModal open={showPay} onClose={()=>setShowPay(false)} defaultPlan={plan==="free"?"pro":plan} />}
+    </div>
+  );
+}
+
+// ── ProductSearchView (쿠팡 파트너스 상품 검색) ───────────────
+const COUPANG_RX = /https?:\/\/(?:[\w-]+\.)?coupang\.com\/[^\s'"]+|https?:\/\/link\.coupang\.com\/[^\s'"]+/gi;
+const PS_KEY = "chronit_product_urls";
+
+function ProductSearchView({ session, supabase }: { session:any; supabase:any }) {
+  const [projects] = React.useState<any[]>(()=>getProjs());
+  const [projId, setProjId] = React.useState(projects[0]?.id ?? "");
+  const [url, setUrl]       = React.useState("");
+  const [kw, setKw]         = React.useState<any>(null);
+  const [extracting, setExtracting] = React.useState(false);
+  const [kwMsg, setKwMsg]   = React.useState("");
+  const [urls, setUrls]     = React.useState<string[]>(()=>{ try{return JSON.parse(localStorage.getItem(PS_KEY)||"[]");}catch{return [];} });
+  const [copied, setCopied] = React.useState(false);
+  const [hint, setHint]     = React.useState("");
+
+  React.useEffect(()=>{ localStorage.setItem(PS_KEY, JSON.stringify(urls.slice(0,500))); }, [urls]);
+
+  const addUrls = (text:string) => {
+    const found = text.match(COUPANG_RX) || [];
+    if (found.length===0) { setHint("쿠팡 URL을 찾지 못했어요"); setTimeout(()=>setHint(""),1500); return; }
+    setUrls(prev => { const set = new Set(prev); found.forEach(u=>set.add(u.trim())); return Array.from(set); });
+    setHint(`${found.length}개 추가됨`); setTimeout(()=>setHint(""),1500);
+  };
+  const fromClipboard = async () => {
+    try { const t = await navigator.clipboard.readText(); addUrls(t); }
+    catch { setHint("클립보드 접근 불가 — 아래에 붙여넣기(Ctrl+V) 하세요"); setTimeout(()=>setHint(""),2500); }
+  };
+
+  const extract = async (src:string) => {
+    if (!src) { setKwMsg("URL 또는 프로젝트를 선택하세요"); return; }
+    setExtracting(true); setKw(null); setKwMsg("분석 중... (최대 4분)");
+    try {
+      const { data:{ session: s } } = await supabase.auth.getSession();
+      const post = (body:any) => fetch(FN("extract-keywords"), { method:"POST",
+        headers:{ Authorization:`Bearer ${s.access_token}`, "Content-Type":"application/json" }, body: JSON.stringify(body) }).then(r=>r.json());
+      const d = await post({ source_url: src });
+      if (!d.ok) { setKwMsg(d.error ?? "추출 실패"); setExtracting(false); return; }
+      const pid = d.prediction_id; const start = Date.now();
+      while (Date.now()-start < 300000) {
+        await new Promise(r=>setTimeout(r,4000));
+        const p = await post({ poll:true, prediction_id: pid });
+        if (p.status==="succeeded") { setKw({ product_name:p.product_name, use_case:p.use_case, queries:p.queries||[] }); setKwMsg(""); break; }
+        if (p.status==="failed"||p.status==="canceled") { setKwMsg("추출 실패: "+(p.error??"")); break; }
+      }
+    } catch(e){ setKwMsg("추출 실패: "+String(e)); }
+    setExtracting(false);
+  };
+
+  const proj = projects.find(p=>p.id===projId);
+  const projSrc = proj?.data?.sourceUrl ?? "";
+  const copyAll = () => { navigator.clipboard.writeText(urls.join("\n")); setCopied(true); setTimeout(()=>setCopied(false),1500); };
+
+  const Step = ({n,title,children}:{n:string;title:string;children:any}) => (
+    <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 mb-4">
+      <p className="text-sm font-bold text-cyan-400 mb-3">STEP {n}. {title}</p>
+      {children}
+    </div>
+  );
+
+  return (
+    <div className="max-w-3xl">
+      <h2 className="text-xl font-black text-white mb-6">🛒 쿠팡 파트너스 상품 검색</h2>
+
+      <Step n="0" title="영상 URL 또는 프로젝트 → 한국어 검색어 추출">
+        <div className="flex flex-wrap items-end gap-2 mb-2">
+          <div className="flex-1 min-w-[200px]">
+            <label className="text-xs text-gray-500">프로젝트</label>
+            <select value={projId} onChange={e=>setProjId(e.target.value)} className="w-full mt-1 rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white outline-none">
+              {projects.length===0 && <option value="">저장된 프로젝트 없음</option>}
+              {projects.map(p=><option key={p.id} value={p.id}>{p.name} ({(p.data?.cart?.length ?? p.data?.clips?.length ?? 0)}개 영상)</option>)}
+            </select>
+          </div>
+          <button onClick={()=>extract(projSrc)} disabled={extracting||!projSrc} className="rounded-xl bg-green-600 hover:bg-green-500 disabled:opacity-40 px-4 py-2.5 text-sm font-bold text-white">📁 프로젝트로 추출</button>
+        </div>
+        <div className="text-center text-xs text-gray-600 my-2">— 또는 URL 직접 입력 —</div>
+        <div className="flex gap-2">
+          <input value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://www.tiktok.com/... or instagram.com/..."
+            className="flex-1 rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-500" />
+          <button onClick={()=>extract(url.trim())} disabled={extracting||!url.trim()} className="rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 px-4 py-2.5 text-sm font-bold text-white">🔍 URL로 추출</button>
+        </div>
+        {kwMsg && <p className="text-xs text-gray-400 mt-3">{extracting && "⏳ "}{kwMsg}</p>}
+        {kw && (
+          <div className="mt-4">
+            <p className="text-xs text-gray-500 mb-2">추출된 검색어 (클릭 시 쿠팡 검색 열기)</p>
+            <div className="flex flex-wrap gap-2">
+              {[kw.product_name, kw.use_case, ...(kw.queries||[])].filter(Boolean).map((k:string,i:number)=>(
+                <a key={i} href={`https://www.coupang.com/np/search?q=${encodeURIComponent(k)}`} target="_blank" rel="noreferrer"
+                  className="rounded-lg bg-gray-800 border border-gray-700 px-3 py-1.5 text-sm text-cyan-300 hover:border-cyan-500 transition">{k}</a>
+              ))}
+            </div>
+          </div>
+        )}
+      </Step>
+
+      <Step n="1" title="쿠팡 파트너스 / 인포크링크 열기">
+        <div className="flex flex-wrap gap-2">
+          <a href="https://partners.coupang.com/" target="_blank" rel="noreferrer" className="rounded-xl bg-cyan-600 hover:bg-cyan-500 px-4 py-2.5 text-sm font-bold text-white">🛒 쿠팡 파트너스 열기</a>
+          <a href="https://link.inpock.co.kr/" target="_blank" rel="noreferrer" className="rounded-xl bg-cyan-700 hover:bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white">🔗 인포크링크 열기</a>
+        </div>
+      </Step>
+
+      <Step n="2" title="상품 URL 누적 리스트">
+        <p className="text-xs text-gray-400 mb-3">쿠팡 상품 페이지 URL을 복사한 뒤 아래 칸에 붙여넣으면(Ctrl+V) 자동 추가됩니다. [전체 복사] 후 인포크링크에 붙여넣으세요.</p>
+        <div className="flex items-center gap-2 mb-2">
+          <button onClick={fromClipboard} className="rounded-lg bg-gray-700 hover:bg-gray-600 px-3 py-2 text-xs font-bold text-white">📋 클립보드에서 추가</button>
+          <div className="flex-1" />
+          <button onClick={copyAll} disabled={urls.length===0} className="rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 px-3 py-2 text-xs font-bold text-white">{copied?"✓ 복사됨":"📋 전체 복사"}</button>
+          <button onClick={()=>{ if(urls.length&&confirm("목록을 비울까요?")) setUrls([]); }} disabled={urls.length===0} className="rounded-lg bg-red-600/80 hover:bg-red-500 disabled:opacity-40 px-3 py-2 text-xs font-bold text-white">비우기</button>
+        </div>
+        <textarea onPaste={(e)=>{ e.preventDefault(); addUrls(e.clipboardData.getData("text")); }}
+          placeholder="여기에 쿠팡 URL을 붙여넣으세요 (Ctrl+V)"
+          className="w-full h-14 rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-500 resize-none mb-2" />
+        {hint && <p className="text-xs text-cyan-400 mb-2">{hint}</p>}
+        <div className="rounded-xl bg-gray-800/50 border border-gray-700 max-h-64 overflow-y-auto">
+          {urls.length===0 ? (
+            <p className="py-8 text-center text-sm text-gray-600">저장된 URL이 없습니다.</p>
+          ) : urls.map((u,i)=>(
+            <div key={i} className="flex items-center gap-2 px-3 py-2 border-b border-gray-800/50 last:border-0">
+              <span className="text-xs text-gray-600 w-6 shrink-0">{i+1}</span>
+              <a href={u} target="_blank" rel="noreferrer" className="flex-1 text-xs text-cyan-300 truncate hover:underline">{u}</a>
+              <button onClick={()=>setUrls(prev=>prev.filter((_,j)=>j!==i))} className="text-gray-500 hover:text-red-400 text-xs shrink-0">✕</button>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-gray-600 mt-2">{urls.length}개 저장됨</p>
+      </Step>
     </div>
   );
 }
