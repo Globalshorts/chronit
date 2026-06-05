@@ -2488,6 +2488,23 @@ function StyleFinderView({ session, onImport }: { session: any; onImport: (id:st
       pollStyle(d.profile_id);
     } catch(e) { setError(String(e)); setLoading(false); }
   };
+  const Row = ({k, v}: {k: string; v?: string}) => v ? (
+    <div className="flex items-start gap-3">
+      <span className="text-xs text-gray-500 w-16 shrink-0 pt-0.5">{k}</span>
+      <span className="text-sm text-gray-300 flex-1">{v}</span>
+    </div>
+  ) : null;
+  const Section = ({title, children}: {title: string; children: any}) => (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <div className="w-1 h-4 bg-cyan-500 rounded" />
+        <p className="font-bold text-white text-sm">{title}</p>
+      </div>
+      <div className="space-y-2 pl-3">{children}</div>
+    </div>
+  );
+  const igCode = (result?.source_url || "").match(/instagram\.com\/(?:reel|reels|p)\/([^/?#]+)/)?.[1];
+  const igEmbed = igCode ? `https://www.instagram.com/p/${igCode}/embed` : "";
   return (
     <div className="space-y-5">
       <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 space-y-3">
@@ -2503,14 +2520,64 @@ function StyleFinderView({ session, onImport }: { session: any; onImport: (id:st
         {error && <p className="text-xs text-red-400">{error}</p>}
       </div>
       {result && (
-        <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <div><p className="font-black text-white">{result.label}</p>{result.source_channel&&<p className="text-xs text-gray-500">@{result.source_channel}</p>}</div>
-            <button onClick={()=>onImport(result.id)} className="shrink-0 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-black text-white hover:bg-cyan-400 transition">이 스타일 적용 →</button>
+        <div className="rounded-2xl bg-gray-900 border border-gray-800 overflow-hidden">
+          <div className="flex items-center justify-between gap-3 p-5 border-b border-gray-800">
+            <div>
+              <p className="font-black text-white text-lg">{result.label}</p>
+              {result.source_channel && <p className="text-xs text-gray-500">@{result.source_channel}</p>}
+            </div>
+            <button onClick={()=>onImport(result.id)} className="shrink-0 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-black text-white hover:bg-cyan-400 transition">이 스타일 가져오기 →</button>
           </div>
-          {result.tone?.speaker && <p className="text-sm text-gray-300">{result.tone.speaker}</p>}
-          {result.tone?.signatures?.length>0 && <div className="flex flex-wrap gap-1.5">{result.tone.signatures.slice(0,6).map((s:string,i:number)=><span key={i} className="rounded-full bg-gray-700 px-2.5 py-1 text-xs text-gray-200">{s}</span>)}</div>}
-          <p className="text-xs text-green-400">✓ 라이브러리 저장 완료</p>
+          <div className="grid md:grid-cols-[260px_1fr] gap-5 p-5">
+            <div>
+              <p className="text-xs font-bold text-gray-400 mb-2">원본 영상</p>
+              {igEmbed ? (
+                <iframe src={igEmbed} title="원본 영상" loading="lazy"
+                  className="w-full rounded-xl bg-black border border-gray-800" style={{height: 460}} />
+              ) : (
+                <div className="rounded-xl bg-black border border-gray-800 h-72 flex items-center justify-center text-xs text-gray-500">미리보기 없음</div>
+              )}
+              {result.source_url && <a href={result.source_url} target="_blank" rel="noreferrer" className="block text-center text-xs text-cyan-400 mt-2 hover:underline">새 탭에서 보기</a>}
+            </div>
+            <div className="space-y-5">
+              {result.tone && (
+                <Section title="톤·말투">
+                  <Row k="화자" v={result.tone.speaker} />
+                  <Row k="격식" v={result.tone.formality} />
+                  <Row k="에너지" v={result.tone.energy} />
+                  {result.tone.signatures?.length>0 && (
+                    <div className="flex items-start gap-3">
+                      <span className="text-xs text-gray-500 w-16 shrink-0 pt-1">시그니처</span>
+                      <div className="flex flex-wrap gap-1.5">{result.tone.signatures.map((s:string,i:number)=><span key={i} className="rounded-full bg-gray-700 px-2.5 py-1 text-xs text-gray-200">{s}</span>)}</div>
+                    </div>
+                  )}
+                </Section>
+              )}
+              {result.structure && (
+                <Section title="구조 패턴">
+                  <Row k="훅" v={result.structure.hook} />
+                  <Row k="본론" v={result.structure.body} />
+                  <Row k="CTA" v={result.structure.cta} />
+                  {result.structure.beats?.length>0 && (
+                    <div className="space-y-1.5 pt-1">
+                      {result.structure.beats.map((b:any,i:number)=>(
+                        <div key={i} className="flex gap-3 text-sm"><span className="text-cyan-400 font-bold shrink-0">{b.time}</span><span className="text-gray-300">{b.desc}</span></div>
+                      ))}
+                    </div>
+                  )}
+                </Section>
+              )}
+              {result.subtitle && (
+                <Section title="자막 패턴">
+                  <Row k="평균 줄 길이" v={result.subtitle.avg_chars} />
+                  <Row k="분할 규칙" v={result.subtitle.split_rule} />
+                  <Row k="리듬" v={result.subtitle.rhythm} />
+                  <Row k="강조" v={result.subtitle.emphasis} />
+                </Section>
+              )}
+              <p className="text-xs text-green-400">✓ 라이브러리 저장 완료</p>
+            </div>
+          </div>
         </div>
       )}
     </div>
