@@ -828,7 +828,7 @@ export default function VideoGenerator() {
       })()}
       {/* ── 왼쪽 사이드바 ── */}
       {/* ── 좌측 탭 네비 (좁게) ── */}
-      <div className="w-52 shrink-0 border-r border-gray-800 flex flex-col">
+      <div className="w-52 shrink-0 border-r border-gray-800 flex flex-col sticky top-0 h-screen self-start">
         <NavSidebar activeView={activeView} onViewChange={setActiveView} userRole={userRole}
           balance={balance} userPlan={userPlan} session={session} />
       </div>
