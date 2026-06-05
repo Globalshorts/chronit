@@ -2739,22 +2739,325 @@ function SettingsView({ session, supabase, balance, userPlan }:
 }
 
 function AdminView({ session, supabase }: { session: any; supabase: any }) {
-  const [users, setUsers] = React.useState<any[]>([]);
-  React.useEffect(()=>{ if(!session) return; (async()=>{ try{const{data}=await supabase.from("subscriptions").select("user_id,plan,role").order("created_at",{ascending:false}).limit(50);setUsers(data??[]);}catch{}})(); },[session]);
-  const setRole=async(uid:string,role:string)=>{await supabase.from("subscriptions").update({role}).eq("user_id",uid);setUsers(u=>u.map(x=>x.user_id===uid?{...x,role}:x));};
+  const [tab, setTab] = React.useState<"subs"|"coupons"|"reviews">("subs");
+  const TABS = [
+    { v:"subs",    label:"👑 구독 관리" },
+    { v:"coupons", label:"🎟 쿠폰 코드" },
+    { v:"reviews", label:"📝 후기 승인" },
+  ] as const;
   return (
     <div>
-      <h2 className="text-xl font-black text-white mb-5">👑 관리자</h2>
-      <div className="rounded-2xl bg-gray-900 border border-gray-800 overflow-hidden">
-        <table className="w-full text-xs"><thead className="border-b border-gray-800"><tr className="text-gray-400"><th className="px-4 py-3 text-left">user_id</th><th className="px-4 py-3 text-left">플랜</th><th className="px-4 py-3 text-left">역할 변경</th></tr></thead>
-          <tbody>{users.map(u=>(
-            <tr key={u.user_id} className="border-b border-gray-800/50">
-              <td className="px-4 py-3 text-gray-400 font-mono truncate max-w-[140px]">{u.user_id?.slice(0,14)}</td>
-              <td className="px-4 py-3 text-white capitalize">{u.plan||"-"}</td>
-              <td className="px-4 py-3"><select value={u.role||"user"} onChange={e=>setRole(u.user_id,e.target.value)} className="rounded-lg bg-gray-700 border border-gray-600 px-2 py-1 text-xs text-white outline-none"><option value="user">user</option><option value="partner">partner</option><option value="super_admin">super_admin</option></select></td>
-            </tr>
-          ))}</tbody>
+      <div className="flex gap-1 mb-5 border-b border-gray-800">
+        {TABS.map(t=>(
+          <button key={t.v} onClick={()=>setTab(t.v as any)}
+            className={`px-4 py-2.5 text-sm font-bold transition border-b-2 -mb-px ${tab===t.v?"text-cyan-400 border-cyan-400":"text-gray-400 border-transparent hover:text-white"}`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      {tab==="subs"    && <AdminSubsTab session={session} supabase={supabase} />}
+      {tab==="coupons" && <AdminCouponsTab session={session} supabase={supabase} />}
+      {tab==="reviews" && <AdminReviewsTab session={session} supabase={supabase} />}
+    </div>
+  );
+}
+
+// ── 관리자: 구독 관리 ──
+function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
+  const [users, setUsers]   = React.useState<any[]>([]);
+  const [planMax, setPlanMax] = React.useState<Record<string,number>>({});
+  const [plans, setPlans]   = React.useState<any[]>([]);
+  const [q, setQ]           = React.useState("");
+  const [stFilter, setStFilter] = React.useState("all");
+  const [plFilter, setPlFilter] = React.useState("all");
+  const [sel, setSel]       = React.useState<string>("");
+  const [planSel, setPlanSel] = React.useState("pro");
+  const [days, setDays]     = React.useState("30");
+  const [amt, setAmt]       = React.useState("1000");
+  const [roleSel, setRoleSel] = React.useState("user");
+  const [msg, setMsg]       = React.useState("");
+  const [loading, setLoading] = React.useState(true);
+
+  const load = React.useCallback(async ()=>{
+    setLoading(true);
+    try {
+      const { data } = await supabase.rpc("get_all_users_admin_rpc");
+      setUsers(Array.isArray(data) ? data : []);
+    } catch { setUsers([]); }
+    try {
+      const { data: pl } = await supabase.from("plans").select("id,name,max_credits").order("sort_order");
+      setPlans(pl ?? []);
+      const m:Record<string,number> = {}; (pl??[]).forEach((p:any)=>m[p.id]=p.max_credits); setPlanMax(m);
+    } catch {}
+    setLoading(false);
+  }, [supabase]);
+  React.useEffect(()=>{ if(session) load(); }, [session, load]);
+
+  const now = Date.now();
+  const isActive = (u:any) => u.expires_at && new Date(u.expires_at).getTime() > now;
+  const filtered = users.filter(u=>{
+    if (q.trim() && !(u.email||"").toLowerCase().includes(q.trim().toLowerCase())) return false;
+    if (stFilter==="active" && !isActive(u)) return false;
+    if (stFilter==="expired" && isActive(u)) return false;
+    if (plFilter!=="all" && u.plan!==plFilter) return false;
+    return true;
+  });
+  const activeCnt = users.filter(isActive).length;
+  const selUser = users.find(u=>u.user_id===sel);
+
+  const run = async (fn:()=>Promise<any>, okMsg:string) => {
+    if (!sel) { setMsg("회원을 먼저 선택하세요"); return; }
+    setMsg("처리 중...");
+    try { const r = await fn(); if (r?.error && !r?.ok) setMsg("실패: "+(r.error.message||r.error)); else if (r?.data?.ok===false) setMsg("실패: "+r.data.error); else { setMsg(okMsg); await load(); } }
+    catch(e){ setMsg("실패: "+String(e)); }
+  };
+  const grant   = () => run(()=>supabase.rpc("admin_grant_subscription_rpc",{p_target_user_id:sel,p_plan:planSel,p_days:Number(days)||30}), "구독 부여/연장 완료");
+  const cancel  = () => run(()=>supabase.rpc("admin_cancel_subscription_rpc",{p_target_user_id:sel}), "구독 취소 완료");
+  const resetDev= () => run(()=>supabase.rpc("admin_reset_user_devices_rpc",{p_target_user_id:sel}), "디바이스 해제 완료");
+  const credit  = (action:string) => run(()=>supabase.rpc("admin_adjust_credits_rpc",{p_target_user_id:sel,p_action:action,p_amount:Number(amt)||0}), "크레딧 처리 완료");
+  const applyRole = () => run(()=>supabase.rpc("set_user_role_rpc",{p_target_user_id:sel,p_new_role:roleSel}), "권한 변경 완료");
+
+  const fmt = (d:string)=> d ? new Date(d).toLocaleDateString("ko-KR",{year:"2-digit",month:"2-digit",day:"2-digit"}) : "-";
+  const Btn = ({onClick,color,children}:{onClick:()=>void;color:string;children:any}) => (
+    <button onClick={onClick} className={`rounded-lg px-3 py-2 text-xs font-bold text-white transition ${color}`}>{children}</button>
+  );
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-sm font-bold text-white">👑 구독 관리</p>
+        <div className="text-xs text-gray-500">전체 {users.length} · <span className="text-green-400">구독중 {activeCnt}</span> · 만료 {users.length-activeCnt}
+          <button onClick={load} className="ml-3 rounded-lg border border-gray-700 px-2 py-1 hover:bg-gray-800">새로고침</button>
+        </div>
+      </div>
+      <div className="flex gap-2 mb-3">
+        <input value={q} onChange={e=>setQ(e.target.value)} placeholder="이메일 검색"
+          className="flex-1 rounded-xl bg-gray-800 border border-gray-700 px-4 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-500" />
+        <select value={stFilter} onChange={e=>setStFilter(e.target.value)} className="rounded-xl bg-gray-800 border border-gray-700 px-3 py-2 text-sm text-white outline-none">
+          <option value="all">상태 전체</option><option value="active">유효</option><option value="expired">만료</option></select>
+        <select value={plFilter} onChange={e=>setPlFilter(e.target.value)} className="rounded-xl bg-gray-800 border border-gray-700 px-3 py-2 text-sm text-white outline-none">
+          <option value="all">플랜 전체</option>{plans.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>
+      </div>
+      <div className="rounded-2xl bg-gray-900 border border-gray-800 overflow-hidden mb-5 max-h-[340px] overflow-y-auto">
+        <table className="w-full text-xs">
+          <thead className="border-b border-gray-800 text-gray-400 sticky top-0 bg-gray-900">
+            <tr><th className="px-3 py-2.5 text-left">이메일</th><th className="px-3 py-2.5 text-left">권한</th><th className="px-3 py-2.5 text-left">플랜</th><th className="px-3 py-2.5 text-left">만료일</th><th className="px-3 py-2.5 text-left">상태</th><th className="px-3 py-2.5 text-right">크레딧(잔량/한도)</th></tr>
+          </thead>
+          <tbody>
+            {loading ? <tr><td colSpan={6} className="py-8 text-center text-gray-500">불러오는 중...</td></tr>
+            : filtered.length===0 ? <tr><td colSpan={6} className="py-8 text-center text-gray-500">결과 없음</td></tr>
+            : filtered.map(u=>{
+              const max = planMax[u.plan] ?? 0; const left = max - (u.credits_used||0); const act = isActive(u);
+              return (
+                <tr key={u.user_id} onClick={()=>{setSel(u.user_id); setRoleSel(u.role||"user"); if(u.plan)setPlanSel(u.plan);}}
+                  className={`border-b border-gray-800/50 cursor-pointer ${sel===u.user_id?"bg-cyan-500/10":"hover:bg-gray-800/40"}`}>
+                  <td className="px-3 py-2.5 text-white truncate max-w-[200px]">{u.email}</td>
+                  <td className="px-3 py-2.5">{u.role==="super_admin"?<span className="text-yellow-400 font-bold">👑 관리자</span>:u.role==="partner"?<span className="text-cyan-400">파트너</span>:<span className="text-gray-400">일반</span>}</td>
+                  <td className="px-3 py-2.5 text-white capitalize">{u.plan||"-"}</td>
+                  <td className="px-3 py-2.5 text-gray-400">{fmt(u.expires_at)}</td>
+                  <td className="px-3 py-2.5">{act?<span className="text-green-400">유효</span>:<span className="text-red-400">만료</span>}</td>
+                  <td className="px-3 py-2.5 text-right text-gray-300">{left.toLocaleString()} / {max.toLocaleString()}</td>
+                </tr>
+              );
+            })}
+          </tbody>
         </table>
+      </div>
+
+      {/* 액션 영역 */}
+      <div className="space-y-3">
+        <div className="rounded-2xl bg-gray-900 border border-gray-800 p-4">
+          <p className="text-xs text-gray-500 mb-2">구독 부여 / 수정 {selUser && <span className="text-cyan-400">— {selUser.email}</span>}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <select value={planSel} onChange={e=>setPlanSel(e.target.value)} className="rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-sm text-white outline-none">
+              {plans.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>
+            <input value={days} onChange={e=>setDays(e.target.value)} className="w-28 rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-sm text-white outline-none" placeholder="기간(일)" />
+            <Btn onClick={grant} color="bg-green-600 hover:bg-green-500">✓ 구독 부여/연장</Btn>
+            <Btn onClick={cancel} color="bg-red-600 hover:bg-red-500">✕ 구독 취소</Btn>
+            <Btn onClick={resetDev} color="bg-gray-700 hover:bg-gray-600">🖥 디바이스 모두 해제</Btn>
+          </div>
+        </div>
+        <div className="rounded-2xl bg-gray-900 border border-gray-800 p-4">
+          <p className="text-xs text-gray-500 mb-2">크레딧 관리</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <input value={amt} onChange={e=>setAmt(e.target.value)} className="w-36 rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-sm text-white outline-none" placeholder="변동량" />
+            <Btn onClick={()=>credit("add")} color="bg-green-600 hover:bg-green-500">＋ 충전 (잔량 증가)</Btn>
+            <Btn onClick={()=>credit("sub")} color="bg-orange-600 hover:bg-orange-500">－ 차감 (잔량 감소)</Btn>
+            <Btn onClick={()=>credit("reset")} color="bg-gray-700 hover:bg-gray-600">🔄 사용량 0으로 초기화</Btn>
+          </div>
+        </div>
+        <div className="rounded-2xl bg-gray-900 border border-gray-800 p-4">
+          <p className="text-xs text-gray-500 mb-2">권한 변경 (파트너/관리자 지정)</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <select value={roleSel} onChange={e=>setRoleSel(e.target.value)} className="rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-sm text-white outline-none">
+              <option value="user">일반 (user)</option><option value="partner">파트너 (partner)</option><option value="super_admin">관리자 (super_admin)</option></select>
+            <Btn onClick={applyRole} color="bg-cyan-600 hover:bg-cyan-500">✓ 권한 적용</Btn>
+          </div>
+        </div>
+        {msg && <p className="text-xs text-cyan-400">{msg}</p>}
+      </div>
+    </div>
+  );
+}
+
+// ── 관리자: 쿠폰 코드 ──
+function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
+  const [codes, setCodes]   = React.useState<any[]>([]);
+  const [counts, setCounts] = React.useState<Record<string,number>>({});
+  const [code, setCode]     = React.useState("");
+  const [owner, setOwner]   = React.useState("");
+  const [type, setType]     = React.useState("none");
+  const [value, setValue]   = React.useState("0");
+  const [exp, setExp]       = React.useState("");
+  const [unlimited, setUnlimited] = React.useState(true);
+  const [sel, setSel]       = React.useState<Set<string>>(new Set());
+  const [msg, setMsg]       = React.useState("");
+
+  const load = React.useCallback(async ()=>{
+    try {
+      const { data } = await supabase.from("coupon_codes").select("code,type,value,owner_email,expires_at,created_at").order("created_at",{ascending:false});
+      setCodes(data ?? []);
+    } catch { setCodes([]); }
+    try {
+      const { data: red } = await supabase.from("code_redemptions").select("code");
+      const c:Record<string,number> = {}; (red??[]).forEach((r:any)=>{ if(r.code) c[r.code]=(c[r.code]||0)+1; }); setCounts(c);
+    } catch {}
+  }, [supabase]);
+  React.useEffect(()=>{ if(session) load(); }, [session, load]);
+
+  const create = async () => {
+    const c = code.trim().toUpperCase();
+    if (!c) { setMsg("코드를 입력하세요"); return; }
+    setMsg("생성 중...");
+    const row:any = { code:c, type:(type==="none"?"free_days":type), value:Number(value)||0,
+      owner_email: owner.trim() || null, expires_at: unlimited ? null : (exp || null) };
+    const { error } = await supabase.from("coupon_codes").insert(row);
+    if (error) setMsg("생성 실패: "+error.message);
+    else { setMsg("코드 생성 완료"); setCode(""); setOwner(""); setValue("0"); await load(); }
+  };
+  const toggleSel = (c:string) => setSel(s=>{ const n=new Set(s); n.has(c)?n.delete(c):n.add(c); return n; });
+  const delSel = async () => {
+    if (sel.size===0) return;
+    if (!confirm(`${sel.size}개 코드를 삭제할까요?`)) return;
+    const { error } = await supabase.from("coupon_codes").delete().in("code", Array.from(sel));
+    if (error) setMsg("삭제 실패: "+error.message);
+    else { setSel(new Set()); await load(); }
+  };
+  const fmt = (d:string)=> d ? new Date(d).toLocaleDateString("ko-KR",{year:"2-digit",month:"2-digit",day:"2-digit"}) : "무기한";
+
+  return (
+    <div>
+      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 mb-5">
+        <p className="text-sm font-bold text-white mb-3">새 쿠폰 코드 생성</p>
+        <div className="grid sm:grid-cols-2 gap-3 mb-3">
+          <div><label className="text-xs text-gray-500">코드</label>
+            <input value={code} onChange={e=>setCode(e.target.value)} placeholder="예: TEACHER_KIM"
+              className="w-full mt-1 rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-500" /></div>
+          <div><label className="text-xs text-gray-500">파트너 이메일 (선택 — 파트너 매핑)</label>
+            <input value={owner} onChange={e=>setOwner(e.target.value)} placeholder="partner@example.com"
+              className="w-full mt-1 rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-500" /></div>
+        </div>
+        <div className="flex flex-wrap items-end gap-3 mb-4">
+          <div><label className="text-xs text-gray-500">타입</label>
+            <select value={type} onChange={e=>setType(e.target.value)} className="block mt-1 rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white outline-none">
+              <option value="none">미적용 (파트너 전용)</option><option value="free_days">무료기간(일)</option><option value="percent">할인 %</option><option value="amount">정액 할인</option></select></div>
+          <div><label className="text-xs text-gray-500">값</label>
+            <input value={value} onChange={e=>setValue(e.target.value)} className="block w-28 mt-1 rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white outline-none" /></div>
+          <div><label className="text-xs text-gray-500">만료일</label>
+            <input type="date" value={exp} disabled={unlimited} onChange={e=>setExp(e.target.value)} className="block mt-1 rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white outline-none disabled:opacity-40" /></div>
+          <label className="flex items-center gap-2 text-sm text-gray-300 pb-2"><input type="checkbox" checked={unlimited} onChange={e=>setUnlimited(e.target.checked)} className="accent-cyan-500" /> 무기한</label>
+        </div>
+        <button onClick={create} className="w-full rounded-xl bg-green-600 hover:bg-green-500 py-2.5 text-sm font-bold text-white transition">✓ 코드 생성</button>
+        {msg && <p className="text-xs text-cyan-400 mt-2">{msg}</p>}
+      </div>
+
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-sm font-bold text-white">발급된 코드 목록</p>
+        <div className="flex gap-2">
+          <button onClick={delSel} disabled={sel.size===0} className="rounded-lg bg-red-600/80 hover:bg-red-500 disabled:opacity-40 px-3 py-1.5 text-xs font-bold text-white">🗑 선택 삭제</button>
+          <button onClick={load} className="rounded-lg border border-gray-700 px-3 py-1.5 text-xs text-gray-300 hover:bg-gray-800">새로고침</button>
+        </div>
+      </div>
+      <div className="rounded-2xl bg-gray-900 border border-gray-800 overflow-hidden">
+        <table className="w-full text-xs">
+          <thead className="border-b border-gray-800 text-gray-400">
+            <tr><th className="px-3 py-2.5 w-8"></th><th className="px-3 py-2.5 text-left">코드</th><th className="px-3 py-2.5 text-left">타입</th><th className="px-3 py-2.5 text-right">값</th><th className="px-3 py-2.5 text-left">파트너</th><th className="px-3 py-2.5 text-right">사용수</th><th className="px-3 py-2.5 text-left">만료일</th></tr>
+          </thead>
+          <tbody>
+            {codes.length===0 ? <tr><td colSpan={7} className="py-8 text-center text-gray-500">발급된 코드 없음</td></tr>
+            : codes.map(c=>(
+              <tr key={c.code} className="border-b border-gray-800/50 hover:bg-gray-800/40">
+                <td className="px-3 py-2.5"><input type="checkbox" checked={sel.has(c.code)} onChange={()=>toggleSel(c.code)} className="accent-cyan-500" /></td>
+                <td className="px-3 py-2.5 font-mono font-bold text-cyan-400">{c.code}</td>
+                <td className="px-3 py-2.5 text-gray-300">{c.type}</td>
+                <td className="px-3 py-2.5 text-right text-gray-300">{c.value}</td>
+                <td className="px-3 py-2.5 text-gray-400 truncate max-w-[200px]">{c.owner_email || "—"}</td>
+                <td className="px-3 py-2.5 text-right text-white">{counts[c.code] || 0}</td>
+                <td className="px-3 py-2.5 text-gray-400">{fmt(c.expires_at)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ── 관리자: 후기 승인 ──
+function AdminReviewsTab({ session, supabase }: { session:any; supabase:any }) {
+  const [rows, setRows] = React.useState<any[]>([]);
+  const [sel, setSel]   = React.useState<string>("");
+  const [msg, setMsg]   = React.useState("");
+  const [loading, setLoading] = React.useState(true);
+
+  const load = React.useCallback(async ()=>{
+    setLoading(true);
+    try { const { data } = await supabase.rpc("get_review_submissions_rpc"); setRows(Array.isArray(data)?data:[]); }
+    catch { setRows([]); }
+    setLoading(false);
+  }, [supabase]);
+  React.useEffect(()=>{ if(session) load(); }, [session, load]);
+
+  const act = async (fn:()=>Promise<any>, okMsg:string) => {
+    if (!sel) { setMsg("제출 건을 선택하세요"); return; }
+    setMsg("처리 중...");
+    try { const r = await fn(); if (r?.data?.ok===false) setMsg("실패: "+r.data.error); else { setMsg(okMsg); setSel(""); await load(); } }
+    catch(e){ setMsg("실패: "+String(e)); }
+  };
+  const approve = () => act(()=>supabase.rpc("approve_review_rpc",{p_submission_id:sel,p_admin_id:session.user.id,p_credits:1000}), "승인 완료 (+1000 CR)");
+  const reject  = () => act(()=>supabase.rpc("reject_review_rpc",{p_submission_id:sel,p_admin_id:session.user.id}), "거절 완료");
+  const fmt = (d:string)=> d ? new Date(d).toLocaleString("ko-KR",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}) : "-";
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-sm font-bold text-white">📝 후기 승인 관리 <span className="text-xs text-gray-500">(대기 {rows.length}건)</span></p>
+        <button onClick={load} className="rounded-lg border border-gray-700 px-3 py-1.5 text-xs text-gray-300 hover:bg-gray-800">새로고침</button>
+      </div>
+      <div className="rounded-2xl bg-gray-900 border border-gray-800 overflow-hidden mb-4">
+        <table className="w-full text-xs">
+          <thead className="border-b border-gray-800 text-gray-400">
+            <tr><th className="px-3 py-2.5 text-left">이메일</th><th className="px-3 py-2.5 text-left">URL</th><th className="px-3 py-2.5 text-left">상태</th><th className="px-3 py-2.5 text-left">제출일</th></tr>
+          </thead>
+          <tbody>
+            {loading ? <tr><td colSpan={4} className="py-8 text-center text-gray-500">불러오는 중...</td></tr>
+            : rows.length===0 ? <tr><td colSpan={4} className="py-8 text-center text-gray-500">대기 중인 후기 없음</td></tr>
+            : rows.map(r=>(
+              <tr key={r.id} onClick={()=>setSel(r.id)}
+                className={`border-b border-gray-800/50 cursor-pointer ${sel===r.id?"bg-cyan-500/10":"hover:bg-gray-800/40"}`}>
+                <td className="px-3 py-2.5 text-white truncate max-w-[160px]">{r.email}</td>
+                <td className="px-3 py-2.5 text-cyan-400 truncate max-w-[280px]"><a href={r.url} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} className="hover:underline">{r.url}</a></td>
+                <td className="px-3 py-2.5 text-yellow-400">{r.status}</td>
+                <td className="px-3 py-2.5 text-gray-400">{fmt(r.submitted_at)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="flex items-center gap-2">
+        <button onClick={approve} className="rounded-xl bg-green-600 hover:bg-green-500 px-5 py-2.5 text-sm font-bold text-white transition">✓ 승인 (+1000 크레딧)</button>
+        <button onClick={reject} className="rounded-xl bg-red-600 hover:bg-red-500 px-5 py-2.5 text-sm font-bold text-white transition">✕ 거절</button>
+        {msg && <span className="text-xs text-cyan-400 ml-2">{msg}</span>}
       </div>
     </div>
   );
