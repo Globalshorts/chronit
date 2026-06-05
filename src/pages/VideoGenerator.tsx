@@ -143,6 +143,8 @@ export default function VideoGenerator() {
   const [showAutoModal, setShowAutoModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);  // 모바일 사이드바 드로어
   const [mobileProjOpen, setMobileProjOpen] = useState(false);  // 모바일 프로젝트 시트
+  const [showSourceSurvey, setShowSourceSurvey] = useState(false);  // 가입 경로 설문
+  const [sourceSaving, setSourceSaving] = useState(false);
   const [modalCtaText, setModalCtaText]   = useState("");   // 자동화 진행 단계 메시지
   const [voiceSegments, setVoiceSegments] = useState<any[]>([]);  // 장면별 편집용
   const [freeRegen, setFreeRegen] = useState(3);  // Stage 3 무료 재생성 횟수
@@ -280,6 +282,28 @@ export default function VideoGenerator() {
     const hb = setInterval(() => { supabase.rpc("heartbeat_device_rpc", { p_device_id: did }).then(undefined, () => {}); }, 5 * 60 * 1000);
     return () => clearInterval(hb);
   }, [session]);
+
+  // ── 가입 경로 설문 (응답 전 1회) ──────────────────────────────
+  useEffect(() => {
+    if (!session) return;
+    try { if (localStorage.getItem("chronit_source_asked")) return; } catch {}
+    supabase.rpc("get_signup_source_rpc").then((res: any) => {
+      if (!res?.data) setShowSourceSurvey(true);
+    }, () => {});
+  }, [session]);
+
+  const submitSource = (src: string) => {
+    setSourceSaving(true);
+    try { localStorage.setItem("chronit_source_asked", "1"); } catch {}
+    supabase.rpc("set_signup_source_rpc", { p_source: src }).then(
+      () => { setShowSourceSurvey(false); setSourceSaving(false); },
+      () => { setShowSourceSurvey(false); setSourceSaving(false); }
+    );
+  };
+  const skipSource = () => {
+    try { localStorage.setItem("chronit_source_asked", "1"); } catch {}
+    setShowSourceSurvey(false);
+  };
 
   // 현재 job 완료/실패 감지 → 알림 (단계와 무관하게)
   useEffect(() => {
@@ -891,6 +915,28 @@ export default function VideoGenerator() {
           </div>
         );
       })()}
+      {/* ── 가입 경로 설문 ── */}
+      {showSourceSurvey && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
+          <div className="w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl">
+            <p className="text-center text-lg font-black text-gray-900">크로닛을 어떻게 알게 되셨어요?</p>
+            <p className="mt-1 text-center text-sm text-gray-500">더 나은 서비스를 위해 참고할게요 🙏</p>
+            <div className="mt-5 grid grid-cols-2 gap-2.5">
+              {["유튜브","인스타그램","지인 추천","블로그·카페","검색(구글·네이버)","기타"].map(opt => (
+                <button key={opt} disabled={sourceSaving} onClick={() => submitSource(opt)}
+                  className="rounded-xl border border-gray-200 bg-[#FAFAF8] px-3 py-3 text-sm font-bold text-gray-800 transition hover:border-[#03C75A] hover:text-[#03C75A] active:scale-[0.98] disabled:opacity-50">
+                  {opt}
+                </button>
+              ))}
+            </div>
+            <button disabled={sourceSaving} onClick={skipSource}
+              className="mt-3 w-full text-center text-xs text-gray-400 hover:text-gray-600">
+              다음에 답할게요
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── 상단 바 ── */}
       <AppTopBar onMenuClick={() => setMobileMenuOpen(true)} />
 
