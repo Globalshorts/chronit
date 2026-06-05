@@ -13,34 +13,34 @@ const AuthModal = ({ open, onClose, referralCode }) => {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-sm rounded-3xl border border-white/10 bg-gradient-to-b from-[#0a0f1f] to-[#020617] p-8 shadow-2xl"
+        className="relative w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-8 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition-all hover:bg-white/5 hover:text-white"
+          className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-full text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600"
         >
           <X size={20} />
         </button>
 
         <div className="mb-8 text-center">
           <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="mx-auto mb-4 h-12 w-12" />
-          <h3 className="text-xl font-black text-white">로그인</h3>
-          <p className="mt-2 text-sm leading-relaxed text-slate-400">
-            로그인 후 무료 크레딧으로 바로 사용해보세요.
+          <h3 className="text-xl font-black text-gray-900">로그인</h3>
+          <p className="mt-2 text-sm leading-relaxed text-gray-500">
+            로그인하면 무료 크레딧 500개를 바로 드려요.
           </p>
         </div>
 
         {/* 추천인 코드 표시 */}
         {referralCode && (
-          <div className="mb-5 flex items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-3">
-            <Gift size={15} className="shrink-0 text-blue-400" />
-            <span className="text-sm font-bold text-blue-300">
-              추천 코드 <span className="text-white">{referralCode}</span> — 가입 시 500 크레딧 지급
+          <div className="mb-5 flex items-center gap-2 rounded-xl border border-[#03C75A]/30 bg-[#03C75A]/10 px-4 py-3">
+            <Gift size={15} className="shrink-0 text-[#03C75A]" />
+            <span className="text-sm font-bold text-[#03C75A]">
+              추천 코드 <span className="text-gray-900">{referralCode}</span> — 가입 시 500 크레딧 추가
             </span>
           </div>
         )}
@@ -49,7 +49,7 @@ const AuthModal = ({ open, onClose, referralCode }) => {
           {/* Google */}
           <button
             onClick={() => signIn('google')}
-            className="flex w-full items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5 font-bold text-white transition-all hover:bg-white/10 active:scale-[0.98]"
+            className="flex w-full items-center justify-center gap-3 rounded-2xl border border-gray-300 bg-white px-4 py-3.5 font-bold text-gray-700 transition-all hover:bg-gray-50 active:scale-[0.98]"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
               <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/>
