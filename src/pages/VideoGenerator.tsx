@@ -18,17 +18,23 @@ const SB = "https://oxygqtbdpnxxcgzwdlzi.supabase.co";
 const FN = (n: string) => `${SB}/functions/v1/${n}`;
 
 // ── 상단 바 (홈페이지와 동일 스타일) ───────────────────────────
-function AppTopBar() {
+function AppTopBar({ onMenuClick }: { onMenuClick?: () => void }) {
   const ICON = `${SB}/storage/v1/object/public/assets/icon.png`;
   const link = "transition-colors hover:text-[#03C75A]";
   return (
     <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white/90 px-4 backdrop-blur-xl md:px-6">
-      <a href="/" className="flex items-center gap-2">
-        <img src={ICON} alt="Chronit" className="h-8 w-8" />
-        <span className="text-xl font-black tracking-tighter text-gray-900">Chronit</span>
-      </a>
+      <div className="flex items-center gap-2 md:gap-3">
+        <button onClick={onMenuClick} aria-label="메뉴"
+          className="md:hidden -ml-1 flex h-9 w-9 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <a href="/" className="flex items-center gap-2">
+          <img src={ICON} alt="Chronit" className="h-8 w-8" />
+          <span className="text-xl font-black tracking-tighter text-gray-900">Chronit</span>
+        </a>
+      </div>
       <nav className="flex items-center gap-3 text-sm font-bold text-gray-600 md:gap-7">
-        <a href="/manual" className={link}>사용 방법</a>
+        <a href="/manual" className={`hidden sm:inline ${link}`}>사용 방법</a>
         <a href="/#pricing" className={`hidden sm:inline ${link}`}>요금제</a>
         <a href="/events" className={`hidden sm:inline ${link}`}>이벤트</a>
         <a href="/" className="rounded-full bg-[#03C75A]/10 px-3.5 py-1.5 text-[#03C75A] transition-colors hover:bg-[#03C75A]/20">홈</a>
@@ -135,6 +141,7 @@ export default function VideoGenerator() {
   const [autoRunStep, setAutoRunStep]   = useState("");
   const [autoRunError, setAutoRunError] = useState("");
   const [showAutoModal, setShowAutoModal] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);  // 모바일 사이드바 드로어
   const [modalCtaText, setModalCtaText]   = useState("");   // 자동화 진행 단계 메시지
   const [voiceSegments, setVoiceSegments] = useState<any[]>([]);  // 장면별 편집용
   const [freeRegen, setFreeRegen] = useState(3);  // Stage 3 무료 재생성 횟수
@@ -855,20 +862,31 @@ export default function VideoGenerator() {
         );
       })()}
       {/* ── 상단 바 ── */}
-      <AppTopBar />
+      <AppTopBar onMenuClick={() => setMobileMenuOpen(true)} />
+
+      {/* ── 모바일 사이드바 드로어 ── */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-[90] md:hidden" onClick={() => setMobileMenuOpen(false)}>
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+          <div className="absolute left-0 top-0 h-full w-64 max-w-[82%] bg-[#ECEAE3] border-r border-gray-200 flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
+            <NavSidebar activeView={activeView}
+              onViewChange={(v:string) => { setActiveView(v); setMobileMenuOpen(false); }}
+              userRole={userRole} balance={balance} userPlan={userPlan} session={session} />
+          </div>
+        </div>
+      )}
 
       {/* ── 본문 행 (사이드바 + 패널 + 메인) ── */}
       <div className="flex flex-1">
-      {/* ── 왼쪽 사이드바 ── */}
-      {/* ── 좌측 탭 네비 (좁게) ── */}
-      <div className="w-52 shrink-0 border-r border-gray-200 flex flex-col sticky top-16 h-[calc(100vh-4rem)] self-start">
+      {/* ── 왼쪽 사이드바 (데스크탑) ── */}
+      <div className="hidden md:flex w-52 shrink-0 border-r border-gray-200 flex-col sticky top-16 h-[calc(100vh-4rem)] self-start">
         <NavSidebar activeView={activeView} onViewChange={setActiveView} userRole={userRole}
           balance={balance} userPlan={userPlan} session={session} />
       </div>
 
-      {/* ── 중간 패널 — 프로젝트 탭일 때만 표시 ── */}
+      {/* ── 중간 패널 — 프로젝트 탭일 때만 표시 (데스크탑) ── */}
       {activeView === "generator" && (
-        <div className="w-60 shrink-0 border-r border-gray-200 flex flex-col overflow-y-auto">
+        <div className="hidden md:flex w-60 shrink-0 border-r border-gray-200 flex-col overflow-y-auto">
           <ProjectPanel
             activeView={activeView}
             current={currentData} onLoad={handleLoad} onReset={handleReset}
@@ -881,7 +899,7 @@ export default function VideoGenerator() {
       {/* ── 메인 콘텐츠 ── */}
       <div className="flex-1 min-w-0 flex flex-col">
         {activeView !== "generator" && (
-          <div className="flex-1 overflow-y-auto px-8 py-6">
+          <div className="flex-1 overflow-y-auto px-4 md:px-8 py-5 md:py-6">
             {/* ── 자동화 세팅 ── */}
             {activeView === "auto-settings" && (
               <AutoSettingsView
@@ -929,7 +947,7 @@ export default function VideoGenerator() {
         )}
         {/* 영상 생성 뷰 — generator일 때만 표시 */}
         {activeView === "generator" && <>
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-5">
           <div className="space-y-0">
 
           {/* ── STAGE 1 ── */}
@@ -2173,7 +2191,7 @@ function AutoSettingsView({
       {/* 영상 길이 */}
       <div className="rounded-2xl bg-white border border-gray-200 p-5 space-y-4">
         <p className="text-sm font-black text-gray-900">📐 영상 길이</p>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {DURATIONS.map(({ s, label, sub }) => (
             <button key={s} onClick={() => setTargetSeconds(s)}
               className={`rounded-xl border p-3 text-center transition ${targetSeconds===s ? "border-[#03C75A] bg-[#03C75A]/10" : "border-gray-200 hover:border-gray-500"}`}>
