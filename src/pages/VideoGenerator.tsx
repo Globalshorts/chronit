@@ -2438,6 +2438,7 @@ function StyleFinderView({ session, onImport }: { session: any; onImport: (id:st
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
   const [result, setResult] = React.useState<any>(null);
+  const [copied, setCopied] = React.useState(false);
   const ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NTU4NTYsImV4cCI6MjA5MjMzMTg1Nn0.G8ZtLSZf9rWRbKlrEUchEmFUEBdV4J2L1s_5rGEPZjY";
   const PENDING_KEY = "chronit_pending_style";
   const pollRef = React.useRef<any>(null);
@@ -2488,23 +2489,36 @@ function StyleFinderView({ session, onImport }: { session: any; onImport: (id:st
       pollStyle(d.profile_id);
     } catch(e) { setError(String(e)); setLoading(false); }
   };
-  const Row = ({k, v}: {k: string; v?: string}) => v ? (
-    <div className="flex items-start gap-3">
-      <span className="text-xs text-gray-500 w-16 shrink-0 pt-0.5">{k}</span>
-      <span className="text-sm text-gray-300 flex-1">{v}</span>
-    </div>
-  ) : null;
-  const Section = ({title, children}: {title: string; children: any}) => (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <div className="w-1 h-4 bg-cyan-500 rounded" />
-        <p className="font-bold text-white text-sm">{title}</p>
-      </div>
-      <div className="space-y-2 pl-3">{children}</div>
-    </div>
-  );
-  const igCode = (result?.source_url || "").match(/instagram\.com\/(?:reel|reels|p)\/([^/?#]+)/)?.[1];
-  const igEmbed = igCode ? `https://www.instagram.com/p/${igCode}/embed` : "";
+  const buildStylePrompt = (r: any): string => {
+    const L: string[] = ["아래 쇼핑 숏폼 스타일을 그대로 따라 대본을 작성하세요.", ""];
+    if (r.tone) {
+      L.push("# 톤·말투");
+      if (r.tone.speaker)   L.push(`- 화자: ${r.tone.speaker}`);
+      if (r.tone.formality) L.push(`- 말투/격식: ${r.tone.formality}`);
+      if (r.tone.energy)    L.push(`- 에너지/템포: ${r.tone.energy}`);
+      L.push("");
+    }
+    if (r.structure) {
+      L.push("# 구조");
+      if (r.structure.hook) L.push(`- 훅(첫 줄): ${r.structure.hook}`);
+      if (r.structure.body) L.push(`- 본론 전개: ${r.structure.body}`);
+      if (r.structure.cta)  L.push(`- CTA: ${r.structure.cta}`);
+      if (r.structure.beats?.length) {
+        L.push("- 비트 흐름:");
+        r.structure.beats.forEach((b: any) => L.push(`  · ${b.time}: ${b.desc}`));
+      }
+      L.push("");
+    }
+    if (r.subtitle) {
+      L.push("# 자막 규칙");
+      if (r.subtitle.avg_chars)  L.push(`- 평균 줄 길이: ${r.subtitle.avg_chars}`);
+      if (r.subtitle.split_rule) L.push(`- 분할 규칙: ${r.subtitle.split_rule}`);
+      if (r.subtitle.rhythm)     L.push(`- 리듬: ${r.subtitle.rhythm}`);
+      if (r.subtitle.emphasis)   L.push(`- 강조: ${r.subtitle.emphasis}`);
+    }
+    return L.join("\n").trim();
+  };
+  const stylePrompt = result ? buildStylePrompt(result) : "";
   return (
     <div className="space-y-5">
       <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 space-y-3">
@@ -2528,55 +2542,20 @@ function StyleFinderView({ session, onImport }: { session: any; onImport: (id:st
             </div>
             <button onClick={()=>onImport(result.id)} className="shrink-0 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-black text-white hover:bg-cyan-400 transition">이 스타일 가져오기 →</button>
           </div>
-          <div className="grid md:grid-cols-[260px_1fr] gap-5 p-5">
-            <div>
-              <p className="text-xs font-bold text-gray-400 mb-2">원본 영상</p>
-              {igEmbed ? (
-                <iframe src={igEmbed} title="원본 영상" loading="lazy"
-                  className="w-full rounded-xl bg-black border border-gray-800" style={{height: 460}} />
-              ) : (
-                <div className="rounded-xl bg-black border border-gray-800 h-72 flex items-center justify-center text-xs text-gray-500">미리보기 없음</div>
-              )}
-              {result.source_url && <a href={result.source_url} target="_blank" rel="noreferrer" className="block text-center text-xs text-cyan-400 mt-2 hover:underline">새 탭에서 보기</a>}
+          <div className="p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-4 bg-cyan-500 rounded" />
+                <p className="font-bold text-white text-sm">GPT 프롬프트 (이 스타일 그대로 따라하기)</p>
+              </div>
+              <button
+                onClick={async()=>{ try { await navigator.clipboard.writeText(stylePrompt); setCopied(true); setTimeout(()=>setCopied(false),1500);} catch{} }}
+                className="rounded-lg bg-gray-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-gray-600 transition">
+                {copied ? "복사됨 ✓" : "복사"}
+              </button>
             </div>
-            <div className="space-y-5">
-              {result.tone && (
-                <Section title="톤·말투">
-                  <Row k="화자" v={result.tone.speaker} />
-                  <Row k="격식" v={result.tone.formality} />
-                  <Row k="에너지" v={result.tone.energy} />
-                  {result.tone.signatures?.length>0 && (
-                    <div className="flex items-start gap-3">
-                      <span className="text-xs text-gray-500 w-16 shrink-0 pt-1">시그니처</span>
-                      <div className="flex flex-wrap gap-1.5">{result.tone.signatures.map((s:string,i:number)=><span key={i} className="rounded-full bg-gray-700 px-2.5 py-1 text-xs text-gray-200">{s}</span>)}</div>
-                    </div>
-                  )}
-                </Section>
-              )}
-              {result.structure && (
-                <Section title="구조 패턴">
-                  <Row k="훅" v={result.structure.hook} />
-                  <Row k="본론" v={result.structure.body} />
-                  <Row k="CTA" v={result.structure.cta} />
-                  {result.structure.beats?.length>0 && (
-                    <div className="space-y-1.5 pt-1">
-                      {result.structure.beats.map((b:any,i:number)=>(
-                        <div key={i} className="flex gap-3 text-sm"><span className="text-cyan-400 font-bold shrink-0">{b.time}</span><span className="text-gray-300">{b.desc}</span></div>
-                      ))}
-                    </div>
-                  )}
-                </Section>
-              )}
-              {result.subtitle && (
-                <Section title="자막 패턴">
-                  <Row k="평균 줄 길이" v={result.subtitle.avg_chars} />
-                  <Row k="분할 규칙" v={result.subtitle.split_rule} />
-                  <Row k="리듬" v={result.subtitle.rhythm} />
-                  <Row k="강조" v={result.subtitle.emphasis} />
-                </Section>
-              )}
-              <p className="text-xs text-green-400">✓ 라이브러리 저장 완료</p>
-            </div>
+            <pre className="whitespace-pre-wrap break-words rounded-xl bg-black/50 border border-gray-800 p-4 text-sm text-gray-200 leading-relaxed font-sans">{stylePrompt}</pre>
+            <p className="text-xs text-green-400">✓ 라이브러리 저장 완료 · "가져오기"를 누르면 대본 생성에 이 스타일이 적용됩니다</p>
           </div>
         </div>
       )}
