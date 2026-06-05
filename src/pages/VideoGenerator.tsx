@@ -434,7 +434,15 @@ export default function VideoGenerator() {
         body: JSON.stringify({ source_url: sourceUrl.trim(), clip_count: 80 }),
       });
       const data1 = await resp1.json();
-      if (!data1.ok) { setSearchError(data1.error ?? "분석 실패"); return; }
+      loadBalance(); // 분석 차감/환불 즉시 반영
+      if (!data1.ok) {
+        setSearchError(
+          (resp1.status === 402 || data1.code === "INSUFFICIENT_CREDITS")
+            ? (data1.error ?? "크레딧이 부족합니다. 충전 후 다시 시도해주세요.")
+            : (data1.error ?? "분석 실패")
+        );
+        return;
+      }
 
       const rawClips: Clip[] = data1.clips ?? [];
       const refFrames: string[] = data1.reference_frames ?? [];
@@ -1069,7 +1077,7 @@ export default function VideoGenerator() {
                     className="w-full sm:w-auto shrink-0 rounded-xl bg-[#03C75A] px-5 py-3 text-sm font-bold text-white hover:bg-[#02b350] disabled:opacity-40 transition flex items-center justify-center gap-2">
                     {searching
                       ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />분석 중...</>
-                      : "🔍 분석 시작"}
+                      : "🔍 분석 시작 (10 CR)"}
                   </button>
                 </div>
                 {searchError && <p className="mt-2 text-sm text-red-400">{searchError}</p>}
@@ -1106,7 +1114,7 @@ export default function VideoGenerator() {
                       <div className="flex-1">
                         <div className="font-semibold">자동 생성 실패</div>
                         <div className="text-red-300/80 mt-0.5">{autoRunError}</div>
-                        <div className="text-red-300/60 text-xs mt-1">크레딧은 영상 합성 단계에서만 차감되며, 그 전에 실패한 경우 차감되지 않습니다. 잠시 후 다시 시도해 주세요.</div>
+                        <div className="text-red-300/60 text-xs mt-1">영상 합성 크레딧은 합성 단계에서 차감되며, 합성 전에 실패한 경우 차감되지 않습니다. 잠시 후 다시 시도해 주세요. (영상 분석 10 CR은 별도로 차감됩니다)</div>
                       </div>
                       <button onClick={() => setAutoRunError("")} className="text-red-300/60 hover:text-red-300">✕</button>
                     </div>
