@@ -1761,8 +1761,8 @@ function CreditMissionsModal({ open, onClose, session }: { open:boolean; onClose
     setSubmitting(false);
   };
 
-  return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
       <div className="w-full max-w-md rounded-3xl bg-white border border-gray-200 p-6 max-h-[90vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-xl font-black text-gray-900">🎁 크레딧 더 받기</h2>
@@ -1805,7 +1805,8 @@ function CreditMissionsModal({ open, onClose, session }: { open:boolean; onClose
 
         <button onClick={onClose} className="w-full mt-5 rounded-xl bg-gray-100 hover:bg-gray-200 py-3 text-sm font-bold text-gray-700">닫기</button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
