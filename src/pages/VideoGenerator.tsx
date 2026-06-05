@@ -17,6 +17,26 @@ import PaymentModal from "../components/PaymentModal";
 const SB = "https://oxygqtbdpnxxcgzwdlzi.supabase.co";
 const FN = (n: string) => `${SB}/functions/v1/${n}`;
 
+// ── 상단 바 (홈페이지와 동일 스타일) ───────────────────────────
+function AppTopBar() {
+  const ICON = `${SB}/storage/v1/object/public/assets/icon.png`;
+  const link = "transition-colors hover:text-[#03C75A]";
+  return (
+    <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white/90 px-4 backdrop-blur-xl md:px-6">
+      <a href="/" className="flex items-center gap-2">
+        <img src={ICON} alt="Chronit" className="h-8 w-8" />
+        <span className="text-xl font-black tracking-tighter text-gray-900">Chronit</span>
+      </a>
+      <nav className="flex items-center gap-3 text-sm font-bold text-gray-600 md:gap-7">
+        <a href="/manual" className={link}>사용 방법</a>
+        <a href="/#pricing" className={`hidden sm:inline ${link}`}>요금제</a>
+        <a href="/events" className={`hidden sm:inline ${link}`}>이벤트</a>
+        <a href="/" className="rounded-full bg-[#03C75A]/10 px-3.5 py-1.5 text-[#03C75A] transition-colors hover:bg-[#03C75A]/20">홈</a>
+      </nav>
+    </header>
+  );
+}
+
 // ── 타입 ──────────────────────────────────────────────────────
 type Clip = {
   video_id: string; title: string; author: string;
@@ -55,8 +75,8 @@ const EL_FEMALE_IDS = new Set(["zgDzx5jLLCqEp6Fl7Kl7","8jHHF8rMqMlg8if2mOUe","ks
 const SUBTITLE_PRESETS = [
   { id: "bold_white",  label: "굵은 흰색",  preview: "bg-white text-black" },
   { id: "yellow",      label: "노란색 강조", preview: "bg-yellow-300 text-black" },
-  { id: "outline",     label: "아웃라인",   preview: "bg-transparent text-white border-2 border-white" },
-  { id: "dark_bg",     label: "다크 배경",  preview: "bg-black/70 text-white" },
+  { id: "outline",     label: "아웃라인",   preview: "bg-transparent text-gray-900 border-2 border-white" },
+  { id: "dark_bg",     label: "다크 배경",  preview: "bg-black/70 text-gray-900" },
 ];
 
 // ── 메인 ─────────────────────────────────────────────────────
@@ -625,15 +645,15 @@ export default function VideoGenerator() {
 
   // ── Auth 화면 ────────────────────────────────────────────
   if (authLoading) return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-950">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent" />
+    <div className="flex items-center justify-center min-h-screen bg-[#FAFAF8]">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#03C75A] border-t-transparent" />
     </div>
   );
   if (!session) return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-6 bg-gray-950">
-      <h1 className="text-2xl font-black text-white">로그인이 필요합니다</h1>
+    <div className="flex flex-col items-center justify-center min-h-screen gap-6 bg-[#FAFAF8]">
+      <h1 className="text-2xl font-black text-gray-900">로그인이 필요합니다</h1>
       <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.href } })}
-        className="rounded-xl bg-cyan-500 px-8 py-3 font-bold text-white hover:bg-cyan-400 transition">
+        className="rounded-xl bg-[#03C75A] px-8 py-3 font-bold text-white hover:bg-[#02b350] transition">
         Google로 로그인
       </button>
     </div>
@@ -677,19 +697,19 @@ export default function VideoGenerator() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-950 text-white">
+    <div className="flex flex-col min-h-screen bg-[#FAFAF8] text-gray-900">
       {/* ── 영상 선택 팁 모달 ── */}
       {showTips && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
           onClick={() => setShowTips(false)}>
-          <div className="rounded-2xl bg-gray-900 border border-amber-400/40 shadow-2xl w-full max-w-md p-6 space-y-4"
+          <div className="rounded-2xl bg-white border border-amber-400/40 shadow-2xl w-full max-w-md p-6 space-y-4"
             onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-black text-white">⭐ 좋은 결과를 위한 팁</h2>
-              <button onClick={() => setShowTips(false)} className="text-gray-500 hover:text-white text-xl">✕</button>
+              <h2 className="text-lg font-black text-gray-900">⭐ 좋은 결과를 위한 팁</h2>
+              <button onClick={() => setShowTips(false)} className="text-gray-500 hover:text-gray-900 text-xl">✕</button>
             </div>
             <p className="text-xs text-gray-400 -mt-1">관련 클립을 담을 때 참고하세요</p>
-            <ul className="space-y-2.5 text-sm text-gray-200">
+            <ul className="space-y-2.5 text-sm text-gray-700">
               {[
                 ["💬", "자막이 없거나 적은 영상 사용하기", "기존 자막이 우리 자막과 겹치지 않아요"],
                 ["📦", "영상을 최대한 많이 담기", "많을수록 편집·연출 선택지가 늘어나요"],
@@ -703,7 +723,7 @@ export default function VideoGenerator() {
                 <li key={i} className="flex gap-2.5">
                   <span className="shrink-0">{emoji}</span>
                   <div>
-                    <p className="font-bold text-white leading-snug">{title}</p>
+                    <p className="font-bold text-gray-900 leading-snug">{title}</p>
                     <p className="text-xs text-gray-400 mt-0.5">{desc}</p>
                   </div>
                 </li>
@@ -719,14 +739,14 @@ export default function VideoGenerator() {
       {/* ── 자동 생성 확인 모달 ── */}
       {showAutoModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
-          <div className="rounded-2xl bg-gray-900 border border-gray-700 shadow-2xl w-full max-w-md p-6 space-y-5">
+          <div className="rounded-2xl bg-white border border-gray-200 shadow-2xl w-full max-w-md p-6 space-y-5">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-black text-white">자동 진행 시작</h2>
-              <button onClick={() => setShowAutoModal(false)} className="text-gray-500 hover:text-white text-xl">✕</button>
+              <h2 className="text-lg font-black text-gray-900">자동 진행 시작</h2>
+              <button onClick={() => setShowAutoModal(false)} className="text-gray-500 hover:text-gray-900 text-xl">✕</button>
             </div>
 
             {/* 크레딧 내역 */}
-            <div className="rounded-xl bg-gray-800 p-4 space-y-2">
+            <div className="rounded-xl bg-gray-100 p-4 space-y-2">
               <p className="text-xs font-bold text-gray-400 mb-3">다음 작업을 자동 진행합니다:</p>
               {(() => {
                 const isPro = VOICES_PRO.some(v => v.id === voiceId);
@@ -737,25 +757,25 @@ export default function VideoGenerator() {
                 return (
                   <>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-300">📄 AI 대본 생성</span>
-                      <span className="text-white font-bold">{scriptCr} CR</span>
+                      <span className="text-gray-700">📄 AI 대본 생성</span>
+                      <span className="text-gray-900 font-bold">{scriptCr} CR</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-300">🎙 음성 합성 ({isPro ? "고품질" : "일반"})</span>
-                      <span className={voiceCr === 0 ? "text-green-400 font-bold" : "text-white font-bold"}>{voiceCr === 0 ? "무료" : `${voiceCr} CR`}</span>
+                      <span className="text-gray-700">🎙 음성 합성 ({isPro ? "고품질" : "일반"})</span>
+                      <span className={voiceCr === 0 ? "text-green-400 font-bold" : "text-gray-900 font-bold"}>{voiceCr === 0 ? "무료" : `${voiceCr} CR`}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-300">🎬 영상 합성 + 자막</span>
-                      <span className="text-white font-bold">{renderCr} CR</span>
+                      <span className="text-gray-700">🎬 영상 합성 + 자막</span>
+                      <span className="text-gray-900 font-bold">{renderCr} CR</span>
                     </div>
-                    <div className="border-t border-gray-700 my-2" />
+                    <div className="border-t border-gray-200 my-2" />
                     <div className="flex justify-between text-sm font-black">
-                      <span className="text-white">합계</span>
-                      <span className="text-cyan-400">{total} CR</span>
+                      <span className="text-gray-900">합계</span>
+                      <span className="text-[#03C75A]">{total} CR</span>
                     </div>
                     {balance !== null && (
                       <p className="text-xs text-gray-400 pt-1">
-                        현재 남은 크레딧: <span className={balance >= total ? "text-white" : "text-red-400"}>{balance.toLocaleString()} CR</span>
+                        현재 남은 크레딧: <span className={balance >= total ? "text-gray-900" : "text-red-400"}>{balance.toLocaleString()} CR</span>
                         {balance < total && <span className="text-red-400 ml-2">⚠ 크레딧 부족</span>}
                       </p>
                     )}
@@ -766,7 +786,7 @@ export default function VideoGenerator() {
 
             {/* CTA 입력 */}
             <div className="space-y-2">
-              <p className="text-xs font-bold text-gray-300 flex items-center gap-1.5">
+              <p className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
                 💬 댓글 유도 단어 (CTA)
               </p>
               <p className="text-xs text-gray-500">
@@ -775,22 +795,22 @@ export default function VideoGenerator() {
               </p>
               <input value={modalCtaText} onChange={e => setModalCtaText(e.target.value)}
                 placeholder="예: 관심, 💚, 알려줘 (선택)"
-                className="w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm text-white outline-none focus:border-cyan-500 transition" />
+                className="w-full rounded-xl bg-gray-100 border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-[#03C75A] transition" />
               {modalCtaText.trim() && (
-                <p className="text-xs text-cyan-500">→ "댓글에 {modalCtaText.trim()} 남겨주시면 링크 보내드릴게요"</p>
+                <p className="text-xs text-[#03C75A]">→ "댓글에 {modalCtaText.trim()} 남겨주시면 링크 보내드릴게요"</p>
               )}
             </div>
 
             {/* 버튼 */}
             <div className="flex gap-3 pt-1">
               <button onClick={() => setShowAutoModal(false)}
-                className="flex-1 rounded-xl border border-gray-700 py-3 text-sm font-bold text-gray-300 hover:text-white hover:border-gray-500 transition">
+                className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-700 hover:text-gray-900 hover:border-gray-500 transition">
                 취소
               </button>
               <button
                 onClick={() => { setCtaText(modalCtaText); handleAutoRun(modalCtaText); }}
                 disabled={balance !== null && balance < (VOICES_PRO.some(v => v.id === voiceId) ? 90 : 70)}
-                className="flex-1 rounded-xl bg-cyan-500 py-3 text-sm font-black text-white hover:bg-cyan-400 disabled:opacity-40 transition">
+                className="flex-1 rounded-xl bg-[#03C75A] py-3 text-sm font-black text-white hover:bg-[#02b350] disabled:opacity-40 transition">
                 진행
               </button>
             </div>
@@ -806,16 +826,16 @@ export default function VideoGenerator() {
             <p className="font-black text-sm">{completionAlert}</p>
             {!completionAlert.startsWith("❌") && <p className="text-xs text-green-100 mt-0.5">생성 내역 탭에서 다운로드하세요</p>}
           </div>
-          <button onClick={() => setCompletionAlert(null)} className="ml-4 text-white/70 hover:text-white text-lg">✕</button>
+          <button onClick={() => setCompletionAlert(null)} className="ml-4 text-gray-900/70 hover:text-gray-900 text-lg">✕</button>
         </div>
       )}
       {/* ── 자동 생성 중 중앙 오버레이 ── */}
       {autoRunning && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="rounded-3xl bg-gray-900 border border-gray-700 px-10 py-8 text-center shadow-2xl max-w-sm mx-4">
-            <div className="w-12 h-12 mx-auto mb-4 border-4 border-gray-700 border-t-cyan-400 rounded-full animate-spin" />
-            <p className="text-lg font-black text-white">자동 생성 중</p>
-            <p className="text-sm text-cyan-400 mt-1">{autoRunStep || "처리 중..."}</p>
+          <div className="rounded-3xl bg-white border border-gray-200 px-10 py-8 text-center shadow-2xl max-w-sm mx-4">
+            <div className="w-12 h-12 mx-auto mb-4 border-4 border-gray-200 border-t-[#03C75A] rounded-full animate-spin" />
+            <p className="text-lg font-black text-gray-900">자동 생성 중</p>
+            <p className="text-sm text-[#03C75A] mt-1">{autoRunStep || "처리 중..."}</p>
             <p className="text-xs text-gray-500 mt-3">완료까지 몇 분 걸릴 수 있어요.<br/>창을 닫지 말고 잠시 기다려 주세요.</p>
           </div>
         </div>
@@ -825,25 +845,30 @@ export default function VideoGenerator() {
         const bg = jobs.find(j => j.id === currentJobId);
         if (bg && (bg.status === "done" || bg.status === "error")) return null;
         return (
-          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 rounded-2xl bg-gray-900 border border-cyan-500/40 shadow-2xl shadow-cyan-500/10 px-5 py-3 flex items-center gap-3">
-            <div className="w-5 h-5 border-2 border-gray-700 border-t-cyan-400 rounded-full animate-spin shrink-0" />
+          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 rounded-2xl bg-white border border-[#03C75A]/40 shadow-2xl shadow-[#03C75A]/10 px-5 py-3 flex items-center gap-3">
+            <div className="w-5 h-5 border-2 border-gray-200 border-t-[#03C75A] rounded-full animate-spin shrink-0" />
             <div>
-              <p className="text-sm font-bold text-white">영상 생성 중...</p>
+              <p className="text-sm font-bold text-gray-900">영상 생성 중...</p>
               <p className="text-xs text-gray-500">완료까지 몇 분 걸려요. 다른 작업을 해도 됩니다.</p>
             </div>
           </div>
         );
       })()}
+      {/* ── 상단 바 ── */}
+      <AppTopBar />
+
+      {/* ── 본문 행 (사이드바 + 패널 + 메인) ── */}
+      <div className="flex flex-1">
       {/* ── 왼쪽 사이드바 ── */}
       {/* ── 좌측 탭 네비 (좁게) ── */}
-      <div className="w-52 shrink-0 border-r border-gray-800 flex flex-col sticky top-0 h-screen self-start">
+      <div className="w-52 shrink-0 border-r border-gray-200 flex flex-col sticky top-16 h-[calc(100vh-4rem)] self-start">
         <NavSidebar activeView={activeView} onViewChange={setActiveView} userRole={userRole}
           balance={balance} userPlan={userPlan} session={session} />
       </div>
 
       {/* ── 중간 패널 — 프로젝트 탭일 때만 표시 ── */}
       {activeView === "generator" && (
-        <div className="w-60 shrink-0 border-r border-gray-800 flex flex-col overflow-y-auto">
+        <div className="w-60 shrink-0 border-r border-gray-200 flex flex-col overflow-y-auto">
           <ProjectPanel
             activeView={activeView}
             current={currentData} onLoad={handleLoad} onReset={handleReset}
@@ -877,14 +902,14 @@ export default function VideoGenerator() {
             )}
             {activeView === "style-finder" && (
               <div className="max-w-2xl mx-auto">
-                <h2 className="text-xl font-black text-white mb-2">🔍 스타일 찾기</h2>
+                <h2 className="text-xl font-black text-gray-900 mb-2">🔍 스타일 찾기</h2>
                 <p className="text-sm text-gray-400 mb-6">숏폼 영상 URL을 분석해서 대본 스타일을 라이브러리에 저장합니다.</p>
                 <StyleFinderView session={session} onImport={(id: string) => { setStyleProfileId(id); setActiveView("generator"); }} />
               </div>
             )}
             {activeView === "history" && (
               <>
-                <h2 className="text-xl font-black text-white mb-6">📹 생성 내역</h2>
+                <h2 className="text-xl font-black text-gray-900 mb-6">📹 생성 내역</h2>
                 <HistoryView session={session} />
               </>
             )}
@@ -917,16 +942,16 @@ export default function VideoGenerator() {
             }>
             <div className="space-y-4">
               <div>
-                <label className="mb-2 block text-sm font-bold text-gray-300">쇼핑 릴스 / 쇼츠 URL</label>
+                <label className="mb-2 block text-sm font-bold text-gray-700">쇼핑 릴스 / 쇼츠 URL</label>
                 <div className="flex gap-3">
                   <input type="url" value={sourceUrl}
                     onChange={e => { setSourceUrl(e.target.value); setClips([]); setCart(new Set()); }}
                     onKeyDown={e => e.key === "Enter" && handleSearch()}
                     placeholder="https://www.tiktok.com/@... 또는 https://www.instagram.com/reel/..."
                     disabled={searching}
-                    className="flex-1 rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 disabled:opacity-50 transition" />
+                    className="flex-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] focus:ring-1 focus:ring-[#03C75A] disabled:opacity-50 transition" />
                   <button onClick={handleSearch} disabled={searching || !sourceUrl.trim()}
-                    className="shrink-0 rounded-xl bg-cyan-500 px-5 py-3 text-sm font-bold text-white hover:bg-cyan-400 disabled:opacity-40 transition flex items-center gap-2">
+                    className="shrink-0 rounded-xl bg-[#03C75A] px-5 py-3 text-sm font-bold text-white hover:bg-[#02b350] disabled:opacity-40 transition flex items-center gap-2">
                     {searching
                       ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />분석 중...</>
                       : "🔍 분석 시작 (10 CR)"}
@@ -934,8 +959,8 @@ export default function VideoGenerator() {
                 </div>
                 {searchError && <p className="mt-2 text-sm text-red-400">{searchError}</p>}
                 {searching && (
-                  <div className="mt-3 rounded-xl bg-gray-800 px-4 py-3 text-sm text-gray-300 flex items-center gap-3">
-                    <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent" />
+                  <div className="mt-3 rounded-xl bg-gray-100 px-4 py-3 text-sm text-gray-700 flex items-center gap-3">
+                    <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-[#03C75A] border-t-transparent" />
                     영상 분석 후 TikTok 클립 검색 중... (30초~2분 소요)
                   </div>
                 )}
@@ -944,10 +969,10 @@ export default function VideoGenerator() {
               {clips.length > 0 && (
                 <div>
                   <div className="mb-3 flex items-center justify-between">
-                    <span className="text-sm font-bold text-white">
+                    <span className="text-sm font-bold text-gray-900">
                       검색 결과 <span className="text-gray-400 font-normal">{clips.length}개</span>
                     </span>
-                    <span className="text-sm font-bold text-cyan-400">{cart.size}개 담음</span>
+                    <span className="text-sm font-bold text-[#03C75A]">{cart.size}개 담음</span>
                   </div>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {clips.map(clip => (
@@ -980,6 +1005,7 @@ export default function VideoGenerator() {
           </div>
         </div>
         </> /* generator view end */}
+      </div>
       </div>
     </div>
   );
@@ -1038,9 +1064,9 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
           return (
             <button key={v} onClick={() => !isProLocked && setTab(v as any)}
               className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition border relative ${
-                tab===v ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" :
-                isProLocked ? "border-gray-800 text-gray-600 cursor-not-allowed" :
-                "border-gray-700 text-gray-400 hover:border-gray-500"
+                tab===v ? "border-[#03C75A] bg-[#03C75A]/10 text-[#03C75A]" :
+                isProLocked ? "border-gray-200 text-gray-600 cursor-not-allowed" :
+                "border-gray-200 text-gray-400 hover:border-gray-500"
               }`}>
               {v === "pro" ? "✨ " : ""}{l}
               {isProLocked && <span className="ml-1 text-xs text-gray-600">🔒 Pro+</span>}
@@ -1048,7 +1074,7 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
           );
         })}
         <button onClick={handlePreview}
-          className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-bold transition border ${previewing ? "border-cyan-500 bg-cyan-500/10 text-cyan-400 animate-pulse" : "border-gray-700 text-gray-400 hover:border-gray-500 hover:text-white"}`}>
+          className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-bold transition border ${previewing ? "border-[#03C75A] bg-[#03C75A]/10 text-[#03C75A] animate-pulse" : "border-gray-200 text-gray-400 hover:border-gray-500 hover:text-gray-900"}`}>
           {previewing ? "⏸" : "▶"} 미리듣기
         </button>
       </div>
@@ -1059,8 +1085,8 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
           <button key={v.id} onClick={() => {
             handleSetVoiceId(v.id);
           }}
-            className={`rounded-xl border px-4 py-3 text-left transition ${voiceId===v.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"}`}>
-            <p className={`text-sm font-bold ${voiceId===v.id ? "text-cyan-400" : "text-white"}`}>{v.label}</p>
+            className={`rounded-xl border px-4 py-3 text-left transition ${voiceId===v.id ? "border-[#03C75A] bg-[#03C75A]/10" : "border-gray-200 hover:border-gray-500"}`}>
+            <p className={`text-sm font-bold ${voiceId===v.id ? "text-[#03C75A]" : "text-gray-900"}`}>{v.label}</p>
             <p className="text-xs text-gray-500 mt-0.5">{v.desc}</p>
 
           </button>
@@ -1070,23 +1096,23 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
       {/* 속도 + 볼륨 — 권장: 120%~150% */}
       <div className="grid grid-cols-2 gap-6">
         <div>
-          <label className="mb-2 block text-sm font-bold text-gray-300">
-            말하기 속도 <span className="text-cyan-400 font-black">{voiceSpeed}%</span>
+          <label className="mb-2 block text-sm font-bold text-gray-700">
+            말하기 속도 <span className="text-[#03C75A] font-black">{voiceSpeed}%</span>
             <span className="text-xs text-gray-500 ml-1.5">120~150% 권장</span>
           </label>
           <input type="range" min={80} max={160} step={5} value={voiceSpeed}
-            onChange={e => handleSetSpeed(Number(e.target.value))} className="w-full accent-cyan-500" />
+            onChange={e => handleSetSpeed(Number(e.target.value))} className="w-full accent-[#03C75A]" />
           <div className="mt-1 flex justify-between text-xs text-gray-500">
             <span>느림</span><span>기본</span><span>빠름</span>
           </div>
         </div>
         <div>
-          <label className="mb-2 block text-sm font-bold text-gray-300">
-            소리 크기 <span className="text-cyan-400 font-black">{voiceVolume}%</span>
+          <label className="mb-2 block text-sm font-bold text-gray-700">
+            소리 크기 <span className="text-[#03C75A] font-black">{voiceVolume}%</span>
             <span className="text-xs text-gray-500 ml-1.5">120~150% 권장</span>
           </label>
           <input type="range" min={50} max={150} step={5} value={voiceVolume}
-            onChange={e => setVoiceVolume(Number(e.target.value))} className="w-full accent-cyan-500" />
+            onChange={e => setVoiceVolume(Number(e.target.value))} className="w-full accent-[#03C75A]" />
           <div className="mt-1 flex justify-between text-xs text-gray-500">
             <span>작게</span><span>기본</span><span>크게</span>
           </div>
@@ -1308,7 +1334,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
       <div>
         <label className="text-xs font-bold text-gray-400 block mb-1.5">글씨체</label>
         <select value={s.fontFamily} onChange={e => upd("fontFamily", e.target.value)}
-          className="w-full rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-500"
+          className="w-full rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-[#03C75A]"
           style={{ fontFamily: s.fontFamily }}>
           {FONTS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
         </select>
@@ -1319,8 +1345,8 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
           <label className="text-xs font-bold text-gray-400 block mb-1.5">색상</label>
           <div className="flex items-center gap-2">
             <input type="color" value={s.color} onChange={e => upd("color", e.target.value)}
-              className="h-9 w-12 rounded-lg cursor-pointer border border-gray-700" />
-            <span className="text-xs text-gray-300 font-mono">{s.color.toUpperCase()}</span>
+              className="h-9 w-12 rounded-lg cursor-pointer border border-gray-200" />
+            <span className="text-xs text-gray-700 font-mono">{s.color.toUpperCase()}</span>
           </div>
         </div>
         <div>
@@ -1328,7 +1354,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
           <div className="flex gap-1">
             {([["400","보통"],["700","굵게"]] as [string,string][]).map(([w,l]) => (
               <button key={w} onClick={() => upd("fontWeight", w as any)}
-                className={`flex-1 rounded-lg py-2 text-xs font-bold transition border ${s.fontWeight===w ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400"}`}>{l}</button>
+                className={`flex-1 rounded-lg py-2 text-xs font-bold transition border ${s.fontWeight===w ? "border-[#03C75A] bg-[#03C75A]/10 text-[#03C75A]" : "border-gray-200 text-gray-400"}`}>{l}</button>
             ))}
           </div>
         </div>
@@ -1336,32 +1362,32 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
       {/* 크기 */}
       <div>
         <label className="text-xs font-bold text-gray-400 block mb-1.5">
-          크기 <span className="text-cyan-400">{s.fontSize}px</span>
+          크기 <span className="text-[#03C75A]">{s.fontSize}px</span>
         </label>
         <input type="range" min={10} max={20} step={1} value={s.fontSize}
-          onChange={e => upd("fontSize", Number(e.target.value))} className="w-full accent-cyan-500" />
+          onChange={e => upd("fontSize", Number(e.target.value))} className="w-full accent-[#03C75A]" />
       </div>
       {/* 위치 */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs font-bold text-gray-400 block mb-1.5">Y <span className="text-cyan-400">{s.yPos}%</span></label>
+          <label className="text-xs font-bold text-gray-400 block mb-1.5">Y <span className="text-[#03C75A]">{s.yPos}%</span></label>
           <input type="range" min={5} max={95} value={s.yPos}
-            onChange={e => upd("yPos", Number(e.target.value))} className="w-full accent-cyan-500" />
+            onChange={e => upd("yPos", Number(e.target.value))} className="w-full accent-[#03C75A]" />
         </div>
         <div>
-          <label className="text-xs font-bold text-gray-400 block mb-1.5">X <span className="text-cyan-400">{s.xPos}%</span></label>
+          <label className="text-xs font-bold text-gray-400 block mb-1.5">X <span className="text-[#03C75A]">{s.xPos}%</span></label>
           <input type="range" min={5} max={95} value={s.xPos}
-            onChange={e => upd("xPos", Number(e.target.value))} className="w-full accent-cyan-500" />
+            onChange={e => upd("xPos", Number(e.target.value))} className="w-full accent-[#03C75A]" />
         </div>
       </div>
       <button onClick={() => setS({ ...s, yPos: 75, xPos: 50 })}
-        className="text-xs text-gray-500 hover:text-cyan-400 transition underline">↺ 위치 초기화</button>
+        className="text-xs text-gray-500 hover:text-[#03C75A] transition underline">↺ 위치 초기화</button>
       {/* 외곽선 */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
           <label className="text-xs font-bold text-gray-400">외곽선</label>
           <button onClick={() => upd("strokeOn", !s.strokeOn)}
-            className={`rounded-full px-3 py-1 text-xs font-black transition ${s.strokeOn ? "bg-cyan-500 text-white" : "bg-gray-700 text-gray-400"}`}>
+            className={`rounded-full px-3 py-1 text-xs font-black transition ${s.strokeOn ? "bg-[#03C75A] text-white" : "bg-gray-200 text-gray-400"}`}>
             {s.strokeOn ? "ON" : "OFF"}
           </button>
         </div>
@@ -1369,13 +1395,13 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
           <div className="grid grid-cols-2 gap-3 mt-2">
             <div className="flex items-center gap-2">
               <input type="color" value={s.strokeColor} onChange={e => upd("strokeColor", e.target.value)}
-                className="h-8 w-10 rounded cursor-pointer border border-gray-700" />
+                className="h-8 w-10 rounded cursor-pointer border border-gray-200" />
               <span className="text-xs text-gray-400 font-mono">{s.strokeColor.toUpperCase()}</span>
             </div>
             <div>
               <label className="text-xs text-gray-400">두께 {s.strokeWidth}px</label>
               <input type="range" min={1} max={8} step={0.5} value={s.strokeWidth}
-                onChange={e => upd("strokeWidth", Number(e.target.value))} className="w-full accent-cyan-500 mt-1" />
+                onChange={e => upd("strokeWidth", Number(e.target.value))} className="w-full accent-[#03C75A] mt-1" />
             </div>
           </div>
         )}
@@ -1385,7 +1411,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
         <div className="flex items-center justify-between mb-1.5">
           <label className="text-xs font-bold text-gray-400">배경</label>
           <button onClick={() => upd("bgOn", !s.bgOn)}
-            className={`rounded-full px-3 py-1 text-xs font-black transition ${s.bgOn ? "bg-cyan-500 text-white" : "bg-gray-700 text-gray-400"}`}>
+            className={`rounded-full px-3 py-1 text-xs font-black transition ${s.bgOn ? "bg-[#03C75A] text-white" : "bg-gray-200 text-gray-400"}`}>
             {s.bgOn ? "ON" : "OFF"}
           </button>
         </div>
@@ -1393,18 +1419,18 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
           <div className="grid grid-cols-2 gap-3 mt-2">
             <div className="flex items-center gap-2">
               <input type="color" value={s.bgColor} onChange={e => upd("bgColor", e.target.value)}
-                className="h-8 w-10 rounded cursor-pointer border border-gray-700" />
+                className="h-8 w-10 rounded cursor-pointer border border-gray-200" />
               <span className="text-xs text-gray-400 font-mono">{s.bgColor.toUpperCase()}</span>
             </div>
             <div>
               <label className="text-xs text-gray-400">불투명도 {s.bgOpacity}%</label>
               <input type="range" min={10} max={100} step={5} value={s.bgOpacity}
-                onChange={e => upd("bgOpacity", Number(e.target.value))} className="w-full accent-cyan-500 mt-1" />
+                onChange={e => upd("bgOpacity", Number(e.target.value))} className="w-full accent-[#03C75A] mt-1" />
             </div>
             <div className="col-span-2">
               <label className="text-xs text-gray-400">모서리 곡률 {s.bgRadius ?? 6}px</label>
               <input type="range" min={0} max={16} step={1} value={s.bgRadius ?? 6}
-                onChange={e => upd("bgRadius", Number(e.target.value))} className="w-full accent-cyan-500 mt-1" />
+                onChange={e => upd("bgRadius", Number(e.target.value))} className="w-full accent-[#03C75A] mt-1" />
             </div>
           </div>
         )}
@@ -1420,7 +1446,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
         <div className="flex gap-2">
           {(["subtitle","thumbnail"] as const).map(v => (
             <button key={v} onClick={() => setTab(v)}
-              className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition border ${tab===v ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400"}`}>
+              className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition border ${tab===v ? "border-[#03C75A] bg-[#03C75A]/10 text-[#03C75A]" : "border-gray-200 text-gray-400"}`}>
               {v === "subtitle" ? "자막 스타일" : "썸네일 스타일"}
             </button>
           ))}
@@ -1432,17 +1458,17 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
           const kind = tab === "subtitle" ? "자막" : "썸네일";
           const selectedPreset = presets.find(p => p.id === selectedPresetId);
           return (
-            <div className="rounded-xl bg-gray-900 border border-gray-700 p-3 space-y-2">
+            <div className="rounded-xl bg-white border border-gray-200 p-3 space-y-2">
               {/* 토스트 */}
               {presetToast && (
-                <div className="rounded-lg bg-gray-800 border border-cyan-500/40 px-3 py-2 text-xs text-cyan-300 font-bold">
+                <div className="rounded-lg bg-gray-100 border border-[#03C75A]/40 px-3 py-2 text-xs text-[#03C75A] font-bold">
                   {presetToast}
                 </div>
               )}
               <div className="flex items-center justify-between">
-                <p className="text-xs font-bold text-white">{kind} 프리셋</p>
+                <p className="text-xs font-bold text-gray-900">{kind} 프리셋</p>
                 <button onClick={() => loadPresets(tab)}
-                  className="text-xs text-gray-500 hover:text-white transition px-1.5">⟳</button>
+                  className="text-xs text-gray-500 hover:text-gray-900 transition px-1.5">⟳</button>
               </div>
               {/* 드롭다운 + 적용/삭제 */}
               <div className="flex gap-1.5">
@@ -1453,7 +1479,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
                     const p = presets.find(p => p.id === e.target.value);
                     if (p) setS(p.style_json);
                   }}
-                  className="flex-1 rounded-lg bg-gray-800 border border-gray-700 px-2 py-2 text-xs text-white outline-none focus:border-cyan-500"
+                  className="flex-1 rounded-lg bg-gray-100 border border-gray-200 px-2 py-2 text-xs text-gray-900 outline-none focus:border-[#03C75A]"
                 >
                   <option value="">✕  없음 (기본)</option>
                   {presets.map(p => (
@@ -1470,7 +1496,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
                   </button>
                 )}
                 <button onClick={() => setShowPresets(v => !v)}
-                  className={`shrink-0 rounded-lg border px-2.5 py-2 text-xs font-bold transition ${showPresets ? "border-cyan-500 text-cyan-400 bg-cyan-500/10" : "border-gray-700 text-gray-400 hover:border-gray-500"}`}>
+                  className={`shrink-0 rounded-lg border px-2.5 py-2 text-xs font-bold transition ${showPresets ? "border-[#03C75A] text-[#03C75A] bg-[#03C75A]/10" : "border-gray-200 text-gray-400 hover:border-gray-500"}`}>
                   저장
                 </button>
               </div>
@@ -1481,13 +1507,13 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
                     onKeyDown={e => { if (e.key==="Enter") savePreset(s, tab); if (e.key==="Escape") setShowPresets(false); }}
                     placeholder={`${kind} 프리셋 이름`}
                     autoFocus
-                    className="flex-1 rounded-lg bg-gray-800 border border-cyan-500 px-3 py-1.5 text-xs text-white outline-none" />
+                    className="flex-1 rounded-lg bg-gray-100 border border-[#03C75A] px-3 py-1.5 text-xs text-gray-900 outline-none" />
                   <button onClick={() => savePreset(s, tab)} disabled={!presetName.trim()}
-                    className="rounded-lg bg-cyan-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-cyan-400 disabled:opacity-40 transition">
+                    className="rounded-lg bg-[#03C75A] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#02b350] disabled:opacity-40 transition">
                     확인
                   </button>
                   <button onClick={() => setShowPresets(false)}
-                    className="rounded-lg border border-gray-700 px-2 py-1.5 text-xs text-gray-400">✕</button>
+                    className="rounded-lg border border-gray-200 px-2 py-1.5 text-xs text-gray-400">✕</button>
                 </div>
               )}
             </div>
@@ -1501,7 +1527,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
             <div className="flex gap-2">
               {[true, false].map(v => (
                 <button key={String(v)} onClick={() => setShowThumbnail(v)}
-                  className={`flex-1 rounded-xl border py-2.5 text-sm font-bold transition ${showThumbnail===v ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400"}`}>
+                  className={`flex-1 rounded-xl border py-2.5 text-sm font-bold transition ${showThumbnail===v ? "border-[#03C75A] bg-[#03C75A]/10 text-[#03C75A]" : "border-gray-200 text-gray-400"}`}>
                   {v ? "✓ 썸네일 추가" : "✗ 없음"}
                 </button>
               ))}
@@ -1514,7 +1540,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
       {/* 오른쪽 프리뷰 */}
       <div className="flex flex-col items-center gap-3 shrink-0">
         <p className="text-xs font-bold text-gray-400">실시간 프리뷰</p>
-        <div className="relative rounded-2xl overflow-hidden border border-gray-700"
+        <div className="relative rounded-2xl overflow-hidden border border-gray-200"
           style={{ width: 300, height: 533, backgroundColor: previewBg === "white" ? "#FFFFFF" : "#000000" }}>
           <div className="absolute inset-0" style={{ pointerEvents: "none" }}>
             <div style={{
@@ -1532,7 +1558,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
         <div className="flex gap-1.5">
           {([["black","검정"],["white","흰색"]] as ["black"|"white",string][]).map(([v,l]) => (
             <button key={v} onClick={() => updPreviewBg(v)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition border ${previewBg===v ? "border-cyan-500 bg-cyan-500/10 text-cyan-400" : "border-gray-700 text-gray-400"}`}>{l} 배경</button>
+              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition border ${previewBg===v ? "border-[#03C75A] bg-[#03C75A]/10 text-[#03C75A]" : "border-gray-200 text-gray-400"}`}>{l} 배경</button>
           ))}
         </div>
         {/* 프리뷰 문구 직접 수정 */}
@@ -1541,21 +1567,21 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
           value={previewCaption}
           onChange={e => updPreviewCaption(e.target.value)}
           placeholder="프리뷰 문구 입력 (비우면 기본 문구)"
-          className="w-[300px] rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs text-gray-200 placeholder-gray-500 focus:border-cyan-500 focus:outline-none"
+          className="w-[300px] rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-700 placeholder-gray-500 focus:border-[#03C75A] focus:outline-none"
         />
         {previewFrames.length > 1 && (
           <div className="flex gap-1.5">
             {previewFrames.slice(0,5).map((_, i) => (
               <button key={i} onClick={() => setFrameIdx(i)}
-                className={`h-2 w-2 rounded-full transition ${i===frameIdx ? "bg-cyan-400" : "bg-gray-600"}`} />
+                className={`h-2 w-2 rounded-full transition ${i===frameIdx ? "bg-[#03C75A]" : "bg-gray-600"}`} />
             ))}
           </div>
         )}
         {previewScript.length > 1 && (
           <div className="flex items-center gap-2 text-xs text-gray-500">
-            <button onClick={() => setScriptIdx(i => Math.max(0, i-1))} className="hover:text-white">‹</button>
+            <button onClick={() => setScriptIdx(i => Math.max(0, i-1))} className="hover:text-gray-900">‹</button>
             <span>{(scriptIdx % previewScript.length)+1}/{previewScript.length}</span>
-            <button onClick={() => setScriptIdx(i => i+1)} className="hover:text-white">›</button>
+            <button onClick={() => setScriptIdx(i => i+1)} className="hover:text-gray-900">›</button>
           </div>
         )}
       </div>
@@ -1600,8 +1626,8 @@ function StyleLibrary({ onLoad, session }: { onLoad: (s:any)=>void; session: any
     <div className="space-y-2">
       {styles.map(s => (
         <div key={s.id} onClick={() => onLoad(s.profile_json ? JSON.parse(s.profile_json) : {})}
-          className="rounded-xl border border-gray-700 p-2.5 cursor-pointer hover:border-cyan-500/50 transition">
-          <p className="text-xs font-bold text-white truncate">{s.label || "스타일"}</p>
+          className="rounded-xl border border-gray-200 p-2.5 cursor-pointer hover:border-[#03C75A]/50 transition">
+          <p className="text-xs font-bold text-gray-900 truncate">{s.label || "스타일"}</p>
           {s.source_channel && <p className="text-xs text-gray-500">@{s.source_channel}</p>}
           <p className="text-xs text-gray-600">{new Date(s.updated_at).toLocaleDateString("ko")}</p>
         </div>
@@ -1641,18 +1667,18 @@ function HistoryPanel({ session }: { session: any }) {
   return (
     <div className="space-y-2">
       {jobs.map(j => (
-        <div key={j.id} className="rounded-xl border border-gray-700 p-2.5 space-y-1">
+        <div key={j.id} className="rounded-xl border border-gray-200 p-2.5 space-y-1">
           <div className="flex items-center justify-between gap-1">
-            <p className="text-xs font-bold text-white truncate">{j.product_name || j.id?.slice(0,8)}</p>
+            <p className="text-xs font-bold text-gray-900 truncate">{j.product_name || j.id?.slice(0,8)}</p>
             <span className={`text-xs font-bold shrink-0 ${
               j.status==="succeeded" ? "text-green-400" :
-              j.status==="processing" ? "text-cyan-400 animate-pulse" : "text-gray-500"}`}>
+              j.status==="processing" ? "text-[#03C75A] animate-pulse" : "text-gray-500"}`}>
               {STATUS[j.status] || j.status}
             </span>
           </div>
           {j.output_url && (
             <a href={j.output_url} target="_blank" rel="noopener"
-              className="block text-xs text-cyan-500 hover:text-cyan-400 underline truncate">
+              className="block text-xs text-[#03C75A] hover:text-[#03C75A] underline truncate">
               다운로드
             </a>
           )}
@@ -1737,19 +1763,19 @@ function CreditMissionsModal({ open, onClose, session }: { open:boolean; onClose
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="w-full max-w-md rounded-3xl bg-gray-900 border border-gray-800 p-6 max-h-[90vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
+      <div className="w-full max-w-md rounded-3xl bg-white border border-gray-200 p-6 max-h-[90vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-xl font-black text-white">🎁 크레딧 더 받기</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-white text-xl">✕</button>
+          <h2 className="text-xl font-black text-gray-900">🎁 크레딧 더 받기</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-900 text-xl">✕</button>
         </div>
         <p className="text-xs text-gray-500 mb-5">미션을 완료하면 크레딧이 지급됩니다</p>
 
         {/* 미션 A — 추천 */}
-        <div className="rounded-2xl bg-gray-800/60 border border-gray-700 p-4 mb-3">
+        <div className="rounded-2xl bg-gray-100/60 border border-gray-200 p-4 mb-3">
           <span className="inline-block rounded-lg bg-blue-600 text-white text-xs font-bold px-2.5 py-1 mb-2">미션 A · +500 크레딧</span>
-          <p className="text-sm text-gray-300 mb-3">지인에게 내 추천 링크를 공유하세요. 지인이 가입하면 <b className="text-white">양쪽 모두 500 크레딧</b>이 즉시 지급됩니다.</p>
+          <p className="text-sm text-gray-700 mb-3">지인에게 내 추천 링크를 공유하세요. 지인이 가입하면 <b className="text-gray-900">양쪽 모두 500 크레딧</b>이 즉시 지급됩니다.</p>
           <div className="flex gap-2">
-            <input readOnly value={link} className="flex-1 rounded-xl bg-gray-900 border border-gray-700 px-3 py-2 text-xs text-gray-300 outline-none truncate" />
+            <input readOnly value={link} className="flex-1 rounded-xl bg-white border border-gray-200 px-3 py-2 text-xs text-gray-700 outline-none truncate" />
             <button onClick={copyLink} className="shrink-0 rounded-xl bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm font-bold text-white">{copied?"✓ 복사됨":"복사"}</button>
             <button onClick={shareKakao} className="shrink-0 rounded-xl bg-[#FEE500] hover:brightness-95 px-3 py-2 text-sm font-bold text-[#3C1E1E]">💬 카톡</button>
           </div>
@@ -1757,18 +1783,18 @@ function CreditMissionsModal({ open, onClose, session }: { open:boolean; onClose
         </div>
 
         {/* 미션 B — 후기 */}
-        <div className="rounded-2xl bg-gray-800/60 border border-gray-700 p-4">
+        <div className="rounded-2xl bg-gray-100/60 border border-gray-200 p-4">
           <span className="inline-block rounded-lg bg-purple-600 text-white text-xs font-bold px-2.5 py-1 mb-2">미션 B · +1000 크레딧</span>
-          <p className="text-sm text-gray-300 mb-3">네이버 카페, 블로그, 커뮤니티 등에 크로닛 사용 후기를 <b className="text-white">전체 공개</b>로 작성한 뒤 URL을 입력해주세요. 확인 후 <b className="text-white">1000 크레딧</b>이 지급됩니다.</p>
+          <p className="text-sm text-gray-700 mb-3">네이버 카페, 블로그, 커뮤니티 등에 크로닛 사용 후기를 <b className="text-gray-900">전체 공개</b>로 작성한 뒤 URL을 입력해주세요. 확인 후 <b className="text-gray-900">1000 크레딧</b>이 지급됩니다.</p>
           {reviewStatus==="approved" ? (
             <div className="rounded-xl px-3 py-2.5 text-sm text-center bg-green-500/15 text-green-400">✅ 후기 승인 — 1000 크레딧 지급 완료</div>
           ) : reviewStatus==="pending" ? (
-            <div className="rounded-xl px-3 py-2.5 text-sm text-center bg-gray-900 text-gray-400">⏳ 검토 중입니다</div>
+            <div className="rounded-xl px-3 py-2.5 text-sm text-center bg-white text-gray-400">⏳ 검토 중입니다</div>
           ) : (
             <>
               <div className="flex gap-2">
                 <input value={reviewUrl} onChange={e=>setReviewUrl(e.target.value)} placeholder="https://cafe.naver.com/..."
-                  className="flex-1 rounded-xl bg-gray-900 border border-gray-700 px-3 py-2 text-xs text-white placeholder-gray-600 outline-none focus:border-purple-500" />
+                  className="flex-1 rounded-xl bg-white border border-gray-200 px-3 py-2 text-xs text-gray-900 placeholder-gray-600 outline-none focus:border-purple-500" />
                 <button onClick={submitReview} disabled={submitting||!reviewUrl.trim()} className="shrink-0 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 px-4 py-2 text-sm font-bold text-white">{submitting?"...":"제출"}</button>
               </div>
               {reviewStatus==="rejected" && !reviewMsg && <p className="text-xs text-red-400 mt-2">이전 제출이 반려되었습니다. 다시 제출할 수 있어요.</p>}
@@ -1777,7 +1803,7 @@ function CreditMissionsModal({ open, onClose, session }: { open:boolean; onClose
           )}
         </div>
 
-        <button onClick={onClose} className="w-full mt-5 rounded-xl bg-gray-800 hover:bg-gray-700 py-3 text-sm font-bold text-gray-300">닫기</button>
+        <button onClick={onClose} className="w-full mt-5 rounded-xl bg-gray-100 hover:bg-gray-200 py-3 text-sm font-bold text-gray-700">닫기</button>
       </div>
     </div>
   );
@@ -1816,8 +1842,8 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
   return (
     <div className="flex flex-col h-full">
       {/* 로고 */}
-      <div className="px-5 py-5 border-b border-gray-800">
-        <p className="text-sm font-black text-white tracking-tight">CHRONIT</p>
+      <div className="px-5 py-5 border-b border-gray-200">
+        <p className="text-sm font-black text-gray-900 tracking-tight">CHRONIT</p>
         <p className="text-xs text-gray-600 mt-0.5">쇼핑 릴스 자동화</p>
       </div>
       {/* 탭 */}
@@ -1827,11 +1853,11 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
             <p className="px-3 pb-1 text-[11px] font-bold text-gray-600 uppercase tracking-wider">{g.title}</p>
             {g.items.map(({ v, label, icon }:any)=>(
               <button key={v} onClick={()=>onViewChange(v)}
-                className={`w-full text-left rounded-xl px-3 py-3 text-base font-bold transition flex items-center gap-2.5 ${activeView===v ? "bg-cyan-500/15 text-cyan-400" : "text-gray-300 hover:bg-gray-800 hover:text-white"}`}>
+                className={`w-full text-left rounded-xl px-3 py-3 text-base font-bold transition flex items-center gap-2.5 ${activeView===v ? "bg-[#03C75A]/15 text-[#03C75A]" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"}`}>
                 {icon && <span className="text-lg">{icon}</span>}
                 <span>{label}</span>
                 {v==="product-search" && extractRunning && (
-                  <span className="ml-auto w-2 h-2 rounded-full bg-cyan-400 animate-pulse" title="검색어 추출 중" />
+                  <span className="ml-auto w-2 h-2 rounded-full bg-[#03C75A] animate-pulse" title="검색어 추출 중" />
                 )}
               </button>
             ))}
@@ -1846,18 +1872,18 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
           className="w-full text-center rounded-xl bg-purple-600 hover:bg-purple-500 px-3 py-2.5 text-sm font-bold text-white transition">🎁 무료 크레딧 받기</button>
       </div>
       {/* 하단 계정/플랜/크레딧 */}
-      <div className="border-t border-gray-800 px-4 py-3 space-y-1.5 mt-2">
+      <div className="border-t border-gray-200 px-4 py-3 space-y-1.5 mt-2">
         <p className="text-xs text-gray-600 truncate">{session?.user?.email}</p>
         {userPlan && (
           <div className="flex justify-between text-xs">
             <span className="text-gray-500">플랜</span>
-            <span className="font-bold text-white capitalize">{userPlan}</span>
+            <span className="font-bold text-gray-900 capitalize">{userPlan}</span>
           </div>
         )}
         {balance !== null && (
           <div className="flex justify-between text-xs">
             <span className="text-gray-500">크레딧</span>
-            <span className="font-black text-cyan-400">💎 {balance.toLocaleString()}</span>
+            <span className="font-black text-[#03C75A]">💎 {balance.toLocaleString()}</span>
           </div>
         )}
       </div>
@@ -1929,15 +1955,15 @@ function ProjectPanel({ activeView, current, onLoad, onReset, session, styleProf
 
   if (activeView === "generator") return (
     <div className="flex flex-col h-full">
-      <div className="px-4 py-4 border-b border-gray-800 flex items-center justify-between">
-        <p className="text-xs font-black text-white">프로젝트</p>
-        <button onClick={saveProject} className="text-xs text-gray-500 hover:text-cyan-400 transition">💾</button>
+      <div className="px-4 py-4 border-b border-gray-200 flex items-center justify-between">
+        <p className="text-xs font-black text-gray-900">프로젝트</p>
+        <button onClick={saveProject} className="text-xs text-gray-500 hover:text-[#03C75A] transition">💾</button>
       </div>
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
         {/* 새 프로젝트 */}
         {newName === null ? (
           <button onClick={() => setNewName("")}
-            className="w-full rounded-xl bg-cyan-500 py-2 text-xs font-black text-white hover:bg-cyan-400 transition">
+            className="w-full rounded-xl bg-[#03C75A] py-2 text-xs font-black text-white hover:bg-[#02b350] transition">
             + 새 프로젝트
           </button>
         ) : (
@@ -1945,10 +1971,10 @@ function ProjectPanel({ activeView, current, onLoad, onReset, session, styleProf
             <input autoFocus value={newName} onChange={e => setNewName(e.target.value)}
               onKeyDown={e => { if (e.key==="Enter") createProject(newName); if (e.key==="Escape") setNewName(null); }}
               placeholder="프로젝트 이름"
-              className="w-full rounded-xl bg-gray-800 border border-cyan-500 px-3 py-2 text-xs text-white outline-none" />
+              className="w-full rounded-xl bg-gray-100 border border-[#03C75A] px-3 py-2 text-xs text-gray-900 outline-none" />
             <div className="flex gap-1.5">
-              <button onClick={() => createProject(newName)} className="flex-1 rounded-lg bg-cyan-500 py-1.5 text-xs font-black text-white">확인</button>
-              <button onClick={() => setNewName(null)} className="rounded-lg border border-gray-700 px-3 py-1.5 text-xs text-gray-400">✕</button>
+              <button onClick={() => createProject(newName)} className="flex-1 rounded-lg bg-[#03C75A] py-1.5 text-xs font-black text-white">확인</button>
+              <button onClick={() => setNewName(null)} className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-400">✕</button>
             </div>
           </div>
         )}
@@ -1957,22 +1983,22 @@ function ProjectPanel({ activeView, current, onLoad, onReset, session, styleProf
           ? <p className="text-xs text-gray-600 text-center py-6">저장된 프로젝트가 없습니다</p>
           : projects.map(p => (
             <div key={p.id} onClick={() => loadProject(p)}
-              className={`rounded-xl border p-2.5 cursor-pointer transition group ${activeId===p.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"}`}>
+              className={`rounded-xl border p-2.5 cursor-pointer transition group ${activeId===p.id ? "border-[#03C75A] bg-[#03C75A]/10" : "border-gray-200 hover:border-gray-500"}`}>
               <div className="flex items-start justify-between gap-1">
                 <div className="min-w-0 flex-1">
                   {editingId === p.id ? (
                     <input autoFocus defaultValue={p.name}
-                      className="w-full bg-gray-800 text-xs font-bold text-white rounded px-1 py-0.5 outline-none border border-cyan-500"
+                      className="w-full bg-gray-100 text-xs font-bold text-gray-900 rounded px-1 py-0.5 outline-none border border-[#03C75A]"
                       onBlur={e => renameProject(p.id, e.target.value)}
                       onKeyDown={e => { if (e.key==="Enter") renameProject(p.id, (e.target as HTMLInputElement).value); }}
                       onClick={e => e.stopPropagation()} />
                   ) : (
-                    <p className="text-xs font-bold text-white truncate">{p.name}</p>
+                    <p className="text-xs font-bold text-gray-900 truncate">{p.name}</p>
                   )}
                   <p className="text-xs text-gray-500 mt-0.5">{STAGE_LABELS[(p.stage||1)-1]} · {new Date(p.savedAt).toLocaleDateString("ko")}</p>
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition shrink-0">
-                  <button onClick={e=>{e.stopPropagation();setEditingId(p.id);}} className="text-gray-500 hover:text-cyan-400 text-xs">✎</button>
+                  <button onClick={e=>{e.stopPropagation();setEditingId(p.id);}} className="text-gray-500 hover:text-[#03C75A] text-xs">✎</button>
                   <button onClick={e=>delProject(p.id,e)} className="text-gray-500 hover:text-red-400 text-xs">✕</button>
                 </div>
               </div>
@@ -1985,8 +2011,8 @@ function ProjectPanel({ activeView, current, onLoad, onReset, session, styleProf
 
   if (activeView === "style-finder") return (
     <div className="flex flex-col h-full">
-      <div className="px-4 py-4 border-b border-gray-800">
-        <p className="text-xs font-black text-white">스타일 찾기</p>
+      <div className="px-4 py-4 border-b border-gray-200">
+        <p className="text-xs font-black text-gray-900">스타일 찾기</p>
         <p className="text-xs text-gray-500 mt-0.5">URL → AI 분석 → 저장</p>
       </div>
       <div className="flex-1 overflow-y-auto px-3 py-3">
@@ -1997,7 +2023,7 @@ function ProjectPanel({ activeView, current, onLoad, onReset, session, styleProf
 
   return (
     <div className="px-4 py-4">
-      <p className="text-xs font-black text-white capitalize">{activeView}</p>
+      <p className="text-xs font-black text-gray-900 capitalize">{activeView}</p>
     </div>
   );
 }
@@ -2045,7 +2071,7 @@ function SyncPreview({ voiceSegments, clips }: { voiceSegments: any[]; clips: an
 
   return (
     <div className="space-y-2">
-      <div className="rounded-xl bg-gray-800 border border-gray-700 overflow-hidden"
+      <div className="rounded-xl bg-gray-100 border border-gray-200 overflow-hidden"
         style={{ aspectRatio: "9/16", position: "relative" }}>
         {currentClip?.thumbnail_url ? (
           <video ref={videoRef} src={currentClip.video_url || ""}
@@ -2053,7 +2079,7 @@ function SyncPreview({ voiceSegments, clips }: { voiceSegments: any[]; clips: an
             className="absolute inset-0 w-full h-full object-cover"
             muted playsInline />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+          <div className="absolute inset-0 flex items-center justify-center bg-white">
             <p className="text-xs text-gray-500 text-center px-4">
               {voiceSegments.length > 0 ? "클립 선택 필요" : "음성 생성 후 재생 가능"}
             </p>
@@ -2066,7 +2092,7 @@ function SyncPreview({ voiceSegments, clips }: { voiceSegments: any[]; clips: an
         <div className="flex gap-1 overflow-x-auto">
           {voiceSegments.map((_, i) => (
             <button key={i} onClick={() => { setCurrentClipIdx(i); setPlaying(false); }}
-              className={`shrink-0 rounded-lg px-2 py-1 text-xs font-bold transition ${currentClipIdx===i ? "bg-cyan-500 text-white" : "bg-gray-800 text-gray-400"}`}>
+              className={`shrink-0 rounded-lg px-2 py-1 text-xs font-bold transition ${currentClipIdx===i ? "bg-[#03C75A] text-white" : "bg-gray-100 text-gray-400"}`}>
               #{i+1}
             </button>
           ))}
@@ -2074,7 +2100,7 @@ function SyncPreview({ voiceSegments, clips }: { voiceSegments: any[]; clips: an
       )}
 
       <button onClick={handlePlay}
-        className="w-full rounded-xl border border-gray-700 py-2 text-xs font-bold text-gray-300 hover:text-white hover:border-gray-500 transition flex items-center justify-center gap-1.5">
+        className="w-full rounded-xl border border-gray-200 py-2 text-xs font-bold text-gray-700 hover:text-gray-900 hover:border-gray-500 transition flex items-center justify-center gap-1.5">
         {playing ? "⏸ 일시정지" : "▶ 동기 재생"}
       </button>
 
@@ -2083,8 +2109,8 @@ function SyncPreview({ voiceSegments, clips }: { voiceSegments: any[]; clips: an
         <div className="space-y-1">
           {currentVoiceClip.segments?.map((seg: any) => (
             <div key={seg.idx} className="flex items-center gap-1.5 text-xs">
-              <span className="text-cyan-400 font-bold w-5 shrink-0">#{seg.idx+1}</span>
-              <span className="flex-1 text-gray-300 truncate">{seg.text}</span>
+              <span className="text-[#03C75A] font-bold w-5 shrink-0">#{seg.idx+1}</span>
+              <span className="flex-1 text-gray-700 truncate">{seg.text}</span>
               <span className={`shrink-0 ${seg.audio_url ? "text-green-400" : "text-gray-600"}`}>
                 {seg.duration?.toFixed(1)}s
               </span>
@@ -2139,18 +2165,18 @@ function AutoSettingsView({
   return (
     <div className="max-w-2xl space-y-8">
       <div>
-        <h2 className="text-xl font-black text-white mb-1">⚙️ 자동화 세팅</h2>
+        <h2 className="text-xl font-black text-gray-900 mb-1">⚙️ 자동화 세팅</h2>
         <p className="text-sm text-gray-400">한 번 설정해두면 자동 생성마다 그대로 사용됩니다.</p>
       </div>
 
       {/* 영상 길이 */}
-      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 space-y-4">
-        <p className="text-sm font-black text-white">📐 영상 길이</p>
+      <div className="rounded-2xl bg-white border border-gray-200 p-5 space-y-4">
+        <p className="text-sm font-black text-gray-900">📐 영상 길이</p>
         <div className="grid grid-cols-4 gap-2">
           {DURATIONS.map(({ s, label, sub }) => (
             <button key={s} onClick={() => setTargetSeconds(s)}
-              className={`rounded-xl border p-3 text-center transition ${targetSeconds===s ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"}`}>
-              <p className={`text-sm font-black ${targetSeconds===s ? "text-cyan-400" : "text-white"}`}>{label}</p>
+              className={`rounded-xl border p-3 text-center transition ${targetSeconds===s ? "border-[#03C75A] bg-[#03C75A]/10" : "border-gray-200 hover:border-gray-500"}`}>
+              <p className={`text-sm font-black ${targetSeconds===s ? "text-[#03C75A]" : "text-gray-900"}`}>{label}</p>
               <p className="text-xs text-gray-500 mt-0.5">{sub}</p>
             </button>
           ))}
@@ -2158,22 +2184,22 @@ function AutoSettingsView({
       </div>
 
       {/* 대본 스타일 */}
-      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 space-y-3">
-        <p className="text-sm font-black text-white">🎨 대본 스타일</p>
+      <div className="rounded-2xl bg-white border border-gray-200 p-5 space-y-3">
+        <p className="text-sm font-black text-gray-900">🎨 대본 스타일</p>
         <StyleSelector selected={styleProfileId} onSelect={setStyleProfileId} session={session} />
       </div>
 
       {/* 음성 설정 */}
-      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 space-y-3">
-        <p className="text-sm font-black text-white">🔊 음성 설정</p>
+      <div className="rounded-2xl bg-white border border-gray-200 p-5 space-y-3">
+        <p className="text-sm font-black text-gray-900">🔊 음성 설정</p>
         <VoicePanel voiceId={voiceId} setVoiceId={setVoiceId}
           voiceSpeed={voiceSpeed} setVoiceSpeed={setVoiceSpeed}
           voiceVolume={voiceVolume} setVoiceVolume={setVoiceVolume} userPlan={userPlan} />
       </div>
 
       {/* 자막 스타일 */}
-      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 space-y-3">
-        <p className="text-sm font-black text-white">📝 자막 스타일</p>
+      <div className="rounded-2xl bg-white border border-gray-200 p-5 space-y-3">
+        <p className="text-sm font-black text-gray-900">📝 자막 스타일</p>
         <Stage4Panel
           subtitleStyle={subtitleStyle} setSubtitleStyle={setSubtitleStyle}
           thumbnailStyle={thumbnailStyle} setThumbnailStyle={setThumbnailStyle}
@@ -2215,9 +2241,9 @@ function StyleLibraryList({ session, onSelect, selectedId }: { session: any; onS
     <div className="space-y-1.5">
       {items.map(s => (
         <div key={s.id} onClick={() => onSelect(s.id)}
-          className={`group rounded-xl border p-2.5 cursor-pointer transition ${selectedId===s.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"}`}>
+          className={`group rounded-xl border p-2.5 cursor-pointer transition ${selectedId===s.id ? "border-[#03C75A] bg-[#03C75A]/10" : "border-gray-200 hover:border-gray-500"}`}>
           <div className="flex items-start justify-between gap-2">
-            <p className="text-xs font-bold text-white truncate flex-1">{s.label}</p>
+            <p className="text-xs font-bold text-gray-900 truncate flex-1">{s.label}</p>
             <button onClick={(e)=>del(s.id, e)} title="삭제"
               className="shrink-0 text-gray-600 hover:text-red-400 text-xs leading-none px-1">✕</button>
           </div>
@@ -2283,8 +2309,8 @@ function AppSidebar({ current, onLoad, onReset, balance, userPlan, session, acti
   return (
     <div className="flex flex-col h-full">
       {/* 로고 */}
-      <div className="px-6 py-5 border-b border-gray-800">
-        <h1 className="text-lg font-black text-white tracking-tight">CHRONIT</h1>
+      <div className="px-6 py-5 border-b border-gray-200">
+        <h1 className="text-lg font-black text-gray-900 tracking-tight">CHRONIT</h1>
         <p className="text-xs text-gray-500 mt-0.5">쇼핑 릴스 자동화</p>
       </div>
       {/* 탭 네비 */}
@@ -2296,7 +2322,7 @@ function AppSidebar({ current, onLoad, onReset, balance, userPlan, session, acti
           ["settings","⚙️  설정"],
         ] as [string,string][]).map(([v,l])=>(
           <button key={v} onClick={()=>onViewChange(v)}
-            className={`w-full text-left rounded-xl px-4 py-2.5 text-sm font-bold transition ${activeView===v ? "bg-cyan-500/15 text-cyan-400" : "text-gray-400 hover:bg-gray-800 hover:text-white"}`}>
+            className={`w-full text-left rounded-xl px-4 py-2.5 text-sm font-bold transition ${activeView===v ? "bg-[#03C75A]/15 text-[#03C75A]" : "text-gray-400 hover:bg-gray-100 hover:text-gray-900"}`}>
             {l}
           </button>
         ))}
@@ -2308,7 +2334,7 @@ function AppSidebar({ current, onLoad, onReset, balance, userPlan, session, acti
             {/* 새 프로젝트 버튼 + 이름 입력 */}
             {newProjectName === null ? (
               <button onClick={() => setNewProjectName("")}
-                className="w-full rounded-xl bg-cyan-500 py-2.5 text-sm font-black text-white hover:bg-cyan-400 transition flex items-center justify-center gap-1.5">
+                className="w-full rounded-xl bg-[#03C75A] py-2.5 text-sm font-black text-white hover:bg-[#02b350] transition flex items-center justify-center gap-1.5">
                 <span>+</span><span>새 프로젝트</span>
               </button>
             ) : (
@@ -2321,14 +2347,14 @@ function AppSidebar({ current, onLoad, onReset, balance, userPlan, session, acti
                     if (e.key === "Escape") setNewProjectName(null);
                   }}
                   placeholder="프로젝트 이름 입력"
-                  className="w-full rounded-xl bg-gray-800 border border-cyan-500 px-3 py-2 text-sm text-white outline-none placeholder-gray-500" />
+                  className="w-full rounded-xl bg-gray-100 border border-[#03C75A] px-3 py-2 text-sm text-gray-900 outline-none placeholder-gray-500" />
                 <div className="flex gap-2">
                   <button onClick={() => saveProject(newProjectName)}
-                    className="flex-1 rounded-xl bg-cyan-500 py-2 text-xs font-black text-white hover:bg-cyan-400 transition">
+                    className="flex-1 rounded-xl bg-[#03C75A] py-2 text-xs font-black text-white hover:bg-[#02b350] transition">
                     확인
                   </button>
                   <button onClick={() => setNewProjectName(null)}
-                    className="rounded-xl border border-gray-700 px-3 py-2 text-xs text-gray-400 hover:text-white transition">
+                    className="rounded-xl border border-gray-200 px-3 py-2 text-xs text-gray-400 hover:text-gray-900 transition">
                     취소
                   </button>
                 </div>
@@ -2341,24 +2367,24 @@ function AppSidebar({ current, onLoad, onReset, balance, userPlan, session, acti
               <div className="space-y-1">
                 {projects.map(p=>(
                   <div key={p.id}
-                    className={`rounded-xl border p-2.5 cursor-pointer transition group ${activeProjectId===p.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"}`}
+                    className={`rounded-xl border p-2.5 cursor-pointer transition group ${activeProjectId===p.id ? "border-[#03C75A] bg-[#03C75A]/10" : "border-gray-200 hover:border-gray-500"}`}
                     onClick={()=>{ onLoad(p.data); setActiveProjectId(p.id); }}>
                     <div className="flex items-start justify-between gap-1">
                       <div className="min-w-0 flex-1">
                         {editingId === p.id ? (
                           <input autoFocus defaultValue={p.name}
-                            className="w-full bg-gray-800 text-xs font-bold text-white rounded px-1 py-0.5 outline-none border border-cyan-500"
+                            className="w-full bg-gray-100 text-xs font-bold text-gray-900 rounded px-1 py-0.5 outline-none border border-[#03C75A]"
                             onBlur={e => { renameProject(p.id, e.target.value); setEditingId(null); }}
                             onKeyDown={e => { if (e.key==="Enter") { renameProject(p.id, (e.target as HTMLInputElement).value); setEditingId(null); } }}
                             onClick={e => e.stopPropagation()} />
                         ) : (
-                          <p className="text-xs font-bold text-white truncate">{p.name}</p>
+                          <p className="text-xs font-bold text-gray-900 truncate">{p.name}</p>
                         )}
                         <p className="text-xs text-gray-500 mt-0.5">{STAGE_LABELS[(p.stage||1)-1]} · {new Date(p.savedAt).toLocaleDateString("ko")}</p>
                       </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition shrink-0">
                         <button onClick={e=>{e.stopPropagation();setEditingId(p.id);}}
-                          className="text-gray-500 hover:text-cyan-400 text-xs">✎</button>
+                          className="text-gray-500 hover:text-[#03C75A] text-xs">✎</button>
                         <button onClick={e=>delProject(p.id,e)}
                           className="text-gray-500 hover:text-red-400 text-xs">✕</button>
                       </div>
@@ -2380,18 +2406,18 @@ function AppSidebar({ current, onLoad, onReset, balance, userPlan, session, acti
       )}
 
       {/* 하단 계정/플랜/크레딧 고정 */}
-      <div className="border-t border-gray-800 px-4 py-3 space-y-1.5 shrink-0">
+      <div className="border-t border-gray-200 px-4 py-3 space-y-1.5 shrink-0">
         <p className="text-xs text-gray-600 truncate">{session?.user?.email}</p>
         {userPlan && (
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-500">플랜</span>
-            <span className="text-xs font-bold text-white capitalize">{userPlan}</span>
+            <span className="text-xs font-bold text-gray-900 capitalize">{userPlan}</span>
           </div>
         )}
         {balance !== null && (
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-500">크레딧</span>
-            <span className="text-sm font-black text-cyan-400">💎 {balance.toLocaleString()} CR</span>
+            <span className="text-sm font-black text-[#03C75A]">💎 {balance.toLocaleString()} CR</span>
           </div>
         )}
       </div>
@@ -2411,16 +2437,16 @@ function StageBar({ current, onSelect }: { current: number; onSelect: (n: number
             <button onClick={() => onSelect(n)}
               className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
               <div className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-black transition-all ${
-                done ? "bg-cyan-500 text-white" :
-                active ? "bg-cyan-500/20 border-2 border-cyan-500 text-cyan-400" :
-                "bg-gray-800 text-gray-500 hover:bg-gray-700"
+                done ? "bg-[#03C75A] text-white" :
+                active ? "bg-[#03C75A]/20 border-2 border-[#03C75A] text-[#03C75A]" :
+                "bg-gray-100 text-gray-500 hover:bg-gray-200"
               }`}>{done ? "✓" : n}</div>
               <span className={`text-xs font-bold hidden md:block whitespace-nowrap ${
-                active ? "text-cyan-400" : done ? "text-white" : "text-gray-500"
+                active ? "text-[#03C75A]" : done ? "text-gray-900" : "text-gray-500"
               }`}>{label}</span>
             </button>
             {i < STAGE_LABELS.length - 1 && (
-              <div className={`w-4 h-0.5 mx-1 shrink-0 ${done ? "bg-cyan-500" : "bg-gray-800"}`} />
+              <div className={`w-4 h-0.5 mx-1 shrink-0 ${done ? "bg-[#03C75A]" : "bg-gray-100"}`} />
             )}
           </div>
         );
@@ -2436,16 +2462,16 @@ function StagePanel({ n, title, subtitle, current, children, headerRight }: {
 }) {
   if (n !== current) return null; // 현재 단계만 표시
   return (
-    <div className="rounded-2xl border border-cyan-500/50 bg-gray-900 shadow-[0_0_20px_rgba(6,182,212,0.08)]">
+    <div className="rounded-2xl border border-[#03C75A]/50 bg-white shadow-[0_0_20px_rgba(6,182,212,0.08)]">
       <div className="px-6 py-4 flex items-center gap-3">
-        <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 bg-cyan-500/20 border-2 border-cyan-500 text-cyan-400">{n}</div>
+        <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 bg-[#03C75A]/20 border-2 border-[#03C75A] text-[#03C75A]">{n}</div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-black text-white">{title}</p>
+          <p className="text-sm font-black text-gray-900">{title}</p>
           <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>
         </div>
         {headerRight}
       </div>
-      <div className="px-6 pb-6 border-t border-gray-800">
+      <div className="px-6 pb-6 border-t border-gray-200">
         <div className="pt-4">{children}</div>
       </div>
     </div>
@@ -2477,9 +2503,9 @@ function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean;
 
   return (
     <div className={`relative rounded-xl overflow-hidden border-2 transition-all ${
-      selected ? "border-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.3)]" : "border-gray-700 hover:border-gray-500"
+      selected ? "border-[#03C75A] shadow-[0_0_10px_rgba(6,182,212,0.3)]" : "border-gray-200 hover:border-gray-500"
     }`}>
-      <div className="aspect-[9/16] bg-gray-800 relative cursor-pointer"
+      <div className="aspect-[9/16] bg-gray-100 relative cursor-pointer"
         onClick={() => playing ? setPlaying(false) : handlePlay()}>
         {playing && (proxyUrl || rawUrl) ? (
           <video src={proxyUrl || rawUrl} autoPlay playsInline controls={false}
@@ -2502,24 +2528,24 @@ function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean;
           </>
         )}
         {clip.duration > 0 && !playing && (
-          <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1 py-0.5 text-xs text-white font-bold">{clip.duration}s</div>
+          <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1 py-0.5 text-xs text-gray-900 font-bold">{clip.duration}s</div>
         )}
         {selected && (
-          <div className="absolute top-1.5 left-1.5 h-5 w-5 rounded-full bg-cyan-500 flex items-center justify-center">
-            <span className="text-white text-xs font-black">✓</span>
+          <div className="absolute top-1.5 left-1.5 h-5 w-5 rounded-full bg-[#03C75A] flex items-center justify-center">
+            <span className="text-gray-900 text-xs font-black">✓</span>
           </div>
         )}
       </div>
-      <div className="p-1.5 bg-gray-900 flex items-center justify-between gap-1">
+      <div className="p-1.5 bg-white flex items-center justify-between gap-1">
         <div className="min-w-0">
-          <p className="text-xs text-white font-medium line-clamp-1">{clip.title || "(제목 없음)"}</p>
+          <p className="text-xs text-gray-900 font-medium line-clamp-1">{clip.title || "(제목 없음)"}</p>
           <p className="text-xs text-gray-500">@{clip.author || "?"}</p>
         </div>
         <button onClick={e => { e.stopPropagation(); onToggle(); }}
           className={`shrink-0 rounded-lg px-2 py-1 text-xs font-black transition ${
             selected
               ? "bg-red-500/20 border border-red-500 text-red-400 hover:bg-red-500/30"
-              : "bg-cyan-500 text-white hover:bg-cyan-400"
+              : "bg-[#03C75A] text-white hover:bg-[#02b350]"
           }`}>
           {selected ? "빼기" : "담기"}
         </button>
@@ -2538,22 +2564,22 @@ function JobCard({ job }: { job: Job }) {
   };
   const s = S[job.status];
   return (
-    <div className="rounded-2xl border border-gray-800 bg-gray-900 p-4">
+    <div className="rounded-2xl border border-gray-200 bg-white p-4">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${s.cls}`}>{s.icon} {s.label}</span>
-          <p className="mt-1.5 truncate text-sm text-gray-300">{job.product_url}</p>
+          <p className="mt-1.5 truncate text-sm text-gray-700">{job.product_url}</p>
           <p className="mt-0.5 text-xs text-gray-500">{new Date(job.created_at).toLocaleString("ko-KR")} · {job.credits_used} CR</p>
           {job.status === "error" && job.error_message && <p className="mt-1 text-xs text-red-400">{job.error_message}</p>}
         </div>
         {job.status === "done" && job.video_url && (
-          <a href={job.video_url} download className="shrink-0 rounded-xl bg-cyan-500 px-3 py-2 text-xs font-bold text-white hover:bg-cyan-400 transition">다운로드</a>
+          <a href={job.video_url} download className="shrink-0 rounded-xl bg-[#03C75A] px-3 py-2 text-xs font-bold text-white hover:bg-[#02b350] transition">다운로드</a>
         )}
         {job.status === "done" && !job.video_url && job.expired && (
           <span className="shrink-0 text-xs text-gray-500">⌛ 보관 만료(3일)</span>
         )}
         {(job.status === "pending" || job.status === "processing") && (
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent shrink-0" />
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#03C75A] border-t-transparent shrink-0" />
         )}
       </div>
     </div>
@@ -2605,7 +2631,7 @@ function StyleSelector({ selected, onSelect, session }: {
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">
-        <label className="text-sm font-bold text-gray-300">대본 스타일 <span className="text-xs font-normal text-cyan-400">(직접 추가 권장)</span></label>
+        <label className="text-sm font-bold text-gray-700">대본 스타일 <span className="text-xs font-normal text-[#03C75A]">(직접 추가 권장)</span></label>
         {loading && <span className="text-xs text-gray-500">불러오는 중...</span>}
       </div>
 
@@ -2613,9 +2639,9 @@ function StyleSelector({ selected, onSelect, session }: {
       <div className="grid grid-cols-1 gap-2 mb-3">
         <button onClick={() => onSelect("auto")}
           className={`rounded-xl border p-3 text-left transition ${
-            selected === "auto" ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"
+            selected === "auto" ? "border-[#03C75A] bg-[#03C75A]/10" : "border-gray-200 hover:border-gray-500"
           }`}>
-          <p className={`text-sm font-bold ${selected === "auto" ? "text-cyan-400" : "text-white"}`}>
+          <p className={`text-sm font-bold ${selected === "auto" ? "text-[#03C75A]" : "text-gray-900"}`}>
             ✨ 자동 (AI 추천)
           </p>
           <p className="text-xs text-gray-500 mt-0.5">영상 내용에 맞게 자동으로 스타일 결정</p>
@@ -2630,14 +2656,14 @@ function StyleSelector({ selected, onSelect, session }: {
             {profiles.map(p => (
               <div key={p.id} onClick={() => onSelect(p.id)}
                 className={`relative rounded-xl border p-3 text-left transition cursor-pointer ${
-                  selected === p.id ? "border-cyan-500 bg-cyan-500/10" : "border-gray-700 hover:border-gray-500"
+                  selected === p.id ? "border-[#03C75A] bg-[#03C75A]/10" : "border-gray-200 hover:border-gray-500"
                 }`}>
                 <div className="flex items-start justify-between gap-2">
-                  <p className={`text-sm font-bold truncate ${selected === p.id ? "text-cyan-400" : "text-white"}`}>
+                  <p className={`text-sm font-bold truncate ${selected === p.id ? "text-[#03C75A]" : "text-gray-900"}`}>
                     📌 {p.label || "(이름 없음)"}
                   </p>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    {selected === p.id && <span className="text-xs text-cyan-400 font-bold">선택됨</span>}
+                    {selected === p.id && <span className="text-xs text-[#03C75A] font-bold">선택됨</span>}
                     <button onClick={(e)=>del(p.id, e)} title="삭제"
                       className="text-gray-600 hover:text-red-400 text-sm leading-none px-1">✕</button>
                   </div>
@@ -2659,7 +2685,7 @@ function StyleSelector({ selected, onSelect, session }: {
       )}
 
       {!loading && profiles.length === 0 && (
-        <div className="rounded-xl border border-dashed border-gray-700 p-4 text-center">
+        <div className="rounded-xl border border-dashed border-gray-200 p-4 text-center">
           <p className="text-sm text-gray-500">저장된 스타일이 없습니다</p>
           <p className="text-xs text-gray-600 mt-1">앱의 <span className="text-gray-400 font-bold">스타일 찾기</span> 탭에서 스타일을 저장하면 여기에 표시됩니다</p>
         </div>
@@ -2667,10 +2693,10 @@ function StyleSelector({ selected, onSelect, session }: {
 
       {/* 선택된 스타일 미리보기 */}
       {selectedProfile && (
-        <div className="mt-3 rounded-xl bg-gray-800 p-3 text-xs text-gray-400 space-y-1">
-          {selectedProfile.tone?.speaker && <p>화자: <span className="text-gray-200">{selectedProfile.tone.speaker}</span></p>}
-          {selectedProfile.structure?.hook && <p>훅: <span className="text-gray-200">{selectedProfile.structure.hook}</span></p>}
-          {selectedProfile.source_title && <p>원본: <span className="text-gray-200">{selectedProfile.source_title}</span></p>}
+        <div className="mt-3 rounded-xl bg-gray-100 p-3 text-xs text-gray-400 space-y-1">
+          {selectedProfile.tone?.speaker && <p>화자: <span className="text-gray-700">{selectedProfile.tone.speaker}</span></p>}
+          {selectedProfile.structure?.hook && <p>훅: <span className="text-gray-700">{selectedProfile.structure.hook}</span></p>}
+          {selectedProfile.source_title && <p>원본: <span className="text-gray-700">{selectedProfile.source_title}</span></p>}
         </div>
       )}
     </div>
@@ -2766,40 +2792,40 @@ function StyleFinderView({ session, onImport }: { session: any; onImport: (id:st
   const stylePrompt = result ? buildStylePrompt(result) : "";
   return (
     <div className="space-y-5">
-      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 space-y-3">
-        <p className="text-sm font-bold text-white">숏폼 링크 분석</p>
+      <div className="rounded-2xl bg-white border border-gray-200 p-5 space-y-3">
+        <p className="text-sm font-bold text-gray-900">숏폼 링크 분석</p>
         <div className="flex gap-3">
           <input value={url} onChange={e=>setUrl(e.target.value)} onKeyDown={e=>e.key==="Enter"&&run()} disabled={loading}
-            placeholder="https://www.instagram.com/p/..." className="flex-1 rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm text-white outline-none focus:border-cyan-500 disabled:opacity-50" />
-          <button onClick={run} disabled={loading||!url.trim()} className="rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-black text-white hover:bg-cyan-400 disabled:opacity-40 transition">
+            placeholder="https://www.instagram.com/p/..." className="flex-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#03C75A] disabled:opacity-50" />
+          <button onClick={run} disabled={loading||!url.trim()} className="rounded-xl bg-[#03C75A] px-5 py-2.5 text-sm font-black text-white hover:bg-[#02b350] disabled:opacity-40 transition">
             {loading ? "분석 중..." : "분석 시작"}
           </button>
         </div>
-        {loading && <p className="text-xs text-cyan-400 animate-pulse">AI 분석 중 (1~2분)... 다른 탭으로 이동하거나 앱을 닫아도 백그라운드에서 완료됩니다.</p>}
+        {loading && <p className="text-xs text-[#03C75A] animate-pulse">AI 분석 중 (1~2분)... 다른 탭으로 이동하거나 앱을 닫아도 백그라운드에서 완료됩니다.</p>}
         {error && <p className="text-xs text-red-400">{error}</p>}
       </div>
       {result && (
-        <div className="rounded-2xl bg-gray-900 border border-gray-800 overflow-hidden">
-          <div className="flex items-center justify-between gap-3 p-5 border-b border-gray-800">
+        <div className="rounded-2xl bg-white border border-gray-200 overflow-hidden">
+          <div className="flex items-center justify-between gap-3 p-5 border-b border-gray-200">
             <div>
-              <p className="font-black text-white text-lg">{result.label}</p>
+              <p className="font-black text-gray-900 text-lg">{result.label}</p>
               {result.source_channel && <p className="text-xs text-gray-500">@{result.source_channel}</p>}
             </div>
-            <button onClick={()=>onImport(result.id)} className="shrink-0 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-black text-white hover:bg-cyan-400 transition">이 스타일 가져오기 →</button>
+            <button onClick={()=>onImport(result.id)} className="shrink-0 rounded-xl bg-[#03C75A] px-4 py-2 text-sm font-black text-white hover:bg-[#02b350] transition">이 스타일 가져오기 →</button>
           </div>
           <div className="p-5 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-1 h-4 bg-cyan-500 rounded" />
-                <p className="font-bold text-white text-sm">GPT 프롬프트 (이 스타일 그대로 따라하기)</p>
+                <div className="w-1 h-4 bg-[#03C75A] rounded" />
+                <p className="font-bold text-gray-900 text-sm">GPT 프롬프트 (이 스타일 그대로 따라하기)</p>
               </div>
               <button
                 onClick={async()=>{ try { await navigator.clipboard.writeText(stylePrompt); setCopied(true); setTimeout(()=>setCopied(false),1500);} catch{} }}
-                className="rounded-lg bg-gray-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-gray-600 transition">
+                className="rounded-lg bg-gray-200 px-3 py-1.5 text-xs font-bold text-gray-900 hover:bg-gray-300 transition">
                 {copied ? "복사됨 ✓" : "복사"}
               </button>
             </div>
-            <pre className="whitespace-pre-wrap break-words rounded-xl bg-black/50 border border-gray-800 p-4 text-sm text-gray-200 leading-relaxed font-sans">{stylePrompt}</pre>
+            <pre className="whitespace-pre-wrap break-words rounded-xl bg-black/50 border border-gray-200 p-4 text-sm text-gray-700 leading-relaxed font-sans">{stylePrompt}</pre>
             <p className="text-xs text-green-400">✓ 라이브러리 저장 완료 · "가져오기"를 누르면 대본 생성에 이 스타일이 적용됩니다</p>
           </div>
         </div>
@@ -2871,14 +2897,14 @@ function HistoryView({ session }: { session: any }) {
       {jobs.map(j=>{
         const done = j.status==="done" && j.video_url && !j.expired;
         return (
-          <div key={j.id} className="rounded-2xl bg-gray-900 border border-gray-800 overflow-hidden flex flex-col">
+          <div key={j.id} className="rounded-2xl bg-white border border-gray-200 overflow-hidden flex flex-col">
             <div className="relative aspect-[9/16] bg-black">
               {done ? (
                 <video src={j.video_url + "#t=0.1"} preload="metadata" playsInline controls
                   className="w-full h-full object-contain bg-black" />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center px-2 text-center">
-                  <span className={`text-sm font-bold ${j.status==="processing"?"text-cyan-400 animate-pulse":j.status==="error"?"text-red-400":"text-gray-500"}`}>
+                  <span className={`text-sm font-bold ${j.status==="processing"?"text-[#03C75A] animate-pulse":j.status==="error"?"text-red-400":"text-gray-500"}`}>
                     {j.status==="processing"?"⏳ 생성 중":j.status==="error"?"❌ 실패":j.expired?"⌛ 보관 만료":"⏳ 대기"}
                   </span>
                 </div>
@@ -2886,24 +2912,24 @@ function HistoryView({ session }: { session: any }) {
             </div>
             <div className="p-3 flex flex-col gap-2 flex-1">
               <div className="min-w-0">
-                <p className="text-sm font-bold text-white truncate">{j.product_name || "제목 없음"}</p>
+                <p className="text-sm font-bold text-gray-900 truncate">{j.product_name || "제목 없음"}</p>
                 <p className="text-[11px] text-gray-500">{new Date(j.created_at).toLocaleDateString("ko")}</p>
               </div>
               {done ? (
                 <div className="mt-auto flex flex-col gap-2">
                   <button onClick={()=>saveVideo(j)} disabled={saving===j.id}
-                    className="block text-center rounded-xl bg-cyan-500 px-3 py-2.5 text-sm font-bold text-white hover:bg-cyan-400 active:bg-cyan-600 disabled:opacity-50 transition">
+                    className="block text-center rounded-xl bg-[#03C75A] px-3 py-2.5 text-sm font-bold text-white hover:bg-[#02b350] active:bg-[#02b350] disabled:opacity-50 transition">
                     {saving===j.id ? "저장 준비 중…" : "📱 갤러리에 저장"}
                   </button>
                   <a href={dlUrl(j)} download
-                    className="block text-center rounded-lg px-3 py-1.5 text-[11px] font-medium text-gray-400 hover:text-gray-200 transition">
+                    className="block text-center rounded-lg px-3 py-1.5 text-[11px] font-medium text-gray-400 hover:text-gray-700 transition">
                     또는 mp4 파일로 다운로드
                   </a>
 
                   {/* 업로드용 SEO */}
                   {(j.seo_title || j.seo_description || j.seo_tags) ? (
-                    <div className="mt-1 rounded-xl bg-gray-800 border border-gray-700 p-2.5 text-left space-y-2">
-                      <p className="text-[11px] font-bold text-cyan-400">📋 업로드 정보 (AI 추천)</p>
+                    <div className="mt-1 rounded-xl bg-gray-100 border border-gray-200 p-2.5 text-left space-y-2">
+                      <p className="text-[11px] font-bold text-[#03C75A]">📋 업로드 정보 (AI 추천)</p>
                       {[
                         { label: "제목", value: j.seo_title, key: j.id+"-t" },
                         { label: "설명", value: j.seo_description, key: j.id+"-d" },
@@ -2912,16 +2938,16 @@ function HistoryView({ session }: { session: any }) {
                         <div key={r.key} className="flex items-start gap-1.5">
                           <div className="min-w-0 flex-1">
                             <p className="text-[10px] font-bold text-gray-500">{r.label}</p>
-                            <p className="text-[11px] text-gray-200 leading-snug break-words line-clamp-3">{r.value}</p>
+                            <p className="text-[11px] text-gray-700 leading-snug break-words line-clamp-3">{r.value}</p>
                           </div>
                           <button onClick={()=>copyText(r.value, r.key)}
-                            className="shrink-0 rounded-md bg-gray-700 px-1.5 py-1 text-[10px] font-bold text-gray-200 hover:bg-gray-600 transition">
+                            className="shrink-0 rounded-md bg-gray-200 px-1.5 py-1 text-[10px] font-bold text-gray-700 hover:bg-gray-300 transition">
                             {copied===r.key ? "✓" : "복사"}
                           </button>
                         </div>
                       ))}
                       <button onClick={()=>shareSeo(j)}
-                        className="w-full rounded-lg bg-gray-700 px-2 py-2 text-[11px] font-bold text-white hover:bg-gray-600 transition">
+                        className="w-full rounded-lg bg-gray-200 px-2 py-2 text-[11px] font-bold text-gray-900 hover:bg-gray-300 transition">
                         {copied===j.id+"-all" ? "✓ 복사됨 (메모에 붙여넣기)" : "📝 메모·카톡으로 보내기"}
                       </button>
                     </div>
@@ -2930,7 +2956,7 @@ function HistoryView({ session }: { session: any }) {
                   )}
                 </div>
               ) : (
-                <span className="mt-auto block text-center rounded-xl bg-gray-800 px-3 py-2.5 text-xs text-gray-500">
+                <span className="mt-auto block text-center rounded-xl bg-gray-100 px-3 py-2.5 text-xs text-gray-500">
                   {j.status==="error"?"실패":j.expired?"보관 만료(3일)":"생성 중"}
                 </span>
               )}
@@ -3012,37 +3038,37 @@ function SettingsView({ session, supabase, balance, userPlan }:
   const Section = ({ title, children }:{ title:string; children:any }) => (
     <div className="mb-5">
       <p className="text-xs font-bold text-gray-500 mb-2">{title}</p>
-      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5">{children}</div>
+      <div className="rounded-2xl bg-white border border-gray-200 p-5">{children}</div>
     </div>
   );
 
   return (
     <div className="max-w-2xl">
-      <h2 className="text-xl font-black text-white mb-6">⚙️ 설정</h2>
+      <h2 className="text-xl font-black text-gray-900 mb-6">⚙️ 설정</h2>
 
       <Section title="계정 정보">
         <div className="flex items-center justify-between mb-4">
-          <div><p className="text-xs text-gray-500">이메일</p><p className="text-sm text-white mt-0.5">{email}</p></div>
+          <div><p className="text-xs text-gray-500">이메일</p><p className="text-sm text-gray-900 mt-0.5">{email}</p></div>
           <button onClick={()=>supabase.auth.signOut()}
-            className="rounded-xl border border-gray-700 px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition">로그아웃</button>
+            className="rounded-xl border border-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition">로그아웃</button>
         </div>
         <div className="flex items-center justify-between">
           <div><p className="text-xs text-gray-500">현재 요금제</p>
-            <p className="text-sm font-bold text-white mt-0.5">{planLabel(plan)} 요금제{plan!=="free" && " (구독 중)"}</p></div>
+            <p className="text-sm font-bold text-gray-900 mt-0.5">{planLabel(plan)} 요금제{plan!=="free" && " (구독 중)"}</p></div>
           <button onClick={()=>setShowPay(true)}
-            className="rounded-xl border border-gray-700 px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition">구독 변경</button>
+            className="rounded-xl border border-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition">구독 변경</button>
         </div>
       </Section>
 
       <Section title="멤버십 크레딧">
         <div className="flex items-baseline justify-between mb-2">
           <span className="text-xs text-gray-500">남은 크레딧</span>
-          <span className="text-sm font-black text-cyan-400">{bal.toLocaleString()} CR / {maxC.toLocaleString()} CR</span>
+          <span className="text-sm font-black text-[#03C75A]">{bal.toLocaleString()} CR / {maxC.toLocaleString()} CR</span>
         </div>
-        <div className="h-2 rounded-full bg-gray-800 overflow-hidden mb-4">
-          <div className="h-full bg-cyan-500 transition-all" style={{ width:`${pct}%` }} />
+        <div className="h-2 rounded-full bg-gray-100 overflow-hidden mb-4">
+          <div className="h-full bg-[#03C75A] transition-all" style={{ width:`${pct}%` }} />
         </div>
-        <div className="flex justify-between text-sm"><span className="text-gray-500">다음 결제일</span><span className="text-white">{nextBilling}</span></div>
+        <div className="flex justify-between text-sm"><span className="text-gray-500">다음 결제일</span><span className="text-gray-900">{nextBilling}</span></div>
       </Section>
 
       <Section title="🎟 파트너 코드 등록">
@@ -3050,9 +3076,9 @@ function SettingsView({ session, supabase, balance, userPlan }:
         <div className="flex gap-2">
           <input value={code} onChange={e=>setCode(e.target.value)} placeholder="예: TEACHER_KIM"
             onKeyDown={e=>{ if(e.key==="Enter") registerCode(); }}
-            className="flex-1 rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-500" />
+            className="flex-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A]" />
           <button onClick={registerCode} disabled={registering || !code.trim()}
-            className="rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-cyan-400 disabled:opacity-50 transition">{registering?"등록 중":"등록"}</button>
+            className="rounded-xl bg-[#03C75A] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#02b350] disabled:opacity-50 transition">{registering?"등록 중":"등록"}</button>
         </div>
         {codeMsg && <p className={`text-xs mt-2 ${codeMsg.ok?"text-green-400":"text-red-400"}`}>{codeMsg.text}</p>}
       </Section>
@@ -3060,14 +3086,14 @@ function SettingsView({ session, supabase, balance, userPlan }:
       <Section title="💻 등록된 디바이스">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs text-gray-500">기기 {devices.length}대</span>
-          <button onClick={loadDevices} className="rounded-lg border border-gray-700 px-3 py-1.5 text-xs text-gray-300 hover:bg-gray-800 transition">새로고침</button>
+          <button onClick={loadDevices} className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 transition">새로고침</button>
         </div>
         {devices.length === 0 ? (
           <p className="py-4 text-center text-sm text-gray-500">등록된 기기가 없습니다.</p>
         ) : (
           <div className="space-y-2">
             {devices.map(d=>(
-              <div key={d.device_id} className="flex items-center justify-between rounded-xl bg-gray-800 border border-gray-700 px-4 py-3">
+              <div key={d.device_id} className="flex items-center justify-between rounded-xl bg-gray-100 border border-gray-200 px-4 py-3">
                 <div className="min-w-0">
                   <p className="text-sm text-green-400 font-semibold truncate">✓ {d.device_name || d.device_id}</p>
                   <p className="text-xs text-gray-500 mt-0.5">{relTime(d.last_seen_at)}{d.registered_at && ` · 등록 ${new Date(d.registered_at).toLocaleDateString("ko-KR")}`}</p>
@@ -3082,8 +3108,8 @@ function SettingsView({ session, supabase, balance, userPlan }:
 
       <Section title="고객지원">
         <div className="space-y-2">
-          <a href="/manual" className="block rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm text-white hover:border-cyan-500 transition">프로그램 사용 가이드 보기</a>
-          <a href="/terms" className="block rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm text-white hover:border-cyan-500 transition">이용약관 및 환불 규정 보기</a>
+          <a href="/manual" className="block rounded-xl bg-gray-100 border border-gray-200 px-4 py-3 text-sm text-gray-900 hover:border-[#03C75A] transition">프로그램 사용 가이드 보기</a>
+          <a href="/terms" className="block rounded-xl bg-gray-100 border border-gray-200 px-4 py-3 text-sm text-gray-900 hover:border-[#03C75A] transition">이용약관 및 환불 규정 보기</a>
         </div>
       </Section>
 
@@ -3209,21 +3235,21 @@ function ProductSearchView({ session, supabase }: { session:any; supabase:any })
   const copyAll = () => { navigator.clipboard.writeText(urls.join("\n")); setCopied(true); setTimeout(()=>setCopied(false),1500); };
 
   const Step = ({n,title,children}:{n:string;title:string;children:any}) => (
-    <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 mb-4">
-      <p className="text-sm font-bold text-cyan-400 mb-3">STEP {n}. {title}</p>
+    <div className="rounded-2xl bg-white border border-gray-200 p-5 mb-4">
+      <p className="text-sm font-bold text-[#03C75A] mb-3">STEP {n}. {title}</p>
       {children}
     </div>
   );
 
   return (
     <div className="max-w-3xl">
-      <h2 className="text-xl font-black text-white mb-6">🛒 쿠팡 파트너스 상품 검색</h2>
+      <h2 className="text-xl font-black text-gray-900 mb-6">🛒 쿠팡 파트너스 상품 검색</h2>
 
       <Step n="0" title="영상 URL 또는 프로젝트 → 한국어 검색어 추출">
         <div className="flex flex-wrap items-end gap-2 mb-2">
           <div className="flex-1 min-w-[200px]">
             <label className="text-xs text-gray-500">프로젝트</label>
-            <select value={projId} onChange={e=>setProjId(e.target.value)} className="w-full mt-1 rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white outline-none">
+            <select value={projId} onChange={e=>setProjId(e.target.value)} className="w-full mt-1 rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none">
               {projOpts.length===0 && <option value="">저장된 프로젝트 없음</option>}
               {projOpts.map(o=><option key={o.id} value={o.id}>{o.name} ({o.count}개 영상)</option>)}
             </select>
@@ -3233,25 +3259,25 @@ function ProductSearchView({ session, supabase }: { session:any; supabase:any })
         <div className="text-center text-xs text-gray-600 my-2">— 또는 URL 직접 입력 —</div>
         <div className="flex gap-2">
           <input value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://www.tiktok.com/... or instagram.com/..."
-            className="flex-1 rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-500" />
-          <button onClick={()=>extract(url.trim())} disabled={extracting||!url.trim()} className="rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 px-4 py-2.5 text-sm font-bold text-white">🔍 URL로 추출</button>
+            className="flex-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A]" />
+          <button onClick={()=>extract(url.trim())} disabled={extracting||!url.trim()} className="rounded-xl bg-[#03C75A] hover:bg-[#02b350] disabled:opacity-40 px-4 py-2.5 text-sm font-bold text-white">🔍 URL로 추출</button>
         </div>
         {kwMsg && (
           <div className="flex items-center gap-2 mt-3">
             <p className={`text-xs flex-1 ${job?.status==="failed"?"text-red-400":"text-gray-400"}`}>{extracting && "⏳ "}{kwMsg}</p>
-            {!extracting && job && <button onClick={clearExtract} className="text-xs text-gray-500 hover:text-gray-300 shrink-0">✕ 지우기</button>}
+            {!extracting && job && <button onClick={clearExtract} className="text-xs text-gray-500 hover:text-gray-700 shrink-0">✕ 지우기</button>}
           </div>
         )}
         {kw && (
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs text-gray-500">추출된 한국어 검색어 (클릭 시 쿠팡 파트너스 링크 생성 화면 열기)</p>
-              <button onClick={clearExtract} className="text-xs text-gray-500 hover:text-gray-300 shrink-0">✕ 지우기</button>
+              <button onClick={clearExtract} className="text-xs text-gray-500 hover:text-gray-700 shrink-0">✕ 지우기</button>
             </div>
             <div className="flex flex-wrap gap-2">
               {((kw.keywords?.length ? kw.keywords : [kw.product_name, ...(kw.queries||[])]).filter(Boolean) as string[]).map((k:string,i:number)=>(
                 <a key={i} href={`https://partners.coupang.com/#affiliate/ws/link/0/${k.trim().replace(/\s+/g,"%20")}`} target="_blank" rel="noreferrer"
-                  className="rounded-lg bg-gray-800 border border-gray-700 px-3 py-1.5 text-sm text-cyan-300 hover:border-cyan-500 transition">{k}</a>
+                  className="rounded-lg bg-gray-100 border border-gray-200 px-3 py-1.5 text-sm text-[#03C75A] hover:border-[#03C75A] transition">{k}</a>
               ))}
             </div>
           </div>
@@ -3260,30 +3286,30 @@ function ProductSearchView({ session, supabase }: { session:any; supabase:any })
 
       <Step n="1" title="쿠팡 파트너스 / 인포크링크 열기">
         <div className="flex flex-wrap gap-2">
-          <a href="https://partners.coupang.com/" target="_blank" rel="noreferrer" className="rounded-xl bg-cyan-600 hover:bg-cyan-500 px-4 py-2.5 text-sm font-bold text-white">🛒 쿠팡 파트너스 열기</a>
-          <a href="https://link.inpock.co.kr/" target="_blank" rel="noreferrer" className="rounded-xl bg-cyan-700 hover:bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white">🔗 인포크링크 열기</a>
+          <a href="https://partners.coupang.com/" target="_blank" rel="noreferrer" className="rounded-xl bg-[#03C75A] hover:bg-[#02b350] px-4 py-2.5 text-sm font-bold text-white">🛒 쿠팡 파트너스 열기</a>
+          <a href="https://link.inpock.co.kr/" target="_blank" rel="noreferrer" className="rounded-xl bg-[#03C75A] hover:bg-[#02b350] px-4 py-2.5 text-sm font-bold text-white">🔗 인포크링크 열기</a>
         </div>
       </Step>
 
       <Step n="2" title="상품 URL 누적 리스트">
         <p className="text-xs text-gray-400 mb-3">쿠팡 상품 페이지 URL을 복사한 뒤 아래 칸에 붙여넣으면(Ctrl+V) 자동 추가됩니다. [전체 복사] 후 인포크링크에 붙여넣으세요.</p>
         <div className="flex items-center gap-2 mb-2">
-          <button onClick={fromClipboard} className="rounded-lg bg-gray-700 hover:bg-gray-600 px-3 py-2 text-xs font-bold text-white">📋 클립보드에서 추가</button>
+          <button onClick={fromClipboard} className="rounded-lg bg-gray-100 hover:bg-gray-200 px-3 py-2 text-xs font-bold text-gray-700">📋 클립보드에서 추가</button>
           <div className="flex-1" />
-          <button onClick={copyAll} disabled={urls.length===0} className="rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 px-3 py-2 text-xs font-bold text-white">{copied?"✓ 복사됨":"📋 전체 복사"}</button>
+          <button onClick={copyAll} disabled={urls.length===0} className="rounded-lg bg-[#03C75A] hover:bg-[#02b350] disabled:opacity-40 px-3 py-2 text-xs font-bold text-white">{copied?"✓ 복사됨":"📋 전체 복사"}</button>
           <button onClick={()=>{ if(urls.length&&confirm("목록을 비울까요?")) setUrls([]); }} disabled={urls.length===0} className="rounded-lg bg-red-600/80 hover:bg-red-500 disabled:opacity-40 px-3 py-2 text-xs font-bold text-white">비우기</button>
         </div>
         <textarea onPaste={(e)=>{ e.preventDefault(); addUrls(e.clipboardData.getData("text")); }}
           placeholder="여기에 쿠팡 URL을 붙여넣으세요 (Ctrl+V)"
-          className="w-full h-14 rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-500 resize-none mb-2" />
-        {hint && <p className="text-xs text-cyan-400 mb-2">{hint}</p>}
-        <div className="rounded-xl bg-gray-800/50 border border-gray-700 max-h-64 overflow-y-auto">
+          className="w-full h-14 rounded-xl bg-gray-100 border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] resize-none mb-2" />
+        {hint && <p className="text-xs text-[#03C75A] mb-2">{hint}</p>}
+        <div className="rounded-xl bg-gray-100/50 border border-gray-200 max-h-64 overflow-y-auto">
           {urls.length===0 ? (
             <p className="py-8 text-center text-sm text-gray-600">저장된 URL이 없습니다.</p>
           ) : urls.map((u,i)=>(
-            <div key={i} className="flex items-center gap-2 px-3 py-2 border-b border-gray-800/50 last:border-0">
+            <div key={i} className="flex items-center gap-2 px-3 py-2 border-b border-gray-200/50 last:border-0">
               <span className="text-xs text-gray-600 w-6 shrink-0">{i+1}</span>
-              <a href={u} target="_blank" rel="noreferrer" className="flex-1 text-xs text-cyan-300 truncate hover:underline">{u}</a>
+              <a href={u} target="_blank" rel="noreferrer" className="flex-1 text-xs text-[#03C75A] truncate hover:underline">{u}</a>
               <button onClick={()=>setUrls(prev=>prev.filter((_,j)=>j!==i))} className="text-gray-500 hover:text-red-400 text-xs shrink-0">✕</button>
             </div>
           ))}
@@ -3303,10 +3329,10 @@ function AdminView({ session, supabase }: { session: any; supabase: any }) {
   ] as const;
   return (
     <div>
-      <div className="flex gap-1 mb-5 border-b border-gray-800">
+      <div className="flex gap-1 mb-5 border-b border-gray-200">
         {TABS.map(t=>(
           <button key={t.v} onClick={()=>setTab(t.v as any)}
-            className={`px-4 py-2.5 text-sm font-bold transition border-b-2 -mb-px ${tab===t.v?"text-cyan-400 border-cyan-400":"text-gray-400 border-transparent hover:text-white"}`}>
+            className={`px-4 py-2.5 text-sm font-bold transition border-b-2 -mb-px ${tab===t.v?"text-[#03C75A] border-[#03C75A]":"text-gray-400 border-transparent hover:text-gray-900"}`}>
             {t.label}
           </button>
         ))}
@@ -3382,28 +3408,28 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
 
   const fmt = (d:string)=> d ? new Date(d).toLocaleDateString("ko-KR",{year:"2-digit",month:"2-digit",day:"2-digit"}) : "-";
   const Btn = ({onClick,color,children}:{onClick:()=>void;color:string;children:any}) => (
-    <button onClick={onClick} className={`rounded-lg px-3 py-2 text-xs font-bold text-white transition ${color}`}>{children}</button>
+    <button onClick={onClick} className={`rounded-lg px-3 py-2 text-xs font-bold text-gray-900 transition ${color}`}>{children}</button>
   );
 
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-bold text-white">👑 구독 관리</p>
+        <p className="text-sm font-bold text-gray-900">👑 구독 관리</p>
         <div className="text-xs text-gray-500">전체 {users.length} · <span className="text-green-400">구독중 {activeCnt}</span> · 만료 {users.length-activeCnt}
-          <button onClick={load} className="ml-3 rounded-lg border border-gray-700 px-2 py-1 hover:bg-gray-800">새로고침</button>
+          <button onClick={load} className="ml-3 rounded-lg border border-gray-200 px-2 py-1 hover:bg-gray-100">새로고침</button>
         </div>
       </div>
       <div className="flex gap-2 mb-3">
         <input value={q} onChange={e=>setQ(e.target.value)} placeholder="이메일 검색"
-          className="flex-1 rounded-xl bg-gray-800 border border-gray-700 px-4 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-500" />
-        <select value={stFilter} onChange={e=>setStFilter(e.target.value)} className="rounded-xl bg-gray-800 border border-gray-700 px-3 py-2 text-sm text-white outline-none">
+          className="flex-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-2 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A]" />
+        <select value={stFilter} onChange={e=>setStFilter(e.target.value)} className="rounded-xl bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none">
           <option value="all">상태 전체</option><option value="active">유효</option><option value="expired">만료</option></select>
-        <select value={plFilter} onChange={e=>setPlFilter(e.target.value)} className="rounded-xl bg-gray-800 border border-gray-700 px-3 py-2 text-sm text-white outline-none">
+        <select value={plFilter} onChange={e=>setPlFilter(e.target.value)} className="rounded-xl bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none">
           <option value="all">플랜 전체</option>{plans.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>
       </div>
-      <div className="rounded-2xl bg-gray-900 border border-gray-800 overflow-hidden mb-5 max-h-[340px] overflow-y-auto">
+      <div className="rounded-2xl bg-white border border-gray-200 overflow-hidden mb-5 max-h-[340px] overflow-y-auto">
         <table className="w-full text-xs">
-          <thead className="border-b border-gray-800 text-gray-400 sticky top-0 bg-gray-900">
+          <thead className="border-b border-gray-200 text-gray-400 sticky top-0 bg-white">
             <tr><th className="px-3 py-2.5 text-left">이메일</th><th className="px-3 py-2.5 text-left">권한</th><th className="px-3 py-2.5 text-left">플랜</th><th className="px-3 py-2.5 text-left">만료일</th><th className="px-3 py-2.5 text-left">상태</th><th className="px-3 py-2.5 text-right">크레딧(잔량/한도)</th></tr>
           </thead>
           <tbody>
@@ -3413,13 +3439,13 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
               const max = planMax[u.plan] ?? 0; const left = max - (u.credits_used||0); const act = isActive(u);
               return (
                 <tr key={u.user_id} onClick={()=>{setSel(u.user_id); setRoleSel(u.role||"user"); if(u.plan)setPlanSel(u.plan);}}
-                  className={`border-b border-gray-800/50 cursor-pointer ${sel===u.user_id?"bg-cyan-500/10":"hover:bg-gray-800/40"}`}>
-                  <td className="px-3 py-2.5 text-white truncate max-w-[200px]">{u.email}</td>
-                  <td className="px-3 py-2.5">{u.role==="super_admin"?<span className="text-yellow-400 font-bold">👑 관리자</span>:u.role==="partner"?<span className="text-cyan-400">파트너</span>:<span className="text-gray-400">일반</span>}</td>
-                  <td className="px-3 py-2.5 text-white capitalize">{u.plan||"-"}</td>
+                  className={`border-b border-gray-200/50 cursor-pointer ${sel===u.user_id?"bg-[#03C75A]/10":"hover:bg-gray-100/40"}`}>
+                  <td className="px-3 py-2.5 text-gray-700 truncate max-w-[200px]">{u.email}</td>
+                  <td className="px-3 py-2.5">{u.role==="super_admin"?<span className="text-yellow-400 font-bold">👑 관리자</span>:u.role==="partner"?<span className="text-[#03C75A]">파트너</span>:<span className="text-gray-400">일반</span>}</td>
+                  <td className="px-3 py-2.5 text-gray-700 capitalize">{u.plan||"-"}</td>
                   <td className="px-3 py-2.5 text-gray-400">{fmt(u.expires_at)}</td>
                   <td className="px-3 py-2.5">{act?<span className="text-green-400">유효</span>:<span className="text-red-400">만료</span>}</td>
-                  <td className="px-3 py-2.5 text-right text-gray-300">{left.toLocaleString()} / {max.toLocaleString()}</td>
+                  <td className="px-3 py-2.5 text-right text-gray-700">{left.toLocaleString()} / {max.toLocaleString()}</td>
                 </tr>
               );
             })}
@@ -3429,35 +3455,35 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
 
       {/* 액션 영역 */}
       <div className="space-y-3">
-        <div className="rounded-2xl bg-gray-900 border border-gray-800 p-4">
-          <p className="text-xs text-gray-500 mb-2">구독 부여 / 수정 {selUser && <span className="text-cyan-400">— {selUser.email}</span>}</p>
+        <div className="rounded-2xl bg-white border border-gray-200 p-4">
+          <p className="text-xs text-gray-500 mb-2">구독 부여 / 수정 {selUser && <span className="text-[#03C75A]">— {selUser.email}</span>}</p>
           <div className="flex flex-wrap items-center gap-2">
-            <select value={planSel} onChange={e=>setPlanSel(e.target.value)} className="rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-sm text-white outline-none">
+            <select value={planSel} onChange={e=>setPlanSel(e.target.value)} className="rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none">
               {plans.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>
-            <input value={days} onChange={e=>setDays(e.target.value)} className="w-28 rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-sm text-white outline-none" placeholder="기간(일)" />
+            <input value={days} onChange={e=>setDays(e.target.value)} className="w-28 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none" placeholder="기간(일)" />
             <Btn onClick={grant} color="bg-green-600 hover:bg-green-500">✓ 구독 부여/연장</Btn>
             <Btn onClick={cancel} color="bg-red-600 hover:bg-red-500">✕ 구독 취소</Btn>
-            <Btn onClick={resetDev} color="bg-gray-700 hover:bg-gray-600">🖥 디바이스 모두 해제</Btn>
+            <Btn onClick={resetDev} color="bg-gray-200 hover:bg-gray-300">🖥 디바이스 모두 해제</Btn>
           </div>
         </div>
-        <div className="rounded-2xl bg-gray-900 border border-gray-800 p-4">
+        <div className="rounded-2xl bg-white border border-gray-200 p-4">
           <p className="text-xs text-gray-500 mb-2">크레딧 관리</p>
           <div className="flex flex-wrap items-center gap-2">
-            <input type="number" min={0} max={1000000} value={amt} onChange={e=>setAmt(e.target.value)} className="w-36 rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-sm text-white outline-none" placeholder="변동량" />
+            <input type="number" min={0} max={1000000} value={amt} onChange={e=>setAmt(e.target.value)} className="w-36 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none" placeholder="변동량" />
             <Btn onClick={()=>credit("add")} color="bg-green-600 hover:bg-green-500">＋ 충전 (잔량 증가)</Btn>
             <Btn onClick={()=>credit("sub")} color="bg-orange-600 hover:bg-orange-500">－ 차감 (잔량 감소)</Btn>
-            <Btn onClick={()=>credit("reset")} color="bg-gray-700 hover:bg-gray-600">🔄 사용량 0으로 초기화</Btn>
+            <Btn onClick={()=>credit("reset")} color="bg-gray-200 hover:bg-gray-300">🔄 사용량 0으로 초기화</Btn>
           </div>
         </div>
-        <div className="rounded-2xl bg-gray-900 border border-gray-800 p-4">
+        <div className="rounded-2xl bg-white border border-gray-200 p-4">
           <p className="text-xs text-gray-500 mb-2">권한 변경 (파트너/관리자 지정)</p>
           <div className="flex flex-wrap items-center gap-2">
-            <select value={roleSel} onChange={e=>setRoleSel(e.target.value)} className="rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-sm text-white outline-none">
+            <select value={roleSel} onChange={e=>setRoleSel(e.target.value)} className="rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none">
               <option value="user">일반 (user)</option><option value="partner">파트너 (partner)</option><option value="super_admin">관리자 (super_admin)</option></select>
-            <Btn onClick={applyRole} color="bg-cyan-600 hover:bg-cyan-500">✓ 권한 적용</Btn>
+            <Btn onClick={applyRole} color="bg-[#03C75A] hover:bg-[#02b350]">✓ 권한 적용</Btn>
           </div>
         </div>
-        {msg && <p className="text-xs text-cyan-400">{msg}</p>}
+        {msg && <p className="text-xs text-[#03C75A]">{msg}</p>}
       </div>
     </div>
   );
@@ -3510,52 +3536,52 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
 
   return (
     <div>
-      <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 mb-5">
-        <p className="text-sm font-bold text-white mb-3">새 쿠폰 코드 생성</p>
+      <div className="rounded-2xl bg-white border border-gray-200 p-5 mb-5">
+        <p className="text-sm font-bold text-gray-900 mb-3">새 쿠폰 코드 생성</p>
         <div className="grid sm:grid-cols-2 gap-3 mb-3">
           <div><label className="text-xs text-gray-500">코드</label>
             <input value={code} onChange={e=>setCode(e.target.value)} placeholder="예: TEACHER_KIM"
-              className="w-full mt-1 rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-500" /></div>
+              className="w-full mt-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A]" /></div>
           <div><label className="text-xs text-gray-500">파트너 이메일 (선택 — 파트너 매핑)</label>
             <input value={owner} onChange={e=>setOwner(e.target.value)} placeholder="partner@example.com"
-              className="w-full mt-1 rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-500" /></div>
+              className="w-full mt-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A]" /></div>
         </div>
         <div className="flex flex-wrap items-end gap-3 mb-4">
           <div><label className="text-xs text-gray-500">타입</label>
-            <select value={type} onChange={e=>setType(e.target.value)} className="block mt-1 rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white outline-none">
+            <select value={type} onChange={e=>setType(e.target.value)} className="block mt-1 rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none">
               <option value="none">미적용 (파트너 전용)</option><option value="free_days">무료기간(일)</option><option value="percent">할인 %</option><option value="amount">정액 할인</option></select></div>
           <div><label className="text-xs text-gray-500">값</label>
-            <input value={value} onChange={e=>setValue(e.target.value)} className="block w-28 mt-1 rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white outline-none" /></div>
+            <input value={value} onChange={e=>setValue(e.target.value)} className="block w-28 mt-1 rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none" /></div>
           <div><label className="text-xs text-gray-500">만료일</label>
-            <input type="date" value={exp} disabled={unlimited} onChange={e=>setExp(e.target.value)} className="block mt-1 rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white outline-none disabled:opacity-40" /></div>
-          <label className="flex items-center gap-2 text-sm text-gray-300 pb-2"><input type="checkbox" checked={unlimited} onChange={e=>setUnlimited(e.target.checked)} className="accent-cyan-500" /> 무기한</label>
+            <input type="date" value={exp} disabled={unlimited} onChange={e=>setExp(e.target.value)} className="block mt-1 rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none disabled:opacity-40" /></div>
+          <label className="flex items-center gap-2 text-sm text-gray-700 pb-2"><input type="checkbox" checked={unlimited} onChange={e=>setUnlimited(e.target.checked)} className="accent-[#03C75A]" /> 무기한</label>
         </div>
         <button onClick={create} className="w-full rounded-xl bg-green-600 hover:bg-green-500 py-2.5 text-sm font-bold text-white transition">✓ 코드 생성</button>
-        {msg && <p className="text-xs text-cyan-400 mt-2">{msg}</p>}
+        {msg && <p className="text-xs text-[#03C75A] mt-2">{msg}</p>}
       </div>
 
       <div className="flex items-center justify-between mb-2">
-        <p className="text-sm font-bold text-white">발급된 코드 목록</p>
+        <p className="text-sm font-bold text-gray-900">발급된 코드 목록</p>
         <div className="flex gap-2">
           <button onClick={delSel} disabled={sel.size===0} className="rounded-lg bg-red-600/80 hover:bg-red-500 disabled:opacity-40 px-3 py-1.5 text-xs font-bold text-white">🗑 선택 삭제</button>
-          <button onClick={load} className="rounded-lg border border-gray-700 px-3 py-1.5 text-xs text-gray-300 hover:bg-gray-800">새로고침</button>
+          <button onClick={load} className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100">새로고침</button>
         </div>
       </div>
-      <div className="rounded-2xl bg-gray-900 border border-gray-800 overflow-hidden">
+      <div className="rounded-2xl bg-white border border-gray-200 overflow-hidden">
         <table className="w-full text-xs">
-          <thead className="border-b border-gray-800 text-gray-400">
+          <thead className="border-b border-gray-200 text-gray-400">
             <tr><th className="px-3 py-2.5 w-8"></th><th className="px-3 py-2.5 text-left">코드</th><th className="px-3 py-2.5 text-left">타입</th><th className="px-3 py-2.5 text-right">값</th><th className="px-3 py-2.5 text-left">파트너</th><th className="px-3 py-2.5 text-right">사용수</th><th className="px-3 py-2.5 text-left">만료일</th></tr>
           </thead>
           <tbody>
             {codes.length===0 ? <tr><td colSpan={7} className="py-8 text-center text-gray-500">발급된 코드 없음</td></tr>
             : codes.map(c=>(
-              <tr key={c.code} className="border-b border-gray-800/50 hover:bg-gray-800/40">
-                <td className="px-3 py-2.5"><input type="checkbox" checked={sel.has(c.code)} onChange={()=>toggleSel(c.code)} className="accent-cyan-500" /></td>
-                <td className="px-3 py-2.5 font-mono font-bold text-cyan-400">{c.code}</td>
-                <td className="px-3 py-2.5 text-gray-300">{c.type}</td>
-                <td className="px-3 py-2.5 text-right text-gray-300">{c.value}</td>
+              <tr key={c.code} className="border-b border-gray-200/50 hover:bg-gray-100/40">
+                <td className="px-3 py-2.5"><input type="checkbox" checked={sel.has(c.code)} onChange={()=>toggleSel(c.code)} className="accent-[#03C75A]" /></td>
+                <td className="px-3 py-2.5 font-mono font-bold text-[#03C75A]">{c.code}</td>
+                <td className="px-3 py-2.5 text-gray-700">{c.type}</td>
+                <td className="px-3 py-2.5 text-right text-gray-700">{c.value}</td>
                 <td className="px-3 py-2.5 text-gray-400 truncate max-w-[200px]">{c.owner_email || "—"}</td>
-                <td className="px-3 py-2.5 text-right text-white">{counts[c.code] || 0}</td>
+                <td className="px-3 py-2.5 text-right text-gray-700">{counts[c.code] || 0}</td>
                 <td className="px-3 py-2.5 text-gray-400">{fmt(c.expires_at)}</td>
               </tr>
             ))}
@@ -3594,12 +3620,12 @@ function AdminReviewsTab({ session, supabase }: { session:any; supabase:any }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-bold text-white">📝 후기 승인 관리 <span className="text-xs text-gray-500">(대기 {rows.length}건)</span></p>
-        <button onClick={load} className="rounded-lg border border-gray-700 px-3 py-1.5 text-xs text-gray-300 hover:bg-gray-800">새로고침</button>
+        <p className="text-sm font-bold text-gray-900">📝 후기 승인 관리 <span className="text-xs text-gray-500">(대기 {rows.length}건)</span></p>
+        <button onClick={load} className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100">새로고침</button>
       </div>
-      <div className="rounded-2xl bg-gray-900 border border-gray-800 overflow-hidden mb-4">
+      <div className="rounded-2xl bg-white border border-gray-200 overflow-hidden mb-4">
         <table className="w-full text-xs">
-          <thead className="border-b border-gray-800 text-gray-400">
+          <thead className="border-b border-gray-200 text-gray-400">
             <tr><th className="px-3 py-2.5 text-left">이메일</th><th className="px-3 py-2.5 text-left">URL</th><th className="px-3 py-2.5 text-left">상태</th><th className="px-3 py-2.5 text-left">제출일</th></tr>
           </thead>
           <tbody>
@@ -3607,9 +3633,9 @@ function AdminReviewsTab({ session, supabase }: { session:any; supabase:any }) {
             : rows.length===0 ? <tr><td colSpan={4} className="py-8 text-center text-gray-500">대기 중인 후기 없음</td></tr>
             : rows.map(r=>(
               <tr key={r.id} onClick={()=>setSel(r.id)}
-                className={`border-b border-gray-800/50 cursor-pointer ${sel===r.id?"bg-cyan-500/10":"hover:bg-gray-800/40"}`}>
-                <td className="px-3 py-2.5 text-white truncate max-w-[160px]">{r.email}</td>
-                <td className="px-3 py-2.5 text-cyan-400 truncate max-w-[280px]"><a href={r.url} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} className="hover:underline">{r.url}</a></td>
+                className={`border-b border-gray-200/50 cursor-pointer ${sel===r.id?"bg-[#03C75A]/10":"hover:bg-gray-100/40"}`}>
+                <td className="px-3 py-2.5 text-gray-700 truncate max-w-[160px]">{r.email}</td>
+                <td className="px-3 py-2.5 text-[#03C75A] truncate max-w-[280px]"><a href={r.url} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} className="hover:underline">{r.url}</a></td>
                 <td className="px-3 py-2.5 text-yellow-400">{r.status}</td>
                 <td className="px-3 py-2.5 text-gray-400">{fmt(r.submitted_at)}</td>
               </tr>
@@ -3620,7 +3646,7 @@ function AdminReviewsTab({ session, supabase }: { session:any; supabase:any }) {
       <div className="flex items-center gap-2">
         <button onClick={approve} className="rounded-xl bg-green-600 hover:bg-green-500 px-5 py-2.5 text-sm font-bold text-white transition">✓ 승인 (+1000 크레딧)</button>
         <button onClick={reject} className="rounded-xl bg-red-600 hover:bg-red-500 px-5 py-2.5 text-sm font-bold text-white transition">✕ 거절</button>
-        {msg && <span className="text-xs text-cyan-400 ml-2">{msg}</span>}
+        {msg && <span className="text-xs text-[#03C75A] ml-2">{msg}</span>}
       </div>
     </div>
   );
@@ -3671,31 +3697,31 @@ function PartnerView({ session, supabase }: { session: any; supabase: any }) {
   };
 
   const Stat = ({label, value, accent, bar}:{label:string; value:any; accent?:string; bar?:string}) => (
-    <div className="rounded-2xl bg-gray-900 border border-gray-800 p-4">
+    <div className="rounded-2xl bg-white border border-gray-200 p-4">
       <p className="text-xs text-gray-500">{label}</p>
-      <p className={`text-xl font-black mt-1 ${accent||"text-white"}`}>{value}</p>
+      <p className={`text-xl font-black mt-1 ${accent||"text-gray-900"}`}>{value}</p>
       {bar && <div className={`h-1 rounded-full mt-2 ${bar}`} />}
     </div>
   );
 
   return (
     <div className="max-w-5xl">
-      <h2 className="text-xl font-black text-white mb-1">📊 파트너스 — 내 멤버 관리</h2>
+      <h2 className="text-xl font-black text-gray-900 mb-1">📊 파트너스 — 내 멤버 관리</h2>
       <p className="text-sm text-gray-400 mb-5">파트너 코드를 입력한 멤버들의 사용 현황을 확인할 수 있습니다. 조회 전용이며 크레딧 수정 권한은 없습니다.</p>
 
       {/* 통계 카드 */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-3">
-        <div className="rounded-2xl bg-gray-900 border border-gray-800 p-4">
+        <div className="rounded-2xl bg-white border border-gray-200 p-4">
           <p className="text-xs text-gray-500 mb-2">플랜별 수수료</p>
           <div className="space-y-1 text-xs">
-            <div className="flex justify-between"><span className="text-gray-400">스타터</span><span className="text-white font-semibold">{rateLabel("starter")}</span></div>
-            <div className="flex justify-between"><span className="text-gray-400">프로</span><span className="text-white font-semibold">{rateLabel("pro")}</span></div>
-            <div className="flex justify-between"><span className="text-gray-400">마스터</span><span className="text-white font-semibold">{rateLabel("master")}</span></div>
+            <div className="flex justify-between"><span className="text-gray-400">스타터</span><span className="text-gray-900 font-semibold">{rateLabel("starter")}</span></div>
+            <div className="flex justify-between"><span className="text-gray-400">프로</span><span className="text-gray-900 font-semibold">{rateLabel("pro")}</span></div>
+            <div className="flex justify-between"><span className="text-gray-400">마스터</span><span className="text-gray-900 font-semibold">{rateLabel("master")}</span></div>
           </div>
         </div>
         <Stat label="적립 중 (환불기간)" value={won(stats.pending)}    accent="text-orange-400" bar="bg-orange-500/60" />
         <Stat label="정산 예정"         value={won(stats.upcoming)}   accent="text-green-400"  bar="bg-green-500/60" />
-        <Stat label="누계 지급"         value={won(stats.paid)}       accent="text-white" />
+        <Stat label="누계 지급"         value={won(stats.paid)}       accent="text-gray-900" />
         <Stat label="이번달 적립"       value={won(stats.this_month)} accent="text-purple-400" bar="bg-purple-500/60" />
       </div>
       <p className="text-xs text-gray-500 mb-5">💡 결제 후 7일간은 환불 기간 — 이후 자동 확정되어 매월 14일에 정산됩니다.</p>
@@ -3703,17 +3729,17 @@ function PartnerView({ session, supabase }: { session: any; supabase: any }) {
       {/* 검색/필터 */}
       <div className="flex flex-wrap items-center gap-2 mb-3">
         <input value={q} onChange={e=>setQ(e.target.value)} placeholder="멤버 이메일 검색..."
-          className="flex-1 min-w-[200px] rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-500" />
-        <select value={stFilter} onChange={e=>setStFilter(e.target.value)} className="rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white outline-none">
+          className="flex-1 min-w-[200px] rounded-xl bg-gray-100 border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A]" />
+        <select value={stFilter} onChange={e=>setStFilter(e.target.value)} className="rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none">
           <option value="all">상태 전체</option><option value="active">유효</option><option value="expired">만료</option></select>
-        <select value={plFilter} onChange={e=>setPlFilter(e.target.value)} className="rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white outline-none">
+        <select value={plFilter} onChange={e=>setPlFilter(e.target.value)} className="rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none">
           <option value="all">플랜 전체</option><option value="starter">스타터</option><option value="pro">프로</option><option value="master">마스터</option><option value="free">무료</option></select>
-        <button onClick={load} className="rounded-xl bg-cyan-600 hover:bg-cyan-500 px-4 py-2.5 text-sm font-bold text-white transition">🔄 새로고침</button>
+        <button onClick={load} className="rounded-xl bg-[#03C75A] hover:bg-[#02b350] px-4 py-2.5 text-sm font-bold text-white transition">🔄 새로고침</button>
       </div>
       <p className="text-xs text-gray-500 mb-2">멤버 {filtered.length}명</p>
 
       {/* 멤버 테이블 */}
-      <div className="rounded-2xl bg-gray-900 border border-gray-800 overflow-hidden">
+      <div className="rounded-2xl bg-white border border-gray-200 overflow-hidden">
         {loading ? (
           <div className="py-12 text-center text-gray-500 text-sm">불러오는 중...</div>
         ) : filtered.length === 0 ? (
@@ -3721,7 +3747,7 @@ function PartnerView({ session, supabase }: { session: any; supabase: any }) {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
-              <thead className="border-b border-gray-800 text-gray-400">
+              <thead className="border-b border-gray-200 text-gray-400">
                 <tr>
                   <th className="px-3 py-3 text-left font-semibold">멤버 이메일</th>
                   <th className="px-3 py-3 text-left font-semibold">파트너</th>
@@ -3735,11 +3761,11 @@ function PartnerView({ session, supabase }: { session: any; supabase: any }) {
               </thead>
               <tbody>
                 {filtered.map((m,i)=>(
-                  <tr key={i} className="border-b border-gray-800/50 hover:bg-gray-800/30">
-                    <td className="px-3 py-3 text-white truncate max-w-[180px]">{m.email||"-"}</td>
+                  <tr key={i} className="border-b border-gray-200/50 hover:bg-gray-100/30">
+                    <td className="px-3 py-3 text-gray-700 truncate max-w-[180px]">{m.email||"-"}</td>
                     <td className="px-3 py-3 text-gray-400 truncate max-w-[140px]">{m.partner_email || "—"}</td>
-                    <td className="px-3 py-3"><span className={`capitalize font-semibold ${m.plan&&m.plan!=="free"?"text-cyan-400":"text-gray-500"}`}>{m.plan||"free"}</span></td>
-                    <td className="px-3 py-3 text-right text-white font-semibold">{(m.credits_left||0).toLocaleString()}</td>
+                    <td className="px-3 py-3"><span className={`capitalize font-semibold ${m.plan&&m.plan!=="free"?"text-[#03C75A]":"text-gray-500"}`}>{m.plan||"free"}</span></td>
+                    <td className="px-3 py-3 text-right text-gray-700 font-semibold">{(m.credits_left||0).toLocaleString()}</td>
                     <td className="px-3 py-3 text-right text-gray-400">{(m.credits_used||0).toLocaleString()}</td>
                     <td className="px-3 py-3 text-gray-400">{fmtDate(m.expires_at)}</td>
                     <td className="px-3 py-3 text-gray-400">{fmtDate(m.created_at)}</td>
