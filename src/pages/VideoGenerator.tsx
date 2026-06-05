@@ -2814,7 +2814,14 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
   const grant   = () => run(()=>supabase.rpc("admin_grant_subscription_rpc",{p_target_user_id:sel,p_plan:planSel,p_days:Number(days)||30}), "구독 부여/연장 완료");
   const cancel  = () => run(()=>supabase.rpc("admin_cancel_subscription_rpc",{p_target_user_id:sel}), "구독 취소 완료");
   const resetDev= () => run(()=>supabase.rpc("admin_reset_user_devices_rpc",{p_target_user_id:sel}), "디바이스 해제 완료");
-  const credit  = (action:string) => run(()=>supabase.rpc("admin_adjust_credits_rpc",{p_target_user_id:sel,p_action:action,p_amount:Number(amt)||0}), "크레딧 처리 완료");
+  const credit  = (action:string) => {
+    if (action !== "reset") {
+      const n = Math.floor(Number(amt));
+      if (!Number.isFinite(n) || n <= 0) { setMsg("변동량을 올바르게 입력하세요"); return; }
+      if (n > 1000000) { setMsg("변동량이 너무 큽니다 (최대 1,000,000)"); return; }
+    }
+    run(()=>supabase.rpc("admin_adjust_credits_rpc",{p_target_user_id:sel,p_action:action,p_amount:Math.min(Math.max(Math.floor(Number(amt)||0),0),1000000)}), "크레딧 처리 완료");
+  };
   const applyRole = () => run(()=>supabase.rpc("set_user_role_rpc",{p_target_user_id:sel,p_new_role:roleSel}), "권한 변경 완료");
 
   const fmt = (d:string)=> d ? new Date(d).toLocaleDateString("ko-KR",{year:"2-digit",month:"2-digit",day:"2-digit"}) : "-";
@@ -2880,7 +2887,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
         <div className="rounded-2xl bg-gray-900 border border-gray-800 p-4">
           <p className="text-xs text-gray-500 mb-2">크레딧 관리</p>
           <div className="flex flex-wrap items-center gap-2">
-            <input value={amt} onChange={e=>setAmt(e.target.value)} className="w-36 rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-sm text-white outline-none" placeholder="변동량" />
+            <input type="number" min={0} max={1000000} value={amt} onChange={e=>setAmt(e.target.value)} className="w-36 rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-sm text-white outline-none" placeholder="변동량" />
             <Btn onClick={()=>credit("add")} color="bg-green-600 hover:bg-green-500">＋ 충전 (잔량 증가)</Btn>
             <Btn onClick={()=>credit("sub")} color="bg-orange-600 hover:bg-orange-500">－ 차감 (잔량 감소)</Btn>
             <Btn onClick={()=>credit("reset")} color="bg-gray-700 hover:bg-gray-600">🔄 사용량 0으로 초기화</Btn>
