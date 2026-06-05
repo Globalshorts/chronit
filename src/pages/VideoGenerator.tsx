@@ -3589,6 +3589,10 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
   const [days, setDays]     = React.useState("30");
   const [amt, setAmt]       = React.useState("1000");
   const [roleSel, setRoleSel] = React.useState("user");
+  const freshPR = () => ({ starter:{type:"none",value:""}, pro:{type:"none",value:""}, master:{type:"none",value:""} });
+  const [partnerRates, setPartnerRates] = React.useState<Record<string,{type:string;value:string}>>(freshPR);
+  const [prMsg, setPrMsg] = React.useState("");
+  const setPR = (k:string, patch:any) => setPartnerRates(p=>({ ...p, [k]:{ ...p[k], ...patch } }));
   const [msg, setMsg]       = React.useState("");
   const [loading, setLoading] = React.useState(true);
 
@@ -3637,6 +3641,39 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
     run(()=>supabase.rpc("admin_adjust_credits_rpc",{p_target_user_id:sel,p_action:action,p_amount:Math.min(Math.max(Math.floor(Number(amt)||0),0),1000000)}), "크레딧 처리 완료");
   };
   const applyRole = () => run(()=>supabase.rpc("set_user_role_rpc",{p_target_user_id:sel,p_new_role:roleSel}), "권한 변경 완료");
+
+  // 선택 회원 변경 시: 역할 동기화 + (파트너면) 플랜별 정산 로드
+  React.useEffect(()=>{
+    setRoleSel(selUser?.role || "user");
+    setPartnerRates(freshPR()); setPrMsg("");
+    if (sel && selUser?.role === "partner") {
+      supabase.rpc("admin_get_partner_rates_rpc",{ p_partner_id: sel }).then((res:any)=>{
+        const r = res?.data?.rates;
+        if (r && typeof r === "object") {
+          const next:any = freshPR();
+          for (const k of ["starter","pro","master"]) {
+            const d = r[k];
+            if (d) next[k] = { type: d.type, value: d.type==="percent" ? String(Math.round(Number(d.rate)*1000)/10) : String(Number(d.fixed)||0) };
+          }
+          setPartnerRates(next);
+        }
+      }, ()=>{});
+    }
+  }, [sel]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const savePartnerRates = async () => {
+    if (!sel) { setPrMsg("회원을 먼저 선택하세요"); return; }
+    const payload:Record<string,any> = {};
+    for (const k of ["starter","pro","master"]) {
+      const d = partnerRates[k];
+      if (d.type === "percent") payload[k] = { type:"percent", rate: (Number(d.value)||0)/100 };
+      else if (d.type === "fixed") payload[k] = { type:"fixed", fixed: Number(d.value)||0 };
+    }
+    setPrMsg("저장 중...");
+    const { data, error } = await supabase.rpc("admin_set_partner_rates_rpc", { p_partner_id: sel, p_rates: payload });
+    if (error || !data?.ok) setPrMsg("저장 실패: "+(error?.message || data?.error || ""));
+    else setPrMsg("플랜별 정산 저장 완료 ✓ (파트너스 탭에 반영)");
+  };
 
   const fmt = (d:string)=> d ? new Date(d).toLocaleDateString("ko-KR",{year:"2-digit",month:"2-digit",day:"2-digit"}) : "-";
   const Btn = ({onClick,color,children}:{onClick:()=>void;color:string;children:any}) => (
@@ -3715,6 +3752,36 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
             <Btn onClick={applyRole} color="bg-[#03C75A] hover:bg-[#02b350]">✓ 권한 적용</Btn>
           </div>
         </div>
+
+        {/* 파트너 플랜별 정산 — 권한이 파트너일 때만 */}
+        {(selUser?.role === "partner" || roleSel === "partner") && (
+          <div className="rounded-2xl bg-white border border-[#03C75A]/40 p-4">
+            <p className="text-xs font-bold text-gray-700 mb-1">📊 파트너 플랜별 정산 수수료</p>
+            <p className="text-[11px] text-gray-400 mb-3">설정한 수수료는 파트너스 탭의 "플랜별 수수료"와 결제 적립에 연동됩니다. {selUser?.role !== "partner" && "(먼저 '권한 적용'으로 파트너 지정 후 저장하세요)"}</p>
+            <div className="space-y-2">
+              {[["starter","스타터"],["pro","프로"],["master","마스터"]].map(([k,label])=>(
+                <div key={k} className="flex items-center gap-2">
+                  <span className="w-14 text-sm font-bold text-gray-700">{label}</span>
+                  <select value={partnerRates[k].type} onChange={e=>setPR(k,{type:e.target.value})}
+                    className="rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none">
+                    <option value="none">미적용</option>
+                    <option value="percent">정률 %</option>
+                    <option value="fixed">정액(원/건)</option>
+                  </select>
+                  {(partnerRates[k].type==="percent" || partnerRates[k].type==="fixed") && (
+                    <input value={partnerRates[k].value} onChange={e=>setPR(k,{value:e.target.value})}
+                      placeholder={partnerRates[k].type==="percent"?"예: 10":"예: 5000"}
+                      className="w-28 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#03C75A]" />
+                  )}
+                  {partnerRates[k].type==="percent" && <span className="text-xs text-gray-400">% (결제액 대비)</span>}
+                  {partnerRates[k].type==="fixed" && <span className="text-xs text-gray-400">원 (건당)</span>}
+                </div>
+              ))}
+            </div>
+            <button onClick={savePartnerRates} className="mt-3 rounded-lg bg-[#03C75A] hover:bg-[#02b350] px-4 py-2 text-xs font-bold text-white">정산 수수료 저장</button>
+            {prMsg && <p className="text-xs text-[#03C75A] mt-2">{prMsg}</p>}
+          </div>
+        )}
         {msg && <p className="text-xs text-[#03C75A]">{msg}</p>}
       </div>
     </div>
