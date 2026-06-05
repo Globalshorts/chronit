@@ -130,7 +130,14 @@ export default function VideoGenerator() {
   const [balance, setBalance]       = useState<number | null>(null);
   const [userPlan, setUserPlan]     = useState<string | null>(null);
   const [userRole, setUserRole]     = useState<string>("user");
-  const [activeView, setActiveView] = useState("generator");
+  const [activeView, setActiveView] = useState(() => {
+    try { return localStorage.getItem("chronit_active_view") || "generator"; }
+    catch { return "generator"; }
+  });
+  // 현재 탭 저장 → 새로고침해도 그 탭 유지 (프로젝트로 튕기지 않음)
+  useEffect(() => {
+    try { localStorage.setItem("chronit_active_view", activeView); } catch {}
+  }, [activeView]);
   const [showTips, setShowTips] = useState(false);
 
   // auth
