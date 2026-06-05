@@ -1144,11 +1144,11 @@ function FloatingNext({ label, onClick, disabled = false }: {
     <div style={{ position:"fixed", bottom:"96px", right:"16px", zIndex:50 }}>
       <button onClick={onClick} disabled={disabled}
         style={{ height:"46px", display:"inline-flex", alignItems:"center", gap:"8px",
-                 background: disabled ? "rgba(6,182,212,0.4)" : "#06b6d4",
+                 background: disabled ? "rgba(3,199,90,0.4)" : "#03C75A",
                  borderRadius:"16px", padding:"0 24px",
                  fontSize:"14px", fontWeight:900, color:"white", border:"none",
                  cursor: disabled ? "not-allowed" : "pointer",
-                 boxShadow:"0 25px 50px -12px rgba(6,182,212,0.4)" }}>
+                 boxShadow:"0 18px 40px -12px rgba(3,199,90,0.35)" }}>
         <span>{label}</span><span>→</span>
       </button>
     </div>,
@@ -2462,7 +2462,7 @@ function StagePanel({ n, title, subtitle, current, children, headerRight }: {
 }) {
   if (n !== current) return null; // 현재 단계만 표시
   return (
-    <div className="rounded-2xl border border-[#03C75A]/50 bg-white shadow-[0_0_20px_rgba(6,182,212,0.08)]">
+    <div className="rounded-2xl border border-[#03C75A]/50 bg-white shadow-[0_0_20px_rgba(3,199,90,0.10)]">
       <div className="px-6 py-4 flex items-center gap-3">
         <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 bg-[#03C75A]/20 border-2 border-[#03C75A] text-[#03C75A]">{n}</div>
         <div className="flex-1 min-w-0">
@@ -2503,7 +2503,7 @@ function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean;
 
   return (
     <div className={`relative rounded-xl overflow-hidden border-2 transition-all ${
-      selected ? "border-[#03C75A] shadow-[0_0_10px_rgba(6,182,212,0.3)]" : "border-gray-200 hover:border-gray-500"
+      selected ? "border-[#03C75A] shadow-[0_0_10px_rgba(3,199,90,0.25)]" : "border-gray-200 hover:border-gray-500"
     }`}>
       <div className="aspect-[9/16] bg-gray-100 relative cursor-pointer"
         onClick={() => playing ? setPlaying(false) : handlePlay()}>
