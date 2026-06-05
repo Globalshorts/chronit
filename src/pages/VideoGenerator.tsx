@@ -1656,6 +1656,84 @@ function HistoryPanel({ session }: { session: any }) {
 }
 
 // ── NavSidebar — 좌측 좁은 탭 네비 ───────────────────────────
+function CreditMissionsModal({ open, onClose, session }: { open:boolean; onClose:()=>void; session:any }) {
+  const [info, setInfo] = React.useState<any>(null);
+  const [reviewUrl, setReviewUrl] = React.useState("");
+  const [reviewMsg, setReviewMsg] = React.useState<{ok:boolean;text:string}|null>(null);
+  const [submitting, setSubmitting] = React.useState(false);
+  const [copied, setCopied] = React.useState(false);
+
+  React.useEffect(()=>{ if(!open||!session) return; (async()=>{
+    try { const { data } = await supabase.rpc("get_referral_info_rpc", { p_user_id: session.user.id }); setInfo(data); } catch {}
+  })(); }, [open, session]);
+
+  if (!open) return null;
+  const code = info?.referral_code || "";
+  const link = code ? `${window.location.origin}/?ref=${code}` : "생성 중...";
+  const invites = info?.invite_count ?? 0;
+  const reviewStatus = info?.review_status ?? "none";
+
+  const copyLink = async () => { if(!code) return; try { await navigator.clipboard.writeText(link); setCopied(true); setTimeout(()=>setCopied(false),1500);} catch {} };
+  const submitReview = async () => {
+    const u = reviewUrl.trim();
+    if (!u) return;
+    setSubmitting(true); setReviewMsg(null);
+    try {
+      const { data, error } = await supabase.rpc("submit_review_rpc", { p_url: u });
+      if (error) throw error;
+      if (data?.ok) { setReviewMsg({ok:true, text:data.message||"제출 완료. 검토 후 지급됩니다."}); setReviewUrl(""); }
+      else setReviewMsg({ok:false, text:data?.error||"제출 실패"});
+    } catch(e){ setReviewMsg({ok:false, text:String(e)}); }
+    setSubmitting(false);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="w-full max-w-md rounded-3xl bg-gray-900 border border-gray-800 p-6 max-h-[90vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-xl font-black text-white">🎁 크레딧 더 받기</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-white text-xl">✕</button>
+        </div>
+        <p className="text-xs text-gray-500 mb-5">미션을 완료하면 크레딧이 지급됩니다</p>
+
+        {/* 미션 A — 추천 */}
+        <div className="rounded-2xl bg-gray-800/60 border border-gray-700 p-4 mb-3">
+          <span className="inline-block rounded-lg bg-blue-600 text-white text-xs font-bold px-2.5 py-1 mb-2">미션 A · +500 크레딧</span>
+          <p className="text-sm text-gray-300 mb-3">지인에게 내 추천 링크를 공유하세요. 지인이 가입하면 <b className="text-white">양쪽 모두 500 크레딧</b>이 즉시 지급됩니다.</p>
+          <div className="flex gap-2">
+            <input readOnly value={link} className="flex-1 rounded-xl bg-gray-900 border border-gray-700 px-3 py-2 text-xs text-gray-300 outline-none truncate" />
+            <button onClick={copyLink} className="shrink-0 rounded-xl bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm font-bold text-white">{copied?"✓ 복사됨":"복사"}</button>
+          </div>
+          <p className="text-xs text-gray-600 mt-2">현재 {invites}명 초대함</p>
+        </div>
+
+        {/* 미션 B — 후기 */}
+        <div className="rounded-2xl bg-gray-800/60 border border-gray-700 p-4">
+          <span className="inline-block rounded-lg bg-purple-600 text-white text-xs font-bold px-2.5 py-1 mb-2">미션 B · +1000 크레딧</span>
+          <p className="text-sm text-gray-300 mb-3">네이버 카페, 블로그, 커뮤니티 등에 크로닛 사용 후기를 <b className="text-white">전체 공개</b>로 작성한 뒤 URL을 입력해주세요. 확인 후 <b className="text-white">1000 크레딧</b>이 지급됩니다.</p>
+          {reviewStatus==="approved" ? (
+            <div className="rounded-xl px-3 py-2.5 text-sm text-center bg-green-500/15 text-green-400">✅ 후기 승인 — 1000 크레딧 지급 완료</div>
+          ) : reviewStatus==="pending" ? (
+            <div className="rounded-xl px-3 py-2.5 text-sm text-center bg-gray-900 text-gray-400">⏳ 검토 중입니다</div>
+          ) : (
+            <>
+              <div className="flex gap-2">
+                <input value={reviewUrl} onChange={e=>setReviewUrl(e.target.value)} placeholder="https://cafe.naver.com/..."
+                  className="flex-1 rounded-xl bg-gray-900 border border-gray-700 px-3 py-2 text-xs text-white placeholder-gray-600 outline-none focus:border-purple-500" />
+                <button onClick={submitReview} disabled={submitting||!reviewUrl.trim()} className="shrink-0 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 px-4 py-2 text-sm font-bold text-white">{submitting?"...":"제출"}</button>
+              </div>
+              {reviewStatus==="rejected" && !reviewMsg && <p className="text-xs text-red-400 mt-2">이전 제출이 반려되었습니다. 다시 제출할 수 있어요.</p>}
+              {reviewMsg && <p className={`text-xs mt-2 ${reviewMsg.ok?"text-green-400":"text-red-400"}`}>{reviewMsg.text}</p>}
+            </>
+          )}
+        </div>
+
+        <button onClick={onClose} className="w-full mt-5 rounded-xl bg-gray-800 hover:bg-gray-700 py-3 text-sm font-bold text-gray-300">닫기</button>
+      </div>
+    </div>
+  );
+}
+
 function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, session }: {
   activeView: string; onViewChange: (v:string)=>void; userRole: string;
   balance: number|null; userPlan: string|null; session: any;
@@ -1667,6 +1745,7 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
     _extractMgr.listeners.add(l);
     return ()=>{ _extractMgr.listeners.delete(l); };
   }, []);
+  const [showMissions, setShowMissions] = React.useState(false);
   const isPartner = userRole === "partner" || userRole === "super_admin";
   const isAdmin = userRole === "super_admin";
   const GROUPS = [
@@ -1710,8 +1789,15 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
           </div>
         ))}
       </div>
+      {/* 크레딧 받기 CTA */}
+      <div className="px-3 pt-2 space-y-2">
+        <a href="https://forms.gle/LCDeSEXSM7ALykqv5" target="_blank" rel="noreferrer"
+          className="block text-center rounded-xl bg-green-600 hover:bg-green-500 px-3 py-2.5 text-sm font-bold text-white transition">📝 피드백 쓰고 500 CR 받기</a>
+        <button onClick={()=>setShowMissions(true)}
+          className="w-full text-center rounded-xl bg-purple-600 hover:bg-purple-500 px-3 py-2.5 text-sm font-bold text-white transition">🎁 무료 크레딧 받기</button>
+      </div>
       {/* 하단 계정/플랜/크레딧 */}
-      <div className="border-t border-gray-800 px-4 py-3 space-y-1.5">
+      <div className="border-t border-gray-800 px-4 py-3 space-y-1.5 mt-2">
         <p className="text-xs text-gray-600 truncate">{session?.user?.email}</p>
         {userPlan && (
           <div className="flex justify-between text-xs">
@@ -1726,6 +1812,7 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
           </div>
         )}
       </div>
+      <CreditMissionsModal open={showMissions} onClose={()=>setShowMissions(false)} session={session} />
     </div>
   );
 }
