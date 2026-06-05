@@ -3066,119 +3066,121 @@ function AdminReviewsTab({ session, supabase }: { session:any; supabase:any }) {
 // ── PartnerView ───────────────────────────────────────────────
 function PartnerView({ session, supabase }: { session: any; supabase: any }) {
   const [members, setMembers] = React.useState<any[]>([]);
-  const [codes, setCodes]     = React.useState<string[]>([]);
+  const [stats, setStats]     = React.useState<any>({ pending:0, upcoming:0, paid:0, this_month:0 });
+  const [rates, setRates]     = React.useState<Record<string,any>>({});
   const [loading, setLoading] = React.useState(true);
   const [q, setQ]             = React.useState("");
-  const [copied, setCopied]   = React.useState("");
+  const [stFilter, setStFilter] = React.useState("all");
+  const [plFilter, setPlFilter] = React.useState("all");
 
-  React.useEffect(() => {
-    if (!session) return;
-    (async () => {
-      setLoading(true);
-      try {
-        const { data } = await supabase.rpc("list_my_members_rpc");
-        setMembers(Array.isArray(data) ? data : []);
-      } catch { setMembers([]); }
-      try {
-        const email = session.user?.email ?? "";
-        if (email) {
-          const { data: cc } = await supabase.from("coupon_codes").select("code").eq("owner_email", email);
-          setCodes((cc ?? []).map((x:any)=>x.code).filter(Boolean));
-        }
-      } catch { setCodes([]); }
-      setLoading(false);
-    })();
-  }, [session]);
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    try { const { data } = await supabase.rpc("list_my_members_rpc"); setMembers(Array.isArray(data)?data:[]); }
+    catch { setMembers([]); }
+    try { const { data } = await supabase.rpc("get_my_partner_stats_rpc"); if (data) setStats(data); } catch {}
+    try {
+      const { data: r } = await supabase.from("partner_plan_rates")
+        .select("plan,commission_type,rate,fixed_amount").eq("partner_id", session.user.id);
+      const m:Record<string,any> = {}; (r??[]).forEach((x:any)=>m[x.plan]=x); setRates(m);
+    } catch {}
+    setLoading(false);
+  }, [supabase, session]);
+  React.useEffect(()=>{ if(session) load(); }, [session, load]);
 
-  const now = new Date();
-  const isThisMonth = (d:string) => { if(!d) return false; const t=new Date(d); return t.getFullYear()===now.getFullYear() && t.getMonth()===now.getMonth(); };
-  const paid         = members.filter(m => m.plan && m.plan !== "free");
-  const newThisMonth = members.filter(m => isThisMonth(m.created_at));
-  const totalUsed    = members.reduce((s,m)=> s + (m.credits_used||0), 0);
+  const now = Date.now();
+  const isActive = (m:any) => m.expires_at && new Date(m.expires_at).getTime() > now;
+  const filtered = members.filter(m=>{
+    if (q.trim() && !(m.email||"").toLowerCase().includes(q.trim().toLowerCase())) return false;
+    if (stFilter==="active" && !isActive(m)) return false;
+    if (stFilter==="expired" && isActive(m)) return false;
+    if (plFilter!=="all" && (m.plan||"free")!==plFilter) return false;
+    return true;
+  });
 
-  const filtered = q.trim()
-    ? members.filter(m => (m.email||"").toLowerCase().includes(q.trim().toLowerCase()))
-    : members;
-
-  const copy = (text:string) => { navigator.clipboard.writeText(text); setCopied(text); setTimeout(()=>setCopied(""),1500); };
+  const won = (n:number) => (n && n>0) ? `₩${Math.round(n).toLocaleString()}` : "—";
   const fmtDate = (d:string) => d ? new Date(d).toLocaleDateString("ko-KR",{year:"2-digit",month:"2-digit",day:"2-digit"}) : "-";
+  const rateLabel = (plan:string) => {
+    const r = rates[plan];
+    if (!r) return "미적용";
+    if (r.commission_type==="fixed") return `₩${Number(r.fixed_amount||0).toLocaleString()}`;
+    const pct = Number(r.rate||0)*100;
+    return pct>0 ? `${pct % 1 ? pct.toFixed(1) : pct}%` : "미적용";
+  };
 
-  const Stat = ({label, value, accent}:{label:string; value:any; accent?:string}) => (
+  const Stat = ({label, value, accent, bar}:{label:string; value:any; accent?:string; bar?:string}) => (
     <div className="rounded-2xl bg-gray-900 border border-gray-800 p-4">
       <p className="text-xs text-gray-500">{label}</p>
-      <p className={`text-2xl font-black mt-1 ${accent||"text-white"}`}>{value}</p>
+      <p className={`text-xl font-black mt-1 ${accent||"text-white"}`}>{value}</p>
+      {bar && <div className={`h-1 rounded-full mt-2 ${bar}`} />}
     </div>
   );
 
   return (
-    <div className="max-w-4xl">
-      <h2 className="text-xl font-black text-white mb-1">📊 파트너스</h2>
-      <p className="text-sm text-gray-400 mb-6">내 코드로 가입한 회원을 관리합니다.</p>
+    <div className="max-w-5xl">
+      <h2 className="text-xl font-black text-white mb-1">📊 파트너스 — 내 멤버 관리</h2>
+      <p className="text-sm text-gray-400 mb-5">파트너 코드를 입력한 멤버들의 사용 현황을 확인할 수 있습니다. 조회 전용이며 크레딧 수정 권한은 없습니다.</p>
 
-      {/* 요약 통계 */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        <Stat label="총 회원"        value={members.length} accent="text-cyan-400" />
-        <Stat label="유료 회원"      value={paid.length} />
-        <Stat label="이번 달 신규"   value={newThisMonth.length} />
-        <Stat label="총 사용 크레딧" value={totalUsed.toLocaleString()} />
-      </div>
-
-      {/* 내 쿠폰 코드 */}
-      {codes.length > 0 && (
-        <div className="rounded-2xl bg-gray-900 border border-gray-800 p-5 mb-6">
-          <p className="text-sm font-bold text-white mb-3">내 쿠폰 코드</p>
-          <div className="flex flex-wrap gap-2">
-            {codes.map(c => {
-              const cnt = members.filter(m => m.code === c).length;
-              return (
-                <button key={c} onClick={()=>copy(c)}
-                  className="group flex items-center gap-2 rounded-xl bg-gray-800 border border-gray-700 px-3 py-2 text-sm hover:border-cyan-500 transition">
-                  <span className="font-mono font-bold text-cyan-400">{c}</span>
-                  <span className="text-xs text-gray-500">{cnt}명</span>
-                  <span className="text-xs text-gray-500 group-hover:text-cyan-400">{copied===c?"✓ 복사됨":"복사"}</span>
-                </button>
-              );
-            })}
+      {/* 통계 카드 */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-3">
+        <div className="rounded-2xl bg-gray-900 border border-gray-800 p-4">
+          <p className="text-xs text-gray-500 mb-2">플랜별 수수료</p>
+          <div className="space-y-1 text-xs">
+            <div className="flex justify-between"><span className="text-gray-400">스타터</span><span className="text-white font-semibold">{rateLabel("starter")}</span></div>
+            <div className="flex justify-between"><span className="text-gray-400">프로</span><span className="text-white font-semibold">{rateLabel("pro")}</span></div>
+            <div className="flex justify-between"><span className="text-gray-400">마스터</span><span className="text-white font-semibold">{rateLabel("master")}</span></div>
           </div>
-          <p className="text-xs text-gray-500 mt-3">회원이 가입·결제 시 이 코드를 입력하면 내 회원으로 등록됩니다.</p>
         </div>
-      )}
-
-      {/* 회원 검색 */}
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <input value={q} onChange={e=>setQ(e.target.value)} placeholder="이메일 검색"
-          className="flex-1 max-w-xs rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-500" />
-        <span className="text-xs text-gray-500">{filtered.length}명</span>
+        <Stat label="적립 중 (환불기간)" value={won(stats.pending)}    accent="text-orange-400" bar="bg-orange-500/60" />
+        <Stat label="정산 예정"         value={won(stats.upcoming)}   accent="text-green-400"  bar="bg-green-500/60" />
+        <Stat label="누계 지급"         value={won(stats.paid)}       accent="text-white" />
+        <Stat label="이번달 적립"       value={won(stats.this_month)} accent="text-purple-400" bar="bg-purple-500/60" />
       </div>
+      <p className="text-xs text-gray-500 mb-5">💡 결제 후 7일간은 환불 기간 — 이후 자동 확정되어 매월 14일에 정산됩니다.</p>
 
-      {/* 회원 테이블 */}
+      {/* 검색/필터 */}
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        <input value={q} onChange={e=>setQ(e.target.value)} placeholder="멤버 이메일 검색..."
+          className="flex-1 min-w-[200px] rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-500" />
+        <select value={stFilter} onChange={e=>setStFilter(e.target.value)} className="rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white outline-none">
+          <option value="all">상태 전체</option><option value="active">유효</option><option value="expired">만료</option></select>
+        <select value={plFilter} onChange={e=>setPlFilter(e.target.value)} className="rounded-xl bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white outline-none">
+          <option value="all">플랜 전체</option><option value="starter">스타터</option><option value="pro">프로</option><option value="master">마스터</option><option value="free">무료</option></select>
+        <button onClick={load} className="rounded-xl bg-cyan-600 hover:bg-cyan-500 px-4 py-2.5 text-sm font-bold text-white transition">🔄 새로고침</button>
+      </div>
+      <p className="text-xs text-gray-500 mb-2">멤버 {filtered.length}명</p>
+
+      {/* 멤버 테이블 */}
       <div className="rounded-2xl bg-gray-900 border border-gray-800 overflow-hidden">
         {loading ? (
           <div className="py-12 text-center text-gray-500 text-sm">불러오는 중...</div>
         ) : filtered.length === 0 ? (
-          <div className="py-12 text-center text-gray-500 text-sm">{members.length===0 ? "아직 가입한 회원이 없습니다." : "검색 결과가 없습니다."}</div>
+          <div className="py-12 text-center text-gray-500 text-sm">{members.length===0 ? "아직 가입한 멤버가 없습니다." : "검색 결과가 없습니다."}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead className="border-b border-gray-800 text-gray-400">
                 <tr>
-                  <th className="px-4 py-3 text-left font-semibold">이메일</th>
-                  <th className="px-4 py-3 text-left font-semibold">플랜</th>
-                  <th className="px-4 py-3 text-right font-semibold">사용 / 잔여</th>
-                  <th className="px-4 py-3 text-left font-semibold">가입일</th>
-                  <th className="px-4 py-3 text-left font-semibold">만료일</th>
-                  <th className="px-4 py-3 text-left font-semibold">코드</th>
+                  <th className="px-3 py-3 text-left font-semibold">멤버 이메일</th>
+                  <th className="px-3 py-3 text-left font-semibold">파트너</th>
+                  <th className="px-3 py-3 text-left font-semibold">플랜</th>
+                  <th className="px-3 py-3 text-right font-semibold">남은 크레딧</th>
+                  <th className="px-3 py-3 text-right font-semibold">사용량</th>
+                  <th className="px-3 py-3 text-left font-semibold">만료일</th>
+                  <th className="px-3 py-3 text-left font-semibold">등록일</th>
+                  <th className="px-3 py-3 text-left font-semibold">코드</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((m,i)=>(
                   <tr key={i} className="border-b border-gray-800/50 hover:bg-gray-800/30">
-                    <td className="px-4 py-3 text-white truncate max-w-[180px]">{m.email||"-"}</td>
-                    <td className="px-4 py-3"><span className={`capitalize font-semibold ${m.plan&&m.plan!=="free"?"text-cyan-400":"text-gray-500"}`}>{m.plan||"free"}</span></td>
-                    <td className="px-4 py-3 text-right text-gray-300"><span className="text-gray-500">{(m.credits_used||0).toLocaleString()}</span> / <span className="text-white font-semibold">{(m.credits_left||0).toLocaleString()}</span></td>
-                    <td className="px-4 py-3 text-gray-400">{fmtDate(m.created_at)}</td>
-                    <td className="px-4 py-3 text-gray-400">{fmtDate(m.expires_at)}</td>
-                    <td className="px-4 py-3"><span className="font-mono text-gray-500">{m.code||"-"}</span></td>
+                    <td className="px-3 py-3 text-white truncate max-w-[180px]">{m.email||"-"}</td>
+                    <td className="px-3 py-3 text-gray-400 truncate max-w-[140px]">{m.partner_email || "—"}</td>
+                    <td className="px-3 py-3"><span className={`capitalize font-semibold ${m.plan&&m.plan!=="free"?"text-cyan-400":"text-gray-500"}`}>{m.plan||"free"}</span></td>
+                    <td className="px-3 py-3 text-right text-white font-semibold">{(m.credits_left||0).toLocaleString()}</td>
+                    <td className="px-3 py-3 text-right text-gray-400">{(m.credits_used||0).toLocaleString()}</td>
+                    <td className="px-3 py-3 text-gray-400">{fmtDate(m.expires_at)}</td>
+                    <td className="px-3 py-3 text-gray-400">{fmtDate(m.created_at)}</td>
+                    <td className="px-3 py-3"><span className="font-mono text-gray-500">{m.code||"-"}</span></td>
                   </tr>
                 ))}
               </tbody>
