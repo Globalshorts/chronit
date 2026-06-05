@@ -1656,6 +1656,27 @@ function HistoryPanel({ session }: { session: any }) {
 }
 
 // ── NavSidebar — 좌측 좁은 탭 네비 ───────────────────────────
+// 카카오톡 공유 (JS SDK) — 도메인 등록 후 동작, 실패 시 복사 폴백
+const KAKAO_JS_KEY = (import.meta as any).env?.VITE_KAKAO_JS_KEY || "353a4888db09fd32ef2f787755cd758a";
+const KAKAO_SHARE_IMG = "https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png";
+function ensureKakao(): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const w = window as any;
+    const init = () => { try { if (w.Kakao && !w.Kakao.isInitialized()) w.Kakao.init(KAKAO_JS_KEY); resolve(w.Kakao); } catch(e){ reject(e); } };
+    if (w.Kakao?.isInitialized?.()) return resolve(w.Kakao);
+    if (w.Kakao) return init();
+    const existing = document.getElementById("kakao-sdk") as HTMLScriptElement | null;
+    if (existing) { existing.addEventListener("load", init); existing.addEventListener("error", ()=>reject(new Error("kakao sdk"))); return; }
+    const s = document.createElement("script");
+    s.id = "kakao-sdk";
+    s.src = "https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js";
+    s.async = true;
+    s.onload = init;
+    s.onerror = () => reject(new Error("kakao sdk load fail"));
+    document.head.appendChild(s);
+  });
+}
+
 function CreditMissionsModal({ open, onClose, session }: { open:boolean; onClose:()=>void; session:any }) {
   const [info, setInfo] = React.useState<any>(null);
   const [reviewUrl, setReviewUrl] = React.useState("");
@@ -1674,6 +1695,25 @@ function CreditMissionsModal({ open, onClose, session }: { open:boolean; onClose
   const reviewStatus = info?.review_status ?? "none";
 
   const copyLink = async () => { if(!code) return; try { await navigator.clipboard.writeText(link); setCopied(true); setTimeout(()=>setCopied(false),1500);} catch {} };
+  const shareKakao = async () => {
+    if (!code) return;
+    try {
+      const Kakao = await ensureKakao();
+      Kakao.Share.sendDefault({
+        objectType: "feed",
+        content: {
+          title: "엄마도 하는 쇼핑 영상 부수입, 크로닛 🎬",
+          description: "추천 링크로 가입하면 둘 다 500 크레딧! 지금 무료로 시작해보세요.",
+          imageUrl: KAKAO_SHARE_IMG,
+          link: { mobileWebUrl: link, webUrl: link },
+        },
+        buttons: [{ title: "크로닛 시작하기", link: { mobileWebUrl: link, webUrl: link } }],
+      });
+    } catch {
+      // 카카오 미설정/도메인 미등록 시 복사로 폴백
+      copyLink();
+    }
+  };
   const submitReview = async () => {
     const u = reviewUrl.trim();
     if (!u) return;
@@ -1703,6 +1743,7 @@ function CreditMissionsModal({ open, onClose, session }: { open:boolean; onClose
           <div className="flex gap-2">
             <input readOnly value={link} className="flex-1 rounded-xl bg-gray-900 border border-gray-700 px-3 py-2 text-xs text-gray-300 outline-none truncate" />
             <button onClick={copyLink} className="shrink-0 rounded-xl bg-blue-600 hover:bg-blue-500 px-4 py-2 text-sm font-bold text-white">{copied?"✓ 복사됨":"복사"}</button>
+            <button onClick={shareKakao} className="shrink-0 rounded-xl bg-[#FEE500] hover:brightness-95 px-3 py-2 text-sm font-bold text-[#3C1E1E]">💬 카톡</button>
           </div>
           <p className="text-xs text-gray-600 mt-2">현재 {invites}명 초대함</p>
         </div>
