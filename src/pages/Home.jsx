@@ -1,52 +1,36 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
-  Zap,
-  Clock,
-  TrendingUp,
-  CheckCircle2,
-  MessageCircle,
-  ArrowRight,
-  Users,
-  Cpu,
-  ShieldCheck,
-  Flame,
-  Monitor,
-  Film,
-  TrendingDown,
-  LogOut,
-  Gift,
-  Menu,
-  X,
-  Megaphone,
+  Clock, CheckCircle2, MessageCircle, ArrowRight, Users,
+  Monitor, Film, TrendingDown, LogOut, Gift, Menu, X, Play,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import AnimatedCounter from '../components/AnimatedCounter'
 import PaymentModal from '../components/PaymentModal'
 import AuthModal from '../components/AuthModal'
+import TermsModal from '../components/TermsModal'
+import { supabase } from '../lib/supabase'
 
-// 가격표 위 쿠폰 입력 바
+const GREEN = '#03C75A'
+const DOWNLOAD_URL =
+  'https://github.com/Globalshorts/chronit/releases/latest/download/Chronit_Setup.exe'
+
+/* 가격표 위 쿠폰 입력 바 */
 const CouponBar = ({ codeFromUrl, onApply }) => {
-  const [input, setInput] = React.useState('')
-  const [status, setStatus] = React.useState(null) // null | 'ok' | 'fail'
+  const [input, setInput] = useState('')
+  const [status, setStatus] = useState(null)
 
   const handleApply = async () => {
     const trimmed = input.trim().toUpperCase()
     if (!trimmed) return
-    // 간단히 형식만 체크 (실제 검증은 PaymentModal에서)
-    if (trimmed.length >= 3) {
-      onApply(trimmed)
-      setStatus('ok')
-    } else {
-      setStatus('fail')
-    }
+    if (trimmed.length >= 3) { onApply(trimmed); setStatus('ok') } else { setStatus('fail') }
   }
 
   if (codeFromUrl) {
     return (
-      <div className="mx-auto mb-10 flex max-w-sm items-center gap-3 rounded-2xl border border-blue-500/30 bg-blue-500/10 px-5 py-3">
-        <Zap size={15} className="shrink-0 text-blue-400" fill="currentColor" />
-        <span className="text-sm font-bold text-blue-300">할인 코드 <strong className="text-white">{codeFromUrl}</strong> 적용됨</span>
-        <button onClick={() => { onApply(null); sessionStorage.removeItem('chronit_code') }} className="ml-auto text-slate-500 hover:text-white">✕</button>
+      <div className="mx-auto mb-10 flex max-w-sm items-center gap-3 rounded-2xl border-2 border-[#03C75A]/30 bg-[#03C75A]/10 px-5 py-3">
+        <Gift size={16} className="shrink-0 text-[#03C75A]" />
+        <span className="text-base font-bold text-gray-700">할인 코드 <strong className="text-gray-900">{codeFromUrl}</strong> 적용됨</span>
+        <button onClick={() => { onApply(null); sessionStorage.removeItem('chronit_code') }} className="ml-auto text-gray-400 hover:text-gray-700">✕</button>
       </div>
     )
   }
@@ -59,62 +43,30 @@ const CouponBar = ({ codeFromUrl, onApply }) => {
           value={input}
           onChange={(e) => { setInput(e.target.value.toUpperCase()); setStatus(null) }}
           onKeyDown={(e) => e.key === 'Enter' && handleApply()}
-          placeholder="쿠폰 / 할인 코드 입력"
-          className="flex-1 rounded-2xl border-2 border-slate-300 bg-white px-5 py-3 text-sm font-bold text-gray-900 placeholder-slate-400 outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          placeholder="쿠폰 / 할인 코드 (있으면 입력)"
+          className="flex-1 rounded-2xl border-2 border-gray-300 bg-white px-5 py-4 text-base font-bold text-gray-900 placeholder-gray-400 outline-none transition-all focus:border-[#03C75A] focus:ring-4 focus:ring-[#03C75A]/15"
         />
-        <button
-          onClick={handleApply}
-          className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-bold text-white transition-all hover:bg-blue-500 active:scale-95"
-        >
+        <button onClick={handleApply}
+          className="rounded-2xl bg-[#03C75A] px-6 py-4 text-base font-bold text-white transition-all hover:bg-[#02b350] active:scale-95">
           적용
         </button>
       </div>
-      {status === 'ok' && <p className="text-xs font-bold text-green-600">✓ 코드 적용됨 — 결제 시 할인이 반영됩니다</p>}
-      {status === 'fail' && <p className="text-xs font-bold text-red-500">유효하지 않은 코드입니다</p>}
+      {status === 'ok' && <p className="text-sm font-bold text-[#03C75A]">✓ 코드가 적용됐어요 — 결제할 때 할인이 반영됩니다</p>}
+      {status === 'fail' && <p className="text-sm font-bold text-red-500">코드를 다시 확인해 주세요</p>}
     </div>
   )
 }
-import TermsModal from '../components/TermsModal'
-import { supabase } from '../lib/supabase'
-
-/**
- * Spline Viewer를 이용한 배경 파티클
- * opacity를 0.9로 높여 더 선명하게 보이도록 수정했습니다.
- */
-const SplineScene = ({ scene }) => {
-  useEffect(() => {
-    const script = document.createElement('script')
-    script.type = 'module'
-    script.src = 'https://unpkg.com/@splinetool/viewer@1.0.93/build/spline-viewer.js'
-    document.head.appendChild(script)
-
-    return () => {
-      if (document.head.contains(script)) {
-        document.head.removeChild(script)
-      }
-    }
-  }, [])
-
-  return (
-    <div className="h-full w-full origin-center scale-125 transform opacity-90 transition-opacity duration-1000 md:scale-[1.6]">
-      <spline-viewer url={scene} events-target="global"></spline-viewer>
-    </div>
-  )
-}
-
-const DOWNLOAD_URL =
-  'https://github.com/Globalshorts/chronit/releases/latest/download/Chronit_Setup.exe'
 
 const statusCfg = {
-  active:  { label: '진행중',      cls: 'bg-blue-500/20 text-blue-300 border-blue-500/30', dot: true },
-  ended:   { label: '종료됨',      cls: 'bg-slate-600/30 text-slate-400 border-slate-500/20', dot: false },
-  winner:  { label: '당첨자 발표', cls: 'bg-amber-500/20 text-amber-300 border-amber-500/30', dot: false },
+  active:  { label: '진행중',      cls: 'bg-[#03C75A]/12 text-[#03C75A] border-[#03C75A]/30', dot: true },
+  ended:   { label: '종료됨',      cls: 'bg-gray-100 text-gray-500 border-gray-200', dot: false },
+  winner:  { label: '당첨자 발표', cls: 'bg-[#FFB800]/15 text-[#b07d00] border-[#FFB800]/40', dot: false },
 }
 const EventBadge = ({ status, label }) => {
   const cfg = statusCfg[status] || statusCfg.active
   return (
     <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold ${cfg.cls}`}>
-      {cfg.dot && <span className="badge-pulse h-1.5 w-1.5 rounded-full bg-blue-400" />}
+      {cfg.dot && <span className="badge-pulse h-1.5 w-1.5 rounded-full bg-[#03C75A]" />}
       {label || cfg.label}
     </span>
   )
@@ -136,11 +88,8 @@ const Home = () => {
   const pendingPlanRef = useRef(null)
   const pendingSessionRef = useRef(null)
 
-  // 로그인 완료 후 공통 처리
   const handleAfterLogin = (session) => {
-    // GA4 회원가입/로그인 전환 이벤트
     window.gtag?.('event', 'sign_up', { event_category: 'conversion', event_label: 'google_oauth' })
-    // 앱이 실행 중이면 토큰 전달
     fetch('http://localhost:17389/ping')
       .then((res) => {
         if (res.ok) {
@@ -156,7 +105,6 @@ const Home = () => {
       })
       .catch(() => {})
 
-    // 대기 중인 결제 플랜 오픈
     if (pendingPlanRef.current) {
       setSelectedPlan(pendingPlanRef.current)
       setPaymentOpen(true)
@@ -164,7 +112,6 @@ const Home = () => {
     }
   }
 
-  // 약관 동의 완료
   const handleTermsAgree = () => {
     setShowTermsModal(false)
     const session = pendingSessionRef.current
@@ -172,7 +119,6 @@ const Home = () => {
     if (session) handleAfterLogin(session)
   }
 
-  // 로그인 필요 시 AuthModal → 로그인 후 결제 모달 자동 오픈
   const openPayment = (plan) => {
     document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     if (!user) {
@@ -184,7 +130,6 @@ const Home = () => {
     setTimeout(() => setPaymentOpen(true), 400)
   }
 
-  // Auth 상태 관리
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
@@ -198,7 +143,6 @@ const Home = () => {
         const isNewUser = Math.abs(signedInAt - createdAt) < 5000
 
         if (isNewUser) {
-          // 신규 가입자 → 추천인 코드 적용 후 약관 동의
           const storedRef = sessionStorage.getItem('chronit_ref')
           if (storedRef) {
             fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/apply_referral_code_rpc`, {
@@ -219,7 +163,6 @@ const Home = () => {
           setShowTermsModal(true)
           setShowAuthModal(false)
         } else {
-          // 기존 유저 → 바로 처리
           handleAfterLogin(session)
         }
       }
@@ -228,11 +171,9 @@ const Home = () => {
     return () => subscription.unsubscribe()
   }, [])
 
-  // URL 파라미터 처리 (코드 & Python 앱 세션 공유)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
 
-    // 할인 코드: sessionStorage에 저장 (OAuth 리디렉트 후에도 유지)
     const code = params.get('code')
     if (code) {
       setCodeFromUrl(code)
@@ -242,7 +183,6 @@ const Home = () => {
       if (stored) setCodeFromUrl(stored)
     }
 
-    // 추천인 코드: ?ref=CHRONIT-XXXX
     const ref = params.get('ref')
     if (ref) {
       setRefFromUrl(ref.toUpperCase())
@@ -252,17 +192,14 @@ const Home = () => {
       if (storedRef) setRefFromUrl(storedRef)
     }
 
-    // Python 앱에서 세션 토큰 전달 시 자동 로그인
     const access_token = params.get('access_token')
     const refresh_token = params.get('refresh_token')
     if (access_token && refresh_token) {
       supabase.auth.setSession({ access_token, refresh_token })
     }
 
-    // OAuth 콜백: URL 해시에서 토큰 파싱 후 세션 설정 + URL 정리
     const hash = window.location.hash
     if (hash && hash.includes('access_token')) {
-      // 첫 번째 #access_token 블록만 파싱
       const hashStr = hash.startsWith('#') ? hash.slice(1) : hash
       const firstBlock = hashStr.split('#')[0]
       const hashParams = new URLSearchParams(firstBlock)
@@ -271,15 +208,12 @@ const Home = () => {
       if (hashAccessToken && hashRefreshToken) {
         supabase.auth.setSession({ access_token: hashAccessToken, refresh_token: hashRefreshToken })
           .then(() => {
-            // URL에서 토큰 제거
             window.history.replaceState(null, '', window.location.pathname)
           })
       }
     }
   }, [])
 
-
-  // 이벤트 게시판 fetch
   useEffect(() => {
     supabase.from('events').select('*').order('created_at', { ascending: false })
       .then(({ data }) => { if (data) setEvents(data) })
@@ -294,22 +228,30 @@ const Home = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [menuOpen])
 
+  const navItems = (
+    <>
+      <a href="#features" className="transition-colors hover:text-[#03C75A]">기능</a>
+      <Link to="/manual" className="transition-colors hover:text-[#03C75A]">사용 방법</Link>
+      <a href="#pricing" className="transition-colors hover:text-[#03C75A]">요금제</a>
+      <Link to="/events" className="transition-colors hover:text-[#03C75A]">이벤트</Link>
+    </>
+  )
+
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#0B0D17] font-sans break-keep text-slate-100 selection:bg-blue-500/30">
+    <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans break-keep text-gray-900 selection:bg-[#03C75A]/20">
       {/* 추천인 코드 배너 */}
       {refFromUrl && (
-        <div className="fixed top-0 right-0 left-0 z-[61] flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-purple-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg">
-          <Gift size={13} />
-          <span>추천 코드 <strong>{refFromUrl}</strong> 적용됨 — 가입 시 <strong>500 크레딧</strong> 지급!</span>
-          <button onClick={() => { setRefFromUrl(null); sessionStorage.removeItem('chronit_ref') }} className="ml-2 opacity-70 hover:opacity-100">✕</button>
+        <div className="fixed top-0 right-0 left-0 z-[61] flex items-center justify-center gap-2 bg-[#03C75A] px-4 py-3 text-sm font-bold text-white shadow-md">
+          <Gift size={15} />
+          <span>추천 코드 <strong>{refFromUrl}</strong> 적용됨 — 가입하면 <strong>500 크레딧</strong>을 드려요!</span>
+          <button onClick={() => { setRefFromUrl(null); sessionStorage.removeItem('chronit_ref') }} className="ml-2 opacity-80 hover:opacity-100">✕</button>
         </div>
       )}
 
       {/* 할인 코드 배너 */}
       {codeFromUrl && (
-        <div className={`fixed right-0 left-0 z-[60] flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg ${refFromUrl ? 'top-10' : 'top-0'}`}>
-          <Zap size={13} fill="currentColor" />
-          <span>할인 코드 <strong>{codeFromUrl}</strong> 감지됨 — 결제 시 자동 적용됩니다</span>
+        <div className={`fixed right-0 left-0 z-[60] flex items-center justify-center gap-2 bg-[#FFB800] px-4 py-3 text-sm font-bold text-[#5b4200] shadow-md ${refFromUrl ? 'top-11' : 'top-0'}`}>
+          <span>🎟️ 할인 코드 <strong>{codeFromUrl}</strong> 감지됨 — 결제할 때 자동으로 적용됩니다</span>
           <button onClick={() => { setCodeFromUrl(null); sessionStorage.removeItem('chronit_code') }} className="ml-2 opacity-70 hover:opacity-100">✕</button>
         </div>
       )}
@@ -317,162 +259,104 @@ const Home = () => {
       {/* 진행중인 이벤트 배너 */}
       {events.filter(e => e.status === 'active').length > 0 && !sessionStorage.getItem('chronit_event_banner_closed') && (
         <div
-          className="fixed right-0 left-0 z-[59] flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg cursor-pointer"
-          style={{ top: `${((refFromUrl ? 1 : 0) + (codeFromUrl ? 1 : 0)) * 40}px` }}
+          className="fixed right-0 left-0 z-[59] flex items-center justify-center gap-2 bg-[#02b350] px-4 py-3 text-sm font-bold text-white shadow-md cursor-pointer"
+          style={{ top: `${((refFromUrl ? 1 : 0) + (codeFromUrl ? 1 : 0)) * 44}px` }}
           onClick={() => { window.location.href = '/events' }}
         >
           <span>🎉</span>
-          <span>진행중인 이벤트가 <strong>{events.filter(e => e.status === 'active').length}건</strong> 있어요 — 지금 확인하기 →</span>
-          <button onClick={e => { e.stopPropagation(); sessionStorage.setItem('chronit_event_banner_closed', '1'); window.location.reload() }} className="ml-2 opacity-70 hover:opacity-100">✕</button>
+          <span>진행중인 이벤트가 <strong>{events.filter(e => e.status === 'active').length}건</strong> 있어요 — 확인하기 →</span>
+          <button onClick={e => { e.stopPropagation(); sessionStorage.setItem('chronit_event_banner_closed', '1'); window.location.reload() }} className="ml-2 opacity-80 hover:opacity-100">✕</button>
         </div>
       )}
 
       {/* Header */}
-      <header
-        className={`fixed top-0 right-0 left-0 z-50 transition-all duration-500 ${scrolled ? 'border-b border-white/8 bg-[#0B0D17]/70 py-3 backdrop-blur-md md:py-4' : 'bg-transparent py-5 md:py-8'}`}
-      >
+      <header className={`fixed top-0 right-0 left-0 z-50 transition-all duration-300 ${scrolled ? 'border-b border-gray-200 bg-[#FAFAF8]/90 py-3 backdrop-blur-md' : 'bg-transparent py-4 md:py-5'}`}>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
           <a href="/" className="flex min-w-0 items-center gap-2 md:gap-3">
-            <img
-              src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png"
-              alt="Chronit"
-              className="h-8 w-8 shrink-0 md:h-10 md:w-10"
-            />
-            <h1 className="bg-gradient-to-r from-white to-slate-400 bg-clip-text text-2xl font-black tracking-tighter text-transparent md:text-3xl">
-              Chronit
-            </h1>
+            <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-9 w-9 shrink-0 md:h-10 md:w-10" />
+            <h1 className="text-2xl font-black tracking-tight text-gray-900 md:text-3xl">Chronit</h1>
           </a>
-          <nav className="hidden gap-12 text-base font-bold tracking-wide text-slate-400 md:flex">
-            <a href="#features" className="uppercase transition-colors hover:text-blue-400">
-              기능
-            </a>
-            <Link to="/manual" className="uppercase transition-colors hover:text-blue-400">
-              사용 방법
-            </Link>
-            <a href="#pricing" className="uppercase transition-colors hover:text-blue-400">
-              요금제
-            </a>
-            <Link to="/events" className="uppercase transition-colors hover:text-blue-400">
-              이벤트
-            </Link>
+          <nav className="hidden gap-10 text-base font-bold text-gray-500 md:flex">
+            {navItems}
           </nav>
           <div className="flex shrink-0 items-center gap-2">
-            {/* 데스크톱 전용 */}
             <div className="hidden md:flex items-center gap-2">
               {user ? (
                 <>
-                  <span className="text-sm font-medium text-slate-400">
-                    {user.email?.split('@')[0]}
-                  </span>
-                  <button
-                    onClick={() => supabase.auth.signOut()}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-slate-400 transition-all hover:border-white/30 hover:text-white"
-                    title="로그아웃"
-                  >
+                  <span className="text-sm font-bold text-gray-500">{user.email?.split('@')[0]}</span>
+                  <button onClick={() => supabase.auth.signOut()} title="로그아웃"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 text-gray-500 transition-all hover:border-gray-400 hover:text-gray-800">
                     <LogOut size={15} />
                   </button>
                 </>
               ) : (
-                <button
-                  onClick={() => setShowAuthModal(true)}
-                  className="rounded-full border border-white/15 px-5 py-2 text-sm font-bold text-slate-300 transition-all hover:border-white/30 hover:text-white"
-                >
+                <button onClick={() => setShowAuthModal(true)}
+                  className="rounded-full border-2 border-gray-300 px-5 py-2 text-base font-bold text-gray-700 transition-all hover:border-gray-400">
                   로그인
                 </button>
               )}
-              <button
-                onClick={() => openPayment('pro')}
-                className="rounded-full bg-blue-600 px-7 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-lg shadow-blue-600/25 transition-all hover:bg-blue-500 active:scale-95"
-              >
+              <button onClick={() => openPayment('pro')}
+                className="rounded-full bg-[#03C75A] px-7 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-md shadow-[#03C75A]/25 transition-all hover:bg-[#02b350] active:scale-95">
                 시작하기
               </button>
             </div>
-            {/* 햄버거 버튼 — 모바일 전용, 오른쪽 끝 */}
-            <button
-              onClick={() => setMenuOpen((v) => !v)}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-slate-300 transition-all hover:border-white/30 hover:text-white md:hidden"
-              aria-label="메뉴"
-            >
-              {menuOpen ? <X size={20} /> : <Menu size={20} />}
+            <button onClick={() => setMenuOpen((v) => !v)} aria-label="메뉴"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 text-gray-700 transition-all hover:border-gray-400 md:hidden">
+              {menuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
         </div>
       </header>
 
-      {/* 모바일 햄버거 메뉴 드롭다운 */}
-      <div
-        className={`fixed top-0 left-0 right-0 z-40 transform transition-all duration-300 ease-in-out md:hidden ${
-          menuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
-        }`}
-        style={{ paddingTop: '80px' }}
-      >
-        <div className="border-b border-white/10 bg-[#0B0D17]/95 px-6 py-6 backdrop-blur-xl">
-          <nav className="flex flex-col gap-1">
-            <a href="#features" onClick={() => setMenuOpen(false)}
-              className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400">
-              기능
-            </a>
-            <Link to="/manual" onClick={() => setMenuOpen(false)}
-              className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400">
-              사용 방법
-            </Link>
-            <a href="#pricing" onClick={() => setMenuOpen(false)}
-              className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400">
-              요금제
-            </a>
-            <Link to="/events" onClick={() => setMenuOpen(false)}
-              className="rounded-xl px-4 py-3.5 text-base font-bold uppercase tracking-wide text-slate-300 transition-colors hover:bg-white/5 hover:text-blue-400">
-              이벤트
-            </Link>
+      {/* 모바일 메뉴 */}
+      <div className={`fixed top-0 left-0 right-0 z-40 transform transition-all duration-300 ease-in-out md:hidden ${menuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`} style={{ paddingTop: '76px' }}>
+        <div className="border-b border-gray-200 bg-white px-6 py-6 shadow-lg">
+          <nav className="flex flex-col gap-1 text-lg font-bold text-gray-700">
+            <a href="#features" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">기능</a>
+            <Link to="/manual" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">사용 방법</Link>
+            <a href="#pricing" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">요금제</a>
+            <Link to="/events" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">이벤트</Link>
           </nav>
-          <div className="mt-4 border-t border-white/10 pt-4 flex flex-col gap-2">
+          <div className="mt-4 border-t border-gray-200 pt-4 flex flex-col gap-2">
             {user ? (
               <>
-                <p className="px-4 pb-1 text-sm text-slate-500">{user.email}</p>
-                <button
-                  onClick={() => { supabase.auth.signOut(); setMenuOpen(false) }}
-                  className="flex w-full items-center gap-2 rounded-xl px-4 py-3 text-base font-bold text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
-                >
-                  <LogOut size={16} /> 로그아웃
+                <p className="px-4 pb-1 text-sm text-gray-400">{user.email}</p>
+                <button onClick={() => { supabase.auth.signOut(); setMenuOpen(false) }}
+                  className="flex w-full items-center gap-2 rounded-xl px-4 py-3.5 text-lg font-bold text-gray-600 transition-colors hover:bg-gray-50">
+                  <LogOut size={18} /> 로그아웃
                 </button>
               </>
             ) : (
-              <button
-                onClick={() => { setShowAuthModal(true); setMenuOpen(false) }}
-                className="w-full rounded-xl border border-white/15 px-4 py-3 text-base font-bold text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
-              >
+              <button onClick={() => { setShowAuthModal(true); setMenuOpen(false) }}
+                className="w-full rounded-xl border-2 border-gray-300 px-4 py-3.5 text-lg font-bold text-gray-700 transition-colors hover:bg-gray-50">
                 로그인
               </button>
             )}
-            <button
-              onClick={() => { openPayment('pro'); setMenuOpen(false) }}
-              className="w-full rounded-xl bg-blue-600 px-4 py-3.5 text-base font-extrabold text-white shadow-lg shadow-blue-600/25 transition-all hover:bg-blue-500 active:scale-95"
-            >
+            <button onClick={() => { openPayment('pro'); setMenuOpen(false) }}
+              className="w-full rounded-xl bg-[#03C75A] px-4 py-4 text-lg font-extrabold text-white shadow-md transition-all hover:bg-[#02b350] active:scale-95">
               시작하기
             </button>
           </div>
         </div>
       </div>
 
-
       {/* 이벤트 모달 */}
       {selectedEvent && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setSelectedEvent(null)} />
-          <div className="relative z-10 w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl border border-white/10 bg-[#0d1526] shadow-2xl">
-            <div className="sticky top-0 flex items-center justify-between gap-3 border-b border-white/10 bg-[#0d1526]/95 px-6 py-4 backdrop-blur-xl">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedEvent(null)} />
+          <div className="relative z-10 w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-3xl border border-gray-200 bg-white shadow-2xl">
+            <div className="sticky top-0 flex items-center justify-between gap-3 border-b border-gray-100 bg-white/95 px-6 py-4 backdrop-blur-xl">
               <div className="flex items-center gap-2 min-w-0">
                 <EventBadge status={selectedEvent.status} label={selectedEvent.label} />
-                <h3 className="truncate text-base font-bold text-slate-100">{selectedEvent.title}</h3>
+                <h3 className="truncate text-base font-bold text-gray-900">{selectedEvent.title}</h3>
               </div>
-              <button onClick={() => setSelectedEvent(null)} className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:bg-white/10 hover:text-white transition-colors">✕</button>
+              <button onClick={() => setSelectedEvent(null)} className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">✕</button>
             </div>
-            <div className="event-content px-6 py-6 text-slate-200" dangerouslySetInnerHTML={{ __html: selectedEvent.content }} />
+            <div className="event-content px-6 py-6 text-gray-700" dangerouslySetInnerHTML={{ __html: selectedEvent.content }} />
             {selectedEvent.cta_text && selectedEvent.cta_url && (
-              <div className="border-t border-white/10 px-6 py-4">
-                <a href={selectedEvent.cta_url} target="_blank" rel="noopener noreferrer"
-                  onClick={() => setSelectedEvent(null)}
-                  className="block w-full rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-3.5 text-center text-base font-extrabold text-white shadow-lg hover:opacity-90 active:scale-95 transition-all">
+              <div className="border-t border-gray-100 px-6 py-4">
+                <a href={selectedEvent.cta_url} target="_blank" rel="noopener noreferrer" onClick={() => setSelectedEvent(null)}
+                  className="block w-full rounded-xl bg-[#03C75A] py-4 text-center text-base font-extrabold text-white shadow-md hover:bg-[#02b350] active:scale-95 transition-all">
                   {selectedEvent.cta_text}
                 </a>
               </div>
@@ -481,267 +365,124 @@ const Home = () => {
         </div>
       )}
 
-      <style>{`
-        .event-content img { max-width:100%; border-radius:8px; margin:0.5em 0; }
-        .event-content p { margin:0.6em 0; line-height:1.8; }
-        .event-content h1 { font-size:1.6em; font-weight:800; margin:0.8em 0 0.4em; color:#f1f5f9; }
-        .event-content h2 { font-size:1.3em; font-weight:700; margin:0.8em 0 0.4em; color:#f1f5f9; }
-        .event-content h3 { font-size:1.1em; font-weight:700; margin:0.6em 0 0.3em; color:#f1f5f9; }
-        .event-content ul, .event-content ol { padding-left:1.5em; margin:0.5em 0; }
-        .event-content li { margin:0.3em 0; }
-        .event-content blockquote { border-left:3px solid #7c3aed; padding-left:1em; color:#94a3b8; margin:0.6em 0; }
-        .event-content a { color:#a78bfa; text-decoration:underline; }
-        .event-content strong { color:#f1f5f9; font-weight:700; }
-        .event-content code { background:rgba(255,255,255,0.08); padding:0.1em 0.4em; border-radius:4px; font-family:monospace; font-size:0.9em; }
-        @keyframes badge-pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
-        .badge-pulse { animation: badge-pulse 2s ease-in-out infinite; }
-      `}</style>
-
-
-      {/* Hero Section — 노트북 오버레이 구조 */}
-      <section className="relative text-white" style={{background: '#1e2235', paddingBottom: '160px', overflow: 'visible', willChange: 'transform'}}>
-
-        {/* 배경 글로우 */}
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none hidden md:block" style={{background: 'rgba(59,130,246,0.07)', filter: 'blur(80px)'}} />
-        <div className="absolute bottom-[10%] right-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none hidden md:block" style={{background: 'rgba(99,102,241,0.07)', filter: 'blur(80px)'}} />
-
-        {/* 사선 배경 — z-0, 노트북 뒤 */}
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, width: '100%', height: '340px',
-          background: '#F5F4F0', zIndex: 0,
-          clipPath: 'polygon(0 55%, 100% 0%, 100% 100%, 0% 100%)',
-        }} />
-
-        <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-5 pt-32 md:grid-cols-2 md:gap-4 md:px-16" style={{paddingBottom: '0'}}>
-
-          {/* 좌측: 카피 + 버튼 */}
-          <div className="flex flex-col items-start pb-20 md:pb-32">
-            <div className="animate-fade-in mb-6 inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-400/10 px-3 py-1.5 text-sm font-bold text-blue-400 md:px-4 md:text-base">
-              <Zap size={14} fill="currentColor" /> <span>쇼핑 릴스 자동화 v1.0.1</span>
+      {/* ── Hero ── */}
+      <section className="relative px-5 pt-32 pb-16 md:px-8 md:pt-40 md:pb-24">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-12">
+          <div className="flex flex-col items-start">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#FFB800]/40 bg-[#FFB800]/10 px-4 py-2 text-sm font-bold text-[#9a6b00] md:text-base">
+              <CheckCircle2 size={16} className="text-[#FFB800]" /> 영상 편집, 한 번도 안 해보셨어도 괜찮아요
             </div>
-
-            <h1 className="mb-4 text-3xl font-black leading-tight tracking-tight text-white md:text-5xl lg:text-6xl">
-              클릭에 <span style={{color: '#ff6b00'}}>수익</span>을 입히다,<br className="hidden md:block" /> 크로닛
+            <h1 className="mb-5 text-4xl font-black leading-[1.25] tracking-tight text-gray-900 md:text-5xl lg:text-6xl">
+              복잡한 편집 없이,<br /><span className="text-[#03C75A]">하루 5분이면</span> 끝나요
             </h1>
-            <span className="sr-only">크로닛(Chronit) — 쇼핑 릴스 영상 편집 자동화 솔루션.</span>
-
-            <p className="mb-8 text-lg leading-[1.9] text-slate-300 md:text-xl">
-              링크만 넣고 영상은 AI에게 맡기세요.<br />
-              2분이면 충분합니다.
+            <p className="mb-9 text-lg leading-[1.9] text-gray-600 md:text-xl">
+              쇼핑 영상 링크만 붙여넣으면<br className="hidden md:block" />
+              숏폼 영상이 자동으로 만들어집니다.<br />
+              어려운 설정도, 편집 기술도 필요 없어요.
             </p>
 
-            <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
-              <button
-                onClick={() => setShowAuthModal(true)}
-                className="group flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-gradient-to-r from-blue-600 to-indigo-600 px-10 py-5 text-lg font-extrabold text-white shadow-[0_20px_50px_-12px_rgba(37,99,235,0.6)] transition-all hover:from-blue-500 hover:to-indigo-500 hover:shadow-[0_24px_55px_-10px_rgba(37,99,235,0.7)] active:scale-95"
-              >
-                무료로 시작하기{' '}
-                <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+              <button onClick={() => setShowAuthModal(true)}
+                className="group flex items-center justify-center gap-2 rounded-2xl bg-[#03C75A] px-10 py-5 text-xl font-extrabold text-white shadow-lg shadow-[#03C75A]/30 transition-all hover:bg-[#02b350] active:scale-95">
+                무료로 시작하기 <ArrowRight size={22} className="transition-transform group-hover:translate-x-1" />
               </button>
-              <a
-                href={DOWNLOAD_URL}
+              <a href={DOWNLOAD_URL}
                 onClick={() => window.gtag?.('event', 'download', { event_category: 'conversion', event_label: 'windows_download' })}
-                className="group flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/8 px-8 py-5 text-lg font-extrabold text-white backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/12 active:scale-95"
-              >
-                <Monitor size={20} /> Windows 다운로드
+                className="group flex items-center justify-center gap-2 rounded-2xl border-2 border-gray-300 bg-white px-8 py-5 text-xl font-extrabold text-gray-700 transition-all hover:border-gray-400 active:scale-95">
+                <Monitor size={22} /> Windows 다운로드
               </a>
             </div>
-            <p className="mt-4 text-sm font-medium text-slate-300">
-              Windows 10/11 · 약 1.9GB · 첫 실행 시{' '}
-              <span className="font-black text-green-400">"PC 보호" 경고 → 추가 정보 → 실행</span>
+            <p className="mt-4 text-sm font-medium text-gray-500">
+              Windows 10/11 · 첫 실행 시 <span className="font-black text-[#03C75A]">"PC 보호" 경고 → 추가 정보 → 실행</span>
             </p>
           </div>
 
-          {/* 우측: 노트북 — 마이너스 마진으로 아래 삐져나옴 */}
-          <div className="hidden md:flex justify-center items-end relative z-10" style={{marginBottom: '-120px'}}>
-            <div style={{position: 'relative'}}>
-              {/* 앰비언트 라이트 */}
-              <div style={{
-                position: 'absolute',
-                top: '10%', left: '50%',
-                transform: 'translateX(-50%)',
-                width: '620px', height: '380px',
-                background: 'rgba(37,99,235,0.28)',
-                borderRadius: '50%',
-                filter: 'blur(70px)',
-                zIndex: 0,
-                pointerEvents: 'none',
-              }} />
-              <img
-                src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/macbook_mockup.png"
-                alt="Chronit 노트북"
-                style={{position: 'relative', zIndex: 1, width: '560px', height: 'auto', objectFit: 'contain', background: 'transparent', display: 'block', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.4))'}}
-              />
-
-              {/* 팝업 1 — 우측 상단 */}
-              <div style={{
-                position: 'absolute', top: '18%', right: '-16%', zIndex: 50,
-                background: 'rgba(15,17,32,0.97)',
-                border: '1px solid rgba(34,197,94,0.35)', borderRadius: '14px',
-                padding: '10px 14px', width: '148px',
-                boxShadow: '0 12px 40px rgba(0,0,0,0.4)',
-                transform: 'rotate(3deg)',
-                willChange: 'transform', backfaceVisibility: 'hidden', WebkitFontSmoothing: 'antialiased',
-              }}>
-                <div style={{fontSize: '9px', color: '#22c55e', marginBottom: '3px', fontWeight: 600}}>✅ 생성 완료</div>
-                <div style={{fontSize: '12px', fontWeight: 700, color: '#fff', lineHeight: 1.4}}>수익형 영상<br/>생성 완료!</div>
-                <div style={{fontSize: '9px', color: '#94a3b8', marginTop: '3px'}}>방금 전 · 2분 소요</div>
-              </div>
-
-              {/* 팝업 2 — 좌측 하단 */}
-              <div style={{
-                position: 'absolute', bottom: '28%', left: '-16%', zIndex: 50,
-                background: 'rgba(15,17,32,0.97)',
-                border: '1px solid rgba(39,207,254,0.3)', borderRadius: '14px',
-                padding: '10px 14px', width: '142px',
-                boxShadow: '0 12px 40px rgba(39,207,254,0.1)',
-              }}>
-                <div style={{fontSize: '9px', color: '#27CFFE', marginBottom: '3px', fontWeight: 600}}>🔄 발행 중</div>
-                <div style={{fontSize: '12px', fontWeight: 700, color: '#fff', lineHeight: 1.4}}>AI 릴스<br/>자동 발행 중</div>
-                <div style={{fontSize: '9px', color: '#27CFFE', marginTop: '3px'}}>인스타그램 업로드...</div>
-              </div>
-            </div>
-          </div>
-
-          {/* 모바일 — 노트북 */}
-          <div className="flex md:hidden justify-center items-center w-full px-4 pb-8">
-            <div style={{position: 'relative', width: '100%', maxWidth: '420px'}}>
-              {/* 앰비언트 */}
-              <div style={{
-                position: 'absolute', top: '5%', left: '50%',
-                transform: 'translateX(-50%)',
-                width: '100%', height: '260px',
-                background: 'rgba(37,99,235,0.45)',
-                borderRadius: '50%', filter: 'blur(50px)',
-                zIndex: 0, pointerEvents: 'none',
-              }} />
-              <img
-                src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/macbook_mockup.png"
-                alt="Chronit 노트북"
-                style={{position: 'relative', zIndex: 1, width: '100%', height: 'auto', objectFit: 'contain', display: 'block', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.4))'}}
-              />
-              {/* 팝업 1 */}
-              <div style={{
-                position: 'absolute', top: '12%', right: '-2%', zIndex: 10,
-                background: 'rgba(15,17,32,0.97)',
-                border: '1px solid rgba(34,197,94,0.35)', borderRadius: '12px',
-                padding: '8px 12px', width: '120px',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-                transform: 'rotate(3deg)',
-              }}>
-                <div style={{fontSize: '8px', color: '#22c55e', marginBottom: '2px', fontWeight: 600}}>✅ 생성 완료</div>
-                <div style={{fontSize: '11px', fontWeight: 700, color: '#fff', lineHeight: 1.4}}>수익형 영상<br/>생성 완료!</div>
-                <div style={{fontSize: '8px', color: '#94a3b8', marginTop: '2px'}}>방금 전 · 2분 소요</div>
-              </div>
-              {/* 팝업 2 */}
-              <div style={{
-                position: 'absolute', bottom: '22%', left: '-2%', zIndex: 10,
-                background: 'rgba(15,17,32,0.97)',
-                border: '1px solid rgba(39,207,254,0.3)', borderRadius: '12px',
-                padding: '8px 12px', width: '116px',
-                boxShadow: '0 8px 24px rgba(39,207,254,0.1)',
-              }}>
-                <div style={{fontSize: '8px', color: '#27CFFE', marginBottom: '2px', fontWeight: 600}}>🔄 발행 중</div>
-                <div style={{fontSize: '11px', fontWeight: 700, color: '#fff', lineHeight: 1.4}}>AI 릴스<br/>자동 발행 중</div>
-                <div style={{fontSize: '8px', color: '#27CFFE', marginTop: '2px'}}>인스타그램 업로드...</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 데모 영상 캐러셀 ── */}
-      <div id="demo">
-        <DemoCarousel />
-      </div>
-
-      {/* Stats Section */}
-      {/* ── 구분선: 흰→네이비 ── */}
-      <section className="relative bg-[#1e2235] px-5 pt-20 pb-14 md:px-8 md:pt-24 md:pb-20" style={{marginTop:"-82px"}}>
-        <div style={{position:"absolute",top:"-2px",left:0,width:"100%",height:"84px",zIndex:1,pointerEvents:"none"}}>
-          <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{width:"100%",height:"100%"}}>
-            <polygon points="0,0 1440,80 1440,0" fill="white"/>
-          </svg>
-        </div>
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_60%,transparent_100%)]"></div>
-
-        <div className="relative z-10 mx-auto max-w-5xl">
-          <div className="mb-12 text-center md:mb-16">
-            <h3 className="mb-4 text-xs font-black tracking-[0.3em] text-blue-500 uppercase md:text-sm">
-              By The Numbers
-            </h3>
-            <h2 className="text-2xl leading-[1.4] font-bold text-white md:text-4xl">
-              실무진들이 직접 검증한 결과
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6 md:gap-8">
-            <div className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white p-6 text-center shadow-2xl transition-all duration-500 hover:border-blue-500/40 md:rounded-[2rem] md:p-10">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400 transition-transform group-hover:scale-110 md:mb-6 md:h-14 md:w-14">
-                <Film size={24} />
-              </div>
-              <div className="bg-gradient-to-br from-slate-900 via-slate-700 to-blue-500 bg-clip-text text-4xl font-black tracking-tight text-transparent md:text-6xl">
-                <AnimatedCounter to={1500} suffix="+" />
-              </div>
-              <div className="mt-3 text-base font-bold text-slate-400 md:mt-4 md:text-lg">
-                제작된 릴스
-              </div>
-            </div>
-
-            <div className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white p-6 text-center shadow-2xl transition-all duration-500 hover:border-blue-400 md:rounded-[2rem] md:p-10">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400 transition-transform group-hover:scale-110 md:mb-6 md:h-14 md:w-14">
-                <TrendingDown size={24} />
-              </div>
-              <div className="bg-gradient-to-br from-slate-900 via-slate-700 to-blue-500 bg-clip-text text-4xl font-black tracking-tight text-transparent md:text-6xl">
-                <AnimatedCounter to={97} suffix="%" />
-              </div>
-              <div className="mt-3 text-base font-bold text-slate-400 md:mt-4 md:text-lg">
-                시간 절감률
-              </div>
-            </div>
-
-            <div className="group relative overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white p-6 text-center shadow-2xl transition-all duration-500 hover:border-blue-500/40 md:rounded-[2rem] md:p-10">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400 transition-transform group-hover:scale-110 md:mb-6 md:h-14 md:w-14">
-                <Clock size={24} />
-              </div>
-              <div className="bg-gradient-to-br from-slate-900 via-slate-700 to-blue-500 bg-clip-text text-4xl font-black tracking-tight text-transparent md:text-6xl">
-                <AnimatedCounter to={320} suffix="시간" />
-              </div>
-              <div className="mt-3 text-base font-bold text-slate-400 md:mt-4 md:text-lg">
-                총 절약 시간
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Problem Section */}
-      {/* ── 구분선: 네이비→흰 ── */}
-      <section className="relative bg-white px-5 pt-20 pb-16 md:px-8 md:pt-24 md:pb-28" style={{marginTop:"-82px"}}>
-        <div style={{position:"absolute",top:"-2px",left:0,width:"100%",height:"84px",zIndex:1,pointerEvents:"none"}}>
-          <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{width:"100%",height:"100%"}}>
-            <polygon points="0,0 0,80 1440,0" fill="#1e2235"/>
-          </svg>
-        </div>
-        <div className="relative z-10 mx-auto max-w-4xl">
-          <div className="mb-16 text-center md:mb-20">
-            <h3 className="mb-3 text-xs font-black tracking-[0.3em] text-blue-500 uppercase md:text-sm">Why Chronit</h3>
-            <h2 className="text-3xl font-black text-gray-900 md:text-5xl">왜 크로닛을 선택해야 할까?</h2>
-          </div>
-          <div className="space-y-8 md:space-y-12">
-            {[
-              { emoji: '🖱️', title: '편집 기술 무관', desc: '영상 편집을 전혀 몰라도 괜찮습니다. 마우스 클릭 몇 번이면 AI가 알아서 고품질 릴스를 완성합니다.', right: false },
-              { emoji: '☕', title: '커피 한 잔 값으로 대량 생산', desc: '영상 1개당 약 100크레딧으로 부담 없이 구동됩니다. 하루 커피 한 잔 수준의 가벼운 비용으로 매일 여러 개의 영상을 가성비 있게 찍어내세요.', right: true },
-              { emoji: '👆', title: '딸깍으로 끝', desc: '링크 넣고 영상 선택만 하면 대시보드 안에서 AI가 편집부터 합성, 제목과 해시태그 추천까지 완료합니다.', right: false },
-              { emoji: '⏰', title: '퇴근 후 10분이면 충분', desc: '퇴근 후 컷 편집하고 자막 넣던 지루한 시간은 끝내고, 이제 채널의 방향성에만 에너지를 쓰세요.', right: true },
-              { emoji: '💻', title: '안정적인 PC 구동 환경', desc: '대량 연산과 자동화에 가장 최적화된 Windows 전용 프로그램으로 멈춤 없이 쾌적하게 작동합니다.', right: false },
-            ].map(({ emoji, title, desc, right }) => (
-              <div key={title} className={`flex items-center gap-8 md:gap-16 ${right ? 'flex-row-reverse' : 'flex-row'}`}>
-                <div className="shrink-0 w-28 h-28 md:w-40 md:h-40 rounded-3xl border border-gray-200 bg-[#FAFAFA] shadow-[0_8px_30px_rgba(0,0,0,0.10)] flex items-center justify-center text-5xl md:text-6xl">
-                  {emoji}
+          {/* 우측: 친근한 미리보기 */}
+          <div className="relative flex justify-center">
+            <div className="relative w-full max-w-md rounded-[2rem] border border-gray-200 bg-white p-3 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.18)]">
+              <img src="/preview-default.jpg" alt="크로닛 화면 미리보기"
+                className="w-full rounded-[1.5rem] object-cover" />
+              <div className="absolute -bottom-4 -left-3 flex items-center gap-2 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-lg">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#03C75A]/12 text-[#03C75A]"><CheckCircle2 size={18} /></span>
+                <div>
+                  <p className="text-sm font-black text-gray-900">영상 완성!</p>
+                  <p className="text-xs text-gray-400">자동으로 만들어졌어요</p>
                 </div>
-                <div className={`flex-1 ${right ? 'text-right' : 'text-left'}`}>
-                  <h4 className="mb-2 text-base font-black text-gray-900 md:text-2xl">{title}</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 이렇게 쉬워요 (3단계) ── */}
+      <section className="px-5 py-16 md:px-8 md:py-20">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-12 text-center">
+            <h2 className="text-3xl font-black text-gray-900 md:text-4xl">정말 이게 전부예요</h2>
+            <p className="mt-3 text-lg text-gray-500 md:text-xl">세 번만 따라 하면 영상이 완성됩니다</p>
+          </div>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-3 md:gap-6">
+            {[
+              { n: '1', emoji: '🔗', title: '링크 붙여넣기', desc: '마음에 드는 쇼핑 영상의 링크를 복사해서 붙여넣어요.' },
+              { n: '2', emoji: '🎬', title: '자동으로 제작', desc: '편집·자막·자르기까지 전부 자동. 몇 분만 기다리면 돼요.' },
+              { n: '3', emoji: '✅', title: '올리기만 하면 끝', desc: '완성된 영상을 그대로 내 채널에 올리면 끝납니다.' },
+            ].map(({ n, emoji, title, desc }) => (
+              <div key={n} className="rounded-3xl border border-gray-200 bg-white p-8 text-center shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#03C75A]/10 text-4xl">{emoji}</div>
+                <span className="mb-2 inline-block rounded-full bg-[#03C75A]/12 px-3 py-1 text-sm font-black text-[#03C75A]">{n}단계</span>
+                <h3 className="mb-2 text-xl font-black text-gray-900">{title}</h3>
+                <p className="text-base leading-relaxed text-gray-500">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 데모 캐러셀 ── */}
+      <div id="demo"><DemoCarousel /></div>
+
+      {/* ── 숫자 ── */}
+      <section className="px-5 py-16 md:px-8 md:py-20">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-12 text-center">
+            <h2 className="text-2xl font-black text-gray-900 md:text-4xl">실무에서 직접 만들어 보며 다듬었어요</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-6">
+            {[
+              { icon: <Film size={26} />, to: 1500, suffix: '+', label: '직접 만든 영상' },
+              { icon: <TrendingDown size={26} />, to: 97, suffix: '%', label: '편집 시간 절감' },
+              { icon: <Clock size={26} />, to: 320, suffix: '시간', label: '아낀 시간' },
+            ].map(({ icon, to, suffix, label }) => (
+              <div key={label} className="rounded-3xl border border-gray-200 bg-white p-8 text-center shadow-[0_4px_20px_rgba(0,0,0,0.04)] md:p-10">
+                <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#03C75A]/10 text-[#03C75A]">{icon}</div>
+                <div className="text-4xl font-black tracking-tight text-gray-900 md:text-5xl">
+                  <AnimatedCounter to={to} suffix={suffix} />
+                </div>
+                <div className="mt-3 text-base font-bold text-gray-500 md:text-lg">{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 왜 크로닛 (시간 절약) ── */}
+      <section className="px-5 py-16 md:px-8 md:py-20">
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-14 text-center">
+            <h2 className="text-3xl font-black text-gray-900 md:text-4xl">시간을 아껴드릴게요</h2>
+            <p className="mt-3 text-lg text-gray-500 md:text-xl">어려운 건 크로닛이 대신할게요</p>
+          </div>
+          <div className="space-y-5">
+            {[
+              { emoji: '🖱️', title: '편집 기술이 없어도 됩니다', desc: '마우스 클릭 몇 번이면 끝. 자르고 붙이는 작업은 전부 자동으로 처리돼요.' },
+              { emoji: '⏰', title: '하루 5분이면 충분해요', desc: '영상 하나 만드는 데 보통 몇 분. 만들어지는 동안 다른 일을 하셔도 됩니다.' },
+              { emoji: '🔁', title: '반복 작업은 전부 자동', desc: '자막 달기, 길이 맞추기, 제목 추천까지 — 손이 많이 가던 일을 대신해 드려요.' },
+              { emoji: '💻', title: '안정적으로 작동해요', desc: 'Windows 전용 프로그램으로 멈춤 없이 쾌적하게 작동합니다.' },
+            ].map(({ emoji, title, desc }) => (
+              <div key={title} className="flex items-center gap-5 rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] md:gap-8 md:p-8">
+                <div className="shrink-0 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FAFAF8] text-4xl md:h-20 md:w-20 md:text-5xl">{emoji}</div>
+                <div>
+                  <h3 className="mb-1 text-xl font-black text-gray-900 md:text-2xl">{title}</h3>
                   <p className="text-base leading-relaxed text-gray-500 md:text-lg">{desc}</p>
                 </div>
               </div>
@@ -750,257 +491,124 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Feature Section */}
-      {/* ── 구분선: 흰→네이비 ── */}
-      <section
-        id="features"
-        className="relative bg-[#1e2235] px-5 pt-20 pb-16 md:px-8 md:pt-24 md:pb-28" style={{marginTop:"-82px"}}
-      >
-        <div style={{position:"absolute",top:"-2px",left:0,width:"100%",height:"84px",zIndex:1,pointerEvents:"none"}}>
-          <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{width:"100%",height:"100%"}}>
-            <polygon points="0,0 1440,80 1440,0" fill="white"/>
-          </svg>
-        </div>
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] bg-[size:40px_40px]"></div>
-
-        <div className="relative z-10 mx-auto max-w-7xl">
-          <div className="mb-16 flex flex-col items-center justify-between gap-8 text-center md:mb-32 md:flex-row md:items-end md:gap-12 md:text-left">
-            <div className="mx-auto max-w-2xl md:mx-0">
-              <h3 className="mb-4 text-xs font-black tracking-[0.2em] text-blue-500 uppercase md:mb-6 md:text-base">
-                Core Strength
-              </h3>
-              <h2 className="text-3xl leading-[1.4] font-bold text-white md:text-5xl">
-                시작하기 전, 가장 많이<br />하시는 질문
-              </h2>
-            </div>
-            <div className="border-l-4 border-blue-500 bg-blue-500/5 p-6 text-left md:max-w-sm md:p-8">
-              <p className="text-lg leading-[1.8] text-slate-300 md:text-xl">
-                수만 개의 영상을 직접 제작하며 증명된 로직을 시스템에 그대로 옮겼습니다.
-              </p>
-            </div>
+      {/* ── FAQ ── */}
+      <section id="features" className="px-5 py-16 md:px-8 md:py-20">
+        <div className="mx-auto max-w-2xl">
+          <div className="mb-12 text-center">
+            <h2 className="text-3xl font-black text-gray-900 md:text-4xl">많이 물어보시는 것들</h2>
           </div>
-
-          <div className="mx-auto max-w-2xl space-y-4">
-            {/* Q1 */}
-            <div className="flex justify-end">
-              <div className="flex items-center gap-2">
-                <div className="rounded-2xl rounded-tr-sm bg-blue-600 px-5 py-3 text-base font-bold text-white shadow-lg">
-                  초보자도 할 수 있나요?
+          <div className="space-y-4">
+            {[
+              { q: '영상 편집을 한 번도 안 해봤는데 괜찮을까요?', a: '네, 괜찮습니다. 링크를 붙여넣고 버튼만 누르면 돼요. 자르기·자막·합성은 전부 자동으로 처리됩니다.' },
+              { q: '복잡한 설정을 해야 하나요?', a: '아니요. 처음 화면 안내만 천천히 따라오시면 됩니다. 직접 설정할 게 거의 없어요.' },
+              { q: '시간이 얼마나 걸리나요?', a: '영상 하나에 보통 몇 분이면 충분합니다. 만들어지는 동안 다른 일을 하셔도 괜찮아요.' },
+              { q: '컴퓨터를 잘 못 다뤄도 되나요?', a: '클릭만 하실 수 있으면 됩니다. 프로그램 안에 쉬운 안내가 단계별로 들어 있어요.' },
+            ].map(({ q, a }) => (
+              <div key={q} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] md:p-7">
+                <div className="mb-3 flex items-start gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#03C75A] text-sm font-black text-white">Q</span>
+                  <p className="pt-0.5 text-lg font-black text-gray-900">{q}</p>
                 </div>
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">Q</div>
-              </div>
-            </div>
-            {/* A1 */}
-            <div className="flex items-start gap-2">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-black text-white">A</div>
-              <div className="rounded-2xl rounded-tl-sm bg-white/10 px-5 py-3 text-base leading-relaxed text-slate-200 shadow">
-                네, 클릭만 할 줄 안다면 오늘 바로 가능합니다. 프로그램 내 초간단 튜토리얼과 가이드를 제공하여 누구나 쉽게 따라 할 수 있습니다.
-              </div>
-            </div>
-            {/* Q2 */}
-            <div className="flex justify-end">
-              <div className="flex items-center gap-2">
-                <div className="rounded-2xl rounded-tr-sm bg-blue-600 px-5 py-3 text-base font-bold text-white shadow-lg">
-                  정말 링크만 넣는다고 수익이 나나요?
+                <div className="flex items-start gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-black text-gray-500">A</span>
+                  <p className="pt-0.5 text-base leading-relaxed text-gray-600">{a}</p>
                 </div>
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">Q</div>
               </div>
-            </div>
-            {/* A2 */}
-            <div className="flex items-start gap-2">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-black text-white">A</div>
-              <div className="rounded-2xl rounded-tl-sm bg-white/10 px-5 py-3 text-base leading-relaxed text-slate-200 shadow">
-                크로닛은 자동화 툴일 뿐입니다. 다만, 시스템을 통해 지치지 않고 꾸준히 대량 발행을 이어간다면 수익 가능성은 충분합니다.
-              </div>
-            </div>
-            {/* Q3 */}
-            <div className="flex justify-end">
-              <div className="flex items-center gap-2">
-                <div className="rounded-2xl rounded-tr-sm bg-blue-600 px-5 py-3 text-base font-bold text-white shadow-lg">
-                  매달 결제하는 비용이 부담스러워요.
-                </div>
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">Q</div>
-              </div>
-            </div>
-            {/* A3 */}
-            <div className="flex items-start gap-2">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-black text-white">A</div>
-              <div className="rounded-2xl rounded-tl-sm bg-white/10 px-5 py-3 text-base leading-relaxed text-slate-200 shadow">
-                하루 커피 한 잔 값으로, 퇴근 후 영상 편집에 쓰는 3~4시간을 완전히 아끼는 가장 합리적인 기회비용 투자입니다.
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section id="pricing" className="relative bg-white px-5 pt-20 pb-16 md:px-8 md:pt-24 md:pb-28" style={{marginTop:"-82px"}}>
-        <div style={{position:"absolute",top:"-2px",left:0,width:"100%",height:"84px",zIndex:1,pointerEvents:"none"}}>
-          <svg viewBox="0 0 1440 84" preserveAspectRatio="none" style={{width:"100%",height:"100%"}}>
-            <polygon points="0,0 0,84 1440,0" fill="#1e2235"/>
-          </svg>
-        </div>
-        <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-xl md:rounded-[4rem]">
-          <div className="relative z-10 p-5 text-center sm:p-8 md:p-32">
-            <h2 className="mb-6 text-2xl leading-[1.3] font-black tracking-tight text-slate-900 md:mb-10 md:text-[44px]">
-              당신의 1시간은
-              <br className="hidden md:block" /> 1600원보다 훨씬 고귀합니다.
-            </h2>
-            <p className="mx-auto mb-10 max-w-3xl text-base leading-[1.8] font-medium text-slate-600 md:mb-16 md:text-lg">
-              하루 커피 한 잔 값으로,
-              <br />
-              당신의 성장을 가로막던 제작 노가다에서 해방되세요.
-            </p>
+      {/* ── 요금제 ── */}
+      <section id="pricing" className="px-5 py-16 md:px-8 md:py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-4 text-center">
+            <h2 className="text-3xl font-black text-gray-900 md:text-5xl">필요한 만큼만 고르세요</h2>
+            <p className="mt-3 text-lg text-gray-500 md:text-xl">부담 없이 시작하고, 언제든 바꿀 수 있어요</p>
+          </div>
 
-            {/* 쿠폰 코드 입력 */}
-            <CouponBar codeFromUrl={codeFromUrl} onApply={(code) => { setCodeFromUrl(code); sessionStorage.setItem('chronit_code', code) }} />
+          <CouponBar codeFromUrl={codeFromUrl} onApply={(code) => { setCodeFromUrl(code); sessionStorage.setItem('chronit_code', code) }} />
 
-            <div
-              className="mx-auto mb-16 grid max-w-6xl gap-6 text-left md:mb-24 md:grid-cols-3 md:gap-8"
-            >
-              {/* 스타터 */}
-              <div onClick={() => openPayment('starter')} className="flex cursor-pointer flex-col rounded-[1.5rem] border border-slate-200 bg-slate-50 p-6 transition-all hover:border-blue-400 sm:rounded-[2rem] md:rounded-[2.5rem] md:p-10">
-                <p className="mb-2 text-[10px] font-bold tracking-widest text-slate-500 uppercase md:text-sm">
-                  Starter
-                </p>
-                <h4 className="mb-3 text-lg font-black text-gray-900 md:text-xl">스타터</h4>
-                <p className="mb-5 text-sm leading-relaxed text-slate-600 md:text-base">
-                  나만의 숏폼 자동화 공장 맛보기
-                </p>
-                <div className="mb-8">
-                  <span className="text-base font-bold text-slate-400 line-through md:text-lg">49,000원</span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-black text-gray-900 md:text-4xl">29,000</span>
-                    <span className="text-lg font-bold text-slate-500 md:text-xl">원 / 월</span>
-                  </div>
+          <div className="grid gap-6 md:grid-cols-3 md:gap-7">
+            {/* 스타터 */}
+            <div onClick={() => openPayment('starter')} className="flex cursor-pointer flex-col rounded-[2rem] border border-gray-200 bg-white p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all hover:border-[#03C75A]/50 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:p-10">
+              <h4 className="mb-2 text-xl font-black text-gray-900">스타터</h4>
+              <p className="mb-5 text-base text-gray-500">처음 시작하는 분께</p>
+              <div className="mb-8">
+                <span className="text-base font-bold text-gray-400 line-through">49,000원</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-black text-gray-900">29,000</span>
+                  <span className="text-lg font-bold text-gray-500">원 / 월</span>
                 </div>
-                <ul className="space-y-2 text-sm leading-relaxed font-medium text-slate-700 md:space-y-3 md:text-base">
-                  <li className="flex items-start gap-2 md:gap-3">
-                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-400" />
-                    <span><strong className="text-gray-900">월 15개</strong> 영상 완성본 제작</span>
-                  </li>
-                  <li className="flex items-start gap-2 md:gap-3">
-                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-400" />
-                    모든 핵심 자동화 기능 무제한 접근
-                  </li>
-                  <li className="flex items-start gap-2 md:gap-3">
-                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-400" />
-                    수익화 링크 다이렉트 연동 (쿠파스 상품 검색 및 인포크링크 즉시 연결)
-                  </li>
-                  <li className="flex items-start gap-2 md:gap-3">
-                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-400" />
-                    크로닛 AI 스크립트 엔진 (조회수 터지는 한국어 후킹 리라이팅)
-                  </li>
-                  <li className="flex items-start gap-2 md:gap-3">
-                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-400" />
-                    스마트 자막 싱크 시스템 (오타 및 단위 발음 완벽 대응 정렬)
-                  </li>
-                  <li className="flex items-start gap-2 md:gap-3">
-                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-400" />
-                    글로벌 커머스 숏폼 소스 매칭 (저작권 걱정 없는 소스 연결)
-                  </li>
-                </ul>
               </div>
-
-              {/* 프로 (추천) */}
-              <div onClick={() => openPayment('pro')} className="group relative flex transform cursor-pointer flex-col rounded-[1.5rem] border border-blue-400 bg-blue-600 p-6 shadow-[0_0_60px_-12px_rgba(37,99,235,0.6)] transition-all duration-500 hover:-translate-y-3 sm:rounded-[2rem] md:rounded-[2.5rem] md:p-10">
-                <div className="absolute -top-3 right-4 flex items-center gap-1 rounded-full bg-white px-3 py-1 text-[10px] font-black whitespace-nowrap text-blue-600 shadow-2xl sm:-top-4 sm:right-6 sm:px-4 sm:py-1.5 sm:text-sm md:-top-5 md:right-8 md:text-base">
-                  <Flame size={14} className="text-orange-500" fill="currentColor" /> BEST
-                </div>
-                <p className="mb-2 text-[10px] font-bold tracking-widest text-blue-100 uppercase md:text-sm">
-                  Pro
-                </p>
-                <h4 className="mb-3 text-lg font-black text-white md:text-xl">프로</h4>
-                <p className="mb-5 text-sm leading-relaxed text-blue-100 md:text-base">
-                  다중 채널 폭발 및 대량 수익화를 위한 핵심 패키지
-                </p>
-                <div className="mb-8">
-                  <span className="text-base font-bold text-blue-200/70 line-through md:text-lg">99,000원</span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-black text-white md:text-5xl">49,000</span>
-                    <span className="text-lg font-bold text-blue-100 md:text-xl">원 / 월</span>
-                  </div>
-                </div>
-                <ul className="space-y-2 text-sm leading-relaxed font-medium text-white md:space-y-3 md:text-base">
-                  <li className="flex items-start gap-2 md:gap-3">
-                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-200" />
-                    <span><strong>월 40개</strong> 영상 완성본 제작 (하루 1~2개, 본격 양산용)</span>
-                  </li>
-                  <li className="flex items-start gap-2 md:gap-3">
-                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-200" />
-                    스타터 요금제의 모든 강력한 기능 포함
-                  </li>
-                  <li className="flex items-start gap-2 md:gap-3">
-                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-200" />
-                    고급 AI 음성 사용 가능 (자연스러운 한국어 TTS 보이스 활성화)
-                  </li>
-                  <li className="flex items-start gap-2 md:gap-3">
-                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-blue-200" />
-                    <span><strong>워터마크 제거</strong> — 완성본에 브랜드 로고 없이 깔끔하게 출력</span>
-                  </li>
-                </ul>
-              </div>
-
-              {/* 마스터 */}
-              <div onClick={() => openPayment('master')} className="flex cursor-pointer flex-col rounded-[1.5rem] border border-slate-200 bg-slate-50 p-6 transition-all hover:border-blue-400 sm:rounded-[2rem] md:rounded-[2.5rem] md:p-10">
-                <p className="mb-2 text-[10px] font-bold tracking-widest text-slate-500 uppercase md:text-sm">
-                  Master
-                </p>
-                <h4 className="mb-3 text-lg font-black text-gray-900 md:text-xl">마스터</h4>
-                <p className="mb-5 text-sm leading-relaxed text-slate-600 md:text-base">
-                  전문 크리에이터 및 대형 대행사를 위한 마스터 패키지
-                </p>
-                <div className="mb-8">
-                  <span className="text-base font-bold text-slate-400 line-through md:text-lg">199,000원</span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-black text-gray-900 md:text-4xl">79,000</span>
-                    <span className="text-lg font-bold text-slate-500 md:text-xl">원 / 월</span>
-                  </div>
-                </div>
-                <ul className="space-y-2 text-sm leading-relaxed font-medium text-slate-700 md:space-y-3 md:text-base">
-                  <li className="flex items-start gap-2 md:gap-3">
-                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-indigo-400" />
-                    <span><strong className="text-gray-900">월 100개</strong> 영상 완성본 제작 (채널 여러 개 동시 운영, 대량 생산)</span>
-                  </li>
-                  <li className="flex items-start gap-2 md:gap-3">
-                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-indigo-400" />
-                    프로 요금제의 모든 강력한 기능 포함
-                  </li>
-                  <li className="flex items-start gap-2 md:gap-3">
-                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-indigo-400" />
-                    향후 신규 업데이트 기능 우선 얼리버드 테스트 권한
-                  </li>
-                </ul>
-              </div>
+              <ul className="space-y-3 text-base font-medium text-gray-700">
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" /><span>월 <strong>15개</strong> 영상 제작</span></li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" />모든 자동화 기능 사용</li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" />자동 자막·제목 추천</li>
+              </ul>
             </div>
 
-            {/* 6개월 안심 패키지 */}
-            <div
-              onClick={() => openPayment('pkg6')}
-              className="mt-4 flex cursor-pointer flex-col items-start justify-between gap-4 rounded-[1.5rem] border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 p-6 transition-all hover:border-amber-400 hover:shadow-[0_0_40px_-10px_rgba(251,191,36,0.5)] sm:flex-row sm:items-center md:rounded-[2rem] md:p-8"
-            >
-              <div>
-                <div className="mb-1 flex items-center gap-2">
-                  <span className="rounded-full bg-amber-400 px-3 py-1 text-[11px] font-black text-white">안심 패키지</span>
-                  <h4 className="text-lg font-black text-gray-900 md:text-xl">프로 6개월</h4>
-                </div>
-                <p className="text-sm leading-relaxed text-slate-600 md:text-base">
-                  프로 요금제를 <strong className="text-gray-900">6개월간 유지</strong> · 매월 크레딧 충전 · 가장 가성비 좋은 장기 플랜
-                </p>
-              </div>
-              <div className="shrink-0 text-left sm:text-right">
-                <span className="text-base font-bold text-slate-400 line-through md:text-lg">594,000원</span>
-                <div className="flex items-baseline gap-1 sm:justify-end">
-                  <span className="text-3xl font-black text-amber-600 md:text-4xl">249,000</span>
-                  <span className="text-base font-bold text-slate-500 md:text-lg">원</span>
+            {/* 프로 (추천) */}
+            <div onClick={() => openPayment('pro')} className="relative flex cursor-pointer flex-col rounded-[2rem] border-2 border-[#03C75A] bg-[#03C75A] p-8 shadow-[0_12px_40px_-8px_rgba(3,199,90,0.5)] transition-all hover:-translate-y-1 md:p-10">
+              <div className="absolute -top-3 right-6 rounded-full bg-[#FFB800] px-4 py-1 text-sm font-black text-white shadow-md">가장 인기</div>
+              <h4 className="mb-2 text-xl font-black text-white">프로</h4>
+              <p className="mb-5 text-base text-white/80">매일 꾸준히 올리는 분께</p>
+              <div className="mb-8">
+                <span className="text-base font-bold text-white/60 line-through">99,000원</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-black text-white md:text-5xl">49,000</span>
+                  <span className="text-lg font-bold text-white/80">원 / 월</span>
                 </div>
               </div>
+              <ul className="space-y-3 text-base font-medium text-white">
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-white" /><span>월 <strong>40개</strong> 영상 제작 (하루 1~2개)</span></li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-white" />스타터의 모든 기능 포함</li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-white" />고급 AI 음성 사용</li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-white" />워터마크 없이 깔끔하게</li>
+              </ul>
             </div>
 
-            <button
-              onClick={() => openPayment(selectedPlan)}
-              className="shadow-3xl w-full rounded-[2rem] bg-white px-8 py-5 text-lg font-black text-blue-950 transition-all hover:bg-slate-100 active:scale-95 sm:w-auto md:rounded-[2.5rem] md:px-20 md:py-7 md:text-xl"
-            >
+            {/* 마스터 */}
+            <div onClick={() => openPayment('master')} className="flex cursor-pointer flex-col rounded-[2rem] border border-gray-200 bg-white p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all hover:border-[#03C75A]/50 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:p-10">
+              <h4 className="mb-2 text-xl font-black text-gray-900">마스터</h4>
+              <p className="mb-5 text-base text-gray-500">여러 채널을 운영하는 분께</p>
+              <div className="mb-8">
+                <span className="text-base font-bold text-gray-400 line-through">199,000원</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-black text-gray-900">79,000</span>
+                  <span className="text-lg font-bold text-gray-500">원 / 월</span>
+                </div>
+              </div>
+              <ul className="space-y-3 text-base font-medium text-gray-700">
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" /><span>월 <strong>100개</strong> 영상 제작</span></li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" />프로의 모든 기능 포함</li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" />새 기능 우선 체험</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* 6개월 안심 패키지 */}
+          <div onClick={() => openPayment('pkg6')}
+            className="mt-6 flex cursor-pointer flex-col items-start justify-between gap-4 rounded-[2rem] border-2 border-[#FFB800] bg-[#FFFBEB] p-7 transition-all hover:shadow-[0_8px_30px_-8px_rgba(255,184,0,0.5)] sm:flex-row sm:items-center md:p-9">
+            <div>
+              <div className="mb-1 flex items-center gap-2">
+                <span className="rounded-full bg-[#FFB800] px-3 py-1 text-xs font-black text-white">안심 패키지</span>
+                <h4 className="text-xl font-black text-gray-900">프로 6개월</h4>
+              </div>
+              <p className="text-base text-gray-600">프로 요금제를 <strong className="text-gray-900">6개월 동안</strong> · 매월 크레딧 충전 · 가장 알뜰한 장기 플랜</p>
+            </div>
+            <div className="shrink-0 text-left sm:text-right">
+              <span className="text-base font-bold text-gray-400 line-through">594,000원</span>
+              <div className="flex items-baseline gap-1 sm:justify-end">
+                <span className="text-4xl font-black text-[#b07d00]">249,000</span>
+                <span className="text-lg font-bold text-gray-500">원</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-12 text-center">
+            <button onClick={() => openPayment(selectedPlan)}
+              className="w-full rounded-2xl bg-[#03C75A] px-8 py-5 text-xl font-black text-white shadow-lg shadow-[#03C75A]/25 transition-all hover:bg-[#02b350] active:scale-95 sm:w-auto md:px-20 md:py-6">
               무료로 시작하기
             </button>
           </div>
@@ -1009,48 +617,32 @@ const Home = () => {
 
       {/* 이벤트 게시판 */}
       {events.length > 0 && (
-        <section id="events" className="bg-white px-5 py-12 md:px-8">
+        <section id="events" className="px-5 py-12 md:px-8">
           <div className="mx-auto max-w-4xl">
             <h2 className="mb-8 text-2xl font-black tracking-tight text-gray-900">이벤트</h2>
-
-            {/* 탭 */}
             <div className="mb-1 flex border-b border-gray-200">
               {[
                 { key: 'active', label: '진행중인 이벤트' },
                 { key: 'ended',  label: '종료된 이벤트' },
                 { key: 'winner', label: '당첨자 발표' },
               ].map(tab => (
-                <button
-                  key={tab.key}
-                  onClick={() => setEventTab(tab.key)}
-                  className={`px-5 py-3 text-sm font-bold transition-colors border-b-2 -mb-px ${
-                    eventTab === tab.key
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-slate-400 hover:text-slate-600'
-                  }`}
-                >
+                <button key={tab.key} onClick={() => setEventTab(tab.key)}
+                  className={`px-5 py-3 text-sm font-bold transition-colors border-b-2 -mb-px ${eventTab === tab.key ? 'border-[#03C75A] text-[#03C75A]' : 'border-transparent text-gray-400 hover:text-gray-600'}`}>
                   {tab.label}
-                  <span className="ml-1.5 rounded-full bg-gray-100 px-1.5 py-0.5 text-xs text-slate-500">
-                    {events.filter(e => e.status === tab.key).length}
-                  </span>
+                  <span className="ml-1.5 rounded-full bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">{events.filter(e => e.status === tab.key).length}</span>
                 </button>
               ))}
             </div>
-
-            {/* 목록 */}
             <div className="divide-y divide-gray-100">
               {events.filter(e => e.status === eventTab).length === 0 ? (
-                <p className="py-12 text-center text-sm text-slate-400">해당 이벤트가 없습니다</p>
+                <p className="py-12 text-center text-sm text-gray-400">해당 이벤트가 없습니다</p>
               ) : (
                 events.filter(e => e.status === eventTab).map(ev => (
-                  <button
-                    key={ev.id}
-                    onClick={() => setSelectedEvent(ev)}
-                    className="flex w-full items-center gap-4 px-2 py-4 text-left transition-colors hover:bg-gray-50"
-                  >
+                  <button key={ev.id} onClick={() => setSelectedEvent(ev)}
+                    className="flex w-full items-center gap-4 px-2 py-4 text-left transition-colors hover:bg-gray-50">
                     <EventBadge status={ev.status} label={ev.label} />
                     <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-800">{ev.title}</span>
-                    <span className="shrink-0 text-xs text-slate-400">
+                    <span className="shrink-0 text-xs text-gray-400">
                       {new Date(ev.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '')}
                     </span>
                   </button>
@@ -1062,150 +654,62 @@ const Home = () => {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-gray-200 bg-[#F5F4F0] px-5 py-12 md:px-8 md:py-16">
-        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-12 md:flex-row md:gap-16">
+      <footer className="border-t border-gray-200 bg-white px-5 py-12 md:px-8 md:py-16">
+        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-10 md:flex-row md:gap-16">
           <div className="max-w-md">
-            <div className="mb-6 flex items-center gap-3 md:mb-10">
-              <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-8 w-8" />
-              <h1 className="text-2xl font-black tracking-tighter text-gray-900">Chronit</h1>
+            <div className="mb-5 flex items-center gap-3">
+              <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-9 w-9" />
+              <h1 className="text-2xl font-black tracking-tight text-gray-900">Chronit</h1>
             </div>
-            <p className="text-lg leading-[1.8] font-medium text-slate-600 md:text-xl">
-              우리는 당신의 '시간'이 가장 가치 있는 자산이라 믿습니다.
-              <br />
-              실무진의 고뇌가 담긴 도구로 숏폼 비즈니스의 격을 높이세요.
+            <p className="text-lg leading-[1.8] font-medium text-gray-600">
+              당신의 시간을 아껴주는<br />가장 쉬운 숏폼 도구.
             </p>
           </div>
           <div className="grid w-full grid-cols-3 gap-6 sm:gap-12 md:w-auto md:gap-20">
-            <div className="flex flex-col gap-4 md:gap-6">
-              <span className="text-sm font-bold tracking-widest text-gray-900 uppercase md:text-base">
-                서비스
-              </span>
-              <a
-                href="#features"
-                className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
-              >
-                기능
-              </a>
-              <a
-                href="#pricing"
-                className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
-              >
-                요금제
-              </a>
-              <a
-                href="/events"
-                className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
-              >
-                이벤트
-              </a>
+            <div className="flex flex-col gap-4">
+              <span className="text-base font-bold text-gray-900">서비스</span>
+              <a href="#features" className="text-base font-medium text-gray-500 transition-colors hover:text-[#03C75A]">기능</a>
+              <a href="#pricing" className="text-base font-medium text-gray-500 transition-colors hover:text-[#03C75A]">요금제</a>
+              <a href="/events" className="text-base font-medium text-gray-500 transition-colors hover:text-[#03C75A]">이벤트</a>
             </div>
-            <div className="flex flex-col gap-4 md:gap-6">
-              <span className="text-sm font-bold tracking-widest text-gray-900 uppercase md:text-base">
-                회사
-              </span>
-              <a
-                href="#"
-                className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
-              >
-                회사 소개
-              </a>
-              <a
-                href="mailto:support@chronit.kr"
-                className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
-              >
-                문의하기
-              </a>
+            <div className="flex flex-col gap-4">
+              <span className="text-base font-bold text-gray-900">회사</span>
+              <a href="#" className="text-base font-medium text-gray-500 transition-colors hover:text-[#03C75A]">회사 소개</a>
+              <a href="mailto:support@chronit.kr" className="text-base font-medium text-gray-500 transition-colors hover:text-[#03C75A]">문의하기</a>
             </div>
-            <div className="flex flex-col gap-4 md:gap-6">
-              <span className="text-sm font-bold tracking-widest text-gray-900 uppercase md:text-base">
-                법적고지
-              </span>
-              <Link
-                to="/privacy"
-                className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
-              >
-                개인정보처리방침
-              </Link>
-              <Link
-                to="/terms"
-                className="text-base font-medium text-slate-500 transition-colors hover:text-blue-400 md:text-lg"
-              >
-                이용약관
-              </Link>
+            <div className="flex flex-col gap-4">
+              <span className="text-base font-bold text-gray-900">법적고지</span>
+              <Link to="/privacy" className="text-base font-medium text-gray-500 transition-colors hover:text-[#03C75A]">개인정보처리방침</Link>
+              <Link to="/terms" className="text-base font-medium text-gray-500 transition-colors hover:text-[#03C75A]">이용약관</Link>
             </div>
           </div>
         </div>
-        <div className="mx-auto mt-16 flex max-w-7xl flex-col items-center justify-between gap-6 border-t border-gray-200 pt-8 md:mt-32 md:flex-row md:gap-8 md:pt-10">
-          <p className="text-center text-[10px] font-bold tracking-[0.3em] text-slate-400 uppercase md:text-sm md:tracking-[0.4em]">
-            &copy; 2026 Chronit Labs. Crafting Future Efficiency.
-          </p>
-          <div className="flex gap-6 md:gap-8">
-            <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-gray-200 text-gray-600 transition-all hover:bg-blue-600 hover:text-white">
-              <Users size={20} />
-            </div>
-            <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-gray-200 text-gray-600 transition-all hover:bg-blue-600 hover:text-white">
-              <MessageCircle size={20} />
-            </div>
+        <div className="mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-6 border-t border-gray-200 pt-8 md:flex-row md:pt-10">
+          <p className="text-center text-sm font-medium text-gray-400">&copy; 2026 Chronit</p>
+          <div className="flex gap-4">
+            <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-gray-100 text-gray-500 transition-all hover:bg-[#03C75A] hover:text-white"><Users size={20} /></div>
+            <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-gray-100 text-gray-500 transition-all hover:bg-[#03C75A] hover:text-white"><MessageCircle size={20} /></div>
           </div>
         </div>
       </footer>
 
-      {/* Global CSS for Animations */}
-      <style jsx global>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @keyframes burn {
-          0% {
-            color: #ffffff;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-          }
-          50% {
-            color: #ef4444;
-            text-shadow:
-              0 0 20px rgba(239, 68, 68, 0.8),
-              0 0 40px rgba(239, 68, 68, 0.4);
-            transform: scale(1.05);
-          }
-          100% {
-            color: #ffffff;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-          }
-        }
-        .animate-fade-in {
-          animation: fade-in 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .animate-burn {
-          animation: burn 3s ease-in-out infinite;
-          display: inline-block;
-        }
-        html {
-          scroll-behavior: smooth;
-        }
-        body {
-          -webkit-font-smoothing: antialiased;
-        }
-        ::-webkit-scrollbar {
-          width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-          background: #020617;
-        }
-        ::-webkit-scrollbar-thumb {
-          background: #1e293b;
-          border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-          background: #334155;
-        }
+      <style>{`
+        .event-content img { max-width:100%; border-radius:8px; margin:0.5em 0; }
+        .event-content p { margin:0.6em 0; line-height:1.8; }
+        .event-content h1 { font-size:1.6em; font-weight:800; margin:0.8em 0 0.4em; color:#111827; }
+        .event-content h2 { font-size:1.3em; font-weight:700; margin:0.8em 0 0.4em; color:#111827; }
+        .event-content h3 { font-size:1.1em; font-weight:700; margin:0.6em 0 0.3em; color:#111827; }
+        .event-content ul, .event-content ol { padding-left:1.5em; margin:0.5em 0; }
+        .event-content li { margin:0.3em 0; }
+        .event-content blockquote { border-left:3px solid #03C75A; padding-left:1em; color:#6b7280; margin:0.6em 0; }
+        .event-content a { color:#03C75A; text-decoration:underline; }
+        .event-content strong { color:#111827; font-weight:700; }
+        @keyframes badge-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+        .badge-pulse { animation: badge-pulse 2s ease-in-out infinite; }
+        html { scroll-behavior: smooth; }
+        body { -webkit-font-smoothing: antialiased; }
       `}</style>
+
       <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} referralCode={refFromUrl} />
       <TermsModal open={showTermsModal} onAgree={handleTermsAgree} onClose={() => setShowTermsModal(false)} />
       <PaymentModal
@@ -1219,47 +723,7 @@ const Home = () => {
   )
 }
 
-const FeatureCard = ({ icon, title, description }) => (
-  <div className="group rounded-2xl border border-white/10 bg-white/5 p-6 shadow-sm transition-all duration-300 hover:border-blue-400 hover:bg-white/10 sm:rounded-3xl sm:p-8">
-    <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50 transition-all duration-300 group-hover:scale-110 group-hover:bg-blue-50">
-      {React.cloneElement(icon, { size: 28 })}
-    </div>
-    <h4 className="mb-3 text-xl font-bold text-white md:text-2xl">
-      {title}
-    </h4>
-    <p className="text-base leading-[1.8] text-slate-300 md:text-lg">
-      {description}
-    </p>
-  </div>
-)
-
-/* ──────────────────────────────────────────────────────
-   히어로 폰 목업 영상 — demo_videos 첫 번째 영상 자동재생
-────────────────────────────────────────────────────── */
-const HeroPhoneVideo = () => {
-  const [url, setUrl] = useState(null)
-  useEffect(() => {
-    supabase.from('demo_videos').select('url').order('sort_order').limit(1)
-      .then(({ data }) => { if (data?.[0]) setUrl(data[0].url) })
-  }, [])
-  return (
-    <div style={{ background: '#0f1120', aspectRatio: '9/16', overflow: 'hidden' }}>
-      {url
-        ? <video src={url} muted loop playsInline autoPlay style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-        : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '300px' }}>
-            <div style={{ width: '36px', height: '36px', borderRadius: '50%', border: '3px solid #3b82f6', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
-          </div>
-      }
-    </div>
-  )
-}
-
-/* ──────────────────────────────────────────────────────
-   데모 영상 캐러셀
-   - 중앙 영상만 활성(autoplay/unmuted), 나머지는 흐리게
-   - 좌우 클릭 or 드래그로 이동, 무한 루프
-────────────────────────────────────────────────────── */
-
+/* ── 데모 영상 캐러셀 ── */
 const DemoCarousel = () => {
   const [videos, setVideos] = useState([])
   const [active, setActive] = useState(0)
@@ -1292,34 +756,20 @@ const DemoCarousel = () => {
   }, [active, videos])
 
   const onMouseDown = (e) => { dragStartX.current = e.clientX }
-  const onMouseUp = (e) => {
-    const dx = e.clientX - dragStartX.current
-    if (Math.abs(dx) > 40) dx < 0 ? next() : prev()
-  }
+  const onMouseUp = (e) => { const dx = e.clientX - dragStartX.current; if (Math.abs(dx) > 40) dx < 0 ? next() : prev() }
   const onTouchStart = (e) => { dragStartX.current = e.touches[0].clientX }
-  const onTouchEnd = (e) => {
-    const dx = e.changedTouches[0].clientX - dragStartX.current
-    if (Math.abs(dx) > 40) dx < 0 ? next() : prev()
-  }
+  const onTouchEnd = (e) => { const dx = e.changedTouches[0].clientX - dragStartX.current; if (Math.abs(dx) > 40) dx < 0 ? next() : prev() }
 
   if (!n) return null
 
   return (
-    <section className="relative bg-white pt-16 pb-10 md:pt-20 md:pb-16">
+    <section className="px-5 pt-16 pb-10 md:pt-20 md:pb-16">
       <div className="mb-10 text-center md:mb-14">
-        <p className="mb-2 text-xs font-bold tracking-[0.3em] text-blue-400 uppercase md:text-sm">DEMO</p>
-        <h2 className="text-2xl font-black tracking-tight text-gray-900 md:text-4xl">
-          {"실제 제작된 영상을 확인하세요"}
-        </h2>
+        <h2 className="text-2xl font-black tracking-tight text-gray-900 md:text-4xl">이렇게 만들어져요</h2>
+        <p className="mt-3 text-lg text-gray-500">실제로 크로닛이 만든 영상이에요</p>
       </div>
-      <div
-        className="relative flex items-center justify-center select-none"
-        style={{ height: 'min(72vw, 560px)' }}
-        onMouseDown={onMouseDown}
-        onMouseUp={onMouseUp}
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
-      >
+      <div className="relative flex items-center justify-center select-none" style={{ height: 'min(72vw, 560px)' }}
+        onMouseDown={onMouseDown} onMouseUp={onMouseUp} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         {videos.map((src, vidIdx) => {
           let offset = (vidIdx - active + n) % n
           if (offset > n / 2) offset -= n
@@ -1331,96 +781,29 @@ const DemoCarousel = () => {
           const opacity = isCenter ? 1 : absOff === 1 ? 0.55 : 0.2
           const zIndex = isCenter ? 20 : absOff === 1 ? 10 : 5
           return (
-            <div
-              key={vidIdx}
-              onClick={() => { if (!isCenter) setActive(vidIdx) }}
-              style={{
-                position: 'absolute',
-                transform: `translateX(${translateX}px) scale(${scale})`,
-                opacity: visible ? opacity : 0,
-                zIndex,
-                transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease',
-                willChange: 'transform, opacity',
-                cursor: isCenter ? 'default' : 'pointer',
-                pointerEvents: visible ? 'auto' : 'none',
-              }}
-            >
-              <div style={{
-                width: 'min(52vw, 280px)',
-                aspectRatio: '9/16',
-                borderRadius: '1.25rem',
-                overflow: 'hidden',
-                boxShadow: isCenter
-                  ? '0 30px 80px -10px rgba(59,130,246,0.35), 0 0 0 1px rgba(255,255,255,0.08)'
-                  : '0 10px 30px -10px rgba(0,0,0,0.5)',
-                boxShadow: isCenter ? '0 30px 60px -10px rgba(0,0,0,0.35), 0 4px 6px rgba(0,0,0,0.1)' : '0 10px 30px -5px rgba(0,0,0,0.2)',
-                transition: 'box-shadow 0.5s ease',
-              }}>
-                <video
-                  ref={el => { videoRefs.current[vidIdx] = el }}
-                  src={src}
-                  muted
-                  loop
-                  playsInline
-                  autoPlay={isCenter}
-                  preload="auto"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', background: '#0f172a' }}
-                />
+            <div key={vidIdx} onClick={() => { if (!isCenter) setActive(vidIdx) }}
+              style={{ position: 'absolute', transform: `translateX(${translateX}px) scale(${scale})`, opacity: visible ? opacity : 0, zIndex,
+                transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease', willChange: 'transform, opacity',
+                cursor: isCenter ? 'default' : 'pointer', pointerEvents: visible ? 'auto' : 'none' }}>
+              <div style={{ width: 'min(52vw, 280px)', aspectRatio: '9/16', borderRadius: '1.5rem', overflow: 'hidden',
+                boxShadow: isCenter ? '0 30px 60px -10px rgba(0,0,0,0.25), 0 4px 6px rgba(0,0,0,0.08)' : '0 10px 30px -5px rgba(0,0,0,0.15)',
+                transition: 'box-shadow 0.5s ease', border: '1px solid rgba(0,0,0,0.06)' }}>
+                <video ref={el => { videoRefs.current[vidIdx] = el }} src={src} muted loop playsInline autoPlay={isCenter} preload="auto"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', background: '#f3f4f6' }} />
               </div>
             </div>
           )
         })}
       </div>
       <div className="mt-8 flex items-center justify-center gap-6">
-        <button onClick={prev} className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-slate-300 bg-white text-slate-700 shadow transition-all hover:border-blue-500 hover:text-blue-500 active:scale-95 md:h-12 md:w-12">{"<"}</button>
+        <button onClick={prev} className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-700 shadow transition-all hover:border-[#03C75A] hover:text-[#03C75A] active:scale-95">{"<"}</button>
         <div className="flex gap-2">
           {videos.map((_, i) => (
-            <button key={i} onClick={() => setActive(i)}
-              className="h-1.5 rounded-full transition-all duration-300"
-              style={{ width: i === active ? '24px' : '6px', background: i === active ? '#3b82f6' : '#cbd5e1' }}
-            />
+            <button key={i} onClick={() => setActive(i)} className="h-1.5 rounded-full transition-all duration-300"
+              style={{ width: i === active ? '24px' : '6px', background: i === active ? '#03C75A' : '#d1d5db' }} />
           ))}
         </div>
-        <button onClick={next} className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-slate-300 bg-white text-slate-700 shadow transition-all hover:border-blue-500 hover:text-blue-500 active:scale-95 md:h-12 md:w-12">{">"}</button>
-      </div>
-
-      {/* 3단계 수익화 섹션 */}
-      <div className="mx-auto max-w-4xl px-5 pt-16 pb-16 md:px-8 md:pt-20 md:pb-20">
-        <div className="rounded-3xl border-4 border-orange-400 p-8 md:p-12">
-          <div className="mb-10 text-center">
-            <p className="mb-2 inline-block rounded-full border-2 border-orange-400 px-4 py-1 text-xs font-bold tracking-[0.3em] text-orange-500 uppercase md:text-sm">HOW IT WORKS</p>
-          <h2 className="mb-3 text-2xl font-black text-gray-900 md:text-4xl">크로닛으로 구축하는 3단계 자동화</h2>
-          <p className="text-base text-gray-500 md:text-lg">복잡한 과정은 없습니다. 시스템이 스스로 작동하는 파이프라인을 확인하세요.</p>
-        </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
-          {[
-            {
-              step: '01', label: 'Click', title: '상품 링크 복사',
-              desc: '릴스나 쇼츠의 판매하고 싶은 상품 링크를 크로닛에 넣습니다.',
-              emoji: '🔗', color: 'border-blue-200 bg-blue-50', badge: 'text-blue-600 bg-blue-100',
-            },
-            {
-              step: '02', label: 'Create', title: 'AI 릴스 제작',
-              desc: 'AI가 상품에 맞는 자막과 편집으로 2분 만에 숏폼 영상을 찍어냅니다.',
-              emoji: '🎬', color: 'border-indigo-200 bg-indigo-50', badge: 'text-indigo-600 bg-indigo-100',
-            },
-            {
-              step: '03', label: 'Earn', title: '프로필 링크로 수익 창출',
-              desc: '완성된 영상을 업로드하고 프로필에 수익화 링크를 걸어두면, 시청자 구매 시마다 리워드가 쌓입니다.',
-              emoji: '💰', color: 'border-emerald-200 bg-emerald-50', badge: 'text-emerald-600 bg-emerald-100',
-            },
-          ].map(({ step, label, title, desc, emoji, color, badge }) => (
-            <div key={step} className={`relative rounded-2xl border p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] ${color}`}>
-              <div className="mb-4 flex items-center gap-3">
-                <span className={`rounded-full px-3 py-1 text-xs font-black ${badge}`}>Step {step} · {label}</span>
-              </div>
-              <div className="mb-3 text-4xl">{emoji}</div>
-              <h3 className="mb-2 text-lg font-black text-gray-900">{title}</h3>
-              <p className="text-sm leading-relaxed text-gray-500">{desc}</p>
-            </div>
-          ))}
-        </div>
-        </div>
+        <button onClick={next} className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-700 shadow transition-all hover:border-[#03C75A] hover:text-[#03C75A] active:scale-95">{">"}</button>
       </div>
     </section>
   )
