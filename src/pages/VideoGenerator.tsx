@@ -229,9 +229,10 @@ export default function VideoGenerator() {
     if (!job) return;
     if (job.status === "done") {
       if (stage === 5) setStage(1); // 자동 생성 흐름이면 1단계로 복귀
-      setCompletionAlert("✅ 영상 생성 완료! 아래 생성 내역에서 확인하세요.");
+      setCompletionAlert("✅ 영상 생성 완료! 생성 내역으로 이동합니다.");
       try { new Audio("https://www.soundjay.com/buttons/sounds/button-09a.mp3").play(); } catch {}
       setCurrentJobId("");
+      setActiveView("history"); // 완료 시 생성 내역으로 자동 이동
     } else if (job.status === "error") {
       setCompletionAlert("❌ 영상 생성 실패: " + (job.error_message || "다시 시도해주세요."));
       setCurrentJobId("");
@@ -794,6 +795,20 @@ export default function VideoGenerator() {
           </div>
         </div>
       )}
+      {/* ── 백그라운드 렌더 진행 배너 (제출 후 합성 도는 동안) ── */}
+      {!autoRunning && currentJobId && (() => {
+        const bg = jobs.find(j => j.id === currentJobId);
+        if (bg && (bg.status === "done" || bg.status === "error")) return null;
+        return (
+          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 rounded-2xl bg-gray-900 border border-cyan-500/40 shadow-2xl shadow-cyan-500/10 px-5 py-3 flex items-center gap-3">
+            <div className="w-5 h-5 border-2 border-gray-700 border-t-cyan-400 rounded-full animate-spin shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-white">영상 생성 중...</p>
+              <p className="text-xs text-gray-500">완료까지 몇 분 걸려요. 다른 작업을 해도 됩니다.</p>
+            </div>
+          </div>
+        );
+      })()}
       {/* ── 왼쪽 사이드바 ── */}
       {/* ── 좌측 탭 네비 (좁게) ── */}
       <div className="w-52 shrink-0 border-r border-gray-800 flex flex-col">
@@ -2382,7 +2397,7 @@ function JobCard({ job }: { job: Job }) {
           <a href={job.video_url} download className="shrink-0 rounded-xl bg-cyan-500 px-3 py-2 text-xs font-bold text-white hover:bg-cyan-400 transition">다운로드</a>
         )}
         {job.status === "done" && !job.video_url && job.expired && (
-          <span className="shrink-0 text-xs text-gray-500">⌛ 보관 만료(7일)</span>
+          <span className="shrink-0 text-xs text-gray-500">⌛ 보관 만료(3일)</span>
         )}
         {(job.status === "pending" || job.status === "processing") && (
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent shrink-0" />
@@ -2660,7 +2675,9 @@ function HistoryView({ session }: { session: any }) {
     ? j.video_url + (j.video_url.includes("?")?"&":"?") + "download=" + encodeURIComponent((j.product_name||"chronit")+".mp4")
     : "";
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+    <div>
+      <p className="text-xs text-gray-500 mb-4">생성된 영상은 생성 후 3일간 보관됩니다. 기간이 지나면 다운로드할 수 없으니 미리 받아두세요.</p>
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
       {jobs.map(j=>{
         const done = j.status==="done" && j.video_url && !j.expired;
         return (
@@ -2689,13 +2706,14 @@ function HistoryView({ session }: { session: any }) {
                 </a>
               ) : (
                 <span className="mt-auto block text-center rounded-xl bg-gray-800 px-3 py-2.5 text-xs text-gray-500">
-                  {j.status==="error"?"실패":j.expired?"보관 만료(7일)":"생성 중"}
+                  {j.status==="error"?"실패":j.expired?"보관 만료(3일)":"생성 중"}
                 </span>
               )}
             </div>
           </div>
         );
       })}
+      </div>
     </div>
   );
 }
