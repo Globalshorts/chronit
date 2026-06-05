@@ -1628,6 +1628,13 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
   activeView: string; onViewChange: (v:string)=>void; userRole: string;
   balance: number|null; userPlan: string|null; session: any;
 }) {
+  const [extractRunning, setExtractRunning] = React.useState(
+    _extractMgr.state?.status==="starting" || _extractMgr.state?.status==="processing");
+  React.useEffect(()=>{
+    const l = (s:any)=>setExtractRunning(s?.status==="starting"||s?.status==="processing");
+    _extractMgr.listeners.add(l);
+    return ()=>{ _extractMgr.listeners.delete(l); };
+  }, []);
   const NAV = [
     { v: "generator",     icon: "📁", label: "프로젝트" },
     { v: "auto-settings", icon: "⚙️", label: "자동화 세팅" },
@@ -1653,6 +1660,9 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
           <button key={v} onClick={() => onViewChange(v)}
             className={`w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold transition flex items-center gap-2.5 ${activeView === v ? "bg-cyan-500/15 text-cyan-400" : "text-gray-400 hover:bg-gray-800 hover:text-white"}`}>
             <span>{icon}</span><span>{label}</span>
+            {v==="product-search" && extractRunning && (
+              <span className="ml-auto w-2 h-2 rounded-full bg-cyan-400 animate-pulse" title="검색어 추출 중" />
+            )}
           </button>
         ))}
       </div>
@@ -2805,6 +2815,51 @@ function SettingsView({ session, supabase, balance, userPlan }:
 const COUPANG_RX = /https?:\/\/(?:[\w-]+\.)?coupang\.com\/[^\s'"]+|https?:\/\/link\.coupang\.com\/[^\s'"]+/gi;
 const PS_KEY = "chronit_product_urls";
 
+// ── 백그라운드 키워드 추출 매니저 (탭 이동/새로고침에도 유지) ──
+const EXTRACT_KEY = "chronit_extract_job";
+const _extractMgr: { state:any; listeners:Set<(s:any)=>void>; polling:boolean } = {
+  state: (()=>{ try { return JSON.parse(localStorage.getItem(EXTRACT_KEY)||"null"); } catch { return null; } })(),
+  listeners: new Set(),
+  polling: false,
+};
+function _extractEmit() {
+  try { localStorage.setItem(EXTRACT_KEY, JSON.stringify(_extractMgr.state)); } catch {}
+  _extractMgr.listeners.forEach(l=>{ try{ l(_extractMgr.state); }catch{} });
+}
+async function _extractPoll(supabase:any, pid:string, source_url:string) {
+  if (_extractMgr.polling) return;
+  _extractMgr.polling = true;
+  try {
+    const { data:{ session:s } } = await supabase.auth.getSession();
+    const post = (b:any)=>fetch(FN("extract-keywords"),{method:"POST",headers:{Authorization:`Bearer ${s?.access_token}`,"Content-Type":"application/json"},body:JSON.stringify(b)}).then((r:any)=>r.json());
+    const start = Date.now();
+    while (Date.now()-start < 360000) {
+      await new Promise(r=>setTimeout(r,4000));
+      let p:any; try { p = await post({ poll:true, prediction_id: pid }); } catch { continue; }
+      if (p.status==="succeeded") { _extractMgr.state = { source_url, status:"succeeded", result:{ product_name:p.product_name, use_case:p.use_case, queries:p.queries||[], keywords:p.keywords||[] } }; _extractEmit(); return; }
+      if (p.status==="failed"||p.status==="canceled") { _extractMgr.state = { source_url, status:"failed", error:p.error||"추출 실패" }; _extractEmit(); return; }
+    }
+    if (_extractMgr.state?.status==="processing") { _extractMgr.state = { source_url, status:"failed", error:"시간 초과" }; _extractEmit(); }
+  } finally { _extractMgr.polling = false; }
+}
+async function startExtract(supabase:any, source_url:string) {
+  if (_extractMgr.state && (_extractMgr.state.status==="starting"||_extractMgr.state.status==="processing")) return;
+  _extractMgr.state = { source_url, status:"starting", startedAt:Date.now() }; _extractEmit();
+  try {
+    const { data:{ session:s } } = await supabase.auth.getSession();
+    const post = (b:any)=>fetch(FN("extract-keywords"),{method:"POST",headers:{Authorization:`Bearer ${s?.access_token}`,"Content-Type":"application/json"},body:JSON.stringify(b)}).then((r:any)=>r.json());
+    const d = await post({ source_url });
+    if (!d.ok || !d.prediction_id) { _extractMgr.state = { source_url, status:"failed", error:d.error||"추출 실패" }; _extractEmit(); return; }
+    _extractMgr.state = { source_url, status:"processing", prediction_id:d.prediction_id, startedAt:Date.now() }; _extractEmit();
+    _extractPoll(supabase, d.prediction_id, source_url);
+  } catch(e) { _extractMgr.state = { source_url, status:"failed", error:String(e) }; _extractEmit(); }
+}
+function resumeExtract(supabase:any) {
+  const st = _extractMgr.state;
+  if (st && st.status==="processing" && st.prediction_id && !_extractMgr.polling) _extractPoll(supabase, st.prediction_id, st.source_url);
+}
+function clearExtract() { _extractMgr.state = null; _extractEmit(); }
+
 function ProductSearchView({ session, supabase }: { session:any; supabase:any }) {
   // 활성 프로젝트는 진행중 자동저장(chronit_project_v1)의 실시간 cart를 반영
   const projOpts = React.useMemo(()=>{
@@ -2823,12 +2878,31 @@ function ProductSearchView({ session, supabase }: { session:any; supabase:any })
   }, []);
   const [projId, setProjId] = React.useState(projOpts[0]?.id ?? "");
   const [url, setUrl]       = React.useState("");
-  const [kw, setKw]         = React.useState<any>(null);
-  const [extracting, setExtracting] = React.useState(false);
-  const [kwMsg, setKwMsg]   = React.useState("");
+  const [job, setJob]       = React.useState<any>(_extractMgr.state);
+  const [note, setNote]     = React.useState("");
+  const [, setTick]         = React.useState(0);
   const [urls, setUrls]     = React.useState<string[]>(()=>{ try{return JSON.parse(localStorage.getItem(PS_KEY)||"[]");}catch{return [];} });
   const [copied, setCopied] = React.useState(false);
   const [hint, setHint]     = React.useState("");
+
+  // 백그라운드 추출 상태 구독 + 새로고침 후 재개
+  React.useEffect(()=>{
+    const l = (s:any)=>setJob(s ? {...s} : null);
+    _extractMgr.listeners.add(l);
+    resumeExtract(supabase);
+    setJob(_extractMgr.state ? {..._extractMgr.state} : null);
+    return ()=>{ _extractMgr.listeners.delete(l); };
+  }, []);
+
+  const extracting = job?.status==="starting" || job?.status==="processing";
+  const kw = job?.status==="succeeded" ? job.result : null;
+  const elapsed = (extracting && job?.startedAt) ? Math.floor((Date.now()-job.startedAt)/1000) : 0;
+  const kwMsg = extracting
+    ? `분석 중... ${elapsed}s (최대 4분, 다른 탭으로 이동해도 백그라운드로 계속됩니다)`
+    : (job?.status==="failed" ? ("추출 실패: "+(job.error||"")) : note);
+
+  // 추출 중 경과시간 표시용 1초 틱
+  React.useEffect(()=>{ if(!extracting) return; const iv=setInterval(()=>setTick(t=>t+1),1000); return ()=>clearInterval(iv); }, [extracting]);
 
   React.useEffect(()=>{ localStorage.setItem(PS_KEY, JSON.stringify(urls.slice(0,500))); }, [urls]);
 
@@ -2843,24 +2917,11 @@ function ProductSearchView({ session, supabase }: { session:any; supabase:any })
     catch { setHint("클립보드 접근 불가 — 아래에 붙여넣기(Ctrl+V) 하세요"); setTimeout(()=>setHint(""),2500); }
   };
 
-  const extract = async (src:string) => {
-    if (!src) { setKwMsg("URL 또는 프로젝트를 선택하세요"); return; }
-    setExtracting(true); setKw(null); setKwMsg("분석 중... (최대 4분)");
-    try {
-      const { data:{ session: s } } = await supabase.auth.getSession();
-      const post = (body:any) => fetch(FN("extract-keywords"), { method:"POST",
-        headers:{ Authorization:`Bearer ${s.access_token}`, "Content-Type":"application/json" }, body: JSON.stringify(body) }).then(r=>r.json());
-      const d = await post({ source_url: src });
-      if (!d.ok) { setKwMsg(d.error ?? "추출 실패"); setExtracting(false); return; }
-      const pid = d.prediction_id; const start = Date.now();
-      while (Date.now()-start < 300000) {
-        await new Promise(r=>setTimeout(r,4000));
-        const p = await post({ poll:true, prediction_id: pid });
-        if (p.status==="succeeded") { setKw({ product_name:p.product_name, use_case:p.use_case, queries:p.queries||[], keywords:p.keywords||[] }); setKwMsg(""); break; }
-        if (p.status==="failed"||p.status==="canceled") { setKwMsg("추출 실패: "+(p.error??"")); break; }
-      }
-    } catch(e){ setKwMsg("추출 실패: "+String(e)); }
-    setExtracting(false);
+  const extract = (src:string) => {
+    if (extracting) return;
+    if (!src) { setNote("URL 또는 프로젝트를 선택하세요"); setTimeout(()=>setNote(""),2000); return; }
+    setNote("");
+    startExtract(supabase, src);
   };
 
   const projSrc = projOpts.find(o=>o.id===projId)?.src ?? "";
@@ -2894,10 +2955,18 @@ function ProductSearchView({ session, supabase }: { session:any; supabase:any })
             className="flex-1 rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-cyan-500" />
           <button onClick={()=>extract(url.trim())} disabled={extracting||!url.trim()} className="rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 px-4 py-2.5 text-sm font-bold text-white">🔍 URL로 추출</button>
         </div>
-        {kwMsg && <p className="text-xs text-gray-400 mt-3">{extracting && "⏳ "}{kwMsg}</p>}
+        {kwMsg && (
+          <div className="flex items-center gap-2 mt-3">
+            <p className={`text-xs flex-1 ${job?.status==="failed"?"text-red-400":"text-gray-400"}`}>{extracting && "⏳ "}{kwMsg}</p>
+            {!extracting && job && <button onClick={clearExtract} className="text-xs text-gray-500 hover:text-gray-300 shrink-0">✕ 지우기</button>}
+          </div>
+        )}
         {kw && (
           <div className="mt-4">
-            <p className="text-xs text-gray-500 mb-2">추출된 한국어 검색어 (클릭 시 쿠팡 파트너스 링크 생성 화면 열기)</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs text-gray-500">추출된 한국어 검색어 (클릭 시 쿠팡 파트너스 링크 생성 화면 열기)</p>
+              <button onClick={clearExtract} className="text-xs text-gray-500 hover:text-gray-300 shrink-0">✕ 지우기</button>
+            </div>
             <div className="flex flex-wrap gap-2">
               {((kw.keywords?.length ? kw.keywords : [kw.product_name, ...(kw.queries||[])]).filter(Boolean) as string[]).map((k:string,i:number)=>(
                 <a key={i} href={`https://partners.coupang.com/#affiliate/ws/link/0/${k.trim().replace(/\s+/g,"%20")}`} target="_blank" rel="noreferrer"
