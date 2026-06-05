@@ -8,18 +8,18 @@ const CARDS = [
     emoji: '🚀',
     title: '크로닛 시작하기',
     desc: '설치부터 첫 영상 완성까지\n단계별 가이드',
-    color: 'from-blue-50 to-cyan-50 border-blue-200 hover:border-blue-400 bg-white',
+    color: 'from-[#03C75A]/10 to-[#03C75A]/10 border-[#03C75A]/30 hover:border-[#03C75A] bg-white',
     badge: '필수',
-    badgeColor: 'bg-blue-100 text-blue-600',
+    badgeColor: 'bg-[#03C75A]/15 text-[#03C75A]',
   },
   {
     to: '/manual/features',
     emoji: '⚙️',
     title: '필수 기능',
     desc: '자동화 흐름과\n핵심 기능 한눈에 보기',
-    color: 'from-violet-50 to-purple-50 border-violet-200 hover:border-violet-400 bg-white',
+    color: 'from-[#03C75A]/10 to-[#03C75A]/10 border-[#03C75A]/30 hover:border-[#03C75A] bg-white',
     badge: '추천',
-    badgeColor: 'bg-violet-100 text-violet-600',
+    badgeColor: 'bg-[#03C75A]/15 text-[#03C75A]',
   },
   {
     to: '/manual/tips',
@@ -44,14 +44,14 @@ const CARDS = [
 const Manual = () => {
   const { pathname } = useLocation()
   return (
-    <div className="min-h-screen overflow-x-hidden bg-white font-sans text-gray-900 selection:bg-blue-500/30">
+    <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans text-gray-900 selection:bg-[#03C75A]/30">
       <ManualHeader currentPath={pathname} />
 
       {/* 히어로 */}
       <section className="relative px-5 pt-32 pb-12 md:px-8 md:pt-48 md:pb-16">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_60%,transparent_100%)]" />
         <div className="relative z-10 mx-auto max-w-4xl text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-1.5 text-sm font-bold text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.15)] md:text-base">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#03C75A]/20 bg-[#03C75A]/10 px-4 py-1.5 text-sm font-bold text-[#03C75A] shadow-[0_0_20px_rgba(59,130,246,0.15)] md:text-base">
             <Sparkles size={14} fill="currentColor" /> <span>크로닛 사용 매뉴얼</span>
           </div>
           <h1 className="mb-4 text-4xl font-black tracking-tight text-gray-900 md:text-6xl">매뉴얼</h1>
@@ -90,7 +90,7 @@ const Manual = () => {
                 <h2 className="text-lg font-black text-gray-900">{card.title}</h2>
                 <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-slate-500">{card.desc}</p>
               </div>
-              <div className="mt-auto flex items-center gap-1 text-sm font-bold text-blue-400 transition-gap group-hover:gap-2">
+              <div className="mt-auto flex items-center gap-1 text-sm font-bold text-[#03C75A] transition-gap group-hover:gap-2">
                 바로가기 <ChevronRight size={16} />
               </div>
             </Link>
@@ -99,7 +99,7 @@ const Manual = () => {
       </section>
 
       <section className="px-5 py-8 text-center md:px-8">
-        <Link to="/" className="group inline-flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-3 text-base font-bold text-slate-700 transition-all hover:border-blue-400 hover:text-blue-600 md:text-lg">
+        <Link to="/" className="group inline-flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-3 text-base font-bold text-slate-700 transition-all hover:border-[#03C75A] hover:text-[#03C75A] md:text-lg">
           홈으로 돌아가기
         </Link>
       </section>

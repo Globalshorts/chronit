@@ -6,7 +6,7 @@ import remarkGfm from 'remark-gfm'
 import { supabase } from '../lib/supabase'
 
 const statusCfg = {
-  active: { label: '진행중',      cls: 'bg-blue-500/20 text-blue-300 border-blue-500/30',   dot: true  },
+  active: { label: '진행중',      cls: 'bg-[#03C75A]/20 text-[#03C75A] border-[#03C75A]/30',   dot: true  },
   ended:  { label: '종료됨',      cls: 'bg-slate-600/30 text-slate-400 border-slate-500/20', dot: false },
   winner: { label: '당첨자 발표', cls: 'bg-amber-500/20 text-amber-300 border-amber-500/30', dot: false },
 }
@@ -15,7 +15,7 @@ const EventBadge = ({ status, label }) => {
   const cfg = statusCfg[status] || statusCfg.active
   return (
     <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold ${cfg.cls}`}>
-      {cfg.dot && <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-[badge-pulse_1.4s_ease-in-out_infinite]" />}
+      {cfg.dot && <span className="h-1.5 w-1.5 rounded-full bg-[#03C75A] animate-[badge-pulse_1.4s_ease-in-out_infinite]" />}
       {label || cfg.label}
     </span>
   )
@@ -46,7 +46,7 @@ const Events = () => {
   ]
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-white font-sans break-keep text-gray-900">
+    <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans break-keep text-gray-900">
 
       {/* 헤더 */}
       <header className={`fixed top-0 right-0 left-0 z-50 transition-all duration-500 ${scrolled ? 'border-b border-gray-200 bg-white/90 py-3 backdrop-blur-xl md:py-4' : 'bg-transparent py-5 md:py-8'}`}>
@@ -56,12 +56,12 @@ const Events = () => {
             <h1 className="text-2xl font-black tracking-tighter text-gray-900 md:text-3xl">Chronit</h1>
           </Link>
           <nav className="hidden gap-12 text-base font-bold tracking-wide text-slate-500 md:flex">
-            <Link to="/#features" className="uppercase transition-colors hover:text-blue-400">기능</Link>
-            <Link to="/manual"    className="uppercase transition-colors hover:text-blue-400">사용 방법</Link>
-            <Link to="/#pricing"  className="uppercase transition-colors hover:text-blue-400">요금제</Link>
-            <Link to="/events"    className="uppercase text-blue-400">이벤트</Link>
+            <Link to="/#features" className="uppercase transition-colors hover:text-[#03C75A]">기능</Link>
+            <Link to="/manual"    className="uppercase transition-colors hover:text-[#03C75A]">사용 방법</Link>
+            <Link to="/#pricing"  className="uppercase transition-colors hover:text-[#03C75A]">요금제</Link>
+            <Link to="/events"    className="uppercase text-[#03C75A]">이벤트</Link>
           </nav>
-          <Link to="/#pricing" className="shrink-0 rounded-full bg-blue-600 px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-lg shadow-blue-600/25 transition-all hover:bg-blue-500 active:scale-95 md:px-7 md:py-2.5 md:text-base">
+          <Link to="/#pricing" className="shrink-0 rounded-full bg-[#03C75A] px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-lg shadow-[#03C75A]/25 transition-all hover:bg-[#02b350] active:scale-95 md:px-7 md:py-2.5 md:text-base">
             시작하기
           </Link>
         </div>
@@ -71,7 +71,7 @@ const Events = () => {
       <section className="relative px-5 pt-32 pb-12 md:px-8 md:pt-48 md:pb-16">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_60%,transparent_100%)]" />
         <div className="relative z-10 mx-auto max-w-4xl text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-1.5 text-sm font-bold text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.15)] md:text-base">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#03C75A]/20 bg-[#03C75A]/10 px-4 py-1.5 text-sm font-bold text-[#03C75A] shadow-[0_0_20px_rgba(59,130,246,0.15)] md:text-base">
             <Megaphone size={14} /> <span>크로닛 이벤트</span>
           </div>
           <h1 className="mb-4 text-4xl font-black tracking-tight text-gray-900 md:text-6xl">이벤트</h1>
@@ -90,7 +90,7 @@ const Events = () => {
                 onClick={() => setEventTab(tab.key)}
                 className={`px-5 py-3 text-sm font-bold transition-colors border-b-2 -mb-px ${
                   eventTab === tab.key
-                    ? 'border-blue-500 text-blue-600'
+                    ? 'border-[#03C75A] text-[#03C75A]'
                     : 'border-transparent text-slate-500 hover:text-slate-300'
                 }`}
               >
@@ -155,7 +155,7 @@ const Events = () => {
                   href={selectedEvent.cta_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-6 flex w-full items-center justify-center rounded-2xl bg-blue-600 px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-blue-500 active:scale-95"
+                  className="mt-6 flex w-full items-center justify-center rounded-2xl bg-[#03C75A] px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-[#02b350] active:scale-95"
                 >
                   {selectedEvent.cta_text}
                 </a>

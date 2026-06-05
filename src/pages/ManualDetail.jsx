@@ -31,9 +31,9 @@ function parseTips(md) {
 
 /* ── 팁 카드 색상 ── */
 const TIP_COLORS = [
-  { border: 'border-blue-200',   accent: 'bg-blue-500',   light: 'bg-blue-100 text-blue-600' },
-  { border: 'border-violet-200', accent: 'bg-violet-500', light: 'bg-violet-100 text-violet-600' },
-  { border: 'border-cyan-200',   accent: 'bg-cyan-500',   light: 'bg-cyan-100 text-cyan-600' },
+  { border: 'border-[#03C75A]/30',   accent: 'bg-[#03C75A]',   light: 'bg-[#03C75A]/15 text-[#03C75A]' },
+  { border: 'border-[#03C75A]/30', accent: 'bg-[#03C75A]', light: 'bg-[#03C75A]/15 text-[#03C75A]' },
+  { border: 'border-[#03C75A]/30',   accent: 'bg-[#03C75A]',   light: 'bg-[#03C75A]/15 text-[#03C75A]' },
   { border: 'border-green-200',  accent: 'bg-green-500',  light: 'bg-green-100 text-green-600' },
   { border: 'border-yellow-200', accent: 'bg-yellow-500', light: 'bg-yellow-100 text-yellow-600' },
   { border: 'border-orange-200', accent: 'bg-orange-500', light: 'bg-orange-100 text-orange-600' },
@@ -111,7 +111,7 @@ const FaqItem = ({ question, answer, onImageClick }) => {
         className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-gray-50"
       >
         <span className="text-base font-bold text-gray-900 md:text-lg">Q. {question}</span>
-        <span className="shrink-0 text-blue-400 text-sm transition-transform duration-200" style={{ transform: open ? 'rotate(90deg)' : 'rotate(0deg)' }}>▶</span>
+        <span className="shrink-0 text-[#03C75A] text-sm transition-transform duration-200" style={{ transform: open ? 'rotate(90deg)' : 'rotate(0deg)' }}>▶</span>
       </button>
       <div className="grid transition-all duration-200 ease-in-out" style={{ gridTemplateRows: open ? '1fr' : '0fr' }}>
         <div className="overflow-hidden">
@@ -143,14 +143,14 @@ const ManualDetail = () => {
       <div className="flex min-h-screen items-center justify-center bg-white text-gray-900">
         <div className="text-center">
           <p className="mb-4 text-xl">페이지를 찾을 수 없습니다.</p>
-          <Link to="/manual" className="text-blue-400 underline">매뉴얼로 돌아가기</Link>
+          <Link to="/manual" className="text-[#03C75A] underline">매뉴얼로 돌아가기</Link>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-white font-sans text-gray-900 selection:bg-blue-500/30">
+    <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans text-gray-900 selection:bg-[#03C75A]/30">
       {lightbox && <Lightbox src={lightbox.src} alt={lightbox.alt} onClose={() => setLightbox(null)} />}
       <ManualHeader currentPath={pathname} />
 
@@ -158,7 +158,7 @@ const ManualDetail = () => {
       <section className="relative px-5 pt-32 pb-10 md:px-8 md:pt-44 md:pb-12">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_60%,transparent_100%)]" />
         <div className="relative z-10 mx-auto max-w-3xl">
-          <Link to="/manual" className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition-colors hover:text-blue-500">
+          <Link to="/manual" className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition-colors hover:text-[#03C75A]">
             <ArrowLeft size={16} /> 매뉴얼 목록
           </Link>
           <h1 className="text-3xl font-black tracking-tight text-gray-900 md:text-5xl">
@@ -171,7 +171,7 @@ const ManualDetail = () => {
       <section className="px-5 pb-24 md:px-8">
         <div className="mx-auto max-w-3xl">
           {data.callout && (
-            <div className="mb-6 flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700 md:text-base">
+            <div className="mb-6 flex items-center gap-2 rounded-xl border border-[#03C75A]/30 bg-[#03C75A]/10 px-4 py-3 text-sm font-semibold text-[#03C75A] md:text-base">
               <span>📌</span> {data.callout}
             </div>
           )}
@@ -197,7 +197,7 @@ const ManualDetail = () => {
       {/* 하단 네비 */}
       <section className="px-5 pb-16 md:px-8">
         <div className="mx-auto flex max-w-3xl justify-between gap-4">
-          <Link to="/manual" className="group inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition-all hover:border-blue-400 hover:text-blue-600">
+          <Link to="/manual" className="group inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition-all hover:border-[#03C75A] hover:text-[#03C75A]">
             <ArrowLeft size={16} /> 목록으로
           </Link>
         </div>
