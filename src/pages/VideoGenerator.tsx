@@ -1023,7 +1023,7 @@ export default function VideoGenerator() {
                     className="w-full sm:w-auto shrink-0 rounded-xl bg-[#03C75A] px-5 py-3 text-sm font-bold text-white hover:bg-[#02b350] disabled:opacity-40 transition flex items-center justify-center gap-2">
                     {searching
                       ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />분석 중...</>
-                      : "🔍 분석 시작 (10 CR)"}
+                      : "🔍 분석 시작"}
                   </button>
                 </div>
                 {searchError && <p className="mt-2 text-sm text-red-400">{searchError}</p>}

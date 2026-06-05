@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import { ManualHeader, ManualFooter, Markdown, Lightbox, parseFaq } from '../components/ManualLayout'
 
 import usageMd      from '../content/usage.md?raw'
+import creditsMd    from '../content/credits.md?raw'
 import automationMd from '../content/automation.md?raw'
 import tipsMd       from '../content/tips.md?raw'
 import faqMd        from '../content/faq.md?raw'
@@ -121,6 +122,13 @@ const SECTIONS = {
     callout: '헷갈리기 쉬운 주요 기능을 정리했어요.',
     type: 'markdown',
     content: automationMd,
+  },
+  credits: {
+    emoji: '🪙',
+    title: '크레딧 안내',
+    callout: '영상 1개당 크레딧, 플랜, 이월·환불을 정리했어요.',
+    type: 'markdown',
+    content: creditsMd,
   },
   tips: {
     emoji: '💡',
