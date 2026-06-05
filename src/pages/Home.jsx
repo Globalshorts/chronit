@@ -867,9 +867,12 @@ const Home = () => {
                 <p className="mb-5 text-sm leading-relaxed text-slate-600 md:text-base">
                   나만의 숏폼 자동화 공장 맛보기
                 </p>
-                <div className="mb-8 flex items-baseline gap-1">
-                  <span className="text-3xl font-black text-gray-900 md:text-4xl">29,000</span>
-                  <span className="text-lg font-bold text-slate-500 md:text-xl">원 / 월</span>
+                <div className="mb-8">
+                  <span className="text-base font-bold text-slate-400 line-through md:text-lg">49,000원</span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-black text-gray-900 md:text-4xl">29,000</span>
+                    <span className="text-lg font-bold text-slate-500 md:text-xl">원 / 월</span>
+                  </div>
                 </div>
                 <ul className="space-y-2 text-sm leading-relaxed font-medium text-slate-700 md:space-y-3 md:text-base">
                   <li className="flex items-start gap-2 md:gap-3">
@@ -911,9 +914,12 @@ const Home = () => {
                 <p className="mb-5 text-sm leading-relaxed text-blue-100 md:text-base">
                   다중 채널 폭발 및 대량 수익화를 위한 핵심 패키지
                 </p>
-                <div className="mb-8 flex items-baseline gap-1">
-                  <span className="text-3xl font-black text-white md:text-5xl">49,000</span>
-                  <span className="text-lg font-bold text-blue-100 md:text-xl">원 / 월</span>
+                <div className="mb-8">
+                  <span className="text-base font-bold text-blue-200/70 line-through md:text-lg">99,000원</span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-black text-white md:text-5xl">49,000</span>
+                    <span className="text-lg font-bold text-blue-100 md:text-xl">원 / 월</span>
+                  </div>
                 </div>
                 <ul className="space-y-2 text-sm leading-relaxed font-medium text-white md:space-y-3 md:text-base">
                   <li className="flex items-start gap-2 md:gap-3">
@@ -944,9 +950,12 @@ const Home = () => {
                 <p className="mb-5 text-sm leading-relaxed text-slate-600 md:text-base">
                   전문 크리에이터 및 대형 대행사를 위한 마스터 패키지
                 </p>
-                <div className="mb-8 flex items-baseline gap-1">
-                  <span className="text-3xl font-black text-gray-900 md:text-4xl">79,000</span>
-                  <span className="text-lg font-bold text-slate-500 md:text-xl">원 / 월</span>
+                <div className="mb-8">
+                  <span className="text-base font-bold text-slate-400 line-through md:text-lg">199,000원</span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-black text-gray-900 md:text-4xl">79,000</span>
+                    <span className="text-lg font-bold text-slate-500 md:text-xl">원 / 월</span>
+                  </div>
                 </div>
                 <ul className="space-y-2 text-sm leading-relaxed font-medium text-slate-700 md:space-y-3 md:text-base">
                   <li className="flex items-start gap-2 md:gap-3">
@@ -962,6 +971,29 @@ const Home = () => {
                     향후 신규 업데이트 기능 우선 얼리버드 테스트 권한
                   </li>
                 </ul>
+              </div>
+            </div>
+
+            {/* 6개월 안심 패키지 */}
+            <div
+              onClick={() => openPayment('pkg6')}
+              className="mt-4 flex cursor-pointer flex-col items-start justify-between gap-4 rounded-[1.5rem] border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 p-6 transition-all hover:border-amber-400 hover:shadow-[0_0_40px_-10px_rgba(251,191,36,0.5)] sm:flex-row sm:items-center md:rounded-[2rem] md:p-8"
+            >
+              <div>
+                <div className="mb-1 flex items-center gap-2">
+                  <span className="rounded-full bg-amber-400 px-3 py-1 text-[11px] font-black text-white">안심 패키지</span>
+                  <h4 className="text-lg font-black text-gray-900 md:text-xl">프로 6개월</h4>
+                </div>
+                <p className="text-sm leading-relaxed text-slate-600 md:text-base">
+                  프로 요금제를 <strong className="text-gray-900">6개월간 유지</strong> · 매월 크레딧 충전 · 가장 가성비 좋은 장기 플랜
+                </p>
+              </div>
+              <div className="shrink-0 text-left sm:text-right">
+                <span className="text-base font-bold text-slate-400 line-through md:text-lg">594,000원</span>
+                <div className="flex items-baseline gap-1 sm:justify-end">
+                  <span className="text-3xl font-black text-amber-600 md:text-4xl">249,000</span>
+                  <span className="text-base font-bold text-slate-500 md:text-lg">원</span>
+                </div>
               </div>
             </div>
 

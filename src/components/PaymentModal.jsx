@@ -2,10 +2,25 @@ import { useEffect, useState } from 'react'
 import { X, Copy, Check, CreditCard, MessageCircle, Tag, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
-const ORIGINAL_PRICES = {
+// 정가(취소선 표시) — 상시 할인 프레이밍용
+const LIST_PRICES = {
+  starter: 49000,
+  pro: 99000,
+  master: 199000,
+  pkg6: 594000,
+}
+// 상시 판매가 (쿠폰/가입코드는 이 위에 추가 할인)
+const SALE_PRICES = {
   starter: 29000,
   pro: 49000,
   master: 79000,
+  pkg6: 249000,
+}
+const PLAN_META = {
+  starter: { name: '스타터' },
+  pro:     { name: '프로' },
+  master:  { name: '마스터' },
+  pkg6:    { name: '프로 6개월', badge: '안심 패키지' },
 }
 
 const calcPrice = (original, discount) => {
@@ -71,10 +86,18 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
 
   if (!open) return null
 
+  const buildPlan = (key) => ({
+    name: PLAN_META[key].name,
+    badge: PLAN_META[key].badge,
+    list: LIST_PRICES[key],          // 정가(취소선)
+    sale: SALE_PRICES[key],          // 상시 판매가
+    price: calcPrice(SALE_PRICES[key], discount), // 쿠폰 적용 최종가
+  })
   const plans = {
-    starter: { name: '스타터', price: calcPrice(ORIGINAL_PRICES.starter, discount), original: ORIGINAL_PRICES.starter },
-    pro:     { name: '프로',   price: calcPrice(ORIGINAL_PRICES.pro,     discount), original: ORIGINAL_PRICES.pro     },
-    master:  { name: '마스터', price: calcPrice(ORIGINAL_PRICES.master,   discount), original: ORIGINAL_PRICES.master  },
+    starter: buildPlan('starter'),
+    pro:     buildPlan('pro'),
+    master:  buildPlan('master'),
+    pkg6:    buildPlan('pkg6'),
   }
 
   const account = { bank: '토스뱅크', number: '1001-4756-8390', holder: '최승호' }
@@ -88,7 +111,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
 
   const plan = plans[selectedPlan]
   const isFreedays = discount?.type === 'free_days'
-  const hasDiscount = discount && !isFreedays && plan.price < plan.original
+  const hasDiscount = discount && !isFreedays && plan.price < plan.sale  // 쿠폰 추가할인 여부
 
   const discountLabel = () => {
     if (!discount) return null
@@ -166,29 +189,55 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
         <div className="mb-6">
           <p className="mb-3 text-sm font-bold tracking-widest text-slate-400 uppercase">요금제 선택</p>
           <div className="grid grid-cols-3 gap-2">
-            {Object.entries(plans).map(([key, p]) => (
-              <button
-                key={key}
-                onClick={() => setSelectedPlan(key)}
-                className={`rounded-2xl border px-3 py-3 text-center transition-all ${
-                  selectedPlan === key
-                    ? 'border-blue-400 bg-blue-500/15 text-white shadow-[0_0_20px_-5px_rgba(59,130,246,0.5)]'
-                    : 'border-white/10 bg-white/[0.02] text-slate-400 hover:border-white/20 hover:text-white'
-                }`}
-              >
-                <div className="text-base font-bold">{p.name}</div>
-                <div className="mt-1 text-sm font-medium opacity-80">
+            {['starter','pro','master'].map((key) => {
+              const p = plans[key]
+              return (
+                <button
+                  key={key}
+                  onClick={() => setSelectedPlan(key)}
+                  className={`rounded-2xl border px-3 py-3 text-center transition-all ${
+                    selectedPlan === key
+                      ? 'border-blue-400 bg-blue-500/15 text-white shadow-[0_0_20px_-5px_rgba(59,130,246,0.5)]'
+                      : 'border-white/10 bg-white/[0.02] text-slate-400 hover:border-white/20 hover:text-white'
+                  }`}
+                >
+                  <div className="text-base font-bold">{p.name}</div>
                   {isFreedays ? (
-                    <span className="text-blue-300">무료</span>
-                  ) : p.price < p.original ? (
-                    <span className="text-blue-300">{p.price.toLocaleString('ko-KR')}원</span>
+                    <div className="mt-1 text-sm font-medium text-blue-300">무료</div>
                   ) : (
-                    <span>{p.price.toLocaleString('ko-KR')}원</span>
+                    <div className="mt-1 leading-tight">
+                      <div className="text-[11px] font-medium text-slate-500 line-through">{p.list.toLocaleString('ko-KR')}</div>
+                      <div className="text-sm font-bold text-blue-300">{p.price.toLocaleString('ko-KR')}원</div>
+                    </div>
                   )}
-                </div>
-              </button>
-            ))}
+                </button>
+              )
+            })}
           </div>
+
+          {/* 6개월 안심 패키지 */}
+          {!isFreedays && (
+            <button
+              onClick={() => setSelectedPlan('pkg6')}
+              className={`mt-2 flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition-all ${
+                selectedPlan === 'pkg6'
+                  ? 'border-amber-400 bg-amber-400/10 shadow-[0_0_20px_-5px_rgba(251,191,36,0.5)]'
+                  : 'border-white/10 bg-white/[0.02] hover:border-amber-400/40'
+              }`}
+            >
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-base font-bold text-white">프로 6개월</span>
+                  <span className="rounded-full bg-amber-400/20 px-2 py-0.5 text-[10px] font-black text-amber-300">안심 패키지</span>
+                </div>
+                <div className="mt-0.5 text-xs text-slate-400">프로 요금제 6개월 유지 · 매월 크레딧 충전</div>
+              </div>
+              <div className="text-right leading-tight">
+                <div className="text-[11px] font-medium text-slate-500 line-through">{plans.pkg6.list.toLocaleString('ko-KR')}</div>
+                <div className="text-base font-black text-amber-300">{plans.pkg6.price.toLocaleString('ko-KR')}원</div>
+              </div>
+            </button>
+          )}
         </div>
 
         {/* free_days: 무료 체험 안내 */}
@@ -206,18 +255,16 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
           <div className="mb-6 rounded-2xl border border-blue-500/20 bg-blue-500/[0.06] p-5">
             <p className="mb-1 text-sm font-bold tracking-widest text-blue-300 uppercase">입금 금액</p>
             <div className="mb-4 flex items-baseline gap-2 flex-wrap">
-              {hasDiscount && (
-                <span className="text-xl font-bold text-slate-500 line-through">
-                  {plan.original.toLocaleString('ko-KR')}
-                </span>
-              )}
+              <span className="text-xl font-bold text-slate-500 line-through">
+                {plan.list.toLocaleString('ko-KR')}
+              </span>
               <span className="text-3xl font-black text-white md:text-4xl">
                 {plan.price.toLocaleString('ko-KR')}
               </span>
               <span className="text-base font-bold text-slate-400">원</span>
               <span className="rounded-full bg-blue-600/30 px-2 py-0.5 text-[10px] font-bold text-blue-200">{plan.name}</span>
               {hasDiscount && (
-                <span className="rounded-full bg-green-500/20 px-2 py-0.5 text-[10px] font-bold text-green-300">{discountLabel()}</span>
+                <span className="rounded-full bg-green-500/20 px-2 py-0.5 text-[10px] font-bold text-green-300">+ {discountLabel()}</span>
               )}
             </div>
             <div className="space-y-2">
