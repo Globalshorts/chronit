@@ -85,6 +85,7 @@ const Home = () => {
   const [selectedEvent, setSelectedEvent] = useState(null)
   const pendingPlanRef = useRef(null)
   const pendingSessionRef = useRef(null)
+  const pendingStartRef = useRef(false)
 
   const handleAfterLogin = (session) => {
     window.gtag?.('event', 'sign_up', { event_category: 'conversion', event_label: 'google_oauth' })
@@ -107,7 +108,17 @@ const Home = () => {
       setSelectedPlan(pendingPlanRef.current)
       setPaymentOpen(true)
       pendingPlanRef.current = null
+    } else if (pendingStartRef.current) {
+      pendingStartRef.current = false
+      window.location.href = '/generate'
     }
+  }
+
+  // 시작하기/무료로 시작하기 — 로그인 시 영상 만들기로, 아니면 로그인
+  const handleStart = () => {
+    if (user) { window.location.href = '/generate'; return }
+    pendingStartRef.current = true
+    setShowAuthModal(true)
   }
 
   const handleTermsAgree = () => {
@@ -293,7 +304,7 @@ const Home = () => {
                   로그인
                 </button>
               )}
-              <button onClick={() => openPayment('pro')}
+              <button onClick={handleStart}
                 className="rounded-full bg-[#03C75A] px-7 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-md shadow-[#03C75A]/25 transition-all hover:bg-[#02b350] active:scale-95">
                 시작하기
               </button>
@@ -330,7 +341,7 @@ const Home = () => {
                 로그인
               </button>
             )}
-            <button onClick={() => { openPayment('pro'); setMenuOpen(false) }}
+            <button onClick={() => { setMenuOpen(false); handleStart() }}
               className="w-full rounded-xl bg-[#03C75A] px-4 py-4 text-lg font-extrabold text-white shadow-md transition-all hover:bg-[#02b350] active:scale-95">
               시작하기
             </button>
@@ -380,7 +391,7 @@ const Home = () => {
             </p>
 
             <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-              <button onClick={() => setShowAuthModal(true)}
+              <button onClick={handleStart}
                 className="group flex items-center justify-center gap-2 rounded-2xl bg-[#03C75A] px-10 py-5 text-xl font-extrabold text-white shadow-lg shadow-[#03C75A]/30 transition-all hover:bg-[#02b350] active:scale-95">
                 무료로 시작하기 <ArrowRight size={22} className="transition-transform group-hover:translate-x-1" />
               </button>
@@ -561,7 +572,7 @@ const Home = () => {
           </div>
 
           <div className="mt-12 text-center">
-            <button onClick={() => openPayment(selectedPlan)}
+            <button onClick={handleStart}
               className="w-full rounded-2xl bg-[#03C75A] px-8 py-5 text-xl font-black text-white shadow-lg shadow-[#03C75A]/25 transition-all hover:bg-[#02b350] active:scale-95 sm:w-auto md:px-20 md:py-6">
               무료로 시작하기
             </button>
