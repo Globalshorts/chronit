@@ -206,7 +206,7 @@ export default function VideoGenerator() {
     if (!uid) return;
     try {
       const { data } = await supabase.from("user_settings")
-        .select("voice_id, voice_speed, voice_volume, subtitle_style, thumbnail_style")
+        .select("voice_id, voice_speed, voice_volume, subtitle_style, thumbnail_style, target_seconds, style_profile_id, subtitle_preset_id, thumbnail_preset_id")
         .eq("user_id", uid).maybeSingle();
       if (data) {
         if (data.voice_id) setVoiceId(data.voice_id);
@@ -214,6 +214,10 @@ export default function VideoGenerator() {
         if (data.voice_volume != null) setVoiceVolume(Number(data.voice_volume));
         if (data.subtitle_style) setSubtitleStyle((p: any) => ({ ...p, ...data.subtitle_style }));
         if (data.thumbnail_style) setThumbnailStyle((p: any) => ({ ...p, ...data.thumbnail_style }));
+        if (data.target_seconds != null) setTargetSeconds(Number(data.target_seconds));
+        if (data.style_profile_id) setStyleProfileId(data.style_profile_id);
+        if (data.subtitle_preset_id) setSelectedSubtitlePresetId(data.subtitle_preset_id);
+        if (data.thumbnail_preset_id) setSelectedThumbnailPresetId(data.thumbnail_preset_id);
       }
     } catch { /* 무시 — localStorage 기본값 유지 */ }
     finally { settingsLoaded.current = true; }
@@ -245,11 +249,36 @@ export default function VideoGenerator() {
         voice_volume: voiceVolume,
         subtitle_style: subtitleStyle,
         thumbnail_style: thumbnailStyle,
+        target_seconds: targetSeconds,
+        style_profile_id: styleProfileId,
+        subtitle_preset_id: selectedSubtitlePresetId,
+        thumbnail_preset_id: selectedThumbnailPresetId,
         updated_at: new Date().toISOString(),
       }, { onConflict: "user_id" }).then(() => {});
     }, 800);
     return () => clearTimeout(t);
-  }, [session, voiceId, voiceSpeed, voiceVolume, subtitleStyle, thumbnailStyle]);
+  }, [session, voiceId, voiceSpeed, voiceVolume, subtitleStyle, thumbnailStyle, targetSeconds, styleProfileId, selectedSubtitlePresetId, selectedThumbnailPresetId]);
+
+  // ── 웹 기기 등록 + 하트비트 (최대 2기기, 생성은 차단 안 함) ──
+  useEffect(() => {
+    if (!session) return;
+    let did = "";
+    try {
+      did = localStorage.getItem("chronit_device_id") || "";
+      if (!did) {
+        did = (crypto?.randomUUID?.() ?? `web-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+        localStorage.setItem("chronit_device_id", did);
+      }
+    } catch { did = `web-${Date.now()}`; }
+    const ua = navigator.userAgent;
+    const os = /iphone|ipad/i.test(ua) ? "iOS" : /android/i.test(ua) ? "Android"
+      : /windows/i.test(ua) ? "Windows" : /mac/i.test(ua) ? "Mac" : "기타";
+    const br = /edg/i.test(ua) ? "Edge" : /chrome/i.test(ua) ? "Chrome"
+      : /firefox/i.test(ua) ? "Firefox" : /safari/i.test(ua) ? "Safari" : "브라우저";
+    supabase.rpc("register_device_rpc", { p_device_id: did, p_device_name: `${br} · ${os} (웹)` }).catch(() => {});
+    const hb = setInterval(() => { supabase.rpc("heartbeat_device_rpc", { p_device_id: did }).catch(() => {}); }, 5 * 60 * 1000);
+    return () => clearInterval(hb);
+  }, [session]);
 
   // 현재 job 완료/실패 감지 → 알림 (단계와 무관하게)
   useEffect(() => {
@@ -961,7 +990,7 @@ export default function VideoGenerator() {
             <div className="space-y-4">
               <div>
                 <label className="mb-2 block text-sm font-bold text-gray-700">쇼핑 릴스 / 쇼츠 URL</label>
-                <div className="flex gap-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                   <input type="url" value={sourceUrl}
                     onChange={e => { setSourceUrl(e.target.value); setClips([]); setCart(new Set()); }}
                     onKeyDown={e => e.key === "Enter" && handleSearch()}
@@ -969,7 +998,7 @@ export default function VideoGenerator() {
                     disabled={searching}
                     className="flex-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] focus:ring-1 focus:ring-[#03C75A] disabled:opacity-50 transition" />
                   <button onClick={handleSearch} disabled={searching || !sourceUrl.trim()}
-                    className="shrink-0 rounded-xl bg-[#03C75A] px-5 py-3 text-sm font-bold text-white hover:bg-[#02b350] disabled:opacity-40 transition flex items-center gap-2">
+                    className="w-full sm:w-auto shrink-0 rounded-xl bg-[#03C75A] px-5 py-3 text-sm font-bold text-white hover:bg-[#02b350] disabled:opacity-40 transition flex items-center justify-center gap-2">
                     {searching
                       ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />분석 중...</>
                       : "🔍 분석 시작 (10 CR)"}
