@@ -906,27 +906,6 @@ export default function VideoGenerator() {
         </div>
       )}
 
-      {/* ── 모바일 프로젝트 시트 ── */}
-      {mobileProjOpen && (
-        <div className="fixed inset-0 z-[90] md:hidden" onClick={() => setMobileProjOpen(false)}>
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-          <div className="absolute right-0 top-0 flex h-full w-72 max-w-[85%] flex-col overflow-y-auto border-l border-gray-200 bg-[#ECEAE3] shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-              <p className="text-sm font-black text-gray-900">📁 내 프로젝트</p>
-              <button onClick={() => setMobileProjOpen(false)} className="text-xl text-gray-500 hover:text-gray-900">✕</button>
-            </div>
-            <ProjectPanel
-              activeView="generator"
-              current={currentData}
-              onLoad={(d) => { handleLoad(d); setMobileProjOpen(false); }}
-              onReset={() => { handleReset(); setMobileProjOpen(false); }}
-              session={session}
-              styleProfileId={styleProfileId} onSelectStyle={setStyleProfileId}
-            />
-          </div>
-        </div>
-      )}
-
       {/* ── 본문 행 (사이드바 + 패널 + 메인) ── */}
       <div className="flex flex-1">
       {/* ── 왼쪽 사이드바 (데스크탑) ── */}
@@ -1001,11 +980,27 @@ export default function VideoGenerator() {
         <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-5">
           <div className="space-y-0">
 
-          {/* 모바일: 프로젝트 열기 */}
-          <button onClick={() => setMobileProjOpen(true)}
-            className="md:hidden mb-4 flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-gray-700 active:scale-[0.99] transition">
-            📁 내 프로젝트 — 생성 · 선택 · 삭제
-          </button>
+          {/* 모바일: 프로젝트 드롭다운 */}
+          <div className="md:hidden mb-4">
+            <button onClick={() => setMobileProjOpen(v => !v)}
+              className="flex w-full items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-gray-700 active:scale-[0.99] transition">
+              <span>📁 내 프로젝트 — 생성 · 선택 · 삭제</span>
+              <span className="text-xs text-gray-400 transition-transform" style={{ transform: mobileProjOpen ? "rotate(180deg)" : "rotate(0deg)" }}>▼</span>
+            </button>
+            {mobileProjOpen && (
+              <div className="mt-2 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                <ProjectPanel
+                  compact
+                  activeView="generator"
+                  current={currentData}
+                  onLoad={(d) => { handleLoad(d); setMobileProjOpen(false); }}
+                  onReset={() => { handleReset(); setMobileProjOpen(false); }}
+                  session={session}
+                  styleProfileId={styleProfileId} onSelectStyle={setStyleProfileId}
+                />
+              </div>
+            )}
+          </div>
 
           <StagePanel n={1} title="영상 분석" subtitle="URL 입력 → 관련 TikTok 클립 검색 → 담기" current={stage}
             headerRight={
@@ -1972,9 +1967,9 @@ const PROJ_KEY = "chronit_projects_v2";
 function getProjs(): any[] { try { return JSON.parse(localStorage.getItem(PROJ_KEY)||"[]"); } catch { return []; } }
 function saveProjs(ps: any[]) { localStorage.setItem(PROJ_KEY, JSON.stringify(ps.slice(0,20))); }
 
-function ProjectPanel({ activeView, current, onLoad, onReset, session, styleProfileId, onSelectStyle }: {
+function ProjectPanel({ activeView, current, onLoad, onReset, session, styleProfileId, onSelectStyle, compact = false }: {
   activeView: string; current: any; onLoad: (d:any)=>void; onReset: ()=>void;
-  session: any; styleProfileId: string; onSelectStyle: (id:string)=>void;
+  session: any; styleProfileId: string; onSelectStyle: (id:string)=>void; compact?: boolean;
 }) {
   const [projects, setProjects] = useState<any[]>(() => getProjs());
   const [activeId, setActiveId] = useState<string|null>(() => localStorage.getItem("chronit_active_proj") || null);
@@ -2029,12 +2024,14 @@ function ProjectPanel({ activeView, current, onLoad, onReset, session, styleProf
   };
 
   if (activeView === "generator") return (
-    <div className="flex flex-col h-full">
+    <div className={compact ? "flex flex-col" : "flex flex-col h-full"}>
+      {!compact && (
       <div className="px-4 py-4 border-b border-gray-200 flex items-center justify-between">
         <p className="text-xs font-black text-gray-900">프로젝트</p>
         <button onClick={saveProject} className="text-xs text-gray-500 hover:text-[#03C75A] transition">💾</button>
       </div>
-      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
+      )}
+      <div className={compact ? "px-3 py-3 space-y-2 max-h-[55vh] overflow-y-auto" : "flex-1 overflow-y-auto px-3 py-3 space-y-2"}>
         {/* 새 프로젝트 */}
         {newName === null ? (
           <button onClick={() => setNewName("")}
@@ -2072,9 +2069,9 @@ function ProjectPanel({ activeView, current, onLoad, onReset, session, styleProf
                   )}
                   <p className="text-xs text-gray-500 mt-0.5">{STAGE_LABELS[(p.stage||1)-1]} · {new Date(p.savedAt).toLocaleDateString("ko")}</p>
                 </div>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition shrink-0">
-                  <button onClick={e=>{e.stopPropagation();setEditingId(p.id);}} className="text-gray-500 hover:text-[#03C75A] text-xs">✎</button>
-                  <button onClick={e=>delProject(p.id,e)} className="text-gray-500 hover:text-red-400 text-xs">✕</button>
+                <div className={`flex shrink-0 transition ${compact ? "gap-3" : "gap-1 opacity-0 group-hover:opacity-100"}`}>
+                  <button onClick={e=>{e.stopPropagation();setEditingId(p.id);}} className={`text-gray-500 hover:text-[#03C75A] ${compact ? "text-base px-1" : "text-xs"}`}>✎</button>
+                  <button onClick={e=>delProject(p.id,e)} className={`text-gray-500 hover:text-red-400 ${compact ? "text-base px-1" : "text-xs"}`}>✕</button>
                 </div>
               </div>
             </div>
