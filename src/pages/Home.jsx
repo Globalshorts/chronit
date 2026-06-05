@@ -423,20 +423,18 @@ const Home = () => {
                 </div>
               </div>
 
-              {/* 실제 사용 화면 카드 */}
+              {/* 누적 지표 카드 */}
               <div className="rounded-3xl border border-gray-200 bg-white p-5 shadow-[0_16px_50px_-20px_rgba(0,0,0,0.18)]">
                 <div className="mb-4 flex items-center gap-2">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#03C75A]/12 text-lg">🎬</span>
-                  <p className="text-base font-black text-gray-900">실제 사용 화면</p>
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#03C75A]/12 text-lg">📈</span>
+                  <p className="text-base font-black text-gray-900">크로닛이 함께 만든 결과</p>
                 </div>
                 <div className="space-y-2">
-                  {[['상품 선택', 3], ['자동 생성', 3], ['업로드 준비 완료', 3]].map(([label, n]) => (
+                  {[['누적 절약 시간', 7285, '시간'], ['생성 완료 영상', 8742, '개'], ['활성 사용자', 117, '명']].map(([label, n, u]) => (
                     <div key={label} className="flex items-center justify-between rounded-2xl bg-[#FAFAF8] px-4 py-3">
-                      <span className="flex items-center gap-2 text-sm font-bold text-gray-700">
-                        <CheckCircle2 size={17} className="text-[#03C75A]" /> {label}
-                      </span>
-                      <span className="text-xl font-black text-gray-900">
-                        <AnimatedCounter to={n} suffix="개" duration={1600} />
+                      <span className="text-sm font-bold text-gray-600">{label}</span>
+                      <span className="text-xl font-black text-[#03C75A] md:text-2xl">
+                        <AnimatedCounter to={n} suffix={u} duration={1800} />
                       </span>
                     </div>
                   ))}
