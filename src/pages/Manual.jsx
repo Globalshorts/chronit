@@ -7,7 +7,7 @@ const CARDS = [
     to: '/manual/start',
     emoji: '🚀',
     title: '크로닛 시작하기',
-    desc: '설치부터 첫 영상 완성까지\n단계별 가이드',
+    desc: '로그인부터 첫 영상 완성까지\n단계별 가이드',
     color: 'from-[#03C75A]/10 to-[#03C75A]/10 border-[#03C75A]/30 hover:border-[#03C75A] bg-white',
     badge: '필수',
     badgeColor: 'bg-[#03C75A]/15 text-[#03C75A]',
@@ -55,7 +55,7 @@ const Manual = () => {
             <Sparkles size={14} fill="currentColor" /> <span>크로닛 사용 매뉴얼</span>
           </div>
           <h1 className="mb-4 text-4xl font-black tracking-tight text-gray-900 md:text-6xl">매뉴얼</h1>
-          <p className="text-lg leading-[1.8] text-slate-500 md:text-xl">설치부터 첫 영상 제작까지, 5분 안에 익히는 크로닛 사용법.</p>
+          <p className="text-lg leading-[1.8] text-slate-500 md:text-xl">로그인부터 첫 영상 제작까지, 5분 안에 익히는 크로닛 사용법.</p>
         </div>
       </section>
 
