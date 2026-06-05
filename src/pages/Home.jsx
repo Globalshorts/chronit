@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
   Clock, CheckCircle2, MessageCircle, ArrowRight, Users,
-  Monitor, Film, TrendingDown, LogOut, Gift, Menu, X, Play,
+  Film, TrendingDown, LogOut, Gift, Menu, X, Play,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import AnimatedCounter from '../components/AnimatedCounter'
@@ -11,8 +11,6 @@ import TermsModal from '../components/TermsModal'
 import { supabase } from '../lib/supabase'
 
 const GREEN = '#03C75A'
-const DOWNLOAD_URL =
-  'https://github.com/Globalshorts/chronit/releases/latest/download/Chronit_Setup.exe'
 
 /* 가격표 위 쿠폰 입력 바 */
 const CouponBar = ({ codeFromUrl, onApply }) => {
