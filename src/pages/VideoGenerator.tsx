@@ -124,7 +124,9 @@ export default function VideoGenerator() {
   const [seoDesc, setSeoDesc] = useState("");
   const [seoTags, setSeoTags] = useState("");
   const [seoLoading, setSeoLoading] = useState(false);
-  const [currentJobId, setCurrentJobId] = useState("");
+  const [currentJobId, setCurrentJobId] = useState(() => {
+    try { return localStorage.getItem("chronit_current_job") || ""; } catch { return ""; }
+  });
 
   // Stage 6
   const [jobs, setJobs]             = useState<Job[]>([]);
@@ -238,6 +240,21 @@ export default function VideoGenerator() {
       setCurrentJobId("");
     }
   }, [jobs, currentJobId, stage]);
+
+  // currentJobId 영속화 — 모바일 백그라운드/새로고침에도 진행배너·완료알림·자동이동 유지
+  useEffect(() => {
+    try {
+      if (currentJobId) localStorage.setItem("chronit_current_job", currentJobId);
+      else localStorage.removeItem("chronit_current_job");
+    } catch {}
+  }, [currentJobId]);
+
+  // 앱 포그라운드 복귀 시 즉시 새로고침 (모바일에서 백그라운드 갔다 오면 타이머가 멈춰 있음)
+  useEffect(() => {
+    const onVis = () => { if (document.visibilityState === "visible" && session) { loadJobs(); loadBalance(); } };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [session, loadJobs, loadBalance]);
 
   // Realtime 보조 폴백: 진행 중 job이 있으면 12초마다 새로고침 (실시간 누락 대비)
   useEffect(() => {
