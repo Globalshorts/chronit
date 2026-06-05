@@ -645,12 +645,12 @@ export default function VideoGenerator() {
 
   // ── Auth 화면 ────────────────────────────────────────────
   if (authLoading) return (
-    <div className="flex items-center justify-center min-h-screen bg-[#FAFAF8]">
+    <div className="flex items-center justify-center min-h-screen bg-[#ECEAE3]">
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#03C75A] border-t-transparent" />
     </div>
   );
   if (!session) return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-6 bg-[#FAFAF8]">
+    <div className="flex flex-col items-center justify-center min-h-screen gap-6 bg-[#ECEAE3]">
       <h1 className="text-2xl font-black text-gray-900">로그인이 필요합니다</h1>
       <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.href } })}
         className="rounded-xl bg-[#03C75A] px-8 py-3 font-bold text-white hover:bg-[#02b350] transition">
@@ -697,7 +697,7 @@ export default function VideoGenerator() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FAFAF8] text-gray-900">
+    <div className="flex flex-col min-h-screen bg-[#ECEAE3] text-gray-900">
       {/* ── 영상 선택 팁 모달 ── */}
       {showTips && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
