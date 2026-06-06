@@ -22,6 +22,15 @@ const CARDS = [
     badgeColor: 'bg-[#03C75A]/15 text-[#03C75A]',
   },
   {
+    to: '/manual/app',
+    emoji: '📱',
+    title: '앱으로 사용하는 방법',
+    desc: '휴대폰 홈 화면에 추가해\n앱처럼 사용하기',
+    color: 'from-[#03C75A]/10 to-[#03C75A]/10 border-[#03C75A]/30 hover:border-[#03C75A] bg-white',
+    badge: null,
+    badgeColor: '',
+  },
+  {
     to: '/manual/credits',
     emoji: '🪙',
     title: '크레딧 안내',

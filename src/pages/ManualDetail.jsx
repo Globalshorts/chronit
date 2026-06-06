@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import { ManualHeader, ManualFooter, Markdown, Lightbox, parseFaq } from '../components/ManualLayout'
 
 import usageMd      from '../content/usage.md?raw'
+import webappMd     from '../content/webapp.md?raw'
 import creditsMd    from '../content/credits.md?raw'
 import automationMd from '../content/automation.md?raw'
 import tipsMd       from '../content/tips.md?raw'
@@ -115,6 +116,13 @@ const SECTIONS = {
     callout: '설치 없이 웹에서 바로! [무료로 시작하기] → 구글 로그인 후, 아래 5단계만 따라오면 끝이에요.',
     type: 'steps',
     content: usageMd,
+  },
+  app: {
+    emoji: '📱',
+    title: '앱으로 사용하는 방법',
+    callout: '휴대폰 홈 화면에 추가하면 일반 앱처럼 바로 쓸 수 있어요. (설치·앱스토어 불필요)',
+    type: 'markdown',
+    content: webappMd,
   },
   features: {
     emoji: '⚙️',
