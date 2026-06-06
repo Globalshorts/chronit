@@ -13,6 +13,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabase";
 import type { Session } from "@supabase/supabase-js";
 import PaymentModal from "../components/PaymentModal";
+import { LinkPageManager } from "./LinksManager";
 
 const SB = "https://oxygqtbdpnxxcgzwdlzi.supabase.co";
 const FN = (n: string) => `${SB}/functions/v1/${n}`;
@@ -2138,7 +2139,7 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
   const GROUPS = [
     { title: "제작", items: [
       { v: "generator",      label: "프로젝트" },
-      { v: "product-search", label: "상품 검색" },
+      { v: "product-search", label: "내 링크" },
     ]},
     { title: "기록", items: [
       { v: "history", label: "생성 내역" },
@@ -2658,7 +2659,7 @@ function AppSidebar({ current, onLoad, onReset, balance, userPlan, session, acti
       <div className="px-3 py-3 space-y-0.5">
         {([
           ["generator","📁  프로젝트"],
-          ["product-search","🔗  상품 검색"],
+          ["product-search","🔗  내 링크"],
           ["studio","🎨  콘셉트/스타일"],
           ["history","📹  생성 내역"],
           ["settings","⚙️  결제·계정"],
@@ -3598,9 +3599,10 @@ function ProductSearchView({ session, supabase }: { session:any; supabase:any })
 
   return (
     <div className="max-w-3xl">
-      <h2 className="text-xl font-black text-gray-900 mb-6">🛒 쿠팡 파트너스 상품 검색</h2>
+      <h2 className="text-xl font-black text-gray-900 mb-2">🔗 내 링크</h2>
+      <p className="text-sm text-gray-400 mb-6">영상에서 상품 검색어를 뽑아 <b>쿠팡 파트너스 링크</b>를 만들고, 완성한 영상과 함께 <b>내 링크 페이지</b>에 모아 공유하세요.</p>
 
-      <Step n="0" title="영상 URL 또는 프로젝트 → 한국어 검색어 추출">
+      <Step n="1" title="영상에서 상품 검색어 뽑기 → 쿠팡 파트너스 링크 만들기">
         <div className="flex flex-wrap items-end gap-2 mb-2">
           <div className="flex-1 min-w-[200px]">
             <label className="text-xs text-gray-500">프로젝트</label>
@@ -3639,38 +3641,12 @@ function ProductSearchView({ session, supabase }: { session:any; supabase:any })
         )}
       </Step>
 
-      <Step n="1" title="쿠팡 파트너스 / 인포크링크 열기">
-        <div className="flex flex-wrap gap-2">
-          <a href="https://partners.coupang.com/" target="_blank" rel="noreferrer" className="rounded-xl bg-[#03C75A] hover:bg-[#02b350] px-4 py-2.5 text-sm font-bold text-white">🛒 쿠팡 파트너스 열기</a>
-          <a href="https://link.inpock.co.kr/" target="_blank" rel="noreferrer" className="rounded-xl bg-[#03C75A] hover:bg-[#02b350] px-4 py-2.5 text-sm font-bold text-white">🔗 인포크링크 열기</a>
-        </div>
-      </Step>
-
-      <Step n="2" title="상품 URL 누적 리스트">
-        <p className="text-xs text-gray-400 mb-3">쿠팡 상품 페이지 URL을 복사한 뒤 아래 칸에 붙여넣으면(Ctrl+V) 자동 추가됩니다. [전체 복사] 후 인포크링크에 붙여넣으세요.</p>
-        <div className="flex items-center gap-2 mb-2">
-          <button onClick={fromClipboard} className="rounded-lg bg-gray-100 hover:bg-gray-200 px-3 py-2 text-xs font-bold text-gray-700">📋 클립보드에서 추가</button>
-          <div className="flex-1" />
-          <button onClick={copyAll} disabled={urls.length===0} className="rounded-lg bg-[#03C75A] hover:bg-[#02b350] disabled:opacity-40 px-3 py-2 text-xs font-bold text-white">{copied?"✓ 복사됨":"📋 전체 복사"}</button>
-          <button onClick={()=>{ if(urls.length&&confirm("목록을 비울까요?")) setUrls([]); }} disabled={urls.length===0} className="rounded-lg bg-red-600/80 hover:bg-red-500 disabled:opacity-40 px-3 py-2 text-xs font-bold text-white">비우기</button>
-        </div>
-        <textarea onPaste={(e)=>{ e.preventDefault(); addUrls(e.clipboardData.getData("text")); }}
-          placeholder="여기에 쿠팡 URL을 붙여넣으세요 (Ctrl+V)"
-          className="w-full h-14 rounded-xl bg-gray-100 border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] resize-none mb-2" />
-        {hint && <p className="text-xs text-[#03C75A] mb-2">{hint}</p>}
-        <div className="rounded-xl bg-gray-100/50 border border-gray-200 max-h-64 overflow-y-auto">
-          {urls.length===0 ? (
-            <p className="py-8 text-center text-sm text-gray-600">저장된 URL이 없습니다.</p>
-          ) : urls.map((u,i)=>(
-            <div key={i} className="flex items-center gap-2 px-3 py-2 border-b border-gray-200/50 last:border-0">
-              <span className="text-xs text-gray-600 w-6 shrink-0">{i+1}</span>
-              <a href={u} target="_blank" rel="noreferrer" className="flex-1 text-xs text-[#03C75A] truncate hover:underline">{u}</a>
-              <button onClick={()=>setUrls(prev=>prev.filter((_,j)=>j!==i))} className="text-gray-500 hover:text-red-400 text-xs shrink-0">✕</button>
-            </div>
-          ))}
-        </div>
-        <p className="text-xs text-gray-600 mt-2">{urls.length}개 저장됨</p>
-      </Step>
+      {/* STEP 2 — 내 링크 페이지 관리 (멀티링크) */}
+      <div className="mt-6">
+        <p className="text-sm font-bold text-[#03C75A] mb-1">STEP 2. 내 링크 페이지 만들기</p>
+        <p className="text-xs text-gray-400 mb-4">완성한 영상에 위에서 만든 <b>쿠팡 파트너스 링크</b>를 붙여 카드로 추가하세요. 모인 카드는 <b>내 주소</b> 하나로 공유돼요 — 인스타 프로필에 그 주소만 넣으면 끝!</p>
+        <LinkPageManager session={session} />
+      </div>
     </div>
   );
 }

@@ -4,25 +4,15 @@ import { supabase } from '../lib/supabase'
 const sanitize = (s) =>
   (s || '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 24) || 'user'
 
-export default function LinksManager() {
-  const [session, setSession] = useState(null)
-  const [authReady, setAuthReady] = useState(false)
+// ── 재사용 가능한 관리 UI (로그인된 session 필요) ──
+export function LinkPageManager({ session }) {
   const [page, setPage] = useState(null)
   const [jobs, setJobs] = useState([])
   const [items, setItems] = useState([]) // link_items
   const [loading, setLoading] = useState(true)
   const [savedMsg, setSavedMsg] = useState('')
-
-  // 인증
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => { setSession(data.session); setAuthReady(true) })
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
-    return () => sub.subscription.unsubscribe()
-  }, [])
-
   const loadedUidRef = useRef(null)
 
-  // 페이지 보장(없으면 생성) + 데이터 로드
   useEffect(() => {
     const uid = session?.user?.id
     if (!uid) return
@@ -32,9 +22,7 @@ export default function LinksManager() {
     ;(async () => {
       setLoading(true)
       try {
-        // 1) 기존 페이지 조회
         let pg = (await supabase.from('link_pages').select('*').eq('user_id', uid).maybeSingle()).data
-        // 2) 없으면 생성 (충돌 나면 = 이미 있는 것이므로 재조회)
         if (!pg) {
           const base = sanitize(session.user.email?.split('@')[0])
           let handle = base
@@ -43,7 +31,6 @@ export default function LinksManager() {
               .insert({ user_id: uid, handle, title: '', bio: '', theme: 'light' })
               .select('*').single()
             if (ins.data) { pg = ins.data; break }
-            // 충돌(23505): user_id PK 중복이면 재조회로 가져오고, handle 중복이면 다른 handle로
             const re = (await supabase.from('link_pages').select('*').eq('user_id', uid).maybeSingle()).data
             if (re) { pg = re; break }
             handle = base + Math.floor(100 + Math.random() * 900)
@@ -67,13 +54,11 @@ export default function LinksManager() {
   const flash = (m) => { setSavedMsg(m); setTimeout(() => setSavedMsg(''), 1800) }
 
   const savePage = async (patch) => {
-    const next = { ...page, ...patch }
-    setPage(next)
+    setPage((p) => ({ ...p, ...patch }))
     await supabase.from('link_pages').update({ ...patch, updated_at: new Date().toISOString() }).eq('user_id', session.user.id)
     flash('저장됨')
   }
 
-  // 영상 → 카드 추가/수정
   const upsertItem = async (job, { title, target_url, active }) => {
     const uid = session.user.id
     const existing = itemFor(job.id)
@@ -105,6 +90,93 @@ export default function LinksManager() {
     ])
   }
 
+  if (loading)
+    return <div className="py-20 text-center"><div className="mx-auto h-7 w-7 animate-spin rounded-full border-2 border-[#03C75A] border-t-transparent" /></div>
+  if (!page)
+    return (
+      <div className="py-20 text-center">
+        <p className="text-gray-500">페이지를 불러오지 못했어요.</p>
+        <button onClick={() => window.location.reload()} className="mt-3 rounded-xl bg-[#03C75A] px-5 py-2 text-sm font-bold text-white">다시 시도</button>
+      </div>
+    )
+
+  const pageUrl = `https://chronit.kr/u/${page.handle}`
+
+  return (
+    <div>
+      {/* 내 주소 */}
+      <div className="mb-5 rounded-3xl border border-[#03C75A]/30 bg-[#03C75A]/5 p-5">
+        <p className="text-xs font-bold text-gray-500">내 페이지 주소 (인스타 프로필에 이걸 넣으세요)</p>
+        <div className="mt-2 flex items-center gap-2">
+          <code className="flex-1 truncate rounded-lg bg-white px-3 py-2 text-sm font-bold text-[#03C75A]">{pageUrl}</code>
+          <button onClick={() => { navigator.clipboard?.writeText(pageUrl); flash('복사됨') }}
+            className="shrink-0 rounded-lg bg-[#03C75A] px-3 py-2 text-sm font-bold text-white">복사</button>
+          <a href={`/u/${page.handle}`} target="_blank" rel="noreferrer"
+            className="shrink-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-gray-700">보기</a>
+        </div>
+      </div>
+
+      {/* 페이지 설정 */}
+      <div className="mb-5 space-y-3 rounded-3xl border border-gray-200 bg-white p-5">
+        <p className="text-sm font-black text-gray-900">페이지 설정</p>
+        <input defaultValue={page.title} placeholder="페이지 제목 (예: 민수의 추천템)"
+          onBlur={(e) => savePage({ title: e.target.value })}
+          className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm" />
+        <textarea defaultValue={page.bio} placeholder="한 줄 소개 (선택)" rows={2}
+          onBlur={(e) => savePage({ bio: e.target.value })}
+          className="w-full resize-none rounded-xl border border-gray-300 px-3 py-2 text-sm" />
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-bold text-gray-600">테마</span>
+          {['light', 'dark'].map((t) => (
+            <button key={t} onClick={() => savePage({ theme: t })}
+              className={`rounded-lg px-3 py-1.5 text-sm font-bold ${page.theme === t ? 'bg-[#03C75A] text-white' : 'bg-gray-100 text-gray-600'}`}>
+              {t === 'light' ? '라이트' : '다크'}
+            </button>
+          ))}
+          <label className="ml-auto flex items-center gap-2 text-sm font-bold text-gray-600">
+            <input type="checkbox" checked={page.active} onChange={(e) => savePage({ active: e.target.checked })} />
+            공개
+          </label>
+        </div>
+      </div>
+
+      {/* 영상 목록 */}
+      <p className="mb-3 text-sm font-black text-gray-900">영상 → 카드로 추가</p>
+      {jobs.length === 0 ? (
+        <p className="rounded-2xl border border-dashed border-gray-300 bg-white py-10 text-center text-sm text-gray-400">
+          완성된 영상이 아직 없어요. 먼저 영상을 만들어 주세요.
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {jobs.map((job) => {
+            const it = itemFor(job.id)
+            return (
+              <JobRow key={job.id} job={job} item={it}
+                onSave={(vals) => upsertItem(job, vals)}
+                onMove={it && it.active ? (dir) => move(it, dir) : null} />
+            )
+          })}
+        </div>
+      )}
+
+      {savedMsg && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-full bg-gray-900 px-4 py-2 text-sm font-bold text-white shadow-lg">{savedMsg}</div>
+      )}
+    </div>
+  )
+}
+
+// ── /links 라우트 (로그인 + 페이지 크롬) ──
+export default function LinksManager() {
+  const [session, setSession] = useState(null)
+  const [authReady, setAuthReady] = useState(false)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => { setSession(data.session); setAuthReady(true) })
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
+    return () => sub.subscription.unsubscribe()
+  }, [])
+
   if (!authReady)
     return <div className="flex min-h-screen items-center justify-center bg-[#ECEAE3]"><div className="h-8 w-8 animate-spin rounded-full border-2 border-[#03C75A] border-t-transparent" /></div>
 
@@ -117,8 +189,6 @@ export default function LinksManager() {
       </div>
     )
 
-  const pageUrl = page ? `https://chronit.kr/u/${page.handle}` : ''
-
   return (
     <div className="min-h-screen bg-[#ECEAE3] px-5 py-8">
       <div className="mx-auto w-full max-w-2xl">
@@ -126,77 +196,8 @@ export default function LinksManager() {
           <h1 className="text-2xl font-black text-gray-900">내 링크 페이지</h1>
           <a href="/generate" className="text-sm font-bold text-gray-500 hover:text-[#03C75A]">← 영상 만들기</a>
         </div>
-
-        {loading ? (
-          <div className="py-20 text-center"><div className="mx-auto h-7 w-7 animate-spin rounded-full border-2 border-[#03C75A] border-t-transparent" /></div>
-        ) : !page ? (
-          <div className="py-20 text-center">
-            <p className="text-gray-500">페이지를 불러오지 못했어요.</p>
-            <button onClick={() => window.location.reload()} className="mt-3 rounded-xl bg-[#03C75A] px-5 py-2 text-sm font-bold text-white">다시 시도</button>
-          </div>
-        ) : (
-          <>
-            {/* 내 주소 */}
-            <div className="mb-5 rounded-3xl border border-[#03C75A]/30 bg-[#03C75A]/5 p-5">
-              <p className="text-xs font-bold text-gray-500">내 페이지 주소 (인스타 프로필에 이걸 넣으세요)</p>
-              <div className="mt-2 flex items-center gap-2">
-                <code className="flex-1 truncate rounded-lg bg-white px-3 py-2 text-sm font-bold text-[#03C75A]">{pageUrl}</code>
-                <button onClick={() => { navigator.clipboard?.writeText(pageUrl); flash('복사됨') }}
-                  className="shrink-0 rounded-lg bg-[#03C75A] px-3 py-2 text-sm font-bold text-white">복사</button>
-                <a href={`/u/${page.handle}`} target="_blank" rel="noreferrer"
-                  className="shrink-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-gray-700">보기</a>
-              </div>
-            </div>
-
-            {/* 페이지 설정 */}
-            <div className="mb-5 space-y-3 rounded-3xl border border-gray-200 bg-white p-5">
-              <p className="text-sm font-black text-gray-900">페이지 설정</p>
-              <input defaultValue={page.title} placeholder="페이지 제목 (예: 민수의 추천템)"
-                onBlur={(e) => savePage({ title: e.target.value })}
-                className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm" />
-              <textarea defaultValue={page.bio} placeholder="한 줄 소개 (선택)" rows={2}
-                onBlur={(e) => savePage({ bio: e.target.value })}
-                className="w-full resize-none rounded-xl border border-gray-300 px-3 py-2 text-sm" />
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-bold text-gray-600">테마</span>
-                {['light', 'dark'].map((t) => (
-                  <button key={t} onClick={() => savePage({ theme: t })}
-                    className={`rounded-lg px-3 py-1.5 text-sm font-bold ${page.theme === t ? 'bg-[#03C75A] text-white' : 'bg-gray-100 text-gray-600'}`}>
-                    {t === 'light' ? '라이트' : '다크'}
-                  </button>
-                ))}
-                <label className="ml-auto flex items-center gap-2 text-sm font-bold text-gray-600">
-                  <input type="checkbox" checked={page.active} onChange={(e) => savePage({ active: e.target.checked })} />
-                  공개
-                </label>
-              </div>
-            </div>
-
-            {/* 영상 목록 */}
-            <p className="mb-3 text-sm font-black text-gray-900">영상 → 카드로 추가</p>
-            {jobs.length === 0 ? (
-              <p className="rounded-2xl border border-dashed border-gray-300 bg-white py-10 text-center text-sm text-gray-400">
-                완성된 영상이 아직 없어요. 먼저 영상을 만들어 주세요.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {jobs.map((job) => {
-                  const it = itemFor(job.id)
-                  return (
-                    <JobRow key={job.id} job={job} item={it}
-                      onSave={(vals) => upsertItem(job, vals)}
-                      onMove={it && it.active ? (dir) => move(it, dir) : null} />
-                  )
-                })}
-              </div>
-            )}
-          </>
-        )}
+        <LinkPageManager session={session} />
       </div>
-
-      {savedMsg && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-gray-900 px-4 py-2 text-sm font-bold text-white shadow-lg">{savedMsg}</div>
-      )}
     </div>
   )
 }
