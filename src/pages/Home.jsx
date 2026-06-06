@@ -375,7 +375,7 @@ const Home = () => {
               </button>
               <Link to="/manual/start"
                 className="flex flex-col items-center justify-center rounded-2xl border-2 border-gray-300 bg-white px-8 py-3 text-center text-xl font-extrabold leading-tight text-gray-700 transition-all hover:border-[#03C75A] hover:text-[#03C75A] active:scale-95">
-                <span>처음이세요?</span>
+                <span>👋 처음이세요?</span>
                 <span>1분 사용법</span>
               </Link>
             </div>

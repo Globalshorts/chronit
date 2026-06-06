@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { Link, useParams, useLocation } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { ManualHeader, ManualFooter, Markdown, Lightbox, parseFaq } from '../components/ManualLayout'
 
 import usageMd      from '../content/usage.md?raw'
@@ -293,6 +293,19 @@ const ManualDetail = () => {
               ))}
             </div>
           )}
+
+          {section === 'start' && (
+            <Link to="/manual/features" className="group mt-8 block overflow-hidden rounded-3xl border-2 border-[#03C75A]/40 bg-gradient-to-br from-[#03C75A]/12 to-[#03C75A]/5 p-6 transition-all hover:-translate-y-0.5 hover:border-[#03C75A] hover:shadow-xl md:p-7">
+              <span className="inline-block rounded-full bg-[#03C75A] px-3 py-1 text-xs font-black text-white">딱 한 번만 하면 끝!</span>
+              <h3 className="mt-3 text-xl font-black leading-snug text-gray-900 md:text-2xl">내 스타일·목소리·자막 세팅하기 📸</h3>
+              <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">
+                이것만 처음에 한 번 해두면 <b className="text-[#03C75A]">영상 퀄리티가 확 달라지고</b>, 다음부터는 링크만 붙여넣으면 끝이에요. 사진 보고 그대로 따라하면 됩니다.
+              </p>
+              <span className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#03C75A] px-6 py-3.5 text-base font-black text-white shadow-md shadow-[#03C75A]/25 transition-all group-hover:gap-3">
+                지금 세팅하러 가기 <ArrowRight size={18} />
+              </span>
+            </Link>
+          )}
         </div>
       </section>
 
@@ -302,11 +315,6 @@ const ManualDetail = () => {
           <Link to="/manual" className="group inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition-all hover:border-[#03C75A] hover:text-[#03C75A]">
             <ArrowLeft size={16} /> 목록으로
           </Link>
-          {section === 'start' && (
-            <Link to="/manual/features" className="inline-flex items-center gap-2 rounded-2xl bg-[#03C75A] px-5 py-3 text-sm font-bold text-white shadow-md shadow-[#03C75A]/25 transition-all hover:bg-[#02b350] active:scale-95">
-              다음: 처음 한 번만 세팅하기 →
-            </Link>
-          )}
         </div>
       </section>
 
