@@ -314,10 +314,19 @@ const ManualDetail = () => {
               </span>
             </Link>
           )}
+          {section === 'revenue' && (
+            <div className="mt-10 rounded-3xl border-2 border-[#03C75A]/40 bg-gradient-to-br from-[#03C75A]/12 to-[#03C75A]/5 p-7 text-center md:p-8">
+              <h3 className="text-xl font-black text-gray-900 md:text-2xl">이제 직접 만들어 볼까요?</h3>
+              <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">
+                쇼핑 영상 링크만 있으면 돼요. <b className="text-[#03C75A]">가입은 무료</b>, 구글 로그인이면 바로 시작할 수 있어요.
+              </p>
+              <Link to="/generate" className="group mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#03C75A] px-8 py-4 text-lg font-black text-white shadow-md shadow-[#03C75A]/25 transition-all hover:bg-[#02b350]">
+                무료로 시작하기 <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
+          )}
         </div>
       </section>
-
-      {/* 하단 네비 */}
       <section className="px-5 pb-16 md:px-8">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
           <Link to="/manual" className="group inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition-all hover:border-[#03C75A] hover:text-[#03C75A]">
