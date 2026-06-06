@@ -2117,18 +2117,20 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
   const GROUPS = [
     { title: "제작", items: [
       { v: "generator",      label: "프로젝트" },
-      { v: "auto-settings",  label: "자동화 세팅" },
-      { v: "style-finder",   label: "스타일 찾기" },
       { v: "product-search", label: "상품 검색" },
     ]},
     { title: "기록", items: [
       { v: "history", label: "생성 내역" },
     ]},
-    { title: "계정", items: [
-      { v: "settings", label: "설정" },
+    { title: "설정", items: [
+      { v: "auto-settings", label: "자동화 세팅" },
+      { v: "style-finder",  label: "스타일 찾기" },
+      { v: "settings",      label: "결제·계정" },
+    ]},
+    ...(isPartner || isAdmin ? [{ title: "관리", items: [
       ...(isPartner ? [{ v: "partner", label: "파트너스", icon: "📊" }] : []),
       ...(isAdmin ? [{ v: "admin", label: "관리자", icon: "👑" }] : []),
-    ]},
+    ]}] : []),
   ];
   return (
     <div className="flex flex-col h-full">
