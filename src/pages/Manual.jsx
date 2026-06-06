@@ -25,7 +25,7 @@ const CARDS = [
     to: '/manual/features',
     emoji: '⚙️',
     title: '처음 한 번만 세팅',
-    desc: '스타일·자동화 세팅\n사진 보고 한 번만 따라하기',
+    desc: '콘셉트/스타일 탭 (스타일 찾기 + 자동화 세팅)\n사진 보고 한 번만 따라하기',
     color: 'from-[#03C75A]/10 to-[#03C75A]/10 border-[#03C75A]/30 hover:border-[#03C75A] bg-white',
     badge: '추천',
     badgeColor: 'bg-[#03C75A]/15 text-[#03C75A]',
