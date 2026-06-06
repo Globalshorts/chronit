@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://chronit.vercel.app/sitemap.xml
+Sitemap: https://chronit.kr/sitemap.xml
