@@ -1122,7 +1122,7 @@ export default function VideoGenerator() {
             {activeView === "history" && (
               <>
                 <h2 className="text-xl font-black text-gray-900 mb-6">📹 생성 내역</h2>
-                <HistoryView session={session} />
+                <HistoryView session={session} onGoToLinks={()=>setActiveView("product-search")} />
               </>
             )}
             {activeView === "product-search" && (
@@ -3178,7 +3178,7 @@ function StyleFinderView({ session, onImport }: { session: any; onImport: (id:st
 }
 
 // ── HistoryView ───────────────────────────────────────────────
-function HistoryView({ session }: { session: any }) {
+function HistoryView({ session, onGoToLinks }: { session: any; onGoToLinks?: ()=>void }) {
   const [jobs, setJobs] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [copied, setCopied] = React.useState<string|null>(null);
@@ -3281,6 +3281,12 @@ function HistoryView({ session }: { session: any }) {
                       ? "휴대폰에 저장돼요 · 갤러리 › 앨범 › Download 에서 볼 수 있어요"
                       : "내 컴퓨터에 mp4 파일로 저장돼요"}
                   </p>
+                  {onGoToLinks && (
+                    <button onClick={onGoToLinks}
+                      className="block text-center rounded-xl border border-[#03C75A]/40 bg-[#03C75A]/5 px-3 py-2 text-xs font-bold text-[#03C75A] hover:bg-[#03C75A]/10 transition">
+                      🔗 내 링크에 추가
+                    </button>
+                  )}
 
                   {/* 업로드용 SEO */}
                   {(j.seo_title || j.seo_description || j.seo_tags) ? (
