@@ -362,11 +362,27 @@ const Home = () => {
             <h1 className="mb-5 text-4xl font-black leading-[1.25] tracking-tight text-gray-900 md:text-5xl lg:text-6xl">
               복잡한 편집 없이,<br /><span className="text-[#03C75A]">하루 5분이면</span> 끝나요
             </h1>
-            <p className="mb-9 text-lg leading-[1.9] text-gray-600 md:text-xl">
-              쇼핑 영상 링크만 붙여넣으면<br className="hidden md:block" />
-              숏폼 영상이 자동으로 만들어집니다.<br />
-              어려운 설정도, 편집 기술도, <span className="font-bold text-gray-800">팔 물건도</span> 필요 없어요.
-            </p>
+            <div className="mb-9">
+              <p className="mb-5 text-lg leading-[1.8] text-gray-600 md:text-xl">
+                쇼핑 영상 링크만 붙여넣으면<br className="hidden md:block" />
+                숏폼 영상이 자동으로 완성돼요.
+              </p>
+              <ul className="space-y-2.5">
+                {[
+                  ['사업자 등록 불필요', '부업으로 시작하기 딱 좋아요'],
+                  ['재고 보유 불필요', '물건을 떼거나 보관할 필요 없어요'],
+                  ['영상 편집 불필요', '링크만 넣으면 AI가 알아서'],
+                ].map(([t, s]) => (
+                  <li key={t} className="flex items-start gap-2.5 text-base md:text-lg">
+                    <CheckCircle2 size={22} className="mt-0.5 shrink-0 text-[#03C75A]" />
+                    <span>
+                      <b className="font-extrabold text-gray-900">{t}</b>
+                      <span className="text-gray-500"> — {s}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
             <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-stretch">
               <button onClick={handleStart}
