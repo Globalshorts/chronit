@@ -42,21 +42,37 @@
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
+      "@type": "WebApplication",
       "name": "크로닛 (Chronit)",
       "alternateName": ["Chronit", "크로닛"],
-      "description": "쇼핑 릴스 링크만 입력하면 영상 편집이 자동으로 완성되는 숏폼 자동화 툴. 자막, 썸네일, 목소리 자동 생성.",
-      "applicationCategory": "VideoApplication",
-      "operatingSystem": "Windows 10, Windows 11",
+      "description": "쇼핑 릴스/쇼츠 링크만 입력하면 자막·썸네일·AI 목소리까지 영상이 자동으로 완성되는 숏폼 자동화 웹 서비스.",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "Web",
+      "browserRequirements": "최신 웹 브라우저 (Chrome, Edge, Safari 등)",
       "url": "https://chronit.vercel.app",
       "offers": {
         "@type": "Offer",
+        "price": "29000",
         "priceCurrency": "KRW"
       },
       "publisher": {
         "@type": "Organization",
-        "name": "Chronit Labs"
+        "name": "크로닛 (Chronit)",
+        "url": "https://chronit.vercel.app",
+        "logo": "https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png"
       }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "영상 편집을 한 번도 안 해봤는데 괜찮을까요?", "acceptedAnswer": { "@type": "Answer", "text": "네, 괜찮습니다. 링크를 붙여넣고 버튼만 누르면 자르기·자막·합성이 전부 자동으로 처리됩니다." } },
+        { "@type": "Question", "name": "복잡한 설정을 해야 하나요?", "acceptedAnswer": { "@type": "Answer", "text": "아니요. 상품 링크만 붙여넣고 버튼을 누르면 AI가 알아서 만들어요. 설정은 기본값으로도 충분합니다." } },
+        { "@type": "Question", "name": "영상 하나 만드는 데 시간이 얼마나 걸리나요?", "acceptedAnswer": { "@type": "Answer", "text": "보통 몇 분이면 충분합니다. 만들어지는 동안 다른 일을 하셔도 됩니다." } },
+        { "@type": "Question", "name": "컴퓨터를 잘 못 다뤄도 되나요?", "acceptedAnswer": { "@type": "Answer", "text": "클릭만 하실 수 있으면 됩니다. 링크를 붙여넣고 버튼만 누르면 나머지는 자동이에요." } }
+      ]
     }
     </script>
 
@@ -77,6 +93,11 @@
     <link href="/fonts/_bundled.css" rel="stylesheet">
   </head>
   <body>
+    <noscript>
+      <h1>크로닛(Chronit) — 쇼핑 릴스 영상 편집 자동화</h1>
+      <p>쿠팡·네이버 쇼핑 릴스/쇼츠 링크만 넣으면 자막·썸네일·AI 목소리까지 영상이 약 2분 만에 자동으로 완성됩니다. 영상 편집 경험이 없어도 클릭만으로 숏폼을 만들 수 있어요.</p>
+      <p><a href="/manual">사용 방법</a> · <a href="/events">이벤트</a></p>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <!-- Channel Talk -->
