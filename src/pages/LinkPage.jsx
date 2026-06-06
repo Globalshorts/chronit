@@ -10,6 +10,7 @@ export default function LinkPage() {
   const [page, setPage] = useState(null)
   const [items, setItems] = useState([])
   const [state, setState] = useState('loading') // loading | ok | notfound
+  const [q, setQ] = useState('')
 
   useEffect(() => {
     let alive = true
@@ -17,7 +18,7 @@ export default function LinkPage() {
       try {
         const { data: pg } = await supabase
           .from('link_pages')
-          .select('user_id, handle, title, bio, theme, active, avatar_url')
+          .select('user_id, handle, title, bio, theme, active, avatar_url, card_size')
           .eq('handle', handle)
           .eq('active', true)
           .maybeSingle()
@@ -68,9 +69,15 @@ export default function LinkPage() {
   const card = dark ? 'bg-[#1E2230] border-white/10' : 'bg-white border-gray-200'
   const sub = dark ? 'text-gray-400' : 'text-gray-500'
 
+  const size = page.card_size || 'large'
+  const cols = size === 'small' ? 'grid-cols-3' : size === 'medium' ? 'grid-cols-2' : 'grid-cols-1'
+  const maxW = size === 'large' ? 'max-w-md' : size === 'medium' ? 'max-w-lg' : 'max-w-2xl'
+  const ql = q.trim().toLowerCase()
+  const filtered = ql ? items.filter((it) => (it.title || '').toLowerCase().includes(ql)) : items
+
   return (
     <div className={`min-h-screen ${bg}`}>
-      <div className="mx-auto w-full max-w-md px-5 py-10">
+      <div className={`mx-auto w-full ${maxW} px-5 py-10`}>
         <header className="mb-8 text-center">
           {page.avatar_url ? (
             <img src={page.avatar_url} alt={page.title || page.handle}
@@ -85,35 +92,46 @@ export default function LinkPage() {
         {items.length === 0 ? (
           <p className={`py-16 text-center text-sm ${sub}`}>아직 등록된 상품이 없어요.</p>
         ) : (
-          <div className="space-y-4">
-            {items.map((it) => (
-              <a
-                key={it.id}
-                href={it.target_url}
-                target="_blank"
-                rel="nofollow sponsored noopener noreferrer"
-                className={`group block overflow-hidden rounded-3xl border shadow-sm transition-transform active:scale-[0.98] ${card}`}
-              >
-                {it.video_url && (
-                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-black">
-                    <video
-                      src={it.video_url}
-                      muted
-                      loop
-                      autoPlay
-                      playsInline
-                      preload="metadata"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                )}
-                <div className="flex items-center justify-between gap-3 p-4">
-                  <p className="line-clamp-2 flex-1 text-sm font-bold leading-snug">{it.title || '상품 보러가기'}</p>
-                  <span className="shrink-0 rounded-xl bg-[#03C75A] px-4 py-2 text-sm font-extrabold text-white">보러가기</span>
-                </div>
-              </a>
-            ))}
-          </div>
+          <>
+            {items.length >= 5 && (
+              <div className="mb-5">
+                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="🔍 상품 검색…"
+                  className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none ${dark ? 'border-white/10 bg-white/5 text-gray-100 placeholder-gray-500' : 'border-gray-200 bg-white text-gray-900 placeholder-gray-400'}`} />
+              </div>
+            )}
+            {filtered.length === 0 ? (
+              <p className={`py-16 text-center text-sm ${sub}`}>검색 결과가 없어요.</p>
+            ) : (
+              <div className={`grid ${cols} gap-3`}>
+                {filtered.map((it) => (
+                  <a
+                    key={it.id}
+                    href={it.target_url}
+                    target="_blank"
+                    rel="nofollow sponsored noopener noreferrer"
+                    className={`group block overflow-hidden rounded-3xl border shadow-sm transition-transform active:scale-[0.98] ${card}`}
+                  >
+                    {it.video_url && (
+                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-black">
+                        <video src={it.video_url} muted loop autoPlay playsInline preload="metadata" className="h-full w-full object-cover" />
+                      </div>
+                    )}
+                    {size === 'large' ? (
+                      <div className="flex items-center justify-between gap-3 p-4">
+                        <p className="line-clamp-2 flex-1 text-sm font-bold leading-snug">{it.title || '상품 보러가기'}</p>
+                        <span className="shrink-0 rounded-xl bg-[#03C75A] px-4 py-2 text-sm font-extrabold text-white">보러가기</span>
+                      </div>
+                    ) : (
+                      <div className="p-3">
+                        <p className="line-clamp-2 text-xs font-bold leading-snug">{it.title || '상품 보러가기'}</p>
+                        {size === 'medium' && <span className="mt-2 block rounded-lg bg-[#03C75A] px-3 py-1.5 text-center text-xs font-extrabold text-white">보러가기</span>}
+                      </div>
+                    )}
+                  </a>
+                ))}
+              </div>
+            )}
+          </>
         )}
 
         <footer className={`mt-10 border-t pt-5 text-center ${dark ? 'border-white/10' : 'border-gray-200'}`}>

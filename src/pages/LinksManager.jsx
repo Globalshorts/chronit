@@ -167,6 +167,13 @@ export function LinkPageManager({ session }) {
             공개
           </label>
         </div>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-bold text-gray-600">카드 크기</span>
+          {[['large','크게'],['medium','보통'],['small','작게']].map(([v, l]) => (
+            <button key={v} onClick={() => savePage({ card_size: v })}
+              className={`rounded-lg px-3 py-1.5 text-sm font-bold ${(page.card_size || 'large') === v ? 'bg-[#03C75A] text-white' : 'bg-gray-100 text-gray-600'}`}>{l}</button>
+          ))}
+        </div>
       </div>
 
       {/* 영상 목록 */}
@@ -251,7 +258,7 @@ function JobRow({ job, item, onSave, onMove }) {
               className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
             <a href={`https://partners.coupang.com/#affiliate/ws/link/0/${encodeURIComponent((title || '').trim())}`}
               target="_blank" rel="noreferrer"
-              className="shrink-0 whitespace-nowrap rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-200">🔍 상품 검색</a>
+              className="shrink-0 whitespace-nowrap rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-200">🔍 쿠팡에서 찾기</a>
           </div>
           <div className="flex items-center gap-2">
             {active ? (
