@@ -65,7 +65,7 @@ const EventBadge = ({ status, label }) => {
   return (
     <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold ${cfg.cls}`}>
       {cfg.dot && <span className="badge-pulse h-1.5 w-1.5 rounded-full bg-[#03C75A]" />}
-      {label || cfg.label}
+      {cfg.label}
     </span>
   )
 }

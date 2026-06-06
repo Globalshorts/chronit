@@ -123,9 +123,9 @@ const RichEditor = ({ value, onChange }) => {
 }
 
 const STATUS_CFG = {
-  active:  { label: 'Active',  cls: 'bg-blue-500/20 text-blue-300 border-blue-500/30', dot: true },
-  ended:   { label: 'Ended',   cls: 'bg-slate-600/30 text-slate-400 border-slate-500/20', dot: false },
-  winner:  { label: 'Winners', cls: 'bg-amber-500/20 text-amber-300 border-amber-500/30', dot: false },
+  active:  { label: '진행중',      cls: 'bg-blue-500/20 text-blue-300 border-blue-500/30', dot: true },
+  ended:   { label: '종료됨',      cls: 'bg-slate-600/30 text-slate-400 border-slate-500/20', dot: false },
+  winner:  { label: '당첨자 발표', cls: 'bg-amber-500/20 text-amber-300 border-amber-500/30', dot: false },
 }
 
 const StatusBadge = ({ status }) => {
@@ -319,7 +319,7 @@ const Admin = () => {
     setSaving(true); setSaveMsg(null)
     const payload = {
       title: form.title, content: form.content, status: form.status,
-      label: STATUS_CFG[form.status]?.label || 'Active',
+      label: STATUS_CFG[form.status]?.label || '진행중',
       cta_text: form.cta_text, cta_url: form.cta_url, thumbnail_url: form.thumbnail_url || '',
       updated_at: new Date().toISOString(), created_by: user.id,
     }
