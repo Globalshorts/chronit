@@ -363,10 +363,6 @@ const Home = () => {
               복잡한 편집 없이,<br /><span className="text-[#03C75A]">하루 5분이면</span> 끝나요
             </h1>
             <div className="mb-9">
-              <p className="mb-5 text-lg leading-[1.8] text-gray-600 md:text-xl">
-                쇼핑 영상 링크만 붙여넣으면<br className="hidden md:block" />
-                숏폼 영상이 자동으로 완성돼요.
-              </p>
               <ul className="space-y-2.5">
                 {[
                   ['사업자 등록 불필요', '부업으로 시작하기 딱 좋아요'],
