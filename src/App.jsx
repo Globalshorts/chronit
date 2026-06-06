@@ -9,6 +9,8 @@ import EventDetail from './pages/EventDetail'
 import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import Admin from './pages/Admin'
+import LinkPage from './pages/LinkPage'
+import LinksManager from './pages/LinksManager'
 
 const ScrollToTop = () => {
   const { pathname } = useLocation()
@@ -29,6 +31,8 @@ const App = () => (
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/admin" element={<Admin />} />
       <Route path="/generate" element={<VideoGenerator />} />
+      <Route path="/links" element={<LinksManager />} />
+      <Route path="/u/:handle" element={<LinkPage />} />
     </Routes>
   </BrowserRouter>
 )
