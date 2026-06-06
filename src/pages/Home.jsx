@@ -371,7 +371,7 @@ const Home = () => {
                 className="group flex items-center justify-center gap-2 rounded-2xl bg-[#03C75A] px-10 py-5 text-xl font-extrabold text-white shadow-lg shadow-[#03C75A]/30 transition-all hover:bg-[#02b350] active:scale-95">
                 영상 만들기 <ArrowRight size={22} className="transition-transform group-hover:translate-x-1" />
               </button>
-              <Link to="/manual/start"
+              <Link to="/manual"
                 className="flex flex-col items-center justify-center rounded-2xl border-2 border-gray-300 bg-white px-8 py-3 text-center text-xl font-extrabold leading-tight text-gray-700 transition-all hover:border-[#03C75A] hover:text-[#03C75A] active:scale-95">
                 <span>👋 처음이세요?</span>
                 <span>1분 사용법</span>
@@ -380,6 +380,10 @@ const Home = () => {
             <p className="mt-4 text-sm font-medium text-gray-500">
               <span className="font-black text-[#03C75A]">설치 없이</span> 웹에서 바로 시작 · 구글 로그인이면 끝
             </p>
+            <Link to="/manual/app"
+              className="mt-2 inline-flex items-center gap-1 text-sm font-bold text-gray-500 underline-offset-4 transition-colors hover:text-[#03C75A] hover:underline">
+              📱 앱으로 사용하는 방법 <ArrowRight size={14} />
+            </Link>
           </div>
 
           {/* 우측: 수익 흐름 */}
