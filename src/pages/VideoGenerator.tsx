@@ -1917,6 +1917,73 @@ function ensureKakao(): Promise<any> {
   });
 }
 
+function CreditHistoryModal({ open, onClose, session }: { open:boolean; onClose:()=>void; session:any }) {
+  const [rows, setRows] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(()=>{ if(!open||!session) return; (async()=>{
+    setLoading(true);
+    try {
+      const { data } = await supabase
+        .from("credit_transactions")
+        .select("id,delta,reason,balance_after,created_at")
+        .eq("user_id", session.user.id)
+        .order("created_at", { ascending: false })
+        .limit(100);
+      setRows(Array.isArray(data) ? data : []);
+    } catch { setRows([]); }
+    setLoading(false);
+  })(); }, [open, session]);
+
+  if (!open) return null;
+  const fmt = (d:string)=> d ? new Date(d).toLocaleString("ko-KR",{year:"2-digit",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}) : "-";
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="w-full max-w-md rounded-3xl bg-white border border-gray-200 p-6 max-h-[85vh] flex flex-col" onClick={e=>e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-xl font-black text-gray-900">📒 크레딧 사용 내역</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-900 text-xl">✕</button>
+        </div>
+        <p className="text-xs text-gray-500 mb-4">최근 100건까지 표시됩니다</p>
+
+        <div className="flex-1 overflow-y-auto -mx-1 px-1">
+          {loading ? (
+            <p className="py-10 text-center text-sm text-gray-500">불러오는 중...</p>
+          ) : rows.length === 0 ? (
+            <p className="py-10 text-center text-sm text-gray-500">아직 내역이 없어요</p>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {rows.map(r=>{
+                const plus = (r.delta ?? 0) >= 0;
+                return (
+                  <div key={r.id} className="flex items-center justify-between gap-3 py-2.5">
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-gray-800 truncate">{r.reason || "변동"}</p>
+                      <p className="text-[11px] text-gray-400">{fmt(r.created_at)}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className={`text-sm font-black ${plus ? "text-[#03C75A]" : "text-gray-700"}`}>
+                        {plus ? "+" : ""}{Number(r.delta ?? 0).toLocaleString()}
+                      </p>
+                      {r.balance_after !== null && r.balance_after !== undefined && (
+                        <p className="text-[11px] text-gray-400">잔액 {Number(r.balance_after).toLocaleString()}</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <button onClick={onClose} className="w-full mt-4 rounded-xl bg-gray-100 hover:bg-gray-200 py-3 text-sm font-bold text-gray-700">닫기</button>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 function CreditMissionsModal({ open, onClose, session }: { open:boolean; onClose:()=>void; session:any }) {
   const [info, setInfo] = React.useState<any>(null);
   const [reviewUrl, setReviewUrl] = React.useState("");
@@ -2039,6 +2106,7 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
     return ()=>{ _extractMgr.listeners.delete(l); };
   }, []);
   const [showMissions, setShowMissions] = React.useState(false);
+  const [showHistory, setShowHistory] = React.useState(false);
   const isPartner = userRole === "partner" || userRole === "super_admin";
   const isAdmin = userRole === "super_admin";
   const GROUPS = [
@@ -2104,8 +2172,11 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
             <span className="font-black text-[#03C75A]">💎 {balance.toLocaleString()}</span>
           </div>
         )}
+        <button onClick={()=>setShowHistory(true)}
+          className="w-full mt-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-100 transition">📒 크레딧 사용 내역</button>
       </div>
       <CreditMissionsModal open={showMissions} onClose={()=>setShowMissions(false)} session={session} />
+      <CreditHistoryModal open={showHistory} onClose={()=>setShowHistory(false)} session={session} />
     </div>
   );
 }
