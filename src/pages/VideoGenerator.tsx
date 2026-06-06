@@ -963,15 +963,11 @@ export default function VideoGenerator() {
       {!autoRunning && currentJobId && (() => {
         const bg = jobs.find(j => j.id === currentJobId);
         if (bg && (bg.status === "done" || bg.status === "error")) return null;
-        void genTick; // 1초마다 갱신
-        const started = bg?.created_at ? new Date(bg.created_at).getTime() : null;
-        const sec = started ? Math.max(0, Math.floor((Date.now() - started) / 1000)) : null;
-        const mmss = sec != null ? `${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}` : null;
         return (
           <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 rounded-2xl bg-white border border-[#03C75A]/40 shadow-2xl shadow-[#03C75A]/10 px-5 py-3 flex items-center gap-3">
             <div className="w-5 h-5 border-2 border-gray-200 border-t-[#03C75A] rounded-full animate-spin shrink-0" />
             <div>
-              <p className="text-sm font-bold text-gray-900">영상 생성 중...{mmss && <span className="ml-1.5 font-mono text-[#03C75A]">{mmss}</span>}</p>
+              <p className="text-sm font-bold text-gray-900">영상 생성 중...</p>
               <p className="text-xs text-gray-500">보통 1~5분 걸려요 · 창을 닫거나 다른 작업을 해도 계속 생성돼요.</p>
             </div>
           </div>
@@ -2876,11 +2872,11 @@ function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean;
           </>
         )}
         {clip.duration > 0 && !playing && (
-          <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1 py-0.5 text-xs text-gray-900 font-bold">{clip.duration}s</div>
+          <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1 py-0.5 text-xs text-white font-bold">{clip.duration}s</div>
         )}
         {selected && (
           <div className="absolute top-1.5 left-1.5 h-5 w-5 rounded-full bg-[#03C75A] flex items-center justify-center">
-            <span className="text-gray-900 text-xs font-black">✓</span>
+            <span className="text-white text-xs font-black">✓</span>
           </div>
         )}
       </div>

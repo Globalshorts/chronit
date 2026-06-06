@@ -93,7 +93,7 @@ export default function LinkPage() {
           <p className={`py-16 text-center text-sm ${sub}`}>아직 등록된 상품이 없어요.</p>
         ) : (
           <>
-            {items.length >= 5 && (
+            {items.length >= 2 && (
               <div className="mb-5">
                 <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="🔍 상품 검색…"
                   className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none ${dark ? 'border-white/10 bg-white/5 text-gray-100 placeholder-gray-500' : 'border-gray-200 bg-white text-gray-900 placeholder-gray-400'}`} />
