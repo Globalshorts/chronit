@@ -356,33 +356,15 @@ const Home = () => {
       <section className="relative px-5 pt-32 pb-16 md:px-8 md:pt-40 md:pb-24">
         <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-12">
           <div className="flex flex-col items-start">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#FFB800]/40 bg-[#FFB800]/10 px-4 py-2 text-sm font-bold text-[#9a6b00] md:text-base">
-              <CheckCircle2 size={16} className="text-[#FFB800]" /> 영상 편집, 한 번도 안 해보셨어도 괜찮아요
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#03C75A]/30 bg-[#03C75A]/10 px-4 py-2 text-sm font-bold text-[#03C75A] md:text-base">
+              🛍️ 상품 소개 콘텐츠 자동 제작
             </div>
-            <h1 className="mb-5 text-4xl font-black leading-[1.25] tracking-tight text-gray-900 md:text-5xl lg:text-6xl">
-              복잡한 편집 없이,<br /><span className="text-[#03C75A]">하루 5분이면</span> 끝나요
+            <h1 className="mb-5 text-4xl font-black leading-[1.2] tracking-tight text-gray-900 md:text-5xl">
+              좋은 상품을 소개하고<br /><span className="text-[#03C75A]">추가 수익</span>에 도전해보세요
             </h1>
-            <p className="mb-7 text-lg leading-[1.7] text-gray-600 md:text-xl">
-              좋은 상품을 소개하는 숏폼을 만들어 내 채널에 올리고,<br className="hidden md:block" />
-              <span className="font-bold text-gray-800">추가 수익</span>에 도전해보세요.
+            <p className="mb-9 text-xl font-bold text-gray-500 md:text-2xl">
+              영상은 <span className="text-gray-900">크로닛</span>이 만듭니다.
             </p>
-            <div className="mb-9">
-              <ul className="space-y-2.5">
-                {[
-                  ['사업자 등록 불필요', '부업으로 시작하기 딱 좋아요'],
-                  ['재고 보유 불필요', '물건을 떼거나 보관할 필요 없어요'],
-                  ['영상 편집 불필요', '링크만 넣으면 AI가 알아서'],
-                ].map(([t, s]) => (
-                  <li key={t} className="flex items-start gap-2.5 text-base md:text-lg">
-                    <CheckCircle2 size={22} className="mt-0.5 shrink-0 text-[#03C75A]" />
-                    <span>
-                      <b className="font-extrabold text-gray-900">{t}</b>
-                      <span className="text-gray-500"> — {s}</span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
 
             <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-stretch">
               <button onClick={handleStart}
@@ -400,56 +382,41 @@ const Home = () => {
             </p>
           </div>
 
-          {/* 우측: 3단계 (이게 전부예요) */}
+          {/* 우측: 수익 흐름 */}
           <div className="relative flex justify-center">
-            <div className="w-full max-w-md space-y-3">
-              <p className="mb-1 text-center text-base font-black text-gray-900 md:text-left">정말 이게 전부예요 👇</p>
+            <div className="w-full max-w-sm">
+              <p className="mb-3 text-center text-base font-black text-gray-900">이렇게 수익이 돼요 👇</p>
               {[
-                { n: '1', emoji: '🔗', title: '링크 붙여넣기', desc: '쇼핑 영상 링크를 복사해서 붙여넣어요.' },
-                { n: '2', emoji: '🎬', title: '자동으로 제작', desc: '편집·자막·자르기까지 전부 자동이에요.' },
-                { n: '3', emoji: '✅', title: '올리기만 하면 끝', desc: '완성된 영상을 내 채널에 올리면 끝!' },
-              ].map(({ n, emoji, title, desc }) => (
-                <div key={n} className="flex items-center gap-4 rounded-3xl border border-gray-200 bg-white p-5 shadow-[0_10px_36px_-18px_rgba(0,0,0,0.15)]">
-                  <div className="relative shrink-0">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#03C75A]/10 text-3xl">{emoji}</div>
-                    <span className="absolute -top-2 -left-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#03C75A] text-xs font-black text-white">{n}</span>
+                { emoji: '📦', title: '상품 선택', desc: '소개할 상품을 고르고' },
+                { emoji: '🎬', title: '영상 자동 생성', desc: '크로닛이 숏폼을 만들어요' },
+                { emoji: '📱', title: '인스타·유튜브 업로드', desc: '내 채널에 올리면' },
+                { emoji: '💰', title: '구매 시 수수료 지급', desc: '쿠팡 파트너스 등 제휴', highlight: true },
+              ].map((s, i, arr) => (
+                <div key={s.title}>
+                  <div className={`flex items-center gap-4 rounded-2xl border p-4 ${s.highlight ? 'border-[#03C75A] bg-[#03C75A]/8 shadow-lg shadow-[#03C75A]/15' : 'border-gray-200 bg-white'}`}>
+                    <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-2xl ${s.highlight ? 'bg-[#03C75A]/15' : 'bg-gray-50'}`}>{s.emoji}</div>
+                    <div className="min-w-0">
+                      <p className={`text-base font-black ${s.highlight ? 'text-[#03C75A]' : 'text-gray-900'}`}>{s.title}</p>
+                      <p className="text-sm text-gray-500">{s.desc}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-black text-gray-900">{title}</h3>
-                    <p className="text-sm leading-snug text-gray-500">{desc}</p>
-                  </div>
+                  {i < arr.length - 1 && <div className="flex justify-center py-1"><span className="text-lg text-gray-300">↓</span></div>}
                 </div>
               ))}
-              <p className="pt-1 text-center text-sm font-bold text-[#03C75A]">딱 3단계, 5분이면 충분해요</p>
+              <p className="mt-3 text-center text-xs text-gray-400">※ 수익은 보장되지 않아요</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── 어떻게 수익이 되나요 ── */}
-      <section className="border-y border-gray-100 bg-white px-5 py-16 md:px-8 md:py-20">
-        <div className="mx-auto max-w-4xl">
-          <div className="mb-12 text-center">
-            <h2 className="text-3xl font-black text-gray-900 md:text-4xl">그래서, 어떻게 수익이 되나요?</h2>
-            <p className="mt-3 text-lg text-gray-500 md:text-xl">물건을 파는 게 아니라, <b className="text-gray-800">소개하고 수수료를 받는</b> 방식이에요.</p>
-          </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-5">
-            {[
-              { n: '1', emoji: '🎬', title: '상품 소개 숏폼을 만들어요', desc: '크로닛이 링크만으로 영상을 자동 제작해요.' },
-              { n: '2', emoji: '📲', title: '내 채널에 올려요', desc: '인스타그램·유튜브·틱톡 등에 업로드해요.' },
-              { n: '3', emoji: '💰', title: '구매로 이어지면 수수료', desc: '영상 속 링크로 누군가 구매하면 쿠팡 파트너스 등 제휴 수수료를 받아요.' },
-            ].map(({ n, emoji, title, desc }) => (
-              <div key={n} className="relative rounded-3xl border border-gray-200 bg-[#FAFAF8] p-6 text-center">
-                <span className="absolute top-4 left-4 flex h-6 w-6 items-center justify-center rounded-full bg-[#03C75A] text-xs font-black text-white">{n}</span>
-                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#03C75A]/10 text-3xl">{emoji}</div>
-                <h3 className="text-base font-black text-gray-900 md:text-lg">{title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-gray-500">{desc}</p>
-              </div>
-            ))}
-          </div>
-          <p className="mt-6 text-center text-xs leading-relaxed text-gray-400">※ 수익은 영상·상품·조회수에 따라 달라지며, 수익을 보장하지 않습니다.</p>
+      {/* 신뢰 포인트 (한 줄) */}
+      <div className="px-5 md:px-8">
+        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-x-8 gap-y-2 border-b border-gray-100 py-5 text-sm font-bold text-gray-600 md:text-base">
+          {['사업자 등록 불필요', '재고 보유 불필요', '영상 편집 불필요'].map((t) => (
+            <span key={t} className="inline-flex items-center gap-1.5"><CheckCircle2 size={18} className="text-[#03C75A]" /> {t}</span>
+          ))}
         </div>
-      </section>
+      </div>
 
       {/* ── 데모 캐러셀 ── */}
       <div id="demo"><DemoCarousel /></div>
