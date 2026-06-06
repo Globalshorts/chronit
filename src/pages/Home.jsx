@@ -246,11 +246,15 @@ const Home = () => {
     </>
   )
 
+  const eventBannerOn = events.filter(e => e.status === 'active').length > 0 && !(typeof sessionStorage !== 'undefined' && sessionStorage.getItem('chronit_event_banner_closed'))
+  const bannerCount = (refFromUrl ? 1 : 0) + (codeFromUrl ? 1 : 0) + (eventBannerOn ? 1 : 0)
+  const bannerH = bannerCount * 44
+
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans break-keep text-gray-900 selection:bg-[#03C75A]/20">
+    <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans break-keep text-gray-900 selection:bg-[#03C75A]/20" style={{ paddingTop: bannerH ? `${bannerH}px` : undefined }}>
       {/* 추천인 코드 배너 */}
       {refFromUrl && (
-        <div className="fixed top-0 right-0 left-0 z-[61] flex items-center justify-center gap-2 bg-[#03C75A] px-4 py-3 text-sm font-bold text-white shadow-md">
+        <div className="fixed top-0 right-0 left-0 z-[61] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[#03C75A] px-4 py-3 text-sm font-bold text-white shadow-md">
           <Gift size={15} />
           <span>추천 코드 <strong>{refFromUrl}</strong> 적용됨 — 가입하면 <strong>500 크레딧</strong>을 드려요!</span>
           <button onClick={() => { setRefFromUrl(null); sessionStorage.removeItem('chronit_ref') }} className="ml-2 opacity-80 hover:opacity-100">✕</button>
@@ -259,27 +263,27 @@ const Home = () => {
 
       {/* 할인 코드 배너 */}
       {codeFromUrl && (
-        <div className={`fixed right-0 left-0 z-[60] flex items-center justify-center gap-2 bg-[#FFB800] px-4 py-3 text-sm font-bold text-[#5b4200] shadow-md ${refFromUrl ? 'top-11' : 'top-0'}`}>
+        <div className={`fixed right-0 left-0 z-[60] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[#FFB800] px-4 py-3 text-sm font-bold text-[#5b4200] shadow-md ${refFromUrl ? 'top-11' : 'top-0'}`}>
           <span>🎟️ 할인 코드 <strong>{codeFromUrl}</strong> 감지됨 — 결제할 때 자동으로 적용됩니다</span>
           <button onClick={() => { setCodeFromUrl(null); sessionStorage.removeItem('chronit_code') }} className="ml-2 opacity-70 hover:opacity-100">✕</button>
         </div>
       )}
 
       {/* 진행중인 이벤트 배너 */}
-      {events.filter(e => e.status === 'active').length > 0 && !sessionStorage.getItem('chronit_event_banner_closed') && (
+      {eventBannerOn && (
         <div
-          className="fixed right-0 left-0 z-[59] flex items-center justify-center gap-2 bg-[#02b350] px-4 py-3 text-sm font-bold text-white shadow-md cursor-pointer"
+          className="fixed right-0 left-0 z-[59] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[#02b350] px-4 py-3 text-sm font-bold text-white shadow-md cursor-pointer"
           style={{ top: `${((refFromUrl ? 1 : 0) + (codeFromUrl ? 1 : 0)) * 44}px` }}
           onClick={() => { window.location.href = '/events' }}
         >
           <span>🎉</span>
-          <span>진행중인 이벤트가 <strong>{events.filter(e => e.status === 'active').length}건</strong> 있어요 — 확인하기 →</span>
+          <span>진행 중인 이벤트 <strong>{events.filter(e => e.status === 'active').length}건</strong> — 확인하기 →</span>
           <button onClick={e => { e.stopPropagation(); sessionStorage.setItem('chronit_event_banner_closed', '1'); window.location.reload() }} className="ml-2 opacity-80 hover:opacity-100">✕</button>
         </div>
       )}
 
       {/* Header */}
-      <header className={`fixed top-0 right-0 left-0 z-50 transition-all duration-300 ${scrolled ? 'border-b border-gray-200 bg-[#FAFAF8]/90 py-3 backdrop-blur-md' : 'bg-transparent py-4 md:py-5'}`}>
+      <header style={{ top: `${bannerH}px` }} className={`fixed right-0 left-0 z-50 transition-all duration-300 ${scrolled ? 'border-b border-gray-200 bg-[#FAFAF8]/90 py-3 backdrop-blur-md' : 'bg-transparent py-4 md:py-5'}`}>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
           <a href="/" className="flex min-w-0 items-center gap-2 md:gap-3">
             <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-9 w-9 shrink-0 md:h-10 md:w-10" />
@@ -318,7 +322,7 @@ const Home = () => {
       </header>
 
       {/* 모바일 메뉴 */}
-      <div className={`fixed top-0 left-0 right-0 z-40 transform transition-all duration-300 ease-in-out md:hidden ${menuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`} style={{ paddingTop: '76px' }}>
+      <div className={`fixed top-0 left-0 right-0 z-40 transform transition-all duration-300 ease-in-out md:hidden ${menuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`} style={{ paddingTop: `${bannerH + 76}px` }}>
         <div className="border-b border-gray-200 bg-white px-6 py-6 shadow-lg">
           <nav className="flex flex-col gap-1 text-lg font-bold text-gray-700">
             <a href="#features" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">기능</a>
