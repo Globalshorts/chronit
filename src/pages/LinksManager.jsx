@@ -1,6 +1,31 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
+// 생성 영상에서 한 프레임을 캡처해 작은 JPG Blob으로 반환 (카드용 이미지 = 영상 대신 용량 절감)
+async function captureVideoFrame(videoUrl) {
+  return new Promise((resolve, reject) => {
+    const v = document.createElement('video')
+    v.crossOrigin = 'anonymous'; v.muted = true; v.playsInline = true; v.preload = 'auto'
+    let done = false
+    const finish = (err, blob) => { if (done) return; done = true; try { v.removeAttribute('src'); v.load() } catch {} ; err ? reject(err) : resolve(blob) }
+    v.onerror = () => finish(new Error('video load error'))
+    v.onloadeddata = () => { try { v.currentTime = Math.min(0.6, (v.duration || 2) * 0.25) } catch (e) { finish(e) } }
+    v.onseeked = () => {
+      try {
+        const maxH = 960
+        const scale = Math.min(1, maxH / (v.videoHeight || maxH))
+        const w = Math.max(1, Math.round((v.videoWidth || 720) * scale))
+        const h = Math.max(1, Math.round((v.videoHeight || 1280) * scale))
+        const c = document.createElement('canvas'); c.width = w; c.height = h
+        c.getContext('2d').drawImage(v, 0, 0, w, h)
+        c.toBlob((b) => b ? finish(null, b) : finish(new Error('toBlob null')), 'image/jpeg', 0.82)
+      } catch (e) { finish(e) }
+    }
+    setTimeout(() => finish(new Error('capture timeout')), 15000)
+    v.src = videoUrl
+  })
+}
+
 const sanitize = (s) =>
   (s || '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 24) || 'user'
 
@@ -81,15 +106,22 @@ export function LinkPageManager({ session }) {
         .update({ title, target_url, active }).eq('id', existing.id).select('*').single()
       if (data) setItems((p) => p.map((i) => (i.id === data.id ? data : i)))
     } else {
-      // 영상을 영구 보관소(kept/)로 복사 → 3일 자동삭제·생성내역 삭제에도 카드 영상 유지
+      // 카드 이미지: 생성 영상에서 프레임 캡처 → 작은 JPG 저장 (영상 대신 이미지 = 용량 ~50배 절감)
+      let image_url = null
       let videoUrl = job.video_url
       try {
-        const { data: kv } = await supabase.functions.invoke('keep-video', { body: { job_id: job.id } })
-        if (kv?.ok && kv.video_url) videoUrl = kv.video_url
-      } catch (e) { /* 복사 실패 시 원본 URL 폴백 */ }
+        const blob = await captureVideoFrame(job.video_url)
+        const path = `${uid}/${job.id}.jpg`
+        const up = await supabase.storage.from('card-images').upload(path, blob, { upsert: true, contentType: 'image/jpeg', cacheControl: '3600' })
+        if (!up.error) image_url = supabase.storage.from('card-images').getPublicUrl(path).data.publicUrl
+      } catch (e) { /* 캡처 실패 → 아래 영상 폴백 */ }
+      if (!image_url) {
+        // 캡처 실패 시에만 영상을 영구 보관(폴백) → 카드가 깨지지 않도록
+        try { const { data: kv } = await supabase.functions.invoke('keep-video', { body: { job_id: job.id } }); if (kv?.ok && kv.video_url) videoUrl = kv.video_url } catch (e) {}
+      }
       const maxSort = items.reduce((m, i) => Math.max(m, i.sort_order || 0), 0)
       const { data } = await supabase.from('link_items')
-        .insert({ user_id: uid, video_job_id: job.id, title, target_url, active, video_url: videoUrl, sort_order: maxSort + 1 })
+        .insert({ user_id: uid, video_job_id: job.id, title, target_url, active, image_url, video_url: videoUrl, sort_order: maxSort + 1 })
         .select('*').single()
       if (data) setItems((p) => [...p, data])
     }

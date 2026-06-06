@@ -25,7 +25,7 @@ export default function LinkPage() {
         if (!pg) { if (alive) setState('notfound'); return }
         const { data: its } = await supabase
           .from('link_items')
-          .select('id, title, video_url, target_url, sort_order')
+          .select('id, title, image_url, video_url, target_url, sort_order')
           .eq('user_id', pg.user_id)
           .eq('active', true)
           .order('sort_order', { ascending: true })
@@ -111,9 +111,11 @@ export default function LinkPage() {
                     rel="nofollow sponsored noopener noreferrer"
                     className={`group block overflow-hidden rounded-3xl border shadow-sm transition-transform active:scale-[0.98] ${card}`}
                   >
-                    {it.video_url && (
+                    {(it.image_url || it.video_url) && (
                       <div className="relative aspect-[4/3] w-full overflow-hidden bg-black">
-                        <video src={it.video_url} muted loop autoPlay playsInline preload="metadata" className="h-full w-full object-cover" />
+                        {it.image_url
+                          ? <img src={it.image_url} alt={it.title || ''} loading="lazy" className="h-full w-full object-cover" />
+                          : <video src={it.video_url} muted loop autoPlay playsInline preload="metadata" className="h-full w-full object-cover" />}
                       </div>
                     )}
                     {size === 'large' ? (
