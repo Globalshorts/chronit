@@ -75,6 +75,10 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
     if (data.expires_at && new Date(data.expires_at) < new Date()) { setCodeStatus('expired'); setDiscount(null); return }
     setDiscount(data)
     setCodeStatus('valid')
+    // 파트너 코드(owner_email 보유)면 로그인 상태에서 멤버↔파트너 연결을 자동 등록 → 결제확정 시 수수료 적립 연동 (멱등, 비로그인 시 무시)
+    if (data.owner_email) {
+      try { supabase.rpc('redeem_teacher_code_rpc', { p_code: trimmed }).then(() => {}, () => {}) } catch {}
+    }
   }
 
   useEffect(() => {

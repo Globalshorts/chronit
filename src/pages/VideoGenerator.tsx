@@ -3612,6 +3612,8 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
   const [pcMsg, setPcMsg] = React.useState("");
   const [msg, setMsg]       = React.useState("");
   const [loading, setLoading] = React.useState(true);
+  const [srcStats, setSrcStats] = React.useState<{source:string;count:number}[]>([]);
+  const [srcTotal, setSrcTotal] = React.useState(0);
 
   const load = React.useCallback(async ()=>{
     setLoading(true);
@@ -3619,6 +3621,10 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
       const { data } = await supabase.rpc("get_all_users_admin_rpc");
       setUsers(Array.isArray(data) ? data : []);
     } catch { setUsers([]); }
+    try {
+      const { data: ss } = await supabase.rpc("admin_signup_source_stats_rpc");
+      if (ss?.ok) { setSrcStats(Array.isArray(ss.stats)?ss.stats:[]); setSrcTotal(ss.total||0); }
+    } catch {}
     try {
       const { data: pl } = await supabase.from("plans").select("id,name,max_credits").order("sort_order");
       setPlans(pl ?? []);
@@ -3743,6 +3749,22 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
           <button onClick={load} className="ml-3 rounded-lg border border-gray-200 px-2 py-1 hover:bg-gray-100">새로고침</button>
         </div>
       </div>
+
+      {/* 가입 경로 집계 */}
+      {srcStats.length > 0 && (
+        <div className="rounded-2xl bg-white border border-gray-200 p-4 mb-3">
+          <p className="text-xs font-bold text-gray-700 mb-2">📥 가입 경로 (총 {srcTotal}명)</p>
+          <div className="flex flex-wrap gap-2">
+            {srcStats.map(s=>(
+              <span key={s.source} className={`rounded-lg px-2.5 py-1 text-xs font-bold ${s.source==="미응답"?"bg-gray-100 text-gray-500":"bg-[#03C75A]/10 text-[#03C75A]"}`}>
+                {s.source} <b>{s.count}</b>
+                <span className="text-gray-400 font-normal"> ({srcTotal?Math.round(s.count/srcTotal*100):0}%)</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex gap-2 mb-3">
         <input value={q} onChange={e=>setQ(e.target.value)} placeholder="이메일 검색"
           className="flex-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-2 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A]" />
