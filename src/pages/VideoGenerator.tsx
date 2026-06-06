@@ -2161,10 +2161,10 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
         <p className="text-xs text-gray-600 mt-0.5">쇼핑 릴스 자동화</p>
       </div>
       {/* 탭 */}
-      <div className="px-2 py-3 space-y-4 flex-1 overflow-y-auto">
+      <div className="px-2 py-3 flex-1 overflow-y-auto">
         {GROUPS.map((g)=>(
-          <div key={g.title} className="space-y-0.5">
-            <p className="px-3 pb-1 text-[11px] font-bold text-gray-600 uppercase tracking-wider">{g.title}</p>
+          <div key={g.title} className="space-y-0.5 border-t border-gray-200 pt-4 mt-4 first:border-0 first:pt-0 first:mt-0">
+            <p className="px-3 pb-1 text-[11px] font-bold text-gray-500 uppercase tracking-wider">{g.title}</p>
             {g.items.map(({ v, label, icon }:any)=>(
               <button key={v} onClick={()=>onViewChange(v)}
                 className={`w-full text-left rounded-xl px-3 py-3 text-base font-bold transition flex items-center gap-2.5 ${activeView===v ? "bg-[#03C75A]/15 text-[#03C75A]" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"}`}>
