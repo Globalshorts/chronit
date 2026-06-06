@@ -239,7 +239,7 @@ const Home = () => {
   const navItems = (
     <>
       <a href="#features" className="transition-colors hover:text-[#03C75A]">기능</a>
-      <Link to="/manual" className="transition-colors hover:text-[#03C75A]">사용 방법</Link>
+      <Link to="/manual" className="transition-colors hover:text-[#03C75A]">매뉴얼</Link>
       <a href="#pricing" className="transition-colors hover:text-[#03C75A]">요금제</a>
       <Link to="/events" className="transition-colors hover:text-[#03C75A]">이벤트</Link>
     </>
@@ -325,7 +325,7 @@ const Home = () => {
         <div className="border-b border-gray-200 bg-white px-6 py-6 shadow-lg">
           <nav className="flex flex-col gap-1 text-lg font-bold text-gray-700">
             <a href="#features" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">기능</a>
-            <Link to="/manual" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">사용 방법</Link>
+            <Link to="/manual" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">매뉴얼</Link>
             <a href="#pricing" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">요금제</a>
             <Link to="/events" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">이벤트</Link>
           </nav>
@@ -447,9 +447,9 @@ const Home = () => {
           <div className="space-y-4">
             {[
               { q: '영상 편집을 한 번도 안 해봤는데 괜찮을까요?', a: '네, 괜찮습니다. 링크를 붙여넣고 버튼만 누르면 돼요. 자르기·자막·합성은 전부 자동으로 처리됩니다.' },
-              { q: '복잡한 설정을 해야 하나요?', a: '아니요. 상품 링크만 붙여넣고 버튼을 누르면 AI가 알아서 만들어요. 음성·자막 같은 건 기본값 그대로 두셔도 되고, 더 알고 싶으면 상단 "사용 방법"에서 확인할 수 있어요.' },
+              { q: '복잡한 설정을 해야 하나요?', a: '아니요. 상품 링크만 붙여넣고 버튼을 누르면 AI가 알아서 만들어요. 음성·자막 같은 건 기본값 그대로 두셔도 되고, 더 알고 싶으면 상단 "매뉴얼"에서 확인할 수 있어요.' },
               { q: '시간이 얼마나 걸리나요?', a: '영상 하나에 보통 몇 분이면 충분합니다. 만들어지는 동안 다른 일을 하셔도 괜찮아요.' },
-              { q: '컴퓨터를 잘 못 다뤄도 되나요?', a: '클릭만 하실 수 있으면 됩니다. 링크를 붙여넣고 버튼만 누르면 나머지는 자동이에요. 처음이라면 상단 "사용 방법"에 그림과 함께 안내가 있어요.' },
+              { q: '컴퓨터를 잘 못 다뤄도 되나요?', a: '클릭만 하실 수 있으면 됩니다. 링크를 붙여넣고 버튼만 누르면 나머지는 자동이에요. 처음이라면 상단 "매뉴얼"에 그림과 함께 안내가 있어요.' },
             ].map(({ q, a }) => (
               <div key={q} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] md:p-7">
                 <div className="mb-3 flex items-start gap-3">

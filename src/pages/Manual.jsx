@@ -77,18 +77,6 @@ const Manual = () => {
         </div>
       </section>
 
-      {/* 핵심 안내 배너 */}
-      <div className="px-5 pb-10 md:px-8">
-        <div className="mx-auto max-w-3xl rounded-2xl border border-yellow-300 bg-gradient-to-r from-yellow-50 to-orange-50 px-6 py-5">
-          <p className="text-base font-bold text-yellow-800 md:text-lg">
-            ⚡ 링크만 입력하면 영상 1개 완성까지 <span className="text-yellow-600">약 2분</span>, 당신이 할 일은 없습니다.
-          </p>
-          <p className="mt-1 text-sm text-yellow-700 md:text-base">
-            단, 처음 한 번만 2·3·4·5단계에서 영상 길이·목소리·자막·썸네일 스타일을 설정해두세요.
-          </p>
-        </div>
-      </div>
-
       {/* 2x2 카드 그리드 */}
       <section className="px-5 pb-24 md:px-8">
         <div className="mx-auto grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">

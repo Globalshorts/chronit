@@ -118,7 +118,7 @@ const GUIDE_STEPS = [
   { img: '/guide/05-setup-voice.jpg', title: '⑤ 자동화 세팅 — 목소리', desc: "영상에 들어갈 **목소리**를 골라요. **미리듣기**로 들어볼 수 있어요." },
   { img: '/guide/06-setup-subtitle.jpg', title: '⑥ 자동화 세팅 — 자막·썸네일', desc: "자막 모양(글씨·색·크기)을 정해요. **기본값 그대로 둬도** 예쁘게 나와요." },
   { group: '영상 만들 때마다 — 이것만 반복!', once: false },
-  { img: '/guide/07-project.jpg', title: '⑦ 새 프로젝트 만들기', desc: "영상 하나 만들 때마다 **+ 새 프로젝트**를 눌러요." },
+  { img: '/guide/07-project.jpg', title: '⑦ 새 프로젝트 만들기', desc: "영상 하나 만들 때마다 **+ 새 프로젝트**를 눌러요.", note: "**프로젝트란?** 영상 한 편을 만드는 '작업 공간'이에요. 영상 하나 = 프로젝트 하나라고 생각하면 쉬워요." },
   { img: '/guide/08-link.jpg', title: '⑧ 쇼핑 영상 링크 넣기', desc: "홍보할 **쇼핑 영상 링크**를 붙여넣고 **분석 시작**을 눌러요. 잠깐 기다리면 관련 클립을 찾아줘요." },
   { img: '/guide/09-clips.jpg', title: '⑨ 마음에 드는 클립 담기', desc: "찾아준 클립 중 마음에 드는 걸 **담기** → 다 골랐으면 **자동 생성**을 눌러요." },
   { img: '/guide/10-generate.jpg', title: '⑩ 자동 생성 → 완성!', desc: "내용을 확인하고 **진행**을 누르면 끝! 보통 **1~5분**이면 영상이 완성돼요." },
@@ -138,6 +138,9 @@ const GuideWalkthrough = ({ steps, onImageClick }) => (
         <div className="p-5 md:p-6">
           <h3 className="mb-2 text-base font-black leading-snug text-gray-900 md:text-lg" dangerouslySetInnerHTML={{ __html: fmtInline(s.title) }} />
           <p className="text-sm leading-[1.85] text-slate-600 md:text-base" dangerouslySetInnerHTML={{ __html: fmtInline(s.desc) }} />
+          {s.note && (
+            <div className="mt-3 rounded-xl bg-[#03C75A]/8 px-4 py-3 text-sm leading-[1.8] text-gray-700" dangerouslySetInnerHTML={{ __html: '💡 ' + fmtInline(s.note) }} />
+          )}
         </div>
         <button onClick={() => onImageClick({ src: s.img, alt: s.title })} className="block w-full border-t border-gray-100 bg-gray-50 p-3">
           <img src={s.img} alt={s.title} loading="lazy" className="mx-auto w-full max-w-[340px] rounded-xl border border-gray-200" />
