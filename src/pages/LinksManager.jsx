@@ -239,7 +239,7 @@ export default function LinksManager() {
 }
 
 function JobRow({ job, item, onSave, onMove }) {
-  const [title, setTitle] = useState(item?.title ?? (job.product_name || job.seo_title || ''))
+  const [title, setTitle] = useState(item?.title ?? (job.seo_title || job.product_name || ''))
   const [url, setUrl] = useState(item?.target_url ?? '')
   const active = !!item?.active
   const canShow = url.trim().length > 0
