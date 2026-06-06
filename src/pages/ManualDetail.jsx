@@ -6,6 +6,7 @@ import { ManualHeader, ManualFooter, Markdown, Lightbox, parseFaq } from '../com
 import usageMd      from '../content/usage.md?raw'
 import webappMd     from '../content/webapp.md?raw'
 import creditsMd    from '../content/credits.md?raw'
+import revenueMd    from '../content/revenue.md?raw'
 import tipsMd       from '../content/tips.md?raw'
 import faqMd        from '../content/faq.md?raw'
 
@@ -157,6 +158,13 @@ const SECTIONS = {
     callout: '어렵지 않아요! 영상 링크 붙여넣고 버튼 한 번이면 끝이에요. 아래 3단계만 따라오세요.',
     type: 'steps',
     content: usageMd,
+  },
+  revenue: {
+    emoji: '💰',
+    title: '쿠팡 파트너스 & 수익 구조',
+    callout: '쿠팡 파트너스가 뭔지, 어떻게 쓰는지, 돈이 통장에 어떻게 들어오는지 한 번에 정리했어요.',
+    type: 'markdown',
+    content: revenueMd,
   },
   app: {
     emoji: '📱',

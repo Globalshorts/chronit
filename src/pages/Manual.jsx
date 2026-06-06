@@ -13,6 +13,15 @@ const CARDS = [
     badgeColor: 'bg-[#03C75A]/15 text-[#03C75A]',
   },
   {
+    to: '/manual/revenue',
+    emoji: '💰',
+    title: '쿠팡 파트너스 & 수익 구조',
+    desc: '뭔지, 어떻게 쓰는지,\n돈이 통장에 어떻게 들어오는지',
+    color: 'from-[#03C75A]/10 to-[#03C75A]/10 border-[#03C75A]/30 hover:border-[#03C75A] bg-white',
+    badge: '꼭 읽기',
+    badgeColor: 'bg-[#FFB800]/15 text-[#9a6b00]',
+  },
+  {
     to: '/manual/features',
     emoji: '⚙️',
     title: '처음 한 번만 세팅',

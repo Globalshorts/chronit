@@ -418,6 +418,21 @@ const Home = () => {
         </div>
       </div>
 
+      {/* 쿠팡 파트너스 안내 진입 */}
+      <div className="px-5 pt-10 md:px-8 md:pt-14">
+        <Link to="/manual/revenue"
+          className="group mx-auto flex max-w-3xl flex-col items-center gap-3 rounded-3xl border border-[#03C75A]/30 bg-[#03C75A]/5 p-6 text-center transition-all hover:border-[#03C75A] hover:bg-[#03C75A]/10 sm:flex-row sm:text-left md:p-7">
+          <span className="text-4xl">💰</span>
+          <div className="flex-1">
+            <p className="text-lg font-black text-gray-900 md:text-xl">쿠팡 파트너스가 처음이세요?</p>
+            <p className="mt-1 text-sm text-gray-600 md:text-base">뭔지, 어떻게 쓰는지, 수수료가 통장에 들어오기까지 — 1분이면 이해할 수 있어요.</p>
+          </div>
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-[#03C75A] px-5 py-3 text-sm font-extrabold text-white transition-all group-hover:gap-2 md:text-base">
+            수익 구조 보기 <ArrowRight size={18} />
+          </span>
+        </Link>
+      </div>
+
       {/* ── 데모 캐러셀 ── */}
       <div id="demo"><DemoCarousel /></div>
 
