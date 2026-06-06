@@ -70,9 +70,9 @@ const Manual = () => {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_60%,transparent_100%)]" />
         <div className="relative z-10 mx-auto max-w-4xl text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#03C75A]/20 bg-[#03C75A]/10 px-4 py-1.5 text-sm font-bold text-[#03C75A] shadow-[0_0_20px_rgba(59,130,246,0.15)] md:text-base">
-            <Sparkles size={14} fill="currentColor" /> <span>크로닛 사용 매뉴얼</span>
+            <Sparkles size={14} fill="currentColor" /> <span>크로닛 사용 방법</span>
           </div>
-          <h1 className="mb-4 text-4xl font-black tracking-tight text-gray-900 md:text-6xl">매뉴얼</h1>
+          <h1 className="mb-4 text-4xl font-black tracking-tight text-gray-900 md:text-6xl">사용 방법</h1>
           <p className="text-lg leading-[1.8] text-slate-500 md:text-xl">로그인부터 첫 영상 제작까지, 5분 안에 익히는 크로닛 사용법.</p>
         </div>
       </section>

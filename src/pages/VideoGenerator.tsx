@@ -34,7 +34,7 @@ function AppTopBar({ onMenuClick }: { onMenuClick?: () => void }) {
         </a>
       </div>
       <nav className="flex items-center gap-3 text-sm font-bold text-gray-600 md:gap-7">
-        <a href="/manual" className={`hidden sm:inline ${link}`}>매뉴얼</a>
+        <a href="/manual" className={`hidden sm:inline ${link}`}>사용 방법</a>
         <a href="/#pricing" className={`hidden sm:inline ${link}`}>요금제</a>
         <a href="/events" className={`hidden sm:inline ${link}`}>이벤트</a>
         <a href="/" className="rounded-full bg-[#03C75A]/10 px-3.5 py-1.5 text-[#03C75A] transition-colors hover:bg-[#03C75A]/20">홈</a>

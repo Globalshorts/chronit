@@ -237,7 +237,7 @@ const ManualDetail = () => {
       <div className="flex min-h-screen items-center justify-center bg-white text-gray-900">
         <div className="text-center">
           <p className="mb-4 text-xl">페이지를 찾을 수 없습니다.</p>
-          <Link to="/manual" className="text-[#03C75A] underline">매뉴얼로 돌아가기</Link>
+          <Link to="/manual" className="text-[#03C75A] underline">사용 방법으로 돌아가기</Link>
         </div>
       </div>
     )
@@ -253,7 +253,7 @@ const ManualDetail = () => {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_60%,transparent_100%)]" />
         <div className="relative z-10 mx-auto max-w-3xl">
           <Link to="/manual" className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition-colors hover:text-[#03C75A]">
-            <ArrowLeft size={16} /> 매뉴얼 목록
+            <ArrowLeft size={16} /> 사용 방법 목록
           </Link>
           <h1 className="text-3xl font-black tracking-tight text-gray-900 md:text-5xl">
             <span className="mr-3">{data.emoji}</span>{data.title}

@@ -53,7 +53,7 @@ const EventDetail = () => {
           </Link>
           <nav className="hidden gap-12 text-base font-bold tracking-wide text-slate-500 md:flex">
             <Link to="/#features" className="uppercase transition-colors hover:text-[#03C75A]">기능</Link>
-            <Link to="/manual"    className="uppercase transition-colors hover:text-[#03C75A]">매뉴얼</Link>
+            <Link to="/manual"    className="uppercase transition-colors hover:text-[#03C75A]">사용 방법</Link>
             <Link to="/#pricing"  className="uppercase transition-colors hover:text-[#03C75A]">요금제</Link>
             <Link to="/events"    className="uppercase text-[#03C75A]">이벤트</Link>
           </nav>
