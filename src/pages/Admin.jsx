@@ -138,7 +138,7 @@ const StatusBadge = ({ status }) => {
   )
 }
 
-const emptyForm = () => ({ title: '', content: '', status: 'active', cta_text: '', cta_url: '' })
+const emptyForm = () => ({ title: '', content: '', status: 'active', cta_text: '', cta_url: '', thumbnail_url: '' })
 
 const DemoVideosPanel = () => {
   const [videos, setVideos] = useState([])
@@ -295,8 +295,23 @@ const Admin = () => {
 
   const openNew = () => { setForm(emptyForm()); setEditing(null); setPreview(false); setView('form') }
   const openEdit = ev => {
-    setForm({ title: ev.title, content: ev.content, status: ev.status, cta_text: ev.cta_text || '', cta_url: ev.cta_url || '' })
+    setForm({ title: ev.title, content: ev.content, status: ev.status, cta_text: ev.cta_text || '', cta_url: ev.cta_url || '', thumbnail_url: ev.thumbnail_url || '' })
     setEditing(ev.id); setPreview(false); setView('form')
+  }
+
+  const [thumbUploading, setThumbUploading] = useState(false)
+  const uploadThumbnail = async (file) => {
+    if (!file?.type.startsWith('image/')) return
+    setThumbUploading(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `thumbnails/${Date.now()}.${ext}`
+      const { error } = await supabase.storage.from('event-assets').upload(path, file, { upsert: true })
+      if (error) throw error
+      const { data: { publicUrl } } = supabase.storage.from('event-assets').getPublicUrl(path)
+      set('thumbnail_url', publicUrl)
+    } catch { setSaveMsg('이미지 업로드 실패'); setTimeout(() => setSaveMsg(null), 2000) }
+    finally { setThumbUploading(false) }
   }
 
   const handleSave = async () => {
@@ -305,7 +320,7 @@ const Admin = () => {
     const payload = {
       title: form.title, content: form.content, status: form.status,
       label: STATUS_CFG[form.status]?.label || 'Active',
-      cta_text: form.cta_text, cta_url: form.cta_url,
+      cta_text: form.cta_text, cta_url: form.cta_url, thumbnail_url: form.thumbnail_url || '',
       updated_at: new Date().toISOString(), created_by: user.id,
     }
     let error
@@ -461,6 +476,26 @@ const Admin = () => {
                 <input value={form.cta_url} onChange={e => set('cta_url', e.target.value)} placeholder="https://..."
                   className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 outline-none focus:border-blue-500/50" />
               </div>
+            </div>
+            <div className="mb-5">
+              <label className="mb-2 block text-sm font-bold text-slate-400">대표 이미지 (썸네일)</label>
+              <div className="flex items-center gap-4">
+                {form.thumbnail_url ? (
+                  <img src={form.thumbnail_url} alt="" className="h-20 w-32 rounded-lg border border-white/10 object-cover" />
+                ) : (
+                  <div className="flex h-20 w-32 items-center justify-center rounded-lg border border-dashed border-white/15 text-xs text-slate-500">없음</div>
+                )}
+                <div className="flex flex-col gap-2">
+                  <label className="cursor-pointer rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-bold text-slate-300 hover:text-white">
+                    {thumbUploading ? '업로드 중...' : '이미지 업로드'}
+                    <input type="file" accept="image/*" className="sr-only" onChange={e => { uploadThumbnail(e.target.files?.[0]); e.target.value = '' }} />
+                  </label>
+                  {form.thumbnail_url && (
+                    <button type="button" onClick={() => set('thumbnail_url', '')} className="text-left text-xs text-slate-500 hover:text-red-400">이미지 제거</button>
+                  )}
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-slate-500">목록 카드에 표시됩니다. 가로형(예: 1200×630) 이미지를 권장해요.</p>
             </div>
             <div className="mb-6">
               <div className="mb-2 flex items-center justify-between">

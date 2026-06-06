@@ -22,6 +22,19 @@ const EventBadge = ({ status, label }) => {
   )
 }
 
+// 본문(마크다운/HTML)에서 미리보기 텍스트 추출
+const excerpt = (src = '', n = 90) => {
+  const txt = src
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/[#>*_`~|]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return txt.length > n ? txt.slice(0, n) + '…' : txt
+}
+const fmtDate = (s) => new Date(s).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '')
+
 const Events = () => {
   const [scrolled, setScrolled]         = useState(false)
   const [events, setEvents]             = useState([])
@@ -104,27 +117,44 @@ const Events = () => {
           </div>
 
           {/* 목록 */}
-          <div className="divide-y divide-gray-100">
-            {loading ? (
-              <p className="py-12 text-center text-sm text-slate-600">불러오는 중...</p>
-            ) : events.filter(e => e.status === eventTab).length === 0 ? (
-              <p className="py-12 text-center text-sm text-slate-600">해당 이벤트가 없습니다</p>
-            ) : (
-              events.filter(e => e.status === eventTab).map(ev => (
+          {loading ? (
+            <p className="py-16 text-center text-sm text-slate-500">불러오는 중...</p>
+          ) : events.filter(e => e.status === eventTab).length === 0 ? (
+            <p className="py-16 text-center text-sm text-slate-500">해당 이벤트가 없습니다</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-5 pt-6 sm:grid-cols-2">
+              {events.filter(e => e.status === eventTab).map(ev => (
                 <button
                   key={ev.id}
                   onClick={() => setSelectedEvent(ev)}
-                  className="flex w-full items-center gap-4 px-2 py-4 text-left transition-colors hover:bg-gray-50"
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#03C75A]/40 hover:shadow-lg"
                 >
-                  <EventBadge status={ev.status} label={ev.label} />
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-800">{ev.title}</span>
-                  <span className="shrink-0 text-xs text-slate-500">
-                    {new Date(ev.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '')}
-                  </span>
+                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-br from-[#03C75A]/15 to-[#03C75A]/5">
+                    {ev.thumbnail_url ? (
+                      <img src={ev.thumbnail_url} alt="" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <Megaphone size={40} className="text-[#03C75A]/40" />
+                      </div>
+                    )}
+                    <div className="absolute left-3 top-3">
+                      <EventBadge status={ev.status} label={ev.label} />
+                    </div>
+                  </div>
+                  <div className="flex flex-1 flex-col gap-2 p-5">
+                    <h3 className="text-lg font-black leading-snug text-gray-900 md:text-xl">{ev.title}</h3>
+                    {excerpt(ev.content) && (
+                      <p className="line-clamp-2 text-sm leading-relaxed text-slate-500">{excerpt(ev.content)}</p>
+                    )}
+                    <div className="mt-auto flex items-center justify-between pt-3">
+                      <span className="text-xs text-slate-400">{fmtDate(ev.created_at)}</span>
+                      <span className="flex items-center gap-1 text-sm font-bold text-[#03C75A] transition-all group-hover:gap-2">자세히 보기 →</span>
+                    </div>
+                  </div>
                 </button>
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -148,6 +178,9 @@ const Events = () => {
               </button>
             </div>
             <div className="overflow-y-auto px-6 py-6">
+              {selectedEvent.thumbnail_url && (
+                <img src={selectedEvent.thumbnail_url} alt="" className="mb-5 w-full rounded-2xl object-cover" />
+              )}
               <div className="prose prose-sm max-w-none">
                 <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{selectedEvent.content}</ReactMarkdown>
               </div>
