@@ -653,11 +653,17 @@ const Home = () => {
             </div>
           </div>
         </div>
-        <div className="mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-6 border-t border-gray-200 pt-8 md:flex-row md:pt-10">
-          <p className="text-center text-sm font-medium text-gray-400">&copy; 2026 Chronit</p>
-          <div className="flex gap-4">
-            <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-gray-100 text-gray-500 transition-all hover:bg-[#03C75A] hover:text-white"><Users size={20} /></div>
-            <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-gray-100 text-gray-500 transition-all hover:bg-[#03C75A] hover:text-white"><MessageCircle size={20} /></div>
+        <div className="mx-auto mt-12 max-w-7xl border-t border-gray-200 pt-8 md:pt-10">
+          <div className="space-y-1 text-xs leading-relaxed text-gray-400">
+            <p>상호: 크로닛(Chronit) &middot; 대표: 최승호 &middot; 이메일: pv2066pv@gmail.com</p>
+            <p>사업자등록번호: 등록 진행 중 &middot; 통신판매업 신고번호: 신고 예정 &middot; 주소: 등록 후 기재</p>
+          </div>
+          <div className="mt-6 flex flex-col items-center justify-between gap-6 md:flex-row">
+            <p className="text-center text-sm font-medium text-gray-400">&copy; 2026 Chronit. All rights reserved.</p>
+            <div className="flex gap-4">
+              <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-gray-100 text-gray-500 transition-all hover:bg-[#03C75A] hover:text-white"><Users size={20} /></div>
+              <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-gray-100 text-gray-500 transition-all hover:bg-[#03C75A] hover:text-white"><MessageCircle size={20} /></div>
+            </div>
           </div>
         </div>
       </footer>

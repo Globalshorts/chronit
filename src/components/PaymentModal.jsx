@@ -295,6 +295,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
             <p>• <strong className="rounded bg-amber-100 px-1.5 py-0.5 font-black text-amber-700 ring-1 ring-amber-300">입금자명을 가입 이메일과</strong> 동일하게 적어주세요.</p>
             <p>• 영업일 기준 <strong className="text-gray-800">1일 이내</strong> 요금제가 자동 활성화됩니다.</p>
             <p>• 활성화 후 크로닛 앱에서 동일 이메일로 로그인하시면 즉시 사용 가능합니다.</p>
+            <p>• <strong className="text-gray-800">환불 규정:</strong> 본 상품은 디지털 콘텐츠로, 결제 후 크레딧을 1회라도 사용(영상 분석·생성 등)하면 환불이 불가합니다. 이용 이력이 전혀 없는 경우에 한해 결제일로부터 <strong className="text-gray-800">7일 이내</strong> 전액 환불이 가능합니다.</p>
           </div>
         )}
 
