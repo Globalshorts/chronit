@@ -11,6 +11,7 @@ export function LinkPageManager({ session }) {
   const [items, setItems] = useState([]) // link_items
   const [loading, setLoading] = useState(true)
   const [savedMsg, setSavedMsg] = useState('')
+  const [uploading, setUploading] = useState(false)
   const loadedUidRef = useRef(null)
 
   useEffect(() => {
@@ -57,6 +58,19 @@ export function LinkPageManager({ session }) {
     setPage((p) => ({ ...p, ...patch }))
     await supabase.from('link_pages').update({ ...patch, updated_at: new Date().toISOString() }).eq('user_id', session.user.id)
     flash('저장됨')
+  }
+
+  const uploadAvatar = async (file) => {
+    if (!file) return
+    setUploading(true)
+    try {
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg'
+      const path = `${session.user.id}/avatar_${Date.now()}.${ext}`
+      const up = await supabase.storage.from('avatars').upload(path, file, { upsert: true, cacheControl: '3600' })
+      if (up.error) { flash('업로드 실패'); return }
+      const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+      await savePage({ avatar_url: data.publicUrl })
+    } finally { setUploading(false) }
   }
 
   const upsertItem = async (job, { title, target_url, active }) => {
@@ -119,6 +133,21 @@ export function LinkPageManager({ session }) {
       {/* 페이지 설정 */}
       <div className="mb-5 space-y-3 rounded-3xl border border-gray-200 bg-white p-5">
         <p className="text-sm font-black text-gray-900">페이지 설정</p>
+        <div className="flex items-center gap-3">
+          {page.avatar_url
+            ? <img src={page.avatar_url} alt="" className="h-14 w-14 rounded-full object-cover ring-1 ring-gray-200" />
+            : <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#03C75A]/10 text-2xl">🛍️</div>}
+          <div className="flex flex-col items-start gap-1">
+            <label className="cursor-pointer rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-200">
+              {uploading ? '업로드 중…' : '프로필 이미지 변경'}
+              <input type="file" accept="image/*" className="hidden" disabled={uploading}
+                onChange={(e) => uploadAvatar(e.target.files?.[0])} />
+            </label>
+            {page.avatar_url && (
+              <button onClick={() => savePage({ avatar_url: null })} className="text-[11px] text-gray-400 hover:text-gray-600">기본 이미지로</button>
+            )}
+          </div>
+        </div>
         <input defaultValue={page.title} placeholder="페이지 제목 (예: 민수의 추천템)"
           onBlur={(e) => savePage({ title: e.target.value })}
           className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm" />
@@ -217,8 +246,13 @@ function JobRow({ job, item, onSave, onMove }) {
         <div className="min-w-0 flex-1 space-y-2">
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="카드 제목"
             className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
-          <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="쿠팡 파트너스 링크 붙여넣기"
-            className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
+          <div className="flex gap-1.5">
+            <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="쿠팡 파트너스 링크 붙여넣기"
+              className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
+            <a href={`https://partners.coupang.com/#affiliate/ws/link/0/${encodeURIComponent((title || '').trim())}`}
+              target="_blank" rel="noreferrer"
+              className="shrink-0 whitespace-nowrap rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-200">🔍 상품 검색</a>
+          </div>
           <div className="flex items-center gap-2">
             {active ? (
               <>

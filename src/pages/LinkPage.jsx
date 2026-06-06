@@ -17,7 +17,7 @@ export default function LinkPage() {
       try {
         const { data: pg } = await supabase
           .from('link_pages')
-          .select('user_id, handle, title, bio, theme, active')
+          .select('user_id, handle, title, bio, theme, active, avatar_url')
           .eq('handle', handle)
           .eq('active', true)
           .maybeSingle()
@@ -38,6 +38,14 @@ export default function LinkPage() {
     })()
     return () => { alive = false }
   }, [handle])
+
+  // 개인 공개 페이지에서는 채널톡 위젯 숨김
+  useEffect(() => {
+    const hide = () => { try { window.ChannelIO && window.ChannelIO('hideChannelButton') } catch {} }
+    hide()
+    const t = setTimeout(hide, 1500) // boot 완료 이후에도 한 번 더 적용
+    return () => { clearTimeout(t); try { window.ChannelIO && window.ChannelIO('showChannelButton') } catch {} }
+  }, [])
 
   if (state === 'loading')
     return (
@@ -64,7 +72,12 @@ export default function LinkPage() {
     <div className={`min-h-screen ${bg}`}>
       <div className="mx-auto w-full max-w-md px-5 py-10">
         <header className="mb-8 text-center">
-          <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-3xl ${dark ? 'bg-white/10' : 'bg-[#03C75A]/10'}`}>🛍️</div>
+          {page.avatar_url ? (
+            <img src={page.avatar_url} alt={page.title || page.handle}
+              className="mx-auto mb-4 h-20 w-20 rounded-full object-cover ring-2 ring-black/5" />
+          ) : (
+            <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-3xl ${dark ? 'bg-white/10' : 'bg-[#03C75A]/10'}`}>🛍️</div>
+          )}
           <h1 className="text-2xl font-black">{page.title || `@${page.handle}`}</h1>
           {page.bio && <p className={`mt-2 text-sm leading-relaxed ${sub}`}>{page.bio}</p>}
         </header>

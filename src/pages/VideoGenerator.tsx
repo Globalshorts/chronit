@@ -3519,6 +3519,11 @@ async function startExtract(supabase:any, source_url:string) {
     const post = (b:any)=>fetch(FN("extract-keywords"),{method:"POST",headers:{Authorization:`Bearer ${s?.access_token}`,"Content-Type":"application/json"},body:JSON.stringify(b)}).then((r:any)=>r.json());
     const d = await post({ source_url });
     if (!d.ok || !d.prediction_id) { _extractMgr.state = { source_url, status:"failed", error:d.error||"추출 실패" }; _extractEmit(); return; }
+    // Prefer:wait로 이미 완료된 경우 → 폴링 없이 즉시 반영
+    if (d.status==="succeeded") {
+      _extractMgr.state = { source_url, status:"succeeded", result:{ product_name:d.product_name, use_case:d.use_case, queries:d.queries||[], keywords:d.keywords||[] } };
+      _extractEmit(); return;
+    }
     _extractMgr.state = { source_url, status:"processing", prediction_id:d.prediction_id, startedAt:Date.now() }; _extractEmit();
     _extractPoll(supabase, d.prediction_id, source_url);
   } catch(e) { _extractMgr.state = { source_url, status:"failed", error:String(e) }; _extractEmit(); }
@@ -3626,10 +3631,17 @@ function ProductSearchView({ session, supabase }: { session:any; supabase:any })
           <button onClick={()=>extract(url.trim())} disabled={extracting||!url.trim()} className="rounded-xl bg-[#03C75A] hover:bg-[#02b350] disabled:opacity-40 px-4 py-2.5 text-sm font-bold text-white">🔍 URL로 추출</button>
         </div>
         {kwMsg && (
-          <div className="flex items-center gap-2 mt-3">
-            <p className={`text-xs flex-1 ${job?.status==="failed"?"text-red-400":"text-gray-400"}`}>{extracting && "⏳ "}{kwMsg}</p>
-            {!extracting && job && <button onClick={clearExtract} className="text-xs text-gray-500 hover:text-gray-700 shrink-0">✕ 지우기</button>}
-          </div>
+          extracting ? (
+            <div className="mt-3 flex items-center gap-3 rounded-xl border border-[#03C75A]/40 bg-[#03C75A]/10 px-4 py-3">
+              <span className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-[#03C75A] border-t-transparent" />
+              <p className="text-sm font-bold text-[#03C75A]">{kwMsg}</p>
+            </div>
+          ) : (
+            <div className="mt-3 flex items-center gap-2">
+              <p className={`text-xs flex-1 ${job?.status==="failed"?"text-red-500 font-bold":"text-gray-400"}`}>{kwMsg}</p>
+              {job && <button onClick={clearExtract} className="text-xs text-gray-500 hover:text-gray-700 shrink-0">✕ 지우기</button>}
+            </div>
+          )
         )}
         {kw && (
           <div className="mt-4">
