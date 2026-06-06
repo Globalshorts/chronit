@@ -380,10 +380,6 @@ const Home = () => {
             <p className="mt-4 text-sm font-medium text-gray-500">
               <span className="font-black text-[#03C75A]">설치 없이</span> 웹에서 바로 시작 · 구글 로그인이면 끝
             </p>
-            <Link to="/manual/app"
-              className="mt-2 inline-flex items-center gap-1 text-sm font-bold text-gray-500 underline-offset-4 transition-colors hover:text-[#03C75A] hover:underline">
-              📱 앱으로 사용하는 방법 <ArrowRight size={14} />
-            </Link>
           </div>
 
           {/* 우측: 수익 흐름 */}
@@ -463,10 +459,14 @@ const Home = () => {
               </div>
             ))}
           </div>
+          <div className="mt-8 text-center">
+            <Link to="/manual/app"
+              className="inline-flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-bold text-gray-600 transition-all hover:border-[#03C75A] hover:text-[#03C75A]">
+              📱 앱으로 사용하는 방법 <ArrowRight size={14} />
+            </Link>
+          </div>
         </div>
       </section>
-
-      {/* ── FAQ ── */}
       <section id="features" className="px-5 py-16 md:px-8 md:py-20">
         <div className="mx-auto max-w-2xl">
           <div className="mb-12 text-center">
