@@ -3599,11 +3599,17 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
   const [planSel, setPlanSel] = React.useState("pro");
   const [days, setDays]     = React.useState("30");
   const [amt, setAmt]       = React.useState("1000");
+  const [payAmt, setPayAmt] = React.useState("");   // 결제금액(파트너 정산 적립용)
   const [roleSel, setRoleSel] = React.useState("user");
   const freshPR = () => ({ starter:{type:"none",value:""}, pro:{type:"none",value:""}, master:{type:"none",value:""} });
   const [partnerRates, setPartnerRates] = React.useState<Record<string,{type:string;value:string}>>(freshPR);
   const [prMsg, setPrMsg] = React.useState("");
   const setPR = (k:string, patch:any) => setPartnerRates(p=>({ ...p, [k]:{ ...p[k], ...patch } }));
+  // 파트너 쿠폰 발급
+  const [pcCode, setPcCode] = React.useState("");
+  const [pcDisc, setPcDisc] = React.useState<Record<string,{type:string;value:string}>>(freshPR);
+  const setPCD = (k:string, patch:any) => setPcDisc(p=>({ ...p, [k]:{ ...p[k], ...patch } }));
+  const [pcMsg, setPcMsg] = React.useState("");
   const [msg, setMsg]       = React.useState("");
   const [loading, setLoading] = React.useState(true);
 
@@ -3640,7 +3646,21 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
     try { const r = await fn(); if (r?.error && !r?.ok) setMsg("실패: "+(r.error.message||r.error)); else if (r?.data?.ok===false) setMsg("실패: "+r.data.error); else { setMsg(okMsg); await load(); } }
     catch(e){ setMsg("실패: "+String(e)); }
   };
-  const grant   = () => run(()=>supabase.rpc("admin_grant_subscription_rpc",{p_target_user_id:sel,p_plan:planSel,p_days:Number(days)||30}), "구독 부여/연장 완료");
+  const grant = async () => {
+    if (!sel) { setMsg("회원을 먼저 선택하세요"); return; }
+    setMsg("처리 중...");
+    try {
+      const r = await supabase.rpc("admin_grant_subscription_rpc",{ p_target_user_id:sel, p_plan:planSel, p_days:Number(days)||30, p_amount: payAmt.trim() ? (Number(payAmt)||0) : null });
+      if (r?.error) { setMsg("실패: "+r.error.message); return; }
+      if (r?.data?.ok === false) { setMsg("실패: "+r.data.error); return; }
+      const acc = r?.data?.accrual;
+      let m = "구독 부여/연장 완료";
+      if (acc?.action === "accrued") m += ` · 파트너 적립 +₩${Number(acc.amount||0).toLocaleString()} (${acc.partner})`;
+      else if (payAmt.trim() && acc?.action === "no_partner") m += " · (파트너 매핑 없음 — 적립 안 됨)";
+      else if (payAmt.trim() && (acc?.action === "zero_rate" || acc?.action === "zero_fixed")) m += " · (파트너 요율 0 — 적립 안 됨)";
+      setMsg(m); await load();
+    } catch(e){ setMsg("실패: "+String(e)); }
+  };
   const cancel  = () => run(()=>supabase.rpc("admin_cancel_subscription_rpc",{p_target_user_id:sel}), "구독 취소 완료");
   const resetDev= () => run(()=>supabase.rpc("admin_reset_user_devices_rpc",{p_target_user_id:sel}), "디바이스 해제 완료");
   const credit  = (action:string) => {
@@ -3657,6 +3677,9 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
   React.useEffect(()=>{
     setRoleSel(selUser?.role || "user");
     setPartnerRates(freshPR()); setPrMsg("");
+    // 파트너 쿠폰 기본값: 이메일 앞부분 기반 코드 추천
+    setPcDisc(freshPR()); setPcMsg("");
+    setPcCode(selUser?.email ? String(selUser.email).split("@")[0].replace(/[^a-zA-Z0-9]/g,"").toUpperCase().slice(0,8) : "");
     if (sel && selUser?.role === "partner") {
       supabase.rpc("admin_get_partner_rates_rpc",{ p_partner_id: sel }).then((res:any)=>{
         const r = res?.data?.rates;
@@ -3671,6 +3694,27 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
       }, ()=>{});
     }
   }, [sel]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const createPartnerCoupon = async () => {
+    if (!sel || !selUser?.email) { setPcMsg("회원을 먼저 선택하세요"); return; }
+    const c = pcCode.trim().toUpperCase();
+    if (!c) { setPcMsg("코드를 입력하세요"); return; }
+    const pd:Record<string,any> = {}; const allowed:string[] = [];
+    for (const k of ["starter","pro","master"]) {
+      const d = pcDisc[k];
+      if (d.type === "none") continue;
+      pd[k] = d.type === "free" ? { type:"free" } : { type:d.type, value:Number(d.value)||0 };
+      allowed.push(k);
+    }
+    setPcMsg("발급 중...");
+    const { error } = await supabase.from("coupon_codes").insert({
+      code: c, type:"none", value:0, owner_email: selUser.email, expires_at: null,
+      plan_discounts: Object.keys(pd).length ? pd : null,
+      allowed_plans: allowed.length ? allowed : null,
+    });
+    if (error) setPcMsg("발급 실패: "+error.message+(error.code==="23505"?" (이미 있는 코드)":""));
+    else setPcMsg(`쿠폰 ${c} 발급 완료 — 파트너 ${selUser.email}에 연결됨`);
+  };
 
   const savePartnerRates = async () => {
     if (!sel) { setPrMsg("회원을 먼저 선택하세요"); return; }
@@ -3741,6 +3785,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
             <select value={planSel} onChange={e=>setPlanSel(e.target.value)} className="rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none">
               {plans.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>
             <input value={days} onChange={e=>setDays(e.target.value)} className="w-28 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none" placeholder="기간(일)" />
+            <input value={payAmt} onChange={e=>setPayAmt(e.target.value)} className="w-36 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none" placeholder="결제금액(정산용·선택)" />
             <Btn onClick={grant} color="bg-green-600 hover:bg-green-500">✓ 구독 부여/연장</Btn>
             <Btn onClick={cancel} color="bg-red-600 hover:bg-red-500">✕ 구독 취소</Btn>
             <Btn onClick={resetDev} color="bg-gray-200 hover:bg-gray-300">🖥 디바이스 모두 해제</Btn>
@@ -3791,6 +3836,39 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
             </div>
             <button onClick={savePartnerRates} className="mt-3 rounded-lg bg-[#03C75A] hover:bg-[#02b350] px-4 py-2 text-xs font-bold text-white">정산 수수료 저장</button>
             {prMsg && <p className="text-xs text-[#03C75A] mt-2">{prMsg}</p>}
+
+            {/* 파트너 전용 쿠폰 발급 */}
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <p className="text-xs font-bold text-gray-700 mb-1">🎟 이 파트너의 쿠폰 발급</p>
+              <p className="text-[11px] text-gray-400 mb-3">발급된 코드는 이 파트너(owner_email)에 연결됩니다. 멤버가 이 코드를 입력 후 결제하면 위 정산 수수료로 자동 적립돼요.</p>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-14 text-xs text-gray-500">코드</span>
+                <input value={pcCode} onChange={e=>setPcCode(e.target.value.toUpperCase())} placeholder="예: KIM2024"
+                  className="flex-1 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm font-mono font-bold text-gray-900 outline-none focus:border-[#03C75A]" />
+              </div>
+              <div className="space-y-2">
+                {[["starter","스타터"],["pro","프로"],["master","마스터"]].map(([k,label])=>(
+                  <div key={k} className="flex items-center gap-2">
+                    <span className="w-14 text-sm font-bold text-gray-700">{label}</span>
+                    <select value={pcDisc[k].type} onChange={e=>setPCD(k,{type:e.target.value})}
+                      className="rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none">
+                      <option value="none">미적용</option>
+                      <option value="percent">할인 %</option>
+                      <option value="fixed">정액(원)</option>
+                      <option value="free">무료(100%)</option>
+                    </select>
+                    {(pcDisc[k].type==="percent" || pcDisc[k].type==="fixed") && (
+                      <input value={pcDisc[k].value} onChange={e=>setPCD(k,{value:e.target.value})}
+                        placeholder={pcDisc[k].type==="percent"?"예: 20":"예: 10000"}
+                        className="w-28 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#03C75A]" />
+                    )}
+                    {pcDisc[k].type==="free" && <span className="text-xs text-[#03C75A] font-bold">결제 0원</span>}
+                  </div>
+                ))}
+              </div>
+              <button onClick={createPartnerCoupon} className="mt-3 rounded-lg bg-[#03C75A] hover:bg-[#02b350] px-4 py-2 text-xs font-bold text-white">코드 발급</button>
+              {pcMsg && <p className="text-xs text-[#03C75A] mt-2">{pcMsg}</p>}
+            </div>
           </div>
         )}
         {msg && <p className="text-xs text-[#03C75A]">{msg}</p>}
