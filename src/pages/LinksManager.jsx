@@ -81,9 +81,15 @@ export function LinkPageManager({ session }) {
         .update({ title, target_url, active }).eq('id', existing.id).select('*').single()
       if (data) setItems((p) => p.map((i) => (i.id === data.id ? data : i)))
     } else {
+      // 영상을 영구 보관소(kept/)로 복사 → 3일 자동삭제·생성내역 삭제에도 카드 영상 유지
+      let videoUrl = job.video_url
+      try {
+        const { data: kv } = await supabase.functions.invoke('keep-video', { body: { job_id: job.id } })
+        if (kv?.ok && kv.video_url) videoUrl = kv.video_url
+      } catch (e) { /* 복사 실패 시 원본 URL 폴백 */ }
       const maxSort = items.reduce((m, i) => Math.max(m, i.sort_order || 0), 0)
       const { data } = await supabase.from('link_items')
-        .insert({ user_id: uid, video_job_id: job.id, title, target_url, active, video_url: job.video_url, sort_order: maxSort + 1 })
+        .insert({ user_id: uid, video_job_id: job.id, title, target_url, active, video_url: videoUrl, sort_order: maxSort + 1 })
         .select('*').single()
       if (data) setItems((p) => [...p, data])
     }

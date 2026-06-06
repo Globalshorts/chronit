@@ -3248,7 +3248,7 @@ function HistoryView({ session, onGoToLinks }: { session: any; onGoToLinks?: ()=
 
   const deleteJob = async (j:any) => {
     if (deleting) return;
-    const ok = typeof window !== "undefined" && window.confirm("이 생성 내역을 삭제할까요?\n영상 파일이 저장소에서 완전히 삭제되고, 내 링크에 추가한 카드도 함께 사라집니다. 되돌릴 수 없어요.");
+    const ok = typeof window !== "undefined" && window.confirm("이 생성 내역을 삭제할까요?\n저장소에서 원본 영상이 완전히 삭제됩니다.\n(내 링크에 추가한 카드는 그대로 유지돼요.) 되돌릴 수 없어요.");
     if (!ok) return;
     setDeleting(j.id);
     try {
