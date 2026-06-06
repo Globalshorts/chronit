@@ -165,6 +165,12 @@ export default function VideoGenerator() {
 
   // Stage 6
   const [jobs, setJobs]             = useState<Job[]>([]);
+  const [genTick, setGenTick]       = useState(0); // 생성 중 경과시간 표시용 1초 틱
+  useEffect(() => {
+    if (!currentJobId) return;
+    const t = setInterval(() => setGenTick(n => n + 1), 1000);
+    return () => clearInterval(t);
+  }, [currentJobId]);
   const [completionAlert, setCompletionAlert] = useState<string|null>(null);
   const [balance, setBalance]       = useState<number | null>(null);
   const [userPlan, setUserPlan]     = useState<string | null>(null);
@@ -944,7 +950,7 @@ export default function VideoGenerator() {
             <div className="w-12 h-12 mx-auto mb-4 border-4 border-gray-200 border-t-[#03C75A] rounded-full animate-spin" />
             <p className="text-lg font-black text-gray-900">자동 생성 중</p>
             <p className="text-sm text-[#03C75A] mt-1">{autoRunStep || "처리 중..."}</p>
-            <p className="text-xs text-gray-500 mt-3">완료까지 몇 분 걸릴 수 있어요.<br/>창을 닫지 말고 잠시 기다려 주세요.</p>
+            <p className="text-xs text-gray-500 mt-3">보통 1~5분 걸려요.<br/>잠시만 기다려 주세요 — 끝나면 자동으로 알려드려요.</p>
           </div>
         </div>
       )}
@@ -952,12 +958,16 @@ export default function VideoGenerator() {
       {!autoRunning && currentJobId && (() => {
         const bg = jobs.find(j => j.id === currentJobId);
         if (bg && (bg.status === "done" || bg.status === "error")) return null;
+        void genTick; // 1초마다 갱신
+        const started = bg?.created_at ? new Date(bg.created_at).getTime() : null;
+        const sec = started ? Math.max(0, Math.floor((Date.now() - started) / 1000)) : null;
+        const mmss = sec != null ? `${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}` : null;
         return (
           <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 rounded-2xl bg-white border border-[#03C75A]/40 shadow-2xl shadow-[#03C75A]/10 px-5 py-3 flex items-center gap-3">
             <div className="w-5 h-5 border-2 border-gray-200 border-t-[#03C75A] rounded-full animate-spin shrink-0" />
             <div>
-              <p className="text-sm font-bold text-gray-900">영상 생성 중...</p>
-              <p className="text-xs text-gray-500">완료까지 몇 분 걸려요. 다른 작업을 해도 됩니다.</p>
+              <p className="text-sm font-bold text-gray-900">영상 생성 중...{mmss && <span className="ml-1.5 font-mono text-[#03C75A]">{mmss}</span>}</p>
+              <p className="text-xs text-gray-500">보통 1~5분 걸려요 · 창을 닫거나 다른 작업을 해도 계속 생성돼요.</p>
             </div>
           </div>
         );
