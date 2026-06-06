@@ -38,7 +38,7 @@ export function LinkPageManager({ session }) {
           }
         }
         const [jb, it] = await Promise.all([
-          supabase.from('video_jobs').select('id, product_name, seo_title, video_url, created_at')
+          supabase.from('video_jobs').select('id, product_name, seo_title, search_keyword, video_url, created_at')
             .eq('user_id', uid).eq('status', 'done').neq('video_url', '').order('created_at', { ascending: false }),
           supabase.from('link_items').select('*').eq('user_id', uid),
         ])
@@ -239,7 +239,7 @@ export default function LinksManager() {
 }
 
 function JobRow({ job, item, onSave, onMove }) {
-  const [title, setTitle] = useState(item?.title ?? job.seo_title ?? job.product_name ?? '')
+  const [title, setTitle] = useState(item?.title ?? (job.product_name || job.seo_title || ''))
   const [url, setUrl] = useState(item?.target_url ?? '')
   const active = !!item?.active
   const canShow = url.trim().length > 0
@@ -256,7 +256,7 @@ function JobRow({ job, item, onSave, onMove }) {
           <div className="flex gap-1.5">
             <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="쿠팡 파트너스 링크 붙여넣기"
               className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
-            <a href={`https://partners.coupang.com/#affiliate/ws/link/0/${encodeURIComponent((title || '').trim())}`}
+            <a href={`https://partners.coupang.com/#affiliate/ws/link/0/${encodeURIComponent((job.search_keyword || job.product_name || title || '').trim())}`}
               target="_blank" rel="noreferrer"
               className="shrink-0 whitespace-nowrap rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-200">🔍 쿠팡에서 찾기</a>
           </div>
