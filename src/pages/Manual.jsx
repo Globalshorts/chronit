@@ -5,9 +5,9 @@ import { ManualHeader, ManualFooter } from '../components/ManualLayout'
 const CARDS = [
   {
     to: '/manual/start',
-    emoji: '🚀',
-    title: '크로닛 시작하기',
-    desc: '로그인부터 첫 영상 완성까지\n단계별 가이드',
+    emoji: '👋',
+    title: '이렇게 쓰면 돼요',
+    desc: '링크 붙여넣고 버튼 한 번,\n3단계면 영상 완성',
     color: 'from-[#03C75A]/10 to-[#03C75A]/10 border-[#03C75A]/30 hover:border-[#03C75A] bg-white',
     badge: '필수',
     badgeColor: 'bg-[#03C75A]/15 text-[#03C75A]',

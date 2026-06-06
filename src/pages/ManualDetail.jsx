@@ -102,8 +102,8 @@ const StartSteps = ({ md }) => {
         )
       })}
       <div className="rounded-3xl border border-[#03C75A]/30 bg-[#03C75A]/5 p-5 text-center md:p-6">
-        <p className="text-base font-black text-gray-900 md:text-lg">🎉 이게 전부예요! 딱 5단계면 충분해요.</p>
-        <p className="mt-1.5 text-sm text-gray-500 md:text-base">한 번만 설정해두면, 다음부터는 링크만 붙여넣으면 끝이에요.</p>
+        <p className="text-base font-black text-gray-900 md:text-lg">🎉 정말 이게 전부예요!</p>
+        <p className="mt-1.5 text-sm text-gray-500 md:text-base">영상 길이·목소리·자막은 처음에 한 번만 정해두면 다음부터 자동이에요. 잘 모르겠으면 그대로 둬도 괜찮아요.</p>
       </div>
     </div>
   )
@@ -111,9 +111,9 @@ const StartSteps = ({ md }) => {
 
 const SECTIONS = {
   start: {
-    emoji: '🚀',
-    title: '크로닛 시작하기',
-    callout: '설치 없이 웹에서 바로! [무료로 시작하기] → 구글 로그인 후, 아래 5단계만 따라오면 끝이에요.',
+    emoji: '👋',
+    title: '이렇게 쓰면 돼요',
+    callout: '어렵지 않아요! 영상 링크 붙여넣고 버튼 한 번이면 끝이에요. 아래 3단계만 따라오세요.',
     type: 'steps',
     content: usageMd,
   },
