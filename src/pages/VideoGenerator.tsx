@@ -2897,7 +2897,7 @@ function JobCard({ job }: { job: Job }) {
           {job.status === "error" && job.error_message && <p className="mt-1 text-xs text-red-400">{job.error_message}</p>}
         </div>
         {job.status === "done" && job.video_url && (
-          <a href={job.video_url} download className="shrink-0 rounded-xl bg-[#03C75A] px-3 py-2 text-xs font-bold text-white hover:bg-[#02b350] transition">다운로드</a>
+          <a href={job.video_url + (job.video_url.includes("?")?"&":"?") + "download=" + encodeURIComponent((job.product_name||"chronit")+".mp4")} className="shrink-0 rounded-xl bg-[#03C75A] px-3 py-2 text-xs font-bold text-white hover:bg-[#02b350] transition">다운로드</a>
         )}
         {job.status === "done" && !job.video_url && job.expired && (
           <span className="shrink-0 text-xs text-gray-500">⌛ 보관 만료(3일)</span>
@@ -3180,7 +3180,11 @@ function HistoryView({ session }: { session: any }) {
     ? j.video_url + (j.video_url.includes("?")?"&":"?") + "download=" + encodeURIComponent((j.product_name||"chronit")+".mp4")
     : "";
 
-  // 갤러리에 저장 = 모바일 공유시트(사진에 저장) / 미지원 시 다운로드 폴백
+  const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+  const isIOS = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && typeof document !== "undefined" && "ontouchend" in document);
+  const isAndroid = /Android/i.test(ua);
+
+  // 저장: iOS는 공유시트(사진에 저장), 안드로이드·PC는 파일을 직접 다운로드(다운로드 폴더 → 갤러리)
   const saveVideo = async (j:any) => {
     if (!j.video_url) return;
     const fname = (j.product_name||"chronit")+".mp4";
@@ -3188,16 +3192,22 @@ function HistoryView({ session }: { session: any }) {
     try {
       const resp = await fetch(j.video_url);
       const blob = await resp.blob();
-      const file = new File([blob], fname, { type: "video/mp4" });
-      if ((navigator as any).canShare && (navigator as any).canShare({ files: [file] })) {
-        await (navigator as any).share({ files: [file], title: j.product_name || "크로닛 영상" });
-        return;
+      if (isIOS) {
+        const file = new File([blob], fname, { type: "video/mp4" });
+        if ((navigator as any).canShare && (navigator as any).canShare({ files: [file] })) {
+          await (navigator as any).share({ files: [file], title: j.product_name || "크로닛 영상" });
+          return;
+        }
       }
-      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = fname; a.click();
-      setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+      // 안드로이드·PC: blob 직접 다운로드
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url; a.download = fname;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 4000);
     } catch (e:any) {
       if (e?.name === "AbortError") return; // 사용자가 공유 취소
-      const a = document.createElement("a"); a.href = dlUrl(j); a.download = fname; a.click();
+      const a = document.createElement("a"); a.href = dlUrl(j); a.download = fname;
+      document.body.appendChild(a); a.click(); a.remove();
     } finally { setSaving(null); }
   };
 
@@ -3240,15 +3250,18 @@ function HistoryView({ session }: { session: any }) {
                 <p className="text-[11px] text-gray-500">{new Date(j.created_at).toLocaleDateString("ko")}</p>
               </div>
               {done ? (
-                <div className="mt-auto flex flex-col gap-2">
+                <div className="mt-auto flex flex-col gap-1.5">
                   <button onClick={()=>saveVideo(j)} disabled={saving===j.id}
                     className="block text-center rounded-xl bg-[#03C75A] px-3 py-2.5 text-sm font-bold text-white hover:bg-[#02b350] active:bg-[#02b350] disabled:opacity-50 transition">
-                    {saving===j.id ? "저장 준비 중…" : "📱 갤러리에 저장"}
+                    {saving===j.id ? "저장 중…" : (isIOS ? "📱 갤러리에 저장" : "📥 동영상 저장")}
                   </button>
-                  <a href={dlUrl(j)} download
-                    className="block text-center rounded-lg px-3 py-1.5 text-[11px] font-medium text-gray-400 hover:text-gray-700 transition">
-                    또는 mp4 파일로 다운로드
-                  </a>
+                  <p className="px-1 text-center text-[11px] leading-snug text-gray-400">
+                    {isIOS
+                      ? "공유 창에서 '동영상 저장'을 누르면 사진앱에 저장돼요"
+                      : isAndroid
+                      ? "휴대폰에 저장돼요 · 갤러리 › 앨범 › Download 에서 볼 수 있어요"
+                      : "내 컴퓨터에 mp4 파일로 저장돼요"}
+                  </p>
 
                   {/* 업로드용 SEO */}
                   {(j.seo_title || j.seo_description || j.seo_tags) ? (
