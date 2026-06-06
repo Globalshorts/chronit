@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
 const sanitize = (s) =>
@@ -20,35 +20,48 @@ export default function LinksManager() {
     return () => sub.subscription.unsubscribe()
   }, [])
 
+  const loadedUidRef = useRef(null)
+
   // 페이지 보장(없으면 생성) + 데이터 로드
   useEffect(() => {
-    if (!session) return
+    const uid = session?.user?.id
+    if (!uid) return
+    if (loadedUidRef.current === uid) return // 같은 유저 중복 실행 방지
+    loadedUidRef.current = uid
+    let alive = true
     ;(async () => {
       setLoading(true)
-      const uid = session.user.id
-      let { data: pg } = await supabase.from('link_pages').select('*').eq('user_id', uid).maybeSingle()
-      if (!pg) {
-        const base = sanitize(session.user.email?.split('@')[0])
-        let handle = base
-        for (let i = 0; i < 6; i++) {
-          const { data, error } = await supabase
-            .from('link_pages')
-            .insert({ user_id: uid, handle, title: '', bio: '', theme: 'light' })
-            .select('*').single()
-          if (!error) { pg = data; break }
-          if (error.code === '23505') { handle = base + Math.floor(100 + Math.random() * 900) } // 핸들 중복
-          else break
+      try {
+        // 1) 기존 페이지 조회
+        let pg = (await supabase.from('link_pages').select('*').eq('user_id', uid).maybeSingle()).data
+        // 2) 없으면 생성 (충돌 나면 = 이미 있는 것이므로 재조회)
+        if (!pg) {
+          const base = sanitize(session.user.email?.split('@')[0])
+          let handle = base
+          for (let i = 0; i < 5 && !pg; i++) {
+            const ins = await supabase.from('link_pages')
+              .insert({ user_id: uid, handle, title: '', bio: '', theme: 'light' })
+              .select('*').single()
+            if (ins.data) { pg = ins.data; break }
+            // 충돌(23505): user_id PK 중복이면 재조회로 가져오고, handle 중복이면 다른 handle로
+            const re = (await supabase.from('link_pages').select('*').eq('user_id', uid).maybeSingle()).data
+            if (re) { pg = re; break }
+            handle = base + Math.floor(100 + Math.random() * 900)
+          }
         }
+        const [jb, it] = await Promise.all([
+          supabase.from('video_jobs').select('id, product_name, seo_title, video_url, created_at')
+            .eq('user_id', uid).eq('status', 'done').neq('video_url', '').order('created_at', { ascending: false }),
+          supabase.from('link_items').select('*').eq('user_id', uid),
+        ])
+        if (!alive) return
+        setPage(pg || null); setJobs(jb.data || []); setItems(it.data || [])
+      } finally {
+        if (alive) setLoading(false)
       }
-      const [{ data: jb }, { data: it }] = await Promise.all([
-        supabase.from('video_jobs').select('id, product_name, seo_title, video_url, created_at')
-          .eq('user_id', uid).eq('status', 'done').neq('video_url', '').order('created_at', { ascending: false }),
-        supabase.from('link_items').select('*').eq('user_id', uid),
-      ])
-      setPage(pg); setJobs(jb || []); setItems(it || [])
-      setLoading(false)
     })()
-  }, [session])
+    return () => { alive = false }
+  }, [session?.user?.id])
 
   const itemFor = (jobId) => items.find((i) => i.video_job_id === jobId)
   const flash = (m) => { setSavedMsg(m); setTimeout(() => setSavedMsg(''), 1800) }
@@ -114,8 +127,13 @@ export default function LinksManager() {
           <a href="/generate" className="text-sm font-bold text-gray-500 hover:text-[#03C75A]">← 영상 만들기</a>
         </div>
 
-        {loading || !page ? (
+        {loading ? (
           <div className="py-20 text-center"><div className="mx-auto h-7 w-7 animate-spin rounded-full border-2 border-[#03C75A] border-t-transparent" /></div>
+        ) : !page ? (
+          <div className="py-20 text-center">
+            <p className="text-gray-500">페이지를 불러오지 못했어요.</p>
+            <button onClick={() => window.location.reload()} className="mt-3 rounded-xl bg-[#03C75A] px-5 py-2 text-sm font-bold text-white">다시 시도</button>
+          </div>
         ) : (
           <>
             {/* 내 주소 */}
