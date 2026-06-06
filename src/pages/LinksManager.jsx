@@ -2,14 +2,14 @@ import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
 // 생성 영상에서 한 프레임을 캡처해 작은 JPG Blob으로 반환 (카드용 이미지 = 영상 대신 용량 절감)
-async function captureVideoFrame(videoUrl) {
+async function captureVideoFrame(videoUrl, fraction = 0.45) {
   return new Promise((resolve, reject) => {
     const v = document.createElement('video')
     v.crossOrigin = 'anonymous'; v.muted = true; v.playsInline = true; v.preload = 'auto'
     let done = false
     const finish = (err, blob) => { if (done) return; done = true; try { v.removeAttribute('src'); v.load() } catch {} ; err ? reject(err) : resolve(blob) }
     v.onerror = () => finish(new Error('video load error'))
-    v.onloadeddata = () => { try { v.currentTime = Math.min(0.6, (v.duration || 2) * 0.25) } catch (e) { finish(e) } }
+    v.onloadeddata = () => { try { const d = v.duration || 2; v.currentTime = Math.min(Math.max(0.1, d * fraction), Math.max(0.1, d - 0.1)) } catch (e) { finish(e) } }
     v.onseeked = () => {
       try {
         const maxH = 960
@@ -98,30 +98,32 @@ export function LinkPageManager({ session }) {
     } finally { setUploading(false) }
   }
 
-  const upsertItem = async (job, { title, target_url, active }) => {
+  const upsertItem = async (job, { title, target_url, active, image_url }) => {
     const uid = session.user.id
     const existing = itemFor(job.id)
-    if (existing) {
-      const { data } = await supabase.from('link_items')
-        .update({ title, target_url, active }).eq('id', existing.id).select('*').single()
-      if (data) setItems((p) => p.map((i) => (i.id === data.id ? data : i)))
-    } else {
-      // 카드 이미지: 생성 영상에서 프레임 캡처 → 작은 JPG 저장 (영상 대신 이미지 = 용량 ~50배 절감)
-      let image_url = null
-      let videoUrl = job.video_url
+    let img = image_url || null
+    if (!img && !existing?.image_url) {
       try {
         const blob = await captureVideoFrame(job.video_url)
         const path = `${uid}/${job.id}.jpg`
         const up = await supabase.storage.from('card-images').upload(path, blob, { upsert: true, contentType: 'image/jpeg', cacheControl: '3600' })
-        if (!up.error) image_url = supabase.storage.from('card-images').getPublicUrl(path).data.publicUrl
-      } catch (e) { /* 캡처 실패 → 아래 영상 폴백 */ }
-      if (!image_url) {
-        // 캡처 실패 시에만 영상을 영구 보관(폴백) → 카드가 깨지지 않도록
+        if (!up.error) img = supabase.storage.from('card-images').getPublicUrl(path).data.publicUrl + '?v=' + Date.now()
+      } catch (e) { /* 캡처 실패 → 영상 폴백 */ }
+    }
+    if (existing) {
+      const patch = { title, target_url, active }
+      if (img) patch.image_url = img
+      const { data } = await supabase.from('link_items')
+        .update(patch).eq('id', existing.id).select('*').single()
+      if (data) setItems((p) => p.map((i) => (i.id === data.id ? data : i)))
+    } else {
+      let videoUrl = job.video_url
+      if (!img) {
         try { const { data: kv } = await supabase.functions.invoke('keep-video', { body: { job_id: job.id } }); if (kv?.ok && kv.video_url) videoUrl = kv.video_url } catch (e) {}
       }
       const maxSort = items.reduce((m, i) => Math.max(m, i.sort_order || 0), 0)
       const { data } = await supabase.from('link_items')
-        .insert({ user_id: uid, video_job_id: job.id, title, target_url, active, image_url, video_url: videoUrl, sort_order: maxSort + 1 })
+        .insert({ user_id: uid, video_job_id: job.id, title, target_url, active, image_url: img, video_url: videoUrl, sort_order: maxSort + 1 })
         .select('*').single()
       if (data) setItems((p) => [...p, data])
     }
@@ -225,7 +227,7 @@ export function LinkPageManager({ session }) {
           {jobs.map((job) => {
             const it = itemFor(job.id)
             return (
-              <JobRow key={job.id} job={job} item={it}
+              <JobRow key={job.id} job={job} item={it} uid={session.user.id}
                 onSave={(vals) => upsertItem(job, vals)}
                 onMove={it && it.active ? (dir) => move(it, dir) : null} />
             )
@@ -276,17 +278,58 @@ export default function LinksManager() {
   )
 }
 
-function JobRow({ job, item, onSave, onMove }) {
+function JobRow({ job, item, uid, onSave, onMove }) {
   const [title, setTitle] = useState(item?.title ?? (job.seo_title || job.product_name || ''))
   const [url, setUrl] = useState(item?.target_url ?? '')
+  const [img, setImg] = useState(item?.image_url || '')
+  const [imgBusy, setImgBusy] = useState(false)
+  const fracs = useRef([0.45, 0.65, 0.25, 0.8, 0.1, 0.55])
+  const fracIdx = useRef(0)
   const active = !!item?.active
   const canShow = url.trim().length > 0
+
+  const pickFrame = async () => {
+    if (!job.video_url || imgBusy) return
+    setImgBusy(true)
+    try {
+      const f = fracs.current[fracIdx.current % fracs.current.length]; fracIdx.current++
+      const blob = await captureVideoFrame(job.video_url, f)
+      const path = `${uid}/${job.id}.jpg`
+      const up = await supabase.storage.from('card-images').upload(path, blob, { upsert: true, contentType: 'image/jpeg', cacheControl: '3600' })
+      if (up.error) throw up.error
+      setImg(supabase.storage.from('card-images').getPublicUrl(path).data.publicUrl + '?v=' + Date.now())
+    } catch (e) { alert('이미지 추출 실패 (영상이 만료됐을 수 있어요). 직접 업로드해 주세요.') }
+    finally { setImgBusy(false) }
+  }
+  const uploadImg = async (file) => {
+    if (!file || imgBusy) return
+    setImgBusy(true)
+    try {
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg'
+      const path = `${uid}/${job.id}.${ext}`
+      const up = await supabase.storage.from('card-images').upload(path, file, { upsert: true, cacheControl: '3600' })
+      if (up.error) throw up.error
+      setImg(supabase.storage.from('card-images').getPublicUrl(path).data.publicUrl + '?v=' + Date.now())
+    } catch (e) { alert('업로드 실패') }
+    finally { setImgBusy(false) }
+  }
 
   return (
     <div className={`rounded-2xl border bg-white p-4 ${active ? 'border-[#03C75A]' : 'border-gray-200'}`}>
       <div className="flex gap-3">
-        <div className="h-24 w-20 shrink-0 overflow-hidden rounded-xl bg-black">
-          {job.video_url && <video src={job.video_url} muted loop autoPlay playsInline preload="metadata" className="h-full w-full object-cover" />}
+        <div className="shrink-0 flex flex-col items-center gap-1.5">
+          <div className="h-24 w-20 overflow-hidden rounded-xl bg-black">
+            {img
+              ? <img src={img} alt="" className="h-full w-full object-cover" />
+              : job.video_url ? <video src={job.video_url} muted loop autoPlay playsInline preload="metadata" className="h-full w-full object-cover" /> : null}
+          </div>
+          <div className="flex gap-1">
+            <button onClick={pickFrame} disabled={imgBusy} title="다른 장면으로 바꾸기"
+              className="rounded-md bg-gray-100 px-1.5 py-1 text-[11px] font-bold text-gray-600 hover:bg-gray-200 disabled:opacity-40">{imgBusy ? '…' : '🔄 다른 컷'}</button>
+            <label className="cursor-pointer rounded-md bg-gray-100 px-1.5 py-1 text-[11px] font-bold text-gray-600 hover:bg-gray-200" title="직접 업로드">📷
+              <input type="file" accept="image/*" className="hidden" disabled={imgBusy} onChange={(e) => uploadImg(e.target.files?.[0])} />
+            </label>
+          </div>
         </div>
         <div className="min-w-0 flex-1 space-y-2">
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="카드 제목"
@@ -301,9 +344,9 @@ function JobRow({ job, item, onSave, onMove }) {
           <div className="flex items-center gap-2">
             {active ? (
               <>
-                <button onClick={() => onSave({ title, target_url: url, active: true })}
+                <button onClick={() => onSave({ title, target_url: url, active: true, image_url: img })}
                   className="rounded-lg bg-[#03C75A] px-3 py-1.5 text-xs font-bold text-white">저장</button>
-                <button onClick={() => onSave({ title, target_url: url, active: false })}
+                <button onClick={() => onSave({ title, target_url: url, active: false, image_url: img })}
                   className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-bold text-gray-600">숨기기</button>
                 {onMove && (
                   <span className="ml-auto flex gap-1">
@@ -313,7 +356,7 @@ function JobRow({ job, item, onSave, onMove }) {
                 )}
               </>
             ) : (
-              <button onClick={() => onSave({ title, target_url: url, active: true })} disabled={!canShow}
+              <button onClick={() => onSave({ title, target_url: url, active: true, image_url: img })} disabled={!canShow}
                 className="rounded-lg bg-[#03C75A] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40">＋ 페이지에 표시</button>
             )}
             {!canShow && !active && <span className="text-[11px] text-gray-400">쿠팡 링크를 넣어야 표시할 수 있어요</span>}
