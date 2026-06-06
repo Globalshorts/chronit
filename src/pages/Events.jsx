@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Megaphone, X } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import rehypeRaw from 'rehype-raw'
 import { supabase } from '../lib/supabase'
 
 const statusCfg = {
@@ -147,8 +148,8 @@ const Events = () => {
               </button>
             </div>
             <div className="overflow-y-auto px-6 py-6">
-              <div className="prose prose-invert prose-sm max-w-none">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{selectedEvent.content}</ReactMarkdown>
+              <div className="prose prose-sm max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{selectedEvent.content}</ReactMarkdown>
               </div>
               {selectedEvent.cta_text && selectedEvent.cta_url && (
                 <a
