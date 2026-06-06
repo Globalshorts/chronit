@@ -3679,6 +3679,17 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
   };
   const applyRole = () => run(()=>supabase.rpc("set_user_role_rpc",{p_target_user_id:sel,p_new_role:roleSel}), "권한 변경 완료");
 
+  const resetSignupSource = async () => {
+    const ans = window.prompt('⚠️ 가입 경로 데이터를 모두 초기화합니다.\n수집된 응답이 전부 삭제되며 되돌릴 수 없습니다.\n\n정말 진행하려면 아래에 "초기화" 라고 입력하세요.');
+    if (ans === null) return;            // 취소
+    if (ans.trim() !== "초기화") { setMsg("초기화 취소됨 (입력이 일치하지 않음)"); return; }
+    setMsg("초기화 중...");
+    const { data, error } = await supabase.rpc("admin_reset_signup_source_rpc");
+    if (error || !data?.ok) { setMsg("초기화 실패: "+(error?.message || data?.error || "")); return; }
+    setMsg(`가입 경로 초기화 완료 (${data.cleared ?? 0}건 삭제)`);
+    await load();
+  };
+
   // 선택 회원 변경 시: 역할 동기화 + (파트너면) 플랜별 정산 로드
   React.useEffect(()=>{
     setRoleSel(selUser?.role || "user");
@@ -3753,7 +3764,10 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
       {/* 가입 경로 집계 */}
       {srcStats.length > 0 && (
         <div className="rounded-2xl bg-white border border-gray-200 p-4 mb-3">
-          <p className="text-xs font-bold text-gray-700 mb-2">📥 가입 경로 (총 {srcTotal}명)</p>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-bold text-gray-700">📥 가입 경로 (총 {srcTotal}명)</p>
+            <button onClick={resetSignupSource} className="rounded-lg border border-red-300 text-red-500 hover:bg-red-50 px-2.5 py-1 text-xs font-bold">초기화</button>
+          </div>
           <div className="flex flex-wrap gap-2">
             {srcStats.map(s=>(
               <span key={s.source} className={`rounded-lg px-2.5 py-1 text-xs font-bold ${s.source==="미응답"?"bg-gray-100 text-gray-500":"bg-[#03C75A]/10 text-[#03C75A]"}`}>
