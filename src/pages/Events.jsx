@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Megaphone, X } from 'lucide-react'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import rehypeRaw from 'rehype-raw'
+import { Megaphone } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 const statusCfg = {
@@ -39,7 +36,6 @@ const Events = () => {
   const [scrolled, setScrolled]         = useState(false)
   const [events, setEvents]             = useState([])
   const [eventTab, setEventTab]         = useState('active')
-  const [selectedEvent, setSelectedEvent] = useState(null)
   const [loading, setLoading]           = useState(true)
 
   useEffect(() => {
@@ -124,9 +120,9 @@ const Events = () => {
           ) : (
             <div className="grid grid-cols-1 gap-5 pt-6 sm:grid-cols-2">
               {events.filter(e => e.status === eventTab).map(ev => (
-                <button
+                <Link
                   key={ev.id}
-                  onClick={() => setSelectedEvent(ev)}
+                  to={`/events/${ev.id}`}
                   className="group flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#03C75A]/40 hover:shadow-lg"
                 >
                   <div className="relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-br from-[#03C75A]/15 to-[#03C75A]/5">
@@ -151,53 +147,12 @@ const Events = () => {
                       <span className="flex items-center gap-1 text-sm font-bold text-[#03C75A] transition-all group-hover:gap-2">자세히 보기 →</span>
                     </div>
                   </div>
-                </button>
+                </Link>
               ))}
             </div>
           )}
         </div>
       </section>
-
-      {/* 이벤트 상세 모달 */}
-      {selectedEvent && (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm md:items-center"
-          onClick={() => setSelectedEvent(null)}
-        >
-          <div
-            className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl bg-white md:rounded-3xl"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="sticky top-0 flex items-center justify-between gap-3 border-b border-gray-200 bg-white/95 px-6 py-4 backdrop-blur-xl">
-              <div className="flex items-center gap-2 min-w-0">
-                <EventBadge status={selectedEvent.status} label={selectedEvent.label} />
-                <h3 className="truncate text-base font-bold text-gray-900">{selectedEvent.title}</h3>
-              </div>
-              <button onClick={() => setSelectedEvent(null)} className="shrink-0 rounded-full p-1.5 text-slate-400 hover:bg-gray-100 hover:text-gray-700">
-                <X size={18} />
-              </button>
-            </div>
-            <div className="overflow-y-auto px-6 py-6">
-              {selectedEvent.thumbnail_url && (
-                <img src={selectedEvent.thumbnail_url} alt="" className="mb-5 w-full rounded-2xl object-cover" />
-              )}
-              <div className="prose prose-sm max-w-none">
-                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{selectedEvent.content}</ReactMarkdown>
-              </div>
-              {selectedEvent.cta_text && selectedEvent.cta_url && (
-                <a
-                  href={selectedEvent.cta_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-6 flex w-full items-center justify-center rounded-2xl bg-[#03C75A] px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-[#02b350] active:scale-95"
-                >
-                  {selectedEvent.cta_text}
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       <style>{`
         @keyframes badge-pulse {

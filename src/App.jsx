@@ -5,6 +5,7 @@ import Home from './pages/Home'
 import Manual from './pages/Manual'
 import ManualDetail from './pages/ManualDetail'
 import Events from './pages/Events'
+import EventDetail from './pages/EventDetail'
 import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import Admin from './pages/Admin'
@@ -23,6 +24,7 @@ const App = () => (
       <Route path="/manual" element={<Manual />} />
       <Route path="/manual/:section" element={<ManualDetail />} />
       <Route path="/events" element={<Events />} />
+      <Route path="/events/:id" element={<EventDetail />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/admin" element={<Admin />} />

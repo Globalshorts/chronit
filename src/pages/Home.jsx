@@ -82,7 +82,6 @@ const Home = () => {
   const [menuOpen, setMenuOpen] = useState(false)
   const [events, setEvents] = useState([])
   const [eventTab, setEventTab] = useState('active')
-  const [selectedEvent, setSelectedEvent] = useState(null)
   const pendingPlanRef = useRef(null)
   const pendingSessionRef = useRef(null)
   const pendingStartRef = useRef(false)
@@ -353,31 +352,6 @@ const Home = () => {
         </div>
       </div>
 
-      {/* 이벤트 모달 */}
-      {selectedEvent && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedEvent(null)} />
-          <div className="relative z-10 w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-3xl border border-gray-200 bg-white shadow-2xl">
-            <div className="sticky top-0 flex items-center justify-between gap-3 border-b border-gray-100 bg-white/95 px-6 py-4 backdrop-blur-xl">
-              <div className="flex items-center gap-2 min-w-0">
-                <EventBadge status={selectedEvent.status} label={selectedEvent.label} />
-                <h3 className="truncate text-base font-bold text-gray-900">{selectedEvent.title}</h3>
-              </div>
-              <button onClick={() => setSelectedEvent(null)} className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">✕</button>
-            </div>
-            <div className="event-content px-6 py-6 text-gray-700" dangerouslySetInnerHTML={{ __html: selectedEvent.content }} />
-            {selectedEvent.cta_text && selectedEvent.cta_url && (
-              <div className="border-t border-gray-100 px-6 py-4">
-                <a href={selectedEvent.cta_url} target="_blank" rel="noopener noreferrer" onClick={() => setSelectedEvent(null)}
-                  className="block w-full rounded-xl bg-[#03C75A] py-4 text-center text-base font-extrabold text-white shadow-md hover:bg-[#02b350] active:scale-95 transition-all">
-                  {selectedEvent.cta_text}
-                </a>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* ── Hero ── */}
       <section className="relative px-5 pt-32 pb-16 md:px-8 md:pt-40 md:pb-24">
         <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-12">
@@ -611,14 +585,14 @@ const Home = () => {
                 <p className="py-12 text-center text-sm text-gray-400">해당 이벤트가 없습니다</p>
               ) : (
                 events.filter(e => e.status === eventTab).map(ev => (
-                  <button key={ev.id} onClick={() => setSelectedEvent(ev)}
+                  <Link key={ev.id} to={`/events/${ev.id}`}
                     className="flex w-full items-center gap-4 px-2 py-4 text-left transition-colors hover:bg-gray-50">
                     <EventBadge status={ev.status} label={ev.label} />
                     <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-800">{ev.title}</span>
                     <span className="shrink-0 text-xs text-gray-400">
                       {new Date(ev.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '')}
                     </span>
-                  </button>
+                  </Link>
                 ))
               )}
             </div>
