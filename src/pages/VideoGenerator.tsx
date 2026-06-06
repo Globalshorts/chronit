@@ -1127,7 +1127,7 @@ export default function VideoGenerator() {
               </>
             )}
             {activeView === "product-search" && (
-              <ProductSearchView session={session} supabase={supabase} />
+              <ProductSearchView session={session} />
             )}
             {activeView === "settings" && (
               <SettingsView session={session} supabase={supabase} balance={balance} userPlan={userPlan} />
@@ -3283,9 +3283,9 @@ function HistoryView({ session, onGoToLinks }: { session: any; onGoToLinks?: ()=
                       : "내 컴퓨터에 mp4 파일로 저장돼요"}
                   </p>
                   {onGoToLinks && (
-                    <button onClick={()=>{ if (j.product_url) startExtract(supabase, j.product_url); onGoToLinks(); }}
+                    <button onClick={onGoToLinks}
                       className="block text-center rounded-xl border border-[#03C75A]/40 bg-[#03C75A]/5 px-3 py-2 text-xs font-bold text-[#03C75A] hover:bg-[#03C75A]/10 transition">
-                      🔗 내 링크에 추가 <span className="font-normal text-[#03C75A]/70">(검색어 미리 뽑기)</span>
+                      🔗 내 링크에 추가
                     </button>
                   )}
 
@@ -3535,137 +3535,12 @@ function resumeExtract(supabase:any) {
 }
 function clearExtract() { _extractMgr.state = null; _extractEmit(); }
 
-function ProductSearchView({ session, supabase }: { session:any; supabase:any }) {
-  // 활성 프로젝트는 진행중 자동저장(chronit_project_v1)의 실시간 cart를 반영
-  const projOpts = React.useMemo(()=>{
-    const projects = getProjs();
-    let live:any = null; try { live = JSON.parse(localStorage.getItem("chronit_project_v1")||"null"); } catch {}
-    const activeId = localStorage.getItem("chronit_active_proj");
-    const opts = projects.map((p:any)=>{
-      const d = (p.id===activeId && live) ? { ...(p.data||{}), ...live } : (p.data||{});
-      return { id:p.id, name:p.name, src:d.sourceUrl||"", count:(d.cart?.length ?? d.clips?.length ?? 0) };
-    });
-    const hasActive = activeId && projects.some((p:any)=>p.id===activeId);
-    const liveCount = (live?.cart?.length ?? live?.clips?.length ?? 0);
-    if (live && !hasActive && liveCount>0)
-      opts.unshift({ id:"__live__", name:"현재 작업 중", src:live.sourceUrl||"", count:liveCount });
-    return opts;
-  }, []);
-  const [projId, setProjId] = React.useState(projOpts[0]?.id ?? "");
-  const [url, setUrl]       = React.useState("");
-  const [job, setJob]       = React.useState<any>(_extractMgr.state);
-  const [note, setNote]     = React.useState("");
-  const [, setTick]         = React.useState(0);
-  const [urls, setUrls]     = React.useState<string[]>(()=>{ try{return JSON.parse(localStorage.getItem(PS_KEY)||"[]");}catch{return [];} });
-  const [copied, setCopied] = React.useState(false);
-  const [hint, setHint]     = React.useState("");
-
-  // 백그라운드 추출 상태 구독 + 새로고침 후 재개
-  React.useEffect(()=>{
-    const l = (s:any)=>setJob(s ? {...s} : null);
-    _extractMgr.listeners.add(l);
-    resumeExtract(supabase);
-    setJob(_extractMgr.state ? {..._extractMgr.state} : null);
-    return ()=>{ _extractMgr.listeners.delete(l); };
-  }, []);
-
-  const extracting = job?.status==="starting" || job?.status==="processing";
-  const kw = job?.status==="succeeded" ? job.result : null;
-  const elapsed = (extracting && job?.startedAt) ? Math.floor((Date.now()-job.startedAt)/1000) : 0;
-  const kwMsg = extracting
-    ? `분석 중... ${elapsed}s (최대 4분, 다른 탭으로 이동해도 백그라운드로 계속됩니다)`
-    : (job?.status==="failed" ? ("추출 실패: "+(job.error||"")) : note);
-
-  // 추출 중 경과시간 표시용 1초 틱
-  React.useEffect(()=>{ if(!extracting) return; const iv=setInterval(()=>setTick(t=>t+1),1000); return ()=>clearInterval(iv); }, [extracting]);
-
-  React.useEffect(()=>{ localStorage.setItem(PS_KEY, JSON.stringify(urls.slice(0,500))); }, [urls]);
-
-  const addUrls = (text:string) => {
-    const found = text.match(COUPANG_RX) || [];
-    if (found.length===0) { setHint("쿠팡 URL을 찾지 못했어요"); setTimeout(()=>setHint(""),1500); return; }
-    setUrls(prev => { const set = new Set(prev); found.forEach(u=>set.add(u.trim())); return Array.from(set); });
-    setHint(`${found.length}개 추가됨`); setTimeout(()=>setHint(""),1500);
-  };
-  const fromClipboard = async () => {
-    try { const t = await navigator.clipboard.readText(); addUrls(t); }
-    catch { setHint("클립보드 접근 불가 — 아래에 붙여넣기(Ctrl+V) 하세요"); setTimeout(()=>setHint(""),2500); }
-  };
-
-  const extract = (src:string) => {
-    if (extracting) return;
-    if (!src) { setNote("URL 또는 프로젝트를 선택하세요"); setTimeout(()=>setNote(""),2000); return; }
-    setNote("");
-    startExtract(supabase, src);
-  };
-
-  const projSrc = projOpts.find(o=>o.id===projId)?.src ?? "";
-  const copyAll = () => { navigator.clipboard.writeText(urls.join("\n")); setCopied(true); setTimeout(()=>setCopied(false),1500); };
-
-  const Step = ({n,title,children}:{n:string;title:string;children:any}) => (
-    <div className="rounded-2xl bg-white border border-gray-200 p-5 mb-4">
-      <p className="text-sm font-bold text-[#03C75A] mb-3">STEP {n}. {title}</p>
-      {children}
-    </div>
-  );
-
+function ProductSearchView({ session }: { session:any }) {
   return (
     <div className="max-w-3xl">
       <h2 className="text-xl font-black text-gray-900 mb-2">🔗 내 링크</h2>
-      <p className="text-sm text-gray-400 mb-6">영상에서 상품 검색어를 뽑아 <b>쿠팡 파트너스 링크</b>를 만들고, 완성한 영상과 함께 <b>내 링크 페이지</b>에 모아 공유하세요.</p>
-
-      <Step n="1" title="영상에서 상품 검색어 뽑기 → 쿠팡 파트너스 링크 만들기">
-        <div className="flex flex-wrap items-end gap-2 mb-2">
-          <div className="flex-1 min-w-[200px]">
-            <label className="text-xs text-gray-500">프로젝트</label>
-            <select value={projId} onChange={e=>setProjId(e.target.value)} className="w-full mt-1 rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none">
-              {projOpts.length===0 && <option value="">저장된 프로젝트 없음</option>}
-              {projOpts.map(o=><option key={o.id} value={o.id}>{o.name} ({o.count}개 영상)</option>)}
-            </select>
-          </div>
-          <button onClick={()=>extract(projSrc)} disabled={extracting||!projSrc} className="rounded-xl bg-green-600 hover:bg-green-500 disabled:opacity-40 px-4 py-2.5 text-sm font-bold text-white">📁 프로젝트로 추출</button>
-        </div>
-        <div className="text-center text-xs text-gray-600 my-2">— 또는 URL 직접 입력 —</div>
-        <div className="flex gap-2">
-          <input value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://www.tiktok.com/... or instagram.com/..."
-            className="flex-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A]" />
-          <button onClick={()=>extract(url.trim())} disabled={extracting||!url.trim()} className="rounded-xl bg-[#03C75A] hover:bg-[#02b350] disabled:opacity-40 px-4 py-2.5 text-sm font-bold text-white">🔍 URL로 추출</button>
-        </div>
-        {kwMsg && (
-          extracting ? (
-            <div className="mt-3 flex items-center gap-3 rounded-xl border border-[#03C75A]/40 bg-[#03C75A]/10 px-4 py-3">
-              <span className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-[#03C75A] border-t-transparent" />
-              <p className="text-sm font-bold text-[#03C75A]">{kwMsg}</p>
-            </div>
-          ) : (
-            <div className="mt-3 flex items-center gap-2">
-              <p className={`text-xs flex-1 ${job?.status==="failed"?"text-red-500 font-bold":"text-gray-400"}`}>{kwMsg}</p>
-              {job && <button onClick={clearExtract} className="text-xs text-gray-500 hover:text-gray-700 shrink-0">✕ 지우기</button>}
-            </div>
-          )
-        )}
-        {kw && (
-          <div className="mt-4">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-gray-500">추출된 한국어 검색어 (클릭 시 쿠팡 파트너스 링크 생성 화면 열기)</p>
-              <button onClick={clearExtract} className="text-xs text-gray-500 hover:text-gray-700 shrink-0">✕ 지우기</button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {((kw.keywords?.length ? kw.keywords : [kw.product_name, ...(kw.queries||[])]).filter(Boolean) as string[]).map((k:string,i:number)=>(
-                <a key={i} href={`https://partners.coupang.com/#affiliate/ws/link/0/${k.trim().replace(/\s+/g,"%20")}`} target="_blank" rel="noreferrer"
-                  className="rounded-lg bg-gray-100 border border-gray-200 px-3 py-1.5 text-sm text-[#03C75A] hover:border-[#03C75A] transition">{k}</a>
-              ))}
-            </div>
-          </div>
-        )}
-      </Step>
-
-      {/* STEP 2 — 내 링크 페이지 관리 (멀티링크) */}
-      <div className="mt-6">
-        <p className="text-sm font-bold text-[#03C75A] mb-1">STEP 2. 내 링크 페이지 만들기</p>
-        <p className="text-xs text-gray-400 mb-4">완성한 영상에 위에서 만든 <b>쿠팡 파트너스 링크</b>를 붙여 카드로 추가하세요. 모인 카드는 <b>내 주소</b> 하나로 공유돼요 — 인스타 프로필에 그 주소만 넣으면 끝!</p>
-        <LinkPageManager session={session} />
-      </div>
+      <p className="text-sm text-gray-400 mb-6">완성한 영상에 <b>쿠팡 파트너스 링크</b>를 붙여 카드로 모으고, <b>내 링크 페이지</b> 하나로 공유하세요. 인스타 프로필에 그 주소만 넣으면 끝! 영상마다 <b>🔍 쿠팡에서 찾기</b>로 바로 상품을 검색할 수 있어요.</p>
+      <LinkPageManager session={session} />
     </div>
   );
 }
