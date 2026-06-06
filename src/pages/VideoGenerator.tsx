@@ -3282,9 +3282,9 @@ function HistoryView({ session, onGoToLinks }: { session: any; onGoToLinks?: ()=
                       : "내 컴퓨터에 mp4 파일로 저장돼요"}
                   </p>
                   {onGoToLinks && (
-                    <button onClick={onGoToLinks}
+                    <button onClick={()=>{ if (j.product_url) startExtract(supabase, j.product_url); onGoToLinks(); }}
                       className="block text-center rounded-xl border border-[#03C75A]/40 bg-[#03C75A]/5 px-3 py-2 text-xs font-bold text-[#03C75A] hover:bg-[#03C75A]/10 transition">
-                      🔗 내 링크에 추가
+                      🔗 내 링크에 추가 <span className="font-normal text-[#03C75A]/70">(검색어 미리 뽑기)</span>
                     </button>
                   )}
 
@@ -3503,7 +3503,7 @@ async function _extractPoll(supabase:any, pid:string, source_url:string) {
     const post = (b:any)=>fetch(FN("extract-keywords"),{method:"POST",headers:{Authorization:`Bearer ${s?.access_token}`,"Content-Type":"application/json"},body:JSON.stringify(b)}).then((r:any)=>r.json());
     const start = Date.now();
     while (Date.now()-start < 360000) {
-      await new Promise(r=>setTimeout(r,4000));
+      await new Promise(r=>setTimeout(r,2000));
       let p:any; try { p = await post({ poll:true, prediction_id: pid }); } catch { continue; }
       if (p.status==="succeeded") { _extractMgr.state = { source_url, status:"succeeded", result:{ product_name:p.product_name, use_case:p.use_case, queries:p.queries||[], keywords:p.keywords||[] } }; _extractEmit(); return; }
       if (p.status==="failed"||p.status==="canceled") { _extractMgr.state = { source_url, status:"failed", error:p.error||"추출 실패" }; _extractEmit(); return; }
