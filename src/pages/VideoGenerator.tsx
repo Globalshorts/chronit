@@ -666,6 +666,7 @@ export default function VideoGenerator() {
     try {
       // Step 1: 대본 생성
       setAutoRunStep("1/3  대본 생성 중...");
+      let genSegments: any = null;
       await new Promise<void>(async (resolve, reject) => {
         setScriptError(""); setScriptLoading(true); setScript(null);
         const { data: { session: s } } = await supabase.auth.getSession();
@@ -681,7 +682,7 @@ export default function VideoGenerator() {
         if (!data.ok) { reject(new Error(data.error ?? "대본 생성 실패")); return; }
         const predId = data.prediction_id;
         setScriptPredId(predId ?? "");
-        if (data.status === "succeeded" && data.segments) { setScript(data.segments); setScriptLoading(false); resolve(); return; }
+        if (data.status === "succeeded" && data.segments) { genSegments = data.segments; setScript(data.segments); setScriptLoading(false); resolve(); return; }
         // 폴링
         const start = Date.now();
         while (Date.now() - start < 300_000) {
@@ -691,7 +692,7 @@ export default function VideoGenerator() {
             headers: { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" },
             body: JSON.stringify({ poll: true, prediction_id: predId }),
           })).json();
-          if (poll.status === "succeeded") { setScript(poll.segments ?? []); setScriptLoading(false); resolve(); return; }
+          if (poll.status === "succeeded") { genSegments = poll.segments ?? []; setScript(poll.segments ?? []); setScriptLoading(false); resolve(); return; }
           if (poll.status === "failed") { reject(new Error(poll.error ?? "대본 실패")); return; }
         }
         reject(new Error("대본 생성 시간 초과"));
@@ -703,7 +704,7 @@ export default function VideoGenerator() {
 
       // Step 3: 영상 합성 — state 비동기 문제 방지: ctaOverride, voiceId 직접 전달
       setAutoRunStep("3/3  영상 합성 중...");
-      await handleRender({ voiceId, ctaText: ctaOverride ?? ctaText });
+      await handleRender({ voiceId, ctaText: ctaOverride ?? ctaText, script: genSegments });
 
       setAutoRunStep("✅ 완료!");
     } catch (e) {
@@ -715,9 +716,10 @@ export default function VideoGenerator() {
     }
   };
 
-  const handleRender = async (overrides?: { voiceId?: string; ctaText?: string }) => {
+  const handleRender = async (overrides?: { voiceId?: string; ctaText?: string; script?: any }) => {
     setRenderError(""); setRendering(true);
     const _voiceId = overrides?.voiceId ?? voiceId;
+    const _script = overrides?.script ?? script;
     try {
       const { data: { session: s } } = await supabase.auth.getSession();
       if (!s) { setRenderError("로그인이 필요합니다"); return; }
@@ -736,7 +738,7 @@ export default function VideoGenerator() {
           subtitle_style: subtitleStyle,
           thumbnail_style: thumbnailStyle,
           show_thumbnail: showThumbnail,
-          script_segments: script,
+          script_segments: _script,
           cta_text: overrides?.ctaText ?? ctaText,
         }),
       });
@@ -744,14 +746,7 @@ export default function VideoGenerator() {
       if (!data.ok) { setRenderError(data.error ?? "렌더링 요청 실패"); return; }
       setCurrentJobId(data.job_id ?? "");
       setBalance(data.balance ?? null);
-      // 업로드용 SEO(제목/설명/해시태그) 자동 생성 — 백그라운드, 결과는 video_jobs에 저장됨
-      if (data.job_id && script?.length && sourceUrl) {
-        fetch(FN("generate-seo"), {
-          method: "POST",
-          headers: { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ source_url: sourceUrl.trim(), script_segments: script, job_id: data.job_id }),
-        }).then(() => loadJobs()).catch(() => {});
-      }
+      // 업로드용 SEO(제목/설명/해시태그)는 generate-video가 서버측에서 자동 생성함 (탭 닫아도 완료됨)
       await loadJobs();
     } catch (e) { setRenderError(String(e)); }
     finally { setRendering(false); }
