@@ -176,9 +176,13 @@ export default function VideoGenerator() {
   const [userPlan, setUserPlan]     = useState<string | null>(null);
   const [userRole, setUserRole]     = useState<string>("user");
   const [activeView, setActiveView] = useState(() => {
-    try { return localStorage.getItem("chronit_active_view") || "generator"; }
+    try {
+      const v = localStorage.getItem("chronit_active_view") || "generator";
+      return (v === "auto-settings" || v === "style-finder") ? "studio" : v; // 옛 탭 → 통합 탭
+    }
     catch { return "generator"; }
   });
+  const [studioTab, setStudioTab] = useState("style"); // 'style'(스타일 찾기) | 'auto'(자동화 세팅)
   // 현재 탭 저장 → 새로고침해도 그 탭 유지 (프로젝트로 튕기지 않음)
   useEffect(() => {
     try { localStorage.setItem("chronit_active_view", activeView); } catch {}
@@ -1072,29 +1076,46 @@ export default function VideoGenerator() {
       <div className="flex-1 min-w-0 flex flex-col">
         {activeView !== "generator" && (
           <div className="flex-1 overflow-y-auto px-4 md:px-8 py-5 md:py-6">
-            {/* ── 자동화 세팅 ── */}
-            {activeView === "auto-settings" && (
-              <AutoSettingsView
-                targetSeconds={targetSeconds} setTargetSeconds={setTargetSeconds}
-                styleProfileId={styleProfileId} setStyleProfileId={setStyleProfileId}
-                ctaText={ctaText} setCtaText={setCtaText}
-                subtitleStyle={subtitleStyle} setSubtitleStyle={setSubtitleStyle}
-                thumbnailStyle={thumbnailStyle} setThumbnailStyle={setThumbnailStyle}
-                showThumbnail={showThumbnail} setShowThumbnail={setShowThumbnail}
-                voiceId={voiceId} setVoiceId={setVoiceId}
-                voiceSpeed={voiceSpeed} setVoiceSpeed={setVoiceSpeed}
-                voiceVolume={voiceVolume} setVoiceVolume={setVoiceVolume}
-                userPlan={userPlan}
-                selectedSubtitlePresetId={selectedSubtitlePresetId} setSelectedSubtitlePresetId={setSelectedSubtitlePresetId}
-                selectedThumbnailPresetId={selectedThumbnailPresetId} setSelectedThumbnailPresetId={setSelectedThumbnailPresetId}
-                session={session}
-              />
-            )}
-            {activeView === "style-finder" && (
-              <div className="max-w-2xl mx-auto">
-                <h2 className="text-xl font-black text-gray-900 mb-2">🔍 스타일 찾기</h2>
-                <p className="text-sm text-gray-400 mb-6">숏폼 영상 URL을 분석해서 대본 스타일을 라이브러리에 저장합니다.</p>
-                <StyleFinderView session={session} onImport={(id: string) => { setStyleProfileId(id); setActiveView("generator"); }} />
+            {/* ── 콘셉트/스타일 (스타일 찾기 + 자동화 세팅) ── */}
+            {activeView === "studio" && (
+              <div>
+                <div className="mb-6 flex gap-2">
+                  {[
+                    { k: "style", label: "🔍 스타일 찾기" },
+                    { k: "auto",  label: "⚙️ 자동화 세팅" },
+                  ].map((t) => (
+                    <button key={t.k} onClick={() => setStudioTab(t.k)}
+                      className={`rounded-xl px-4 py-2 text-sm font-bold transition ${studioTab === t.k ? "bg-[#03C75A] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+
+                {studioTab === "style" && (
+                  <div className="max-w-2xl mx-auto">
+                    <h2 className="text-xl font-black text-gray-900 mb-2">🔍 스타일 찾기</h2>
+                    <p className="text-sm text-gray-400 mb-6">숏폼 영상 URL을 분석해서 대본 스타일을 라이브러리에 저장해요. 저장한 스타일은 옆 <b>자동화 세팅</b>에서 적용합니다.</p>
+                    <StyleFinderView session={session} onImport={(id: string) => { setStyleProfileId(id); setStudioTab("auto"); }} />
+                  </div>
+                )}
+
+                {studioTab === "auto" && (
+                  <AutoSettingsView
+                    targetSeconds={targetSeconds} setTargetSeconds={setTargetSeconds}
+                    styleProfileId={styleProfileId} setStyleProfileId={setStyleProfileId}
+                    ctaText={ctaText} setCtaText={setCtaText}
+                    subtitleStyle={subtitleStyle} setSubtitleStyle={setSubtitleStyle}
+                    thumbnailStyle={thumbnailStyle} setThumbnailStyle={setThumbnailStyle}
+                    showThumbnail={showThumbnail} setShowThumbnail={setShowThumbnail}
+                    voiceId={voiceId} setVoiceId={setVoiceId}
+                    voiceSpeed={voiceSpeed} setVoiceSpeed={setVoiceSpeed}
+                    voiceVolume={voiceVolume} setVoiceVolume={setVoiceVolume}
+                    userPlan={userPlan}
+                    selectedSubtitlePresetId={selectedSubtitlePresetId} setSelectedSubtitlePresetId={setSelectedSubtitlePresetId}
+                    selectedThumbnailPresetId={selectedThumbnailPresetId} setSelectedThumbnailPresetId={setSelectedThumbnailPresetId}
+                    session={session}
+                  />
+                )}
               </div>
             )}
             {activeView === "history" && (
@@ -2123,9 +2144,8 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
       { v: "history", label: "생성 내역" },
     ]},
     { title: "설정", items: [
-      { v: "auto-settings", label: "자동화 세팅" },
-      { v: "style-finder",  label: "스타일 찾기" },
-      { v: "settings",      label: "결제·계정" },
+      { v: "studio",   label: "콘셉트/스타일" },
+      { v: "settings", label: "결제·계정" },
     ]},
     ...(isPartner || isAdmin ? [{ title: "관리", items: [
       ...(isPartner ? [{ v: "partner", label: "파트너스", icon: "📊" }] : []),
@@ -2330,11 +2350,11 @@ function ProjectPanel({ activeView, current, onLoad, onReset, session, styleProf
     </div>
   );
 
-  if (activeView === "style-finder") return (
+  if (activeView === "studio") return (
     <div className="flex flex-col h-full">
       <div className="px-4 py-4 border-b border-gray-200">
-        <p className="text-xs font-black text-gray-900">스타일 찾기</p>
-        <p className="text-xs text-gray-500 mt-0.5">URL → AI 분석 → 저장</p>
+        <p className="text-xs font-black text-gray-900">저장된 스타일</p>
+        <p className="text-xs text-gray-500 mt-0.5">클릭해서 자동화에 적용</p>
       </div>
       <div className="flex-1 overflow-y-auto px-3 py-3">
         <StyleLibraryList session={session} onSelect={onSelectStyle} selectedId={styleProfileId} />
@@ -2638,9 +2658,10 @@ function AppSidebar({ current, onLoad, onReset, balance, userPlan, session, acti
       <div className="px-3 py-3 space-y-0.5">
         {([
           ["generator","📁  프로젝트"],
-          ["style-finder","🔍  스타일 찾기"],
+          ["product-search","🔗  상품 검색"],
+          ["studio","🎨  콘셉트/스타일"],
           ["history","📹  생성 내역"],
-          ["settings","⚙️  설정"],
+          ["settings","⚙️  결제·계정"],
         ] as [string,string][]).map(([v,l])=>(
           <button key={v} onClick={()=>onViewChange(v)}
             className={`w-full text-left rounded-xl px-4 py-2.5 text-sm font-bold transition ${activeView===v ? "bg-[#03C75A]/15 text-[#03C75A]" : "text-gray-400 hover:bg-gray-100 hover:text-gray-900"}`}>
