@@ -3184,6 +3184,7 @@ function HistoryView({ session, onGoToLinks }: { session: any; onGoToLinks?: ()=
   const [loading, setLoading] = React.useState(true);
   const [copied, setCopied] = React.useState<string|null>(null);
   const [saving, setSaving] = React.useState<string|null>(null);
+  const [deleting, setDeleting] = React.useState<string|null>(null);
   React.useEffect(()=>{
     if(!session) return;
     (async()=>{
@@ -3244,6 +3245,25 @@ function HistoryView({ session, onGoToLinks }: { session: any; onGoToLinks?: ()=
     } catch (e:any) { if (e?.name === "AbortError") return; }
     copyText(text, j.id+"-all");
   };
+
+  const deleteJob = async (j:any) => {
+    if (deleting) return;
+    const ok = typeof window !== "undefined" && window.confirm("이 생성 내역을 삭제할까요?\n영상 파일이 저장소에서 완전히 삭제되고, 내 링크에 추가한 카드도 함께 사라집니다. 되돌릴 수 없어요.");
+    if (!ok) return;
+    setDeleting(j.id);
+    try {
+      const r = await fetch(FN("delete-job"), {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ job_id: j.id }),
+      });
+      const d = await r.json();
+      if (!d.ok) { alert(d.error || "삭제 실패"); return; }
+      setJobs(prev => prev.filter(x => x.id !== j.id));
+    } catch (e) { alert("삭제 실패: " + String(e)); }
+    finally { setDeleting(null); }
+  };
+
   return (
     <div>
       <p className="text-xs text-gray-500 mb-4">생성된 영상은 생성 후 3일간 보관됩니다. 기간이 지나면 다운로드할 수 없으니 미리 받아두세요.</p>
@@ -3265,9 +3285,15 @@ function HistoryView({ session, onGoToLinks }: { session: any; onGoToLinks?: ()=
               )}
             </div>
             <div className="p-3 flex flex-col gap-2 flex-1">
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-gray-900 truncate">{j.product_name || "제목 없음"}</p>
-                <p className="text-[11px] text-gray-500">{new Date(j.created_at).toLocaleDateString("ko")}</p>
+              <div className="flex items-start gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-gray-900 truncate">{j.product_name || "제목 없음"}</p>
+                  <p className="text-[11px] text-gray-500">{new Date(j.created_at).toLocaleDateString("ko")}</p>
+                </div>
+                <button onClick={()=>deleteJob(j)} disabled={deleting===j.id} title="삭제"
+                  className="shrink-0 rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500 disabled:opacity-40 transition">
+                  {deleting===j.id ? <span className="block h-4 w-4 animate-spin rounded-full border-2 border-red-300 border-t-transparent" /> : "🗑️"}
+                </button>
               </div>
               {done ? (
                 <div className="mt-auto flex flex-col gap-1.5">
