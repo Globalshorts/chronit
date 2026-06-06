@@ -112,7 +112,7 @@ export default function LinksManager() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-5 bg-[#ECEAE3] px-6 text-center">
         <h1 className="text-2xl font-black text-gray-900">로그인이 필요해요</h1>
-        <button onClick={() => supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } })}
+        <button onClick={() => supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + window.location.pathname } })}
           className="rounded-xl bg-[#03C75A] px-8 py-3 font-bold text-white hover:bg-[#02b350]">구글로 로그인</button>
       </div>
     )

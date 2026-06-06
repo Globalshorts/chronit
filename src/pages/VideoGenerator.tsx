@@ -765,7 +765,7 @@ export default function VideoGenerator() {
   if (!session) return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-6 bg-[#ECEAE3]">
       <h1 className="text-2xl font-black text-gray-900">로그인이 필요합니다</h1>
-      <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.href } })}
+      <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin + window.location.pathname } })}
         className="rounded-xl bg-[#03C75A] px-8 py-3 font-bold text-white hover:bg-[#02b350] transition">
         Google로 로그인
       </button>
