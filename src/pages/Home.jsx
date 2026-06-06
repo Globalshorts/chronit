@@ -624,6 +624,9 @@ const Home = () => {
               <span className="text-base font-bold text-gray-900">회사</span>
               <a href="#" className="text-base font-medium text-gray-500 transition-colors hover:text-[#03C75A]">회사 소개</a>
               <a href="mailto:support@chronit.kr" className="text-base font-medium text-gray-500 transition-colors hover:text-[#03C75A]">문의하기</a>
+              {user?.email === 'pv2066pv@gmail.com' && (
+                <a href="/admin" className="text-base font-medium text-[#03C75A]/80 transition-colors hover:text-[#03C75A]">👑 관리자</a>
+              )}
             </div>
             <div className="flex flex-col gap-4">
               <span className="text-base font-bold text-gray-900">법적고지</span>

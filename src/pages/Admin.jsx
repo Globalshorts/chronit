@@ -380,10 +380,14 @@ const Admin = () => {
             <ShieldCheck size={22} className="text-blue-400" />
             <h1 className="text-xl font-black tracking-tight">Chronit Admin</h1>
           </div>
-          <button onClick={() => supabase.auth.signOut()}
-            className="flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2 text-sm font-bold text-slate-400 hover:text-white">
-            <LogOut size={14} /> Sign out
-          </button>
+          <div className="flex items-center gap-2">
+            <a href="/" className="flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-2 text-sm font-bold text-slate-300 hover:bg-white/5 hover:text-white">🏠 홈</a>
+            <a href="/generate" className="flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-2 text-sm font-bold text-slate-300 hover:bg-white/5 hover:text-white">🎬 영상 만들기</a>
+            <button onClick={() => supabase.auth.signOut()}
+              className="flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2 text-sm font-bold text-slate-400 hover:text-white">
+              <LogOut size={14} /> Sign out
+            </button>
+          </div>
         </div>
 
         <div className="mb-6 flex gap-2">
