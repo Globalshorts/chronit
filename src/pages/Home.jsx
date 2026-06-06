@@ -371,11 +371,11 @@ const Home = () => {
             <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
               <button onClick={handleStart}
                 className="group flex items-center justify-center gap-2 rounded-2xl bg-[#03C75A] px-10 py-5 text-xl font-extrabold text-white shadow-lg shadow-[#03C75A]/30 transition-all hover:bg-[#02b350] active:scale-95">
-                무료로 시작하기 <ArrowRight size={22} className="transition-transform group-hover:translate-x-1" />
+                무료로 영상 만들기 <ArrowRight size={22} className="transition-transform group-hover:translate-x-1" />
               </button>
-              <Link to="/manual"
+              <Link to="/manual/start"
                 className="flex items-center justify-center gap-2 rounded-2xl border-2 border-gray-300 bg-white px-8 py-5 text-xl font-extrabold text-gray-700 transition-all hover:border-[#03C75A] hover:text-[#03C75A] active:scale-95">
-                사용 방법 보기
+                👋 처음이세요? 1분 사용법
               </Link>
             </div>
             <p className="mt-4 text-sm font-medium text-gray-500">
@@ -556,7 +556,7 @@ const Home = () => {
           <div className="mt-12 text-center">
             <button onClick={handleStart}
               className="w-full rounded-2xl bg-[#03C75A] px-8 py-5 text-xl font-black text-white shadow-lg shadow-[#03C75A]/25 transition-all hover:bg-[#02b350] active:scale-95 sm:w-auto md:px-20 md:py-6">
-              무료로 시작하기
+              무료로 영상 만들기
             </button>
           </div>
         </div>
