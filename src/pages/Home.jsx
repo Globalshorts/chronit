@@ -362,6 +362,10 @@ const Home = () => {
             <h1 className="mb-5 text-4xl font-black leading-[1.25] tracking-tight text-gray-900 md:text-5xl lg:text-6xl">
               복잡한 편집 없이,<br /><span className="text-[#03C75A]">하루 5분이면</span> 끝나요
             </h1>
+            <p className="mb-7 text-lg leading-[1.7] text-gray-600 md:text-xl">
+              좋은 상품을 소개하는 숏폼을 만들어 내 채널에 올리고,<br className="hidden md:block" />
+              <span className="font-bold text-gray-800">추가 수익</span>에 도전해보세요.
+            </p>
             <div className="mb-9">
               <ul className="space-y-2.5">
                 {[
@@ -422,6 +426,31 @@ const Home = () => {
         </div>
       </section>
 
+      {/* ── 어떻게 수익이 되나요 ── */}
+      <section className="border-y border-gray-100 bg-white px-5 py-16 md:px-8 md:py-20">
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-12 text-center">
+            <h2 className="text-3xl font-black text-gray-900 md:text-4xl">그래서, 어떻게 수익이 되나요?</h2>
+            <p className="mt-3 text-lg text-gray-500 md:text-xl">물건을 파는 게 아니라, <b className="text-gray-800">소개하고 수수료를 받는</b> 방식이에요.</p>
+          </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-5">
+            {[
+              { n: '1', emoji: '🎬', title: '상품 소개 숏폼을 만들어요', desc: '크로닛이 링크만으로 영상을 자동 제작해요.' },
+              { n: '2', emoji: '📲', title: '내 채널에 올려요', desc: '인스타그램·유튜브·틱톡 등에 업로드해요.' },
+              { n: '3', emoji: '💰', title: '구매로 이어지면 수수료', desc: '영상 속 링크로 누군가 구매하면 쿠팡 파트너스 등 제휴 수수료를 받아요.' },
+            ].map(({ n, emoji, title, desc }) => (
+              <div key={n} className="relative rounded-3xl border border-gray-200 bg-[#FAFAF8] p-6 text-center">
+                <span className="absolute top-4 left-4 flex h-6 w-6 items-center justify-center rounded-full bg-[#03C75A] text-xs font-black text-white">{n}</span>
+                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#03C75A]/10 text-3xl">{emoji}</div>
+                <h3 className="text-base font-black text-gray-900 md:text-lg">{title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-gray-500">{desc}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-6 text-center text-xs leading-relaxed text-gray-400">※ 수익은 영상·상품·조회수에 따라 달라지며, 수익을 보장하지 않습니다.</p>
+        </div>
+      </section>
+
       {/* ── 데모 캐러셀 ── */}
       <div id="demo"><DemoCarousel /></div>
 
@@ -437,7 +466,7 @@ const Home = () => {
               { emoji: '🖱️', title: '편집 기술이 없어도 됩니다', desc: '마우스 클릭 몇 번이면 끝. 자르고 붙이는 작업은 전부 자동으로 처리돼요.' },
               { emoji: '⏰', title: '하루 5분이면 충분해요', desc: '영상 하나 만드는 데 보통 몇 분. 만들어지는 동안 다른 일을 하셔도 됩니다.' },
               { emoji: '🔁', title: '반복 작업은 전부 자동', desc: '자막 달기, 길이 맞추기, 제목 추천까지 — 손이 많이 가던 일을 대신해 드려요.' },
-              { emoji: '💻', title: '안정적으로 작동해요', desc: 'Windows 전용 프로그램으로 멈춤 없이 쾌적하게 작동합니다.' },
+              { emoji: '💻', title: '어디서나 웹에서 바로', desc: '설치 없이 컴퓨터·휴대폰 어디서든 접속해서 멈춤 없이 사용할 수 있어요.' },
             ].map(({ emoji, title, desc }) => (
               <div key={title} className="flex items-center gap-5 rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] md:gap-8 md:p-8">
                 <div className="shrink-0 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FAFAF8] text-4xl md:h-20 md:w-20 md:text-5xl">{emoji}</div>
