@@ -387,10 +387,10 @@ const Home = () => {
             <div className="w-full max-w-sm">
               <p className="mb-3 text-center text-base font-black text-gray-900">이렇게 수익이 돼요 👇</p>
               {[
-                { emoji: '📦', title: '상품 선택', desc: '소개할 상품을 고르고' },
-                { emoji: '🎬', title: '영상 자동 생성', desc: '크로닛이 숏폼을 만들어요' },
-                { emoji: '📱', title: '인스타·유튜브 업로드', desc: '내 채널에 올리면' },
-                { emoji: '💰', title: '구매 시 수수료 지급', desc: '쿠팡 파트너스 등 제휴', highlight: true },
+                { emoji: '🔗', title: '쇼핑 영상 고르기', desc: '소개할 상품의 영상을' },
+                { emoji: '🎬', title: '영상 자동 생성', desc: '크로닛이 숏폼으로 만들어요' },
+                { emoji: '📱', title: '추천 링크와 함께 업로드', desc: '인스타·유튜브 등 내 채널에' },
+                { emoji: '💰', title: '구매 시 수수료', desc: '쿠팡 파트너스 등 제휴', highlight: true },
               ].map((s, i, arr) => (
                 <div key={s.title}>
                   <div className={`flex items-center gap-4 rounded-2xl border p-4 ${s.highlight ? 'border-[#03C75A] bg-[#03C75A]/8 shadow-lg shadow-[#03C75A]/15' : 'border-gray-200 bg-white'}`}>
@@ -424,11 +424,11 @@ const Home = () => {
           className="group mx-auto flex max-w-3xl flex-col items-center gap-3 rounded-3xl border border-[#03C75A]/30 bg-[#03C75A]/5 p-6 text-center transition-all hover:border-[#03C75A] hover:bg-[#03C75A]/10 sm:flex-row sm:text-left md:p-7">
           <span className="text-4xl">💰</span>
           <div className="flex-1">
-            <p className="text-lg font-black text-gray-900 md:text-xl">쿠팡 파트너스가 처음이세요?</p>
-            <p className="mt-1 text-sm text-gray-600 md:text-base">뭔지, 어떻게 쓰는지, 수수료가 통장에 들어오기까지 — 1분이면 이해할 수 있어요.</p>
+            <p className="text-lg font-black text-gray-900 md:text-xl">쿠팡으로 어떻게 돈이 들어오나요?</p>
+            <p className="mt-1 text-sm text-gray-600 md:text-base">쇼핑 영상 하나로 수수료가 통장에 들어오기까지 — 1분이면 이해할 수 있어요.</p>
           </div>
           <span className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-[#03C75A] px-5 py-3 text-sm font-extrabold text-white transition-all group-hover:gap-2 md:text-base">
-            수익 구조 보기 <ArrowRight size={18} />
+            수익 나는 과정 보기 <ArrowRight size={18} />
           </span>
         </Link>
       </div>
