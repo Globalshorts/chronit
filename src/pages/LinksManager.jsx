@@ -335,7 +335,7 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
           <div className="h-24 w-20 overflow-hidden rounded-xl bg-black">
             {img
               ? <img src={img} alt="" className="h-full w-full object-cover" />
-              : job.video_url ? <video src={job.video_url} muted loop autoPlay playsInline preload="metadata" className="h-full w-full object-cover" /> : null}
+              : job.video_url ? <video src={`${job.video_url}#t=0.6`} muted playsInline preload="metadata" className="h-full w-full object-cover" /> : null}
           </div>
           <div className="flex gap-1">
             <button onClick={pickFrame} disabled={imgBusy} title="다른 장면으로 바꾸기"
