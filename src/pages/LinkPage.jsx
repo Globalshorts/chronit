@@ -134,7 +134,7 @@ export default function LinkPage() {
                         <span style={{ backgroundColor: it.badge_color || '#ff4d4f', color: textOn(it.badge_color || '#ff4d4f') }}
                           className="mb-1 inline-block rounded-md px-1.5 py-0.5 text-[10px] font-black leading-none">{it.badge}</span>
                       )}
-                      <p className="line-clamp-2 text-sm font-bold leading-snug">{it.title || '상품 보러가기'}</p>
+                      <p className="text-sm font-bold leading-snug">{it.title || '상품 보러가기'}</p>
                     </div>
                     <span className="shrink-0 pr-1 text-lg opacity-50">›</span>
                   </a>
