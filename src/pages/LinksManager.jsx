@@ -63,7 +63,7 @@ export function LinkPageManager({ session }) {
           }
         }
         const [jb, it] = await Promise.all([
-          supabase.from('video_jobs').select('id, product_name, seo_title, search_keyword, poster_url, video_url, created_at')
+          supabase.from('video_jobs').select('id, product_name, seo_title, search_keyword, poster_url, video_url, created_at').eq('card_hidden', false)
             .eq('user_id', uid).eq('status', 'done').neq('video_url', '').order('created_at', { ascending: false }),
           supabase.from('link_items').select('*').eq('user_id', uid),
         ])
@@ -128,6 +128,19 @@ export function LinkPageManager({ session }) {
       if (data) setItems((p) => [...p, data])
     }
     flash('저장됨')
+  }
+
+  const removeCard = async (job, item) => {
+    if (!window.confirm('이 카드를 내 링크에서 삭제할까요?\n(영상은 생성 내역에 그대로 남아요)')) return
+    try {
+      if (item?.id) await supabase.from('link_items').delete().eq('id', item.id)
+      await supabase.from('video_jobs').update({ card_hidden: true }).eq('id', job.id)
+      setItems((p) => p.filter((x) => x.id !== item?.id))
+      setJobs((p) => p.filter((j) => j.id !== job.id))
+      flash('삭제됨')
+    } catch (e) {
+      alert('삭제 실패: ' + (e?.message || e))
+    }
   }
 
   const move = async (item, dir) => {
@@ -229,6 +242,7 @@ export function LinkPageManager({ session }) {
             return (
               <JobRow key={job.id} job={job} item={it} uid={session.user.id}
                 onSave={(vals) => upsertItem(job, vals)}
+                onDelete={() => removeCard(job, it)}
                 onMove={it && it.active ? (dir) => move(it, dir) : null} />
             )
           })}
@@ -278,7 +292,7 @@ export default function LinksManager() {
   )
 }
 
-function JobRow({ job, item, uid, onSave, onMove }) {
+function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
   const [title, setTitle] = useState(item?.title ?? (job.seo_title || job.product_name || ''))
   const [url, setUrl] = useState(item?.target_url ?? '')
   const [img, setImg] = useState(item?.image_url || job.poster_url || '')
@@ -348,18 +362,22 @@ function JobRow({ job, item, uid, onSave, onMove }) {
                   className="rounded-lg bg-[#03C75A] px-3 py-1.5 text-xs font-bold text-white">저장</button>
                 <button onClick={() => onSave({ title, target_url: url, active: false, image_url: img })}
                   className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-bold text-gray-600">숨기기</button>
-                {onMove && (
-                  <span className="ml-auto flex gap-1">
-                    <button onClick={() => onMove(-1)} className="rounded-lg border border-gray-300 px-2 py-1.5 text-xs font-bold text-gray-600">↑</button>
-                    <button onClick={() => onMove(1)} className="rounded-lg border border-gray-300 px-2 py-1.5 text-xs font-bold text-gray-600">↓</button>
-                  </span>
-                )}
               </>
             ) : (
               <button onClick={() => onSave({ title, target_url: url, active: true, image_url: img })} disabled={!canShow}
                 className="rounded-lg bg-[#03C75A] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40">＋ 페이지에 표시</button>
             )}
             {!canShow && !active && <span className="text-[11px] text-gray-400">쿠팡 링크를 넣어야 표시할 수 있어요</span>}
+            <span className="ml-auto flex items-center gap-1">
+              {onMove && active && (
+                <>
+                  <button onClick={() => onMove(-1)} className="rounded-lg border border-gray-300 px-2 py-1.5 text-xs font-bold text-gray-600">↑</button>
+                  <button onClick={() => onMove(1)} className="rounded-lg border border-gray-300 px-2 py-1.5 text-xs font-bold text-gray-600">↓</button>
+                </>
+              )}
+              <button onClick={onDelete}
+                className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-bold text-red-500 hover:bg-red-100">🗑️ 삭제</button>
+            </span>
           </div>
         </div>
       </div>
