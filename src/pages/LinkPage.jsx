@@ -115,11 +115,13 @@ export default function LinkPage() {
                         : it.video_url
                           ? <video src={`${it.video_url}#t=0.6`} muted playsInline preload="metadata" className="h-full w-full object-cover" />
                           : <div className="flex h-full w-full items-center justify-center text-2xl">🛍️</div>}
-                      {it.badge && (
-                        <span className="absolute left-1 top-1 rounded-md bg-[#ff4d4f] px-1.5 py-0.5 text-[10px] font-black leading-none text-white shadow">{it.badge}</span>
-                      )}
                     </div>
-                    <p className="line-clamp-2 flex-1 text-sm font-bold leading-snug">{it.title || '상품 보러가기'}</p>
+                    <div className="min-w-0 flex-1">
+                      {it.badge && (
+                        <span className="mb-1 inline-block rounded-md bg-[#ff4d4f] px-1.5 py-0.5 text-[10px] font-black leading-none text-white">{it.badge}</span>
+                      )}
+                      <p className="line-clamp-2 text-sm font-bold leading-snug">{it.title || '상품 보러가기'}</p>
+                    </div>
                     <span className={`shrink-0 pr-1 text-lg ${dark ? 'text-gray-500' : 'text-gray-300'} group-hover:text-[#03C75A]`}>›</span>
                   </a>
                 ))}
