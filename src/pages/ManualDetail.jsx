@@ -123,33 +123,76 @@ const GUIDE_STEPS = [
   { img: '/guide/08-link.jpg', title: '⑧ 쇼핑 영상 링크 넣기', desc: "홍보할 **쇼핑 영상 링크**를 붙여넣고 **분석 시작**을 눌러요. 잠깐 기다리면 관련 클립을 찾아줘요." },
   { img: '/guide/09-clips.jpg', title: '⑨ 마음에 드는 클립 담기', desc: "찾아준 클립 중 마음에 드는 걸 **담기** → 다 골랐으면 **자동 생성**을 눌러요." },
   { img: '/guide/10-generate.jpg', title: '⑩ 자동 생성 → 완성!', desc: "내용을 확인하고 **진행**을 누르면 끝! 보통 **1~5분**이면 영상이 완성돼요." },
+  { title: '⑪ 완성되면 → 내 링크에 추가', desc: "영상이 완성되면 **생성 내역**에서 그 영상의 **🔗 내 링크에 추가**를 눌러요. 그 영상이 내 링크 페이지의 카드로 들어가요.", note: "**내 링크 페이지**란? 만든 영상들을 쿠팡 링크와 함께 모아두는 **나만의 링크 모음 페이지**예요. 인스타 프로필에 주소 하나만 올리면 끝!" },
+  { title: '⑫ 카드 완성 — 쿠팡 링크 + 이미지', desc: "**내 링크** 탭에서 그 카드에 ① **🔍 쿠팡에서 찾기**로 상품을 찾아 **쿠팡 파트너스 링크**를 붙여넣고 ② 카드 이미지를 정한 뒤(**🔄 다른 컷**으로 장면 바꾸기 · **📷**로 직접 업로드) ③ **＋ 페이지에 표시**를 눌러요.", note: "이미지는 영상에서 자동으로 한 장 뽑혀요. 마음에 안 들면 **🔄 다른 컷**을 눌러 바꾸면 돼요." },
+  { title: '⑬ 내 주소 공유하기', desc: "내 링크 페이지 맨 위의 **내 주소(chronit.kr/내아이디)**를 복사해서 **인스타그램 프로필 링크**에 붙여넣으면 끝! 사람들이 그 주소로 들어와 카드를 누르면 쿠팡으로 연결돼요.", note: "프로필 사진·제목·테마·카드 크기는 **페이지 설정**에서 바꿀 수 있어요." },
 ]
 
-const GuideWalkthrough = ({ steps, onImageClick }) => (
-  <div className="space-y-5">
-    {steps.map((s, i) => s.group ? (
-      <div key={i} className={`flex flex-wrap items-center gap-2.5 ${i === 0 ? '' : 'pt-6'}`}>
-        <span className={`rounded-full px-3 py-1 text-xs font-black ${s.once ? 'bg-[#03C75A]/15 text-[#03C75A]' : 'bg-amber-100 text-amber-700'}`}>
-          {s.once ? '처음 한 번만' : '매번 반복'}
-        </span>
-        <h2 className="text-lg font-black text-gray-900 md:text-xl">{s.group}</h2>
-      </div>
-    ) : (
-      <div key={i} className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
+const GuideWalkthrough = ({ steps, onImageClick }) => {
+  // group 마커 기준으로 묶기
+  const groups = []
+  let cur = null
+  steps.forEach((s) => {
+    if (s.group) { cur = { group: s.group, once: s.once, items: [] }; groups.push(cur) }
+    else if (cur) cur.items.push(s)
+    else { cur = { group: '', once: false, items: [s] }; groups.push(cur) }
+  })
+  return (
+    <div className="space-y-8">
+      {groups.map((g, gi) => <StepGroup key={gi} group={g} onImageClick={onImageClick} />)}
+    </div>
+  )
+}
+
+const StepGroup = ({ group, onImageClick }) => {
+  const [idx, setIdx] = useState(0)
+  const items = group.items
+  const total = items.length
+  const s = items[Math.min(idx, total - 1)]
+  return (
+    <div>
+      {group.group && (
+        <div className="mb-3 flex flex-wrap items-center gap-2.5">
+          <span className={`rounded-full px-3 py-1 text-xs font-black ${group.once ? 'bg-[#03C75A]/15 text-[#03C75A]' : 'bg-amber-100 text-amber-700'}`}>
+            {group.once ? '처음 한 번만' : '매번 반복'}
+          </span>
+          <h2 className="text-lg font-black text-gray-900 md:text-xl">{group.group}</h2>
+        </div>
+      )}
+      <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
         <div className="p-5 md:p-6">
+          <p className="mb-1.5 text-xs font-bold text-gray-400">{idx + 1} / {total}</p>
           <h3 className="mb-2 text-base font-black leading-snug text-gray-900 md:text-lg" dangerouslySetInnerHTML={{ __html: fmtInline(s.title) }} />
           <p className="text-sm leading-[1.85] text-slate-600 md:text-base" dangerouslySetInnerHTML={{ __html: fmtInline(s.desc) }} />
           {s.note && (
             <div className="mt-3 rounded-xl bg-[#03C75A]/8 px-4 py-3 text-sm leading-[1.8] text-gray-700" dangerouslySetInnerHTML={{ __html: '💡 ' + fmtInline(s.note) }} />
           )}
         </div>
-        <button onClick={() => onImageClick({ src: s.img, alt: s.title })} className="block w-full border-t border-gray-100 bg-gray-50 p-3">
-          <img src={s.img} alt={s.title} loading="lazy" className="mx-auto w-full max-w-[340px] rounded-xl border border-gray-200" />
-        </button>
+        {s.img && (
+          <button onClick={() => onImageClick({ src: s.img, alt: s.title })} className="block w-full border-t border-gray-100 bg-gray-50 p-3">
+            <img src={s.img} alt={s.title} loading="lazy" className="mx-auto w-full max-w-[340px] rounded-xl border border-gray-200" />
+          </button>
+        )}
+        <div className="flex items-center justify-between gap-3 border-t border-gray-100 px-5 py-3">
+          <button onClick={() => setIdx((i) => Math.max(0, i - 1))} disabled={idx === 0}
+            className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-bold text-gray-600 disabled:opacity-30">← 이전</button>
+          <div className="flex flex-wrap justify-center gap-1.5">
+            {items.map((_, i) => (
+              <button key={i} onClick={() => setIdx(i)} aria-label={`${i + 1}단계`}
+                className={`h-2 w-2 rounded-full transition ${i === idx ? 'bg-[#03C75A]' : 'bg-gray-300 hover:bg-gray-400'}`} />
+            ))}
+          </div>
+          {idx < total - 1 ? (
+            <button onClick={() => setIdx((i) => Math.min(total - 1, i + 1))}
+              className="rounded-xl bg-[#03C75A] px-4 py-2 text-sm font-bold text-white">다음 →</button>
+          ) : (
+            <span className="rounded-xl bg-[#03C75A]/10 px-4 py-2 text-sm font-bold text-[#03C75A]">완료 ✓</span>
+          )}
+        </div>
       </div>
-    ))}
-  </div>
-)
+    </div>
+  )
+}
 
 const SECTIONS = {
   start: {
@@ -174,9 +217,9 @@ const SECTIONS = {
     content: webappMd,
   },
   features: {
-    emoji: '⚙️',
-    title: '처음 한 번만! 스타일·자동화 세팅',
-    callout: '딱 한 번만 설정해두면 다음부터는 링크만 붙여넣으면 돼요. 사진 보고 그대로 따라오세요!',
+    emoji: '📸',
+    title: '사진 보고 따라하기 (전체 흐름)',
+    callout: '처음 한 번만 하는 세팅과, 영상 만들 때마다 반복하는 단계예요. 다음 ▶ 으로 한 단계씩 따라오세요.',
     type: 'guide',
     content: GUIDE_STEPS,
   },
@@ -304,13 +347,13 @@ const ManualDetail = () => {
 
           {section === 'start' && (
             <Link to="/manual/features" className="group mt-8 block overflow-hidden rounded-3xl border-2 border-[#03C75A]/40 bg-gradient-to-br from-[#03C75A]/12 to-[#03C75A]/5 p-6 transition-all hover:-translate-y-0.5 hover:border-[#03C75A] hover:shadow-xl md:p-7">
-              <span className="inline-block rounded-full bg-[#03C75A] px-3 py-1 text-xs font-black text-white">딱 한 번만 하면 끝!</span>
-              <h3 className="mt-3 text-xl font-black leading-snug text-gray-900 md:text-2xl">내 스타일·목소리·자막 세팅하기 📸</h3>
+              <span className="inline-block rounded-full bg-[#03C75A] px-3 py-1 text-xs font-black text-white">사진 보고 따라하기</span>
+              <h3 className="mt-3 text-xl font-black leading-snug text-gray-900 md:text-2xl">세팅부터 내 링크 공유까지 한 단계씩 📸</h3>
               <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">
-                이것만 처음에 한 번 해두면 <b className="text-[#03C75A]">영상 퀄리티가 확 달라지고</b>, 다음부터는 링크만 붙여넣으면 끝이에요. 사진 보고 그대로 따라하면 됩니다.
+                처음 한 번만 하는 <b className="text-[#03C75A]">세팅</b>과, 영상 만들 때마다 반복하는 단계를 <b className="text-[#03C75A]">다음 ▶ 으로 한 단계씩</b> 따라할 수 있어요.
               </p>
               <span className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#03C75A] px-6 py-3.5 text-base font-black text-white shadow-md shadow-[#03C75A]/25 transition-all group-hover:gap-3">
-                지금 세팅하러 가기 <ArrowRight size={18} />
+                사진 가이드 보러가기 <ArrowRight size={18} />
               </span>
             </Link>
           )}
