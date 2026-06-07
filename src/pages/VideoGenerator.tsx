@@ -1051,7 +1051,7 @@ export default function VideoGenerator() {
           <div className="absolute left-0 top-0 h-full w-64 max-w-[82%] bg-[#ECEAE3] border-r border-gray-200 flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
             <NavSidebar activeView={activeView}
               onViewChange={(v:string) => { setActiveView(v); setMobileMenuOpen(false); }}
-              userRole={userRole} balance={balance} userPlan={userPlan} session={session} />
+              userRole={userRole} balance={balance} userPlan={userPlan} session={session} onCredited={loadBalance} />
           </div>
         </div>
       )}
@@ -1061,7 +1061,7 @@ export default function VideoGenerator() {
       {/* ── 왼쪽 사이드바 (데스크탑) ── */}
       <div className="hidden md:flex w-52 shrink-0 border-r border-gray-200 flex-col sticky top-16 h-[calc(100vh-4rem)] self-start">
         <NavSidebar activeView={activeView} onViewChange={setActiveView} userRole={userRole}
-          balance={balance} userPlan={userPlan} session={session} />
+          balance={balance} userPlan={userPlan} session={session} onCredited={loadBalance} />
       </div>
 
       {/* ── 중간 패널 — 프로젝트 탭일 때만 표시 (데스크탑) ── */}
@@ -2008,17 +2008,37 @@ function CreditHistoryModal({ open, onClose, session }: { open:boolean; onClose:
   );
 }
 
-function CreditMissionsModal({ open, onClose, session }: { open:boolean; onClose:()=>void; session:any }) {
+function CreditMissionsModal({ open, onClose, session, onCredited }: { open:boolean; onClose:()=>void; session:any; onCredited?: ()=>void }) {
   const [info, setInfo] = React.useState<any>(null);
   const [reviewUrl, setReviewUrl] = React.useState("");
   const [reviewMsg, setReviewMsg] = React.useState<{ok:boolean;text:string}|null>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
   const [copiedCode, setCopiedCode] = React.useState(false);
+  const [missions, setMissions] = React.useState<any[]>([]);
+  const [claiming, setClaiming] = React.useState<string|null>(null);
+
+  const loadMissions = React.useCallback(async ()=>{
+    try { const { data } = await supabase.rpc("get_missions_rpc"); setMissions(Array.isArray(data)?data:[]); } catch { setMissions([]); }
+  }, []);
 
   React.useEffect(()=>{ if(!open||!session) return; (async()=>{
     try { const { data } = await supabase.rpc("get_referral_info_rpc", { p_user_id: session.user.id }); setInfo(data); } catch {}
-  })(); }, [open, session]);
+    loadMissions();
+  })(); }, [open, session, loadMissions]);
+
+  const claimMission = async (m:any) => {
+    if (m.type === "link") { if (m.action_url) window.open(m.action_url, "_blank", "noopener"); return; }
+    if (m.claimed || claiming) return;
+    setClaiming(m.id);
+    try {
+      const { data, error } = await supabase.rpc("claim_mission_rpc", { p_mission_id: m.id });
+      if (error) throw error;
+      if (data?.ok) { await loadMissions(); onCredited?.(); }
+      else alert(data?.error || "받기에 실패했어요");
+    } catch(e){ alert(String(e)); }
+    setClaiming(null);
+  };
 
   if (!open) return null;
   const code = info?.referral_code || "";
@@ -2111,6 +2131,31 @@ function CreditMissionsModal({ open, onClose, session }: { open:boolean; onClose
           )}
         </div>
 
+        {/* 추가 이벤트 (DB · /admin에서 관리) */}
+        {missions.map(m => (
+          <div key={m.id} className="rounded-2xl bg-gray-100/60 border border-gray-200 p-4 mt-3">
+            <span className="inline-block rounded-lg text-white text-xs font-bold px-2.5 py-1 mb-2"
+              style={{ backgroundColor: m.badge_color || "#03C75A" }}>
+              {m.badge_label || "이벤트"}{m.reward ? ` · +${m.reward.toLocaleString()} 크레딧` : ""}
+            </span>
+            {m.title && <p className="text-sm font-bold text-gray-900 mb-1">{m.title}</p>}
+            {m.description && <p className="text-sm text-gray-700 mb-3 whitespace-pre-wrap">{m.description}</p>}
+            {m.type === "link" ? (
+              <button onClick={()=>claimMission(m)}
+                className="w-full rounded-xl bg-[#03C75A] hover:bg-[#02b350] py-2.5 text-sm font-bold text-white">
+                {m.action_label || "참여하기"}
+              </button>
+            ) : m.claimed ? (
+              <div className="rounded-xl px-3 py-2.5 text-sm text-center bg-green-500/15 text-green-600 font-bold">✅ 받기 완료</div>
+            ) : (
+              <button onClick={()=>claimMission(m)} disabled={claiming===m.id}
+                className="w-full rounded-xl bg-[#03C75A] hover:bg-[#02b350] disabled:opacity-40 py-2.5 text-sm font-bold text-white">
+                {claiming===m.id ? "받는 중..." : (m.action_label || "받기")}
+              </button>
+            )}
+          </div>
+        ))}
+
         <button onClick={onClose} className="w-full mt-5 rounded-xl bg-gray-100 hover:bg-gray-200 py-3 text-sm font-bold text-gray-700">닫기</button>
       </div>
     </div>,
@@ -2118,9 +2163,9 @@ function CreditMissionsModal({ open, onClose, session }: { open:boolean; onClose
   );
 }
 
-function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, session }: {
+function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, session, onCredited }: {
   activeView: string; onViewChange: (v:string)=>void; userRole: string;
-  balance: number|null; userPlan: string|null; session: any;
+  balance: number|null; userPlan: string|null; session: any; onCredited?: ()=>void;
 }) {
   const [extractRunning, setExtractRunning] = React.useState(
     _extractMgr.state?.status==="starting" || _extractMgr.state?.status==="processing");
@@ -2200,7 +2245,7 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
         <button onClick={()=>setShowHistory(true)}
           className="w-full mt-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-100 transition">📒 크레딧 사용 내역</button>
       </div>
-      <CreditMissionsModal open={showMissions} onClose={()=>setShowMissions(false)} session={session} />
+      <CreditMissionsModal open={showMissions} onClose={()=>setShowMissions(false)} session={session} onCredited={onCredited} />
       <CreditHistoryModal open={showHistory} onClose={()=>setShowHistory(false)} session={session} />
     </div>
   );

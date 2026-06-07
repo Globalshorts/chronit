@@ -4,7 +4,7 @@ import {
   Megaphone, Save, LogOut, ShieldCheck, Loader, Eye, EyeOff,
   Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter,
   AlignRight, List, ListOrdered, Link, Image, Minus, Plus, Pencil, Trash2, ChevronLeft,
-  Film, ChevronUp, ChevronDown, Upload,
+  Film, ChevronUp, ChevronDown, Upload, Gift,
 } from 'lucide-react'
 
 const ToolBtn = ({ onClick, title, children }) => (
@@ -257,6 +257,126 @@ const DemoVideosPanel = () => {
   )
 }
 
+// 영상 만들기 → "무료 크레딧 받기" 모달에 노출되는 이벤트(미션) 관리
+const emptyMission = () => ({
+  title: '', description: '', reward: 100, badge_label: '이벤트',
+  badge_color: '#03C75A', type: 'claim', action_url: '', action_label: '받기',
+  active: true, sort_order: 0,
+})
+const MissionsPanel = () => {
+  const [list, setList] = useState([])
+  const [editing, setEditing] = useState(null)   // id or 'new'
+  const [form, setForm] = useState(emptyMission())
+  const [saving, setSaving] = useState(false)
+  const [msg, setMsg] = useState(null)
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  const load = async () => {
+    const { data } = await supabase.from('missions').select('*').order('sort_order').order('created_at')
+    setList(Array.isArray(data) ? data : [])
+  }
+  useEffect(() => { load() }, [])
+
+  const openNew = () => { setForm(emptyMission()); setEditing('new') }
+  const openEdit = (m) => {
+    setForm({ title: m.title || '', description: m.description || '', reward: m.reward || 0,
+      badge_label: m.badge_label || '이벤트', badge_color: m.badge_color || '#03C75A',
+      type: m.type || 'claim', action_url: m.action_url || '', action_label: m.action_label || '받기',
+      active: !!m.active, sort_order: m.sort_order || 0 })
+    setEditing(m.id)
+  }
+  const save = async () => {
+    setSaving(true); setMsg(null)
+    const payload = { ...form, reward: Math.max(0, Math.floor(Number(form.reward) || 0)), sort_order: Math.floor(Number(form.sort_order) || 0) }
+    let error
+    if (editing === 'new') ({ error } = await supabase.from('missions').insert(payload))
+    else ({ error } = await supabase.from('missions').update(payload).eq('id', editing))
+    setSaving(false)
+    if (error) { setMsg({ ok: false, text: error.message }); return }
+    setMsg({ ok: true, text: '저장됨' }); setEditing(null); load()
+  }
+  const del = async (id) => {
+    if (!confirm('이 이벤트를 삭제할까요? (이미 받은 기록은 남습니다)')) return
+    await supabase.from('missions').delete().eq('id', id); load()
+  }
+  const toggle = async (m) => { await supabase.from('missions').update({ active: !m.active }).eq('id', m.id); load() }
+
+  const inputCls = 'w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-blue-500'
+  const labelCls = 'mb-1 block text-xs font-bold text-slate-400'
+
+  if (editing) return (
+    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8 space-y-4 max-w-2xl">
+      <div className="flex items-center gap-2">
+        <button onClick={() => setEditing(null)} className="text-slate-400 hover:text-white"><ChevronLeft size={18} /></button>
+        <h2 className="text-lg font-black text-white">{editing === 'new' ? '새 이벤트' : '이벤트 수정'}</h2>
+      </div>
+      <div><label className={labelCls}>제목</label><input className={inputCls} value={form.title} onChange={e => set('title', e.target.value)} placeholder="예) 첫 영상 만들기 도전!" /></div>
+      <div><label className={labelCls}>설명</label><textarea className={inputCls} rows={3} value={form.description} onChange={e => set('description', e.target.value)} placeholder="이벤트 안내 문구 (줄바꿈 가능)" /></div>
+      <div className="grid grid-cols-2 gap-4">
+        <div><label className={labelCls}>지급 크레딧</label><input type="number" className={inputCls} value={form.reward} onChange={e => set('reward', e.target.value)} /></div>
+        <div><label className={labelCls}>정렬 순서 (작을수록 위)</label><input type="number" className={inputCls} value={form.sort_order} onChange={e => set('sort_order', e.target.value)} /></div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div><label className={labelCls}>배지 문구</label><input className={inputCls} value={form.badge_label} onChange={e => set('badge_label', e.target.value)} placeholder="이벤트" /></div>
+        <div><label className={labelCls}>배지 색</label>
+          <div className="flex items-center gap-2">
+            <input type="color" value={form.badge_color} onChange={e => set('badge_color', e.target.value)} className="h-9 w-12 rounded border border-white/10 bg-transparent" />
+            <input className={inputCls} value={form.badge_color} onChange={e => set('badge_color', e.target.value)} />
+          </div>
+        </div>
+      </div>
+      <div>
+        <label className={labelCls}>유형</label>
+        <div className="flex gap-2">
+          <button onClick={() => set('type', 'claim')} className={`flex-1 rounded-xl px-3 py-2 text-sm font-bold ${form.type === 'claim' ? 'bg-blue-600 text-white' : 'border border-white/10 text-slate-400'}`}>즉시 지급 (버튼 누르면 크레딧)</button>
+          <button onClick={() => set('type', 'link')} className={`flex-1 rounded-xl px-3 py-2 text-sm font-bold ${form.type === 'link' ? 'bg-blue-600 text-white' : 'border border-white/10 text-slate-400'}`}>링크 이동 (구글폼 등)</button>
+        </div>
+        {form.type === 'link' && <p className="mt-1 text-xs text-slate-500">※ 링크형은 크레딧을 자동 지급하지 않아요. 지급은 수동/쿠폰으로.</p>}
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div><label className={labelCls}>버튼 문구</label><input className={inputCls} value={form.action_label} onChange={e => set('action_label', e.target.value)} placeholder={form.type === 'link' ? '참여하기' : '받기'} /></div>
+        {form.type === 'link' && <div><label className={labelCls}>이동 URL</label><input className={inputCls} value={form.action_url} onChange={e => set('action_url', e.target.value)} placeholder="https://..." /></div>}
+      </div>
+      <label className="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" checked={form.active} onChange={e => set('active', e.target.checked)} /> 공개 (영상 만들기 모달에 노출)</label>
+      {msg && <p className={`text-sm ${msg.ok ? 'text-green-400' : 'text-red-400'}`}>{msg.text}</p>}
+      <button onClick={save} disabled={saving || !form.title.trim()} className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-40">
+        {saving ? <Loader size={14} className="animate-spin" /> : <Save size={14} />} 저장
+      </button>
+    </div>
+  )
+
+  return (
+    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-black text-white">이벤트 (크레딧 미션)</h2>
+          <span className="rounded-full bg-white/8 px-2 py-0.5 text-xs text-slate-400">{list.length}</span>
+        </div>
+        <button onClick={openNew} className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white"><Plus size={15} /> 새 이벤트</button>
+      </div>
+      <p className="mb-4 text-xs text-slate-500">영상 만들기 → "🎁 무료 크레딧 받기" 모달에 노출됩니다. 추천·후기 미션은 코드 고정이라 여기엔 없어요.</p>
+      {list.length === 0 ? (
+        <div className="py-12 text-center text-slate-500"><Gift size={28} className="mx-auto mb-2 opacity-40" /><p className="text-sm">아직 이벤트가 없어요</p></div>
+      ) : (
+        <div className="space-y-2">
+          {list.map(m => (
+            <div key={m.id} className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.02] p-3">
+              <span className="inline-block rounded-lg px-2 py-1 text-xs font-bold text-white shrink-0" style={{ backgroundColor: m.badge_color }}>{m.badge_label}</span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold text-white">{m.title || '(제목 없음)'}</p>
+                <p className="text-xs text-slate-500">{m.type === 'link' ? `링크 · ${m.action_url || '-'}` : `즉시 지급 +${m.reward} CR`}{m.active ? '' : ' · 비공개'}</p>
+              </div>
+              <button onClick={() => toggle(m)} title={m.active ? '숨기기' : '공개'} className="text-slate-400 hover:text-white">{m.active ? <Eye size={16} /> : <EyeOff size={16} />}</button>
+              <button onClick={() => openEdit(m)} className="text-slate-400 hover:text-white"><Pencil size={16} /></button>
+              <button onClick={() => del(m.id)} className="text-slate-400 hover:text-red-400"><Trash2 size={16} /></button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 const Admin = () => {
   const [user, setUser] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -393,6 +513,7 @@ const Admin = () => {
         <div className="mb-6 flex gap-2">
           {[
             { key: 'events', icon: <Megaphone size={15} />, label: 'Events' },
+            { key: 'missions', icon: <Gift size={15} />, label: '이벤트(크레딧)' },
             { key: 'videos', icon: <Film size={15} />, label: 'Demo Videos' },
           ].map(t => (
             <button key={t.key} onClick={() => { setTab(t.key); setView('list') }}
@@ -403,6 +524,7 @@ const Admin = () => {
         </div>
 
         {tab === 'videos' && <DemoVideosPanel />}
+        {tab === 'missions' && <MissionsPanel />}
 
         {tab === 'events' && view === 'list' && (
           <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
