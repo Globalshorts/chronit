@@ -240,7 +240,7 @@ export function LinkPageManager({ session }) {
       {/* 영상 목록 */}
       <div className="mb-3 flex items-center justify-between gap-3">
         <p className="text-sm font-black text-gray-900">영상 → 카드로 추가</p>
-        {jobs.length >= 5 && (
+        {jobs.length >= 2 && (
           <input value={jobQuery} onChange={(e) => setJobQuery(e.target.value)} placeholder="🔍 카드 검색"
             className="w-40 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs" />
         )}
