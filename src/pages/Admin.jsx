@@ -263,7 +263,7 @@ const emptyMission = () => ({
   badge_color: '#03C75A', type: 'claim', action_url: '', action_label: '받기',
   active: true, sort_order: 0,
   start_at: '', end_at: '', req_plan: 'any', req_audience: 'all',
-  req_signup_days: 7, req_min_videos: 0,
+  req_signup_days: 7, req_min_videos: 0, auto: false,
 })
 // timestamptz <-> datetime-local 변환
 const toInput = (v) => { if (!v) return ''; const d = new Date(v); if (isNaN(d)) return ''; const p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}` }
@@ -290,7 +290,7 @@ const MissionsPanel = () => {
       active: !!m.active, sort_order: m.sort_order || 0,
       start_at: toInput(m.start_at), end_at: toInput(m.end_at),
       req_plan: m.req_plan || 'any', req_audience: m.req_audience || 'all',
-      req_signup_days: m.req_signup_days ?? 7, req_min_videos: m.req_min_videos || 0 })
+      req_signup_days: m.req_signup_days ?? 7, req_min_videos: m.req_min_videos || 0, auto: !!m.auto })
     setEditing(m.id)
   }
   const save = async () => {
@@ -354,6 +354,16 @@ const MissionsPanel = () => {
 
       <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 space-y-4">
         <p className="text-xs font-bold text-slate-300">받기 조건 <span className="font-normal text-slate-500">(받기 누를 때 자동 검사 · 즉시 지급형만 적용)</span></p>
+        {form.type === 'claim' && (
+          <div>
+            <label className={labelCls}>지급 방식</label>
+            <div className="flex gap-2">
+              <button onClick={() => set('auto', false)} className={`flex-1 rounded-xl px-3 py-2 text-sm font-bold ${!form.auto ? 'bg-blue-600 text-white' : 'border border-white/10 text-slate-400'}`}>버튼 눌러 받기</button>
+              <button onClick={() => set('auto', true)} className={`flex-1 rounded-xl px-3 py-2 text-sm font-bold ${form.auto ? 'bg-blue-600 text-white' : 'border border-white/10 text-slate-400'}`}>🎯 자동 지급 (퀘스트)</button>
+            </div>
+            <p className="mt-1 text-xs text-slate-500">{form.auto ? '조건을 충족하는 순간 자동으로 지급돼요 (영상 생성 완료 시 즉시 / 모달 열 때 소급).' : '조건 충족 후 사용자가 모달에서 "받기"를 눌러야 지급돼요.'}</p>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-4">
           <div><label className={labelCls}>시작일시 (선택)</label><input type="datetime-local" className={inputCls} value={form.start_at} onChange={e => set('start_at', e.target.value)} /></div>
           <div><label className={labelCls}>종료일시 (선택)</label><input type="datetime-local" className={inputCls} value={form.end_at} onChange={e => set('end_at', e.target.value)} /></div>

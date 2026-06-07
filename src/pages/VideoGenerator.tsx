@@ -2024,8 +2024,9 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
 
   React.useEffect(()=>{ if(!open||!session) return; (async()=>{
     try { const { data } = await supabase.rpc("get_referral_info_rpc", { p_user_id: session.user.id }); setInfo(data); } catch {}
+    try { const { data } = await supabase.rpc("sync_auto_missions_rpc"); if (typeof data === "number" && data > 0) onCredited?.(); } catch {}
     loadMissions();
-  })(); }, [open, session, loadMissions]);
+  })(); }, [open, session, loadMissions, onCredited]);
 
   const claimMission = async (m:any) => {
     if (m.type === "link") { if (m.action_url) window.open(m.action_url, "_blank", "noopener"); return; }
@@ -2146,7 +2147,9 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
                 {m.action_label || "참여하기"}
               </button>
             ) : m.claimed ? (
-              <div className="rounded-xl px-3 py-2.5 text-sm text-center bg-green-500/15 text-green-600 font-bold">✅ 받기 완료</div>
+              <div className="rounded-xl px-3 py-2.5 text-sm text-center bg-green-500/15 text-green-600 font-bold">✅ {m.auto ? "달성 · 지급 완료" : "받기 완료"}</div>
+            ) : m.auto ? (
+              <div className="rounded-xl px-3 py-2.5 text-sm text-center bg-amber-50 border border-amber-200 text-amber-700 font-bold">🎯 {m.reason || "조건 달성 시 자동 지급"}</div>
             ) : m.eligible === false ? (
               <div className="rounded-xl px-3 py-2.5 text-sm text-center bg-gray-200 text-gray-500 font-bold">🔒 {m.reason || "조건 미충족"}</div>
             ) : (
