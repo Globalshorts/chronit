@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
+import ColorPalette from '../components/ColorPalette'
 
 // 생성 영상에서 한 프레임을 캡처해 작은 JPG Blob으로 반환 (카드용 이미지 = 영상 대신 용량 절감)
 async function captureVideoFrame(videoUrl, fraction = 0.45) {
@@ -219,6 +220,10 @@ export function LinkPageManager({ session }) {
             <input type="checkbox" checked={page.active} onChange={(e) => savePage({ active: e.target.checked })} />
             공개
           </label>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-sm font-bold text-gray-600">포인트 색상</span>
+          <ColorPalette value={page.accent_color || '#03C75A'} onChange={(c) => savePage({ accent_color: c })} />
         </div>
       </div>
 

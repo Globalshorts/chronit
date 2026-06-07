@@ -18,7 +18,7 @@ export default function LinkPage() {
       try {
         const { data: pg } = await supabase
           .from('link_pages')
-          .select('user_id, handle, title, bio, theme, active, avatar_url, card_size')
+          .select('user_id, handle, title, bio, theme, active, avatar_url, card_size, accent_color')
           .eq('handle', handle)
           .eq('active', true)
           .maybeSingle()
@@ -70,18 +70,21 @@ export default function LinkPage() {
   const sub = dark ? 'text-gray-400' : 'text-gray-500'
 
   const maxW = 'max-w-md'
+  const accent = page.accent_color || '#03C75A'
   const ql = q.trim().toLowerCase()
   const filtered = ql ? items.filter((it) => (it.title || '').toLowerCase().includes(ql)) : items
 
   return (
-    <div className={`min-h-screen ${bg}`}>
+    <div className={`min-h-screen ${bg}`} style={{ ['--accent']: accent }}>
       <div className={`mx-auto w-full ${maxW} px-5 py-10`}>
         <header className="mb-8 text-center">
           {page.avatar_url ? (
             <img src={page.avatar_url} alt={page.title || page.handle}
-              className="mx-auto mb-4 h-20 w-20 rounded-full object-cover ring-2 ring-black/5" />
+              style={{ boxShadow: `0 0 0 3px ${accent}` }}
+              className="mx-auto mb-4 h-20 w-20 rounded-full object-cover" />
           ) : (
-            <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-3xl ${dark ? 'bg-white/10' : 'bg-[#03C75A]/10'}`}>🛍️</div>
+            <div style={{ backgroundColor: `${accent}1A`, color: accent }}
+              className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-3xl">🛍️</div>
           )}
           <h1 className="text-2xl font-black">{page.title || `@${page.handle}`}</h1>
           {page.bio && <p className={`mt-2 text-sm leading-relaxed ${sub}`}>{page.bio}</p>}
@@ -94,7 +97,7 @@ export default function LinkPage() {
             {items.length >= 2 && (
               <div className="mb-5">
                 <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="🔍 상품 검색…"
-                  className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none ${dark ? 'border-white/10 bg-white/5 text-gray-100 placeholder-gray-500' : 'border-gray-200 bg-white text-gray-900 placeholder-gray-400'}`} />
+                  className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none focus:[border-color:var(--accent)] ${dark ? 'border-white/10 bg-white/5 text-gray-100 placeholder-gray-500' : 'border-gray-200 bg-white text-gray-900 placeholder-gray-400'}`} />
               </div>
             )}
             {filtered.length === 0 ? (
@@ -107,7 +110,7 @@ export default function LinkPage() {
                     href={it.target_url}
                     target="_blank"
                     rel="nofollow sponsored noopener noreferrer"
-                    className={`group flex items-center gap-3 overflow-hidden rounded-2xl border p-2.5 shadow-sm transition-transform active:scale-[0.98] ${card}`}
+                    className={`group flex items-center gap-3 overflow-hidden rounded-2xl border p-2.5 shadow-sm transition-transform active:scale-[0.98] hover:[border-color:var(--accent)] ${card}`}
                   >
                     <div className="relative h-[68px] w-[68px] shrink-0 overflow-hidden rounded-xl bg-black">
                       {it.image_url
@@ -122,7 +125,7 @@ export default function LinkPage() {
                       )}
                       <p className="line-clamp-2 text-sm font-bold leading-snug">{it.title || '상품 보러가기'}</p>
                     </div>
-                    <span className={`shrink-0 pr-1 text-lg ${dark ? 'text-gray-500' : 'text-gray-300'} group-hover:text-[#03C75A]`}>›</span>
+                    <span className={`shrink-0 pr-1 text-lg group-hover:[color:var(--accent)] ${dark ? 'text-gray-500' : 'text-gray-300'}`}>›</span>
                   </a>
                 ))}
               </div>

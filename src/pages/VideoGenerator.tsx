@@ -13,6 +13,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabase";
 import type { Session } from "@supabase/supabase-js";
 import PaymentModal from "../components/PaymentModal";
+import ColorPalette from "../components/ColorPalette";
 import { LinkPageManager } from "./LinksManager";
 
 const SB = "https://oxygqtbdpnxxcgzwdlzi.supabase.co";
@@ -1578,11 +1579,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-xs font-bold text-gray-400 block mb-1.5">색상</label>
-          <div className="flex items-center gap-2">
-            <input type="color" value={s.color} onChange={e => upd("color", e.target.value)}
-              className="h-9 w-12 rounded-lg cursor-pointer border border-gray-200" />
-            <span className="text-xs text-gray-700 font-mono">{s.color.toUpperCase()}</span>
-          </div>
+          <ColorPalette value={s.color} onChange={(c) => upd("color", c)} />
         </div>
         <div>
           <label className="text-xs font-bold text-gray-400 block mb-1.5">두께</label>
@@ -1628,10 +1625,9 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
         </div>
         {s.strokeOn && (
           <div className="grid grid-cols-2 gap-3 mt-2">
-            <div className="flex items-center gap-2">
-              <input type="color" value={s.strokeColor} onChange={e => upd("strokeColor", e.target.value)}
-                className="h-8 w-10 rounded cursor-pointer border border-gray-200" />
-              <span className="text-xs text-gray-400 font-mono">{s.strokeColor.toUpperCase()}</span>
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">색상</label>
+              <ColorPalette value={s.strokeColor} onChange={(c) => upd("strokeColor", c)} />
             </div>
             <div>
               <label className="text-xs text-gray-400">두께 {s.strokeWidth}px</label>
@@ -1652,10 +1648,9 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
         </div>
         {s.bgOn && (
           <div className="grid grid-cols-2 gap-3 mt-2">
-            <div className="flex items-center gap-2">
-              <input type="color" value={s.bgColor} onChange={e => upd("bgColor", e.target.value)}
-                className="h-8 w-10 rounded cursor-pointer border border-gray-200" />
-              <span className="text-xs text-gray-400 font-mono">{s.bgColor.toUpperCase()}</span>
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">색상</label>
+              <ColorPalette value={s.bgColor} onChange={(c) => upd("bgColor", c)} />
             </div>
             <div>
               <label className="text-xs text-gray-400">불투명도 {s.bgOpacity}%</label>
