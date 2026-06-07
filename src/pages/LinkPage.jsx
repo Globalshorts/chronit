@@ -18,7 +18,7 @@ export default function LinkPage() {
       try {
         const { data: pg } = await supabase
           .from('link_pages')
-          .select('user_id, handle, title, bio, theme, active, avatar_url, card_size, accent_color')
+          .select('user_id, handle, title, bio, theme, active, avatar_url, card_size, accent_color, bg_color')
           .eq('handle', handle)
           .eq('active', true)
           .maybeSingle()
@@ -64,26 +64,35 @@ export default function LinkPage() {
       </div>
     )
 
-  const dark = page.theme === 'dark'
-  const bg = dark ? 'bg-[#15171F] text-gray-100' : 'bg-[#ECEAE3] text-gray-900'
-  const card = dark ? 'bg-[#1E2230] border-white/10' : 'bg-white border-gray-200'
-  const sub = dark ? 'text-gray-400' : 'text-gray-500'
+  const hexLum = (hex) => {
+    const h = (hex || '').replace('#', '')
+    if (h.length < 6) return 1
+    const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16)
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  }
+  const textOn = (hex) => (hexLum(hex) > 0.6 ? '#111827' : '#FFFFFF')
 
+  const bgColor = page.bg_color || '#ECEAE3'
+  const btnColor = page.accent_color || '#03C75A'
+  const btnText = textOn(btnColor)
+  const dark = hexLum(bgColor) < 0.5
+  const cardBg = dark ? '#1E2230' : '#FFFFFF'
+  const cardBorder = dark ? 'border-white/10' : 'border-gray-200'
+  const sub = dark ? 'text-gray-400' : 'text-gray-500'
   const maxW = 'max-w-md'
-  const accent = page.accent_color || '#03C75A'
   const ql = q.trim().toLowerCase()
   const filtered = ql ? items.filter((it) => (it.title || '').toLowerCase().includes(ql)) : items
 
   return (
-    <div className={`min-h-screen ${bg}`} style={{ ['--accent']: accent }}>
+    <div className="min-h-screen" style={{ backgroundColor: bgColor, color: dark ? '#F3F4F6' : '#111827', ['--accent']: btnColor }}>
       <div className={`mx-auto w-full ${maxW} px-5 py-10`}>
         <header className="mb-8 text-center">
           {page.avatar_url ? (
             <img src={page.avatar_url} alt={page.title || page.handle}
-              style={{ boxShadow: `0 0 0 3px ${accent}` }}
+              style={{ boxShadow: `0 0 0 3px ${btnColor}` }}
               className="mx-auto mb-4 h-20 w-20 rounded-full object-cover" />
           ) : (
-            <div style={{ backgroundColor: `${accent}1A`, color: accent }}
+            <div style={{ backgroundColor: `${btnColor}1A`, color: btnColor }}
               className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-3xl">🛍️</div>
           )}
           <h1 className="text-2xl font-black">{page.title || `@${page.handle}`}</h1>
@@ -110,7 +119,8 @@ export default function LinkPage() {
                     href={it.target_url}
                     target="_blank"
                     rel="nofollow sponsored noopener noreferrer"
-                    className={`group flex items-center gap-3 overflow-hidden rounded-2xl border p-2.5 shadow-sm transition-transform active:scale-[0.98] hover:[border-color:var(--accent)] ${card}`}
+                    style={{ backgroundColor: cardBg }}
+                    className={`group flex items-center gap-3 overflow-hidden rounded-2xl border p-2.5 shadow-sm transition-transform active:scale-[0.98] hover:[border-color:var(--accent)] ${cardBorder}`}
                   >
                     <div className="relative h-[68px] w-[68px] shrink-0 overflow-hidden rounded-xl bg-black">
                       {it.image_url
@@ -125,7 +135,8 @@ export default function LinkPage() {
                       )}
                       <p className="line-clamp-2 text-sm font-bold leading-snug">{it.title || '상품 보러가기'}</p>
                     </div>
-                    <span className={`shrink-0 pr-1 text-lg group-hover:[color:var(--accent)] ${dark ? 'text-gray-500' : 'text-gray-300'}`}>›</span>
+                    <span style={{ backgroundColor: btnColor, color: btnText }}
+                      className="shrink-0 rounded-lg px-3 py-2 text-xs font-extrabold">보러가기</span>
                   </a>
                 ))}
               </div>

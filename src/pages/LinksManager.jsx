@@ -208,21 +208,18 @@ export function LinkPageManager({ session }) {
         <textarea defaultValue={page.bio} placeholder="한 줄 소개 (선택)" rows={2}
           onBlur={(e) => savePage({ bio: e.target.value })}
           className="w-full resize-none rounded-xl border border-gray-300 px-3 py-2 text-sm" />
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-bold text-gray-600">테마</span>
-          {['light', 'dark'].map((t) => (
-            <button key={t} onClick={() => savePage({ theme: t })}
-              className={`rounded-lg px-3 py-1.5 text-sm font-bold ${page.theme === t ? 'bg-[#03C75A] text-white' : 'bg-gray-100 text-gray-600'}`}>
-              {t === 'light' ? '라이트' : '다크'}
-            </button>
-          ))}
-          <label className="ml-auto flex items-center gap-2 text-sm font-bold text-gray-600">
+        <div className="flex items-center justify-end">
+          <label className="flex items-center gap-2 text-sm font-bold text-gray-600">
             <input type="checkbox" checked={page.active} onChange={(e) => savePage({ active: e.target.checked })} />
             공개
           </label>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-sm font-bold text-gray-600">포인트 색상</span>
+          <span className="w-20 text-sm font-bold text-gray-600">배경 색상</span>
+          <ColorPalette value={page.bg_color || '#ECEAE3'} onChange={(c) => savePage({ bg_color: c })} />
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="w-20 text-sm font-bold text-gray-600">버튼 색상</span>
           <ColorPalette value={page.accent_color || '#03C75A'} onChange={(c) => savePage({ accent_color: c })} />
         </div>
       </div>
