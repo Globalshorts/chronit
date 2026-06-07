@@ -111,21 +111,15 @@ const StartSteps = ({ md }) => {
 
 /* ── 사진 가이드 (스타일·자동화 세팅) ── */
 const GUIDE_STEPS = [
-  { group: '처음 한 번만 — 스타일 & 자동화 세팅', once: true },
-  { img: '/guide/01-open-v2.jpg', title: '① 영상 만드는 화면 열기', desc: "홈에서 **무료로 영상 만들기**를 누르면 이 화면이 나와요. 왼쪽 위 **☰ 메뉴**를 눌러보세요." },
-  { img: '/guide/02-menu-v3.jpg', title: '② 메뉴에서 [콘셉트/스타일] 열기', desc: "메뉴의 **콘셉트/스타일** 탭을 열면 위에 **🔍 스타일 찾기**와 **⚙️ 자동화 세팅** 두 개가 나뉘어 있어요. 이 탭만 처음에 한 번 해두면 끝이에요.", note: "**스타일 찾기 → 자동화 세팅** 순서로 하면 돼요." },
-  { img: '/guide/03-style.jpg', title: '③ 스타일 찾기 — 따라 할 영상 등록', desc: "**🔍 스타일 찾기**에서 따라 하고 싶은 영상(인스타·틱톡 등) 링크를 넣고 **분석 시작**을 누르면, 그 영상의 말투·구성이 내 스타일로 저장돼요." },
-  { img: '/guide/04-setup-length.jpg', title: '④ 자동화 세팅 — 영상 길이 & 대본 스타일', desc: "옆 **⚙️ 자동화 세팅** 서브탭으로 넘어가요. 위에서 **영상 길이**를 골라요(잘 모르면 **15초 기본**). 그리고 아래 **대본 스타일**에서 ③에서 저장한 **내 스타일**을 골라 적용하면, 그 말투·구성으로 대본이 만들어져요.", note: "아직 저장한 스타일이 없거나 잘 모르겠으면 **자동(AI 추천)** 그대로 둬도 괜찮아요." },
-  { img: '/guide/05-setup-voice.jpg', title: '⑤ 자동화 세팅 — 목소리', desc: "영상에 들어갈 **목소리**를 골라요. **미리듣기**로 들어볼 수 있어요." },
-  { img: '/guide/06-setup-subtitle.jpg', title: '⑥ 자동화 세팅 — 자막·썸네일', desc: "자막 모양(글씨·색·크기)을 정해요. **기본값 그대로 둬도** 예쁘게 나와요." },
+  { group: '처음 한 번만 — 세팅', once: true, collapsible: true, defaultCollapsed: true },
+  { img: '/guide/02-menu-v3.jpg', title: '① 콘셉트/스타일 탭 열기', desc: "영상 만드는 화면에서 왼쪽 위 **☰ 메뉴 → 콘셉트/스타일**을 열어요. 위에 **🔍 스타일 찾기**와 **⚙️ 자동화 세팅**이 있어요.", note: "잘 모르겠으면 이 세팅은 **건너뛰고** 기본값으로 바로 시작해도 돼요." },
+  { img: '/guide/03-style.jpg', title: '② 스타일 찾기 — 따라 할 영상 등록', desc: "**🔍 스타일 찾기**에 따라 하고 싶은 영상(인스타·틱톡) 링크를 넣고 **분석 시작**을 누르면, 그 말투·구성이 내 스타일로 저장돼요." },
+  { img: '/guide/04-setup-length.jpg', title: '③ 자동화 세팅 — 길이·목소리·자막', desc: "**⚙️ 자동화 세팅**에서 **영상 길이**(잘 모르면 15초), **목소리**(미리듣기 가능), **자막 모양**을 한 번 정해두면 다음부터 자동이에요.", note: "전부 **기본값 그대로 둬도** 예쁘게 나와요." },
   { group: '영상 만들 때마다 — 이것만 반복!', once: false },
-  { img: '/guide/07-project.jpg', title: '⑦ 새 프로젝트 만들기', desc: "영상 하나 만들 때마다 **+ 새 프로젝트**를 눌러요.", note: "**프로젝트란?** 영상 한 편을 만드는 '작업 공간'이에요. 영상 하나 = 프로젝트 하나라고 생각하면 쉬워요." },
-  { img: '/guide/08-link.jpg', title: '⑧ 쇼핑 영상 링크 넣기', desc: "홍보할 **쇼핑 영상 링크**를 붙여넣고 **분석 시작**을 눌러요. 잠깐 기다리면 관련 클립을 찾아줘요." },
-  { img: '/guide/09-clips.jpg', title: '⑨ 마음에 드는 클립 담기', desc: "찾아준 클립 중 마음에 드는 걸 **담기** → 다 골랐으면 **자동 생성**을 눌러요." },
-  { img: '/guide/10-generate.jpg', title: '⑩ 자동 생성 → 완성!', desc: "내용을 확인하고 **진행**을 누르면 끝! 보통 **1~5분**이면 영상이 완성돼요." },
-  { title: '⑪ 완성되면 → 내 링크에 추가', desc: "영상이 완성되면 **생성 내역**에서 그 영상의 **🔗 내 링크에 추가**를 눌러요. 그 영상이 내 링크 페이지의 카드로 들어가요.", note: "**내 링크 페이지**란? 만든 영상들을 쿠팡 링크와 함께 모아두는 **나만의 링크 모음 페이지**예요. 인스타 프로필에 주소 하나만 올리면 끝!" },
-  { title: '⑫ 카드 완성 — 쿠팡 링크 + 이미지', desc: "**내 링크** 탭에서 그 카드에 ① **🔍 쿠팡에서 찾기**로 상품을 찾아 **쿠팡 파트너스 링크**를 붙여넣고 ② 카드 이미지를 정한 뒤(**🔄 다른 컷**으로 장면 바꾸기 · **📷**로 직접 업로드) ③ **＋ 페이지에 표시**를 눌러요.", note: "이미지는 영상에서 자동으로 한 장 뽑혀요. 마음에 안 들면 **🔄 다른 컷**을 눌러 바꾸면 돼요." },
-  { title: '⑬ 내 주소 공유하기', desc: "내 링크 페이지 맨 위의 **내 주소(chronit.kr/내아이디)**를 복사해서 **인스타그램 프로필 링크**에 붙여넣으면 끝! 사람들이 그 주소로 들어와 카드를 누르면 쿠팡으로 연결돼요.", note: "프로필 사진·제목·테마·카드 크기는 **페이지 설정**에서 바꿀 수 있어요." },
+  { img: '/guide/08-link.jpg', title: '① 새 프로젝트 + 쇼핑 링크 분석', desc: "**＋ 새 프로젝트**를 누르고, 홍보할 **쇼핑 영상 링크**를 붙여넣은 뒤 **분석 시작**을 눌러요. 잠깐 기다리면 관련 클립을 찾아줘요.", note: "**프로젝트**는 영상 한 편을 만드는 작업 공간이에요 (영상 하나 = 프로젝트 하나)." },
+  { img: '/guide/09-clips.jpg', title: '② 클립 담고 → 자동 생성', desc: "찾아준 클립 중 마음에 드는 걸 **담기** → **자동 생성**을 누르고 내용 확인 후 **진행**! 보통 **1~5분**이면 완성돼요." },
+  { title: '③ 완성되면 → 🔗 내 링크에 추가', desc: "영상이 완성되면 **생성 내역**에서 **🔗 내 링크에 추가**를 눌러요. 그 영상이 내 링크 페이지 카드로 들어가요.", note: "**내 링크 페이지** = 만든 영상들을 쿠팡 링크와 함께 모아두는 나만의 링크 모음. 인스타 프로필에 주소 하나만 올리면 끝!" },
+  { title: '④ 카드 완성 → 내 주소 공유', desc: "**내 링크** 탭에서 카드에 **🔍 쿠팡에서 찾기**로 쿠팡 링크를 넣고, 이미지를 정한 뒤(**🔄 다른 컷 / 📷 업로드**) **＋ 페이지에 표시**. 마지막으로 맨 위 **내 주소(chronit.kr/내아이디)**를 복사해 인스타 프로필에 붙이면 끝!" },
 ]
 
 const GuideWalkthrough = ({ steps, onImageClick }) => {
@@ -139,6 +133,16 @@ const GuideWalkthrough = ({ steps, onImageClick }) => {
   })
   return (
     <div className="space-y-8">
+      <div className="rounded-2xl border border-[#03C75A]/30 bg-[#03C75A]/5 px-5 py-4">
+        <p className="mb-2.5 text-sm font-bold text-gray-500">핵심은 이게 다예요</p>
+        <div className="flex flex-wrap items-center gap-2 text-sm font-black text-gray-900">
+          <span className="rounded-lg border border-gray-200 bg-white px-3 py-1.5">쇼핑 링크 넣기</span>
+          <span className="text-[#03C75A]">→</span>
+          <span className="rounded-lg border border-gray-200 bg-white px-3 py-1.5">자동 생성</span>
+          <span className="text-[#03C75A]">→</span>
+          <span className="rounded-lg border border-gray-200 bg-white px-3 py-1.5">내 링크에 공유</span>
+        </div>
+      </div>
       {groups.map((g, gi) => <StepGroup key={gi} group={g} onImageClick={onImageClick} />)}
     </div>
   )
@@ -146,19 +150,30 @@ const GuideWalkthrough = ({ steps, onImageClick }) => {
 
 const StepGroup = ({ group, onImageClick }) => {
   const [idx, setIdx] = useState(0)
+  const [open, setOpen] = useState(!group.defaultCollapsed)
   const items = group.items
   const total = items.length
   const s = items[Math.min(idx, total - 1)]
+  const badge = (
+    <span className={`rounded-full px-3 py-1 text-xs font-black ${group.once ? 'bg-[#03C75A]/15 text-[#03C75A]' : 'bg-amber-100 text-amber-700'}`}>
+      {group.once ? '처음 한 번만' : '매번 반복'}
+    </span>
+  )
   return (
     <div>
-      {group.group && (
+      {group.group && (group.collapsible ? (
+        <button onClick={() => setOpen((o) => !o)} className="mb-3 flex w-full flex-wrap items-center gap-2.5 text-left">
+          {badge}
+          <h2 className="text-lg font-black text-gray-900 md:text-xl">{group.group}</h2>
+          <span className="ml-auto rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-500">{open ? '접기 ▲' : '펼치기 ▼'}</span>
+        </button>
+      ) : (
         <div className="mb-3 flex flex-wrap items-center gap-2.5">
-          <span className={`rounded-full px-3 py-1 text-xs font-black ${group.once ? 'bg-[#03C75A]/15 text-[#03C75A]' : 'bg-amber-100 text-amber-700'}`}>
-            {group.once ? '처음 한 번만' : '매번 반복'}
-          </span>
+          {badge}
           <h2 className="text-lg font-black text-gray-900 md:text-xl">{group.group}</h2>
         </div>
-      )}
+      ))}
+      {open && (
       <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
         <div className="p-5 md:p-6">
           <p className="mb-1.5 text-xs font-bold text-gray-400">{idx + 1} / {total}</p>
@@ -190,6 +205,7 @@ const StepGroup = ({ group, onImageClick }) => {
           )}
         </div>
       </div>
+      )}
     </div>
   )
 }
