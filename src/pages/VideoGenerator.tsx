@@ -3345,8 +3345,14 @@ function HistoryView({ session, onGoToLinks }: { session: any; onGoToLinks?: ()=
   const copyText = async (text:string, key:string) => {
     try { await navigator.clipboard.writeText(text); setCopied(key); setTimeout(()=>setCopied(null), 1500); } catch {}
   };
+  const cap5Tags = (tags?:string) => {
+    if (!tags) return "";
+    return tags.split(/\s+/).map(t=>t.trim()).filter(Boolean)
+      .map(t => t.startsWith("#") ? t : "#"+t.replace(/^#+/,""))
+      .filter(t => t.length>1).slice(0,5).join(" ");
+  };
   const seoFull = (j:any) =>
-    `[제목]\n${j.seo_title||""}\n\n[설명]\n${j.seo_description||""}\n\n[해시태그]\n${j.seo_tags||""}`;
+    `[제목]\n${j.seo_title||""}\n\n[설명]\n${j.seo_description||""}\n\n[해시태그]\n${cap5Tags(j.seo_tags)}`;
   // 메모/카톡 등으로 보내기 = 공유시트 / 미지원 시 복사
   const shareSeo = async (j:any) => {
     const text = seoFull(j);
@@ -3432,7 +3438,7 @@ function HistoryView({ session, onGoToLinks }: { session: any; onGoToLinks?: ()=
                       {[
                         { label: "제목", value: j.seo_title, key: j.id+"-t" },
                         { label: "설명", value: j.seo_description, key: j.id+"-d" },
-                        { label: "해시태그", value: j.seo_tags, key: j.id+"-g" },
+                        { label: "해시태그", value: cap5Tags(j.seo_tags), key: j.id+"-g" },
                       ].filter(r=>r.value).map(r => (
                         <div key={r.key} className="flex items-start gap-1.5">
                           <div className="min-w-0 flex-1">
