@@ -25,7 +25,7 @@ export default function LinkPage() {
         if (!pg) { if (alive) setState('notfound'); return }
         const { data: its } = await supabase
           .from('link_items')
-          .select('id, title, image_url, video_url, target_url, sort_order')
+          .select('id, title, image_url, video_url, target_url, sort_order, badge')
           .eq('user_id', pg.user_id)
           .eq('active', true)
           .order('sort_order', { ascending: true })
@@ -69,9 +69,7 @@ export default function LinkPage() {
   const card = dark ? 'bg-[#1E2230] border-white/10' : 'bg-white border-gray-200'
   const sub = dark ? 'text-gray-400' : 'text-gray-500'
 
-  const size = page.card_size || 'large'
-  const cols = size === 'small' ? 'grid-cols-3' : size === 'medium' ? 'grid-cols-2' : 'grid-cols-1'
-  const maxW = size === 'large' ? 'max-w-md' : size === 'medium' ? 'max-w-lg' : 'max-w-2xl'
+  const maxW = 'max-w-md'
   const ql = q.trim().toLowerCase()
   const filtered = ql ? items.filter((it) => (it.title || '').toLowerCase().includes(ql)) : items
 
@@ -102,33 +100,27 @@ export default function LinkPage() {
             {filtered.length === 0 ? (
               <p className={`py-16 text-center text-sm ${sub}`}>검색 결과가 없어요.</p>
             ) : (
-              <div className={`grid ${cols} gap-3`}>
+              <div className="space-y-2.5">
                 {filtered.map((it) => (
                   <a
                     key={it.id}
                     href={it.target_url}
                     target="_blank"
                     rel="nofollow sponsored noopener noreferrer"
-                    className={`group block overflow-hidden rounded-3xl border shadow-sm transition-transform active:scale-[0.98] ${card}`}
+                    className={`group flex items-center gap-3 overflow-hidden rounded-2xl border p-2.5 shadow-sm transition-transform active:scale-[0.98] ${card}`}
                   >
-                    {(it.image_url || it.video_url) && (
-                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-black">
-                        {it.image_url
-                          ? <img src={it.image_url} alt={it.title || ''} loading="lazy" className="h-full w-full object-cover" />
-                          : <video src={it.video_url} muted loop autoPlay playsInline preload="metadata" className="h-full w-full object-cover" />}
-                      </div>
-                    )}
-                    {size === 'large' ? (
-                      <div className="flex items-center justify-between gap-3 p-4">
-                        <p className="line-clamp-2 flex-1 text-sm font-bold leading-snug">{it.title || '상품 보러가기'}</p>
-                        <span className="shrink-0 rounded-xl bg-[#03C75A] px-4 py-2 text-sm font-extrabold text-white">보러가기</span>
-                      </div>
-                    ) : (
-                      <div className="p-3">
-                        <p className="line-clamp-2 text-xs font-bold leading-snug">{it.title || '상품 보러가기'}</p>
-                        {size === 'medium' && <span className="mt-2 block rounded-lg bg-[#03C75A] px-3 py-1.5 text-center text-xs font-extrabold text-white">보러가기</span>}
-                      </div>
-                    )}
+                    <div className="relative h-[68px] w-[68px] shrink-0 overflow-hidden rounded-xl bg-black">
+                      {it.image_url
+                        ? <img src={it.image_url} alt={it.title || ''} loading="lazy" className="h-full w-full object-cover" />
+                        : it.video_url
+                          ? <video src={`${it.video_url}#t=0.6`} muted playsInline preload="metadata" className="h-full w-full object-cover" />
+                          : <div className="flex h-full w-full items-center justify-center text-2xl">🛍️</div>}
+                      {it.badge && (
+                        <span className="absolute left-1 top-1 rounded-md bg-[#ff4d4f] px-1.5 py-0.5 text-[10px] font-black leading-none text-white shadow">{it.badge}</span>
+                      )}
+                    </div>
+                    <p className="line-clamp-2 flex-1 text-sm font-bold leading-snug">{it.title || '상품 보러가기'}</p>
+                    <span className={`shrink-0 pr-1 text-lg ${dark ? 'text-gray-500' : 'text-gray-300'} group-hover:text-[#03C75A]`}>›</span>
                   </a>
                 ))}
               </div>

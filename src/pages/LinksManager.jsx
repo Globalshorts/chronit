@@ -98,7 +98,7 @@ export function LinkPageManager({ session }) {
     } finally { setUploading(false) }
   }
 
-  const upsertItem = async (job, { title, target_url, active, image_url }) => {
+  const upsertItem = async (job, { title, target_url, active, image_url, badge }) => {
     const uid = session.user.id
     const existing = itemFor(job.id)
     let img = image_url || null
@@ -111,7 +111,7 @@ export function LinkPageManager({ session }) {
       } catch (e) { /* 캡처 실패 → 영상 폴백 */ }
     }
     if (existing) {
-      const patch = { title, target_url, active }
+      const patch = { title, target_url, active, badge: badge ?? null }
       if (img) patch.image_url = img
       const { data } = await supabase.from('link_items')
         .update(patch).eq('id', existing.id).select('*').single()
@@ -123,7 +123,7 @@ export function LinkPageManager({ session }) {
       }
       const maxSort = items.reduce((m, i) => Math.max(m, i.sort_order || 0), 0)
       const { data } = await supabase.from('link_items')
-        .insert({ user_id: uid, video_job_id: job.id, title, target_url, active, image_url: img, video_url: videoUrl, sort_order: maxSort + 1 })
+        .insert({ user_id: uid, video_job_id: job.id, title, target_url, active, image_url: img, video_url: videoUrl, sort_order: maxSort + 1, badge: badge ?? null })
         .select('*').single()
       if (data) setItems((p) => [...p, data])
     }
@@ -220,13 +220,6 @@ export function LinkPageManager({ session }) {
             공개
           </label>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-bold text-gray-600">카드 크기</span>
-          {[['large','크게'],['medium','보통'],['small','작게']].map(([v, l]) => (
-            <button key={v} onClick={() => savePage({ card_size: v })}
-              className={`rounded-lg px-3 py-1.5 text-sm font-bold ${(page.card_size || 'large') === v ? 'bg-[#03C75A] text-white' : 'bg-gray-100 text-gray-600'}`}>{l}</button>
-          ))}
-        </div>
       </div>
 
       {/* 영상 목록 */}
@@ -295,6 +288,7 @@ export default function LinksManager() {
 function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
   const [title, setTitle] = useState(item?.title ?? (job.seo_title || job.product_name || ''))
   const [url, setUrl] = useState(item?.target_url ?? '')
+  const [badge, setBadge] = useState(item?.badge ?? '')
   const [img, setImg] = useState(item?.image_url || job.poster_url || '')
   const [imgBusy, setImgBusy] = useState(false)
   const fracs = useRef([0.45, 0.65, 0.25, 0.8, 0.1, 0.55])
@@ -355,16 +349,29 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
               target="_blank" rel="noreferrer"
               className="shrink-0 whitespace-nowrap rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-200">🔍 쿠팡에서 찾기</a>
           </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs font-bold text-gray-500">배지</span>
+            <input value={badge} onChange={(e) => setBadge(e.target.value)} placeholder="없음" maxLength={12}
+              className="w-24 rounded-lg border border-gray-300 px-2 py-1 text-xs" />
+            {['Hot🔥', 'New⭐', '인기', '추천', '마감임박'].map((b) => (
+              <button key={b} type="button" onClick={() => setBadge(b)}
+                className="rounded-md bg-gray-100 px-2 py-1 text-[11px] font-bold text-gray-600 hover:bg-gray-200">{b}</button>
+            ))}
+            {badge && (
+              <button type="button" onClick={() => setBadge('')}
+                className="rounded-md px-2 py-1 text-[11px] font-bold text-gray-400 hover:text-gray-600">지우기</button>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             {active ? (
               <>
-                <button onClick={() => onSave({ title, target_url: url, active: true, image_url: img })}
+                <button onClick={() => onSave({ title, target_url: url, active: true, image_url: img, badge })}
                   className="rounded-lg bg-[#03C75A] px-3 py-1.5 text-xs font-bold text-white">저장</button>
-                <button onClick={() => onSave({ title, target_url: url, active: false, image_url: img })}
+                <button onClick={() => onSave({ title, target_url: url, active: false, image_url: img, badge })}
                   className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-bold text-gray-600">숨기기</button>
               </>
             ) : (
-              <button onClick={() => onSave({ title, target_url: url, active: true, image_url: img })} disabled={!canShow}
+              <button onClick={() => onSave({ title, target_url: url, active: true, image_url: img, badge })} disabled={!canShow}
                 className="rounded-lg bg-[#03C75A] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40">＋ 페이지에 표시</button>
             )}
             {!canShow && !active && <span className="text-[11px] text-gray-400">쿠팡 링크를 넣어야 표시할 수 있어요</span>}
