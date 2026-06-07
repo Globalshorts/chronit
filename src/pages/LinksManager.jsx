@@ -86,7 +86,7 @@ export function LinkPageManager({ session }) {
     : jobs
   const sortedJobs = [...visibleJobs].sort((j1, j2) => {
     const i1 = itemFor(j1.id), i2 = itemFor(j2.id)
-    if (i1?.active && i2?.active) return (i1.sort_order || 0) - (i2.sort_order || 0)
+    if (i1?.active && i2?.active) return (i2.sort_order || 0) - (i1.sort_order || 0)
     if (i1?.active) return -1
     if (i2?.active) return 1
     return 0
@@ -158,7 +158,7 @@ export function LinkPageManager({ session }) {
   }
 
   const move = async (item, dir) => {
-    const actives = items.filter((i) => i.active).sort((a, b) => a.sort_order - b.sort_order)
+    const actives = items.filter((i) => i.active).sort((a, b) => b.sort_order - a.sort_order)
     const idx = actives.findIndex((i) => i.id === item.id)
     const swap = actives[idx + dir]
     if (!swap) return

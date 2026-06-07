@@ -28,7 +28,7 @@ export default function LinkPage() {
           .select('id, title, image_url, video_url, target_url, sort_order, badge, badge_color')
           .eq('user_id', pg.user_id)
           .eq('active', true)
-          .order('sort_order', { ascending: true })
+          .order('sort_order', { ascending: false })
         if (!alive) return
         setPage(pg)
         setItems((its || []).filter((i) => i.target_url))
