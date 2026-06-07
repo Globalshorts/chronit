@@ -262,7 +262,12 @@ const emptyMission = () => ({
   title: '', description: '', reward: 100, badge_label: '이벤트',
   badge_color: '#03C75A', type: 'claim', action_url: '', action_label: '받기',
   active: true, sort_order: 0,
+  start_at: '', end_at: '', req_plan: 'any', req_audience: 'all',
+  req_signup_days: 7, req_min_videos: 0,
 })
+// timestamptz <-> datetime-local 변환
+const toInput = (v) => { if (!v) return ''; const d = new Date(v); if (isNaN(d)) return ''; const p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}` }
+const fromInput = (v) => v ? new Date(v).toISOString() : null
 const MissionsPanel = () => {
   const [list, setList] = useState([])
   const [editing, setEditing] = useState(null)   // id or 'new'
@@ -282,12 +287,20 @@ const MissionsPanel = () => {
     setForm({ title: m.title || '', description: m.description || '', reward: m.reward || 0,
       badge_label: m.badge_label || '이벤트', badge_color: m.badge_color || '#03C75A',
       type: m.type || 'claim', action_url: m.action_url || '', action_label: m.action_label || '받기',
-      active: !!m.active, sort_order: m.sort_order || 0 })
+      active: !!m.active, sort_order: m.sort_order || 0,
+      start_at: toInput(m.start_at), end_at: toInput(m.end_at),
+      req_plan: m.req_plan || 'any', req_audience: m.req_audience || 'all',
+      req_signup_days: m.req_signup_days ?? 7, req_min_videos: m.req_min_videos || 0 })
     setEditing(m.id)
   }
   const save = async () => {
     setSaving(true); setMsg(null)
-    const payload = { ...form, reward: Math.max(0, Math.floor(Number(form.reward) || 0)), sort_order: Math.floor(Number(form.sort_order) || 0) }
+    const payload = { ...form,
+      reward: Math.max(0, Math.floor(Number(form.reward) || 0)),
+      sort_order: Math.floor(Number(form.sort_order) || 0),
+      start_at: fromInput(form.start_at), end_at: fromInput(form.end_at),
+      req_signup_days: Math.max(0, Math.floor(Number(form.req_signup_days) || 0)),
+      req_min_videos: Math.max(0, Math.floor(Number(form.req_min_videos) || 0)) }
     let error
     if (editing === 'new') ({ error } = await supabase.from('missions').insert(payload))
     else ({ error } = await supabase.from('missions').update(payload).eq('id', editing))
@@ -338,6 +351,32 @@ const MissionsPanel = () => {
         {form.type === 'link' && <div><label className={labelCls}>이동 URL</label><input className={inputCls} value={form.action_url} onChange={e => set('action_url', e.target.value)} placeholder="https://..." /></div>}
       </div>
       <label className="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" checked={form.active} onChange={e => set('active', e.target.checked)} /> 공개 (영상 만들기 모달에 노출)</label>
+
+      <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 space-y-4">
+        <p className="text-xs font-bold text-slate-300">받기 조건 <span className="font-normal text-slate-500">(받기 누를 때 자동 검사 · 즉시 지급형만 적용)</span></p>
+        <div className="grid grid-cols-2 gap-4">
+          <div><label className={labelCls}>시작일시 (선택)</label><input type="datetime-local" className={inputCls} value={form.start_at} onChange={e => set('start_at', e.target.value)} /></div>
+          <div><label className={labelCls}>종료일시 (선택)</label><input type="datetime-local" className={inputCls} value={form.end_at} onChange={e => set('end_at', e.target.value)} /></div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div><label className={labelCls}>대상 플랜</label>
+            <select className={inputCls} value={form.req_plan} onChange={e => set('req_plan', e.target.value)}>
+              <option value="any">전체</option><option value="free">무료 유저만</option><option value="paid">유료 유저만</option>
+            </select>
+          </div>
+          <div><label className={labelCls}>최소 생성 영상 수</label><input type="number" min="0" className={inputCls} value={form.req_min_videos} onChange={e => set('req_min_videos', e.target.value)} /></div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div><label className={labelCls}>대상 유저</label>
+            <select className={inputCls} value={form.req_audience} onChange={e => set('req_audience', e.target.value)}>
+              <option value="all">전체</option><option value="new">신규 (가입 N일 이내)</option><option value="existing">기존 (가입 N일 이후)</option>
+            </select>
+          </div>
+          {form.req_audience !== 'all' && (
+            <div><label className={labelCls}>기준 일수 (N일)</label><input type="number" min="1" className={inputCls} value={form.req_signup_days} onChange={e => set('req_signup_days', e.target.value)} /></div>
+          )}
+        </div>
+      </div>
       {msg && <p className={`text-sm ${msg.ok ? 'text-green-400' : 'text-red-400'}`}>{msg.text}</p>}
       <button onClick={save} disabled={saving || !form.title.trim()} className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-40">
         {saving ? <Loader size={14} className="animate-spin" /> : <Save size={14} />} 저장

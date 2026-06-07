@@ -2147,6 +2147,8 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
               </button>
             ) : m.claimed ? (
               <div className="rounded-xl px-3 py-2.5 text-sm text-center bg-green-500/15 text-green-600 font-bold">✅ 받기 완료</div>
+            ) : m.eligible === false ? (
+              <div className="rounded-xl px-3 py-2.5 text-sm text-center bg-gray-200 text-gray-500 font-bold">🔒 {m.reason || "조건 미충족"}</div>
             ) : (
               <button onClick={()=>claimMission(m)} disabled={claiming===m.id}
                 className="w-full rounded-xl bg-[#03C75A] hover:bg-[#02b350] disabled:opacity-40 py-2.5 text-sm font-bold text-white">
