@@ -2,3 +2,28 @@
 
 /* ChannelTalk 위젯은 iframe 내부에 렌더링되어 CSS 스케일링이 모바일에서 레이아웃을 깨뜨림.
    크기 변경이 필요하면 ChannelTalk 대시보드에서 위젯 설정 사용 권장. */
+
+/* "무료 크레딧 받기" 버튼 반짝이는 테두리 */
+@keyframes creditGlow {
+  0%, 100% { box-shadow: 0 0 5px 1px rgba(254,229,0,0.55), 0 0 13px 2px rgba(254,229,0,0.28); }
+  50%      { box-shadow: 0 0 11px 3px rgba(254,229,0,0.95), 0 0 24px 6px rgba(254,229,0,0.55); }
+}
+@keyframes creditShine {
+  0%   { left: -160%; }
+  55%, 100% { left: 160%; }
+}
+.credit-glow {
+  position: relative;
+  overflow: hidden;
+  animation: creditGlow 1.6s ease-in-out infinite;
+}
+.credit-glow::after {
+  content: "";
+  position: absolute;
+  top: 0; left: -160%;
+  width: 55%; height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.75), transparent);
+  transform: skewX(-20deg);
+  pointer-events: none;
+  animation: creditShine 2.6s ease-in-out infinite;
+}

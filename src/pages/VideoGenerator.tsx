@@ -2230,7 +2230,7 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
         <a href="https://forms.gle/LCDeSEXSM7ALykqv5" target="_blank" rel="noreferrer"
           className="block text-center rounded-xl bg-[#E8F8EE] border border-[#03C75A]/40 px-3 py-2 leading-tight transition hover:bg-[#dcf3e6]"><span className="block text-[11px] font-bold text-[#222222]">📝 피드백 쓰고</span><span className="block font-black text-[#222222]"><span className="text-lg text-[#03C75A]">500 CR</span> 받기</span></a>
         <button onClick={()=>setShowMissions(true)}
-          className="w-full text-center rounded-xl bg-[#FEE500] hover:bg-[#f5dd00] px-3 py-2.5 text-sm font-bold text-[#222222] transition">🎁 무료 크레딧 받기</button>
+          className="credit-glow w-full text-center rounded-xl bg-[#FEE500] hover:bg-[#f5dd00] px-3 py-2.5 text-sm font-bold text-[#222222] transition">🎁 무료 크레딧 받기</button>
       </div>
       {/* 하단 계정/플랜/크레딧 */}
       <div className="border-t border-gray-200 px-4 py-3 space-y-1.5 mt-2">
