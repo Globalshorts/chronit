@@ -97,7 +97,7 @@ export default function VideoGenerator() {
   const [searching, setSearching]   = useState(false);
   const [searchError, setSearchError] = useState("");
   const [clips, setClips]           = useState<Clip[]>([]);
-  const analysisMetaRef = React.useRef<{ name: string; keyword: string }>({ name: "", keyword: "" });
+  const analysisMetaRef = React.useRef<{ name: string; keyword: string; poster: string }>({ name: "", keyword: "", poster: "" });
   const [cart, setCart]             = useState<Set<string>>(new Set());
 
   // Stage 2
@@ -498,7 +498,7 @@ export default function VideoGenerator() {
       const rawClips: Clip[] = data1.clips ?? [];
       const refFrames: string[] = data1.reference_frames ?? [];
       // 분석이 이미 뽑은 상품명/한국어 키워드 보관 → 생성 시 job에 저장(내 링크 재사용)
-      analysisMetaRef.current = { name: data1.product_name || "", keyword: data1.keyword || "" };
+      analysisMetaRef.current = { name: data1.product_name || "", keyword: data1.keyword || "", poster: (data1.reference_frames && data1.reference_frames[0]) || "" };
       if (!rawClips.length) { setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요."); return; }
 
       // reference_frames 없으면 CLIP filter 스킵
@@ -750,6 +750,7 @@ export default function VideoGenerator() {
           cta_text: overrides?.ctaText ?? ctaText,
           product_name: analysisMetaRef.current.name,
           search_keyword: analysisMetaRef.current.keyword,
+          poster_src: analysisMetaRef.current.poster,
         }),
       });
       const data = await resp.json();

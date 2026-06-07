@@ -63,7 +63,7 @@ export function LinkPageManager({ session }) {
           }
         }
         const [jb, it] = await Promise.all([
-          supabase.from('video_jobs').select('id, product_name, seo_title, search_keyword, video_url, created_at')
+          supabase.from('video_jobs').select('id, product_name, seo_title, search_keyword, poster_url, video_url, created_at')
             .eq('user_id', uid).eq('status', 'done').neq('video_url', '').order('created_at', { ascending: false }),
           supabase.from('link_items').select('*').eq('user_id', uid),
         ])
@@ -281,7 +281,7 @@ export default function LinksManager() {
 function JobRow({ job, item, uid, onSave, onMove }) {
   const [title, setTitle] = useState(item?.title ?? (job.seo_title || job.product_name || ''))
   const [url, setUrl] = useState(item?.target_url ?? '')
-  const [img, setImg] = useState(item?.image_url || '')
+  const [img, setImg] = useState(item?.image_url || job.poster_url || '')
   const [imgBusy, setImgBusy] = useState(false)
   const fracs = useRef([0.45, 0.65, 0.25, 0.8, 0.1, 0.55])
   const fracIdx = useRef(0)
