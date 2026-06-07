@@ -3800,7 +3800,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
             {loading ? <tr><td colSpan={6} className="py-8 text-center text-gray-500">불러오는 중...</td></tr>
             : filtered.length===0 ? <tr><td colSpan={6} className="py-8 text-center text-gray-500">결과 없음</td></tr>
             : filtered.map(u=>{
-              const max = planMax[u.plan] ?? 0; const left = max - (u.credits_used||0); const act = isActive(u);
+              const max = (planMax[u.plan] ?? 0) + (u.bonus_credits||0); const left = max - (u.credits_used||0); const act = isActive(u);
               return (
                 <tr key={u.user_id} onClick={()=>{setSel(u.user_id); setRoleSel(u.role||"user"); if(u.plan)setPlanSel(u.plan);}}
                   className={`border-b border-gray-200/50 cursor-pointer ${sel===u.user_id?"bg-[#03C75A]/10":"hover:bg-gray-100/40"}`}>
