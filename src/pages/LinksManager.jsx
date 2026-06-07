@@ -38,6 +38,8 @@ export function LinkPageManager({ session }) {
   const [loading, setLoading] = useState(true)
   const [savedMsg, setSavedMsg] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [customOpen, setCustomOpen] = useState(false)
+  const [jobQuery, setJobQuery] = useState('')
   const loadedUidRef = useRef(null)
 
   useEffect(() => {
@@ -78,6 +80,10 @@ export function LinkPageManager({ session }) {
   }, [session?.user?.id])
 
   const itemFor = (jobId) => items.find((i) => i.video_job_id === jobId)
+  const jobTitle = (job) => (itemFor(job.id)?.title || job.seo_title || job.product_name || '')
+  const visibleJobs = jobQuery.trim()
+    ? jobs.filter((j) => jobTitle(j).toLowerCase().includes(jobQuery.trim().toLowerCase()))
+    : jobs
   const flash = (m) => { setSavedMsg(m); setTimeout(() => setSavedMsg(''), 1800) }
 
   const savePage = async (patch) => {
@@ -184,9 +190,14 @@ export function LinkPageManager({ session }) {
         </div>
       </div>
 
-      {/* 페이지 설정 */}
-      <div className="mb-5 space-y-3 rounded-3xl border border-gray-200 bg-white p-5">
-        <p className="text-sm font-black text-gray-900">페이지 설정</p>
+      {/* 페이지 커스텀 (접기) */}
+      <div className="mb-5 overflow-hidden rounded-3xl border border-gray-200 bg-white">
+        <button onClick={() => setCustomOpen((o) => !o)} className="flex w-full items-center justify-between px-5 py-4 text-left">
+          <span className="text-sm font-black text-gray-900">🎨 페이지 커스텀</span>
+          <span className="rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-500">{customOpen ? '접기 ▲' : '펼치기 ▼'}</span>
+        </button>
+        {customOpen && (
+        <div className="space-y-3 px-5 pb-5">
         <div className="flex items-center gap-3">
           {page.avatar_url
             ? <img src={page.avatar_url} alt="" className="h-14 w-14 rounded-full object-cover ring-1 ring-gray-200" />
@@ -222,17 +233,27 @@ export function LinkPageManager({ session }) {
           <span className="w-20 text-sm font-bold text-gray-600">카드 색상</span>
           <ColorPalette value={page.accent_color || '#03C75A'} onChange={(c) => savePage({ accent_color: c })} />
         </div>
+        </div>
+        )}
       </div>
 
       {/* 영상 목록 */}
-      <p className="mb-3 text-sm font-black text-gray-900">영상 → 카드로 추가</p>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <p className="text-sm font-black text-gray-900">영상 → 카드로 추가</p>
+        {jobs.length >= 5 && (
+          <input value={jobQuery} onChange={(e) => setJobQuery(e.target.value)} placeholder="🔍 카드 검색"
+            className="w-40 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs" />
+        )}
+      </div>
       {jobs.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-gray-300 bg-white py-10 text-center text-sm text-gray-400">
           완성된 영상이 아직 없어요. 먼저 영상을 만들어 주세요.
         </p>
+      ) : visibleJobs.length === 0 ? (
+        <p className="rounded-2xl border border-dashed border-gray-300 bg-white py-8 text-center text-sm text-gray-400">검색 결과가 없어요.</p>
       ) : (
         <div className="space-y-3">
-          {jobs.map((job) => {
+          {visibleJobs.map((job) => {
             const it = itemFor(job.id)
             return (
               <JobRow key={job.id} job={job} item={it} uid={session.user.id}
