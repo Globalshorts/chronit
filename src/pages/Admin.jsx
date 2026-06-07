@@ -426,6 +426,81 @@ const MissionsPanel = () => {
   )
 }
 
+// 로딩 중 노출되는 '숏폼 부업 꿀팁' 관리
+const TipsPanel = () => {
+  const [list, setList] = useState([])
+  const [editing, setEditing] = useState(null)   // id or 'new'
+  const [form, setForm] = useState({ emoji: '💡', text: '', category: '', active: true, sort_order: 0 })
+  const [saving, setSaving] = useState(false)
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+  const load = async () => {
+    const { data } = await supabase.from('loading_tips').select('*').order('sort_order').order('created_at')
+    setList(Array.isArray(data) ? data : [])
+  }
+  useEffect(() => { load() }, [])
+  const openNew = () => { setForm({ emoji: '💡', text: '', category: '', active: true, sort_order: 0 }); setEditing('new') }
+  const openEdit = (t) => { setForm({ emoji: t.emoji || '💡', text: t.text || '', category: t.category || '', active: !!t.active, sort_order: t.sort_order || 0 }); setEditing(t.id) }
+  const save = async () => {
+    if (!form.text.trim()) return
+    setSaving(true)
+    const payload = { ...form, sort_order: Math.floor(Number(form.sort_order) || 0) }
+    if (editing === 'new') await supabase.from('loading_tips').insert(payload)
+    else await supabase.from('loading_tips').update(payload).eq('id', editing)
+    setSaving(false); setEditing(null); load()
+  }
+  const del = async (id) => { if (!confirm('이 꿀팁을 삭제할까요?')) return; await supabase.from('loading_tips').delete().eq('id', id); load() }
+  const toggle = async (t) => { await supabase.from('loading_tips').update({ active: !t.active }).eq('id', t.id); load() }
+  const inputCls = 'w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-blue-500'
+
+  return (
+    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-black text-white">숏폼 부업 꿀팁</h2>
+          <span className="rounded-full bg-white/8 px-2 py-0.5 text-xs text-slate-400">{list.length}</span>
+        </div>
+        <button onClick={openNew} className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white"><Plus size={15} /> 새 꿀팁</button>
+      </div>
+      <p className="mb-4 text-xs text-slate-500">영상 생성 로딩 화면에 30초마다 랜덤으로 노출돼요.</p>
+
+      {editing && (
+        <div className="mb-5 rounded-xl border border-white/10 bg-white/[0.02] p-4 space-y-3">
+          <div className="flex gap-3">
+            <div className="w-20"><label className="mb-1 block text-xs font-bold text-slate-400">이모지</label><input className={inputCls + ' text-center'} value={form.emoji} onChange={e => set('emoji', e.target.value)} /></div>
+            <div className="flex-1"><label className="mb-1 block text-xs font-bold text-slate-400">분류 (선택)</label><input className={inputCls} value={form.category} onChange={e => set('category', e.target.value)} placeholder="후킹 / 수익화 / 크로닛 ..." /></div>
+            <div className="w-24"><label className="mb-1 block text-xs font-bold text-slate-400">순서</label><input type="number" className={inputCls} value={form.sort_order} onChange={e => set('sort_order', e.target.value)} /></div>
+          </div>
+          <div><label className="mb-1 block text-xs font-bold text-slate-400">팁 내용</label><textarea rows={2} className={inputCls} value={form.text} onChange={e => set('text', e.target.value)} placeholder="예) 첫 3초가 조회수의 80%를 좌우해요." /></div>
+          <div className="flex items-center justify-between">
+            <label className="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" checked={form.active} onChange={e => set('active', e.target.checked)} /> 노출</label>
+            <div className="flex gap-2">
+              <button onClick={() => setEditing(null)} className="rounded-xl border border-white/10 px-4 py-2 text-sm font-bold text-slate-400">취소</button>
+              <button onClick={save} disabled={saving || !form.text.trim()} className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">{saving ? <Loader size={14} className="animate-spin" /> : <Save size={14} />} 저장</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {list.length === 0 ? (
+        <div className="py-12 text-center text-slate-500"><p className="text-sm">아직 꿀팁이 없어요</p></div>
+      ) : (
+        <div className="space-y-1.5">
+          {list.map(t => (
+            <div key={t.id} className={`flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.02] p-2.5 ${t.active ? '' : 'opacity-50'}`}>
+              <span className="text-xl shrink-0 w-7 text-center">{t.emoji}</span>
+              <p className="min-w-0 flex-1 truncate text-sm text-white">{t.text}</p>
+              {t.category && <span className="shrink-0 rounded-full bg-white/8 px-2 py-0.5 text-[11px] text-slate-400">{t.category}</span>}
+              <button onClick={() => toggle(t)} className="text-slate-400 hover:text-white">{t.active ? <Eye size={15} /> : <EyeOff size={15} />}</button>
+              <button onClick={() => openEdit(t)} className="text-slate-400 hover:text-white"><Pencil size={15} /></button>
+              <button onClick={() => del(t.id)} className="text-slate-400 hover:text-red-400"><Trash2 size={15} /></button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 const Admin = () => {
   const [user, setUser] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -563,6 +638,7 @@ const Admin = () => {
           {[
             { key: 'events', icon: <Megaphone size={15} />, label: 'Events' },
             { key: 'missions', icon: <Gift size={15} />, label: '이벤트(크레딧)' },
+            { key: 'tips', icon: <Megaphone size={15} />, label: '꿀팁' },
             { key: 'videos', icon: <Film size={15} />, label: 'Demo Videos' },
           ].map(t => (
             <button key={t.key} onClick={() => { setTab(t.key); setView('list') }}
@@ -574,6 +650,7 @@ const Admin = () => {
 
         {tab === 'videos' && <DemoVideosPanel />}
         {tab === 'missions' && <MissionsPanel />}
+        {tab === 'tips' && <TipsPanel />}
 
         {tab === 'events' && view === 'list' && (
           <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">

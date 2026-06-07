@@ -165,6 +165,8 @@ export default function VideoGenerator() {
   const [currentJobId, setCurrentJobId] = useState(() => {
     try { return localStorage.getItem("chronit_current_job") || ""; } catch { return ""; }
   });
+  const [renderMini, setRenderMini] = useState(false);
+  useEffect(() => { if (currentJobId) setRenderMini(false); }, [currentJobId]);
 
   // Stage 6
   const [jobs, setJobs]             = useState<Job[]>([]);
@@ -955,24 +957,28 @@ export default function VideoGenerator() {
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm">
           <div className="rounded-3xl bg-white border border-gray-200 px-10 py-8 text-center shadow-2xl max-w-sm mx-4">
             <div className="w-12 h-12 mx-auto mb-4 border-4 border-gray-200 border-t-[#03C75A] rounded-full animate-spin" />
-            <p className="text-lg font-black text-gray-900">자동 생성 중</p>
+            <p className="text-lg font-black text-gray-900">잠깐! 아직 닫으면 안 돼요 🙏</p>
             <p className="text-sm text-[#03C75A] mt-1">{autoRunStep || "처리 중..."}</p>
-            <p className="text-xs text-gray-500 mt-3">보통 1~5분 걸려요.<br/>잠시만 기다려 주세요 — 끝나면 자동으로 알려드려요.</p>
+            <p className="text-xs text-gray-500 mt-3">영상 설정을 준비하고 있어요.<br/>거의 다 됐어요 — 이 단계만 지나면 기다리는 동안 다른 걸 하셔도 돼요!</p>
           </div>
         </div>
       )}
-      {/* ── 백그라운드 렌더 진행 배너 (제출 후 합성 도는 동안) ── */}
+      {/* ── 백그라운드 렌더 진행 (제출 후 합성 도는 동안) ── */}
       {!autoRunning && currentJobId && (() => {
         const bg = jobs.find(j => j.id === currentJobId);
         if (bg && (bg.status === "done" || bg.status === "error")) return null;
+        if (!renderMini) {
+          return <RenderProgressCard job={bg} tick={genTick} onMinimize={()=>setRenderMini(true)} />;
+        }
         return (
-          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 rounded-2xl bg-white border border-[#03C75A]/40 shadow-2xl shadow-[#03C75A]/10 px-5 py-3 flex items-center gap-3">
+          <button onClick={()=>setRenderMini(false)}
+            className="fixed top-6 left-1/2 -translate-x-1/2 z-50 rounded-2xl bg-white border border-[#03C75A]/40 shadow-2xl shadow-[#03C75A]/10 px-5 py-3 flex items-center gap-3 hover:bg-[#FAFDFB]">
             <div className="w-5 h-5 border-2 border-gray-200 border-t-[#03C75A] rounded-full animate-spin shrink-0" />
-            <div>
-              <p className="text-sm font-bold text-gray-900">영상 생성 중...</p>
-              <p className="text-xs text-gray-500">보통 1~5분 걸려요 · 창을 닫거나 다른 작업을 해도 계속 생성돼요.</p>
+            <div className="text-left">
+              <p className="text-sm font-bold text-gray-900">영상 생성 중... <span className="text-[#03C75A]">펼치기</span></p>
+              <p className="text-xs text-gray-500">창을 닫거나 다른 작업을 해도 계속 생성돼요.</p>
             </div>
-          </div>
+          </button>
         );
       })()}
       {/* ── 가입 경로 + 추천 코드 설문 (2페이지) ── */}
@@ -2002,6 +2008,64 @@ function CreditHistoryModal({ open, onClose, session }: { open:boolean; onClose:
         </div>
 
         <button onClick={onClose} className="w-full mt-4 rounded-xl bg-gray-100 hover:bg-gray-200 py-3 text-sm font-bold text-gray-700">닫기</button>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+// 로딩 중 '터지는 숏폼 부업 꿀팁' 카드뉴스 (30초마다 랜덤 회전)
+function LoadingTips() {
+  const [tips, setTips] = React.useState<any[]>([]);
+  const [idx, setIdx] = React.useState(0);
+  React.useEffect(()=>{ (async()=>{
+    try {
+      const { data } = await supabase.from("loading_tips").select("emoji,text").eq("active", true);
+      const arr = Array.isArray(data) ? [...data] : [];
+      for (let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+      setTips(arr);
+    } catch {}
+  })(); }, []);
+  React.useEffect(()=>{ if(tips.length<2) return; const t=setInterval(()=>setIdx(i=>(i+1)%tips.length), 30000); return ()=>clearInterval(t); }, [tips]);
+  if (!tips.length) return null;
+  const tip = tips[idx];
+  const go = (d:number)=> setIdx(i => (i + d + tips.length) % tips.length);
+  return (
+    <div className="mt-5 rounded-2xl bg-[#FAFAF8] border border-gray-200 p-4 text-left">
+      <p className="text-[11px] font-black text-[#03C75A] mb-2">📚 터지는 숏폼 부업 꿀팁 <span className="text-gray-400 font-bold">· 지식 충전 시간</span></p>
+      <div key={idx} className="tip-fade flex items-start gap-3 min-h-[64px]">
+        <div className="text-3xl leading-none shrink-0">{tip.emoji || "💡"}</div>
+        <p className="text-sm font-bold text-gray-800 leading-relaxed">{tip.text}</p>
+      </div>
+      <div className="mt-2 flex items-center justify-between">
+        <button onClick={()=>go(-1)} className="text-gray-400 hover:text-gray-700 text-sm px-2">‹</button>
+        <span className="text-[11px] text-gray-400">30초마다 자동으로 넘어가요</span>
+        <button onClick={()=>go(1)} className="text-gray-400 hover:text-gray-700 text-sm px-2">›</button>
+      </div>
+    </div>
+  );
+}
+
+// 렌더 중 진행 카드 (넷플릭스 봐도 OK + 진행 바 + 꿀팁)
+function RenderProgressCard({ job, tick, onMinimize }: { job:any; tick:number; onMinimize:()=>void }) {
+  void tick; // 1초 틱으로 경과시간/진행률 갱신
+  const TYPICAL = 240; // 실제 평균(중앙값 ~238초)으로 보정
+  const started = job?.created_at ? new Date(job.created_at).getTime() : Date.now();
+  const elapsed = Math.max(0, (Date.now() - started) / 1000);
+  const pct = Math.min(0.97, 1 - Math.exp(-elapsed / 110)); // 빠르게 차고 끝에서 천천히, 완료 전엔 97% 상한
+  const mm = Math.floor(elapsed/60), ss = Math.floor(elapsed%60);
+  return createPortal(
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onMinimize}>
+      <div className="w-full max-w-md rounded-3xl bg-white border border-gray-200 p-7 text-center shadow-2xl" onClick={e=>e.stopPropagation()}>
+        <div className="text-5xl mb-3">🍿</div>
+        <h2 className="text-xl font-black text-gray-900">이제 넷플릭스 보셔도 괜찮아요</h2>
+        <p className="text-sm text-gray-500 mt-1">AI가 열심히 영상을 만들고 있어요.<br/>다 되면 알려드릴게요!</p>
+        <div className="mt-5 h-3 w-full rounded-full bg-gray-100 overflow-hidden">
+          <div className="h-full rounded-full bg-gradient-to-r from-[#03C75A] to-[#02b350] transition-[width] duration-1000 ease-linear" style={{ width: `${Math.round(pct*100)}%` }} />
+        </div>
+        <p className="text-xs text-gray-500 mt-2">{mm}분 {String(ss).padStart(2,"0")}초 경과 · 보통 약 4분 걸려요</p>
+        <LoadingTips />
+        <button onClick={onMinimize} className="mt-5 w-full rounded-xl bg-gray-100 hover:bg-gray-200 py-3 text-sm font-bold text-gray-700">최소화하고 다른 작업 하기</button>
       </div>
     </div>,
     document.body
