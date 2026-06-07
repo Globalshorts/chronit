@@ -25,7 +25,7 @@ export default function LinkPage() {
         if (!pg) { if (alive) setState('notfound'); return }
         const { data: its } = await supabase
           .from('link_items')
-          .select('id, title, image_url, video_url, target_url, sort_order, badge')
+          .select('id, title, image_url, video_url, target_url, sort_order, badge, badge_color')
           .eq('user_id', pg.user_id)
           .eq('active', true)
           .order('sort_order', { ascending: true })
@@ -131,7 +131,8 @@ export default function LinkPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       {it.badge && (
-                        <span className="mb-1 inline-block rounded-md bg-[#ff4d4f] px-1.5 py-0.5 text-[10px] font-black leading-none text-white">{it.badge}</span>
+                        <span style={{ backgroundColor: it.badge_color || '#ff4d4f', color: textOn(it.badge_color || '#ff4d4f') }}
+                          className="mb-1 inline-block rounded-md px-1.5 py-0.5 text-[10px] font-black leading-none">{it.badge}</span>
                       )}
                       <p className="line-clamp-2 text-sm font-bold leading-snug">{it.title || '상품 보러가기'}</p>
                     </div>

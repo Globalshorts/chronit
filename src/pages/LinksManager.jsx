@@ -84,6 +84,13 @@ export function LinkPageManager({ session }) {
   const visibleJobs = jobQuery.trim()
     ? jobs.filter((j) => jobTitle(j).toLowerCase().includes(jobQuery.trim().toLowerCase()))
     : jobs
+  const sortedJobs = [...visibleJobs].sort((j1, j2) => {
+    const i1 = itemFor(j1.id), i2 = itemFor(j2.id)
+    if (i1?.active && i2?.active) return (i1.sort_order || 0) - (i2.sort_order || 0)
+    if (i1?.active) return -1
+    if (i2?.active) return 1
+    return 0
+  })
   const flash = (m) => { setSavedMsg(m); setTimeout(() => setSavedMsg(''), 1800) }
 
   const savePage = async (patch) => {
@@ -105,7 +112,7 @@ export function LinkPageManager({ session }) {
     } finally { setUploading(false) }
   }
 
-  const upsertItem = async (job, { title, target_url, active, image_url, badge }) => {
+  const upsertItem = async (job, { title, target_url, active, image_url, badge, badge_color }) => {
     const uid = session.user.id
     const existing = itemFor(job.id)
     let img = image_url || null
@@ -118,7 +125,7 @@ export function LinkPageManager({ session }) {
       } catch (e) { /* 캡처 실패 → 영상 폴백 */ }
     }
     if (existing) {
-      const patch = { title, target_url, active, badge: badge ?? null }
+      const patch = { title, target_url, active, badge: badge ?? null, badge_color: badge_color ?? null }
       if (img) patch.image_url = img
       const { data } = await supabase.from('link_items')
         .update(patch).eq('id', existing.id).select('*').single()
@@ -130,7 +137,7 @@ export function LinkPageManager({ session }) {
       }
       const maxSort = items.reduce((m, i) => Math.max(m, i.sort_order || 0), 0)
       const { data } = await supabase.from('link_items')
-        .insert({ user_id: uid, video_job_id: job.id, title, target_url, active, image_url: img, video_url: videoUrl, sort_order: maxSort + 1, badge: badge ?? null })
+        .insert({ user_id: uid, video_job_id: job.id, title, target_url, active, image_url: img, video_url: videoUrl, sort_order: maxSort + 1, badge: badge ?? null, badge_color: badge_color ?? null })
         .select('*').single()
       if (data) setItems((p) => [...p, data])
     }
@@ -253,7 +260,7 @@ export function LinkPageManager({ session }) {
         <p className="rounded-2xl border border-dashed border-gray-300 bg-white py-8 text-center text-sm text-gray-400">검색 결과가 없어요.</p>
       ) : (
         <div className="space-y-3">
-          {visibleJobs.map((job) => {
+          {sortedJobs.map((job) => {
             const it = itemFor(job.id)
             return (
               <JobRow key={job.id} job={job} item={it} uid={session.user.id}
@@ -312,6 +319,7 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
   const [title, setTitle] = useState(item?.title ?? (job.seo_title || job.product_name || ''))
   const [url, setUrl] = useState(item?.target_url ?? '')
   const [badge, setBadge] = useState(item?.badge ?? '')
+  const [badgeColor, setBadgeColor] = useState(item?.badge_color || '#ff4d4f')
   const [img, setImg] = useState(item?.image_url || job.poster_url || '')
   const [imgBusy, setImgBusy] = useState(false)
   const fracs = useRef([0.45, 0.65, 0.25, 0.8, 0.1, 0.55])
@@ -381,6 +389,14 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
                 className="rounded-md bg-gray-100 px-2 py-1 text-[11px] font-bold text-gray-600 hover:bg-gray-200">{b}</button>
             ))}
             {badge && (
+              <select value={badgeColor} onChange={(e) => setBadgeColor(e.target.value)}
+                className="rounded-md border border-gray-300 px-1.5 py-1 text-[11px] font-bold text-gray-700">
+                <option value="#ff4d4f">🔴 빨강</option>
+                <option value="#facc15">🟡 노랑</option>
+                <option value="#03c75a">🟢 초록</option>
+              </select>
+            )}
+            {badge && (
               <button type="button" onClick={() => setBadge('')}
                 className="rounded-md px-2 py-1 text-[11px] font-bold text-gray-400 hover:text-gray-600">지우기</button>
             )}
@@ -388,13 +404,13 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
           <div className="flex items-center gap-2">
             {active ? (
               <>
-                <button onClick={() => onSave({ title, target_url: url, active: true, image_url: img, badge })}
+                <button onClick={() => onSave({ title, target_url: url, active: true, image_url: img, badge, badge_color: badgeColor })}
                   className="rounded-lg bg-[#03C75A] px-3 py-1.5 text-xs font-bold text-white">저장</button>
-                <button onClick={() => onSave({ title, target_url: url, active: false, image_url: img, badge })}
+                <button onClick={() => onSave({ title, target_url: url, active: false, image_url: img, badge, badge_color: badgeColor })}
                   className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-bold text-gray-600">숨기기</button>
               </>
             ) : (
-              <button onClick={() => onSave({ title, target_url: url, active: true, image_url: img, badge })} disabled={!canShow}
+              <button onClick={() => onSave({ title, target_url: url, active: true, image_url: img, badge, badge_color: badgeColor })} disabled={!canShow}
                 className="rounded-lg bg-[#03C75A] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40">＋ 페이지에 표시</button>
             )}
             {!canShow && !active && <span className="text-[11px] text-gray-400">쿠팡 링크를 넣어야 표시할 수 있어요</span>}
