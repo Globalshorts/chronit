@@ -119,10 +119,10 @@ export default function LinkPage() {
                     href={it.target_url}
                     target="_blank"
                     rel="nofollow sponsored noopener noreferrer"
-                    style={{ backgroundColor: cardBg }}
-                    className={`group flex items-center gap-3 overflow-hidden rounded-2xl border p-2.5 shadow-sm transition-transform active:scale-[0.98] hover:[border-color:var(--accent)] ${cardBorder}`}
+                    style={{ backgroundColor: btnColor, color: btnText }}
+                    className="group flex items-center gap-3 overflow-hidden rounded-2xl border border-black/5 p-2.5 shadow-sm transition active:scale-[0.98] hover:brightness-95"
                   >
-                    <div className="relative h-[68px] w-[68px] shrink-0 overflow-hidden rounded-xl bg-black">
+                    <div className="relative h-[68px] w-[68px] shrink-0 overflow-hidden rounded-xl bg-black/20">
                       {it.image_url
                         ? <img src={it.image_url} alt={it.title || ''} loading="lazy" className="h-full w-full object-cover" />
                         : it.video_url
@@ -135,8 +135,7 @@ export default function LinkPage() {
                       )}
                       <p className="line-clamp-2 text-sm font-bold leading-snug">{it.title || '상품 보러가기'}</p>
                     </div>
-                    <span style={{ backgroundColor: btnColor, color: btnText }}
-                      className="shrink-0 rounded-lg px-3 py-2 text-xs font-extrabold">보러가기</span>
+                    <span className="shrink-0 pr-1 text-lg opacity-50">›</span>
                   </a>
                 ))}
               </div>

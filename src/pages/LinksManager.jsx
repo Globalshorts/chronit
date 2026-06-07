@@ -219,7 +219,7 @@ export function LinkPageManager({ session }) {
           <ColorPalette value={page.bg_color || '#ECEAE3'} onChange={(c) => savePage({ bg_color: c })} />
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <span className="w-20 text-sm font-bold text-gray-600">버튼 색상</span>
+          <span className="w-20 text-sm font-bold text-gray-600">카드 색상</span>
           <ColorPalette value={page.accent_color || '#03C75A'} onChange={(c) => savePage({ accent_color: c })} />
         </div>
       </div>
