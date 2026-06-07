@@ -322,6 +322,7 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
   const [badgeColor, setBadgeColor] = useState(item?.badge_color || '#ff4d4f')
   const [img, setImg] = useState(item?.image_url || job.poster_url || '')
   const [imgBusy, setImgBusy] = useState(false)
+  const [open, setOpen] = useState(false)
   const fracs = useRef([0.45, 0.65, 0.25, 0.8, 0.1, 0.55])
   const fracIdx = useRef(0)
   const active = !!item?.active
@@ -354,78 +355,90 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
   }
 
   return (
-    <div className={`rounded-2xl border bg-white p-4 ${active ? 'border-[#03C75A]' : 'border-gray-200'}`}>
-      <div className="flex gap-3">
-        <div className="shrink-0 flex flex-col items-center gap-1.5">
-          <div className="h-24 w-20 overflow-hidden rounded-xl bg-black">
+    <div className={`flex overflow-hidden rounded-2xl border bg-white ${active ? 'border-[#03C75A]' : 'border-gray-200'}`}>
+      {/* 좌측 정렬 레일 (표시중 카드만) */}
+      {active && onMove && (
+        <div className="flex shrink-0 flex-col items-center justify-center gap-3 border-r border-gray-100 bg-gray-50 px-2 text-gray-400">
+          <button onClick={() => onMove(-1)} title="위로" className="leading-none transition hover:text-[#03C75A]">▲</button>
+          <button onClick={() => onMove(1)} title="아래로" className="leading-none transition hover:text-[#03C75A]">▼</button>
+        </div>
+      )}
+
+      <div className="min-w-0 flex-1 p-3">
+        <div className="flex gap-3">
+          <button type="button" onClick={() => setOpen((o) => !o)} title="설정 열기"
+            className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-black">
             {img
               ? <img src={img} alt="" className="h-full w-full object-cover" />
               : job.video_url ? <video src={`${job.video_url}#t=0.6`} muted playsInline preload="metadata" className="h-full w-full object-cover" /> : null}
-          </div>
-          <div className="flex gap-1">
-            <button onClick={pickFrame} disabled={imgBusy} title="다른 장면으로 바꾸기"
-              className="rounded-md bg-gray-100 px-1.5 py-1 text-[11px] font-bold text-gray-600 hover:bg-gray-200 disabled:opacity-40">{imgBusy ? '…' : '🔄 다른 컷'}</button>
-            <label className="cursor-pointer rounded-md bg-gray-100 px-1.5 py-1 text-[11px] font-bold text-gray-600 hover:bg-gray-200" title="직접 업로드">📷
-              <input type="file" accept="image/*" className="hidden" disabled={imgBusy} onChange={(e) => uploadImg(e.target.files?.[0])} />
-            </label>
-          </div>
-        </div>
-        <div className="min-w-0 flex-1 space-y-2">
-          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="카드 제목"
-            className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
-          <div className="flex gap-1.5">
-            <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="쿠팡 파트너스 링크 붙여넣기"
-              className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
-            <a href={`https://partners.coupang.com/#affiliate/ws/link/0/${encodeURIComponent((job.search_keyword || job.product_name || title || '').trim())}`}
-              target="_blank" rel="noreferrer"
-              className="shrink-0 whitespace-nowrap rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-200">🔍 쿠팡에서 찾기</a>
-          </div>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-xs font-bold text-gray-500">배지</span>
-            <input value={badge} onChange={(e) => setBadge(e.target.value)} placeholder="없음" maxLength={12}
-              className="w-24 rounded-lg border border-gray-300 px-2 py-1 text-xs" />
-            {['Hot🔥', 'New⭐', '인기', '추천', '마감임박'].map((b) => (
-              <button key={b} type="button" onClick={() => setBadge(b)}
-                className="rounded-md bg-gray-100 px-2 py-1 text-[11px] font-bold text-gray-600 hover:bg-gray-200">{b}</button>
-            ))}
-            {badge && (
-              <select value={badgeColor} onChange={(e) => setBadgeColor(e.target.value)}
-                className="rounded-md border border-gray-300 px-1.5 py-1 text-[11px] font-bold text-gray-700">
-                <option value="#ff4d4f">🔴 빨강</option>
-                <option value="#facc15">🟡 노랑</option>
-                <option value="#03c75a">🟢 초록</option>
-              </select>
-            )}
-            {badge && (
-              <button type="button" onClick={() => setBadge('')}
-                className="rounded-md px-2 py-1 text-[11px] font-bold text-gray-400 hover:text-gray-600">지우기</button>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            {active ? (
-              <>
+          </button>
+          <div className="min-w-0 flex-1 space-y-2">
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="카드 제목"
+              className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
+            <div className="flex gap-1.5">
+              <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="쿠팡 파트너스 링크 붙여넣기"
+                className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
+              <a href={`https://partners.coupang.com/#affiliate/ws/link/0/${encodeURIComponent((job.search_keyword || job.product_name || title || '').trim())}`}
+                target="_blank" rel="noreferrer"
+                className="shrink-0 whitespace-nowrap rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-200">🔍 쿠팡에서 찾기</a>
+            </div>
+            <div className="flex items-center gap-2">
+              {active ? (
                 <button onClick={() => onSave({ title, target_url: url, active: true, image_url: img, badge, badge_color: badgeColor })}
                   className="rounded-lg bg-[#03C75A] px-3 py-1.5 text-xs font-bold text-white">저장</button>
-                <button onClick={() => onSave({ title, target_url: url, active: false, image_url: img, badge, badge_color: badgeColor })}
-                  className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-bold text-gray-600">숨기기</button>
-              </>
-            ) : (
-              <button onClick={() => onSave({ title, target_url: url, active: true, image_url: img, badge, badge_color: badgeColor })} disabled={!canShow}
-                className="rounded-lg bg-[#03C75A] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40">＋ 페이지에 표시</button>
-            )}
-            {!canShow && !active && <span className="text-[11px] text-gray-400">쿠팡 링크를 넣어야 표시할 수 있어요</span>}
-            <span className="ml-auto flex items-center gap-1">
-              {onMove && active && (
-                <>
-                  <button onClick={() => onMove(-1)} className="rounded-lg border border-gray-300 px-2 py-1.5 text-xs font-bold text-gray-600">↑</button>
-                  <button onClick={() => onMove(1)} className="rounded-lg border border-gray-300 px-2 py-1.5 text-xs font-bold text-gray-600">↓</button>
-                </>
+              ) : (
+                <button onClick={() => onSave({ title, target_url: url, active: true, image_url: img, badge, badge_color: badgeColor })} disabled={!canShow}
+                  className="rounded-lg bg-[#03C75A] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40">＋ 페이지에 표시</button>
               )}
-              <button onClick={onDelete}
-                className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-bold text-red-500 hover:bg-red-100">🗑️ 삭제</button>
-            </span>
+              {!canShow && !active && <span className="text-[11px] text-gray-400">쿠팡 링크 필요</span>}
+              <button type="button" onClick={() => setOpen((o) => !o)}
+                className="ml-auto rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-bold text-gray-500 hover:bg-gray-50">⚙ 설정 {open ? '▲' : '▾'}</button>
+            </div>
           </div>
         </div>
+
+        {/* 펼침: 이미지 · 배지 · 숨기기 · 삭제 */}
+        {open && (
+          <div className="mt-3 space-y-3 border-t border-gray-100 pt-3">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="w-10 text-xs font-bold text-gray-500">이미지</span>
+              <button onClick={pickFrame} disabled={imgBusy} title="다른 장면으로 바꾸기"
+                className="rounded-md bg-gray-100 px-2 py-1 text-[11px] font-bold text-gray-600 hover:bg-gray-200 disabled:opacity-40">{imgBusy ? '…' : '🔄 다른 컷'}</button>
+              <label className="cursor-pointer rounded-md bg-gray-100 px-2 py-1 text-[11px] font-bold text-gray-600 hover:bg-gray-200" title="직접 업로드">📷 업로드
+                <input type="file" accept="image/*" className="hidden" disabled={imgBusy} onChange={(e) => uploadImg(e.target.files?.[0])} />
+              </label>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="w-10 text-xs font-bold text-gray-500">배지</span>
+              <input value={badge} onChange={(e) => setBadge(e.target.value)} placeholder="없음" maxLength={12}
+                className="w-24 rounded-lg border border-gray-300 px-2 py-1 text-xs" />
+              {['Hot🔥', 'New⭐', '인기', '추천', '마감임박'].map((b) => (
+                <button key={b} type="button" onClick={() => setBadge(b)}
+                  className="rounded-md bg-gray-100 px-2 py-1 text-[11px] font-bold text-gray-600 hover:bg-gray-200">{b}</button>
+              ))}
+              {badge && (
+                <select value={badgeColor} onChange={(e) => setBadgeColor(e.target.value)}
+                  className="rounded-md border border-gray-300 px-1.5 py-1 text-[11px] font-bold text-gray-700">
+                  <option value="#ff4d4f">🔴 빨강</option>
+                  <option value="#facc15">🟡 노랑</option>
+                  <option value="#03c75a">🟢 초록</option>
+                </select>
+              )}
+              {badge && (
+                <button type="button" onClick={() => setBadge('')}
+                  className="rounded-md px-2 py-1 text-[11px] font-bold text-gray-400 hover:text-gray-600">지우기</button>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {active && (
+                <button onClick={() => onSave({ title, target_url: url, active: false, image_url: img, badge, badge_color: badgeColor })}
+                  className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-bold text-gray-600">숨기기</button>
+              )}
+              <button onClick={onDelete}
+                className="ml-auto rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-bold text-red-500 hover:bg-red-100">🗑️ 삭제</button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
