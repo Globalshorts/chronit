@@ -3688,10 +3688,11 @@ function ProductSearchView({ session }: { session:any }) {
 }
 
 function AdminView({ session, supabase }: { session: any; supabase: any }) {
-  const [tab, setTab] = React.useState<"subs"|"coupons"|"reviews">("subs");
+  const [tab, setTab] = React.useState<"subs"|"coupons"|"reviews"|"payouts">("subs");
   const TABS = [
     { v:"subs",    label:"👑 구독 관리" },
     { v:"coupons", label:"🎟 쿠폰 코드" },
+    { v:"payouts", label:"📊 파트너 정산" },
     { v:"reviews", label:"📝 후기 승인" },
   ] as const;
   return (
@@ -3706,7 +3707,105 @@ function AdminView({ session, supabase }: { session: any; supabase: any }) {
       </div>
       {tab==="subs"    && <AdminSubsTab session={session} supabase={supabase} />}
       {tab==="coupons" && <AdminCouponsTab session={session} supabase={supabase} />}
+      {tab==="payouts" && <AdminPayoutsTab session={session} supabase={supabase} />}
       {tab==="reviews" && <AdminReviewsTab session={session} supabase={supabase} />}
+    </div>
+  );
+}
+
+// ── 관리자: 파트너 정산 ──
+function AdminPayoutsTab({ session, supabase }: { session:any; supabase:any }) {
+  const [rows, setRows] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [msg, setMsg] = React.useState("");
+  const won = (n:number)=>`₩${Number(n||0).toLocaleString("ko-KR")}`;
+
+  const load = React.useCallback(async ()=>{
+    setLoading(true);
+    try {
+      const { data } = await supabase.rpc("admin_partner_stats_rpc");
+      setRows(data?.ok && Array.isArray(data.partners) ? data.partners : []);
+    } catch { setRows([]); }
+    setLoading(false);
+  }, [supabase]);
+  React.useEffect(()=>{ if(session) load(); }, [session, load]);
+
+  const payAll = async () => {
+    if (!window.confirm("확정된(7일 지난) 모든 수수료를 '지급완료'로 처리할까요?")) return;
+    setMsg("지급 처리 중...");
+    const { data, error } = await supabase.rpc("payout_partner_commissions_rpc", {});
+    if (error || data?.ok===false) { setMsg("실패: "+(error?.message||data?.error||"")); return; }
+    setMsg(`지급 처리 완료 — ${data.paid_count}건 / ${won(data.paid_total)}`); await load();
+  };
+  const payOne = async (pid:string, email:string) => {
+    if (!window.confirm(`${email} 의 확정 수수료를 지급완료 처리할까요?`)) return;
+    setMsg("지급 처리 중...");
+    const { data, error } = await supabase.rpc("payout_partner_commissions_rpc", { p_target_partner: pid });
+    if (error || data?.ok===false) { setMsg("실패: "+(error?.message||data?.error||"")); return; }
+    setMsg(`${email} 지급 완료 — ${data.paid_count}건 / ${won(data.paid_total)}`); await load();
+  };
+
+  const tot = rows.reduce((a:any,r:any)=>({
+    pending:a.pending+(Number(r.pending)||0), confirmed:a.confirmed+(Number(r.confirmed)||0), paid:a.paid+(Number(r.paid)||0),
+  }), {pending:0,confirmed:0,paid:0});
+
+  if (loading) return <p className="text-sm text-gray-400">불러오는 중...</p>;
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-2">
+          <p className="text-[11px] text-amber-700 font-bold">적립예정(7일 대기)</p>
+          <p className="text-lg font-black text-amber-700">{won(tot.pending)}</p>
+        </div>
+        <div className="rounded-xl bg-green-50 border border-green-200 px-4 py-2">
+          <p className="text-[11px] text-green-700 font-bold">확정(지급 대상)</p>
+          <p className="text-lg font-black text-green-700">{won(tot.confirmed)}</p>
+        </div>
+        <div className="rounded-xl bg-gray-50 border border-gray-200 px-4 py-2">
+          <p className="text-[11px] text-gray-500 font-bold">누적 지급완료</p>
+          <p className="text-lg font-black text-gray-700">{won(tot.paid)}</p>
+        </div>
+        <button onClick={payAll} className="ml-auto rounded-lg bg-[#03C75A] hover:bg-[#02b350] px-4 py-2.5 text-sm font-bold text-white">확정분 전체 지급 처리</button>
+        <button onClick={load} className="rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-bold text-gray-500 hover:text-gray-900">새로고침</button>
+      </div>
+      {msg && <p className="text-xs text-[#03C75A] mb-3">{msg}</p>}
+      <p className="text-[11px] text-gray-400 mb-2">※ 확정 = 결제 7일 경과(환불기간 종료)로 자동 확정된 금액(매일 새벽 자동). "오버라이드" 배지 = 이 사람이 상위 파트너(친구)로서 받은 금액.</p>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-gray-400 border-b border-gray-200">
+              <th className="px-3 py-2 font-semibold">파트너</th>
+              <th className="px-3 py-2 font-semibold text-right">멤버</th>
+              <th className="px-3 py-2 font-semibold text-right">결제액</th>
+              <th className="px-3 py-2 font-semibold text-right">적립예정</th>
+              <th className="px-3 py-2 font-semibold text-right">확정</th>
+              <th className="px-3 py-2 font-semibold text-right">지급완료</th>
+              <th className="px-3 py-2 font-semibold">상위 친구</th>
+              <th className="px-3 py-2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.length===0 && <tr><td colSpan={8} className="px-3 py-6 text-center text-gray-400">파트너가 없어요.</td></tr>}
+            {rows.map((r:any)=>(
+              <tr key={r.pid} className="border-b border-gray-100">
+                <td className="px-3 py-2.5 font-medium text-gray-900">{r.email}
+                  {Number(r.override_earned)>0 && <span className="ml-1 rounded bg-indigo-100 px-1.5 py-0.5 text-[10px] font-bold text-indigo-600">오버라이드 {won(r.override_earned)}</span>}
+                </td>
+                <td className="px-3 py-2.5 text-right text-gray-600">{r.members}</td>
+                <td className="px-3 py-2.5 text-right text-gray-600">{won(r.gross)}</td>
+                <td className="px-3 py-2.5 text-right text-amber-600 font-semibold">{won(r.pending)}</td>
+                <td className="px-3 py-2.5 text-right text-green-600 font-bold">{won(r.confirmed)}</td>
+                <td className="px-3 py-2.5 text-right text-gray-400">{won(r.paid)}</td>
+                <td className="px-3 py-2.5 text-gray-500 text-xs">{r.upline_email||"-"}</td>
+                <td className="px-3 py-2.5 text-right">
+                  {Number(r.confirmed)>0 && <button onClick={()=>payOne(r.pid, r.email)} className="rounded-lg bg-[#03C75A] hover:bg-[#02b350] px-3 py-1.5 text-xs font-bold text-white">지급</button>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
