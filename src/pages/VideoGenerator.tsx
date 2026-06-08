@@ -3734,6 +3734,9 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
   const [pcDisc, setPcDisc] = React.useState<Record<string,{type:string;value:string}>>(freshPR);
   const [pcTrialPlan, setPcTrialPlan] = React.useState("pro");
   const [pcTrialDays, setPcTrialDays] = React.useState("7");
+  const [pcUpEmail, setPcUpEmail] = React.useState("");
+  const [pcUpOv, setPcUpOv] = React.useState<Record<string,string>>({starter:"10000",pro:"15000",master:"20000"});
+  const [upMsg, setUpMsg] = React.useState("");
   const setPCD = (k:string, patch:any) => setPcDisc(p=>({ ...p, [k]:{ ...p[k], ...patch } }));
   const [pcMsg, setPcMsg] = React.useState("");
   const [msg, setMsg]       = React.useState("");
@@ -3822,8 +3825,17 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
     setPartnerRates(freshPR()); setPrMsg("");
     // 파트너 쿠폰 기본값: 이메일 앞부분 기반 코드 추천
     setPcDisc(freshPR()); setPcMsg("");
+    setPcUpEmail(""); setPcUpOv({starter:"10000",pro:"15000",master:"20000"}); setUpMsg("");
     setPcCode(selUser?.email ? String(selUser.email).split("@")[0].replace(/[^a-zA-Z0-9]/g,"").toUpperCase().slice(0,8) : "");
     if (sel && selUser?.role === "partner") {
+      supabase.rpc("admin_get_partner_upline_rpc",{ p_teacher_id: sel }).then((res:any)=>{
+        const d = res?.data;
+        if (d?.ok && d.upline_email) {
+          setPcUpEmail(d.upline_email);
+          const o = d.override||{};
+          setPcUpOv({ starter:String(o.starter??10000), pro:String(o.pro??15000), master:String(o.master??20000) });
+        }
+      }, ()=>{});
       supabase.rpc("admin_get_partner_rates_rpc",{ p_partner_id: sel }).then((res:any)=>{
         const r = res?.data?.rates;
         if (r && typeof r === "object") {
@@ -3872,6 +3884,15 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
     });
     if (error) setPcMsg("발급 실패: "+error.message+(error.code==="23505"?" (이미 있는 코드 — 체험은 다른 코드로)":""));
     else setPcMsg(`체험 쿠폰 ${c} 발급 완료 — ${pcTrialPlan.toUpperCase()} ${days}일 무료체험 (파트너 ${selUser.email})`);
+  };
+
+  const savePartnerUpline = async () => {
+    if (!sel) { setUpMsg("회원을 먼저 선택하세요"); return; }
+    setUpMsg("저장 중...");
+    const override = { starter: Number(pcUpOv.starter)||0, pro: Number(pcUpOv.pro)||0, master: Number(pcUpOv.master)||0 };
+    const { data, error } = await supabase.rpc("admin_set_partner_upline_rpc", { p_teacher_id: sel, p_upline_email: pcUpEmail.trim(), p_override: override });
+    if (error || data?.ok===false) { setUpMsg("저장 실패: "+(error?.message||data?.error||"")); return; }
+    setUpMsg(data.action==="unset" ? "상위 파트너 해제됨" : `상위 파트너 연결됨: ${data.upline_email}`);
   };
 
   const savePartnerRates = async () => {
@@ -4013,6 +4034,26 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
             </div>
             <button onClick={savePartnerRates} className="mt-3 rounded-lg bg-[#03C75A] hover:bg-[#02b350] px-4 py-2 text-xs font-bold text-white">정산 수수료 저장</button>
             {prMsg && <p className="text-xs text-[#03C75A] mt-2">{prMsg}</p>}
+
+            {/* 상위 파트너(친구) 오버라이드 */}
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <p className="text-xs font-bold text-gray-700 mb-1">👥 상위 파트너(친구) 오버라이드</p>
+              <p className="text-[11px] text-gray-400 mb-2">이 파트너(강사)가 데려온 결제마다, 지정한 <b>상위 파트너(친구)</b>에게도 아래 금액이 추가 적립돼요. 비우고 저장하면 해제. (친구는 자기 계정 파트너스 탭에서 확인)</p>
+              <input value={pcUpEmail} onChange={e=>setPcUpEmail(e.target.value)} placeholder="상위 파트너 이메일 (예: friend@gmail.com)"
+                className="w-full mb-2 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none focus:border-indigo-500" />
+              <div className="flex flex-wrap items-center gap-2">
+                {[["starter","스타터"],["pro","프로"],["master","마스터"]].map(([k,label])=>(
+                  <div key={k} className="flex items-center gap-1">
+                    <span className="text-xs text-gray-500">{label}</span>
+                    <input value={pcUpOv[k]} onChange={e=>setPcUpOv(p=>({...p,[k]:e.target.value.replace(/[^0-9]/g,'')}))}
+                      className="w-20 rounded-lg bg-gray-100 border border-gray-200 px-2 py-1.5 text-sm text-gray-900 outline-none focus:border-indigo-500" />
+                    <span className="text-xs text-gray-400">원</span>
+                  </div>
+                ))}
+              </div>
+              <button onClick={savePartnerUpline} className="mt-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-4 py-2 text-xs font-bold text-white">상위 파트너 저장</button>
+              {upMsg && <p className="text-xs text-indigo-500 mt-2">{upMsg}</p>}
+            </div>
 
             {/* 파트너 전용 쿠폰 발급 */}
             <div className="mt-4 pt-4 border-t border-gray-200">
