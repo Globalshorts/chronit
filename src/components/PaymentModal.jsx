@@ -52,6 +52,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
   const [codeInput, setCodeInput] = useState(initialCode || '')
   const [discount, setDiscount] = useState(null)
   const [codeStatus, setCodeStatus] = useState(null) // null | 'loading' | 'valid' | 'invalid' | 'expired'
+  const [trialMsg, setTrialMsg] = useState(null)
 
   useEffect(() => {
     if (initialCode) {
@@ -79,6 +80,18 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
     if (data.owner_email) {
       try { supabase.rpc('redeem_teacher_code_rpc', { p_code: trimmed }).then(() => {}, () => {}) } catch {}
     }
+  }
+
+  const startTrial = async () => {
+    if (!discount?.code) return
+    setTrialMsg('처리 중...')
+    const { data: s } = await supabase.auth.getSession()
+    if (!s?.session) { setTrialMsg('로그인 후 앱에서 이 코드를 입력하면 체험이 시작됩니다.'); return }
+    const { data, error } = await supabase.rpc('redeem_free_trial_rpc', { p_code: discount.code })
+    if (error) { setTrialMsg('실패: ' + error.message); return }
+    if (data?.ok === false) { setTrialMsg('실패: ' + data.error); return }
+    setTrialMsg(`${data.days}일 무료 체험이 시작됐어요! 잠시 후 새로고침됩니다.`)
+    setTimeout(() => window.location.reload(), 1300)
   }
 
   useEffect(() => {
@@ -300,9 +313,12 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
         )}
 
         {isFreedays ? (
-          <button onClick={onClose} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#03C75A] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(3,199,90,0.6)] transition-all hover:bg-[#02b350] active:scale-[0.98]">
-            확인
+          <div>
+            <button onClick={startTrial} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#03C75A] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(3,199,90,0.6)] transition-all hover:bg-[#02b350] active:scale-[0.98]">
+            {discount.value}일 무료 체험 시작
           </button>
+            {trialMsg && <p className="mt-3 text-center text-sm font-bold text-[#03C75A]">{trialMsg}</p>}
+          </div>
         ) : (
           <button
             onClick={() => copyToClipboard(`${account.bank} ${account.number} ${account.holder} / ${plan.price.toLocaleString('ko-KR')}원 (${plan.name})`, 'all')}

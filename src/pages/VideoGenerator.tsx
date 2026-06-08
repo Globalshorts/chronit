@@ -3732,6 +3732,8 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
   // 파트너 쿠폰 발급
   const [pcCode, setPcCode] = React.useState("");
   const [pcDisc, setPcDisc] = React.useState<Record<string,{type:string;value:string}>>(freshPR);
+  const [pcTrialPlan, setPcTrialPlan] = React.useState("pro");
+  const [pcTrialDays, setPcTrialDays] = React.useState("7");
   const setPCD = (k:string, patch:any) => setPcDisc(p=>({ ...p, [k]:{ ...p[k], ...patch } }));
   const [pcMsg, setPcMsg] = React.useState("");
   const [msg, setMsg]       = React.useState("");
@@ -3855,6 +3857,21 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
     });
     if (error) setPcMsg("발급 실패: "+error.message+(error.code==="23505"?" (이미 있는 코드)":""));
     else setPcMsg(`쿠폰 ${c} 발급 완료 — 파트너 ${selUser.email}에 연결됨`);
+  };
+
+  const createTrialCoupon = async () => {
+    if (!sel || !selUser?.email) { setPcMsg("회원을 먼저 선택하세요"); return; }
+    const c = pcCode.trim().toUpperCase();
+    if (!c) { setPcMsg("코드를 입력하세요"); return; }
+    const days = Math.floor(Number(pcTrialDays)||0);
+    if (days <= 0) { setPcMsg("체험 일수를 입력하세요"); return; }
+    setPcMsg("발급 중...");
+    const { error } = await supabase.from("coupon_codes").insert({
+      code: c, type:"free_days", value: days, owner_email: selUser.email, expires_at: null,
+      plan_discounts: null, allowed_plans: [pcTrialPlan],
+    });
+    if (error) setPcMsg("발급 실패: "+error.message+(error.code==="23505"?" (이미 있는 코드 — 체험은 다른 코드로)":""));
+    else setPcMsg(`체험 쿠폰 ${c} 발급 완료 — ${pcTrialPlan.toUpperCase()} ${days}일 무료체험 (파트너 ${selUser.email})`);
   };
 
   const savePartnerRates = async () => {
@@ -4027,6 +4044,22 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
                 ))}
               </div>
               <button onClick={createPartnerCoupon} className="mt-3 rounded-lg bg-[#03C75A] hover:bg-[#02b350] px-4 py-2 text-xs font-bold text-white">코드 발급</button>
+
+              <div className="mt-4 pt-3 border-t border-dashed border-gray-200">
+                <p className="text-xs font-bold text-gray-700 mb-2">🎁 무료 체험 쿠폰 (기간 한정)</p>
+                <p className="text-[11px] text-gray-400 mb-2">할인 대신 선택 플랜을 N일간 무료로 부여해요. 멤버가 코드 입력 즉시 체험 시작 → N일 후 자동 만료. (체험은 위 할인 코드와 <b>다른 코드</b>를 쓰세요)</p>
+                <div className="flex items-center gap-2">
+                  <select value={pcTrialPlan} onChange={e=>setPcTrialPlan(e.target.value)}
+                    className="rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none">
+                    <option value="starter">스타터</option><option value="pro">프로</option><option value="master">마스터</option>
+                  </select>
+                  <input value={pcTrialDays} onChange={e=>setPcTrialDays(e.target.value.replace(/[^0-9]/g,''))}
+                    className="w-16 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#03C75A]" />
+                  <span className="text-sm text-gray-500">일</span>
+                  <button onClick={createTrialCoupon} className="ml-auto rounded-lg bg-amber-500 hover:bg-amber-600 px-4 py-2 text-xs font-bold text-white">체험 쿠폰 발급</button>
+                </div>
+              </div>
+
               {pcMsg && <p className="text-xs text-[#03C75A] mt-2">{pcMsg}</p>}
             </div>
           </div>
