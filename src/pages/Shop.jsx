@@ -25,21 +25,26 @@ const Shop = () => {
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState('')
+  const [paid, setPaid] = useState(true)
 
   useEffect(() => { supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null)) }, [])
 
   const refresh = async () => {
-    const [{ data: gs }, { data: bal }, { data: rs }] = await Promise.all([
+    const [{ data: gs }, { data: bal }, { data: rs }, sub] = await Promise.all([
       supabase.from('gifticons').select('*').eq('active', true).order('sort_order').order('point_cost'),
       user ? supabase.rpc('get_my_points_rpc') : Promise.resolve({ data: 0 }),
       user ? supabase.from('gifticon_redemptions').select('*').order('created_at', { ascending: false }).limit(20) : Promise.resolve({ data: [] }),
+      user ? supabase.rpc('get_my_balance_rpc').single() : Promise.resolve({ data: null }),
     ])
     setItems(gs || []); setBalance(bal ?? 0); setReds(rs || []); setLoading(false)
+    const plan = sub?.data?.plan
+    setPaid(['starter', 'pro', 'master'].includes(plan) && (!sub?.data?.expires_at || new Date(sub.data.expires_at) > new Date()))
   }
   useEffect(() => { if (user !== undefined) refresh() }, [user])
 
   const openRedeem = (g) => {
     if (!user) { nav('/generate'); return }
+    if (!paid) { setToast('기프티콘 교환은 유료 플랜 전용이에요'); setTimeout(() => setToast(''), 3000); return }
     setSel(g); setPhone(''); setErr('')
   }
 
@@ -70,6 +75,13 @@ const Shop = () => {
             </div>
           )}
         </div>
+
+        {user && !paid && (
+          <Link to="/#pricing" className="mb-5 block rounded-2xl border border-amber-200 bg-amber-50 p-4 text-center transition-all hover:bg-amber-100">
+            <p className="text-sm font-bold text-amber-700">기프티콘 교환은 <span className="underline">유료 플랜(스타터·프로·마스터)</span> 전용이에요.</p>
+            <p className="mt-0.5 text-xs text-amber-600">플랜 보러가기 →</p>
+          </Link>
+        )}
 
         {loading ? (
           <p className="py-16 text-center text-sm text-slate-500">불러오는 중…</p>

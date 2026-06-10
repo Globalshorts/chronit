@@ -23,16 +23,19 @@ const Points = () => {
   const [txns, setTxns] = useState([])
   const [streak, setStreak] = useState(0)
   const [checkedToday, setCheckedToday] = useState(false)
+  const [paid, setPaid] = useState(true)
   const [toast, setToast] = useState('')
 
   useEffect(() => { supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null)) }, [])
 
   const refresh = async (uid) => {
-    const [{ data: bal }, { data: tx }] = await Promise.all([
+    const [{ data: bal }, { data: tx }, { data: sub }] = await Promise.all([
       supabase.rpc('get_my_points_rpc'),
       supabase.from('point_transactions').select('*').order('created_at', { ascending: false }).limit(40),
+      supabase.rpc('get_my_balance_rpc').single(),
     ])
     setBalance(bal ?? 0); setTxns(tx || [])
+    setPaid(['starter', 'pro', 'master'].includes(sub?.plan) && (!sub?.expires_at || new Date(sub.expires_at) > new Date()))
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }) // YYYY-MM-DD KST
     const { data: att } = await supabase.from('attendance_checks').select('*').eq('user_id', uid).eq('check_date', today).maybeSingle()
     if (att) { setCheckedToday(true); setStreak(att.streak) }
@@ -42,7 +45,10 @@ const Points = () => {
 
   const checkIn = async () => {
     const { data, error } = await supabase.rpc('attendance_check_rpc')
-    if (error || !data?.ok) return
+    if (error || !data?.ok) {
+      if (data?.paid_only) { setToast('출석·포인트는 유료 플랜 전용 혜택이에요'); setTimeout(() => setToast(''), 3000) }
+      return
+    }
     setCheckedToday(true); setStreak(data.streak)
     if (!data.already) {
       setToast(`출석 완료! +${data.awarded}P${data.bonus ? ` (연속 보너스 +${data.bonus}P)` : ''}`)
@@ -73,6 +79,14 @@ const Points = () => {
           </Link>
         </div>
 
+        {/* 무료 유저 안내 */}
+        {!paid && (
+          <Link to="/#pricing" className="mt-5 block rounded-2xl border border-amber-200 bg-amber-50 p-4 text-center transition-all hover:bg-amber-100">
+            <p className="text-sm font-bold text-amber-700">포인트·출석·기프티콘 교환은 <span className="underline">유료 플랜(스타터·프로·마스터)</span> 전용 혜택이에요.</p>
+            <p className="mt-0.5 text-xs text-amber-600">플랜 보러가기 →</p>
+          </Link>
+        )}
+
         {/* 출석체크 */}
         <div className="mt-5 flex items-center justify-between rounded-2xl border border-gray-200 bg-white p-5">
           <div>
@@ -82,9 +96,9 @@ const Points = () => {
               {streak > 0 ? `${streak}일 연속 출석 중` : '오늘 출석하고 10P 받기'} · 7일마다 +50P
             </p>
           </div>
-          <button onClick={checkIn} disabled={checkedToday}
-            className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-bold transition-all active:scale-95 ${checkedToday ? 'bg-gray-100 text-slate-400' : 'bg-[#03C75A] text-white hover:bg-[#02b350]'}`}>
-            {checkedToday ? '출석 완료' : '출석하기'}
+          <button onClick={checkIn} disabled={checkedToday || !paid}
+            className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-bold transition-all active:scale-95 ${(checkedToday || !paid) ? 'bg-gray-100 text-slate-400' : 'bg-[#03C75A] text-white hover:bg-[#02b350]'}`}>
+            {!paid ? '유료 전용' : checkedToday ? '출석 완료' : '출석하기'}
           </button>
         </div>
 
