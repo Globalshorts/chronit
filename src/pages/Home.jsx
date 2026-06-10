@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
   Clock, CheckCircle2, MessageCircle, ArrowRight, Users,
-  Film, TrendingDown, LogOut, Gift, Menu, X, Play,
+  Film, TrendingDown, LogOut, Gift, Menu, X, Play, User,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import AnimatedCounter from '../components/AnimatedCounter'
@@ -325,9 +325,13 @@ const Home = () => {
               {user ? (
                 <>
                   {nickname ? (
-                    <Link to="/me" className="text-sm font-bold text-gray-700 transition-colors hover:text-[#03C75A]">{nickname}</Link>
+                    <Link to="/me" className="flex items-center gap-1.5 rounded-full bg-gray-900 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#03C75A] active:scale-95">
+                      <User size={16} /> <span className="max-w-[110px] truncate">{nickname}</span>
+                    </Link>
                   ) : (
-                    <button onClick={() => setNickOpen(true)} className="text-sm font-bold text-[#03C75A] hover:underline">닉네임 설정</button>
+                    <button onClick={() => setNickOpen(true)} className="flex items-center gap-1.5 rounded-full border-2 border-[#03C75A] px-4 py-1.5 text-sm font-bold text-[#03C75A] transition-all hover:bg-[#03C75A]/10 active:scale-95">
+                      <User size={16} /> 닉네임 설정
+                    </button>
                   )}
                   <button onClick={() => supabase.auth.signOut()} title="로그아웃"
                     className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 text-gray-500 transition-all hover:border-gray-400 hover:text-gray-800">
@@ -369,9 +373,13 @@ const Home = () => {
             {user ? (
               <>
                 {nickname ? (
-                  <Link to="/me" onClick={() => setMenuOpen(false)} className="px-4 pb-1 text-base font-bold text-gray-800 hover:text-[#03C75A]">{nickname}</Link>
+                  <Link to="/me" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-3.5 text-lg font-bold text-white transition-colors hover:bg-[#03C75A]">
+                    <User size={18} /> {nickname} <span className="ml-auto text-sm font-medium text-white/70">마이페이지 →</span>
+                  </Link>
                 ) : (
-                  <button onClick={() => { setNickOpen(true); setMenuOpen(false) }} className="px-4 pb-1 text-left text-base font-bold text-[#03C75A] hover:underline">닉네임 설정하기</button>
+                  <button onClick={() => { setNickOpen(true); setMenuOpen(false) }} className="flex items-center gap-2 rounded-xl border-2 border-[#03C75A] px-4 py-3.5 text-lg font-bold text-[#03C75A] transition-colors hover:bg-[#03C75A]/10">
+                    <User size={18} /> 닉네임 설정하기
+                  </button>
                 )}
                 <p className="px-4 pb-1 text-xs text-gray-400">{user.email}</p>
                 <button onClick={() => { supabase.auth.signOut(); setMenuOpen(false) }}

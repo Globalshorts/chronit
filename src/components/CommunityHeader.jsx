@@ -12,6 +12,7 @@ const CommunityHeader = ({ active = null }) => {
   const [scrolled, setScrolled] = useState(false)
   const [user, setUser] = useState(null)
   const [points, setPoints] = useState(null)
+  const [nickname, setNickname] = useState(null)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50)
@@ -26,8 +27,10 @@ const CommunityHeader = ({ active = null }) => {
   }, [])
 
   useEffect(() => {
-    if (!user) { setPoints(null); return }
+    if (!user) { setPoints(null); setNickname(null); return }
     supabase.rpc('get_my_points_rpc').then(({ data }) => setPoints(data ?? 0))
+    supabase.from('profiles').select('nickname').eq('id', user.id).maybeSingle()
+      .then(({ data }) => setNickname(data?.nickname ?? null))
   }, [user])
 
   const navCls = (key) =>
@@ -52,8 +55,9 @@ const CommunityHeader = ({ active = null }) => {
               <Coins size={16} />
               {points === null ? '…' : `${points.toLocaleString()}P`}
             </Link>
-            <Link to="/me" title="마이페이지" className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 text-gray-600 transition-all hover:border-[#03C75A] hover:text-[#03C75A] active:scale-95">
-              <User size={17} />
+            <Link to="/me" className="flex items-center gap-1.5 rounded-full bg-gray-900 px-3.5 py-2 text-sm font-bold text-white transition-all hover:bg-[#03C75A] active:scale-95">
+              <User size={16} />
+              <span className="max-w-[90px] truncate">{nickname || '마이페이지'}</span>
             </Link>
           </div>
         ) : (
