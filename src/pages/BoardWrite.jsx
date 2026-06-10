@@ -73,7 +73,7 @@ const BoardWrite = () => {
           className="w-full resize-y rounded-xl border border-gray-200 bg-white px-4 py-3 text-base leading-relaxed outline-none focus:border-[#03C75A]" />
 
         {err && <p className="mt-3 text-sm font-medium text-red-500">{err}</p>}
-        <p className="mt-3 text-xs text-slate-400">글을 등록하면 포인트가 적립돼요 (하루 3회까지).</p>
+        <p className="mt-3 text-xs text-slate-400">글을 등록하면 20P가 적립돼요 (하루 1회까지).</p>
 
         <button onClick={submit} disabled={saving}
           className="mt-5 w-full rounded-xl bg-[#03C75A] py-3.5 text-base font-bold text-white transition-all hover:bg-[#02b350] active:scale-95 disabled:opacity-50">

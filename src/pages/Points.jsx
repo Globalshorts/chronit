@@ -90,7 +90,7 @@ const Points = () => {
 
         {/* 적립 안내 */}
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[['글쓰기', '30P'], ['댓글', '5P'], ['추천받기', '2P'], ['출석', '10P']].map(([k, v]) => (
+          {[['글쓰기', '20P'], ['댓글', '5P'], ['추천받기', '2P'], ['출석', '10P']].map(([k, v]) => (
             <div key={k} className="rounded-xl border border-gray-200 bg-white p-3 text-center">
               <div className="text-xs text-slate-400">{k}</div>
               <div className="text-lg font-black text-[#03C75A]">{v}</div>
