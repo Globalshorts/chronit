@@ -1,0 +1,136 @@
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { ArrowLeft, ThumbsUp, MessageSquare, Eye } from 'lucide-react'
+import CommunityHeader from '../components/CommunityHeader'
+import NicknameModal from '../components/NicknameModal'
+import { supabase } from '../lib/supabase'
+import { CAT_LABEL, CAT_CLS, fmtWhen } from './Board'
+
+const BoardPost = () => {
+  const { id } = useParams()
+  const nav = useNavigate()
+  const [user, setUser] = useState(null)
+  const [post, setPost] = useState(null)
+  const [comments, setComments] = useState([])
+  const [liked, setLiked] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [text, setText] = useState('')
+  const [posting, setPosting] = useState(false)
+  const [nickOpen, setNickOpen] = useState(false)
+  const [err, setErr] = useState('')
+
+  useEffect(() => { supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null)) }, [])
+
+  const loadComments = () =>
+    supabase.from('board_comments').select('*').eq('post_id', id).eq('is_deleted', false)
+      .order('created_at', { ascending: true }).then(({ data }) => setComments(data || []))
+
+  useEffect(() => {
+    let alive = true
+    supabase.from('board_posts').select('*').eq('id', id).eq('is_deleted', false).maybeSingle()
+      .then(({ data }) => { if (alive) { setPost(data); setLoading(false) } })
+    loadComments()
+    supabase.rpc('increment_post_view_rpc', { p_post_id: Number(id) })
+    return () => { alive = false }
+  }, [id])
+
+  useEffect(() => {
+    if (!user || !post) return
+    supabase.from('board_likes').select('post_id').eq('post_id', id).eq('user_id', user.id).maybeSingle()
+      .then(({ data }) => setLiked(!!data))
+  }, [user, post, id])
+
+  const toggleLike = async () => {
+    if (!user) { nav('/generate'); return }
+    const { data, error } = await supabase.rpc('board_toggle_like_rpc', { p_post_id: Number(id) })
+    if (error || !data?.ok) return
+    setLiked(data.liked)
+    setPost(p => ({ ...p, like_count: data.like_count }))
+  }
+
+  const submitComment = async () => {
+    if (!user) { nav('/generate'); return }
+    setErr(''); setPosting(true)
+    const { data, error } = await supabase.rpc('board_create_comment_rpc', { p_post_id: Number(id), p_body: text })
+    setPosting(false)
+    if (error) { setErr('오류가 발생했어요'); return }
+    if (!data?.ok) { if (data?.need_nickname) { setNickOpen(true); return } setErr(data?.error || '댓글을 등록할 수 없어요'); return }
+    setText(''); loadComments()
+    setPost(p => ({ ...p, comment_count: (p.comment_count || 0) + 1 }))
+  }
+
+  if (loading) return (<div className="min-h-screen bg-[#FAFAF8] font-sans"><CommunityHeader active="board" /><p className="pt-40 text-center text-sm text-slate-500">불러오는 중…</p></div>)
+  if (!post) return (
+    <div className="min-h-screen bg-[#FAFAF8] font-sans"><CommunityHeader active="board" />
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-5 pt-24 text-center">
+        <p className="text-lg font-bold">게시글을 찾을 수 없어요</p>
+        <button onClick={() => nav('/board')} className="rounded-full bg-[#03C75A] px-6 py-2.5 font-bold text-white">목록으로</button>
+      </div>
+    </div>
+  )
+
+  return (
+    <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans break-keep text-gray-900">
+      <CommunityHeader active="board" />
+      <article className="mx-auto max-w-2xl px-5 pt-28 pb-12 md:pt-36">
+        <button onClick={() => nav('/board')} className="mb-5 flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-gray-900">
+          <ArrowLeft size={16} /> 목록으로
+        </button>
+
+        <div className="mb-3 flex items-center gap-2">
+          <span className={`rounded-md px-2 py-0.5 text-xs font-bold ${CAT_CLS[post.category] || CAT_CLS.free}`}>{CAT_LABEL[post.category] || '자유'}</span>
+        </div>
+        <h1 className="mb-3 text-2xl font-black leading-snug md:text-3xl">{post.title}</h1>
+        <div className="flex items-center gap-3 border-b border-gray-200 pb-4 text-sm text-slate-400">
+          <span className="font-bold text-slate-600">{post.author_nickname}</span>
+          <span>{fmtWhen(post.created_at)}</span>
+          <span className="ml-auto flex items-center gap-1"><Eye size={14} />{post.view_count}</span>
+        </div>
+
+        <div className="whitespace-pre-wrap py-7 text-[15px] leading-[1.9] text-gray-800">{post.body}</div>
+
+        <div className="flex justify-center pb-8">
+          <button onClick={toggleLike}
+            className={`flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold transition-all active:scale-95 ${liked ? 'bg-[#03C75A] text-white shadow-lg shadow-[#03C75A]/25' : 'bg-white text-slate-600 ring-1 ring-gray-200 hover:ring-[#03C75A]/40'}`}>
+            <ThumbsUp size={16} /> 추천 {post.like_count}
+          </button>
+        </div>
+
+        {/* 댓글 */}
+        <div className="border-t border-gray-200 pt-6">
+          <h2 className="mb-4 flex items-center gap-1.5 text-base font-black"><MessageSquare size={17} /> 댓글 {comments.length}</h2>
+          <div className="mb-5 flex flex-col gap-2 sm:flex-row">
+            <input value={text} onChange={e => setText(e.target.value)} onKeyDown={e => e.key === 'Enter' && submitComment()}
+              placeholder={user ? '댓글을 입력하세요' : '로그인 후 댓글을 남길 수 있어요'}
+              className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#03C75A]" />
+            <button onClick={submitComment} disabled={posting}
+              className="rounded-xl bg-[#03C75A] px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#02b350] active:scale-95 disabled:opacity-50">
+              {posting ? '등록 중' : '등록'}
+            </button>
+          </div>
+          {err && <p className="mb-3 text-sm font-medium text-red-500">{err}</p>}
+
+          {comments.length === 0 ? (
+            <p className="py-8 text-center text-sm text-slate-400">첫 댓글을 남겨보세요</p>
+          ) : (
+            <ul className="divide-y divide-gray-100">
+              {comments.map(c => (
+                <li key={c.id} className="py-3.5">
+                  <div className="mb-1 flex items-center gap-2 text-xs text-slate-400">
+                    <span className="font-bold text-slate-600">{c.author_nickname}</span>
+                    <span>{fmtWhen(c.created_at)}</span>
+                  </div>
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">{c.body}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </article>
+
+      <NicknameModal open={nickOpen} onClose={() => setNickOpen(false)} onDone={() => { setNickOpen(false); submitComment() }} />
+    </div>
+  )
+}
+
+export default BoardPost

@@ -11,6 +11,11 @@ import Privacy from './pages/Privacy'
 import Admin from './pages/Admin'
 import LinkPage from './pages/LinkPage'
 import LinksManager from './pages/LinksManager'
+import Board from './pages/Board'
+import BoardWrite from './pages/BoardWrite'
+import BoardPost from './pages/BoardPost'
+import Points from './pages/Points'
+import Shop from './pages/Shop'
 
 const ScrollToTop = () => {
   const { pathname } = useLocation()
@@ -32,6 +37,11 @@ const App = () => (
       <Route path="/admin" element={<Admin />} />
       <Route path="/generate" element={<VideoGenerator />} />
       <Route path="/links" element={<LinksManager />} />
+      <Route path="/board" element={<Board />} />
+      <Route path="/board/write" element={<BoardWrite />} />
+      <Route path="/board/:id" element={<BoardPost />} />
+      <Route path="/points" element={<Points />} />
+      <Route path="/shop" element={<Shop />} />
       <Route path="/u/:handle" element={<LinkPage />} />
     </Routes>
   </BrowserRouter>
