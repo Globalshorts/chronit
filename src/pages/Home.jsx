@@ -9,6 +9,7 @@ import PaymentModal from '../components/PaymentModal'
 import AuthModal from '../components/AuthModal'
 import TermsModal from '../components/TermsModal'
 import Footer from '../components/Footer'
+import NicknameModal from '../components/NicknameModal'
 import { supabase } from '../lib/supabase'
 
 const GREEN = '#03C75A'
@@ -76,6 +77,9 @@ const Home = () => {
   const [paymentOpen, setPaymentOpen] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState('pro')
   const [user, setUser] = useState(null)
+  const [nickname, setNickname] = useState(null)
+  const [nickOpen, setNickOpen] = useState(false)
+  const pendingAfterLoginRef = useRef(null)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [showTermsModal, setShowTermsModal] = useState(false)
   const [codeFromUrl, setCodeFromUrl] = useState(null)
@@ -86,6 +90,12 @@ const Home = () => {
   const pendingPlanRef = useRef(null)
   const pendingSessionRef = useRef(null)
   const pendingStartRef = useRef(false)
+
+  useEffect(() => {
+    if (!user) { setNickname(null); return }
+    supabase.from('profiles').select('nickname').eq('id', user.id).maybeSingle()
+      .then(({ data }) => setNickname(data?.nickname ?? null))
+  }, [user])
 
   const handleAfterLogin = (session) => {
     window.gtag?.('event', 'sign_up', { event_category: 'conversion', event_label: 'google_oauth' })
@@ -121,10 +131,27 @@ const Home = () => {
     setShowAuthModal(true)
   }
 
-  const handleTermsAgree = () => {
+  const handleTermsAgree = async () => {
     setShowTermsModal(false)
     const session = pendingSessionRef.current
     pendingSessionRef.current = null
+    // 신규 가입 시 닉네임 입력 받기 (없으면 모달, 완료/생략 후 진행)
+    if (session) {
+      const { data: prof } = await supabase.from('profiles').select('nickname').eq('id', session.user.id).maybeSingle()
+      if (!prof?.nickname) {
+        pendingAfterLoginRef.current = session
+        setNickOpen(true)
+        return
+      }
+      handleAfterLogin(session)
+    }
+  }
+
+  // 닉네임 모달 닫힘/완료 시 보류된 로그인 후처리 진행
+  const finishPendingLogin = () => {
+    setNickOpen(false)
+    const session = pendingAfterLoginRef.current
+    pendingAfterLoginRef.current = null
     if (session) handleAfterLogin(session)
   }
 
@@ -297,7 +324,11 @@ const Home = () => {
             <div className="hidden md:flex items-center gap-2">
               {user ? (
                 <>
-                  <span className="text-sm font-bold text-gray-500">{user.email?.split('@')[0]}</span>
+                  {nickname ? (
+                    <Link to="/me" className="text-sm font-bold text-gray-700 transition-colors hover:text-[#03C75A]">{nickname}</Link>
+                  ) : (
+                    <button onClick={() => setNickOpen(true)} className="text-sm font-bold text-[#03C75A] hover:underline">닉네임 설정</button>
+                  )}
                   <button onClick={() => supabase.auth.signOut()} title="로그아웃"
                     className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 text-gray-500 transition-all hover:border-gray-400 hover:text-gray-800">
                     <LogOut size={15} />
@@ -337,7 +368,12 @@ const Home = () => {
           <div className="mt-4 border-t border-gray-200 pt-4 flex flex-col gap-2">
             {user ? (
               <>
-                <p className="px-4 pb-1 text-sm text-gray-400">{user.email}</p>
+                {nickname ? (
+                  <Link to="/me" onClick={() => setMenuOpen(false)} className="px-4 pb-1 text-base font-bold text-gray-800 hover:text-[#03C75A]">{nickname}</Link>
+                ) : (
+                  <button onClick={() => { setNickOpen(true); setMenuOpen(false) }} className="px-4 pb-1 text-left text-base font-bold text-[#03C75A] hover:underline">닉네임 설정하기</button>
+                )}
+                <p className="px-4 pb-1 text-xs text-gray-400">{user.email}</p>
                 <button onClick={() => { supabase.auth.signOut(); setMenuOpen(false) }}
                   className="flex w-full items-center gap-2 rounded-xl px-4 py-3.5 text-lg font-bold text-gray-600 transition-colors hover:bg-gray-50">
                   <LogOut size={18} /> 로그아웃
@@ -656,6 +692,7 @@ const Home = () => {
 
       <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} referralCode={refFromUrl} />
       <TermsModal open={showTermsModal} onAgree={handleTermsAgree} onClose={() => setShowTermsModal(false)} />
+      <NicknameModal open={nickOpen} onClose={finishPendingLogin} onDone={(n) => { setNickname(n); finishPendingLogin() }} />
       <PaymentModal
         key={selectedPlan + (paymentOpen ? '-open' : '-closed')}
         open={paymentOpen}
