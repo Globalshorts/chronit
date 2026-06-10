@@ -51,7 +51,7 @@ const BoardPost = () => {
   const submitComment = async () => {
     if (!user) { nav('/generate'); return }
     setErr(''); setPosting(true)
-    const { data, error } = await supabase.rpc('board_create_comment_rpc', { p_post_id: Number(id), p_body: text })
+    const { data, error } = await supabase.functions.invoke('board-submit', { body: { kind: 'comment', post_id: Number(id), body: text } })
     setPosting(false)
     if (error) { setErr('오류가 발생했어요'); return }
     if (!data?.ok) { if (data?.need_nickname) { setNickOpen(true); return } setErr(data?.error || '댓글을 등록할 수 없어요'); return }

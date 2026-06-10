@@ -27,7 +27,7 @@ const BoardWrite = () => {
 
   const submit = async () => {
     setErr(''); setSaving(true)
-    const { data, error } = await supabase.rpc('board_create_post_rpc', { p_category: cat, p_title: title, p_body: body })
+    const { data, error } = await supabase.functions.invoke('board-submit', { body: { kind: 'post', category: cat, title, body } })
     setSaving(false)
     if (error) { setErr('오류가 발생했어요. 잠시 후 다시 시도해주세요.'); return }
     if (!data?.ok) {
