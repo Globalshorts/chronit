@@ -52,7 +52,13 @@ const Footer = ({ dark = false, user = null }) => {
             당신의 시간을 아껴주는<br />가장 쉬운 숏폼 도구.
           </p>
         </div>
-        <div className="grid w-full grid-cols-3 gap-6 sm:gap-12 md:w-auto md:gap-20">
+        <div className="grid w-full grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-12 md:w-auto md:gap-16">
+          <div className="flex flex-col gap-4">
+            <span className={`text-base font-bold ${t.head}`}>커뮤니티</span>
+            <Link to="/board"  className={`text-base font-medium transition-colors ${t.link}`}>게시판</Link>
+            <Link to="/points" className={`text-base font-medium transition-colors ${t.link}`}>포인트</Link>
+            <Link to="/shop"   className={`text-base font-medium transition-colors ${t.link}`}>기프티콘 교환소</Link>
+          </div>
           <div className="flex flex-col gap-4">
             <span className={`text-base font-bold ${t.head}`}>서비스</span>
             <Link to="/#features" className={`text-base font-medium transition-colors ${t.link}`}>기능</Link>
