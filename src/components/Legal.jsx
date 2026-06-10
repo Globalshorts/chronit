@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { ArrowLeft, FileText } from 'lucide-react'
+import Footer from './Footer'
 
 /**
  * 법적 문서 페이지 (이용약관, 개인정보처리방침)
@@ -74,13 +75,7 @@ const Legal = ({ title, subtitle, markdown }) => {
         </Link>
       </section>
 
-      <footer className="border-t border-white/5 bg-[#01030a] px-5 py-12 md:px-8 md:py-16">
-        <div className="mx-auto max-w-7xl text-center">
-          <p className="text-sm font-bold tracking-[0.3em] text-slate-600 uppercase md:text-base md:tracking-[0.4em]">
-            &copy; 2026 Chronit Labs. Crafting Future Efficiency.
-          </p>
-        </div>
-      </footer>
+      <Footer dark />
     </div>
   )
 }

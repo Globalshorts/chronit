@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Megaphone } from 'lucide-react'
+import Footer from '../components/Footer'
 import { supabase } from '../lib/supabase'
 
 const statusCfg = {
@@ -160,6 +161,7 @@ const Events = () => {
           50% { opacity: 0.4; }
         }
       `}</style>
+      <Footer />
     </div>
   )
 }

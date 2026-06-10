@@ -8,6 +8,7 @@ import AnimatedCounter from '../components/AnimatedCounter'
 import PaymentModal from '../components/PaymentModal'
 import AuthModal from '../components/AuthModal'
 import TermsModal from '../components/TermsModal'
+import Footer from '../components/Footer'
 import { supabase } from '../lib/supabase'
 
 const GREEN = '#03C75A'
@@ -630,53 +631,7 @@ const Home = () => {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-gray-200 bg-white px-5 py-12 md:px-8 md:py-16">
-        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-10 md:flex-row md:gap-16">
-          <div className="max-w-md">
-            <div className="mb-5 flex items-center gap-3">
-              <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-9 w-9" />
-              <h1 className="text-2xl font-black tracking-tight text-gray-900">Chronit</h1>
-            </div>
-            <p className="text-lg leading-[1.8] font-medium text-gray-600">
-              당신의 시간을 아껴주는<br />가장 쉬운 숏폼 도구.
-            </p>
-          </div>
-          <div className="grid w-full grid-cols-3 gap-6 sm:gap-12 md:w-auto md:gap-20">
-            <div className="flex flex-col gap-4">
-              <span className="text-base font-bold text-gray-900">서비스</span>
-              <a href="#features" className="text-base font-medium text-gray-500 transition-colors hover:text-[#03C75A]">기능</a>
-              <a href="#pricing" className="text-base font-medium text-gray-500 transition-colors hover:text-[#03C75A]">요금제</a>
-              <a href="/events" className="text-base font-medium text-gray-500 transition-colors hover:text-[#03C75A]">이벤트</a>
-            </div>
-            <div className="flex flex-col gap-4">
-              <span className="text-base font-bold text-gray-900">회사</span>
-              <a href="#" className="text-base font-medium text-gray-500 transition-colors hover:text-[#03C75A]">회사 소개</a>
-              <a href="mailto:support@chronit.kr" className="text-base font-medium text-gray-500 transition-colors hover:text-[#03C75A]">문의하기</a>
-              {user?.email === 'pv2066pv@gmail.com' && (
-                <a href="/admin" className="text-base font-medium text-[#03C75A]/80 transition-colors hover:text-[#03C75A]">👑 관리자</a>
-              )}
-            </div>
-            <div className="flex flex-col gap-4">
-              <span className="text-base font-bold text-gray-900">법적고지</span>
-              <Link to="/privacy" className="text-base font-medium text-gray-500 transition-colors hover:text-[#03C75A]">개인정보처리방침</Link>
-              <Link to="/terms" className="text-base font-medium text-gray-500 transition-colors hover:text-[#03C75A]">이용약관</Link>
-            </div>
-          </div>
-        </div>
-        <div className="mx-auto mt-12 max-w-7xl border-t border-gray-200 pt-8 md:pt-10">
-          <div className="space-y-1 text-xs leading-relaxed text-gray-400">
-            <p>상호: 크로닛(Chronit) &middot; 대표: 최승호 &middot; 이메일: pv2066pv@gmail.com</p>
-            <p>사업자등록번호: 등록 진행 중 &middot; 통신판매업 신고번호: 신고 예정 &middot; 주소: 등록 후 기재</p>
-          </div>
-          <div className="mt-6 flex flex-col items-center justify-between gap-6 md:flex-row">
-            <p className="text-center text-sm font-medium text-gray-400">&copy; 2026 Chronit. All rights reserved.</p>
-            <div className="flex gap-4">
-              <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-gray-100 text-gray-500 transition-all hover:bg-[#03C75A] hover:text-white"><Users size={20} /></div>
-              <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-gray-100 text-gray-500 transition-all hover:bg-[#03C75A] hover:text-white"><MessageCircle size={20} /></div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer user={user} />
 
       <style>{`
         .event-content img { max-width:100%; border-radius:8px; margin:0.5em 0; }
