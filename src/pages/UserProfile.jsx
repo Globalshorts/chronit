@@ -20,7 +20,7 @@ const UserProfile = () => {
 
   useEffect(() => {
     setLoading(true)
-    supabase.from('board_posts').select('*').eq('user_id', id).eq('is_deleted', false)
+    supabase.from('board_posts').select('*').eq('user_id', id).eq('is_deleted', false).eq('is_hidden', false)
       .order('created_at', { ascending: false }).limit(50)
       .then(({ data }) => { setPosts(data || []); setLoading(false) })
   }, [id])

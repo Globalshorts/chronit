@@ -4,7 +4,7 @@ import {
   Megaphone, Save, LogOut, ShieldCheck, Loader, Eye, EyeOff,
   Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter,
   AlignRight, List, ListOrdered, Link, Image, Minus, Plus, Pencil, Trash2, ChevronLeft,
-  Film, ChevronUp, ChevronDown, Upload, Gift,
+  Film, ChevronUp, ChevronDown, Upload, Gift, Flag,
 } from 'lucide-react'
 
 const ToolBtn = ({ onClick, title, children }) => (
@@ -501,6 +501,70 @@ const TipsPanel = () => {
   )
 }
 
+const ReportsPanel = () => {
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState(null)
+
+  const load = () => {
+    setLoading(true)
+    supabase.rpc('admin_reports_rpc').then(({ data }) => { setItems(data?.items || []); setLoading(false) })
+  }
+  useEffect(() => { load() }, [])
+
+  const REASON = { ad: '광고', abuse: '욕설', flood: '도배', etc: '기타' }
+  const act = async (it, action) => {
+    setBusy(`${it.target_type}-${it.target_id}`)
+    await supabase.rpc('admin_moderate_content_rpc', { p_target_type: it.target_type, p_target_id: it.target_id, p_action: action })
+    setBusy(null); load()
+  }
+
+  return (
+    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
+      <div className="mb-6 flex items-center gap-2">
+        <Flag size={18} className="text-red-400" />
+        <h2 className="text-base font-bold">신고 관리</h2>
+        <span className="ml-2 text-xs text-slate-500">3명 이상 신고 시 자동 숨김됩니다</span>
+      </div>
+      {loading ? (
+        <p className="py-10 text-center text-sm text-slate-500">불러오는 중…</p>
+      ) : items.length === 0 ? (
+        <p className="py-10 text-center text-sm text-slate-500">신고된 게시물이 없습니다</p>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {items.map(it => {
+            const c = it.content || {}
+            const key = `${it.target_type}-${it.target_id}`
+            const link = it.target_type === 'post' ? `/board/${it.target_id}` : `/board/${c.post_id}`
+            return (
+              <div key={key} className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
+                  <span className={`rounded-md px-2 py-0.5 font-bold ${it.target_type === 'post' ? 'bg-blue-500/20 text-blue-300' : 'bg-slate-500/20 text-slate-300'}`}>{it.target_type === 'post' ? '게시글' : '댓글'}</span>
+                  <span className="rounded-md bg-red-500/20 px-2 py-0.5 font-bold text-red-300">신고 {it.report_count}</span>
+                  {(it.reasons || []).map(r => <span key={r} className="rounded-md bg-white/10 px-2 py-0.5 text-slate-300">{REASON[r] || r}</span>)}
+                  {c.is_hidden && <span className="rounded-md bg-amber-500/20 px-2 py-0.5 font-bold text-amber-300">숨김됨</span>}
+                  {c.is_deleted && <span className="rounded-md bg-gray-500/20 px-2 py-0.5 font-bold text-gray-400">삭제됨</span>}
+                  <span className="ml-auto text-slate-500">{c.nickname}</span>
+                </div>
+                {c.title && <div className="text-sm font-bold text-white">{c.title}</div>}
+                <div className="text-sm text-slate-300">{c.body}</div>
+                <div className="mt-3 flex items-center gap-2">
+                  <a href={link} target="_blank" rel="noreferrer" className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white">원문 보기</a>
+                  <button disabled={busy === key} onClick={() => act(it, 'restore')} className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs font-bold text-emerald-300 hover:bg-emerald-500/10 disabled:opacity-50">복구</button>
+                  {!c.is_hidden && !c.is_deleted && (
+                    <button disabled={busy === key} onClick={() => act(it, 'hide')} className="rounded-lg border border-amber-500/30 px-3 py-1.5 text-xs font-bold text-amber-300 hover:bg-amber-500/10 disabled:opacity-50">숨김</button>
+                  )}
+                  <button disabled={busy === key} onClick={() => { if (confirm('영구 삭제할까요?')) act(it, 'delete') }} className="rounded-lg border border-red-500/30 px-3 py-1.5 text-xs font-bold text-red-300 hover:bg-red-500/10 disabled:opacity-50">삭제</button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 const Admin = () => {
   const [user, setUser] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -640,6 +704,7 @@ const Admin = () => {
             { key: 'missions', icon: <Gift size={15} />, label: '이벤트(크레딧)' },
             { key: 'tips', icon: <Megaphone size={15} />, label: '꿀팁' },
             { key: 'videos', icon: <Film size={15} />, label: 'Demo Videos' },
+            { key: 'reports', icon: <Flag size={15} />, label: '신고관리' },
           ].map(t => (
             <button key={t.key} onClick={() => { setTab(t.key); setView('list') }}
               className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all ${tab === t.key ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'border border-white/10 text-slate-400 hover:text-white'}`}>
@@ -649,6 +714,7 @@ const Admin = () => {
         </div>
 
         {tab === 'videos' && <DemoVideosPanel />}
+        {tab === 'reports' && <ReportsPanel />}
         {tab === 'missions' && <MissionsPanel />}
         {tab === 'tips' && <TipsPanel />}
 

@@ -37,7 +37,7 @@ const Board = () => {
 
   useEffect(() => {
     setLoading(true)
-    let q = supabase.from('board_posts').select('*').eq('is_deleted', false).order('created_at', { ascending: false }).limit(50)
+    let q = supabase.from('board_posts').select('*').eq('is_deleted', false).eq('is_hidden', false).order('created_at', { ascending: false }).limit(50)
     if (tab !== 'all') q = q.eq('category', tab)
     q.then(({ data }) => { setPosts(data || []); setLoading(false) })
   }, [tab])

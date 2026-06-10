@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ThumbsUp, MessageSquare, Eye } from 'lucide-react'
+import { ArrowLeft, ThumbsUp, MessageSquare, Eye, Flag } from 'lucide-react'
 import CommunityHeader from '../components/CommunityHeader'
 import NicknameModal from '../components/NicknameModal'
 import { supabase } from '../lib/supabase'
@@ -18,12 +18,26 @@ const BoardPost = () => {
   const [posting, setPosting] = useState(false)
   const [nickOpen, setNickOpen] = useState(false)
   const [err, setErr] = useState('')
+  const [reportTarget, setReportTarget] = useState(null) // {type,id}
+  const [toast, setToast] = useState('')
 
   useEffect(() => { supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null)) }, [])
 
   const loadComments = () =>
-    supabase.from('board_comments').select('*').eq('post_id', id).eq('is_deleted', false)
+    supabase.from('board_comments').select('*').eq('post_id', id).eq('is_deleted', false).eq('is_hidden', false)
       .order('created_at', { ascending: true }).then(({ data }) => setComments(data || []))
+
+  const submitReport = async (reason) => {
+    const t = reportTarget
+    setReportTarget(null)
+    if (!user) { nav('/generate'); return }
+    const { data, error } = await supabase.rpc('report_content_rpc', { p_target_type: t.type, p_target_id: t.id, p_reason: reason })
+    if (error || !data?.ok) { setToast(data?.error || '신고할 수 없어요'); }
+    else if (data.already) { setToast('이미 신고한 게시물이에요'); }
+    else if (data.hidden) { setToast('신고가 누적되어 숨김 처리되었어요'); if (t.type === 'post') nav('/board'); else loadComments(); }
+    else { setToast('신고가 접수되었어요'); }
+    setTimeout(() => setToast(''), 3000)
+  }
 
   useEffect(() => {
     let alive = true
@@ -85,6 +99,9 @@ const BoardPost = () => {
           <Link to={post.user_id === user?.id ? '/me' : `/board/u/${post.user_id}`} className="font-bold text-slate-600 hover:text-[#03C75A] hover:underline">{post.author_nickname}</Link>
           <span>{fmtWhen(post.created_at)}</span>
           <span className="ml-auto flex items-center gap-1"><Eye size={14} />{post.view_count}</span>
+          {user && post.user_id !== user.id && (
+            <button onClick={() => setReportTarget({ type: 'post', id: post.id })} className="flex items-center gap-1 text-slate-400 transition-colors hover:text-red-500"><Flag size={13} />신고</button>
+          )}
         </div>
 
         <div className="whitespace-pre-wrap py-7 text-[15px] leading-[1.9] text-gray-800">{post.body}</div>
@@ -119,6 +136,9 @@ const BoardPost = () => {
                   <div className="mb-1 flex items-center gap-2 text-xs text-slate-400">
                     <Link to={c.user_id === user?.id ? '/me' : `/board/u/${c.user_id}`} className="font-bold text-slate-600 hover:text-[#03C75A] hover:underline">{c.author_nickname}</Link>
                     <span>{fmtWhen(c.created_at)}</span>
+                    {user && c.user_id !== user.id && (
+                      <button onClick={() => setReportTarget({ type: 'comment', id: c.id })} className="ml-auto flex items-center gap-1 transition-colors hover:text-red-500"><Flag size={11} />신고</button>
+                    )}
                   </div>
                   <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">{c.body}</p>
                 </li>
@@ -129,6 +149,26 @@ const BoardPost = () => {
       </article>
 
       <NicknameModal open={nickOpen} onClose={() => setNickOpen(false)} onDone={() => { setNickOpen(false); submitComment() }} />
+
+      {/* 신고 사유 모달 */}
+      {reportTarget && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-5 backdrop-blur-sm" onClick={() => setReportTarget(null)}>
+          <div className="w-full max-w-xs rounded-3xl bg-white p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="mb-1 text-lg font-black text-gray-900">신고하기</h3>
+            <p className="mb-4 text-sm text-slate-500">신고 사유를 선택해주세요. 누적되면 자동으로 숨김 처리돼요.</p>
+            <div className="flex flex-col gap-2">
+              {[['ad', '광고/홍보'], ['abuse', '욕설/비방'], ['flood', '도배'], ['etc', '기타']].map(([k, label]) => (
+                <button key={k} onClick={() => submitReport(k)}
+                  className="rounded-xl border border-gray-200 py-2.5 text-sm font-bold text-gray-700 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-500 active:scale-95">
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toast && <div className="fixed bottom-8 left-1/2 z-[90] -translate-x-1/2 rounded-full bg-gray-900 px-5 py-3 text-sm font-bold text-white shadow-xl">{toast}</div>}
     </div>
   )
 }
