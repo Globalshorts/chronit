@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Megaphone } from 'lucide-react'
+import CommunityHeader from '../components/CommunityHeader'
 import Footer from '../components/Footer'
 import { supabase } from '../lib/supabase'
 
@@ -60,23 +61,7 @@ const Events = () => {
     <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans break-keep text-gray-900">
 
       {/* 헤더 */}
-      <header className={`fixed top-0 right-0 left-0 z-50 transition-all duration-500 ${scrolled ? 'border-b border-gray-200 bg-white/90 py-3 backdrop-blur-xl md:py-4' : 'bg-transparent py-5 md:py-8'}`}>
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
-          <Link to="/" className="flex min-w-0 items-center gap-2 md:gap-3">
-            <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-8 w-8 shrink-0 rounded-lg md:h-10 md:w-10" />
-            <h1 className="text-2xl font-black tracking-tighter text-gray-900 md:text-3xl">Chronit</h1>
-          </Link>
-          <nav className="hidden gap-12 text-base font-bold tracking-wide text-slate-500 md:flex">
-            <Link to="/#features" className="uppercase transition-colors hover:text-[#03C75A]">기능</Link>
-            <Link to="/manual"    className="uppercase transition-colors hover:text-[#03C75A]">사용 방법</Link>
-            <Link to="/#pricing"  className="uppercase transition-colors hover:text-[#03C75A]">요금제</Link>
-            <Link to="/events"    className="uppercase text-[#03C75A]">이벤트</Link>
-          </nav>
-          <Link to="/#pricing" className="shrink-0 rounded-full bg-[#03C75A] px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-lg shadow-[#03C75A]/25 transition-all hover:bg-[#02b350] active:scale-95 md:px-7 md:py-2.5 md:text-base">
-            시작하기
-          </Link>
-        </div>
-      </header>
+      <CommunityHeader active="events" />
 
       {/* 히어로 */}
       <section className="relative px-5 pt-32 pb-12 md:px-8 md:pt-48 md:pb-16">
