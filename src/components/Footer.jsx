@@ -58,6 +58,7 @@ const Footer = ({ dark = false, user = null }) => {
             <Link to="/board"  className={`text-base font-medium transition-colors ${t.link}`}>게시판</Link>
             <Link to="/points" className={`text-base font-medium transition-colors ${t.link}`}>포인트</Link>
             <Link to="/shop"   className={`text-base font-medium transition-colors ${t.link}`}>기프티콘 교환소</Link>
+            <Link to="/me"     className={`text-base font-medium transition-colors ${t.link}`}>마이페이지</Link>
           </div>
           <div className="flex flex-col gap-4">
             <span className={`text-base font-bold ${t.head}`}>서비스</span>

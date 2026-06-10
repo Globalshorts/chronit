@@ -82,7 +82,7 @@ const BoardPost = () => {
         </div>
         <h1 className="mb-3 text-2xl font-black leading-snug md:text-3xl">{post.title}</h1>
         <div className="flex items-center gap-3 border-b border-gray-200 pb-4 text-sm text-slate-400">
-          <span className="font-bold text-slate-600">{post.author_nickname}</span>
+          <Link to={`/board/u/${post.user_id}`} className="font-bold text-slate-600 hover:text-[#03C75A] hover:underline">{post.author_nickname}</Link>
           <span>{fmtWhen(post.created_at)}</span>
           <span className="ml-auto flex items-center gap-1"><Eye size={14} />{post.view_count}</span>
         </div>
@@ -117,7 +117,7 @@ const BoardPost = () => {
               {comments.map(c => (
                 <li key={c.id} className="py-3.5">
                   <div className="mb-1 flex items-center gap-2 text-xs text-slate-400">
-                    <span className="font-bold text-slate-600">{c.author_nickname}</span>
+                    <Link to={`/board/u/${c.user_id}`} className="font-bold text-slate-600 hover:text-[#03C75A] hover:underline">{c.author_nickname}</Link>
                     <span>{fmtWhen(c.created_at)}</span>
                   </div>
                   <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">{c.body}</p>

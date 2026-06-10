@@ -16,6 +16,8 @@ import BoardWrite from './pages/BoardWrite'
 import BoardPost from './pages/BoardPost'
 import Points from './pages/Points'
 import Shop from './pages/Shop'
+import MyPage from './pages/MyPage'
+import UserProfile from './pages/UserProfile'
 
 const ScrollToTop = () => {
   const { pathname } = useLocation()
@@ -39,9 +41,11 @@ const App = () => (
       <Route path="/links" element={<LinksManager />} />
       <Route path="/board" element={<Board />} />
       <Route path="/board/write" element={<BoardWrite />} />
+      <Route path="/board/u/:id" element={<UserProfile />} />
       <Route path="/board/:id" element={<BoardPost />} />
       <Route path="/points" element={<Points />} />
       <Route path="/shop" element={<Shop />} />
+      <Route path="/me" element={<MyPage />} />
       <Route path="/u/:handle" element={<LinkPage />} />
     </Routes>
   </BrowserRouter>

@@ -83,7 +83,8 @@ const Board = () => {
                       <h3 className="flex-1 truncate text-base font-bold text-gray-900">{p.title}</h3>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-slate-400">
-                      <span className="font-medium text-slate-500">{p.author_nickname}</span>
+                      <span onClick={(e) => { e.preventDefault(); e.stopPropagation(); nav(`/board/u/${p.user_id}`) }}
+                        className="font-medium text-slate-500 hover:text-[#03C75A] hover:underline">{p.author_nickname}</span>
                       <span>{fmtWhen(p.created_at)}</span>
                       <span className="ml-auto flex items-center gap-3">
                         <span className="flex items-center gap-1"><ThumbsUp size={13} />{p.like_count}</span>

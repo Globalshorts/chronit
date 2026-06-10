@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Coins } from 'lucide-react'
+import { Coins, User } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 /**
@@ -47,10 +47,15 @@ const CommunityHeader = ({ active = null }) => {
           <Link to="/events" className="uppercase transition-colors hover:text-[#03C75A]">이벤트</Link>
         </nav>
         {user ? (
-          <Link to="/points" className="flex shrink-0 items-center gap-1.5 rounded-full bg-amber-50 px-3.5 py-2 text-sm font-bold text-amber-600 ring-1 ring-amber-200 transition-all hover:bg-amber-100 active:scale-95 md:px-4">
-            <Coins size={16} />
-            {points === null ? '…' : `${points.toLocaleString()}P`}
-          </Link>
+          <div className="flex shrink-0 items-center gap-2">
+            <Link to="/points" className="flex items-center gap-1.5 rounded-full bg-amber-50 px-3.5 py-2 text-sm font-bold text-amber-600 ring-1 ring-amber-200 transition-all hover:bg-amber-100 active:scale-95 md:px-4">
+              <Coins size={16} />
+              {points === null ? '…' : `${points.toLocaleString()}P`}
+            </Link>
+            <Link to="/me" title="마이페이지" className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 text-gray-600 transition-all hover:border-[#03C75A] hover:text-[#03C75A] active:scale-95">
+              <User size={17} />
+            </Link>
+          </div>
         ) : (
           <Link to="/generate" className="shrink-0 rounded-full bg-[#03C75A] px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-lg shadow-[#03C75A]/25 transition-all hover:bg-[#02b350] active:scale-95 md:px-7 md:py-2.5 md:text-base">
             로그인 / 시작하기
