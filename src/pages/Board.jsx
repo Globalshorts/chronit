@@ -31,6 +31,9 @@ const Board = () => {
   const [tab, setTab] = useState('all')
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [uid, setUid] = useState(null)
+
+  useEffect(() => { supabase.auth.getSession().then(({ data }) => setUid(data.session?.user?.id ?? null)) }, [])
 
   useEffect(() => {
     setLoading(true)
@@ -83,7 +86,7 @@ const Board = () => {
                       <h3 className="flex-1 truncate text-base font-bold text-gray-900">{p.title}</h3>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-slate-400">
-                      <span onClick={(e) => { e.preventDefault(); e.stopPropagation(); nav(`/board/u/${p.user_id}`) }}
+                      <span onClick={(e) => { e.preventDefault(); e.stopPropagation(); nav(p.user_id === uid ? '/me' : `/board/u/${p.user_id}`) }}
                         className="font-medium text-slate-500 hover:text-[#03C75A] hover:underline">{p.author_nickname}</span>
                       <span>{fmtWhen(p.created_at)}</span>
                       <span className="ml-auto flex items-center gap-3">

@@ -13,6 +13,12 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user?.id === id) nav('/me', { replace: true })
+    })
+  }, [id])
+
+  useEffect(() => {
     setLoading(true)
     supabase.from('board_posts').select('*').eq('user_id', id).eq('is_deleted', false)
       .order('created_at', { ascending: false }).limit(50)
