@@ -377,7 +377,7 @@ export default function VideoGenerator() {
       setCurrentJobId("");
       setActiveView("history"); // 완료 시 생성 내역으로 자동 이동
     } else if (job.status === "error") {
-      setCompletionAlert("❌ 영상 생성 실패: " + (job.error_message || "다시 시도해주세요."));
+      setCompletionAlert("❌ " + friendlyError(job.error_message));
       setCurrentJobId("");
     }
   }, [jobs, currentJobId, stage]);
@@ -726,7 +726,7 @@ export default function VideoGenerator() {
       setAutoRunStep("✅ 완료!");
     } catch (e) {
       const msg = String(e).replace(/^Error:\s*/, "").slice(0, 120);
-      setAutoRunStep(`❌ 오류: ${msg.slice(0,60)}`);
+      setAutoRunStep("❌ 생성 실패");
       setAutoRunError(msg);
     } finally {
       setAutoRunning(false);
@@ -1240,7 +1240,7 @@ export default function VideoGenerator() {
                       <span>❌</span>
                       <div className="flex-1">
                         <div className="font-semibold">자동 생성 실패</div>
-                        <div className="text-red-300/80 mt-0.5">{autoRunError}</div>
+                        <div className="text-red-300/80 mt-0.5">{friendlyError(autoRunError)}</div>
                         <div className="text-red-300/60 text-xs mt-1">영상 합성 크레딧은 합성 단계에서 차감되며, 합성 전에 실패한 경우 차감되지 않습니다. 잠시 후 다시 시도해 주세요. (영상 분석 10 CR은 별도로 차감됩니다)</div>
                       </div>
                       <button onClick={() => setAutoRunError("")} className="text-red-300/60 hover:text-red-300">✕</button>
@@ -1409,6 +1409,19 @@ function FloatingNext({ label, onClick, disabled = false }: {
     </div>,
     document.body
   );
+}
+
+// ── 사용자용 에러 메시지 변환 (내부 기술 에러 → 이해되는 문구) ──────────
+function friendlyError(raw?: string): string {
+  const e = (raw || "").toLowerCase();
+  if (!e) return "영상 생성에 실패했어요. 잠시 후 다시 시도해 주세요.";
+  if (e.includes("insufficient") || e.includes("credit") || e.includes("크레딧"))
+    return "크레딧이 부족해요. 충전 후 다시 시도해 주세요.";
+  if (e.includes("no clip") || e.includes("not found") || e.includes("검색 결과") || e.includes("상품을 찾") || e.includes("clip"))
+    return "영상에서 상품·클립을 충분히 찾지 못했어요. 상품이 잘 보이는 다른 쇼핑 숏폼으로 다시 시도해 주세요.";
+  if (e.includes("timeout") || e.includes("시간 초과"))
+    return "처리 시간이 초과됐어요. 잠시 후 다시 시도해 주세요. (합성 크레딧은 자동 환불돼요)";
+  return "영상 생성 중 일시적인 오류가 발생했어요. 합성에 쓰인 크레딧은 자동 환불됐어요 — 잠시 후 다시 시도하면 대부분 해결돼요.";
 }
 
 // ── URL 입력 라이브 힌트 (잘못된 링크 즉시 안내) ──────────────────────────
@@ -3107,7 +3120,7 @@ function JobCard({ job }: { job: Job }) {
           <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${s.cls}`}>{s.icon} {s.label}</span>
           <p className="mt-1.5 truncate text-sm text-gray-700">{job.product_url}</p>
           <p className="mt-0.5 text-xs text-gray-500">{new Date(job.created_at).toLocaleString("ko-KR")} · {job.credits_used} CR</p>
-          {job.status === "error" && job.error_message && <p className="mt-1 text-xs text-red-400">{job.error_message}</p>}
+          {job.status === "error" && <p className="mt-1 text-xs text-red-400">{friendlyError(job.error_message)}</p>}
         </div>
         {job.status === "done" && job.video_url && (
           <a href={job.video_url + (job.video_url.includes("?")?"&":"?") + "download=" + encodeURIComponent((job.product_name||"chronit")+".mp4")} className="shrink-0 rounded-xl bg-[#03C75A] px-3 py-2 text-xs font-bold text-white hover:bg-[#02b350] transition">다운로드</a>
