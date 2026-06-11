@@ -3907,6 +3907,12 @@ function AdminPayoutsTab({ session, supabase }: { session:any; supabase:any }) {
 }
 
 // ── 관리자: 구독 관리 ──
+function ProvBadge({ p }: { p?: string }) {
+  const v = (p || "").toLowerCase();
+  if (v === "kakao")  return <span title="카카오" className="mr-1.5 inline-flex h-4 w-4 items-center justify-center rounded-[4px] bg-[#FEE500] align-middle text-[9px] font-black text-[#3C1E1E]">K</span>;
+  if (v === "google") return <span title="구글" className="mr-1.5 inline-flex h-4 w-4 items-center justify-center rounded-[4px] bg-white ring-1 ring-gray-300 align-middle text-[9px] font-black text-[#4285F4]">G</span>;
+  return null;
+}
 function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
   const [users, setUsers]   = React.useState<any[]>([]);
   const [planMax, setPlanMax] = React.useState<Record<string,number>>({});
@@ -3968,6 +3974,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
     return true;
   });
   const activeCnt = users.filter(isActive).length;
+  const provStats = users.reduce((a: any, u: any) => { const v = (u.provider || "").toLowerCase(); const k = v === "google" ? "google" : v === "kakao" ? "kakao" : "etc"; a[k] = (a[k] || 0) + 1; return a; }, { google: 0, kakao: 0, etc: 0 });
   const selUser = users.find(u=>u.user_id===sel);
 
   const run = async (fn:()=>Promise<any>, okMsg:string) => {
@@ -4144,6 +4151,11 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
         <select value={plFilter} onChange={e=>setPlFilter(e.target.value)} className="rounded-xl bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none">
           <option value="all">플랜 전체</option>{plans.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>
       </div>
+      <div className="mb-2 flex items-center gap-3 text-xs text-gray-500">
+        <span><ProvBadge p="google" /><b className="text-gray-700">구글 {provStats.google}</b></span>
+        <span><ProvBadge p="kakao" /><b className="text-gray-700">카카오 {provStats.kakao}</b></span>
+        {provStats.etc > 0 && <span>기타 {provStats.etc}</span>}
+      </div>
       <div className="rounded-2xl bg-white border border-gray-200 overflow-hidden mb-5 max-h-[340px] overflow-y-auto">
         <table className="w-full text-xs">
           <thead className="border-b border-gray-200 text-gray-400 sticky top-0 bg-white">
@@ -4157,7 +4169,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
               return (
                 <tr key={u.user_id} onClick={()=>{setSel(u.user_id); setRoleSel(u.role||"user"); if(u.plan)setPlanSel(u.plan);}}
                   className={`border-b border-gray-200/50 cursor-pointer ${sel===u.user_id?"bg-[#03C75A]/10":"hover:bg-gray-100/40"}`}>
-                  <td className="px-3 py-2.5 text-gray-700 truncate max-w-[200px]">{u.email}</td><td className="px-3 py-2.5 text-gray-700 truncate max-w-[120px]">{u.nickname||"-"}</td><td className="px-3 py-2.5 text-gray-700 truncate max-w-[100px]">{u.name||"-"}</td>
+                  <td className="px-3 py-2.5 text-gray-700 truncate max-w-[200px]"><ProvBadge p={u.provider} />{u.email}</td><td className="px-3 py-2.5 text-gray-700 truncate max-w-[120px]">{u.nickname||"-"}</td><td className="px-3 py-2.5 text-gray-700 truncate max-w-[100px]">{u.name||"-"}</td>
                   <td className="px-3 py-2.5">{u.role==="super_admin"?<span className="text-yellow-400 font-bold">👑 관리자</span>:u.role==="partner"?<span className="text-[#03C75A]">파트너</span>:<span className="text-gray-400">일반</span>}</td>
                   <td className="px-3 py-2.5 text-gray-700 capitalize">{u.plan||"-"}</td>
                   <td className="px-3 py-2.5 text-gray-400">{fmt(u.expires_at)}</td>
