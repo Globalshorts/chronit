@@ -67,9 +67,13 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
     supabase.from('plans').select('id, list_price, monthly_price').in('id', ['starter', 'pro', 'master'])
       .then(({ data }) => {
         if (!data || !data.length) return
-        const m = {}
-        data.forEach(r => { if (r.list_price > 0 && r.monthly_price > 0) m[r.id] = { list: r.list_price, sale: r.monthly_price } })
-        if (Object.keys(m).length) setDbPrices(m)
+        setDbPrices(prev => { const m = { ...(prev || {}) }; data.forEach(r => { if (r.list_price > 0 && r.monthly_price > 0) m[r.id] = { list: r.list_price, sale: r.monthly_price } }); return m })
+      })
+    supabase.from('site_settings').select('key, value').in('key', ['pkg6_list_price', 'pkg6_sale_price'])
+      .then(({ data }) => {
+        if (!data || !data.length) return
+        const o = {}; data.forEach(r => { o[r.key] = Number(r.value) || 0 })
+        if (o.pkg6_list_price > 0 && o.pkg6_sale_price > 0) setDbPrices(prev => ({ ...(prev || {}), pkg6: { list: o.pkg6_list_price, sale: o.pkg6_sale_price } }))
       })
   }, [open])
 

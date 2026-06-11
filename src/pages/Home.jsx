@@ -74,7 +74,7 @@ const EventBadge = ({ status, label }) => {
   )
 }
 
-const PLAN_FALLBACK = { starter: { list: 49000, sale: 29000 }, pro: { list: 99000, sale: 49000 }, master: { list: 199000, sale: 79000 } }
+const PLAN_FALLBACK = { starter: { list: 49000, sale: 29000 }, pro: { list: 99000, sale: 49000 }, master: { list: 199000, sale: 79000 }, pkg6: { list: 594000, sale: 249000 } }
 const wonFmt = (n) => Number(n || 0).toLocaleString('ko-KR')
 const pctOff = (list, sale) => (list > 0 ? Math.round((list - sale) / list * 100) : 0)
 
@@ -100,9 +100,13 @@ const Home = () => {
     supabase.from('plans').select('id, list_price, monthly_price').in('id', ['starter', 'pro', 'master'])
       .then(({ data }) => {
         if (!data || !data.length) return
-        const m = { ...PLAN_FALLBACK }
-        data.forEach(r => { if (r.list_price > 0 && r.monthly_price > 0) m[r.id] = { list: r.list_price, sale: r.monthly_price } })
-        setPlanPrices(m)
+        setPlanPrices(prev => { const m = { ...prev }; data.forEach(r => { if (r.list_price > 0 && r.monthly_price > 0) m[r.id] = { list: r.list_price, sale: r.monthly_price } }); return m })
+      })
+    supabase.from('site_settings').select('key, value').in('key', ['pkg6_list_price', 'pkg6_sale_price'])
+      .then(({ data }) => {
+        if (!data || !data.length) return
+        const o = {}; data.forEach(r => { o[r.key] = Number(r.value) || 0 })
+        setPlanPrices(prev => ({ ...prev, pkg6: { list: o.pkg6_list_price || prev.pkg6.list, sale: o.pkg6_sale_price || prev.pkg6.sale } }))
       })
   }, [])
   const pendingPlanRef = useRef(null)
@@ -584,6 +588,25 @@ const Home = () => {
 
           <CouponBar codeFromUrl={codeFromUrl} onApply={(code) => { setCodeFromUrl(code); sessionStorage.setItem('chronit_code', code) }} />
 
+          {/* 6개월 안심 패키지 */}
+          <div onClick={() => openPayment('pkg6')}
+            className="mb-6 flex cursor-pointer flex-col items-start justify-between gap-4 rounded-[2rem] border-2 border-[#FFB800] bg-[#FFFBEB] p-7 transition-all hover:shadow-[0_8px_30px_-8px_rgba(255,184,0,0.5)] sm:flex-row sm:items-center md:p-9">
+            <div>
+              <div className="mb-1 flex items-center gap-2">
+                <span className="rounded-full bg-[#FFB800] px-3 py-1 text-xs font-black text-white">안심 패키지</span>
+                <h4 className="text-xl font-black text-gray-900">프로 6개월</h4>
+              </div>
+              <p className="text-base text-gray-600">프로 요금제를 <strong className="text-gray-900">6개월 동안</strong> · 매월 크레딧 충전 · 가장 알뜰한 장기 플랜</p>
+            </div>
+            <div className="shrink-0 text-left sm:text-right">
+              <span className="text-base font-bold text-gray-400 line-through">{wonFmt(planPrices.pkg6.list)}원</span><span className="ml-2 rounded-md bg-[#FFB800]/20 px-1.5 py-0.5 text-xs font-black text-[#b07d00]">{pctOff(planPrices.pkg6.list, planPrices.pkg6.sale)}% 할인</span>
+              <div className="flex items-baseline gap-1 sm:justify-end">
+                <span className="text-4xl font-black text-[#b07d00]">{wonFmt(planPrices.pkg6.sale)}</span>
+                <span className="text-lg font-bold text-gray-500">원</span>
+              </div>
+            </div>
+          </div>
+
           <div className="grid gap-6 md:grid-cols-3 md:gap-7">
             {/* 스타터 */}
             <div onClick={() => openPayment('starter')} className="flex cursor-pointer flex-col rounded-[2rem] border border-gray-200 bg-white p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all hover:border-[#03C75A]/50 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:p-10">
@@ -642,25 +665,6 @@ const Home = () => {
           </div>
 
           <p className="mt-4 text-center text-sm text-gray-400">* 영상 개수는 분석 1회 + 일반 음성 기준 예상치예요. 음성·옵션에 따라 달라질 수 있어요.</p>
-
-          {/* 6개월 안심 패키지 */}
-          <div onClick={() => openPayment('pkg6')}
-            className="mt-6 flex cursor-pointer flex-col items-start justify-between gap-4 rounded-[2rem] border-2 border-[#FFB800] bg-[#FFFBEB] p-7 transition-all hover:shadow-[0_8px_30px_-8px_rgba(255,184,0,0.5)] sm:flex-row sm:items-center md:p-9">
-            <div>
-              <div className="mb-1 flex items-center gap-2">
-                <span className="rounded-full bg-[#FFB800] px-3 py-1 text-xs font-black text-white">안심 패키지</span>
-                <h4 className="text-xl font-black text-gray-900">프로 6개월</h4>
-              </div>
-              <p className="text-base text-gray-600">프로 요금제를 <strong className="text-gray-900">6개월 동안</strong> · 매월 크레딧 충전 · 가장 알뜰한 장기 플랜</p>
-            </div>
-            <div className="shrink-0 text-left sm:text-right">
-              <span className="text-base font-bold text-gray-400 line-through">594,000원</span><span className="ml-2 rounded-md bg-[#FFB800]/20 px-1.5 py-0.5 text-xs font-black text-[#b07d00]">58% 할인</span>
-              <div className="flex items-baseline gap-1 sm:justify-end">
-                <span className="text-4xl font-black text-[#b07d00]">249,000</span>
-                <span className="text-lg font-bold text-gray-500">원</span>
-              </div>
-            </div>
-          </div>
 
           <div className="mt-12 text-center">
             <button onClick={handleStart}

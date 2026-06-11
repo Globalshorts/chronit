@@ -652,12 +652,16 @@ const PricingPanel = () => {
   const inputCls = 'w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-blue-500'
   const optStyle = { backgroundColor: '#0f172a', color: '#fff' }
   useEffect(() => {
-    supabase.from('plans').select('id, list_price, monthly_price').in('id', PRICE_PLANS.map(x => x[0]))
-      .then(({ data }) => {
-        const m = {}
-        ;(data || []).forEach(r => { m[r.id] = { list: r.list_price, mode: 'price', val: r.monthly_price } })
-        setRows(m); setLoading(false)
-      })
+    Promise.all([
+      supabase.from('plans').select('id, list_price, monthly_price').in('id', PRICE_PLANS.map(x => x[0])),
+      supabase.from('site_settings').select('key, value').in('key', ['pkg6_list_price', 'pkg6_sale_price']),
+    ]).then(([pr, ss]) => {
+      const m = {}
+      ;(pr.data || []).forEach(r => { m[r.id] = { list: r.list_price, mode: 'price', val: r.monthly_price } })
+      const o = {}; (ss.data || []).forEach(r => { o[r.key] = Number(r.value) || 0 })
+      m['pkg6'] = { list: o.pkg6_list_price || 594000, mode: 'price', val: o.pkg6_sale_price || 249000 }
+      setRows(m); setLoading(false)
+    })
   }, [])
   const calcSale = (r) => {
     const list = Number(r?.list) || 0, v = Number(r?.val) || 0
@@ -670,9 +674,19 @@ const PricingPanel = () => {
     const r = rows[id]; if (!r) return
     const sale = calcSale(r)
     setSaving(id); setMsg(null)
-    const { error } = await supabase.from('plans')
-      .update({ list_price: Number(r.list) || 0, monthly_price: sale, updated_at: new Date().toISOString() })
-      .eq('id', id)
+    let error
+    if (id === 'pkg6') {
+      const res = await supabase.from('site_settings').upsert([
+        { key: 'pkg6_list_price', value: String(Number(r.list) || 0), updated_at: new Date().toISOString() },
+        { key: 'pkg6_sale_price', value: String(sale), updated_at: new Date().toISOString() },
+      ])
+      error = res.error
+    } else {
+      const res = await supabase.from('plans')
+        .update({ list_price: Number(r.list) || 0, monthly_price: sale, updated_at: new Date().toISOString() })
+        .eq('id', id)
+      error = res.error
+    }
     setSaving(null)
     setMsg(error ? ('Error: ' + error.message) : '저장됐어요')
     setTimeout(() => setMsg(null), 2500)
@@ -688,7 +702,7 @@ const PricingPanel = () => {
         <p className="text-sm text-slate-500">불러오는 중…</p>
       ) : (
         <div className="space-y-4">
-          {PRICE_PLANS.map(([id, label]) => {
+          {[...PRICE_PLANS, ['pkg6', '프로 6개월']].map(([id, label]) => {
             const r = rows[id] || { list: 0, mode: 'price', val: 0 }
             const sale = calcSale(r)
             const list = Number(r.list) || 0
