@@ -132,12 +132,23 @@ const Home = () => {
     setShowAuthModal(true)
   }
 
-  const handleTermsAgree = async () => {
+  const handleTermsAgree = async (marketing = false) => {
     setShowTermsModal(false)
     const session = pendingSessionRef.current
     pendingSessionRef.current = null
     // 신규 가입 시 닉네임 입력 받기 (없으면 모달, 완료/생략 후 진행)
     if (session) {
+      // 약관 동의 + 마케팅 수신 동의(선택) 기록 저장
+      fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/set_terms_consent_rpc`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ p_marketing: !!marketing }),
+      }).catch(() => {})
+
       const { data: prof } = await supabase.from('profiles').select('nickname').eq('id', session.user.id).maybeSingle()
       if (!prof?.nickname) {
         pendingAfterLoginRef.current = session
