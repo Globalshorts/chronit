@@ -178,9 +178,9 @@ const Register = () => {
         {step === STEP.NICK && (
           <div>
             <h2 className="mb-1 text-lg font-black text-gray-900">닉네임 설정</h2>
-            <p className="mb-5 text-sm leading-relaxed text-gray-500">서비스에 표시될 닉네임을 정해주세요. (2~16자, 중복 불가)</p>
+            <p className="mb-5 text-sm leading-relaxed text-gray-500">서비스에 표시될 닉네임을 정해주세요. (2~10자, 중복 불가)</p>
             <input value={nick} onChange={(e) => setNick(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submitNick()}
-              maxLength={16} placeholder="예: 숏폼장인" autoFocus
+              maxLength={10} placeholder="예: 숏폼장인" autoFocus
               className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base text-gray-900 outline-none focus:border-[#03C75A]" />
             {nickErr && <p className="mt-2 text-sm font-medium text-red-500">{nickErr}</p>}
             <button onClick={submitNick} disabled={saving || nick.trim().length < 2}

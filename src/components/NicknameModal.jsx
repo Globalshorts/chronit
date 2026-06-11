@@ -29,12 +29,12 @@ const NicknameModal = ({ open, onClose, onDone, required = false }) => {
           <h3 className="text-lg font-black text-gray-900">닉네임 설정</h3>
           {!required && <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>}
         </div>
-        <p className="mb-4 text-sm leading-relaxed text-gray-500">게시판에 표시될 닉네임을 정해주세요. (2~16자, 중복 불가)</p>
+        <p className="mb-4 text-sm leading-relaxed text-gray-500">게시판에 표시될 닉네임을 정해주세요. (2~10자, 중복 불가)</p>
         <input
           value={nick}
           onChange={e => setNick(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && submit()}
-          maxLength={16}
+          maxLength={10}
           placeholder="예: 숏폼장인"
           className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base text-gray-900 outline-none focus:border-[#03C75A]"
           autoFocus
