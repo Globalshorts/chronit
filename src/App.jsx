@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import VideoGenerator from './pages/VideoGenerator'
 import Home from './pages/Home'
+import Register from './pages/Register'
 import Manual from './pages/Manual'
 import ManualDetail from './pages/ManualDetail'
 import Events from './pages/Events'
@@ -30,6 +31,7 @@ const App = () => (
     <ScrollToTop />
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/register" element={<Register />} />
       <Route path="/manual" element={<Manual />} />
       <Route path="/manual/:section" element={<ManualDetail />} />
       <Route path="/events" element={<Events />} />

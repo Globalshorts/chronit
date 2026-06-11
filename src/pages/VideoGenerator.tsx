@@ -196,8 +196,14 @@ export default function VideoGenerator() {
 
   // auth
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session); setAuthLoading(false);
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        // 온보딩 미완료 신규 가입자는 회원가입 페이지로
+        const { data: prof } = await supabase.from("profiles").select("onboarded").eq("id", session.user.id).maybeSingle();
+        if (prof && prof.onboarded === false) { window.location.href = "/register"; return; }
+      }
+      setAuthLoading(false);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, s) => setSession(s));
     return () => subscription.unsubscribe();

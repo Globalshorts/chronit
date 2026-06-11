@@ -222,25 +222,9 @@ const Home = () => {
         const isNewUser = Math.abs(signedInAt - createdAt) < 5000
 
         if (isNewUser) {
-          const storedRef = sessionStorage.getItem('chronit_ref')
-          if (storedRef) {
-            fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/apply_referral_code_rpc`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${session.access_token}`,
-              },
-              body: JSON.stringify({
-                p_new_user_id: session.user.id,
-                p_referral_code: storedRef,
-              }),
-            }).catch(() => {})
-            sessionStorage.removeItem('chronit_ref')
-          }
-          pendingSessionRef.current = session
-          setShowTermsModal(true)
-          setShowAuthModal(false)
+          // 신규 가입자는 전용 회원가입 페이지로 (약관·닉네임·유입경로·추천코드·휴대폰 인증)
+          // 추천 코드(chronit_ref)는 /register에서 적용/정리함
+          window.location.href = '/register'
         } else {
           handleAfterLogin(session)
         }
