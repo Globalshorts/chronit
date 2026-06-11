@@ -2232,6 +2232,56 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
   );
 }
 
+function FeedbackModal({ open, onClose, session, onCredited }: { open:boolean; onClose:()=>void; session:any; onCredited?: ()=>void }) {
+  const [text, setText] = React.useState("");
+  const [submitting, setSubmitting] = React.useState(false);
+  const [msg, setMsg] = React.useState<{ok:boolean;text:string}|null>(null);
+  const [done, setDone] = React.useState(false);
+
+  if (!open) return null;
+
+  const submit = async () => {
+    const t = text.trim();
+    if (t.length < 5) { setMsg({ok:false, text:"5자 이상 작성해주세요"}); return; }
+    setSubmitting(true); setMsg(null);
+    try {
+      const { data, error } = await supabase.rpc("submit_feedback_rpc", { p_content: t });
+      if (error) throw error;
+      if (data?.ok) { setDone(true); onCredited?.(); }
+      else setMsg({ok:false, text:data?.error||"제출에 실패했어요"});
+    } catch(e){ setMsg({ok:false, text:String(e)}); }
+    setSubmitting(false);
+  };
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="w-full max-w-md rounded-3xl bg-white border border-gray-200 p-6" onClick={e=>e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-xl font-black text-gray-900">📝 피드백 쓰고 500 CR</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-900 text-xl">✕</button>
+        </div>
+        {done ? (
+          <div className="rounded-xl px-3 py-5 text-sm text-center bg-green-500/15 text-green-600 font-bold mt-2">🎉 피드백 감사합니다! 500 크레딧이 지급됐어요.</div>
+        ) : (
+          <>
+            <p className="text-xs text-gray-500 mb-4">크로닛을 쓰면서 좋았던 점·불편한 점·바라는 점을 자유롭게 남겨주세요. 제출하면 <b className="text-[#03C75A]">500 크레딧</b>이 바로 지급돼요. (계정당 1회)</p>
+            <textarea value={text} onChange={e=>setText(e.target.value)} rows={5}
+              placeholder="예) 영상 생성이 빨라서 좋아요. 자막 폰트가 더 다양했으면 좋겠어요..."
+              className="w-full rounded-xl bg-white border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#03C75A] resize-none" />
+            {msg && !msg.ok && <p className="text-xs mt-2 text-red-500">{msg.text}</p>}
+            <button onClick={submit} disabled={submitting||text.trim().length<5}
+              className="w-full mt-3 rounded-xl bg-[#03C75A] hover:bg-[#02b350] disabled:opacity-40 py-3 text-sm font-bold text-white">
+              {submitting ? "제출 중..." : "제출하고 500 CR 받기"}
+            </button>
+          </>
+        )}
+        <button onClick={onClose} className="w-full mt-2 rounded-xl bg-gray-100 hover:bg-gray-200 py-2.5 text-sm font-bold text-gray-700">닫기</button>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, session, onCredited }: {
   activeView: string; onViewChange: (v:string)=>void; userRole: string;
   balance: number|null; userPlan: string|null; session: any; onCredited?: ()=>void;
@@ -2244,6 +2294,7 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
     return ()=>{ _extractMgr.listeners.delete(l); };
   }, []);
   const [showMissions, setShowMissions] = React.useState(false);
+  const [showFeedback, setShowFeedback] = React.useState(false);
   const [showHistory, setShowHistory] = React.useState(false);
   const isPartner = userRole === "partner" || userRole === "super_admin";
   const isAdmin = userRole === "super_admin";
@@ -2291,8 +2342,8 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
       </div>
       {/* 크레딧 받기 CTA */}
       <div className="px-3 pt-2 space-y-2">
-        <a href="https://forms.gle/LCDeSEXSM7ALykqv5" target="_blank" rel="noreferrer"
-          className="block text-center rounded-xl bg-[#E8F8EE] border border-[#03C75A]/40 px-3 py-2 leading-tight transition hover:bg-[#dcf3e6]"><span className="block text-[11px] font-bold text-[#222222]">📝 피드백 쓰고</span><span className="block font-black text-[#222222]"><span className="text-lg text-[#03C75A]">500 CR</span> 받기</span></a>
+        <button onClick={()=>setShowFeedback(true)}
+          className="block w-full text-center rounded-xl bg-[#E8F8EE] border border-[#03C75A]/40 px-3 py-2 leading-tight transition hover:bg-[#dcf3e6]"><span className="block text-[11px] font-bold text-[#222222]">📝 피드백 쓰고</span><span className="block font-black text-[#222222]"><span className="text-lg text-[#03C75A]">500 CR</span> 받기</span></button>
         <button onClick={()=>setShowMissions(true)}
           className="credit-glow w-full text-center rounded-xl bg-[#FEE500] hover:bg-[#f5dd00] px-3 py-2.5 text-sm font-bold text-[#222222] transition">🎁 무료 크레딧 받기</button>
       </div>
@@ -2315,6 +2366,7 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
           className="w-full mt-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-100 transition">📒 크레딧 사용 내역</button>
       </div>
       <CreditMissionsModal open={showMissions} onClose={()=>setShowMissions(false)} session={session} onCredited={onCredited} />
+      <FeedbackModal open={showFeedback} onClose={()=>setShowFeedback(false)} session={session} onCredited={onCredited} />
       <CreditHistoryModal open={showHistory} onClose={()=>setShowHistory(false)} session={session} />
     </div>
   );
