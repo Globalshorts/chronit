@@ -217,17 +217,17 @@ const Home = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
       if (event === 'SIGNED_IN' && session) {
-        const createdAt = new Date(session.user.created_at).getTime()
-        const signedInAt = new Date(session.user.last_sign_in_at).getTime()
-        const isNewUser = Math.abs(signedInAt - createdAt) < 5000
-
-        if (isNewUser) {
-          // 신규 가입자는 전용 회원가입 페이지로 (약관·닉네임·유입경로·추천코드·휴대폰 인증)
-          // 추천 코드(chronit_ref)는 /register에서 적용/정리함
-          window.location.href = '/register'
-        } else {
-          handleAfterLogin(session)
-        }
+        // 온보딩 미완료(신규)면 회원가입 페이지로, 완료면 정상 진행
+        // (시간 휴리스틱 대신 onboarded 기준 — 방금 가입한 계정이 계속 /register로 튕기던 버그 수정)
+        supabase.from('profiles').select('onboarded').eq('id', session.user.id).maybeSingle()
+          .then(({ data: prof }) => {
+            if (prof && prof.onboarded === false) {
+              // 추천 코드(chronit_ref)는 /register에서 적용/정리함
+              window.location.href = '/register'
+            } else {
+              handleAfterLogin(session)
+            }
+          })
       }
     })
 
