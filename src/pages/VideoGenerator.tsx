@@ -1190,8 +1190,8 @@ export default function VideoGenerator() {
             }>
             <div className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-bold text-gray-700">재창작할 쇼핑 숏폼 URL <span className="font-normal text-gray-400">· 인스타 · 틱톡 · 유튜브</span></label>
-                <p className="mb-2 text-xs leading-relaxed text-gray-500">
+                <label className="mb-1 block text-base font-bold text-gray-700">재창작할 쇼핑 숏폼 URL <span className="font-normal text-gray-400">· 인스타 · 틱톡 · 유튜브</span></label>
+                <p className="mb-2 text-sm leading-relaxed text-gray-500">
                   팔고 싶은 상품의 <b className="text-gray-700">기존 쇼핑 숏폼</b>(릴스·쇼츠)을 넣으면, <b className="text-gray-700">새 숏폼으로 다시 만들어</b> 드려요.
                   <br /><span className="font-bold text-red-500">쿠팡·네이버쇼핑 상품 '페이지' 링크는 ❌ (상품이 나오는 '숏폼 영상' 링크!)</span>
                 </p>
@@ -1201,9 +1201,9 @@ export default function VideoGenerator() {
                     onKeyDown={e => e.key === "Enter" && handleSearch()}
                     placeholder="인스타·틱톡·유튜브 영상 링크 붙여넣기"
                     disabled={searching}
-                    className="flex-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] focus:ring-1 focus:ring-[#03C75A] disabled:opacity-50 transition" />
+                    className="flex-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-3.5 text-base text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] focus:ring-1 focus:ring-[#03C75A] disabled:opacity-50 transition" />
                   <button onClick={handleSearch} disabled={searching || !sourceUrl.trim()}
-                    className="w-full sm:w-auto shrink-0 rounded-xl bg-[#03C75A] px-5 py-3 text-sm font-bold text-white hover:bg-[#02b350] disabled:opacity-40 transition flex items-center justify-center gap-2">
+                    className="w-full sm:w-auto shrink-0 rounded-xl bg-[#03C75A] px-5 py-3.5 text-base font-bold text-white hover:bg-[#02b350] disabled:opacity-40 transition flex items-center justify-center gap-2">
                     {searching
                       ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />분석 중...</>
                       : "🔍 분석 시작 (10 CR)"}
@@ -1416,10 +1416,10 @@ function UrlHint({ url }: { url: string }) {
   const u = (url || "").trim().toLowerCase();
   if (!u) return null;
   if (["instagram.com","youtube.com","youtu.be","tiktok.com"].some(p => u.includes(p)))
-    return <p className="mt-1.5 text-xs font-bold text-[#03C75A]">✅ 분석할 수 있는 영상 링크예요</p>;
+    return <p className="mt-1.5 text-sm font-bold text-[#03C75A]">✅ 분석할 수 있는 영상 링크예요</p>;
   if (["coupang.","link.coupang","naver.","smartstore","11st.","gmarket.","auction.","aliexpress","amazon.","wconcept","kakao","ohou","oliveyoung","ssg.","lotteon"].some(p => u.includes(p)))
-    return <p className="mt-1.5 text-xs font-bold text-orange-500">🛍 상품 <b>페이지</b> 링크 같아요 — 그 상품을 소개하는 <b>영상</b>(인스타·틱톡·유튜브) 링크를 넣어주세요</p>;
-  return <p className="mt-1.5 text-xs font-bold text-orange-500">⚠️ 인스타·틱톡·유튜브 <b>영상</b> 링크만 분석할 수 있어요</p>;
+    return <p className="mt-1.5 text-sm font-bold text-orange-500">🛍 상품 <b>페이지</b> 링크 같아요 — 그 상품을 소개하는 <b>영상</b>(인스타·틱톡·유튜브) 링크를 넣어주세요</p>;
+  return <p className="mt-1.5 text-sm font-bold text-orange-500">⚠️ 인스타·틱톡·유튜브 <b>영상</b> 링크만 분석할 수 있어요</p>;
 }
 
 // ── 분석 진행률 바 (예상 시간 기반 — 백엔드 단일 호출이라 추정치) ──────────
