@@ -15,7 +15,6 @@ const CommunityHeader = ({ active = null }) => {
   const [points, setPoints] = useState(null)
   const [nickname, setNickname] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50)
@@ -30,12 +29,10 @@ const CommunityHeader = ({ active = null }) => {
   }, [])
 
   useEffect(() => {
-    if (!user) { setPoints(null); setNickname(null); setIsAdmin(false); return }
+    if (!user) { setPoints(null); setNickname(null); return }
     supabase.rpc('get_my_points_rpc').then(({ data }) => setPoints(data ?? 0))
     supabase.from('profiles').select('nickname').eq('id', user.id).maybeSingle()
       .then(({ data }) => setNickname(data?.nickname ?? null))
-    supabase.from('subscriptions').select('role').eq('user_id', user.id).maybeSingle()
-      .then(({ data }) => setIsAdmin(data?.role === 'super_admin'))
   }, [user])
 
   return (
@@ -52,9 +49,7 @@ const CommunityHeader = ({ active = null }) => {
           <div className="flex shrink-0 items-center gap-2">
             {user ? (
               <>
-                {isAdmin && (
-                  <Link to="/admin" className="hidden items-center gap-1.5 rounded-full bg-[#03C75A]/10 px-3 py-2 text-sm font-bold text-[#03C75A] ring-1 ring-[#03C75A]/30 transition-all hover:bg-[#03C75A]/20 active:scale-95 md:flex">👑 관리자</Link>
-                )}
+                <Link to="/generate" className="hidden items-center gap-1.5 rounded-full bg-[#03C75A] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#02b350] active:scale-95 md:flex">시작하기</Link>
                 <Link to="/points" className="flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-2 text-sm font-bold text-amber-600 ring-1 ring-amber-200 transition-all hover:bg-amber-100 active:scale-95 md:px-3.5">
                   <Coins size={16} />
                   {points === null ? '…' : `${points.toLocaleString()}P`}
@@ -96,8 +91,8 @@ const CommunityHeader = ({ active = null }) => {
             ))}
           </nav>
           <div className="mt-3 border-t border-gray-200 pt-3">
-            {isAdmin && (
-              <Link to="/admin" onClick={() => setMenuOpen(false)} className="mb-2 flex items-center gap-2 rounded-xl bg-[#03C75A]/10 px-4 py-3.5 text-lg font-bold text-[#03C75A] ring-1 ring-[#03C75A]/30">👑 관리자</Link>
+            {user && (
+              <Link to="/generate" onClick={() => setMenuOpen(false)} className="mb-2 block rounded-xl bg-[#03C75A] px-4 py-3.5 text-center text-lg font-bold text-white">시작하기</Link>
             )}
             {user ? (
               <Link to="/me" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-3.5 text-lg font-bold text-white">
