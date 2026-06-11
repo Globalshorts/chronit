@@ -7,8 +7,8 @@ const ICON = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/
 const SOURCE_OPTIONS = ['유튜브', '인스타그램', '지인 추천', '블로그·카페', '검색(구글·네이버)', '기타']
 
 // 스텝 인덱스
-const STEP = { TERMS: 0, NICK: 1, SOURCE: 2, REFERRAL: 3, PHONE: 4 }
-const TOTAL = 5
+const STEP = { TERMS: 0, NICK: 1, SOURCE: 2, REFERRAL: 3 }
+const TOTAL = 4
 
 const Register = () => {
   const [loading, setLoading] = useState(true)
@@ -225,35 +225,16 @@ const Register = () => {
                 {refMsg && <p className={`mt-2 text-sm font-medium ${refMsg.ok ? 'text-green-600' : 'text-red-500'}`}>{refMsg.text}</p>}
               </>
             )}
-            <button onClick={() => setStep(STEP.PHONE)}
-              className="mt-6 w-full rounded-2xl bg-[#03C75A] px-6 py-3.5 text-base font-black text-white transition-all hover:bg-[#02b350] active:scale-[0.98]">
-              {refApplied ? '다음' : '다음'}
+            <button onClick={finish} disabled={saving}
+              className="mt-6 w-full rounded-2xl bg-[#03C75A] px-6 py-3.5 text-base font-black text-white transition-all hover:bg-[#02b350] active:scale-[0.98] disabled:opacity-40">
+              {saving ? '시작하는 중…' : '시작하기'}
             </button>
             {!refApplied && (
-              <button onClick={() => setStep(STEP.PHONE)} className="mt-2 w-full text-center text-sm font-bold text-gray-400 hover:text-gray-600">건너뛰기</button>
+              <button onClick={finish} disabled={saving} className="mt-2 w-full text-center text-sm font-bold text-gray-400 hover:text-gray-600">건너뛰고 시작하기</button>
             )}
           </div>
         )}
 
-        {/* ── STEP 5. 휴대폰 인증 (자리만 — SMS 연동 예정) ── */}
-        {step === STEP.PHONE && (
-          <div>
-            <h2 className="mb-1 text-lg font-black text-gray-900">휴대폰 인증</h2>
-            <p className="mb-5 text-sm leading-relaxed text-gray-500">
-              부정 가입 방지를 위해 곧 도입될 예정이에요. 지금은 <b className="text-gray-700">건너뛰고 시작</b>할 수 있어요.
-            </p>
-            <div className="flex gap-2 opacity-60">
-              <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="010-1234-5678" disabled
-                className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 text-base text-gray-900 outline-none" />
-              <button disabled className="shrink-0 rounded-xl bg-gray-200 px-4 py-3 text-sm font-bold text-gray-500">인증번호 받기</button>
-            </div>
-            <p className="mt-2 text-xs text-gray-400">🔒 휴대폰 인증은 준비 중입니다.</p>
-            <button onClick={finish} disabled={saving}
-              className="mt-6 w-full rounded-2xl bg-[#03C75A] px-6 py-3.5 text-base font-black text-white transition-all hover:bg-[#02b350] active:scale-[0.98] disabled:opacity-40">
-              {saving ? '시작하는 중…' : '건너뛰고 시작하기'}
-            </button>
-          </div>
-        )}
       </div>
     </div>
   )
