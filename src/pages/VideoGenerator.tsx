@@ -1206,12 +1206,7 @@ export default function VideoGenerator() {
                   </button>
                 </div>
                 {searchError && <p className="mt-2 text-sm text-red-400">{searchError}</p>}
-                {searching && (
-                  <div className="mt-3 rounded-xl bg-gray-100 px-4 py-3 text-sm text-gray-700 flex items-center gap-3">
-                    <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-[#03C75A] border-t-transparent" />
-                    영상 분석 후 TikTok 클립 검색 중... (30초~2분 소요)
-                  </div>
-                )}
+                {searching && <AnalyzeProgress />}
               </div>
 
               {clips.length > 0 && (
@@ -1408,6 +1403,35 @@ function FloatingNext({ label, onClick, disabled = false }: {
       </button>
     </div>,
     document.body
+  );
+}
+
+// ── 분석 진행률 바 (예상 시간 기반 — 백엔드 단일 호출이라 추정치) ──────────
+function AnalyzeProgress() {
+  const [pct, setPct] = React.useState(6);
+  const [label, setLabel] = React.useState("영상 분석 중...");
+  React.useEffect(() => {
+    const t0 = Date.now();
+    const id = setInterval(() => {
+      const e = (Date.now() - t0) / 1000;
+      const p = 95 * (1 - Math.exp(-e / 35)); // ~95%로 점근(끝에서 천천히), 완료 시 언마운트
+      setPct(Math.max(6, Math.round(p)));
+      setLabel(e < 12 ? "영상 분석 중..." : e < 45 ? "관련 클립 검색 중..." : "클립 정리 중... 거의 다 됐어요 ✨");
+    }, 200);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div className="mt-3 rounded-xl bg-gray-100 px-4 py-3.5">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-sm font-bold text-gray-700">{label}</span>
+        <span className="text-sm font-black text-[#03C75A]">{pct}%</span>
+      </div>
+      <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
+        <div className="h-full rounded-full bg-gradient-to-r from-[#03C75A] to-[#1E88FF] transition-all duration-300 ease-out"
+          style={{ width: `${pct}%` }} />
+      </div>
+      <p className="mt-2 text-xs text-gray-500">보통 30초~2분 정도 걸려요 · 창을 닫지 말고 잠시만 기다려 주세요</p>
+    </div>
   );
 }
 
@@ -3032,18 +3056,16 @@ function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean;
           </div>
         )}
       </div>
-      <div className="p-1.5 bg-white flex items-center justify-between gap-1">
-        <div className="min-w-0">
-          <p className="text-xs text-gray-900 font-medium line-clamp-1">{clip.title || "(제목 없음)"}</p>
-          <p className="text-xs text-gray-500">@{clip.author || "?"}</p>
-        </div>
+      <div className="p-1.5 bg-white">
+        <p className="text-xs text-gray-900 font-medium line-clamp-1">{clip.title || "(제목 없음)"}</p>
+        <p className="text-xs text-gray-500 mb-1.5">@{clip.author || "?"}</p>
         <button onClick={e => { e.stopPropagation(); onToggle(); }}
-          className={`shrink-0 rounded-lg px-2 py-1 text-xs font-black transition ${
+          className={`w-full rounded-lg py-2.5 text-sm font-black transition ${
             selected
-              ? "bg-red-500/20 border border-red-500 text-red-400 hover:bg-red-500/30"
-              : "bg-[#03C75A] text-white hover:bg-[#02b350]"
+              ? "bg-red-500/15 border-2 border-red-500 text-red-500 hover:bg-red-500/25"
+              : "bg-[#03C75A] text-white hover:bg-[#02b350] shadow-sm"
           }`}>
-          {selected ? "빼기" : "담기"}
+          {selected ? "✓ 담음 (빼기)" : "＋ 담기"}
         </button>
       </div>
     </div>
