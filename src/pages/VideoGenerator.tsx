@@ -3920,7 +3920,6 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
   const [amt, setAmt]       = React.useState("1000");
   const [payAmt, setPayAmt] = React.useState("");   // 결제금액(파트너 정산 적립용)
   const [roleSel, setRoleSel] = React.useState("user");
-  const [pf, setPf] = React.useState<{nickname:string;name:string;phone:string}>({ nickname:"", name:"", phone:"" });
   const freshPR = () => ({ starter:{type:"none",value:""}, pro:{type:"none",value:""}, master:{type:"none",value:""} });
   const [partnerRates, setPartnerRates] = React.useState<Record<string,{type:string;value:string}>>(freshPR);
   const [prMsg, setPrMsg] = React.useState("");
@@ -4003,7 +4002,6 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
     run(()=>supabase.rpc("admin_adjust_credits_rpc",{p_target_user_id:sel,p_action:action,p_amount:Math.min(Math.max(Math.floor(Number(amt)||0),0),1000000)}), "크레딧 처리 완료");
   };
   const applyRole = () => run(()=>supabase.rpc("set_user_role_rpc",{p_target_user_id:sel,p_new_role:roleSel}), "권한 변경 완료");
-  const saveProfile = () => run(()=>supabase.rpc("admin_set_profile_rpc",{ p_target_user_id:sel, p_nickname:pf.nickname, p_name:pf.name, p_phone:pf.phone }), "회원 정보 저장 완료");
 
   const resetSignupSource = async () => {
     const ans = window.prompt('⚠️ 가입 경로 데이터를 모두 초기화합니다.\n수집된 응답이 전부 삭제되며 되돌릴 수 없습니다.\n\n정말 진행하려면 아래에 "초기화" 라고 입력하세요.');
@@ -4019,13 +4017,6 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
   // 선택 회원 변경 시: 역할 동기화 + (파트너면) 플랜별 정산 로드
   React.useEffect(()=>{
     setRoleSel(selUser?.role || "user");
-    setPf({ nickname:"", name:"", phone:"" });
-    if (sel) {
-      supabase.rpc("admin_get_profile_rpc",{ p_target_user_id: sel }).then((res:any)=>{
-        const d = res?.data;
-        if (d?.ok) setPf({ nickname:d.nickname||"", name:d.name||"", phone:d.phone||"" });
-      }, ()=>{});
-    }
     setPartnerRates(freshPR()); setPrMsg("");
     // 파트너 쿠폰 기본값: 이메일 앞부분 기반 코드 추천
     setPcDisc(freshPR()); setPcMsg("");
@@ -4191,15 +4182,6 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
             <Btn onClick={grant} color="bg-green-600 hover:bg-green-500">✓ 구독 부여/연장</Btn>
             <Btn onClick={cancel} color="bg-red-600 hover:bg-red-500">✕ 구독 취소</Btn>
             <Btn onClick={resetDev} color="bg-gray-200 hover:bg-gray-300">🖥 디바이스 모두 해제</Btn>
-          </div>
-        </div>
-        <div className="rounded-2xl bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 mb-2">회원 정보 수정 (닉네임 / 이름 / 전화번호) {selUser && <span className="text-[#03C75A]">— {selUser.email}</span>}</p>
-          <div className="flex flex-wrap items-center gap-2">
-            <input value={pf.nickname} onChange={e=>setPf(v=>({...v,nickname:e.target.value}))} className="w-36 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none" placeholder="닉네임" />
-            <input value={pf.name} onChange={e=>setPf(v=>({...v,name:e.target.value}))} className="w-32 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none" placeholder="이름" />
-            <input value={pf.phone} onChange={e=>setPf(v=>({...v,phone:e.target.value}))} className="w-40 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none" placeholder="전화번호" />
-            <Btn onClick={saveProfile} color="bg-[#03C75A] hover:bg-[#02b350]">✓ 저장</Btn>
           </div>
         </div>
         <div className="rounded-2xl bg-white border border-gray-200 p-4">
