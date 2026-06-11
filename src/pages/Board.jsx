@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { MessageSquare, ThumbsUp, Eye, PenLine, Users } from 'lucide-react'
+import { MessageSquare, ThumbsUp, Eye, PenLine, Users, Megaphone } from 'lucide-react'
 import CommunityHeader from '../components/CommunityHeader'
 import Footer from '../components/Footer'
 import { supabase } from '../lib/supabase'
@@ -26,14 +26,34 @@ export const fmtWhen = (s) => {
   return d.toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '')
 }
 
+const evStatus = {
+  active: { label: '진행중', cls: 'bg-[#03C75A]/15 text-[#03C75A]' },
+  ended:  { label: '종료', cls: 'bg-gray-100 text-slate-400' },
+  winner: { label: '당첨자 발표', cls: 'bg-amber-100 text-amber-600' },
+}
+const evExcerpt = (src = '', n = 90) => {
+  const t = src.replace(/<[^>]+>/g, ' ').replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[#>*_`~|]/g, ' ').replace(/\s+/g, ' ').trim()
+  return t.length > n ? t.slice(0, n) + '…' : t
+}
+const evFmtDate = (s) => new Date(s).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '')
+
 const Board = () => {
   const nav = useNavigate()
   const [tab, setTab] = useState('all')
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [uid, setUid] = useState(null)
+  const [view, setView] = useState('board')
+  const [events, setEvents] = useState([])
+  const [evLoading, setEvLoading] = useState(true)
 
   useEffect(() => { supabase.auth.getSession().then(({ data }) => setUid(data.session?.user?.id ?? null)) }, [])
+
+  useEffect(() => {
+    supabase.from('events').select('*').order('created_at', { ascending: false })
+      .then(({ data }) => { setEvents(data || []); setEvLoading(false) })
+  }, [])
 
   useEffect(() => {
     setLoading(true)
@@ -51,13 +71,59 @@ const Board = () => {
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#03C75A]/20 bg-[#03C75A]/10 px-4 py-1.5 text-sm font-bold text-[#03C75A]">
             <Users size={14} /> <span>크로닛 커뮤니티</span>
           </div>
-          <h1 className="mb-3 text-4xl font-black tracking-tight md:text-5xl">게시판</h1>
-          <p className="text-base leading-[1.8] text-slate-500 md:text-lg">글·댓글·추천으로 포인트를 모아 기프티콘으로 교환하세요.</p>
+          <h1 className="mb-3 text-4xl font-black tracking-tight md:text-5xl">커뮤니티</h1>
+          <p className="text-base leading-[1.8] text-slate-500 md:text-lg">공지·이벤트를 확인하고, 글·댓글·추천으로 포인트를 모아보세요.</p>
         </div>
       </section>
 
       <section className="px-5 pb-28 md:px-8">
         <div className="mx-auto max-w-3xl">
+          {/* 상단 탭: 공지·이벤트 / 게시판 */}
+          <div className="mb-5 flex gap-2">
+            {[['notice', '📢 공지·이벤트'], ['board', '게시판']].map(([k, label]) => (
+              <button key={k} onClick={() => setView(k)}
+                className={`rounded-full px-4 py-2 text-sm font-bold transition-all active:scale-95 ${view === k ? 'bg-gray-900 text-white' : 'bg-white text-slate-500 ring-1 ring-gray-200 hover:ring-[#03C75A]/40'}`}>
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* 공지·이벤트 */}
+          {view === 'notice' && (
+            evLoading ? (
+              <p className="py-16 text-center text-sm text-slate-500">불러오는 중…</p>
+            ) : events.length === 0 ? (
+              <p className="py-16 text-center text-sm text-slate-500">아직 공지·이벤트가 없어요.</p>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {events.map(ev => {
+                  const st = evStatus[ev.status] || evStatus.active
+                  return (
+                    <Link key={ev.id} to={`/events/${ev.id}`}
+                      className="group flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#03C75A]/40 hover:shadow-lg">
+                      {ev.thumbnail_url ? (
+                        <img src={ev.thumbnail_url} alt="" className="aspect-[16/9] w-full object-cover" />
+                      ) : (
+                        <div className="flex aspect-[16/9] w-full items-center justify-center bg-gradient-to-br from-[#03C75A]/15 to-[#03C75A]/5"><Megaphone size={36} className="text-[#03C75A]/40" /></div>
+                      )}
+                      <div className="flex flex-1 flex-col gap-2 p-5">
+                        <span className={`inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${st.cls}`}>{st.label}</span>
+                        <h3 className="text-lg font-black leading-snug text-gray-900">{ev.title}</h3>
+                        {evExcerpt(ev.content) && <p className="line-clamp-2 text-sm leading-relaxed text-slate-500">{evExcerpt(ev.content)}</p>}
+                        <div className="mt-auto flex items-center justify-between pt-2">
+                          <span className="text-xs text-slate-400">{evFmtDate(ev.created_at)}</span>
+                          <span className="text-sm font-bold text-[#03C75A]">자세히 →</span>
+                        </div>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+            )
+          )}
+
+          {/* 게시판 */}
+          {view === 'board' && (<>
           <div className="mb-1 flex items-center justify-between border-b border-gray-200">
             <div className="flex">
               {CATEGORIES.map(c => (
@@ -100,14 +166,17 @@ const Board = () => {
               ))}
             </ul>
           )}
+          </>)}
         </div>
       </section>
 
-      {/* 모바일 글쓰기 FAB */}
+      {/* 모바일 글쓰기 FAB (게시판 탭에서만) */}
+      {view === 'board' && (
       <button onClick={() => nav('/board/write')}
         className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#03C75A] text-white shadow-xl shadow-[#03C75A]/30 transition-all active:scale-90 sm:hidden">
         <PenLine size={22} />
       </button>
+      )}
 
       <Footer />
     </div>
