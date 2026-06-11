@@ -19,6 +19,7 @@ import Points from './pages/Points'
 import Shop from './pages/Shop'
 import MyPage from './pages/MyPage'
 import UserProfile from './pages/UserProfile'
+import AdminFab from './components/AdminFab'
 
 const ScrollToTop = () => {
   const { pathname } = useLocation()
@@ -29,6 +30,7 @@ const ScrollToTop = () => {
 const App = () => (
   <BrowserRouter>
     <ScrollToTop />
+    <AdminFab />
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/register" element={<Register />} />
