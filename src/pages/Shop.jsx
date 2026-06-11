@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { Coins, Gift, X, Check, Clock } from 'lucide-react'
 import CommunityHeader from '../components/CommunityHeader'
 import Footer from '../components/Footer'
