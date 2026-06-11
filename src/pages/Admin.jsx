@@ -643,6 +643,94 @@ const ChallengePanel = () => {
   )
 }
 
+const PRICE_PLANS = [['starter', '스타터'], ['pro', '프로'], ['master', '마스터']]
+const PricingPanel = () => {
+  const [rows, setRows] = useState({})
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(null)
+  const [msg, setMsg] = useState(null)
+  const inputCls = 'w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-blue-500'
+  const optStyle = { backgroundColor: '#0f172a', color: '#fff' }
+  useEffect(() => {
+    supabase.from('plans').select('id, list_price, monthly_price').in('id', PRICE_PLANS.map(x => x[0]))
+      .then(({ data }) => {
+        const m = {}
+        ;(data || []).forEach(r => { m[r.id] = { list: r.list_price, mode: 'price', val: r.monthly_price } })
+        setRows(m); setLoading(false)
+      })
+  }, [])
+  const calcSale = (r) => {
+    const list = Number(r?.list) || 0, v = Number(r?.val) || 0
+    if (r?.mode === 'percent') return Math.max(0, Math.round(list * (1 - v / 100)))
+    if (r?.mode === 'fixed') return Math.max(0, list - v)
+    return Math.max(0, v)
+  }
+  const set = (id, k, v) => setRows(rs => ({ ...rs, [id]: { ...rs[id], [k]: v } }))
+  const save = async (id) => {
+    const r = rows[id]; if (!r) return
+    const sale = calcSale(r)
+    setSaving(id); setMsg(null)
+    const { error } = await supabase.from('plans')
+      .update({ list_price: Number(r.list) || 0, monthly_price: sale, updated_at: new Date().toISOString() })
+      .eq('id', id)
+    setSaving(null)
+    setMsg(error ? ('Error: ' + error.message) : '저장됐어요')
+    setTimeout(() => setMsg(null), 2500)
+  }
+  return (
+    <div className="max-w-2xl rounded-2xl border border-white/8 bg-white/[0.03] p-8">
+      <div className="mb-2 flex items-center gap-2">
+        <ShieldCheck size={18} className="text-[#03C75A]" />
+        <h2 className="text-lg font-black text-white">요금제 가격</h2>
+      </div>
+      <p className="mb-5 text-xs leading-relaxed text-slate-500">정가와 할인(할인율 % / 정액 원 / 판매가 직접)을 설정하면 판매가가 계산돼 홈 요금제·결제 금액에 반영돼요.</p>
+      {loading ? (
+        <p className="text-sm text-slate-500">불러오는 중…</p>
+      ) : (
+        <div className="space-y-4">
+          {PRICE_PLANS.map(([id, label]) => {
+            const r = rows[id] || { list: 0, mode: 'price', val: 0 }
+            const sale = calcSale(r)
+            const list = Number(r.list) || 0
+            const pct = list > 0 ? Math.round((list - sale) / list * 100) : 0
+            return (
+              <div key={id} className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                <div className="mb-3 text-sm font-black text-white">{label}</div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-slate-400">정가 (원)</label>
+                    <input type="number" min="0" step="1000" className={inputCls} value={r.list} onChange={e => set(id, 'list', e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-slate-400">할인 방식</label>
+                    <select className={inputCls} value={r.mode} onChange={e => set(id, 'mode', e.target.value)}>
+                      <option value="price" style={optStyle}>판매가 직접</option>
+                      <option value="percent" style={optStyle}>할인율(%)</option>
+                      <option value="fixed" style={optStyle}>정액 할인(원)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-slate-400">{r.mode === 'percent' ? '할인율 %' : r.mode === 'fixed' ? '할인액 원' : '판매가 원'}</label>
+                    <input type="number" min="0" className={inputCls} value={r.val} onChange={e => set(id, 'val', e.target.value)} />
+                  </div>
+                </div>
+                <div className="mt-3 flex items-center justify-between">
+                  <span className="text-sm text-slate-300">→ 판매가 <b className="text-[#03C75A]">{sale.toLocaleString('ko-KR')}원</b> <span className="text-slate-500">({pct}% 할인)</span></span>
+                  <button onClick={() => save(id)} disabled={saving === id}
+                    className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">
+                    {saving === id ? <Loader size={14} className="animate-spin" /> : <Save size={14} />} 저장
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+          {msg && <p className="text-sm text-slate-300">{msg}</p>}
+        </div>
+      )}
+    </div>
+  )
+}
+
 const Admin = () => {
   const [user, setUser] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -784,6 +872,7 @@ const Admin = () => {
             { key: 'videos', icon: <Film size={15} />, label: 'Demo Videos' },
             { key: 'reports', icon: <Flag size={15} />, label: '신고관리' },
             { key: 'settings', icon: <Megaphone size={15} />, label: '챌린지' },
+            { key: 'pricing', icon: <ShieldCheck size={15} />, label: '요금제' },
           ].map(t => (
             <button key={t.key} onClick={() => { setTab(t.key); setView('list') }}
               className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2 text-sm font-bold transition-all ${tab === t.key ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'border border-white/10 text-slate-400 hover:text-white'}`}>
@@ -797,6 +886,7 @@ const Admin = () => {
         {tab === 'missions' && <MissionsPanel />}
         {tab === 'tips' && <TipsPanel />}
         {tab === 'settings' && <ChallengePanel />}
+        {tab === 'pricing' && <PricingPanel />}
 
         {tab === 'events' && view === 'list' && (
           <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">

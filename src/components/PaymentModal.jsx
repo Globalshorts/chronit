@@ -53,6 +53,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
   const [discount, setDiscount] = useState(null)
   const [codeStatus, setCodeStatus] = useState(null) // null | 'loading' | 'valid' | 'invalid' | 'expired'
   const [trialMsg, setTrialMsg] = useState(null)
+  const [dbPrices, setDbPrices] = useState(null)
 
   useEffect(() => {
     if (initialCode) {
@@ -60,6 +61,17 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
       applyCode(initialCode)
     }
   }, [initialCode])
+
+  useEffect(() => {
+    if (!open) return
+    supabase.from('plans').select('id, list_price, monthly_price').in('id', ['starter', 'pro', 'master'])
+      .then(({ data }) => {
+        if (!data || !data.length) return
+        const m = {}
+        data.forEach(r => { if (r.list_price > 0 && r.monthly_price > 0) m[r.id] = { list: r.list_price, sale: r.monthly_price } })
+        if (Object.keys(m).length) setDbPrices(m)
+      })
+  }, [open])
 
   const applyCode = async (code) => {
     const trimmed = (code || codeInput).trim().toUpperCase()
@@ -112,9 +124,9 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
   const buildPlan = (key) => ({
     name: PLAN_META[key].name,
     badge: PLAN_META[key].badge,
-    list: LIST_PRICES[key],
-    sale: SALE_PRICES[key],
-    price: calcPrice(SALE_PRICES[key], discount, key),
+    list: (dbPrices?.[key]?.list ?? LIST_PRICES[key]),
+    sale: (dbPrices?.[key]?.sale ?? SALE_PRICES[key]),
+    price: calcPrice((dbPrices?.[key]?.sale ?? SALE_PRICES[key]), discount, key),
   })
   const plans = {
     starter: buildPlan('starter'),
