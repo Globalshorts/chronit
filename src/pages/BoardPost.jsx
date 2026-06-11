@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, ThumbsUp, MessageSquare, Eye, Flag } from 'lucide-react'
 import CommunityHeader from '../components/CommunityHeader'
 import NicknameModal from '../components/NicknameModal'
