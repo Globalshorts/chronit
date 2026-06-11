@@ -583,7 +583,7 @@ const Home = () => {
                 </div>
               </div>
               <ul className="space-y-3 text-base font-medium text-gray-700">
-                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" /><span>월 <strong>15개</strong> 영상 제작</span></li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" /><span>월 <strong>약 18개</strong> 영상 제작</span></li>
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" />모든 자동화 기능 사용</li>
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" />자동 자막·제목 추천</li>
               </ul>
@@ -602,10 +602,9 @@ const Home = () => {
                 </div>
               </div>
               <ul className="space-y-3 text-base font-medium text-white">
-                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-white" /><span>월 <strong>40개</strong> 영상 제작 (하루 1~2개)</span></li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-white" /><span>월 <strong>약 50개</strong> 영상 제작 (하루 1~2개)</span></li>
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-white" />스타터의 모든 기능 포함</li>
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-white" />고급 AI 음성 사용</li>
-                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-white" />워터마크 없이 깔끔하게</li>
               </ul>
             </div>
 
@@ -621,12 +620,14 @@ const Home = () => {
                 </div>
               </div>
               <ul className="space-y-3 text-base font-medium text-gray-700">
-                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" /><span>월 <strong>100개</strong> 영상 제작</span></li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" /><span>월 <strong>약 125개</strong> 영상 제작</span></li>
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" />프로의 모든 기능 포함</li>
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" />새 기능 우선 체험</li>
               </ul>
             </div>
           </div>
+
+          <p className="mt-4 text-center text-sm text-gray-400">* 영상 개수는 분석 1회 + 일반 음성 기준 예상치예요. 음성·옵션에 따라 달라질 수 있어요.</p>
 
           {/* 6개월 안심 패키지 */}
           <div onClick={() => openPayment('pkg6')}
