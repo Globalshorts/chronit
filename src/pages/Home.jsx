@@ -576,7 +576,7 @@ const Home = () => {
               <h4 className="mb-2 text-xl font-black text-gray-900">스타터</h4>
               <p className="mb-5 text-base text-gray-500">처음 시작하는 분께</p>
               <div className="mb-8">
-                <span className="text-base font-bold text-gray-400 line-through">49,000원</span>
+                <span className="text-base font-bold text-gray-400 line-through">49,000원</span><span className="ml-2 rounded-md bg-[#03C75A]/15 px-1.5 py-0.5 text-xs font-black text-[#03C75A]">41% 할인</span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-black text-gray-900">29,000</span>
                   <span className="text-lg font-bold text-gray-500">원 / 월</span>
@@ -595,7 +595,7 @@ const Home = () => {
               <h4 className="mb-2 text-xl font-black text-white">프로</h4>
               <p className="mb-5 text-base text-white/80">매일 꾸준히 올리는 분께</p>
               <div className="mb-8">
-                <span className="text-base font-bold text-white/60 line-through">99,000원</span>
+                <span className="text-base font-bold text-white/60 line-through">99,000원</span><span className="ml-2 rounded-md bg-white/25 px-1.5 py-0.5 text-xs font-black text-white">51% 할인</span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-black text-white md:text-5xl">49,000</span>
                   <span className="text-lg font-bold text-white/80">원 / 월</span>
@@ -613,7 +613,7 @@ const Home = () => {
               <h4 className="mb-2 text-xl font-black text-gray-900">마스터</h4>
               <p className="mb-5 text-base text-gray-500">여러 채널을 운영하는 분께</p>
               <div className="mb-8">
-                <span className="text-base font-bold text-gray-400 line-through">199,000원</span>
+                <span className="text-base font-bold text-gray-400 line-through">199,000원</span><span className="ml-2 rounded-md bg-[#03C75A]/15 px-1.5 py-0.5 text-xs font-black text-[#03C75A]">60% 할인</span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-black text-gray-900">79,000</span>
                   <span className="text-lg font-bold text-gray-500">원 / 월</span>
@@ -640,7 +640,7 @@ const Home = () => {
               <p className="text-base text-gray-600">프로 요금제를 <strong className="text-gray-900">6개월 동안</strong> · 매월 크레딧 충전 · 가장 알뜰한 장기 플랜</p>
             </div>
             <div className="shrink-0 text-left sm:text-right">
-              <span className="text-base font-bold text-gray-400 line-through">594,000원</span>
+              <span className="text-base font-bold text-gray-400 line-through">594,000원</span><span className="ml-2 rounded-md bg-[#FFB800]/20 px-1.5 py-0.5 text-xs font-black text-[#b07d00]">58% 할인</span>
               <div className="flex items-baseline gap-1 sm:justify-end">
                 <span className="text-4xl font-black text-[#b07d00]">249,000</span>
                 <span className="text-lg font-bold text-gray-500">원</span>
