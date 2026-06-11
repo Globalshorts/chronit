@@ -1421,17 +1421,20 @@ function AnalyzeProgress() {
     return () => clearInterval(id);
   }, []);
   return (
-    <div className="mt-3 rounded-xl bg-gray-100 px-4 py-3.5">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-sm font-bold text-gray-700">{label}</span>
-        <span className="text-sm font-black text-[#03C75A]">{pct}%</span>
+    <>
+      <div className="mt-3 rounded-xl bg-gray-100 px-4 py-3.5">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-sm font-bold text-gray-700">{label}</span>
+          <span className="text-sm font-black text-[#03C75A]">{pct}%</span>
+        </div>
+        <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
+          <div className="h-full rounded-full bg-gradient-to-r from-[#03C75A] to-[#1E88FF] transition-all duration-300 ease-out"
+            style={{ width: `${pct}%` }} />
+        </div>
+        <p className="mt-2 text-xs text-gray-500">보통 30초~2분 정도 걸려요 · 창을 닫지 말고 잠시만 기다려 주세요</p>
       </div>
-      <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
-        <div className="h-full rounded-full bg-gradient-to-r from-[#03C75A] to-[#1E88FF] transition-all duration-300 ease-out"
-          style={{ width: `${pct}%` }} />
-      </div>
-      <p className="mt-2 text-xs text-gray-500">보통 30초~2분 정도 걸려요 · 창을 닫지 말고 잠시만 기다려 주세요</p>
-    </div>
+      <LoadingTips intervalMs={12000} />
+    </>
   );
 }
 
@@ -2052,7 +2055,7 @@ function CreditHistoryModal({ open, onClose, session }: { open:boolean; onClose:
 }
 
 // 로딩 중 '터지는 숏폼 부업 꿀팁' 카드뉴스 (30초마다 랜덤 회전)
-function LoadingTips() {
+function LoadingTips({ intervalMs = 30000 }: { intervalMs?: number }) {
   const [tips, setTips] = React.useState<any[]>([]);
   const [idx, setIdx] = React.useState(0);
   React.useEffect(()=>{ (async()=>{
@@ -2063,7 +2066,7 @@ function LoadingTips() {
       setTips(arr);
     } catch {}
   })(); }, []);
-  React.useEffect(()=>{ if(tips.length<2) return; const t=setInterval(()=>setIdx(i=>(i+1)%tips.length), 30000); return ()=>clearInterval(t); }, [tips]);
+  React.useEffect(()=>{ if(tips.length<2) return; const t=setInterval(()=>setIdx(i=>(i+1)%tips.length), intervalMs); return ()=>clearInterval(t); }, [tips, intervalMs]);
   if (!tips.length) return null;
   const tip = tips[idx];
   const go = (d:number)=> setIdx(i => (i + d + tips.length) % tips.length);
@@ -2076,7 +2079,7 @@ function LoadingTips() {
       </div>
       <div className="mt-2 flex items-center justify-between">
         <button onClick={()=>go(-1)} className="text-gray-400 hover:text-gray-700 text-sm px-2">‹</button>
-        <span className="text-[11px] text-gray-400">30초마다 자동으로 넘어가요</span>
+        <span className="text-[11px] text-gray-400">{Math.round(intervalMs/1000)}초마다 자동으로 넘어가요</span>
         <button onClick={()=>go(1)} className="text-gray-400 hover:text-gray-700 text-sm px-2">›</button>
       </div>
     </div>
