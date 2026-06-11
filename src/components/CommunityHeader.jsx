@@ -2,19 +2,13 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Coins, User, Menu, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import SiteNav, { SITE_MENUS } from './SiteNav'
 
 /**
  * 사이트 공통 헤더 (커뮤니티·정보 페이지 공용).
  * - active: 'manual' | 'board' | 'points' | 'shop' | 'events' | 'me'
  * - 로그인 시 포인트 pill + 마이페이지(닉네임) 버튼, 모바일 메뉴 포함
  */
-const NAV = [
-  ['/manual', '사용 방법', 'manual'],
-  ['/board', '게시판', 'board'],
-  ['/points', '포인트', 'points'],
-  ['/shop', '교환소', 'shop'],
-]
-
 const CommunityHeader = ({ active = null }) => {
   const [scrolled, setScrolled] = useState(false)
   const [user, setUser] = useState(null)
@@ -41,9 +35,6 @@ const CommunityHeader = ({ active = null }) => {
       .then(({ data }) => setNickname(data?.nickname ?? null))
   }, [user])
 
-  const navCls = (key) =>
-    `uppercase transition-colors ${active === key ? 'text-[#03C75A]' : 'hover:text-[#03C75A]'}`
-
   return (
     <>
       <header className={`fixed top-0 right-0 left-0 z-50 transition-all duration-500 ${scrolled ? 'border-b border-gray-200 bg-white/90 py-3 backdrop-blur-xl md:py-4' : 'bg-transparent py-5 md:py-8'}`}>
@@ -53,11 +44,7 @@ const CommunityHeader = ({ active = null }) => {
             <h1 className="text-2xl font-black tracking-tighter text-gray-900 md:text-3xl">Chronit</h1>
           </Link>
 
-          <nav className="hidden gap-8 text-base font-bold tracking-wide text-slate-500 md:flex">
-            {NAV.map(([to, label, key]) => (
-              <Link key={key} to={to} className={navCls(key)}>{label}</Link>
-            ))}
-          </nav>
+          <SiteNav active={active === 'manual' ? '/manual' : active === 'board' ? '/board' : active === 'points' ? '/points' : active === 'shop' ? '/shop' : null} />
 
           <div className="flex shrink-0 items-center gap-2">
             {user ? (
@@ -86,10 +73,20 @@ const CommunityHeader = ({ active = null }) => {
       {/* 모바일 메뉴 */}
       <div className={`fixed top-0 right-0 left-0 z-40 transform pt-[76px] transition-all duration-300 ease-in-out md:hidden ${menuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
         <div className="border-b border-gray-200 bg-white px-6 py-5 shadow-lg">
-          <nav className="flex flex-col gap-1 text-lg font-bold text-gray-700">
-            {NAV.map(([to, label, key]) => (
-              <Link key={key} to={to} onClick={() => setMenuOpen(false)}
-                className={`rounded-xl px-4 py-3.5 transition-colors hover:bg-gray-50 ${active === key ? 'text-[#03C75A]' : 'hover:text-[#03C75A]'}`}>{label}</Link>
+          <nav className="flex flex-col gap-3 text-gray-700">
+            {SITE_MENUS.map(menu => (
+              <div key={menu.key}>
+                <div className="px-4 pb-1 text-xs font-bold tracking-wide text-slate-400 uppercase">{menu.label}</div>
+                {menu.items.map(([to, label]) => (
+                  to.startsWith('/#') ? (
+                    <a key={to} href={to} onClick={() => setMenuOpen(false)}
+                      className="block rounded-xl px-4 py-2.5 text-base font-bold transition-colors hover:bg-gray-50 hover:text-[#03C75A]">{label}</a>
+                  ) : (
+                    <Link key={to} to={to} onClick={() => setMenuOpen(false)}
+                      className={`block rounded-xl px-4 py-2.5 text-base font-bold transition-colors hover:bg-gray-50 ${to === '/' + (active || '') ? 'text-[#03C75A]' : 'hover:text-[#03C75A]'}`}>{label}</Link>
+                  )
+                ))}
+              </div>
             ))}
           </nav>
           <div className="mt-3 border-t border-gray-200 pt-3">

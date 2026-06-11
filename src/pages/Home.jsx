@@ -9,6 +9,7 @@ import PaymentModal from '../components/PaymentModal'
 import AuthModal from '../components/AuthModal'
 import TermsModal from '../components/TermsModal'
 import Footer from '../components/Footer'
+import SiteNav from '../components/SiteNav'
 import NicknameModal from '../components/NicknameModal'
 import { supabase } from '../lib/supabase'
 
@@ -264,14 +265,7 @@ const Home = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [menuOpen])
 
-  const navItems = (
-    <>
-      <a href="#features" className="transition-colors hover:text-[#03C75A]">기능</a>
-      <Link to="/manual" className="transition-colors hover:text-[#03C75A]">사용 방법</Link>
-      <Link to="/board" className="transition-colors hover:text-[#03C75A]">게시판</Link>
-      <a href="#pricing" className="transition-colors hover:text-[#03C75A]">요금제</a>
-    </>
-  )
+  const navItems = null
 
   const eventBannerOn = events.filter(e => e.status === 'active').length > 0 && !(typeof sessionStorage !== 'undefined' && sessionStorage.getItem('chronit_event_banner_closed'))
   const bannerCount = (refFromUrl ? 1 : 0) + (codeFromUrl ? 1 : 0) + (eventBannerOn ? 1 : 0)
@@ -316,9 +310,7 @@ const Home = () => {
             <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-9 w-9 shrink-0 md:h-10 md:w-10" />
             <h1 className="text-2xl font-black tracking-tight text-gray-900 md:text-3xl">Chronit</h1>
           </a>
-          <nav className="hidden gap-10 text-base font-bold text-gray-500 md:flex">
-            {navItems}
-          </nav>
+          <SiteNav />
           <div className="flex shrink-0 items-center gap-2">
             <div className="hidden md:flex items-center gap-2">
               {user ? (
