@@ -1391,16 +1391,17 @@ function FloatingNext({ label, onClick, disabled = false }: {
   label: string; onClick: () => void; disabled?: boolean;
 }) {
   return createPortal(
-    <div style={{ position:"fixed", bottom:"96px", right:"16px", zIndex:50 }}>
+    <div style={{ position:"fixed", bottom:"92px", left:"50%", transform:"translateX(-50%)", zIndex:50, width:"max-content", maxWidth:"calc(100vw - 32px)" }}>
       <button onClick={onClick} disabled={disabled}
         className={disabled ? undefined : "cta-glow-pulse"}
-        style={{ height:"50px", display:"inline-flex", alignItems:"center", gap:"8px",
+        style={{ height:"58px", display:"inline-flex", alignItems:"center", justifyContent:"center", gap:"8px",
                  background: disabled
                    ? "#E5E7EB"
                    : "linear-gradient(135deg, #03C75A 0%, #0AB39C 50%, #1E88FF 100%)",
-                 borderRadius:"16px", padding:"0 26px",
-                 fontSize:"15px", fontWeight:900,
-                 color: disabled ? "#6B7280" : "white", border:"none",
+                 borderRadius:"18px", padding:"0 34px",
+                 fontSize:"16px", fontWeight:900,
+                 color: disabled ? "#6B7280" : "white",
+                 border: disabled ? "3px solid rgba(255,255,255,0.7)" : "3px solid rgba(255,255,255,0.92)",
                  cursor: disabled ? "not-allowed" : "pointer",
                  transition:"background .25s ease, color .25s ease" }}>
         <span>{label}</span>{!disabled && <span>→</span>}

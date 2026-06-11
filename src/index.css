@@ -21,8 +21,8 @@
 
 /* 자동 생성 CTA — 활성 시 은은한 글로우 펄스로 시선 유도 */
 @keyframes ctaGlow {
-  0%, 100% { box-shadow: 0 12px 28px -8px rgba(3,199,90,0.45); }
-  50%      { box-shadow: 0 16px 42px -6px rgba(14,165,233,0.55), 0 0 18px 2px rgba(3,199,90,0.35); }
+  0%, 100% { box-shadow: 0 12px 28px -8px rgba(3,199,90,0.5); transform: scale(1); }
+  50%      { box-shadow: 0 18px 46px -6px rgba(14,165,233,0.6), 0 0 22px 3px rgba(3,199,90,0.4); transform: scale(1.035); }
 }
 .cta-glow-pulse { animation: ctaGlow 2.4s ease-in-out infinite; }
 .credit-glow::after {
