@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import CommunityHeader from '../components/CommunityHeader'
 import NicknameModal from '../components/NicknameModal'
@@ -13,6 +13,8 @@ const WRITE_CATS = [
 
 const BoardWrite = () => {
   const nav = useNavigate()
+  const [params] = useSearchParams()
+  const editId = params.get('edit')
   const [user, setUser] = useState(undefined) // undefined=확인중
   const [cat, setCat] = useState('free')
   const [title, setTitle] = useState('')
@@ -25,8 +27,23 @@ const BoardWrite = () => {
     supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null))
   }, [])
 
+  useEffect(() => {
+    if (!editId) return
+    supabase.from('board_posts').select('category, title, body, is_deleted').eq('id', editId).maybeSingle()
+      .then(({ data }) => {
+        if (!data || data.is_deleted) { nav('/board'); return }
+        setCat(data.category || 'free'); setTitle(data.title || ''); setBody(data.body || '')
+      })
+  }, [editId]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const submit = async () => {
     setErr(''); setSaving(true)
+    if (editId) {
+      const { error } = await supabase.from('board_posts').update({ category: cat, title, body }).eq('id', editId)
+      setSaving(false)
+      if (error) { setErr('수정할 수 없어요 (본인 글만 가능).'); return }
+      nav(`/board/${editId}`); return
+    }
     const { data, error } = await supabase.functions.invoke('board-submit', { body: { kind: 'post', category: cat, title, body } })
     setSaving(false)
     if (error) { setErr('오류가 발생했어요. 잠시 후 다시 시도해주세요.'); return }
@@ -56,7 +73,7 @@ const BoardWrite = () => {
         <button onClick={() => nav('/board')} className="mb-5 flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-gray-900">
           <ArrowLeft size={16} /> 목록으로
         </button>
-        <h1 className="mb-6 text-2xl font-black md:text-3xl">글쓰기</h1>
+        <h1 className="mb-6 text-2xl font-black md:text-3xl">{editId ? '글 수정' : '글쓰기'}</h1>
 
         <div className="mb-4 flex gap-2">
           {WRITE_CATS.map(c => (
@@ -73,11 +90,11 @@ const BoardWrite = () => {
           className="w-full resize-y rounded-xl border border-gray-200 bg-white px-4 py-3 text-base leading-relaxed outline-none focus:border-[#03C75A]" />
 
         {err && <p className="mt-3 text-sm font-medium text-red-500">{err}</p>}
-        <p className="mt-3 text-xs text-slate-400">글을 등록하면 20P가 적립돼요 (하루 1회까지).</p>
+        {!editId && <p className="mt-3 text-xs text-slate-400">글을 등록하면 20P가 적립돼요 (하루 1회까지).</p>}
 
         <button onClick={submit} disabled={saving}
           className="mt-5 w-full rounded-xl bg-[#03C75A] py-3.5 text-base font-bold text-white transition-all hover:bg-[#02b350] active:scale-95 disabled:opacity-50">
-          {saving ? '등록 중…' : '등록하기'}
+          {saving ? (editId ? '수정 중…' : '등록 중…') : (editId ? '수정 완료' : '등록하기')}
         </button>
       </section>
 

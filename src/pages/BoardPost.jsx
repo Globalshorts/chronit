@@ -39,12 +39,25 @@ const BoardPost = () => {
     setTimeout(() => setToast(''), 3000)
   }
 
+  const delPost = async () => {
+    if (!confirm('이 글을 삭제할까요? 되돌릴 수 없어요.')) return
+    const { error } = await supabase.from('board_posts').update({ is_deleted: true }).eq('id', post.id)
+    if (error) { setToast('삭제할 수 없어요'); setTimeout(() => setToast(''), 3000); return }
+    nav('/board')
+  }
+
   useEffect(() => {
     let alive = true
     supabase.from('board_posts').select('*').eq('id', id).eq('is_deleted', false).maybeSingle()
-      .then(({ data }) => { if (alive) { setPost(data); setLoading(false) } })
+      .then(({ data }) => {
+        if (!alive) return
+        setPost(data); setLoading(false)
+        if (data) {
+          supabase.rpc('increment_post_view_rpc', { p_post_id: Number(id) })
+            .then(() => { if (alive) setPost(p => (p ? { ...p, view_count: (p.view_count || 0) + 1 } : p)) })
+        }
+      })
     loadComments()
-    supabase.rpc('increment_post_view_rpc', { p_post_id: Number(id) })
     return () => { alive = false }
   }, [id])
 
@@ -101,6 +114,12 @@ const BoardPost = () => {
           <span className="ml-auto flex items-center gap-1"><Eye size={14} />{post.view_count}</span>
           {user && post.user_id !== user.id && (
             <button onClick={() => setReportTarget({ type: 'post', id: post.id })} className="flex items-center gap-1 text-slate-400 transition-colors hover:text-red-500"><Flag size={13} />신고</button>
+          )}
+          {user && post.user_id === user.id && (
+            <>
+              <button onClick={() => nav(`/board/write?edit=${post.id}`)} className="font-bold text-slate-400 transition-colors hover:text-[#03C75A]">수정</button>
+              <button onClick={delPost} className="font-bold text-slate-400 transition-colors hover:text-red-500">삭제</button>
+            </>
           )}
         </div>
 
