@@ -53,8 +53,15 @@ const Board = () => {
   useEffect(() => {
     supabase.from('events').select('*').order('created_at', { ascending: false })
       .then(({ data }) => setEvents(data || []))
-    supabase.from('site_settings').select('value').eq('key', 'weekly_challenge').maybeSingle()
-      .then(({ data }) => setChallenge(data?.value || ''))
+    supabase.from('point_challenges').select('label, active, starts_at, ends_at')
+      .eq('reason', 'post').eq('active', true).order('id', { ascending: false }).limit(1).maybeSingle()
+      .then(({ data }) => {
+        if (!data) return setChallenge('')
+        const now = Date.now()
+        const okStart = !data.starts_at || new Date(data.starts_at).getTime() <= now
+        const okEnd = !data.ends_at || new Date(data.ends_at).getTime() >= now
+        setChallenge(okStart && okEnd ? (data.label || '') : '')
+      })
   }, [])
 
   useEffect(() => {

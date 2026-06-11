@@ -565,44 +565,75 @@ const ReportsPanel = () => {
   )
 }
 
+const REASON_OPTS = [
+  { v: 'post', label: '글 작성 (기본 20P)' },
+  { v: 'comment', label: '댓글 (기본 5P)' },
+  { v: 'like_received', label: '추천 받기 (기본 2P)' },
+]
 const ChallengePanel = () => {
-  const [value, setValue] = useState('')
+  const [row, setRow] = useState(null)
+  const [reason, setReason] = useState('post')
+  const [multiplier, setMultiplier] = useState(2)
+  const [label, setLabel] = useState('')
+  const [active, setActive] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState(null)
   const inputCls = 'w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-blue-500'
   useEffect(() => {
-    supabase.from('site_settings').select('value').eq('key', 'weekly_challenge').maybeSingle()
-      .then(({ data }) => { setValue(data?.value || ''); setLoading(false) })
+    supabase.from('point_challenges').select('*').order('id', { ascending: false }).limit(1).maybeSingle()
+      .then(({ data }) => {
+        if (data) { setRow(data); setReason(data.reason); setMultiplier(Number(data.multiplier)); setLabel(data.label || ''); setActive(!!data.active) }
+        setLoading(false)
+      })
   }, [])
   const save = async () => {
     setSaving(true); setMsg(null)
-    const { error } = await supabase.from('site_settings')
-      .upsert({ key: 'weekly_challenge', value, updated_at: new Date().toISOString() })
+    const payload = { reason, multiplier: Number(multiplier) || 1, label, active, updated_at: new Date().toISOString() }
+    let error
+    if (row?.id) {
+      ({ error } = await supabase.from('point_challenges').update(payload).eq('id', row.id))
+    } else {
+      const { data, error: e } = await supabase.from('point_challenges').insert(payload).select().maybeSingle()
+      error = e; if (data) setRow(data)
+    }
     setSaving(false)
     setMsg(error ? 'Error: ' + error.message : '저장됐어요')
-    setTimeout(() => setMsg(null), 2000)
+    setTimeout(() => setMsg(null), 2500)
   }
   return (
     <div className="max-w-2xl rounded-2xl border border-white/8 bg-white/[0.03] p-8">
       <div className="mb-2 flex items-center gap-2">
         <Megaphone size={18} className="text-[#03C75A]" />
-        <h2 className="text-lg font-black text-white">커뮤니티 설정</h2>
+        <h2 className="text-lg font-black text-white">커뮤니티 챌린지</h2>
       </div>
-      <p className="mb-4 text-xs text-slate-500">게시판이 비어 있을 때 보이는 '이번 주 챌린지' 문구예요. 비우면 숨겨집니다.</p>
+      <p className="mb-5 text-xs leading-relaxed text-slate-500">활성화하면 선택한 행동의 적립 포인트가 배수만큼 <b className="text-slate-300">실제로 더 지급</b>돼요. '글 작성' 챌린지면 게시판이 비어 있을 때 문구도 함께 떠요. 문구를 비우면 배너는 숨겨집니다.</p>
       {loading ? (
         <p className="text-sm text-slate-500">불러오는 중…</p>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
+          <label className="flex items-center gap-2 text-sm font-bold text-slate-200">
+            <input type="checkbox" checked={active} onChange={e => setActive(e.target.checked)} /> 챌린지 활성화
+          </label>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-400">대상 행동</label>
+              <select className={inputCls} value={reason} onChange={e => setReason(e.target.value)}>
+                {REASON_OPTS.map(o => <option key={o.v} value={o.v}>{o.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-400">배수 (2 = 2배)</label>
+              <input type="number" min="1" step="0.5" className={inputCls} value={multiplier} onChange={e => setMultiplier(e.target.value)} />
+            </div>
+          </div>
           <div>
-            <label className="mb-1 block text-xs font-bold text-slate-400">이번 주 챌린지</label>
-            <input className={inputCls} value={value} onChange={e => setValue(e.target.value)} placeholder="예) 첫 글 남기면 포인트 2배" />
+            <label className="mb-1 block text-xs font-bold text-slate-400">배너 문구 (비우면 빈 화면 배너 숨김)</label>
+            <input className={inputCls} value={label} onChange={e => setLabel(e.target.value)} placeholder="예) 첫 글 남기면 포인트 2배" />
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={save} disabled={saving}
-              className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">
-              {saving ? <Loader size={14} className="animate-spin" /> : <Save size={14} />} 저장
-            </button>
+            <button onClick={save} disabled={saving} className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">{saving ? <Loader size={14} className="animate-spin" /> : <Save size={14} />} 저장</button>
+            {active && <span className="text-xs font-bold text-[#03C75A]">● 현재 적용 중</span>}
             {msg && <span className="text-sm text-slate-300">{msg}</span>}
           </div>
         </div>
