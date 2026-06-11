@@ -73,6 +73,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
       .single()
 
     if (error || !data) { setCodeStatus('invalid'); setDiscount(null); return }
+    if (data.type === 'credits') { setCodeStatus('credit_only'); setDiscount(null); return }
     if (data.expires_at && new Date(data.expires_at) < new Date()) { setCodeStatus('expired'); setDiscount(null); return }
     setDiscount(data)
     setCodeStatus('valid')
@@ -210,6 +211,9 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
           )}
           {codeStatus === 'expired' && (
             <p className="mt-2 text-sm font-bold text-red-500">만료된 코드입니다.</p>
+          )}
+          {codeStatus === 'credit_only' && (
+            <p className="mt-2 text-sm font-bold text-amber-600">크레딧 지급 코드예요. 앱의 "🎁 크레딧 더 받기"에서 사용해주세요.</p>
           )}
         </div>
 

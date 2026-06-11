@@ -2087,6 +2087,22 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
   const [copiedCode, setCopiedCode] = React.useState(false);
   const [missions, setMissions] = React.useState<any[]>([]);
   const [claiming, setClaiming] = React.useState<string|null>(null);
+  const [coupon, setCoupon] = React.useState("");
+  const [couponMsg, setCouponMsg] = React.useState<{ok:boolean;text:string}|null>(null);
+  const [couponLoading, setCouponLoading] = React.useState(false);
+
+  const redeemCoupon = async () => {
+    const c = coupon.trim().toUpperCase();
+    if (!c) { setCouponMsg({ok:false, text:"코드를 입력해주세요"}); return; }
+    setCouponLoading(true); setCouponMsg(null);
+    try {
+      const { data, error } = await supabase.rpc("redeem_credit_code_rpc", { p_code: c });
+      if (error) throw error;
+      if (data?.ok) { setCouponMsg({ok:true, text:`🎉 ${Number(data.credits).toLocaleString()} 크레딧이 지급됐어요!`}); setCoupon(""); onCredited?.(); }
+      else setCouponMsg({ok:false, text:data?.error || "사용할 수 없는 코드예요"});
+    } catch(e){ setCouponMsg({ok:false, text:String(e)}); }
+    setCouponLoading(false);
+  };
 
   const loadMissions = React.useCallback(async ()=>{
     try { const { data } = await supabase.rpc("get_missions_rpc"); setMissions(Array.isArray(data)?data:[]); } catch { setMissions([]); }
@@ -2159,6 +2175,19 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
           <button onClick={onClose} className="text-gray-500 hover:text-gray-900 text-xl">✕</button>
         </div>
         <p className="text-xs text-gray-500 mb-5">미션을 완료하면 크레딧이 지급됩니다</p>
+
+        {/* 쿠폰 코드 */}
+        <div className="rounded-2xl bg-[#03C75A]/5 border border-[#03C75A]/30 p-4 mb-3">
+          <p className="text-sm font-bold text-gray-900 mb-2">🎟 쿠폰 코드</p>
+          <div className="flex gap-2">
+            <input value={coupon} onChange={e=>setCoupon(e.target.value.toUpperCase())} onKeyDown={e=>e.key==="Enter"&&redeemCoupon()}
+              placeholder="코드 입력"
+              className="min-w-0 flex-1 rounded-xl bg-white border border-gray-200 px-3 py-2 text-sm font-bold tracking-widest text-gray-900 placeholder-gray-400 outline-none focus:border-[#03C75A]" />
+            <button onClick={redeemCoupon} disabled={couponLoading}
+              className="shrink-0 rounded-xl bg-[#03C75A] hover:bg-[#02b350] disabled:opacity-50 px-4 py-2 text-sm font-bold text-white">{couponLoading?"...":"사용"}</button>
+          </div>
+          {couponMsg && <p className={`mt-2 text-xs font-medium ${couponMsg.ok?"text-green-600":"text-red-500"}`}>{couponMsg.text}</p>}
+        </div>
 
         {/* 미션 A — 추천 */}
         <div className="rounded-2xl bg-gray-100/60 border border-gray-200 p-4 mb-3">
@@ -4231,10 +4260,13 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
   const [unlimited, setUnlimited] = React.useState(true);
   const [sel, setSel]       = React.useState<Set<string>>(new Set());
   const [msg, setMsg]       = React.useState("");
+  const [mode, setMode]     = React.useState<"discount"|"credits">("discount");
+  const [credits, setCredits] = React.useState("");
+  const [maxUses, setMaxUses] = React.useState("");
 
   const load = React.useCallback(async ()=>{
     try {
-      const { data } = await supabase.from("coupon_codes").select("code,type,value,owner_email,expires_at,created_at,plan_discounts,allowed_plans").order("created_at",{ascending:false});
+      const { data } = await supabase.from("coupon_codes").select("code,type,value,owner_email,expires_at,created_at,plan_discounts,allowed_plans,max_uses").order("created_at",{ascending:false});
       setCodes(data ?? []);
     } catch { setCodes([]); }
     try {
@@ -4247,26 +4279,41 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
   const create = async () => {
     const c = code.trim().toUpperCase();
     if (!c) { setMsg("코드를 입력하세요"); return; }
-    // 플랜별 할인 구성
-    const pd:Record<string,any> = {}; const allowed:string[] = [];
-    for (const [k] of COUPON_PLANS) {
-      const d = planDisc[k];
-      if (d.type === "none") continue;
-      pd[k] = d.type === "free" ? { type:"free" } : { type:d.type, value:Number(d.value)||0 };
-      allowed.push(k);
+    let row:any;
+    if (mode === "credits") {
+      const cr = Number(credits) || 0;
+      if (cr <= 0) { setMsg("지급할 크레딧 수를 입력하세요"); return; }
+      const mu = maxUses.trim() === "" ? null : (Number(maxUses) || 0);
+      if (mu !== null && mu <= 0) { setMsg("선착순 인원은 1 이상이거나 비워두세요(무제한)"); return; }
+      row = {
+        code:c, type:"credits", value:cr,
+        owner_email: owner.trim() || null,
+        expires_at: unlimited ? null : (exp || null),
+        max_uses: mu,
+        plan_discounts: null, allowed_plans: null,
+      };
+    } else {
+      // 플랜별 할인 구성
+      const pd:Record<string,any> = {}; const allowed:string[] = [];
+      for (const [k] of COUPON_PLANS) {
+        const d = planDisc[k];
+        if (d.type === "none") continue;
+        pd[k] = d.type === "free" ? { type:"free" } : { type:d.type, value:Number(d.value)||0 };
+        allowed.push(k);
+      }
+      row = {
+        code:c, type:"none", value:0,
+        owner_email: owner.trim() || null,
+        expires_at: unlimited ? null : (exp || null),
+        plan_discounts: Object.keys(pd).length ? pd : null,
+        allowed_plans: allowed.length ? allowed : null,
+      };
     }
     setMsg("생성 중...");
-    const row:any = {
-      code:c, type:"none", value:0,
-      owner_email: owner.trim() || null,
-      expires_at: unlimited ? null : (exp || null),
-      plan_discounts: Object.keys(pd).length ? pd : null,
-      allowed_plans: allowed.length ? allowed : null,
-    };
     const { error } = await supabase.from("coupon_codes").insert(row);
     if (error) setMsg("생성 실패: "+error.message);
     else {
-      setMsg("코드 생성 완료"); setCode(""); setOwner("");
+      setMsg("코드 생성 완료"); setCode(""); setOwner(""); setCredits(""); setMaxUses("");
       setPlanDisc({ starter:{type:"none",value:""}, pro:{type:"none",value:""}, master:{type:"none",value:""} });
       await load();
     }
@@ -4280,6 +4327,9 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
     else { setSel(new Set()); setMsg(`${data.deleted ?? sel.size}개 삭제 완료`); await load(); }
   };
   const summarize = (c:any) => {
+    if (c.type === "credits") {
+      return `💎 크레딧 ${Number(c.value).toLocaleString()}` + (c.max_uses ? ` · 선착순 ${c.max_uses}명` : " · 인원무제한");
+    }
     const pd = c.plan_discounts;
     if (pd && typeof pd === "object") {
       const parts = COUPON_PLANS.filter(([k])=>pd[k]).map(([k,label])=>{
@@ -4307,6 +4357,27 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
               className="w-full mt-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A]" /></div>
         </div>
         <div className="mb-4">
+          <label className="text-xs text-gray-500">코드 종류</label>
+          <div className="mt-1.5 flex gap-2">
+            <button type="button" onClick={()=>setMode("discount")}
+              className={`rounded-xl px-4 py-2 text-sm font-bold transition ${mode==="discount"?"bg-[#03C75A] text-white":"bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>💳 플랜 할인</button>
+            <button type="button" onClick={()=>setMode("credits")}
+              className={`rounded-xl px-4 py-2 text-sm font-bold transition ${mode==="credits"?"bg-[#03C75A] text-white":"bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>💎 크레딧 지급</button>
+          </div>
+        </div>
+
+        {mode === "credits" && (
+          <div className="mb-4 flex flex-wrap items-end gap-3">
+            <div><label className="text-xs text-gray-500">지급 크레딧</label>
+              <input type="number" value={credits} onChange={e=>setCredits(e.target.value)} placeholder="예: 500"
+                className="block w-32 mt-1 rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-[#03C75A]" /></div>
+            <div><label className="text-xs text-gray-500">선착순 인원 (비우면 무제한)</label>
+              <input type="number" value={maxUses} onChange={e=>setMaxUses(e.target.value)} placeholder="예: 10"
+                className="block w-40 mt-1 rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-[#03C75A]" /></div>
+          </div>
+        )}
+
+        {mode === "discount" && (<div className="mb-4">
           <label className="text-xs text-gray-500">플랜별 할인 설정</label>
           <div className="mt-1.5 space-y-2">
             {COUPON_PLANS.map(([k,label])=>(
@@ -4330,7 +4401,7 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
             ))}
           </div>
           <p className="mt-2 text-xs text-gray-400">모두 "미적용"이면 할인 없는 파트너 전용 코드가 됩니다.</p>
-        </div>
+        </div>)}
         <div className="flex flex-wrap items-end gap-3 mb-4">
           <div><label className="text-xs text-gray-500">만료일</label>
             <input type="date" value={exp} disabled={unlimited} onChange={e=>setExp(e.target.value)} className="block mt-1 rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none disabled:opacity-40" /></div>
