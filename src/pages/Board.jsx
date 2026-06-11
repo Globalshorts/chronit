@@ -81,33 +81,27 @@ const Board = () => {
       <section className="px-5 pb-28 md:px-8">
         <div className="mx-auto max-w-3xl">
 
-          {/* 공지·이벤트 (게시판에 통합 — 항상 상단 노출) */}
+          {/* 공지·이벤트 (게시판에 통합 — 컴팩트 리스트) */}
           {events.length > 0 && (
-            <div className="mb-8">
-              <div className="mb-3 flex items-center gap-2">
-                <Megaphone size={18} className="text-[#03C75A]" />
-                <h2 className="text-lg font-black text-gray-900">공지·이벤트</h2>
+            <div className="mb-6">
+              <div className="mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Megaphone size={16} className="text-[#03C75A]" />
+                  <h2 className="text-sm font-black text-gray-900">공지·이벤트</h2>
+                </div>
+                {events.length > 4 && (
+                  <Link to="/events" className="text-xs font-bold text-slate-400 transition-colors hover:text-[#03C75A]">전체 보기 →</Link>
+                )}
               </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {events.map(ev => {
+              <div className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                {events.slice(0, 4).map(ev => {
                   const st = evStatus[ev.status] || evStatus.active
                   return (
                     <Link key={ev.id} to={`/events/${ev.id}`}
-                      className="group flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#03C75A]/40 hover:shadow-lg">
-                      {ev.thumbnail_url ? (
-                        <img src={ev.thumbnail_url} alt="" className="aspect-[16/9] w-full object-cover" />
-                      ) : (
-                        <div className="flex aspect-[16/9] w-full items-center justify-center bg-gradient-to-br from-[#03C75A]/15 to-[#03C75A]/5"><Megaphone size={36} className="text-[#03C75A]/40" /></div>
-                      )}
-                      <div className="flex flex-1 flex-col gap-2 p-5">
-                        <span className={`inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${st.cls}`}>{st.label}</span>
-                        <h3 className="text-lg font-black leading-snug text-gray-900">{ev.title}</h3>
-                        {evExcerpt(ev.content) && <p className="line-clamp-2 text-sm leading-relaxed text-slate-500">{evExcerpt(ev.content)}</p>}
-                        <div className="mt-auto flex items-center justify-between pt-2">
-                          <span className="text-xs text-slate-400">{evFmtDate(ev.created_at)}</span>
-                          <span className="text-sm font-bold text-[#03C75A]">자세히 →</span>
-                        </div>
-                      </div>
+                      className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[#FAFAF8]">
+                      <span className={`flex-none rounded-full px-2 py-0.5 text-[11px] font-bold ${st.cls}`}>{st.label}</span>
+                      <span className="flex-1 truncate text-sm font-bold text-gray-900">{ev.title}</span>
+                      <span className="hidden flex-none text-xs text-slate-400 sm:block">{evFmtDate(ev.created_at)}</span>
                     </Link>
                   )
                 })}
