@@ -1190,10 +1190,10 @@ export default function VideoGenerator() {
             }>
             <div className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-bold text-gray-700">분석할 영상 URL <span className="font-normal text-gray-400">· 인스타 릴스 · 틱톡 · 유튜브 쇼츠</span></label>
+                <label className="mb-1 block text-sm font-bold text-gray-700">재창작할 쇼핑 숏폼 URL <span className="font-normal text-gray-400">· 인스타 · 틱톡 · 유튜브</span></label>
                 <p className="mb-2 text-xs leading-relaxed text-gray-500">
-                  상품을 소개하는 <b className="text-gray-700">영상</b>을 골라 <b className="text-gray-700">공유 → 링크 복사</b> 후 붙여넣으세요.
-                  {" "}<span className="font-bold text-red-500">쿠팡·네이버쇼핑 상품 페이지 링크는 ❌ (영상 링크만!)</span>
+                  팔고 싶은 상품이 담긴 <b className="text-gray-700">기존 쇼핑 숏폼</b>(릴스·쇼츠)을 붙여넣으세요. 크로닛이 같은 상품의 영상들을 모아 <b className="text-gray-700">새 숏폼으로 다시 만들어</b> 드려요.
+                  {" "}<span className="font-bold text-red-500">쿠팡·네이버쇼핑 상품 '페이지' 링크는 ❌ (상품이 나오는 '숏폼 영상' 링크!)</span>
                 </p>
                 <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                   <input type="url" value={sourceUrl}
