@@ -565,6 +565,52 @@ const ReportsPanel = () => {
   )
 }
 
+const ChallengePanel = () => {
+  const [value, setValue] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [msg, setMsg] = useState(null)
+  const inputCls = 'w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-blue-500'
+  useEffect(() => {
+    supabase.from('site_settings').select('value').eq('key', 'weekly_challenge').maybeSingle()
+      .then(({ data }) => { setValue(data?.value || ''); setLoading(false) })
+  }, [])
+  const save = async () => {
+    setSaving(true); setMsg(null)
+    const { error } = await supabase.from('site_settings')
+      .upsert({ key: 'weekly_challenge', value, updated_at: new Date().toISOString() })
+    setSaving(false)
+    setMsg(error ? 'Error: ' + error.message : '저장됐어요')
+    setTimeout(() => setMsg(null), 2000)
+  }
+  return (
+    <div className="max-w-2xl rounded-2xl border border-white/8 bg-white/[0.03] p-8">
+      <div className="mb-2 flex items-center gap-2">
+        <Megaphone size={18} className="text-[#03C75A]" />
+        <h2 className="text-lg font-black text-white">커뮤니티 설정</h2>
+      </div>
+      <p className="mb-4 text-xs text-slate-500">게시판이 비어 있을 때 보이는 '이번 주 챌린지' 문구예요. 비우면 숨겨집니다.</p>
+      {loading ? (
+        <p className="text-sm text-slate-500">불러오는 중…</p>
+      ) : (
+        <div className="space-y-3">
+          <div>
+            <label className="mb-1 block text-xs font-bold text-slate-400">이번 주 챌린지</label>
+            <input className={inputCls} value={value} onChange={e => setValue(e.target.value)} placeholder="예) 첫 글 남기면 포인트 2배" />
+          </div>
+          <div className="flex items-center gap-3">
+            <button onClick={save} disabled={saving}
+              className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">
+              {saving ? <Loader size={14} className="animate-spin" /> : <Save size={14} />} 저장
+            </button>
+            {msg && <span className="text-sm text-slate-300">{msg}</span>}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 const Admin = () => {
   const [user, setUser] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -705,6 +751,7 @@ const Admin = () => {
             { key: 'tips', icon: <Megaphone size={15} />, label: '꿀팁' },
             { key: 'videos', icon: <Film size={15} />, label: 'Demo Videos' },
             { key: 'reports', icon: <Flag size={15} />, label: '신고관리' },
+            { key: 'settings', icon: <Megaphone size={15} />, label: '커뮤니티 설정' },
           ].map(t => (
             <button key={t.key} onClick={() => { setTab(t.key); setView('list') }}
               className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all ${tab === t.key ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'border border-white/10 text-slate-400 hover:text-white'}`}>
@@ -717,6 +764,7 @@ const Admin = () => {
         {tab === 'reports' && <ReportsPanel />}
         {tab === 'missions' && <MissionsPanel />}
         {tab === 'tips' && <TipsPanel />}
+        {tab === 'settings' && <ChallengePanel />}
 
         {tab === 'events' && view === 'list' && (
           <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">

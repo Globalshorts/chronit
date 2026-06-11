@@ -45,15 +45,16 @@ const Board = () => {
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [uid, setUid] = useState(null)
-  const [view, setView] = useState('board')
   const [events, setEvents] = useState([])
-  const [evLoading, setEvLoading] = useState(true)
+  const [challenge, setChallenge] = useState('')
 
   useEffect(() => { supabase.auth.getSession().then(({ data }) => setUid(data.session?.user?.id ?? null)) }, [])
 
   useEffect(() => {
     supabase.from('events').select('*').order('created_at', { ascending: false })
-      .then(({ data }) => { setEvents(data || []); setEvLoading(false) })
+      .then(({ data }) => setEvents(data || []))
+    supabase.from('site_settings').select('value').eq('key', 'weekly_challenge').maybeSingle()
+      .then(({ data }) => setChallenge(data?.value || ''))
   }, [])
 
   useEffect(() => {
@@ -79,23 +80,14 @@ const Board = () => {
 
       <section className="px-5 pb-28 md:px-8">
         <div className="mx-auto max-w-3xl">
-          {/* 상단 탭: 공지·이벤트 / 게시판 */}
-          <div className="mb-5 flex gap-2">
-            {[['notice', '📢 공지·이벤트'], ['board', '게시판']].map(([k, label]) => (
-              <button key={k} onClick={() => setView(k)}
-                className={`rounded-full px-4 py-2 text-sm font-bold transition-all active:scale-95 ${view === k ? 'bg-gray-900 text-white' : 'bg-white text-slate-500 ring-1 ring-gray-200 hover:ring-[#03C75A]/40'}`}>
-                {label}
-              </button>
-            ))}
-          </div>
 
-          {/* 공지·이벤트 */}
-          {view === 'notice' && (
-            evLoading ? (
-              <p className="py-16 text-center text-sm text-slate-500">불러오는 중…</p>
-            ) : events.length === 0 ? (
-              <p className="py-16 text-center text-sm text-slate-500">아직 공지·이벤트가 없어요.</p>
-            ) : (
+          {/* 공지·이벤트 (게시판에 통합 — 항상 상단 노출) */}
+          {events.length > 0 && (
+            <div className="mb-8">
+              <div className="mb-3 flex items-center gap-2">
+                <Megaphone size={18} className="text-[#03C75A]" />
+                <h2 className="text-lg font-black text-gray-900">공지·이벤트</h2>
+              </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {events.map(ev => {
                   const st = evStatus[ev.status] || evStatus.active
@@ -120,11 +112,10 @@ const Board = () => {
                   )
                 })}
               </div>
-            )
+            </div>
           )}
 
           {/* 게시판 */}
-          {view === 'board' && (<>
           <div className="mb-1 flex items-center justify-between border-b border-gray-200">
             <div className="flex">
               {CATEGORIES.map(c => (
@@ -142,7 +133,7 @@ const Board = () => {
           {loading ? (
             <p className="py-16 text-center text-sm text-slate-500">불러오는 중…</p>
           ) : posts.length === 0 ? (
-            <BoardEmptyState />
+            <BoardEmptyState challenge={challenge} />
           ) : (
             <ul className="divide-y divide-gray-100 pt-2">
               {posts.map(p => (
@@ -167,17 +158,14 @@ const Board = () => {
               ))}
             </ul>
           )}
-          </>)}
         </div>
       </section>
 
-      {/* 모바일 글쓰기 FAB (게시판 탭에서만) */}
-      {view === 'board' && (
+      {/* 모바일 글쓰기 FAB */}
       <button onClick={() => nav('/board/write')}
         className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#03C75A] text-white shadow-xl shadow-[#03C75A]/30 transition-all active:scale-90 sm:hidden">
         <PenLine size={22} />
       </button>
-      )}
 
       <Footer />
     </div>
