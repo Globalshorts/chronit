@@ -270,7 +270,6 @@ const Home = () => {
       <Link to="/manual" className="transition-colors hover:text-[#03C75A]">사용 방법</Link>
       <Link to="/board" className="transition-colors hover:text-[#03C75A]">게시판</Link>
       <a href="#pricing" className="transition-colors hover:text-[#03C75A]">요금제</a>
-      <Link to="/events" className="transition-colors hover:text-[#03C75A]">이벤트</Link>
     </>
   )
 
@@ -367,7 +366,6 @@ const Home = () => {
             <Link to="/points" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">포인트 / 교환소</Link>
             <Link to="/me" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">마이페이지</Link>
             <a href="#pricing" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">요금제</a>
-            <Link to="/events" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">이벤트</Link>
           </nav>
           <div className="mt-4 border-t border-gray-200 pt-4 flex flex-col gap-2">
             {user ? (

@@ -13,7 +13,6 @@ const NAV = [
   ['/board', '게시판', 'board'],
   ['/points', '포인트', 'points'],
   ['/shop', '교환소', 'shop'],
-  ['/events', '이벤트', 'events'],
 ]
 
 const CommunityHeader = ({ active = null }) => {
