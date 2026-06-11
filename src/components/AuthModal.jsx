@@ -6,9 +6,8 @@ const AuthModal = ({ open, onClose, referralCode }) => {
 
   const signIn = async (provider) => {
     const options = { redirectTo: window.location.origin + window.location.pathname }
-    // 카카오: 요청 scope를 명시해 동의항목과 1:1 매칭 (KOE205 방지)
-    // 닉네임(필수) + 이메일(선택)만 요청 — 프로필사진은 요청 안 함
-    if (provider === 'kakao') options.scopes = 'profile_nickname account_email'
+    // 카카오: 닉네임만 요청 (account_email은 검수 이슈로 KOE205 유발 → 검수 완료 후 추가)
+    if (provider === 'kakao') options.scopes = 'profile_nickname'
     await supabase.auth.signInWithOAuth({ provider, options })
   }
 
