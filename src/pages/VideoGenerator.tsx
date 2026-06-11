@@ -1222,17 +1222,19 @@ export default function VideoGenerator() {
                     </span>
                     <span className="text-sm font-bold text-[#03C75A]">{cart.size}개 담음</span>
                   </div>
+                  <div className="mb-3 rounded-xl border border-[#03C75A]/30 bg-[#03C75A]/5 px-3 py-2 text-center text-sm font-bold text-gray-700">
+                    마음에 드는 클립을 담고 <span className="text-[#03C75A]">🚀 자동 생성</span>을 누르세요
+                  </div>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {clips.map(clip => (
                       <ClipCard key={clip.video_id} clip={clip}
                         selected={cart.has(clip.video_id)} onToggle={() => toggleCart(clip.video_id)} />
                     ))}
                   </div>
-                  {cart.size > 0 && (
-                    <FloatingNext label={autoRunning ? (autoRunStep || "처리 중...") : `🚀 자동 생성 (${cart.size}개)`}
-                      onClick={() => { if (!autoRunning) { setModalCtaText(ctaText); setShowAutoModal(true); } }}
-                      disabled={autoRunning} />
-                  )}
+                  <FloatingNext
+                    label={autoRunning ? (autoRunStep || "처리 중...") : cart.size > 0 ? `🚀 자동 생성 (${cart.size}개)` : "👇 클립을 담아주세요"}
+                    onClick={() => { if (!autoRunning && cart.size > 0) { setModalCtaText(ctaText); setShowAutoModal(true); } }}
+                    disabled={autoRunning || cart.size === 0} />
                   {!autoRunning && autoRunError && (
                     <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300 flex items-start gap-2">
                       <span>❌</span>
@@ -1391,13 +1393,17 @@ function FloatingNext({ label, onClick, disabled = false }: {
   return createPortal(
     <div style={{ position:"fixed", bottom:"96px", right:"16px", zIndex:50 }}>
       <button onClick={onClick} disabled={disabled}
-        style={{ height:"46px", display:"inline-flex", alignItems:"center", gap:"8px",
-                 background: disabled ? "rgba(3,199,90,0.4)" : "#03C75A",
-                 borderRadius:"16px", padding:"0 24px",
-                 fontSize:"14px", fontWeight:900, color:"white", border:"none",
+        className={disabled ? undefined : "cta-glow-pulse"}
+        style={{ height:"50px", display:"inline-flex", alignItems:"center", gap:"8px",
+                 background: disabled
+                   ? "#E5E7EB"
+                   : "linear-gradient(135deg, #03C75A 0%, #0AB39C 50%, #1E88FF 100%)",
+                 borderRadius:"16px", padding:"0 26px",
+                 fontSize:"15px", fontWeight:900,
+                 color: disabled ? "#6B7280" : "white", border:"none",
                  cursor: disabled ? "not-allowed" : "pointer",
-                 boxShadow:"0 18px 40px -12px rgba(3,199,90,0.35)" }}>
-        <span>{label}</span><span>→</span>
+                 transition:"background .25s ease, color .25s ease" }}>
+        <span>{label}</span>{!disabled && <span>→</span>}
       </button>
     </div>,
     document.body

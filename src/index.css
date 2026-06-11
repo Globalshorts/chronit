@@ -18,6 +18,13 @@
   overflow: hidden;
   animation: creditEdge 6s ease-in-out infinite;
 }
+
+/* 자동 생성 CTA — 활성 시 은은한 글로우 펄스로 시선 유도 */
+@keyframes ctaGlow {
+  0%, 100% { box-shadow: 0 12px 28px -8px rgba(3,199,90,0.45); }
+  50%      { box-shadow: 0 16px 42px -6px rgba(14,165,233,0.55), 0 0 18px 2px rgba(3,199,90,0.35); }
+}
+.cta-glow-pulse { animation: ctaGlow 2.4s ease-in-out infinite; }
 .credit-glow::after {
   content: "";
   position: absolute;
