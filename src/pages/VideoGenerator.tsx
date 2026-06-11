@@ -3961,7 +3961,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
   const now = Date.now();
   const isActive = (u:any) => u.expires_at && new Date(u.expires_at).getTime() > now;
   const filtered = users.filter(u=>{
-    if (q.trim()) { const _q = q.trim().toLowerCase(); const _hay = [(u.email||""),(u.nickname||""),(u.name||""),(u.phone||"")].join(" ").toLowerCase(); if (!_hay.includes(_q)) return false; }
+    if (q.trim()) { const _q = q.trim().toLowerCase(); const _hay = [(u.email||""),(u.nickname||""),(u.name||"")].join(" ").toLowerCase(); if (!_hay.includes(_q)) return false; }
     if (stFilter==="active" && !isActive(u)) return false;
     if (stFilter==="expired" && isActive(u)) return false;
     if (plFilter!=="all" && u.plan!==plFilter) return false;
@@ -4147,17 +4147,17 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
       <div className="rounded-2xl bg-white border border-gray-200 overflow-hidden mb-5 max-h-[340px] overflow-y-auto">
         <table className="w-full text-xs">
           <thead className="border-b border-gray-200 text-gray-400 sticky top-0 bg-white">
-            <tr><th className="px-3 py-2.5 text-left">이메일</th><th className="px-3 py-2.5 text-left">닉네임</th><th className="px-3 py-2.5 text-left">이름</th><th className="px-3 py-2.5 text-left">전화</th><th className="px-3 py-2.5 text-left">권한</th><th className="px-3 py-2.5 text-left">플랜</th><th className="px-3 py-2.5 text-left">만료일</th><th className="px-3 py-2.5 text-left">상태</th><th className="px-3 py-2.5 text-right">크레딧(잔량/한도)</th></tr>
+            <tr><th className="px-3 py-2.5 text-left">이메일</th><th className="px-3 py-2.5 text-left">닉네임</th><th className="px-3 py-2.5 text-left">이름</th><th className="px-3 py-2.5 text-left">권한</th><th className="px-3 py-2.5 text-left">플랜</th><th className="px-3 py-2.5 text-left">만료일</th><th className="px-3 py-2.5 text-left">상태</th><th className="px-3 py-2.5 text-right">크레딧(잔량/한도)</th></tr>
           </thead>
           <tbody>
-            {loading ? <tr><td colSpan={9} className="py-8 text-center text-gray-500">불러오는 중...</td></tr>
-            : filtered.length===0 ? <tr><td colSpan={9} className="py-8 text-center text-gray-500">결과 없음</td></tr>
+            {loading ? <tr><td colSpan={8} className="py-8 text-center text-gray-500">불러오는 중...</td></tr>
+            : filtered.length===0 ? <tr><td colSpan={8} className="py-8 text-center text-gray-500">결과 없음</td></tr>
             : filtered.map(u=>{
               const max = (planMax[u.plan] ?? 0) + (u.bonus_credits||0); const left = max - (u.credits_used||0); const act = isActive(u);
               return (
                 <tr key={u.user_id} onClick={()=>{setSel(u.user_id); setRoleSel(u.role||"user"); if(u.plan)setPlanSel(u.plan);}}
                   className={`border-b border-gray-200/50 cursor-pointer ${sel===u.user_id?"bg-[#03C75A]/10":"hover:bg-gray-100/40"}`}>
-                  <td className="px-3 py-2.5 text-gray-700 truncate max-w-[200px]">{u.email}</td><td className="px-3 py-2.5 text-gray-700 truncate max-w-[120px]">{u.nickname||"-"}</td><td className="px-3 py-2.5 text-gray-700 truncate max-w-[100px]">{u.name||"-"}</td><td className="px-3 py-2.5 text-gray-500 truncate max-w-[130px]">{u.phone||"-"}</td>
+                  <td className="px-3 py-2.5 text-gray-700 truncate max-w-[200px]">{u.email}</td><td className="px-3 py-2.5 text-gray-700 truncate max-w-[120px]">{u.nickname||"-"}</td><td className="px-3 py-2.5 text-gray-700 truncate max-w-[100px]">{u.name||"-"}</td>
                   <td className="px-3 py-2.5">{u.role==="super_admin"?<span className="text-yellow-400 font-bold">👑 관리자</span>:u.role==="partner"?<span className="text-[#03C75A]">파트너</span>:<span className="text-gray-400">일반</span>}</td>
                   <td className="px-3 py-2.5 text-gray-700 capitalize">{u.plan||"-"}</td>
                   <td className="px-3 py-2.5 text-gray-400">{fmt(u.expires_at)}</td>
