@@ -573,23 +573,24 @@ const REASON_OPTS = [
 const ChallengePanel = () => {
   const [row, setRow] = useState(null)
   const [reason, setReason] = useState('post')
-  const [multiplier, setMultiplier] = useState(2)
+  const [bonus, setBonus] = useState(20)
   const [label, setLabel] = useState('')
   const [active, setActive] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState(null)
   const inputCls = 'w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-blue-500'
+  const optStyle = { backgroundColor: '#0f172a', color: '#fff' }
   useEffect(() => {
     supabase.from('point_challenges').select('*').order('id', { ascending: false }).limit(1).maybeSingle()
       .then(({ data }) => {
-        if (data) { setRow(data); setReason(data.reason); setMultiplier(Number(data.multiplier)); setLabel(data.label || ''); setActive(!!data.active) }
+        if (data) { setRow(data); setReason(data.reason); setBonus(Number(data.bonus)); setLabel(data.label || ''); setActive(!!data.active) }
         setLoading(false)
       })
   }, [])
   const save = async () => {
     setSaving(true); setMsg(null)
-    const payload = { reason, multiplier: Number(multiplier) || 1, label, active, updated_at: new Date().toISOString() }
+    const payload = { reason, bonus: parseInt(bonus, 10) || 0, label, active, updated_at: new Date().toISOString() }
     let error
     if (row?.id) {
       ({ error } = await supabase.from('point_challenges').update(payload).eq('id', row.id))
@@ -607,7 +608,7 @@ const ChallengePanel = () => {
         <Megaphone size={18} className="text-[#03C75A]" />
         <h2 className="text-lg font-black text-white">커뮤니티 챌린지</h2>
       </div>
-      <p className="mb-5 text-xs leading-relaxed text-slate-500">활성화하면 선택한 행동의 적립 포인트가 배수만큼 <b className="text-slate-300">실제로 더 지급</b>돼요. '글 작성' 챌린지면 게시판이 비어 있을 때 문구도 함께 떠요. 문구를 비우면 배너는 숨겨집니다.</p>
+      <p className="mb-5 text-xs leading-relaxed text-slate-500">활성화하면 선택한 행동을 할 때 기본 포인트에 <b className="text-slate-300">보너스 포인트가 추가로 지급</b>돼요. '글 작성' 챌린지면 게시판이 비어 있을 때 문구도 함께 떠요. 문구를 비우면 배너는 숨겨집니다.</p>
       {loading ? (
         <p className="text-sm text-slate-500">불러오는 중…</p>
       ) : (
@@ -619,17 +620,17 @@ const ChallengePanel = () => {
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-400">대상 행동</label>
               <select className={inputCls} value={reason} onChange={e => setReason(e.target.value)}>
-                {REASON_OPTS.map(o => <option key={o.v} value={o.v}>{o.label}</option>)}
+                {REASON_OPTS.map(o => <option key={o.v} value={o.v} style={optStyle}>{o.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-bold text-slate-400">배수 (2 = 2배)</label>
-              <input type="number" min="1" step="0.5" className={inputCls} value={multiplier} onChange={e => setMultiplier(e.target.value)} />
+              <label className="mb-1 block text-xs font-bold text-slate-400">보너스 포인트 (+, 추가 지급)</label>
+              <input type="number" min="0" step="5" className={inputCls} value={bonus} onChange={e => setBonus(e.target.value)} />
             </div>
           </div>
           <div>
             <label className="mb-1 block text-xs font-bold text-slate-400">배너 문구 (비우면 빈 화면 배너 숨김)</label>
-            <input className={inputCls} value={label} onChange={e => setLabel(e.target.value)} placeholder="예) 첫 글 남기면 포인트 2배" />
+            <input className={inputCls} value={label} onChange={e => setLabel(e.target.value)} placeholder="예) 첫 글 남기면 보너스 +20P" />
           </div>
           <div className="flex items-center gap-3">
             <button onClick={save} disabled={saving} className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">{saving ? <Loader size={14} className="animate-spin" /> : <Save size={14} />} 저장</button>
@@ -775,17 +776,17 @@ const Admin = () => {
           </div>
         </div>
 
-        <div className="mb-6 flex gap-2">
+        <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
           {[
             { key: 'events', icon: <Megaphone size={15} />, label: 'Events' },
             { key: 'missions', icon: <Gift size={15} />, label: '이벤트(크레딧)' },
             { key: 'tips', icon: <Megaphone size={15} />, label: '꿀팁' },
             { key: 'videos', icon: <Film size={15} />, label: 'Demo Videos' },
             { key: 'reports', icon: <Flag size={15} />, label: '신고관리' },
-            { key: 'settings', icon: <Megaphone size={15} />, label: '커뮤니티 설정' },
+            { key: 'settings', icon: <Megaphone size={15} />, label: '챌린지' },
           ].map(t => (
             <button key={t.key} onClick={() => { setTab(t.key); setView('list') }}
-              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all ${tab === t.key ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'border border-white/10 text-slate-400 hover:text-white'}`}>
+              className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2 text-sm font-bold transition-all ${tab === t.key ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'border border-white/10 text-slate-400 hover:text-white'}`}>
               {t.icon}{t.label}
             </button>
           ))}
