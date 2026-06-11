@@ -1190,12 +1190,16 @@ export default function VideoGenerator() {
             }>
             <div className="space-y-4">
               <div>
-                <label className="mb-2 block text-sm font-bold text-gray-700">쇼핑 릴스 / 쇼츠 URL</label>
+                <label className="mb-1 block text-sm font-bold text-gray-700">분석할 영상 URL <span className="font-normal text-gray-400">· 인스타 릴스 · 틱톡 · 유튜브 쇼츠</span></label>
+                <p className="mb-2 text-xs leading-relaxed text-gray-500">
+                  상품을 소개하는 <b className="text-gray-700">영상</b>을 골라 <b className="text-gray-700">공유 → 링크 복사</b> 후 붙여넣으세요.
+                  {" "}<span className="font-bold text-red-500">쿠팡·네이버쇼핑 상품 페이지 링크는 ❌ (영상 링크만!)</span>
+                </p>
                 <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                   <input type="url" value={sourceUrl}
-                    onChange={e => { setSourceUrl(e.target.value); setClips([]); setCart(new Set()); }}
+                    onChange={e => { setSourceUrl(e.target.value); setSearchError(""); setClips([]); setCart(new Set()); }}
                     onKeyDown={e => e.key === "Enter" && handleSearch()}
-                    placeholder="https://www.tiktok.com/@... 또는 https://www.instagram.com/reel/..."
+                    placeholder="인스타·틱톡·유튜브 영상 링크 붙여넣기"
                     disabled={searching}
                     className="flex-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] focus:ring-1 focus:ring-[#03C75A] disabled:opacity-50 transition" />
                   <button onClick={handleSearch} disabled={searching || !sourceUrl.trim()}
@@ -1205,6 +1209,7 @@ export default function VideoGenerator() {
                       : "🔍 분석 시작 (10 CR)"}
                   </button>
                 </div>
+                {!searchError && <UrlHint url={sourceUrl} />}
                 {searchError && <p className="mt-2 text-sm text-red-400">{searchError}</p>}
                 {searching && <AnalyzeProgress />}
               </div>
@@ -1404,6 +1409,17 @@ function FloatingNext({ label, onClick, disabled = false }: {
     </div>,
     document.body
   );
+}
+
+// ── URL 입력 라이브 힌트 (잘못된 링크 즉시 안내) ──────────────────────────
+function UrlHint({ url }: { url: string }) {
+  const u = (url || "").trim().toLowerCase();
+  if (!u) return null;
+  if (["instagram.com","youtube.com","youtu.be","tiktok.com"].some(p => u.includes(p)))
+    return <p className="mt-1.5 text-xs font-bold text-[#03C75A]">✅ 분석할 수 있는 영상 링크예요</p>;
+  if (["coupang.","link.coupang","naver.","smartstore","11st.","gmarket.","auction.","aliexpress","amazon.","wconcept","kakao","ohou","oliveyoung","ssg.","lotteon"].some(p => u.includes(p)))
+    return <p className="mt-1.5 text-xs font-bold text-orange-500">🛍 상품 <b>페이지</b> 링크 같아요 — 그 상품을 소개하는 <b>영상</b>(인스타·틱톡·유튜브) 링크를 넣어주세요</p>;
+  return <p className="mt-1.5 text-xs font-bold text-orange-500">⚠️ 인스타·틱톡·유튜브 <b>영상</b> 링크만 분석할 수 있어요</p>;
 }
 
 // ── 분석 진행률 바 (예상 시간 기반 — 백엔드 단일 호출이라 추정치) ──────────
