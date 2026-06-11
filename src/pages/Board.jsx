@@ -53,8 +53,8 @@ const Board = () => {
   useEffect(() => {
     supabase.from('events').select('*').order('created_at', { ascending: false })
       .then(({ data }) => setEvents(data || []))
-    supabase.from('point_challenges').select('label, active, starts_at, ends_at')
-      .eq('reason', 'post').eq('active', true).order('id', { ascending: false }).limit(1).maybeSingle()
+    supabase.from('point_challenges').select('label, starts_at, ends_at')
+      .eq('active', true).neq('label', '').order('id', { ascending: false }).limit(1).maybeSingle()
       .then(({ data }) => {
         if (!data) return setChallenge('')
         const now = Date.now()
@@ -87,6 +87,13 @@ const Board = () => {
 
       <section className="px-5 pb-28 md:px-8">
         <div className="mx-auto max-w-3xl">
+
+          {/* 이번 주 챌린지 배너 (활성 시 항상 노출) */}
+          {challenge && (
+            <div className="mb-6 flex items-center gap-2 rounded-2xl border border-[#03C75A]/25 bg-[#03C75A]/10 px-5 py-3.5 text-sm font-bold text-[#03C75A] sm:text-base">
+              <span>🎯</span><span>이번 주 챌린지 — {challenge}</span>
+            </div>
+          )}
 
           {/* 공지·이벤트 (게시판에 통합 — 컴팩트 리스트) */}
           {events.length > 0 && (
@@ -134,7 +141,7 @@ const Board = () => {
           {loading ? (
             <p className="py-16 text-center text-sm text-slate-500">불러오는 중…</p>
           ) : posts.length === 0 ? (
-            <BoardEmptyState challenge={challenge} />
+            <BoardEmptyState />
           ) : (
             <ul className="divide-y divide-gray-100 pt-2">
               {posts.map(p => (
