@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MessageSquare, ThumbsUp, Eye, PenLine, Users, Megaphone } from 'lucide-react'
 import CommunityHeader from '../components/CommunityHeader'
+import BoardEmptyState from '../components/BoardEmptyState'
 import Footer from '../components/Footer'
 import { supabase } from '../lib/supabase'
 
@@ -44,15 +45,23 @@ const Board = () => {
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [uid, setUid] = useState(null)
-  const [view, setView] = useState('board')
   const [events, setEvents] = useState([])
-  const [evLoading, setEvLoading] = useState(true)
+  const [challenge, setChallenge] = useState('')
 
   useEffect(() => { supabase.auth.getSession().then(({ data }) => setUid(data.session?.user?.id ?? null)) }, [])
 
   useEffect(() => {
     supabase.from('events').select('*').order('created_at', { ascending: false })
-      .then(({ data }) => { setEvents(data || []); setEvLoading(false) })
+      .then(({ data }) => setEvents(data || []))
+    supabase.from('point_challenges').select('label, starts_at, ends_at')
+      .eq('active', true).neq('label', '').order('id', { ascending: false }).limit(1).maybeSingle()
+      .then(({ data }) => {
+        if (!data) return setChallenge('')
+        const now = Date.now()
+        const okStart = !data.starts_at || new Date(data.starts_at).getTime() <= now
+        const okEnd = !data.ends_at || new Date(data.ends_at).getTime() >= now
+        setChallenge(okStart && okEnd ? (data.label || '') : '')
+      })
   }, [])
 
   useEffect(() => {
@@ -78,52 +87,43 @@ const Board = () => {
 
       <section className="px-5 pb-28 md:px-8">
         <div className="mx-auto max-w-3xl">
-          {/* 상단 탭: 공지·이벤트 / 게시판 */}
-          <div className="mb-5 flex gap-2">
-            {[['notice', '📢 공지·이벤트'], ['board', '게시판']].map(([k, label]) => (
-              <button key={k} onClick={() => setView(k)}
-                className={`rounded-full px-4 py-2 text-sm font-bold transition-all active:scale-95 ${view === k ? 'bg-gray-900 text-white' : 'bg-white text-slate-500 ring-1 ring-gray-200 hover:ring-[#03C75A]/40'}`}>
-                {label}
-              </button>
-            ))}
-          </div>
 
-          {/* 공지·이벤트 */}
-          {view === 'notice' && (
-            evLoading ? (
-              <p className="py-16 text-center text-sm text-slate-500">불러오는 중…</p>
-            ) : events.length === 0 ? (
-              <p className="py-16 text-center text-sm text-slate-500">아직 공지·이벤트가 없어요.</p>
-            ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {events.map(ev => {
+          {/* 이번 주 챌린지 배너 (활성 시 항상 노출) */}
+          {challenge && (
+            <div className="mb-6 flex items-center gap-2 rounded-2xl border border-[#03C75A]/25 bg-[#03C75A]/10 px-5 py-3.5 text-sm font-bold text-[#03C75A] sm:text-base">
+              <span>🎯</span><span>이번 주 챌린지 — {challenge}</span>
+            </div>
+          )}
+
+          {/* 공지·이벤트 (게시판에 통합 — 컴팩트 리스트) */}
+          {events.length > 0 && (
+            <div className="mb-6">
+              <div className="mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Megaphone size={16} className="text-[#03C75A]" />
+                  <h2 className="text-sm font-black text-gray-900">공지·이벤트</h2>
+                </div>
+                {events.length > 4 && (
+                  <Link to="/events" className="text-xs font-bold text-slate-400 transition-colors hover:text-[#03C75A]">전체 보기 →</Link>
+                )}
+              </div>
+              <div className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                {events.slice(0, 4).map(ev => {
                   const st = evStatus[ev.status] || evStatus.active
                   return (
                     <Link key={ev.id} to={`/events/${ev.id}`}
-                      className="group flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#03C75A]/40 hover:shadow-lg">
-                      {ev.thumbnail_url ? (
-                        <img src={ev.thumbnail_url} alt="" className="aspect-[16/9] w-full object-cover" />
-                      ) : (
-                        <div className="flex aspect-[16/9] w-full items-center justify-center bg-gradient-to-br from-[#03C75A]/15 to-[#03C75A]/5"><Megaphone size={36} className="text-[#03C75A]/40" /></div>
-                      )}
-                      <div className="flex flex-1 flex-col gap-2 p-5">
-                        <span className={`inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${st.cls}`}>{st.label}</span>
-                        <h3 className="text-lg font-black leading-snug text-gray-900">{ev.title}</h3>
-                        {evExcerpt(ev.content) && <p className="line-clamp-2 text-sm leading-relaxed text-slate-500">{evExcerpt(ev.content)}</p>}
-                        <div className="mt-auto flex items-center justify-between pt-2">
-                          <span className="text-xs text-slate-400">{evFmtDate(ev.created_at)}</span>
-                          <span className="text-sm font-bold text-[#03C75A]">자세히 →</span>
-                        </div>
-                      </div>
+                      className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[#FAFAF8]">
+                      <span className={`flex-none rounded-full px-2 py-0.5 text-[11px] font-bold ${st.cls}`}>{st.label}</span>
+                      <span className="flex-1 truncate text-sm font-bold text-gray-900">{ev.title}</span>
+                      <span className="hidden flex-none text-xs text-slate-400 sm:block">{evFmtDate(ev.created_at)}</span>
                     </Link>
                   )
                 })}
               </div>
-            )
+            </div>
           )}
 
           {/* 게시판 */}
-          {view === 'board' && (<>
           <div className="mb-1 flex items-center justify-between border-b border-gray-200">
             <div className="flex">
               {CATEGORIES.map(c => (
@@ -141,7 +141,7 @@ const Board = () => {
           {loading ? (
             <p className="py-16 text-center text-sm text-slate-500">불러오는 중…</p>
           ) : posts.length === 0 ? (
-            <p className="py-16 text-center text-sm text-slate-500">아직 게시글이 없어요. 첫 글을 남겨보세요!</p>
+            <BoardEmptyState />
           ) : (
             <ul className="divide-y divide-gray-100 pt-2">
               {posts.map(p => (
@@ -166,17 +166,14 @@ const Board = () => {
               ))}
             </ul>
           )}
-          </>)}
         </div>
       </section>
 
-      {/* 모바일 글쓰기 FAB (게시판 탭에서만) */}
-      {view === 'board' && (
+      {/* 모바일 글쓰기 FAB */}
       <button onClick={() => nav('/board/write')}
         className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#03C75A] text-white shadow-xl shadow-[#03C75A]/30 transition-all active:scale-90 sm:hidden">
         <PenLine size={22} />
       </button>
-      )}
 
       <Footer />
     </div>
