@@ -565,84 +565,6 @@ const ReportsPanel = () => {
   )
 }
 
-const REASON_OPTS = [
-  { v: 'post', label: '글 작성 (기본 20P)' },
-  { v: 'comment', label: '댓글 (기본 5P)' },
-  { v: 'like_received', label: '추천 받기 (기본 2P)' },
-]
-const ChallengePanel = () => {
-  const [row, setRow] = useState(null)
-  const [reason, setReason] = useState('post')
-  const [bonus, setBonus] = useState(20)
-  const [label, setLabel] = useState('')
-  const [active, setActive] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [msg, setMsg] = useState(null)
-  const inputCls = 'w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-blue-500'
-  const optStyle = { backgroundColor: '#0f172a', color: '#fff' }
-  useEffect(() => {
-    supabase.from('point_challenges').select('*').order('id', { ascending: false }).limit(1).maybeSingle()
-      .then(({ data }) => {
-        if (data) { setRow(data); setReason(data.reason); setBonus(Number(data.bonus)); setLabel(data.label || ''); setActive(!!data.active) }
-        setLoading(false)
-      })
-  }, [])
-  const save = async () => {
-    setSaving(true); setMsg(null)
-    const payload = { reason, bonus: parseInt(bonus, 10) || 0, label, active, updated_at: new Date().toISOString() }
-    let error
-    if (row?.id) {
-      ({ error } = await supabase.from('point_challenges').update(payload).eq('id', row.id))
-    } else {
-      const { data, error: e } = await supabase.from('point_challenges').insert(payload).select().maybeSingle()
-      error = e; if (data) setRow(data)
-    }
-    setSaving(false)
-    setMsg(error ? 'Error: ' + error.message : '저장됐어요')
-    setTimeout(() => setMsg(null), 2500)
-  }
-  return (
-    <div className="max-w-2xl rounded-2xl border border-white/8 bg-white/[0.03] p-8">
-      <div className="mb-2 flex items-center gap-2">
-        <Megaphone size={18} className="text-[#03C75A]" />
-        <h2 className="text-lg font-black text-white">커뮤니티 챌린지</h2>
-      </div>
-      <p className="mb-5 text-xs leading-relaxed text-slate-500">활성화하면 선택한 행동을 할 때 기본 포인트에 <b className="text-slate-300">보너스 포인트가 추가로 지급</b>돼요. '글 작성' 챌린지면 게시판이 비어 있을 때 문구도 함께 떠요. 문구를 비우면 배너는 숨겨집니다.</p>
-      {loading ? (
-        <p className="text-sm text-slate-500">불러오는 중…</p>
-      ) : (
-        <div className="space-y-4">
-          <label className="flex items-center gap-2 text-sm font-bold text-slate-200">
-            <input type="checkbox" checked={active} onChange={e => setActive(e.target.checked)} /> 챌린지 활성화
-          </label>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="mb-1 block text-xs font-bold text-slate-400">대상 행동</label>
-              <select className={inputCls} value={reason} onChange={e => setReason(e.target.value)}>
-                {REASON_OPTS.map(o => <option key={o.v} value={o.v} style={optStyle}>{o.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-bold text-slate-400">보너스 포인트 (+, 추가 지급)</label>
-              <input type="number" min="0" step="5" className={inputCls} value={bonus} onChange={e => setBonus(e.target.value)} />
-            </div>
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-bold text-slate-400">배너 문구 (비우면 빈 화면 배너 숨김)</label>
-            <input className={inputCls} value={label} onChange={e => setLabel(e.target.value)} placeholder="예) 첫 글 남기면 보너스 +20P" />
-          </div>
-          <div className="flex items-center gap-3">
-            <button onClick={save} disabled={saving} className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">{saving ? <Loader size={14} className="animate-spin" /> : <Save size={14} />} 저장</button>
-            {active && <span className="text-xs font-bold text-[#03C75A]">● 현재 적용 중</span>}
-            {msg && <span className="text-sm text-slate-300">{msg}</span>}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
 const Admin = () => {
   const [user, setUser] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -776,17 +698,16 @@ const Admin = () => {
           </div>
         </div>
 
-        <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
+        <div className="mb-6 flex gap-2">
           {[
             { key: 'events', icon: <Megaphone size={15} />, label: 'Events' },
             { key: 'missions', icon: <Gift size={15} />, label: '이벤트(크레딧)' },
             { key: 'tips', icon: <Megaphone size={15} />, label: '꿀팁' },
             { key: 'videos', icon: <Film size={15} />, label: 'Demo Videos' },
             { key: 'reports', icon: <Flag size={15} />, label: '신고관리' },
-            { key: 'settings', icon: <Megaphone size={15} />, label: '챌린지' },
           ].map(t => (
             <button key={t.key} onClick={() => { setTab(t.key); setView('list') }}
-              className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2 text-sm font-bold transition-all ${tab === t.key ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'border border-white/10 text-slate-400 hover:text-white'}`}>
+              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all ${tab === t.key ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'border border-white/10 text-slate-400 hover:text-white'}`}>
               {t.icon}{t.label}
             </button>
           ))}
@@ -796,7 +717,6 @@ const Admin = () => {
         {tab === 'reports' && <ReportsPanel />}
         {tab === 'missions' && <MissionsPanel />}
         {tab === 'tips' && <TipsPanel />}
-        {tab === 'settings' && <ChallengePanel />}
 
         {tab === 'events' && view === 'list' && (
           <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
