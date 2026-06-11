@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MessageSquare, ThumbsUp, Eye, PenLine, Users, Megaphone } from 'lucide-react'
 import CommunityHeader from '../components/CommunityHeader'
+import BoardEmptyState from '../components/BoardEmptyState'
 import Footer from '../components/Footer'
 import { supabase } from '../lib/supabase'
 
@@ -141,7 +142,7 @@ const Board = () => {
           {loading ? (
             <p className="py-16 text-center text-sm text-slate-500">불러오는 중…</p>
           ) : posts.length === 0 ? (
-            <p className="py-16 text-center text-sm text-slate-500">아직 게시글이 없어요. 첫 글을 남겨보세요!</p>
+            <BoardEmptyState />
           ) : (
             <ul className="divide-y divide-gray-100 pt-2">
               {posts.map(p => (
