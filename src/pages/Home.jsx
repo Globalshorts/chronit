@@ -11,6 +11,7 @@ import TermsModal from '../components/TermsModal'
 import Footer from '../components/Footer'
 import SiteNav from '../components/SiteNav'
 import NicknameModal from '../components/NicknameModal'
+import SignupSurveyModal from '../components/SignupSurveyModal'
 import { supabase } from '../lib/supabase'
 
 const GREEN = '#03C75A'
@@ -80,6 +81,8 @@ const Home = () => {
   const [user, setUser] = useState(null)
   const [nickname, setNickname] = useState(null)
   const [nickOpen, setNickOpen] = useState(false)
+  const [nickRequired, setNickRequired] = useState(false)
+  const [sourceOpen, setSourceOpen] = useState(false)
   const pendingAfterLoginRef = useRef(null)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [showTermsModal, setShowTermsModal] = useState(false)
@@ -149,19 +152,47 @@ const Home = () => {
         body: JSON.stringify({ p_marketing: !!marketing }),
       }).catch(() => {})
 
-      const { data: prof } = await supabase.from('profiles').select('nickname').eq('id', session.user.id).maybeSingle()
-      if (!prof?.nickname) {
-        pendingAfterLoginRef.current = session
-        setNickOpen(true)
-        return
-      }
-      handleAfterLogin(session)
+      proceedOnboarding(session)
     }
   }
 
-  // 닉네임 모달 닫힘/완료 시 보류된 로그인 후처리 진행
-  const finishPendingLogin = () => {
+  // 가입 온보딩: 닉네임(필수) → 유입경로(필수) → 후처리
+  const proceedOnboarding = async (session) => {
+    const { data: prof } = await supabase
+      .from('profiles').select('nickname, signup_source').eq('id', session.user.id).maybeSingle()
+    if (!prof?.nickname) {
+      pendingAfterLoginRef.current = session
+      setNickRequired(true)
+      setNickOpen(true)
+      return
+    }
+    if (!prof?.signup_source) {
+      pendingAfterLoginRef.current = session
+      setSourceOpen(true)
+      return
+    }
+    pendingAfterLoginRef.current = null
+    handleAfterLogin(session)
+  }
+
+  // 닉네임 완료 — 가입 흐름이면 유입경로로 이어가고, 헤더에서 연 경우면 갱신만
+  const handleNicknameDone = (n) => {
+    setNickname(n)
     setNickOpen(false)
+    setNickRequired(false)
+    const session = pendingAfterLoginRef.current
+    if (session) proceedOnboarding(session)
+  }
+
+  // 닉네임 닫기 — required=false(헤더에서 연 경우)일 때만 호출됨
+  const handleNicknameClose = () => {
+    setNickOpen(false)
+    setNickRequired(false)
+  }
+
+  // 유입경로 설문 완료 → 후처리 진행
+  const handleSourceDone = () => {
+    setSourceOpen(false)
     const session = pendingAfterLoginRef.current
     pendingAfterLoginRef.current = null
     if (session) handleAfterLogin(session)
@@ -701,7 +732,8 @@ const Home = () => {
 
       <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} referralCode={refFromUrl} />
       <TermsModal open={showTermsModal} onAgree={handleTermsAgree} onClose={() => setShowTermsModal(false)} />
-      <NicknameModal open={nickOpen} onClose={finishPendingLogin} onDone={(n) => { setNickname(n); finishPendingLogin() }} />
+      <NicknameModal open={nickOpen} required={nickRequired} onClose={handleNicknameClose} onDone={handleNicknameDone} />
+      <SignupSurveyModal open={sourceOpen} onDone={handleSourceDone} />
       <PaymentModal
         key={selectedPlan + (paymentOpen ? '-open' : '-closed')}
         open={paymentOpen}

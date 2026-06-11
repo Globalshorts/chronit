@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase'
  * 닉네임 설정 모달. 게시판 글/댓글 작성 시 닉네임이 없으면 노출.
  * - onDone(nickname): 설정 완료 콜백
  */
-const NicknameModal = ({ open, onClose, onDone }) => {
+const NicknameModal = ({ open, onClose, onDone, required = false }) => {
   const [nick, setNick] = useState('')
   const [err, setErr] = useState('')
   const [saving, setSaving] = useState(false)
@@ -23,11 +23,11 @@ const NicknameModal = ({ open, onClose, onDone }) => {
   }
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-5 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-5 backdrop-blur-sm" onClick={required ? undefined : onClose}>
       <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-black text-gray-900">닉네임 설정</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+          {!required && <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>}
         </div>
         <p className="mb-4 text-sm leading-relaxed text-gray-500">게시판에 표시될 닉네임을 정해주세요. (2~16자, 중복 불가)</p>
         <input
