@@ -3920,6 +3920,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
   const [q, setQ]           = React.useState("");
   const [stFilter, setStFilter] = React.useState("all");
   const [plFilter, setPlFilter] = React.useState("all");
+  const [mkFilter, setMkFilter] = React.useState("all");
   const [sel, setSel]       = React.useState<string>("");
   const [planSel, setPlanSel] = React.useState("pro");
   const [days, setDays]     = React.useState("30");
@@ -3971,10 +3972,19 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
     if (stFilter==="active" && !isActive(u)) return false;
     if (stFilter==="expired" && isActive(u)) return false;
     if (plFilter!=="all" && u.plan!==plFilter) return false;
+    if (mkFilter==="yes" && !u.marketing_consent) return false;
+    if (mkFilter==="no" && u.marketing_consent) return false;
     return true;
   });
   const activeCnt = users.filter(isActive).length;
   const provStats = users.reduce((a: any, u: any) => { const v = (u.provider || "").toLowerCase(); const k = v === "google" ? "google" : v === "kakao" ? "kakao" : "etc"; a[k] = (a[k] || 0) + 1; return a; }, { google: 0, kakao: 0, etc: 0 });
+  const mkCnt = users.filter((u:any)=>u.marketing_consent).length;
+  const copyMktEmails = async () => {
+    const list = filtered.filter((u:any)=>u.marketing_consent).map((u:any)=>u.email).filter(Boolean);
+    if (list.length===0) { setMsg("마케팅 동의자가 없습니다 (현재 필터 기준)"); return; }
+    try { await navigator.clipboard.writeText(list.join("\n")); setMsg(`마케팅 동의 이메일 ${list.length}건 복사됨`); }
+    catch { setMsg(list.join(", ")); }
+  };
   const selUser = users.find(u=>u.user_id===sel);
 
   const run = async (fn:()=>Promise<any>, okMsg:string) => {
@@ -4150,20 +4160,25 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
           <option value="all">상태 전체</option><option value="active">유효</option><option value="expired">만료</option></select>
         <select value={plFilter} onChange={e=>setPlFilter(e.target.value)} className="rounded-xl bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none">
           <option value="all">플랜 전체</option>{plans.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>
+        <select value={mkFilter} onChange={e=>setMkFilter(e.target.value)} className="rounded-xl bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none">
+          <option value="all">마케팅 전체</option><option value="yes">동의함</option><option value="no">미동의</option></select>
       </div>
       <div className="mb-2 flex items-center gap-3 text-xs text-gray-500">
         <span><ProvBadge p="google" /><b className="text-gray-700">구글 {provStats.google}</b></span>
         <span><ProvBadge p="kakao" /><b className="text-gray-700">카카오 {provStats.kakao}</b></span>
         {provStats.etc > 0 && <span>기타 {provStats.etc}</span>}
+        <span className="text-gray-300">·</span>
+        <span>📣 <b className="text-gray-700">마케팅동의 {mkCnt}</b></span>
+        <button onClick={copyMktEmails} className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-700 hover:bg-gray-100">동의 이메일 복사</button>
       </div>
       <div className="rounded-2xl bg-white border border-gray-200 overflow-hidden mb-5 max-h-[340px] overflow-y-auto">
         <table className="w-full text-xs">
           <thead className="border-b border-gray-200 text-gray-400 sticky top-0 bg-white">
-            <tr><th className="px-3 py-2.5 text-left">이메일</th><th className="px-3 py-2.5 text-left">닉네임</th><th className="px-3 py-2.5 text-left">이름</th><th className="px-3 py-2.5 text-left">권한</th><th className="px-3 py-2.5 text-left">플랜</th><th className="px-3 py-2.5 text-left">만료일</th><th className="px-3 py-2.5 text-left">상태</th><th className="px-3 py-2.5 text-right">크레딧(잔량/한도)</th></tr>
+            <tr><th className="px-3 py-2.5 text-left">이메일</th><th className="px-3 py-2.5 text-left">닉네임</th><th className="px-3 py-2.5 text-left">이름</th><th className="px-3 py-2.5 text-left">권한</th><th className="px-3 py-2.5 text-left">플랜</th><th className="px-3 py-2.5 text-left">만료일</th><th className="px-3 py-2.5 text-left">📣마케팅</th><th className="px-3 py-2.5 text-left">상태</th><th className="px-3 py-2.5 text-right">크레딧(잔량/한도)</th></tr>
           </thead>
           <tbody>
-            {loading ? <tr><td colSpan={8} className="py-8 text-center text-gray-500">불러오는 중...</td></tr>
-            : filtered.length===0 ? <tr><td colSpan={8} className="py-8 text-center text-gray-500">결과 없음</td></tr>
+            {loading ? <tr><td colSpan={9} className="py-8 text-center text-gray-500">불러오는 중...</td></tr>
+            : filtered.length===0 ? <tr><td colSpan={9} className="py-8 text-center text-gray-500">결과 없음</td></tr>
             : filtered.map(u=>{
               const max = (planMax[u.plan] ?? 0) + (u.bonus_credits||0); const left = max - (u.credits_used||0); const act = isActive(u);
               return (
@@ -4173,6 +4188,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
                   <td className="px-3 py-2.5">{u.role==="super_admin"?<span className="text-yellow-400 font-bold">👑 관리자</span>:u.role==="partner"?<span className="text-[#03C75A]">파트너</span>:<span className="text-gray-400">일반</span>}</td>
                   <td className="px-3 py-2.5 text-gray-700 capitalize">{u.plan||"-"}</td>
                   <td className="px-3 py-2.5 text-gray-400">{fmt(u.expires_at)}</td>
+                  <td className="px-3 py-2.5">{u.marketing_consent?<span className="text-[#03C75A] font-bold">동의</span>:<span className="text-gray-300">-</span>}</td>
                   <td className="px-3 py-2.5">{act?<span className="text-green-400">유효</span>:<span className="text-red-400">만료</span>}</td>
                   <td className="px-3 py-2.5 text-right text-gray-700">{left.toLocaleString()} / {max.toLocaleString()}</td>
                 </tr>
