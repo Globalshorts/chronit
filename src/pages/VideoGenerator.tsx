@@ -1225,7 +1225,7 @@ export default function VideoGenerator() {
                       <div><span className="font-bold text-gray-800">📱 전자·데테</span> <span className="text-gray-500">#데스크테리어 #가성비꿀템 #애플꿀템 #스마트홈</span></div>
                       <div><span className="font-bold text-gray-800">🌍 해외(영상 많음)</span> <span className="text-gray-500">#tiktokmademebuyit #amazonfinds #kitchengadgets</span></div>
                     </div>
-                    <a href="/events/9b30a930-672a-41f0-b811-d80083801a46" className="mt-3 inline-block text-xs font-bold text-[#03C75A] hover:underline">전체 해시태그 가이드 보기 →</a>
+                    <a href="/board/5" className="mt-3 inline-block text-xs font-bold text-[#03C75A] hover:underline">전체 해시태그 가이드 보기 →</a>
                   </div>
                 )}
                 {searchError && <p className="mt-2 text-sm text-red-400">{searchError}</p>}
