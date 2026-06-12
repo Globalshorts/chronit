@@ -4333,7 +4333,9 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
   const [unlimited, setUnlimited] = React.useState(true);
   const [sel, setSel]       = React.useState<Set<string>>(new Set());
   const [msg, setMsg]       = React.useState("");
-  const [mode, setMode]     = React.useState<"discount"|"credits">("discount");
+  const [mode, setMode]     = React.useState<"discount"|"credits"|"free_days">("discount");
+  const [trialDays, setTrialDays] = React.useState("7");
+  const [trialPlan, setTrialPlan] = React.useState("pro");
   const [credits, setCredits] = React.useState("");
   const [maxUses, setMaxUses] = React.useState("");
 
@@ -4364,6 +4366,16 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
         expires_at: unlimited ? null : (exp || null),
         max_uses: mu,
         plan_discounts: null, allowed_plans: null,
+      };
+    } else if (mode === "free_days") {
+      const days = Number(trialDays) || 0;
+      if (days <= 0) { setMsg("체험 일수를 입력하세요 (1 이상)"); return; }
+      row = {
+        code:c, type:"free_days", value:days,
+        owner_email: owner.trim() || null,
+        expires_at: unlimited ? null : (exp || null),
+        max_uses: null,
+        plan_discounts: null, allowed_plans: [trialPlan],
       };
     } else {
       // 플랜별 할인 구성
@@ -4436,6 +4448,8 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
               className={`rounded-xl px-4 py-2 text-sm font-bold transition ${mode==="discount"?"bg-[#03C75A] text-white":"bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>💳 플랜 할인</button>
             <button type="button" onClick={()=>setMode("credits")}
               className={`rounded-xl px-4 py-2 text-sm font-bold transition ${mode==="credits"?"bg-[#03C75A] text-white":"bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>💎 크레딧 지급</button>
+            <button type="button" onClick={()=>setMode("free_days")}
+              className={`rounded-xl px-4 py-2 text-sm font-bold transition ${mode==="free_days"?"bg-[#03C75A] text-white":"bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>🎁 무료체험</button>
           </div>
         </div>
 
@@ -4447,6 +4461,22 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
             <div><label className="text-xs text-gray-500">선착순 인원 (비우면 무제한)</label>
               <input type="number" value={maxUses} onChange={e=>setMaxUses(e.target.value)} placeholder="예: 10"
                 className="block w-40 mt-1 rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-[#03C75A]" /></div>
+          </div>
+        )}
+
+        {mode === "free_days" && (
+          <div className="mb-4 flex flex-wrap items-end gap-3">
+            <div><label className="text-xs text-gray-500">체험 일수</label>
+              <input type="number" value={trialDays} onChange={e=>setTrialDays(e.target.value)} placeholder="예: 7"
+                className="block w-28 mt-1 rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-[#03C75A]" /></div>
+            <div><label className="text-xs text-gray-500">대상 플랜</label>
+              <select value={trialPlan} onChange={e=>setTrialPlan(e.target.value)}
+                className="block mt-1 rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-[#03C75A]">
+                <option value="starter">스타터</option>
+                <option value="pro">프로</option>
+                <option value="master">마스터</option>
+              </select></div>
+            <p className="w-full text-xs text-gray-400">가입한 회원이 쿠폰칸에 이 코드를 넣으면 해당 플랜을 N일간 무료로 이용해요. 파트너 이메일을 넣으면 그 회원이 파트너에 자동 연결됩니다(수익셰어). 1인 1회.</p>
           </div>
         )}
 
