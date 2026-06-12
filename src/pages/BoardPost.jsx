@@ -123,6 +123,9 @@ const BoardPost = () => {
           )}
         </div>
 
+        {post.image_url && (
+          <img src={post.image_url} alt="" className="mt-5 w-full rounded-2xl border border-gray-200" />
+        )}
         <div className="whitespace-pre-wrap py-7 text-[15px] leading-[1.9] text-gray-800">{post.body}</div>
 
         <div className="flex justify-center pb-8">

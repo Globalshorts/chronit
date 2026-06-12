@@ -146,7 +146,11 @@ const Board = () => {
             <ul className="divide-y divide-gray-100 pt-2">
               {posts.map(p => (
                 <li key={p.id}>
-                  <Link to={`/board/${p.id}`} className="flex flex-col gap-1.5 px-1 py-4 transition-colors hover:bg-white/60">
+                  <Link to={`/board/${p.id}`} className="flex items-start gap-3 px-1 py-4 transition-colors hover:bg-white/60">
+                    {p.image_url && (
+                      <img src={p.image_url} alt="" className="h-14 w-14 flex-none rounded-lg border border-gray-200 object-cover" />
+                    )}
+                    <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                     <div className="flex items-center gap-2">
                       <span className={`rounded-md px-2 py-0.5 text-xs font-bold ${CAT_CLS[p.category] || CAT_CLS.free}`}>{CAT_LABEL[p.category] || '자유'}</span>
                       <h3 className="flex-1 truncate text-base font-bold text-gray-900">{p.title}</h3>
@@ -160,6 +164,7 @@ const Board = () => {
                         <span className="flex items-center gap-1"><MessageSquare size={13} />{p.comment_count}</span>
                         <span className="flex items-center gap-1"><Eye size={13} />{p.view_count}</span>
                       </span>
+                    </div>
                     </div>
                   </Link>
                 </li>
