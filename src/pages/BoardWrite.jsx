@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, ImagePlus, X } from 'lucide-react'
 import CommunityHeader from '../components/CommunityHeader'
 import NicknameModal from '../components/NicknameModal'
 import { supabase } from '../lib/supabase'
@@ -22,6 +22,9 @@ const BoardWrite = () => {
   const [err, setErr] = useState('')
   const [saving, setSaving] = useState(false)
   const [nickOpen, setNickOpen] = useState(false)
+  const [imageUrl, setImageUrl] = useState('')
+  const [uploading, setUploading] = useState(false)
+  const [imgErr, setImgErr] = useState('')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null))
@@ -29,17 +32,38 @@ const BoardWrite = () => {
 
   useEffect(() => {
     if (!editId) return
-    supabase.from('board_posts').select('category, title, body, is_deleted').eq('id', editId).maybeSingle()
+    supabase.from('board_posts').select('category, title, body, is_deleted, image_url').eq('id', editId).maybeSingle()
       .then(({ data }) => {
         if (!data || data.is_deleted) { nav('/board'); return }
-        setCat(data.category || 'free'); setTitle(data.title || ''); setBody(data.body || '')
+        setCat(data.category || 'free'); setTitle(data.title || ''); setBody(data.body || ''); setImageUrl(data.image_url || '')
       })
   }, [editId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const onPickImage = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) { setImgErr('이미지 파일만 첨부할 수 있어요.'); return }
+    if (file.size > 5 * 1024 * 1024) { setImgErr('5MB 이하 이미지만 가능해요.'); return }
+    setImgErr(''); setUploading(true)
+    try {
+      const ext = (file.name.split('.').pop() || 'png').toLowerCase()
+      const path = `board/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+      const { error } = await supabase.storage.from('assets').upload(path, file, { upsert: true, contentType: file.type })
+      if (error) throw error
+      const { data } = supabase.storage.from('assets').getPublicUrl(path)
+      setImageUrl(data.publicUrl)
+    } catch {
+      setImgErr('업로드 실패. 잠시 후 다시 시도해주세요.')
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
+  }
 
   const submit = async () => {
     setErr(''); setSaving(true)
     if (editId) {
-      const { error } = await supabase.from('board_posts').update({ category: cat, title, body }).eq('id', editId)
+      const { error } = await supabase.from('board_posts').update({ category: cat, title, body, image_url: imageUrl || null }).eq('id', editId)
       setSaving(false)
       if (error) { setErr('수정할 수 없어요 (본인 글만 가능).'); return }
       nav(`/board/${editId}`); return
@@ -50,6 +74,9 @@ const BoardWrite = () => {
     if (!data?.ok) {
       if (data?.need_nickname) { setNickOpen(true); return }
       setErr(data?.error || '글을 등록할 수 없어요'); return
+    }
+    if (imageUrl && data.id) {
+      await supabase.from('board_posts').update({ image_url: imageUrl }).eq('id', data.id)
     }
     nav(`/board/${data.id}`)
   }
@@ -88,6 +115,24 @@ const BoardWrite = () => {
           className="mb-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base font-bold outline-none focus:border-[#03C75A]" />
         <textarea value={body} onChange={e => setBody(e.target.value)} rows={12} placeholder="내용을 입력하세요"
           className="w-full resize-y rounded-xl border border-gray-200 bg-white px-4 py-3 text-base leading-relaxed outline-none focus:border-[#03C75A]" />
+
+        <div className="mt-3">
+          {imageUrl ? (
+            <div className="relative inline-block">
+              <img src={imageUrl} alt="" className="max-h-52 rounded-xl border border-gray-200" />
+              <button type="button" onClick={() => setImageUrl('')}
+                className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-gray-900 text-white shadow-lg">
+                <X size={15} />
+              </button>
+            </div>
+          ) : (
+            <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 bg-white py-3.5 text-sm font-bold text-slate-500 transition-colors hover:border-[#03C75A]/50 hover:text-[#03C75A]">
+              <ImagePlus size={18} /> {uploading ? '업로드 중…' : '이미지 첨부 (선택)'}
+              <input type="file" accept="image/*" className="hidden" onChange={onPickImage} disabled={uploading} />
+            </label>
+          )}
+          {imgErr && <p className="mt-2 text-sm font-medium text-red-500">{imgErr}</p>}
+        </div>
 
         {err && <p className="mt-3 text-sm font-medium text-red-500">{err}</p>}
         {!editId && <p className="mt-3 text-xs text-slate-400">글을 등록하면 20P가 적립돼요 (하루 1회까지).</p>}
