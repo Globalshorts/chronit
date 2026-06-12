@@ -96,6 +96,7 @@ export default function VideoGenerator() {
   // Stage 1
   const [sourceUrl, setSourceUrl]   = useState("");
   const [searching, setSearching]   = useState(false);
+  const [showSrc, setShowSrc] = useState(false);
   const [searchError, setSearchError] = useState("");
   const [clips, setClips]           = useState<Clip[]>([]);
   const analysisMetaRef = React.useRef<{ name: string; keyword: string; poster: string }>({ name: "", keyword: "", poster: "" });
@@ -1210,6 +1211,23 @@ export default function VideoGenerator() {
                   </button>
                 </div>
                 {!searchError && <UrlHint url={sourceUrl} />}
+                <button type="button" onClick={()=>setShowSrc(v=>!v)}
+                  className="mt-2 text-sm font-bold text-[#03C75A] hover:underline">
+                  🔍 영상은 어디서 가져오나요? {showSrc ? "▲" : "▼"}
+                </button>
+                {showSrc && (
+                  <div className="mt-2 rounded-xl border border-[#03C75A]/20 bg-[#03C75A]/5 p-4 text-sm leading-relaxed text-gray-700">
+                    <p className="mb-1 font-bold text-gray-900">인스타·틱톡·유튜브 검색창에 ‘꿀템 해시태그’를 검색하세요</p>
+                    <p className="mb-3 text-gray-500">마음에 드는 상품 영상에서 <b>공유 → 링크 복사</b> 후 위 칸에 붙여넣으면 끝!</p>
+                    <div className="space-y-1.5">
+                      <div><span className="font-bold text-gray-800">🍳 주방·살림</span> <span className="text-gray-500">#주방꿀템 #살림꿀템 #주방용품추천 #자취방꿀템</span></div>
+                      <div><span className="font-bold text-gray-800">🧺 생활·청소</span> <span className="text-gray-500">#생활꿀템 #다이소꿀템 #올리브영꿀템 #정리꿀템</span></div>
+                      <div><span className="font-bold text-gray-800">📱 전자·데테</span> <span className="text-gray-500">#데스크테리어 #가성비꿀템 #애플꿀템 #스마트홈</span></div>
+                      <div><span className="font-bold text-gray-800">🌍 해외(영상 많음)</span> <span className="text-gray-500">#tiktokmademebuyit #amazonfinds #kitchengadgets</span></div>
+                    </div>
+                    <a href="/events/9b30a930-672a-41f0-b811-d80083801a46" className="mt-3 inline-block text-xs font-bold text-[#03C75A] hover:underline">전체 해시태그 가이드 보기 →</a>
+                  </div>
+                )}
                 {searchError && <p className="mt-2 text-sm text-red-400">{searchError}</p>}
                 {searching && <AnalyzeProgress />}
               </div>
