@@ -144,6 +144,9 @@ export default function VideoGenerator() {
   const [autoRunning, setAutoRunning]   = useState(false);
   const [autoRunStep, setAutoRunStep]   = useState("");
   const [autoRunError, setAutoRunError] = useState("");
+  const genRetryRef = useRef(0);              // 합성 실패 자동 재시도 횟수
+  const lastRenderArgsRef = useRef<any>(null);// 재시도용 렌더 파라미터
+  const doRetryRef = useRef<() => void>(() => {});
   const [showAutoModal, setShowAutoModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);  // 모바일 사이드바 드로어
   const [mobileProjOpen, setMobileProjOpen] = useState(false);  // 모바일 프로젝트 시트
@@ -372,14 +375,24 @@ export default function VideoGenerator() {
     const job = jobs.find(j => j.id === currentJobId);
     if (!job) return;
     if (job.status === "done") {
+      genRetryRef.current = 0;
       if (stage === 5) setStage(1); // 자동 생성 흐름이면 1단계로 복귀
       setCompletionAlert("✅ 영상 생성 완료! 생성 내역으로 이동합니다.");
       try { new Audio("https://www.soundjay.com/buttons/sounds/button-09a.mp3").play(); } catch {}
       setCurrentJobId("");
       setActiveView("history"); // 완료 시 생성 내역으로 자동 이동
     } else if (job.status === "error") {
-      setCompletionAlert("❌ " + friendlyError(job.error_message));
-      setCurrentJobId("");
+      // 간헐적 서버 오류는 사용자에게 실패를 노출하지 않고 자동으로 다시 시도
+      if (genRetryRef.current < 2 && lastRenderArgsRef.current) {
+        genRetryRef.current += 1;
+        setCurrentJobId("");
+        setCompletionAlert(`일시적 오류가 있어 자동으로 다시 시도하고 있어요… (${genRetryRef.current}/2)`);
+        setTimeout(() => { try { doRetryRef.current(); } catch {} }, 1200);
+      } else {
+        genRetryRef.current = 0;
+        setCompletionAlert("❌ " + friendlyError(job.error_message));
+        setCurrentJobId("");
+      }
     }
   }, [jobs, currentJobId, stage]);
 
@@ -680,6 +693,7 @@ export default function VideoGenerator() {
     if (ctaOverride !== undefined) setCtaText(ctaOverride);
     setShowAutoModal(false);
     setAutoRunError("");
+    genRetryRef.current = 0;
     setAutoRunning(true);
     try {
       // Step 1: 대본 생성
@@ -735,6 +749,7 @@ export default function VideoGenerator() {
   };
 
   const handleRender = async (overrides?: { voiceId?: string; ctaText?: string; script?: any }) => {
+    lastRenderArgsRef.current = overrides ?? {};
     setRenderError(""); setRendering(true);
     const _voiceId = overrides?.voiceId ?? voiceId;
     const _script = overrides?.script ?? script;
@@ -772,6 +787,8 @@ export default function VideoGenerator() {
     } catch (e) { setRenderError(String(e)); }
     finally { setRendering(false); }
   };
+  // 합성 실패 시 자동 재시도가 호출할 함수 (최신 handleRender 참조)
+  doRetryRef.current = () => { handleRender(lastRenderArgsRef.current ?? undefined); };
 
   // ── Auth 화면 ────────────────────────────────────────────
   if (authLoading) return (
