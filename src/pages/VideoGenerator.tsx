@@ -20,7 +20,7 @@ const SB = "https://oxygqtbdpnxxcgzwdlzi.supabase.co";
 const FN = (n: string) => `${SB}/functions/v1/${n}`;
 
 // ── 상단 바 (홈페이지와 동일 스타일) ───────────────────────────
-function AppTopBar({ onMenuClick }: { onMenuClick?: () => void }) {
+function AppTopBar({ onMenuClick, onInvite }: { onMenuClick?: () => void; onInvite?: () => void }) {
   const ICON = `${SB}/storage/v1/object/public/assets/icon.png`;
   const link = "transition-colors hover:text-[#03C75A]";
   return (
@@ -39,6 +39,7 @@ function AppTopBar({ onMenuClick }: { onMenuClick?: () => void }) {
         <a href="/manual" className={`hidden sm:inline ${link}`}>사용 방법</a>
         <a href="/#pricing" className={`hidden sm:inline ${link}`}>요금제</a>
         <a href="/events" className={`hidden sm:inline ${link}`}>이벤트</a>
+        <button onClick={onInvite} className="rounded-full bg-[#03C75A] px-3.5 py-1.5 font-black text-white transition-colors hover:bg-[#02b350]">🎁 친구 초대</button>
         <a href="/" className="rounded-full bg-[#03C75A]/10 px-3.5 py-1.5 text-[#03C75A] transition-colors hover:bg-[#03C75A]/20">홈</a>
       </nav>
     </header>
@@ -182,6 +183,7 @@ export default function VideoGenerator() {
   }, [currentJobId]);
   const [completionAlert, setCompletionAlert] = useState<string|null>(null);
   const [gacha, setGacha] = useState<any>(null);
+  const [showInvite, setShowInvite] = useState(false);
   const [balance, setBalance]       = useState<number | null>(null);
   const [points, setPoints]         = useState<number | null>(null);
   const [streak, setStreak]         = useState<number>(0);
@@ -1127,7 +1129,8 @@ export default function VideoGenerator() {
       )}
 
       {/* ── 상단 바 ── */}
-      <AppTopBar onMenuClick={() => setMobileMenuOpen(true)} />
+      <AppTopBar onMenuClick={() => setMobileMenuOpen(true)} onInvite={() => setShowInvite(true)} />
+      <CreditMissionsModal open={showInvite} onClose={() => setShowInvite(false)} session={session} onCredited={loadBalance} />
 
       {/* ── 모바일 사이드바 드로어 ── */}
       {mobileMenuOpen && (
@@ -2481,10 +2484,6 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
       </div>
       {/* 탭 */}
       <div className="px-2 py-3 flex-1 overflow-y-auto">
-        <button onClick={()=>setShowMissions(true)}
-          className="mb-3 flex w-full items-center gap-2.5 rounded-xl border border-[#03C75A]/40 bg-[#03C75A]/10 px-3 py-3 text-base font-black text-[#03C75A] transition hover:bg-[#03C75A]/15">
-          <span className="text-lg">🎁</span><span>친구 초대 · 크레딧 받기</span>
-        </button>
         {GROUPS.map((g)=>(
           <div key={g.title} className="space-y-0.5 border-t border-gray-200 pt-4 mt-4 first:border-0 first:pt-0 first:mt-0">
             <p className="px-3 pb-1 text-[11px] font-bold text-gray-500 uppercase tracking-wider">{g.title}</p>
