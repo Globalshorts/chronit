@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import ColorPalette from '../components/ColorPalette'
 
 // 생성 영상에서 한 프레임을 캡처해 작은 JPG Blob으로 반환 (카드용 이미지 = 영상 대신 용량 절감)
-async function captureVideoFrame(videoUrl, fraction = 0.45) {
+export async function captureVideoFrame(videoUrl, fraction = 0.45) {
   return new Promise((resolve, reject) => {
     const v = document.createElement('video')
     v.crossOrigin = 'anonymous'; v.muted = true; v.playsInline = true; v.preload = 'auto'
