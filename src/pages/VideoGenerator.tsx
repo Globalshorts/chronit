@@ -3603,7 +3603,7 @@ function HistoryView({ session, onGoToLinks }: { session: any; onGoToLinks?: ()=
           <div key={j.id} className="rounded-2xl bg-white border border-gray-200 overflow-hidden flex flex-col">
             <div className="relative aspect-[9/16] bg-black">
               {done ? (
-                <video src={j.video_url + "#t=0.1"} preload="metadata" playsInline controls
+                <video src={j.video_url + "#t=0.0"} preload="metadata" playsInline controls
                   className="w-full h-full object-contain bg-black" />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center px-2 text-center">
