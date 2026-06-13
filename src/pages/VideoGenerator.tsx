@@ -542,46 +542,54 @@ export default function VideoGenerator() {
       setSearchError("Instagram Reels, YouTube Shorts, TikTok URL을 입력해주세요"); return;
     }
     setSearching(true); setClips([]); setCart(new Set());
+    const MAX = 2; // 일시적 분석 실패 시 추가 재시도 횟수 (실패 화면 노출 방지)
     try {
       const { data: { session: s } } = await supabase.auth.getSession();
       if (!s) { setSearchError("로그인이 필요합니다"); return; }
       const headers = { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" };
 
-      // Step 1: 영상 분석 + TikTok 검색 (search-clips, ~60초)
-      const resp1 = await fetch(FN("search-clips"), {
-        method: "POST", headers,
-        body: JSON.stringify({ source_url: sourceUrl.trim(), clip_count: 80 }),
-      });
-      const data1 = await resp1.json();
-      loadBalance(); // 분석 차감/환불 즉시 반영
-      if (!data1.ok) {
-        setSearchError(
-          (resp1.status === 402 || data1.code === "INSUFFICIENT_CREDITS")
-            ? (data1.error ?? "크레딧이 부족합니다. 충전 후 다시 시도해주세요.")
-            : (data1.error ?? "분석 실패")
-        );
+      for (let attempt = 0; attempt <= MAX; attempt++) {
+        // Step 1: 영상 분석 + TikTok 검색 (search-clips)
+        let resp1: Response, data1: any;
+        try {
+          resp1 = await fetch(FN("search-clips"), {
+            method: "POST", headers,
+            body: JSON.stringify({ source_url: sourceUrl.trim(), clip_count: 80 }),
+          });
+          data1 = await resp1.json();
+        } catch (netErr) {
+          if (attempt < MAX) { await new Promise(r => setTimeout(r, 1500)); continue; } // 네트워크 일시 오류 → 자동 재시도
+          setSearchError("분석 중 일시적인 오류가 있었어요. 잠시 후 다시 시도해 주세요."); return;
+        }
+        loadBalance(); // 분석 차감/환불 즉시 반영
+        if (!data1.ok) {
+          const credit = (resp1.status === 402 || data1.code === "INSUFFICIENT_CREDITS");
+          if (!credit && attempt < MAX) { await new Promise(r => setTimeout(r, 1500)); continue; } // 서버 일시 오류 → 자동 재시도
+          setSearchError(credit ? (data1.error ?? "크레딧이 부족합니다. 충전 후 다시 시도해주세요.") : (data1.error ?? "분석에 실패했어요. 잠시 후 다시 시도해 주세요."));
+          return;
+        }
+
+        // 성공
+        const rawClips: Clip[] = data1.clips ?? [];
+        const refFrames: string[] = data1.reference_frames ?? [];
+        analysisMetaRef.current = { name: data1.product_name || "", keyword: data1.keyword || "", poster: (data1.reference_frames && data1.reference_frames[0]) || "" };
+        if (!rawClips.length) { setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요."); return; }
+        if (!refFrames.length) { setClips(rawClips); return; }
+
+        // Step 2: CLIP filter (실패해도 rawClips로 폴백 — 재시도 안 함)
+        try {
+          const resp2 = await fetch(FN("clip-filter"), {
+            method: "POST", headers,
+            body: JSON.stringify({ reference_frames: refFrames, candidates: rawClips, clip_count: 80 }),
+          });
+          const data2 = await resp2.json();
+          const finalClips: Clip[] = data2.ok ? (data2.clips ?? rawClips) : rawClips.slice(0, 20);
+          setClips(finalClips);
+          if (!finalClips.length) setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요.");
+        } catch { setClips(rawClips); }
         return;
       }
-
-      const rawClips: Clip[] = data1.clips ?? [];
-      const refFrames: string[] = data1.reference_frames ?? [];
-      // 분석이 이미 뽑은 상품명/한국어 키워드 보관 → 생성 시 job에 저장(내 링크 재사용)
-      analysisMetaRef.current = { name: data1.product_name || "", keyword: data1.keyword || "", poster: (data1.reference_frames && data1.reference_frames[0]) || "" };
-      if (!rawClips.length) { setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요."); return; }
-
-      // reference_frames 없으면 CLIP filter 스킵
-      if (!refFrames.length) { setClips(rawClips); return; }
-
-      // Step 2: CLIP filter (clip-filter, ~60초)
-      const resp2 = await fetch(FN("clip-filter"), {
-        method: "POST", headers,
-        body: JSON.stringify({ reference_frames: refFrames, candidates: rawClips, clip_count: 80 }),
-      });
-      const data2 = await resp2.json();
-      const finalClips: Clip[] = data2.ok ? (data2.clips ?? rawClips) : rawClips.slice(0, 20);
-      setClips(finalClips);
-      if (!finalClips.length) setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요.");
-    } catch (e) { setSearchError(String(e)); }
+    } catch (e) { setSearchError("분석 중 일시적인 오류가 있었어요. 잠시 후 다시 시도해 주세요."); }
     finally { setSearching(false); }
   };
   const toggleCart = (id: string) => {
@@ -2473,6 +2481,10 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
       </div>
       {/* 탭 */}
       <div className="px-2 py-3 flex-1 overflow-y-auto">
+        <button onClick={()=>setShowMissions(true)}
+          className="mb-3 flex w-full items-center gap-2.5 rounded-xl border border-[#03C75A]/40 bg-[#03C75A]/10 px-3 py-3 text-base font-black text-[#03C75A] transition hover:bg-[#03C75A]/15">
+          <span className="text-lg">🎁</span><span>친구 초대 · 크레딧 받기</span>
+        </button>
         {GROUPS.map((g)=>(
           <div key={g.title} className="space-y-0.5 border-t border-gray-200 pt-4 mt-4 first:border-0 first:pt-0 first:mt-0">
             <p className="px-3 pb-1 text-[11px] font-bold text-gray-500 uppercase tracking-wider">{g.title}</p>
