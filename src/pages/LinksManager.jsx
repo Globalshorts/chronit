@@ -82,25 +82,28 @@ export function LinkPageManager({ session }) {
   const itemFor = (jobId) => items.find((i) => i.video_job_id === jobId)
   // 영상(video_jobs)이 3일 보관 후 정리돼도, 저장해 둔 링크(link_items)는 카드로 계속 보여준다
   const jobIdSet = new Set(jobs.map((j) => j.id))
+  // 영상(video_jobs)이 없거나(FK가 NULL) 3일 정리로 사라져도, 저장한 링크(link_items)는 카드로 유지
   const savedOnlyJobs = items
-    .filter((i) => i.video_job_id && !jobIdSet.has(i.video_job_id))
+    .filter((i) => !i.video_job_id || !jobIdSet.has(i.video_job_id))
     .map((i) => ({
-      id: i.video_job_id,
+      id: i.video_job_id || `saved-${i.id}`,
       product_name: i.title || '',
       seo_title: i.title || '',
       search_keyword: '',
       poster_url: i.image_url || '',
       video_url: i.video_url || '',
       created_at: i.created_at,
+      _item: i,
       _savedOnly: true,
     }))
   const allJobs = [...jobs, ...savedOnlyJobs]
-  const jobTitle = (job) => (itemFor(job.id)?.title || job.seo_title || job.product_name || '')
+  const theItem = (job) => job._item || itemFor(job.id)
+  const jobTitle = (job) => (theItem(job)?.title || job.seo_title || job.product_name || '')
   const visibleJobs = jobQuery.trim()
     ? allJobs.filter((j) => jobTitle(j).toLowerCase().includes(jobQuery.trim().toLowerCase()))
     : allJobs
   const sortedJobs = [...visibleJobs].sort((j1, j2) => {
-    const i1 = itemFor(j1.id), i2 = itemFor(j2.id)
+    const i1 = theItem(j1), i2 = theItem(j2)
     if (i1?.active && i2?.active) return (i2.sort_order || 0) - (i1.sort_order || 0)
     if (i1?.active) return -1
     if (i2?.active) return 1
@@ -127,9 +130,9 @@ export function LinkPageManager({ session }) {
     } finally { setUploading(false) }
   }
 
-  const upsertItem = async (job, { title, target_url, active, image_url, badge, badge_color }) => {
+  const upsertItem = async (job, { title, target_url, active, image_url, badge, badge_color }, existingArg) => {
     const uid = session.user.id
-    const existing = itemFor(job.id)
+    const existing = existingArg || itemFor(job.id)
     let img = image_url || null
     if (!img && !existing?.image_url) {
       try {
@@ -276,10 +279,10 @@ export function LinkPageManager({ session }) {
       ) : (
         <div className="space-y-3">
           {sortedJobs.map((job) => {
-            const it = itemFor(job.id)
+            const it = theItem(job)
             return (
               <JobRow key={job.id} job={job} item={it} uid={session.user.id}
-                onSave={(vals) => upsertItem(job, vals)}
+                onSave={(vals) => upsertItem(job, vals, it)}
                 onDelete={() => removeCard(job, it)}
                 onMove={it && it.active ? (dir) => move(it, dir) : null} />
             )
