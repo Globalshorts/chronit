@@ -2368,7 +2368,14 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
         {/* 미션 A — 추천 */}
         <div className="rounded-2xl bg-gray-100/60 border border-gray-200 p-4 mb-3">
           <span className="inline-block rounded-lg bg-[#03C75A] text-white text-xs font-bold px-2.5 py-1 mb-2">미션 A · 프로 체험 선물</span>
-          <p className="text-sm text-gray-700 mb-3">내 추천 코드/링크로 친구가 가입하면 <b className="text-gray-900">친구는 프로 7일 무료 체험</b>. 친구가 첫 영상을 만들면 <b className="text-gray-900">나도 프로 7일</b>, 친구가 결제하면 <b className="text-gray-900">나는 프로 30일</b>이 지급됩니다.</p>
+          <div className="mb-3 text-sm text-gray-700">
+            <p className="mb-1.5 text-gray-500">친구가 내 코드로 가입하면</p>
+            <div className="space-y-1">
+              <p className="flex items-center gap-1.5">🎁 친구 <b className="text-gray-900">프로 7일 무료</b></p>
+              <p className="flex items-center gap-1.5">🎬 친구 첫 영상 → 나도 <b className="text-gray-900">프로 7일</b></p>
+              <p className="flex items-center gap-1.5">💳 친구 결제 → 나는 <b className="text-gray-900">프로 30일</b></p>
+            </div>
+          </div>
 
           {/* 내 추천 코드 (블로그·카페용) */}
           <div className="flex items-center gap-2 mb-2 rounded-xl bg-white border border-[#03C75A]/40 px-3 py-2">
