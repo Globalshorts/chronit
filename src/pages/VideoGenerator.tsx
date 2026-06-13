@@ -182,6 +182,10 @@ export default function VideoGenerator() {
   }, [currentJobId]);
   const [completionAlert, setCompletionAlert] = useState<string|null>(null);
   const [balance, setBalance]       = useState<number | null>(null);
+  const [points, setPoints]         = useState<number | null>(null);
+  const [streak, setStreak]         = useState<number>(0);
+  const [checkedToday, setCheckedToday] = useState<boolean>(false);
+  const [checkingIn, setCheckingIn] = useState(false);
   const [userPlan, setUserPlan]     = useState<string | null>(null);
   const [userRole, setUserRole]     = useState<string>("user");
   const [activeView, setActiveView] = useState(() => {
@@ -232,6 +236,39 @@ export default function VideoGenerator() {
     }
   }, [session]);
 
+  // ── 포인트·연속·출석 ─────────────────────────────────────────
+  const loadRewards = useCallback(async () => {
+    try {
+      const { data: p } = await supabase.rpc("get_my_points_rpc");
+      if (typeof p === "number") setPoints(p);
+      const { data: st } = await supabase.rpc("get_my_streak_rpc");
+      if (st) { setStreak(st.streak ?? 0); setCheckedToday(!!st.checked_today); }
+    } catch {}
+  }, []);
+  const handleCheckIn = async () => {
+    if (checkingIn || checkedToday) return;
+    setCheckingIn(true);
+    try {
+      const { data } = await supabase.rpc("attendance_check_rpc");
+      if (data?.ok) {
+        setCheckedToday(true);
+        if (data.streak) setStreak(data.streak);
+        setCompletionAlert(data.already
+          ? `이미 오늘 출석했어요 (연속 ${data.streak}일)`
+          : `🔥 출석 완료! +${data.awarded}P (연속 ${data.streak}일)`);
+        loadRewards();
+      } else if (data?.paid_only) {
+        setCompletionAlert("출석·포인트는 유료 플랜 전용 혜택이에요");
+      } else {
+        setCompletionAlert(data?.error || "출석에 실패했어요");
+      }
+    } catch { setCompletionAlert("출석에 실패했어요"); }
+    finally {
+      setCheckingIn(false);
+      setTimeout(() => setCompletionAlert(null), 3500);
+    }
+  };
+
   // ── 계정별 설정 동기화 (user_settings) ───────────────────────
   const settingsLoaded = useRef(false);
   const loadUserSettings = useCallback(async () => {
@@ -258,14 +295,14 @@ export default function VideoGenerator() {
 
   useEffect(() => {
     if (!session) return;
-    loadJobs(); loadBalance();
+    loadJobs(); loadBalance(); loadRewards();
     loadUserSettings();
     const ch = supabase.channel("vj")
       .on("postgres_changes", { event: "*", schema: "public", table: "video_jobs" }, () => {
         loadJobs(); loadBalance();
       }).subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [session, loadJobs, loadBalance, loadUserSettings]);
+  }, [session, loadJobs, loadBalance, loadRewards, loadUserSettings]);
 
   // 변경 시 계정에 디바운스 저장 (+ localStorage 즉시 캐시)
   useEffect(() => {
@@ -380,6 +417,16 @@ export default function VideoGenerator() {
       setCompletionAlert("✅ 영상 생성 완료! 생성 내역으로 이동합니다.");
       try { new Audio("https://www.soundjay.com/buttons/sounds/button-09a.mp3").play(); } catch {}
       setCurrentJobId("");
+      // 완성 변동보상(가챠) — 유료 전용, 영상당 1회
+      (async () => {
+        try {
+          const { data: rw } = await supabase.rpc("claim_video_reward_rpc", { p_ref_id: job.id });
+          if (rw?.ok && rw.awarded > 0) {
+            setCompletionAlert(rw.jackpot ? `🎰 잭팟! +${rw.awarded}P 적립!` : `🎉 완성! +${rw.awarded}P 적립`);
+            loadRewards();
+          }
+        } catch {}
+      })();
       setActiveView("history"); // 완료 시 생성 내역으로 자동 이동
     } else if (job.status === "error") {
       // 간헐적 서버 오류는 사용자에게 실패를 노출하지 않고 자동으로 다시 시도
@@ -971,7 +1018,7 @@ export default function VideoGenerator() {
           <span className="text-2xl">{completionAlert.startsWith("❌") ? "⚠️" : "🎉"}</span>
           <div>
             <p className="font-black text-sm">{completionAlert}</p>
-            {!completionAlert.startsWith("❌") && <p className="text-xs text-green-100 mt-0.5">생성 내역 탭에서 다운로드하세요</p>}
+            {!completionAlert.startsWith("❌") && (completionAlert.includes("완성") || completionAlert.includes("생성 내역")) && <p className="text-xs text-green-100 mt-0.5">생성 내역 탭에서 다운로드하세요</p>}
           </div>
           <button onClick={() => setCompletionAlert(null)} className="ml-4 text-gray-900/70 hover:text-gray-900 text-lg">✕</button>
         </div>
@@ -1176,6 +1223,25 @@ export default function VideoGenerator() {
         {activeView === "generator" && <>
         <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-5">
           <div className="space-y-0">
+
+          {/* 포인트·연속·출석 바 */}
+          <div className="mb-4 flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-3 py-2.5">
+            <button onClick={handleCheckIn} disabled={checkingIn || checkedToday}
+              className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-black transition ${checkedToday ? "bg-gray-100 text-gray-400" : "bg-[#03C75A] text-white hover:bg-[#02b350]"}`}>
+              <span>🔥</span>
+              <span>{streak > 0 ? `연속 ${streak}일` : "출석체크"}</span>
+              {checkedToday
+                ? <span className="text-xs">✓ 완료</span>
+                : <span className="rounded-md bg-white/20 px-1.5 py-0.5 text-[11px] font-bold">+10P</span>}
+            </button>
+            <div className="flex items-center gap-1.5 rounded-xl bg-amber-50 px-3 py-2 text-sm font-black text-amber-600">
+              <span>⭐</span><span>{points !== null ? points.toLocaleString() : "—"}P</span>
+            </div>
+            <a href="/board/write"
+              className="ml-auto flex items-center gap-1 rounded-xl border border-gray-200 px-3 py-2 text-sm font-bold text-gray-600 transition hover:border-[#03C75A]/40 hover:text-[#03C75A]">
+              <span>📣</span><span className="hidden sm:inline">자랑하기</span>
+            </a>
+          </div>
 
           {/* 모바일: 프로젝트 드롭다운 */}
           <div className="md:hidden mb-4">
@@ -3576,6 +3642,10 @@ function HistoryView({ session, onGoToLinks }: { session: any; onGoToLinks?: ()=
                       🔗 내 링크에 추가
                     </button>
                   )}
+                  <a href="/board/write"
+                    className="block text-center rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-600 hover:bg-amber-100 transition">
+                    📣 자랑하기
+                  </a>
 
                   {/* 업로드용 SEO */}
                   {(j.seo_title || j.seo_description || j.seo_tags) ? (
