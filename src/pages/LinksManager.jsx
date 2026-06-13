@@ -40,6 +40,7 @@ export function LinkPageManager({ session }) {
   const [uploading, setUploading] = useState(false)
   const [customOpen, setCustomOpen] = useState(false)
   const [jobQuery, setJobQuery] = useState('')
+  const [activeOnly, setActiveOnly] = useState(false)
   const loadedUidRef = useRef(null)
 
   useEffect(() => {
@@ -99,9 +100,13 @@ export function LinkPageManager({ session }) {
   const allJobs = [...jobs, ...savedOnlyJobs]
   const theItem = (job) => job._item || itemFor(job.id)
   const jobTitle = (job) => (theItem(job)?.title || job.seo_title || job.product_name || '')
-  const visibleJobs = jobQuery.trim()
-    ? allJobs.filter((j) => jobTitle(j).toLowerCase().includes(jobQuery.trim().toLowerCase()))
-    : allJobs
+  const activeCount = items.filter((i) => i.active).length
+  const visibleJobs = allJobs.filter((j) => {
+    if (activeOnly && !theItem(j)?.active) return false
+    const q = jobQuery.trim().toLowerCase()
+    if (q && !jobTitle(j).toLowerCase().includes(q)) return false
+    return true
+  })
   const sortedJobs = [...visibleJobs].sort((j1, j2) => {
     const i1 = theItem(j1), i2 = theItem(j2)
     if (i1?.active && i2?.active) return (i2.sort_order || 0) - (i1.sort_order || 0)
@@ -265,17 +270,23 @@ export function LinkPageManager({ session }) {
       {/* 영상 목록 */}
       <div className="mb-3 flex items-center justify-between gap-3">
         <p className="text-sm font-black text-gray-900">영상 → 카드로 추가</p>
-        {allJobs.length >= 2 && (
-          <input value={jobQuery} onChange={(e) => setJobQuery(e.target.value)} placeholder="🔍 카드 검색"
-            className="w-40 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs" />
-        )}
+        <div className="flex items-center gap-2.5">
+          <label className="flex items-center gap-1.5 whitespace-nowrap text-xs font-bold text-gray-600">
+            <input type="checkbox" checked={activeOnly} onChange={(e) => setActiveOnly(e.target.checked)} />
+            표시중만 ({activeCount})
+          </label>
+          {allJobs.length >= 2 && (
+            <input value={jobQuery} onChange={(e) => setJobQuery(e.target.value)} placeholder="🔍 검색"
+              className="w-28 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs sm:w-36" />
+          )}
+        </div>
       </div>
       {allJobs.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-gray-300 bg-white py-10 text-center text-sm text-gray-400">
           완성된 영상이 아직 없어요. 먼저 영상을 만들어 주세요.
         </p>
       ) : visibleJobs.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-gray-300 bg-white py-8 text-center text-sm text-gray-400">검색 결과가 없어요.</p>
+        <p className="rounded-2xl border border-dashed border-gray-300 bg-white py-8 text-center text-sm text-gray-400">조건에 맞는 카드가 없어요.</p>
       ) : (
         <div className="space-y-3">
           {sortedJobs.map((job) => {
