@@ -1234,9 +1234,10 @@ export default function VideoGenerator() {
                 ? <span className="text-xs">✓ 완료</span>
                 : <span className="rounded-md bg-white/20 px-1.5 py-0.5 text-[11px] font-bold">+10P</span>}
             </button>
-            <div className="flex items-center gap-1.5 rounded-xl bg-amber-50 px-3 py-2 text-sm font-black text-amber-600">
+            <a href="/points" title="포인트 내역"
+              className="flex items-center gap-1.5 rounded-xl bg-amber-50 px-3 py-2 text-sm font-black text-amber-600 transition hover:bg-amber-100">
               <span>⭐</span><span>{points !== null ? points.toLocaleString() : "—"}P</span>
-            </div>
+            </a>
             <a href="/board/write"
               className="ml-auto flex items-center gap-1 rounded-xl border border-gray-200 px-3 py-2 text-sm font-bold text-gray-600 transition hover:border-[#03C75A]/40 hover:text-[#03C75A]">
               <span>📣</span><span className="hidden sm:inline">자랑하기</span>
@@ -3629,52 +3630,22 @@ function HistoryView({ session, onGoToLinks }: { session: any; onGoToLinks?: ()=
                     className="block text-center rounded-xl bg-[#03C75A] px-3 py-2.5 text-sm font-bold text-white hover:bg-[#02b350] active:bg-[#02b350] disabled:opacity-50 transition">
                     {saving===j.id ? "저장 중…" : (isIOS ? "📱 갤러리에 저장" : "📥 동영상 저장")}
                   </button>
-                  <p className="px-1 text-center text-[11px] leading-snug text-gray-400">
-                    {isIOS
-                      ? "공유 창에서 '동영상 저장'을 누르면 사진앱에 저장돼요"
-                      : isAndroid
-                      ? "휴대폰에 저장돼요 · 갤러리 › 앨범 › Download 에서 볼 수 있어요"
-                      : "내 컴퓨터에 mp4 파일로 저장돼요"}
-                  </p>
-                  {onGoToLinks && (
-                    <button onClick={onGoToLinks}
-                      className="block text-center rounded-xl border border-[#03C75A]/40 bg-[#03C75A]/5 px-3 py-2 text-xs font-bold text-[#03C75A] hover:bg-[#03C75A]/10 transition">
-                      🔗 내 링크에 추가
+                  {(j.seo_title || j.seo_description || j.seo_tags) ? (
+                    <button onClick={()=>copyText(seoFull(j), j.id+"-all")}
+                      className="block text-center rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-gray-700 hover:border-[#03C75A]/50 hover:text-[#03C75A] transition">
+                      {copied===j.id+"-all" ? "✓ 복사됨" : "📋 내용 복사"}
+                      <span className="block text-[10px] font-normal text-gray-400">제목·설명·해시태그 한 번에</span>
                     </button>
+                  ) : (
+                    <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-center text-[11px] text-gray-400">업로드 정보 생성 중…</div>
                   )}
                   <a href="/board/write"
                     className="block text-center rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-600 hover:bg-amber-100 transition">
                     📣 자랑하기
                   </a>
-
-                  {/* 업로드용 SEO */}
-                  {(j.seo_title || j.seo_description || j.seo_tags) ? (
-                    <div className="mt-1 rounded-xl bg-gray-100 border border-gray-200 p-2.5 text-left space-y-2">
-                      <p className="text-[11px] font-bold text-[#03C75A]">📋 업로드 정보 (AI 추천)</p>
-                      {[
-                        { label: "제목", value: j.seo_title, key: j.id+"-t" },
-                        { label: "설명", value: j.seo_description, key: j.id+"-d" },
-                        { label: "해시태그", value: cap5Tags(j.seo_tags), key: j.id+"-g" },
-                      ].filter(r=>r.value).map(r => (
-                        <div key={r.key} className="flex items-start gap-1.5">
-                          <div className="min-w-0 flex-1">
-                            <p className="text-[10px] font-bold text-gray-500">{r.label}</p>
-                            <p className="text-[11px] text-gray-700 leading-snug break-words line-clamp-3">{r.value}</p>
-                          </div>
-                          <button onClick={()=>copyText(r.value, r.key)}
-                            className="shrink-0 rounded-md bg-gray-200 px-1.5 py-1 text-[10px] font-bold text-gray-700 hover:bg-gray-300 transition">
-                            {copied===r.key ? "✓" : "복사"}
-                          </button>
-                        </div>
-                      ))}
-                      <button onClick={()=>shareSeo(j)}
-                        className="w-full rounded-lg bg-gray-200 px-2 py-2 text-[11px] font-bold text-gray-900 hover:bg-gray-300 transition">
-                        {copied===j.id+"-all" ? "✓ 복사됨 (메모에 붙여넣기)" : "📝 메모·카톡으로 보내기"}
-                      </button>
-                    </div>
-                  ) : (
-                    <p className="text-center text-[10px] text-gray-600">업로드 정보 생성 중…</p>
-                  )}
+                  <p className="px-1 text-center text-[10px] leading-snug text-gray-400">
+                    {isIOS ? "공유 창에서 '동영상 저장' → 사진앱" : isAndroid ? "갤러리 › 앨범 › Download 에서 확인" : "내 컴퓨터에 mp4로 저장돼요"}
+                  </p>
                 </div>
               ) : (
                 <span className="mt-auto block text-center rounded-xl bg-gray-100 px-3 py-2.5 text-xs text-gray-500">
