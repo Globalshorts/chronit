@@ -397,7 +397,7 @@ export default function VideoGenerator() {
       (res: any) => {
         const d = res?.data;
         if (d?.ok) {
-          setRefMsg({ ok: true, text: `🎉 추천 코드 적용 완료! +${d.reward ?? 500} CR을 받았어요` });
+          setRefMsg({ ok: true, text: `🎉 추천 코드 적용! 프로 7일 무료 체험이 시작됐어요` });
           loadBalance();
           setTimeout(() => closeSurvey(), 1600);
         } else {
@@ -1093,7 +1093,7 @@ export default function VideoGenerator() {
               <>
                 <div className="mt-2 text-center text-4xl">🎉</div>
                 <p className="mt-2 text-center text-lg font-black text-gray-900">추천 코드가 적용됐어요!</p>
-                <p className="mt-1 text-center text-sm text-gray-500">추천 보너스 <b className="text-[#03C75A]">+500 CR</b>이 이미 지급됐어요.</p>
+                <p className="mt-1 text-center text-sm text-gray-500"><b className="text-[#03C75A]">프로 7일 무료 체험</b>이 시작됐어요.</p>
                 <button onClick={closeSurvey}
                   className="mt-5 w-full rounded-xl bg-[#03C75A] px-4 py-3 text-sm font-black text-white transition hover:bg-[#02b350] active:scale-[0.98]">
                   시작하기
@@ -1102,7 +1102,7 @@ export default function VideoGenerator() {
             ) : (
               <>
                 <p className="text-center text-lg font-black text-gray-900">추천 코드가 있으신가요?</p>
-                <p className="mt-1 text-center text-sm text-gray-500">입력하면 나와 추천인 모두 <b className="text-[#03C75A]">+500 CR</b>!</p>
+                <p className="mt-1 text-center text-sm text-gray-500">입력하면 <b className="text-[#03C75A]">프로 7일 무료 체험</b>! (친구가 결제하면 추천인도 프로 30일)</p>
                 <input
                   value={refCode}
                   onChange={(e) => { setRefCode(e.target.value.toUpperCase()); setRefMsg(null); }}
@@ -2109,7 +2109,7 @@ function HistoryPanel({ session }: { session: any }) {
 
 // ── NavSidebar — 좌측 좁은 탭 네비 ───────────────────────────
 // 카카오톡 공유 (JS SDK) — 도메인 등록 후 동작, 실패 시 복사 폴백
-const KAKAO_JS_KEY = (import.meta as any).env?.VITE_KAKAO_JS_KEY || "353a4888db09fd32ef2f787755cd758a";
+const KAKAO_JS_KEY = (import.meta as any).env?.VITE_KAKAO_JS_KEY || "84ee352af8ddaf49632d40de964fa9f4";
 const KAKAO_SHARE_IMG = "https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png";
 function ensureKakao(): Promise<any> {
   return new Promise((resolve, reject) => {
@@ -2367,8 +2367,8 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
 
         {/* 미션 A — 추천 */}
         <div className="rounded-2xl bg-gray-100/60 border border-gray-200 p-4 mb-3">
-          <span className="inline-block rounded-lg bg-[#03C75A] text-white text-xs font-bold px-2.5 py-1 mb-2">미션 A · +500 크레딧</span>
-          <p className="text-sm text-gray-700 mb-3">지인에게 내 추천 코드/링크를 공유하세요. 지인이 가입하면 <b className="text-gray-900">양쪽 모두 500 크레딧</b>이 즉시 지급됩니다.</p>
+          <span className="inline-block rounded-lg bg-[#03C75A] text-white text-xs font-bold px-2.5 py-1 mb-2">미션 A · 프로 체험 선물</span>
+          <p className="text-sm text-gray-700 mb-3">내 추천 코드/링크로 친구가 가입하면 <b className="text-gray-900">친구는 프로 7일 무료 체험</b>. 친구가 첫 영상을 만들면 <b className="text-gray-900">나도 프로 7일</b>, 친구가 결제하면 <b className="text-gray-900">나는 프로 30일</b>이 지급됩니다.</p>
 
           {/* 내 추천 코드 (블로그·카페용) */}
           <div className="flex items-center gap-2 mb-2 rounded-xl bg-white border border-[#03C75A]/40 px-3 py-2">
