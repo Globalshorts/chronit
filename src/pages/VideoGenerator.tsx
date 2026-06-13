@@ -181,6 +181,7 @@ export default function VideoGenerator() {
     return () => clearInterval(t);
   }, [currentJobId]);
   const [completionAlert, setCompletionAlert] = useState<string|null>(null);
+  const [gacha, setGacha] = useState<any>(null);
   const [balance, setBalance]       = useState<number | null>(null);
   const [points, setPoints]         = useState<number | null>(null);
   const [streak, setStreak]         = useState<number>(0);
@@ -421,10 +422,7 @@ export default function VideoGenerator() {
       (async () => {
         try {
           const { data: rw } = await supabase.rpc("claim_video_reward_rpc", { p_ref_id: job.id });
-          if (rw?.ok && rw.awarded > 0) {
-            setCompletionAlert(rw.jackpot ? `🎰 잭팟! +${rw.awarded}P 적립!` : `🎉 완성! +${rw.awarded}P 적립`);
-            loadRewards();
-          }
+          if (rw?.ok && rw.awarded > 0) setGacha({ tier: rw.tier, points: rw.awarded, jackpot: rw.jackpot });
         } catch {}
       })();
       setActiveView("history"); // 완료 시 생성 내역으로 자동 이동
@@ -1023,6 +1021,8 @@ export default function VideoGenerator() {
           <button onClick={() => setCompletionAlert(null)} className="ml-4 text-gray-900/70 hover:text-gray-900 text-lg">✕</button>
         </div>
       )}
+
+      {gacha && <GachaModal data={gacha} onClose={() => { setGacha(null); loadRewards(); }} />}
       {/* ── 자동 생성 중 중앙 오버레이 ── */}
       {autoRunning && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm">
@@ -1202,7 +1202,7 @@ export default function VideoGenerator() {
             {activeView === "history" && (
               <>
                 <h2 className="text-xl font-black text-gray-900 mb-6">📹 생성 내역</h2>
-                <HistoryView session={session} onGoToLinks={()=>setActiveView("product-search")} />
+                <HistoryView session={session} onGoToLinks={()=>setActiveView("product-search")} onGacha={(g:any)=>setGacha(g)} />
               </>
             )}
             {activeView === "product-search" && (
@@ -3502,7 +3502,86 @@ function StyleFinderView({ session, onImport }: { session: any; onImport: (id:st
 }
 
 // ── HistoryView ───────────────────────────────────────────────
-function HistoryView({ session, onGoToLinks }: { session: any; onGoToLinks?: ()=>void }) {
+function GachaModal({ data, onClose }: { data: any; onClose: ()=>void }) {
+  const TIERS = [
+    { label: "레어",   color: "#3B82F6" },
+    { label: "에픽",   color: "#7C3AED" },
+    { label: "유니크", color: "#F0C419" },
+    { label: "레전드", color: "#03C75A" },
+  ];
+  const TARGET: Record<string, number> = { rare:0, epic:1, unique:2, legend:3 };
+  const target = TARGET[data?.tier] ?? 0;
+  const [step, setStep] = React.useState(0);
+  const [revealed, setRevealed] = React.useState(false);
+  const confRef = React.useRef<HTMLDivElement|null>(null);
+  const boxRef = React.useRef<HTMLDivElement|null>(null);
+  const cur = TIERS[Math.min(step, 3)];
+  const finalT = TIERS[target];
+  const isLegend = data?.tier === "legend";
+
+  React.useEffect(() => {
+    if (revealed) return;
+    const el = boxRef.current; if (!el) return;
+    el.animate([{transform:"scale(1) rotate(0)"},{transform:"scale(1.12) rotate(-7deg)"},{transform:"scale(1.12) rotate(7deg)"},{transform:"scale(1) rotate(0)"}], {duration:360});
+  }, [step, revealed]);
+
+  const spawnConfetti = (n:number, colors:string[]) => {
+    const host = confRef.current; if (!host) return;
+    for (let i=0;i<n;i++){
+      const sp = document.createElement("span");
+      const size = 7 + Math.random()*7;
+      sp.style.cssText = `position:absolute;top:42%;left:50%;width:${size}px;height:${size}px;background:${colors[i%colors.length]};border-radius:2px;pointer-events:none;`;
+      host.appendChild(sp);
+      const ang = Math.random()*Math.PI*2, dist = 80 + Math.random()*70;
+      const dx = Math.cos(ang)*dist, dy = Math.sin(ang)*dist - 40;
+      sp.animate([{transform:"translate(-50%,-50%) rotate(0)",opacity:1},{transform:`translate(${dx}px,${dy+150}px) rotate(540deg)`,opacity:0}], {duration:1100+Math.random()*600, easing:"cubic-bezier(.2,.7,.3,1)"});
+      setTimeout(()=>sp.remove(), 1900);
+    }
+  };
+
+  const tap = () => {
+    if (revealed) { onClose(); return; }
+    if (step < target) { setStep(step + 1); return; }
+    setRevealed(true);
+    const cols = isLegend ? ["#03C75A","#34E08C","#F0C419","#9FE1CB"] : [finalT.color, "#FFE08A", "#34E08C"];
+    setTimeout(()=>spawnConfetti(isLegend?48:24, cols), 40);
+    try { new Audio("https://www.soundjay.com/buttons/sounds/button-09a.mp3").play(); } catch {}
+  };
+
+  const hint = revealed ? "탭해서 닫기"
+    : step < target ? (step===0 ? "선물상자를 탭하세요" : "오~ 등급 상승! 계속 탭 🔥")
+    : "탭해서 열기!";
+
+  return (
+    <div onClick={tap} style={{ position:"fixed", inset:0, zIndex:80, background:"rgba(0,0,0,0.6)", display:"flex", alignItems:"center", justifyContent:"center", padding:"24px" }}>
+      <div onClick={(e)=>{ e.stopPropagation(); tap(); }} className="relative w-full rounded-3xl bg-white px-6 py-8 text-center" style={{ maxWidth: 320 }}>
+        <div ref={confRef} className="pointer-events-none absolute inset-0" style={{ overflow:"visible" }} />
+        {!revealed ? (
+          <>
+            <p className="mb-1 text-sm font-black" style={{ color: step>0 ? cur.color : "#6b7280" }}>{step>0 ? `${cur.label} 등급!` : "보상 선물 도착"}</p>
+            <div ref={boxRef} className="mx-auto my-4 flex items-center justify-center rounded-3xl"
+              style={{ width:128, height:128, background:cur.color, boxShadow: step>=3 ? `0 0 30px ${cur.color}` : "none", transition:"background .2s" }}>
+              <span style={{ fontSize:64 }}>🎁</span>
+            </div>
+            <p className="text-sm font-bold text-gray-400">{hint}</p>
+          </>
+        ) : (
+          <>
+            <p className="mb-1 text-sm font-black" style={{ color: finalT.color }}>{isLegend ? "✨ 레전드 ✨" : `${finalT.label} 등급`}</p>
+            <div className="mx-auto my-3 flex items-center justify-center rounded-3xl"
+              style={{ width:128, height:128, background:finalT.color, boxShadow: isLegend ? `0 0 38px ${finalT.color}` : "none" }}>
+              <span style={{ fontSize:60 }}>🎉</span>
+            </div>
+            <p className="text-4xl font-black" style={{ color: finalT.color }}>+{data.points}P</p>
+            <button onClick={(e)=>{ e.stopPropagation(); onClose(); }} className="mt-5 w-full rounded-xl bg-[#03C75A] py-3 text-sm font-bold text-white hover:bg-[#02b350] transition">받기</button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLinks?: ()=>void; onGacha?: (g:any)=>void }) {
   const [jobs, setJobs] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [copied, setCopied] = React.useState<string|null>(null);
@@ -3595,12 +3674,11 @@ function HistoryView({ session, onGoToLinks }: { session: any; onGoToLinks?: ()=
       }
       const postId = data.id;
       if (postId && img) { try { await supabase.from("board_posts").update({ image_url: img }).eq("id", postId); } catch {} }
-      let rewardTxt = "";
+      setShareToast({ text: "자랑 게시판에 올렸어요!", link: postId ? `/board/${postId}` : "/board" });
       try {
         const { data: rw } = await supabase.rpc("claim_share_reward_rpc", { p_ref_id: j.id });
-        if (rw?.ok && rw.awarded > 0) rewardTxt = rw.jackpot ? ` · 🎰 잭팟 +${rw.awarded}P!` : ` · 🎁 +${rw.awarded}P`;
+        if (rw?.ok && rw.awarded > 0 && onGacha) onGacha({ tier: rw.tier, points: rw.awarded, jackpot: rw.jackpot });
       } catch {}
-      setShareToast({ text: `자랑 게시판에 올렸어요!${rewardTxt}`, link: postId ? `/board/${postId}` : "/board" });
     } catch { setShareToast({ text:"발행에 실패했어요" }); }
     finally { setSharing(null); setTimeout(()=>setShareToast(null), 6000); }
   };
