@@ -2486,6 +2486,21 @@ function ProjectPanel({ activeView, current, onLoad, onReset, session, styleProf
           rows = local.map((p: any) => ({ id: p.id, name: p.name, stage: p.stage || 1, data: p.data || {}, savedAt: p.savedAt || Date.now() }));
         }
       } catch {}
+      // 진입 시 자동 선택: 선택된 프로젝트가 없으면 최근 것 선택, 하나도 없으면 자동 생성
+      try {
+        let curActive = localStorage.getItem("chronit_active_proj") || null;
+        if (!curActive || !rows.some((r:any) => r.id === curActive)) {
+          if (rows.length > 0) {
+            setActiveId(rows[0].id); persistActive(rows[0].id);
+          } else {
+            const nid = `proj_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+            const entry = { id: nid, name: "내 프로젝트 1", savedAt: Date.now(), stage: 1, data: {} };
+            await supabase.from("projects").insert({ id: nid, user_id: uid, name: entry.name, stage: 1, data: {}, saved_at: new Date().toISOString() });
+            rows = [entry];
+            setActiveId(nid); persistActive(nid);
+          }
+        }
+      } catch {}
       setProjects(rows);
     })();
   }, [uid]);
