@@ -3508,6 +3508,8 @@ function HistoryView({ session, onGoToLinks }: { session: any; onGoToLinks?: ()=
   const [copied, setCopied] = React.useState<string|null>(null);
   const [saving, setSaving] = React.useState<string|null>(null);
   const [deleting, setDeleting] = React.useState<string|null>(null);
+  const [sharing, setSharing] = React.useState<string|null>(null);
+  const [shareToast, setShareToast] = React.useState<{text:string; link?:string}|null>(null);
   React.useEffect(()=>{
     if(!session) return;
     (async()=>{
@@ -3558,6 +3560,31 @@ function HistoryView({ session, onGoToLinks }: { session: any; onGoToLinks?: ()=
   const copyText = async (text:string, key:string) => {
     try { await navigator.clipboard.writeText(text); setCopied(key); setTimeout(()=>setCopied(null), 1500); } catch {}
   };
+  const shareToBoard = async (j:any) => {
+    if (sharing) return;
+    if (!window.confirm("이 영상을 '자랑' 게시판에 올릴까요?\n보너스 가챠 1회를 받아요. 🎁")) return;
+    setSharing(j.id);
+    try {
+      const title = (j.product_name && j.product_name.trim().length >= 2) ? j.product_name.trim() : "오늘 만든 숏폼 자랑해요";
+      const body = [ (j.seo_description||"").trim(), cap5Tags(j.seo_tags) ].filter(Boolean).join("\n\n") || "크로닛으로 만든 숏폼이에요!";
+      const { data, error } = await supabase.functions.invoke("board-submit", { body: { kind:"post", category:"show", title, body } });
+      if (error || !data?.ok) {
+        if (data?.need_nickname) { setShareToast({ text:"먼저 닉네임을 설정해 주세요", link:"/board" }); }
+        else { setShareToast({ text: data?.error || "발행에 실패했어요" }); }
+        return;
+      }
+      const postId = data.id;
+      if (postId && j.poster_url) { try { await supabase.from("board_posts").update({ image_url: j.poster_url }).eq("id", postId); } catch {} }
+      let rewardTxt = "";
+      try {
+        const { data: rw } = await supabase.rpc("claim_share_reward_rpc", { p_ref_id: j.id });
+        if (rw?.ok && rw.awarded > 0) rewardTxt = rw.jackpot ? ` · 🎰 잭팟 +${rw.awarded}P!` : ` · 🎁 +${rw.awarded}P`;
+        else if (rw?.paid_only) rewardTxt = " (포인트는 유료 플랜 혜택)";
+      } catch {}
+      setShareToast({ text: `자랑 게시판에 올렸어요!${rewardTxt}`, link: postId ? `/board/${postId}` : "/board" });
+    } catch { setShareToast({ text:"발행에 실패했어요" }); }
+    finally { setSharing(null); setTimeout(()=>setShareToast(null), 6000); }
+  };
   const cap5Tags = (tags?:string) => {
     if (!tags) return "";
     return tags.split(/\s+/).map(t=>t.trim()).filter(Boolean)
@@ -3596,6 +3623,12 @@ function HistoryView({ session, onGoToLinks }: { session: any; onGoToLinks?: ()=
   return (
     <div>
       <p className="text-xs text-gray-500 mb-4">생성된 영상은 생성 후 3일간 보관됩니다. 기간이 지나면 다운로드할 수 없으니 미리 받아두세요.</p>
+      {shareToast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-full bg-gray-900 px-5 py-3 text-sm font-bold text-white shadow-xl">
+          <span>{shareToast.text}</span>
+          {shareToast.link && <a href={shareToast.link} className="text-amber-300 underline">보기</a>}
+        </div>
+      )}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
       {jobs.map(j=>{
         const done = j.status==="done" && j.video_url && !j.expired;
@@ -3639,10 +3672,10 @@ function HistoryView({ session, onGoToLinks }: { session: any; onGoToLinks?: ()=
                   ) : (
                     <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-center text-[11px] text-gray-400">업로드 정보 생성 중…</div>
                   )}
-                  <a href="/board/write"
-                    className="block text-center rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-600 hover:bg-amber-100 transition">
-                    📣 자랑하기
-                  </a>
+                  <button onClick={()=>shareToBoard(j)} disabled={sharing===j.id}
+                    className="block w-full text-center rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-600 hover:bg-amber-100 disabled:opacity-50 transition">
+                    {sharing===j.id ? "올리는 중…" : "📣 자랑하기 (가챠 🎁)"}
+                  </button>
                   <p className="px-1 text-center text-[10px] leading-snug text-gray-400">
                     {isIOS ? "공유 창에서 '동영상 저장' → 사진앱" : isAndroid ? "갤러리 › 앨범 › Download 에서 확인" : "내 컴퓨터에 mp4로 저장돼요"}
                   </p>
