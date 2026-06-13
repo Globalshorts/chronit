@@ -80,10 +80,25 @@ export function LinkPageManager({ session }) {
   }, [session?.user?.id])
 
   const itemFor = (jobId) => items.find((i) => i.video_job_id === jobId)
+  // 영상(video_jobs)이 3일 보관 후 정리돼도, 저장해 둔 링크(link_items)는 카드로 계속 보여준다
+  const jobIdSet = new Set(jobs.map((j) => j.id))
+  const savedOnlyJobs = items
+    .filter((i) => i.video_job_id && !jobIdSet.has(i.video_job_id))
+    .map((i) => ({
+      id: i.video_job_id,
+      product_name: i.title || '',
+      seo_title: i.title || '',
+      search_keyword: '',
+      poster_url: i.image_url || '',
+      video_url: i.video_url || '',
+      created_at: i.created_at,
+      _savedOnly: true,
+    }))
+  const allJobs = [...jobs, ...savedOnlyJobs]
   const jobTitle = (job) => (itemFor(job.id)?.title || job.seo_title || job.product_name || '')
   const visibleJobs = jobQuery.trim()
-    ? jobs.filter((j) => jobTitle(j).toLowerCase().includes(jobQuery.trim().toLowerCase()))
-    : jobs
+    ? allJobs.filter((j) => jobTitle(j).toLowerCase().includes(jobQuery.trim().toLowerCase()))
+    : allJobs
   const sortedJobs = [...visibleJobs].sort((j1, j2) => {
     const i1 = itemFor(j1.id), i2 = itemFor(j2.id)
     if (i1?.active && i2?.active) return (i2.sort_order || 0) - (i1.sort_order || 0)
@@ -247,12 +262,12 @@ export function LinkPageManager({ session }) {
       {/* 영상 목록 */}
       <div className="mb-3 flex items-center justify-between gap-3">
         <p className="text-sm font-black text-gray-900">영상 → 카드로 추가</p>
-        {jobs.length >= 2 && (
+        {allJobs.length >= 2 && (
           <input value={jobQuery} onChange={(e) => setJobQuery(e.target.value)} placeholder="🔍 카드 검색"
             className="w-40 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs" />
         )}
       </div>
-      {jobs.length === 0 ? (
+      {allJobs.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-gray-300 bg-white py-10 text-center text-sm text-gray-400">
           완성된 영상이 아직 없어요. 먼저 영상을 만들어 주세요.
         </p>

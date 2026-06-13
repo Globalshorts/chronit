@@ -3630,11 +3630,11 @@ function HistoryView({ session, onGoToLinks }: { session: any; onGoToLinks?: ()=
                     className="block text-center rounded-xl bg-[#03C75A] px-3 py-2.5 text-sm font-bold text-white hover:bg-[#02b350] active:bg-[#02b350] disabled:opacity-50 transition">
                     {saving===j.id ? "저장 중…" : (isIOS ? "📱 갤러리에 저장" : "📥 동영상 저장")}
                   </button>
-                  {(j.seo_title || j.seo_description || j.seo_tags) ? (
-                    <button onClick={()=>copyText(seoFull(j), j.id+"-all")}
+                  {(j.seo_description || j.seo_tags) ? (
+                    <button onClick={()=>copyText([j.seo_description, cap5Tags(j.seo_tags)].filter(Boolean).join("\n\n"), j.id+"-all")}
                       className="block text-center rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-gray-700 hover:border-[#03C75A]/50 hover:text-[#03C75A] transition">
-                      {copied===j.id+"-all" ? "✓ 복사됨" : "📋 내용 복사"}
-                      <span className="block text-[10px] font-normal text-gray-400">제목·설명·해시태그 한 번에</span>
+                      {copied===j.id+"-all" ? "✓ 복사됨" : "📋 캡션 복사"}
+                      <span className="block text-[10px] font-normal text-gray-400">설명·해시태그 바로 붙여넣기</span>
                     </button>
                   ) : (
                     <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-center text-[11px] text-gray-400">업로드 정보 생성 중…</div>
