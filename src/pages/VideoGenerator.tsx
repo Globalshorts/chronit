@@ -4630,11 +4630,13 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
     } else if (mode === "free_days") {
       const days = Number(trialDays) || 0;
       if (days <= 0) { setMsg("체험 일수를 입력하세요 (1 이상)"); return; }
+      const mu = maxUses.trim() === "" ? null : (Number(maxUses) || 0);
+      if (mu !== null && mu <= 0) { setMsg("선착순 인원은 1 이상이거나 비워두세요(무제한)"); return; }
       row = {
         code:c, type:"free_days", value:days,
         owner_email: owner.trim() || null,
         expires_at: unlimited ? null : (exp || null),
-        max_uses: null,
+        max_uses: mu,
         plan_discounts: null, allowed_plans: [trialPlan],
       };
     } else {
@@ -4737,6 +4739,9 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
                 <option value="master">마스터</option>
                 <option value="pro_trial">프로 체험(캡 700)</option>
               </select></div>
+            <div><label className="text-xs text-gray-500">선착순 인원 (비우면 무제한)</label>
+              <input type="number" value={maxUses} onChange={e=>setMaxUses(e.target.value)} placeholder="예: 100"
+                className="block w-40 mt-1 rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-[#03C75A]" /></div>
             <p className="w-full text-xs text-gray-400">가입한 회원이 쿠폰칸에 이 코드를 넣으면 해당 플랜을 N일간 무료로 이용해요. 파트너 이메일을 넣으면 그 회원이 파트너에 자동 연결됩니다(수익셰어). 1인 1회.</p>
           </div>
         )}
