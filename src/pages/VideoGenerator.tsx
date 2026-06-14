@@ -1423,7 +1423,7 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
       {/* 탭 + 미리듣기 */}
       <div className="flex gap-2 items-center">
         {([["basic","일반 음성"],["pro","고급 음성"]] as [string,string][]).map(([v,l]) => {
-          const isProLocked = v === "pro" && userPlan !== "pro" && userPlan !== "master" && userPlan !== "enterprise";
+          const isProLocked = v === "pro" && userPlan !== "pro" && userPlan !== "pro_trial" && userPlan !== "master" && userPlan !== "enterprise";
           return (
             <button key={v} onClick={() => !isProLocked && setTab(v as any)}
               className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition border relative ${
@@ -4584,9 +4584,9 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
   const [counts, setCounts] = React.useState<Record<string,number>>({});
   const [code, setCode]     = React.useState("");
   const [owner, setOwner]   = React.useState("");
-  const COUPON_PLANS = [["starter","스타터"],["pro","프로"],["master","마스터"]];
+  const COUPON_PLANS = [["starter","스타터"],["pro","프로"],["master","마스터"],["pro_trial","프로 체험"]];
   const [planDisc, setPlanDisc] = React.useState<Record<string,{type:string;value:string}>>({
-    starter:{type:"none",value:""}, pro:{type:"none",value:""}, master:{type:"none",value:""},
+    starter:{type:"none",value:""}, pro:{type:"none",value:""}, master:{type:"none",value:""}, pro_trial:{type:"none",value:""},
   });
   const setPD = (k:string, patch:any) => setPlanDisc(p=>({ ...p, [k]:{ ...p[k], ...patch } }));
   const [exp, setExp]       = React.useState("");
@@ -4735,6 +4735,7 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
                 <option value="starter">스타터</option>
                 <option value="pro">프로</option>
                 <option value="master">마스터</option>
+                <option value="pro_trial">프로 체험(캡 700)</option>
               </select></div>
             <p className="w-full text-xs text-gray-400">가입한 회원이 쿠폰칸에 이 코드를 넣으면 해당 플랜을 N일간 무료로 이용해요. 파트너 이메일을 넣으면 그 회원이 파트너에 자동 연결됩니다(수익셰어). 1인 1회.</p>
           </div>
