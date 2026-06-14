@@ -350,7 +350,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
 
         <p className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-500 md:text-base">
           <MessageCircle size={14} className="text-[#03C75A]" />
-          문의는 추후 채널톡으로 안내 예정입니다
+          문의: pv2066pv@gmail.com · 010-4915-3066
         </p>
       </div>
     </div>
