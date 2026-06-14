@@ -3819,6 +3819,8 @@ function SettingsView({ session, supabase, balance, userPlan }:
   const [registering, setReg]       = React.useState(false);
   const [showPay, setShowPay]       = React.useState(false);
   const [devices, setDevices]       = React.useState<any[]>([]);
+  const [withdrawText, setWithdrawText] = React.useState("");
+  const [withdrawing, setWithdrawing]   = React.useState(false);
 
   const loadDevices = React.useCallback(async ()=>{
     try {
@@ -3950,6 +3952,36 @@ function SettingsView({ session, supabase, balance, userPlan }:
         <div className="space-y-2">
           <a href="/manual" className="block rounded-xl bg-gray-100 border border-gray-200 px-4 py-3 text-sm text-gray-900 hover:border-[#03C75A] transition">프로그램 사용 가이드 보기</a>
           <a href="/terms" className="block rounded-xl bg-gray-100 border border-gray-200 px-4 py-3 text-sm text-gray-900 hover:border-[#03C75A] transition">이용약관 및 환불 규정 보기</a>
+        </div>
+      </Section>
+
+      <Section title="회원 탈퇴">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+          <p className="mb-1 text-sm font-bold text-red-600">계정을 영구 삭제합니다</p>
+          <p className="mb-3 text-xs leading-relaxed text-gray-600">
+            탈퇴하면 <b>남은 크레딧·구독·생성한 영상·내 링크가 즉시 삭제</b>되고 되돌릴 수 없어요.
+            유료 기간이 남아 있어도 환불되지 않습니다. (법령상 보존 의무가 있는 결제 기록은 일정 기간 보관돼요.)
+          </p>
+          <p className="mb-1.5 text-xs text-gray-700">계속하려면 아래에 <b className="text-red-600">탈퇴한다</b> 를 입력하세요.</p>
+          <input value={withdrawText} onChange={e=>setWithdrawText(e.target.value)} placeholder="탈퇴한다"
+            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-red-400" />
+          <button
+            disabled={withdrawText.trim() !== "탈퇴한다" || withdrawing}
+            onClick={async () => {
+              if (withdrawText.trim() !== "탈퇴한다") return;
+              if (!window.confirm("정말 탈퇴하시겠어요? 모든 데이터가 영구 삭제되며 되돌릴 수 없습니다.")) return;
+              setWithdrawing(true);
+              try {
+                const { data, error } = await supabase.rpc("delete_my_account_rpc");
+                if (error || !data?.ok) { alert("탈퇴 처리 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요."); setWithdrawing(false); return; }
+                await supabase.auth.signOut();
+                alert("회원 탈퇴가 완료되었습니다. 그동안 이용해 주셔서 감사합니다.");
+                window.location.href = "/";
+              } catch { alert("탈퇴 처리 중 오류가 발생했어요."); setWithdrawing(false); }
+            }}
+            className="mt-3 w-full rounded-xl bg-red-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400">
+            {withdrawing ? "탈퇴 처리 중…" : "회원 탈퇴"}
+          </button>
         </div>
       </Section>
 
