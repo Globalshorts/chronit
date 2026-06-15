@@ -4,6 +4,7 @@ import { ArrowLeft, ThumbsUp, MessageSquare, Eye, Flag } from 'lucide-react'
 import CommunityHeader from '../components/CommunityHeader'
 import NicknameModal from '../components/NicknameModal'
 import { supabase } from '../lib/supabase'
+import DOMPurify from 'dompurify'
 import { CAT_LABEL, CAT_CLS, fmtWhen } from './Board'
 
 const BoardPost = () => {
@@ -126,7 +127,27 @@ const BoardPost = () => {
         {post.image_url && (
           <img src={post.image_url} alt="" className="mt-5 w-full rounded-2xl border border-gray-200" />
         )}
-        <div className="whitespace-pre-wrap py-7 text-[15px] leading-[1.9] text-gray-800">{post.body}</div>
+        {/<[a-z][\s\S]*>/i.test(post.body || '') ? (
+          <div className="event-post py-7" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.body || '') }} />
+        ) : (
+          <div className="whitespace-pre-wrap py-7 text-[15px] leading-[1.9] text-gray-800">{post.body}</div>
+        )}
+        <style>{`
+          .event-post { color:#374151; font-size:1.02rem; line-height:1.9; }
+          .event-post > :first-child { margin-top:0; }
+          .event-post h1,.event-post h2 { font-size:1.45rem; font-weight:800; color:#111827; margin:1.6em 0 .6em; line-height:1.35; }
+          .event-post h3 { font-size:1.18rem; font-weight:800; color:#111827; margin:1.3em 0 .5em; }
+          .event-post p { margin:0 0 1.05em; }
+          .event-post ul,.event-post ol { margin:0 0 1.05em; padding-left:1.4em; }
+          .event-post ul { list-style:disc; }
+          .event-post ol { list-style:decimal; }
+          .event-post li { margin:.4em 0; }
+          .event-post b,.event-post strong { color:#111827; font-weight:800; }
+          .event-post a { color:#03C75A; text-decoration:underline; font-weight:600; }
+          .event-post img { max-width:100%; border-radius:14px; margin:1.2em 0; }
+          .event-post hr { border:0; border-top:1px solid #e5e7eb; margin:1.7em 0; }
+          .event-post blockquote { border-left:3px solid #03C75A; background:rgba(3,199,90,.06); padding:.7em 1.1em; border-radius:10px; margin:1.1em 0; }
+        `}</style>
 
         <div className="flex justify-center pb-8">
           <button onClick={toggleLike}

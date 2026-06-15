@@ -4,6 +4,7 @@ import { ArrowLeft, ImagePlus, X } from 'lucide-react'
 import CommunityHeader from '../components/CommunityHeader'
 import NicknameModal from '../components/NicknameModal'
 import { supabase } from '../lib/supabase'
+import RichEditor from '../components/RichEditor'
 
 const WRITE_CATS = [
   { key: 'free', label: '자유' },
@@ -113,8 +114,7 @@ const BoardWrite = () => {
 
         <input value={title} onChange={e => setTitle(e.target.value)} maxLength={80} placeholder="제목"
           className="mb-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base font-bold outline-none focus:border-[#03C75A]" />
-        <textarea value={body} onChange={e => setBody(e.target.value)} rows={12} placeholder="내용을 입력하세요"
-          className="w-full resize-y rounded-xl border border-gray-200 bg-white px-4 py-3 text-base leading-relaxed outline-none focus:border-[#03C75A]" />
+        <RichEditor light value={body} onChange={setBody} bucket="assets" pathPrefix="board" minHeight={300} />
 
         <div className="mt-3">
           {imageUrl ? (

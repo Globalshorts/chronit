@@ -1,126 +1,12 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import RichEditor from '../components/RichEditor'
 import {
   Megaphone, Save, LogOut, ShieldCheck, Loader, Eye, EyeOff,
-  Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter,
-  AlignRight, List, ListOrdered, Link, Image, Minus, Plus, Pencil, Trash2, ChevronLeft,
+  Plus, Pencil, Trash2, ChevronLeft,
   Film, ChevronUp, ChevronDown, Upload, Gift, Flag,
 } from 'lucide-react'
 
-const ToolBtn = ({ onClick, title, children }) => (
-  <button type="button" title={title}
-    onMouseDown={e => { e.preventDefault(); onClick() }}
-    className="flex h-8 w-8 items-center justify-center rounded text-slate-400 hover:bg-white/10 hover:text-white transition-colors">
-    {children}
-  </button>
-)
-const Divider = () => <div className="mx-1 h-5 w-px bg-white/10" />
-
-const RichEditor = ({ value, onChange }) => {
-  const editorRef = useRef(null)
-  const isInit = useRef(false)
-  const [dragging, setDragging] = useState(false)
-  const [uploading, setUploading] = useState(false)
-
-  useEffect(() => {
-    if (!isInit.current && editorRef.current) {
-      editorRef.current.innerHTML = value || ''
-      isInit.current = true
-    }
-  }, [value])
-
-  const exec = (cmd, val = null) => { editorRef.current?.focus(); document.execCommand(cmd, false, val) }
-  const insertLink = () => { const u = prompt('URL:', 'https://'); if (u) exec('createLink', u) }
-
-  const insertImageFromFile = async (file) => {
-    if (!file?.type.startsWith('image/')) return
-    setUploading(true)
-    try {
-      const ext = file.name.split('.').pop()
-      const path = `event-images/${Date.now()}.${ext}`
-      const { error } = await supabase.storage.from('event-assets').upload(path, file, { upsert: true })
-      if (error) throw error
-      const { data: { publicUrl } } = supabase.storage.from('event-assets').getPublicUrl(path)
-      editorRef.current?.focus()
-      document.execCommand('insertImage', false, publicUrl)
-    } catch {
-      const reader = new FileReader()
-      reader.onload = e => { editorRef.current?.focus(); document.execCommand('insertImage', false, e.target.result) }
-      reader.readAsDataURL(file)
-    } finally { setUploading(false) }
-  }
-
-  const handleDrop = async e => {
-    e.preventDefault(); setDragging(false)
-    for (const file of Array.from(e.dataTransfer.files)) await insertImageFromFile(file)
-  }
-
-  return (
-    <div className={`overflow-hidden rounded-xl border transition-colors ${dragging ? 'border-blue-500/60' : 'border-white/12'}`}>
-      <div className="flex flex-wrap items-center gap-0.5 border-b border-white/10 bg-slate-800/80 px-3 py-2">
-        <select onChange={e => exec('fontSize', e.target.value)} defaultValue="3"
-          className="h-8 rounded border border-white/10 bg-slate-700 px-2 text-xs text-slate-300 outline-none">
-          <option value="1">small</option><option value="3">normal</option>
-          <option value="5">large</option><option value="7">x-large</option>
-        </select>
-        <Divider />
-        <ToolBtn onClick={() => exec('bold')} title="bold"><Bold size={14} /></ToolBtn>
-        <ToolBtn onClick={() => exec('italic')} title="italic"><Italic size={14} /></ToolBtn>
-        <ToolBtn onClick={() => exec('underline')} title="underline"><Underline size={14} /></ToolBtn>
-        <ToolBtn onClick={() => exec('strikeThrough')} title="strike"><Strikethrough size={14} /></ToolBtn>
-        <Divider />
-        <label className="flex h-8 w-8 cursor-pointer items-center justify-center rounded text-sm font-bold text-slate-400 hover:bg-white/10">
-          A<input type="color" className="sr-only" onChange={e => exec('foreColor', e.target.value)} />
-        </label>
-        <Divider />
-        <ToolBtn onClick={() => exec('justifyLeft')} title="left"><AlignLeft size={14} /></ToolBtn>
-        <ToolBtn onClick={() => exec('justifyCenter')} title="center"><AlignCenter size={14} /></ToolBtn>
-        <ToolBtn onClick={() => exec('justifyRight')} title="right"><AlignRight size={14} /></ToolBtn>
-        <Divider />
-        <ToolBtn onClick={() => exec('insertUnorderedList')} title="ul"><List size={14} /></ToolBtn>
-        <ToolBtn onClick={() => exec('insertOrderedList')} title="ol"><ListOrdered size={14} /></ToolBtn>
-        <Divider />
-        <ToolBtn onClick={insertLink} title="link"><Link size={14} /></ToolBtn>
-        <label className="flex h-8 w-8 cursor-pointer items-center justify-center rounded text-slate-400 hover:bg-white/10">
-          <Image size={14} />
-          <input type="file" accept="image/*" className="sr-only" onChange={e => { insertImageFromFile(e.target.files?.[0]); e.target.value='' }} />
-        </label>
-        <ToolBtn onClick={() => exec('insertHorizontalRule')} title="hr"><Minus size={14} /></ToolBtn>
-        <Divider />
-        <ToolBtn onClick={() => exec('removeFormat')} title="clear"><span className="text-xs font-bold">Tx</span></ToolBtn>
-      </div>
-      <div className="relative">
-        {uploading && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 rounded-b-xl">
-            <Loader size={18} className="animate-spin text-blue-400" />
-          </div>
-        )}
-        {dragging && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-blue-500/10 border-2 border-dashed border-blue-500/50 rounded-b-xl">
-            <p className="text-sm font-bold text-blue-400">drop image here</p>
-          </div>
-        )}
-        <div ref={editorRef} contentEditable suppressContentEditableWarning
-          onInput={() => onChange(editorRef.current?.innerHTML || '')}
-          onDragOver={e => { e.preventDefault(); setDragging(true) }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={handleDrop}
-          className="min-h-[360px] bg-[#0f172a] p-5 text-slate-200 outline-none"
-          style={{ fontSize: '15px', lineHeight: '1.8' }}
-          data-placeholder="write content..."
-        />
-      </div>
-      <style>{`
-        [data-placeholder]:empty::before { content: attr(data-placeholder); color: #475569; pointer-events: none; }
-        [contenteditable] img { max-width:100%; border-radius:8px; display:block; margin:4px 0; }
-        [contenteditable] a { color:#60a5fa; text-decoration:underline; }
-        [contenteditable] ul { list-style:disc; padding-left:1.5em; }
-        [contenteditable] ol { list-style:decimal; padding-left:1.5em; }
-        [contenteditable] hr { border-color:rgba(255,255,255,0.1); margin:1em 0; }
-      `}</style>
-    </div>
-  )
-}
 
 const STATUS_CFG = {
   active:  { label: '진행중',      cls: 'bg-blue-500/20 text-blue-300 border-blue-500/30', dot: true },
