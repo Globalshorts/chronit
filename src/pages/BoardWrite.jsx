@@ -67,7 +67,7 @@ const BoardWrite = () => {
     if (editId) {
       const { error } = await supabase.from('board_posts').update({ category: cat, title, body, image_url: imageUrl || null }).eq('id', editId)
       setSaving(false)
-      if (error) { setErr('수정할 수 없어요 (본인 글만 가능).'); return }
+      if (error) { setErr(`수정할 수 없어요: ${error.message || '본인 글만 수정할 수 있어요'}`); return }
       nav(`/board/${editId}`); return
     }
     const { data, error } = await supabase.functions.invoke('board-submit', { body: { kind: 'post', category: cat, title, body } })
