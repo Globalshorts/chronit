@@ -210,7 +210,7 @@ const Register = () => {
         {step === STEP.REFERRAL && (
           <div>
             <h2 className="mb-1 text-lg font-black text-gray-900">추천 코드가 있나요?</h2>
-            <p className="mb-5 text-sm leading-relaxed text-gray-500">입력하면 양쪽 모두 500 크레딧! <span className="text-gray-400">(선택)</span></p>
+            <p className="mb-5 text-sm leading-relaxed text-gray-500">입력하면 프로 7일 무료 체험! <span className="text-gray-400">(선택)</span></p>
             {refApplied ? (
               <div className="rounded-2xl bg-green-500/10 px-4 py-4 text-center text-sm font-bold text-green-600">🎉 추천 코드가 적용됐어요</div>
             ) : (

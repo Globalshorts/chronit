@@ -77,7 +77,7 @@ const SignupSurveyModal = ({ open, onDone }) => {
         ) : (
           <>
             <p className="text-center text-lg font-black text-gray-900">추천 코드가 있나요?</p>
-            <p className="mt-1 text-center text-sm text-gray-500">입력하면 양쪽 모두 500 크레딧! (선택)</p>
+            <p className="mt-1 text-center text-sm text-gray-500">입력하면 프로 7일 무료 체험! (선택)</p>
             <div className="mt-5 flex gap-2">
               <input value={refCode} onChange={e => setRefCode(e.target.value.toUpperCase())}
                 onKeyDown={e => e.key === 'Enter' && applyReferral()}

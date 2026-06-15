@@ -2319,7 +2319,7 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
         objectType: "feed",
         content: {
           title: "엄마도 하는 쇼핑 영상 부수입, 크로닛 🎬",
-          description: "추천 링크로 가입하면 둘 다 500 크레딧! 지금 무료로 시작해보세요.",
+          description: "추천 링크로 가입하면 프로 7일 무료 체험! 편집 몰라도 링크만 넣으면 5분 완성.",
           imageUrl: KAKAO_SHARE_IMG,
           link: { mobileWebUrl: link, webUrl: link },
         },

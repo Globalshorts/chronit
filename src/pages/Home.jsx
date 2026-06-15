@@ -321,7 +321,7 @@ const Home = () => {
       {refFromUrl && (
         <div className="fixed top-0 right-0 left-0 z-[61] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[#03C75A] px-4 py-3 text-sm font-bold text-white shadow-md">
           <Gift size={15} />
-          <span>추천 코드 <strong>{refFromUrl}</strong> 적용됨 — 가입하면 <strong>500 크레딧</strong>을 드려요!</span>
+          <span>추천 코드 <strong>{refFromUrl}</strong> 적용됨 — 가입하면 <strong>프로 7일 무료 체험</strong>을 드려요!</span>
           <button onClick={() => { setRefFromUrl(null); sessionStorage.removeItem('chronit_ref') }} className="ml-2 opacity-80 hover:opacity-100">✕</button>
         </div>
       )}
