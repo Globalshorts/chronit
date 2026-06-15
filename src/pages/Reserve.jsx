@@ -55,7 +55,7 @@ function Box({ n, label }) {
 }
 
 export default function Reserve() {
-  const { d, h, m, s } = useCountdown(LAUNCH)
+  // const { d, h, m, s } = useCountdown(LAUNCH) // 날짜 확정 시 카운트다운 복구용
   const [count, setCount] = useState(null)
   const [email, setEmail] = useState('')
   const [agree, setAgree] = useState(false)
@@ -135,10 +135,8 @@ export default function Reserve() {
           <p className="mt-4 text-sm leading-relaxed text-white/75">
             지금 사전예약하고 <b className="text-white">런칭일 혜택</b>을 그대로 받으세요
           </p>
-          <p className="mt-1 text-xs font-bold text-white/50">{LAUNCH_LABEL}</p>
-
-          <div className="mt-6 flex gap-2">
-            <Box n={d} label="DAYS" /><Box n={h} label="HOURS" /><Box n={m} label="MINS" /><Box n={s} label="SECS" />
+          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#34E08C]/40 bg-[#34E08C]/10 px-4 py-2 text-sm font-bold text-[#34E08C]">
+            🗓️ 6월 오픈 예정 · 사전예약자분께 가장 먼저 알려드려요
           </div>
 
           <button onClick={() => scrollTo('form')}
