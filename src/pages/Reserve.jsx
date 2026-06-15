@@ -9,6 +9,7 @@ const BASE = 99 // 표시 시작 인원 (다음 신청자가 100번째)
 const KAKAO_JS_KEY = import.meta.env?.VITE_KAKAO_JS_KEY || '84ee352af8ddaf49632d40de964fa9f4'
 const CHANNEL_ID = '_DcNnX'
 const SHARE_URL = 'https://chronit.kr/reserve'
+const SHARE_IMG = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png'
 
 const MILESTONES = [
   { n: 100,  tag: '선착순',   label: '첫 100명',     reward: '프로 7일 무료',  sub: '런칭일 코드 자동 발송' },
@@ -78,7 +79,7 @@ export default function Reserve() {
     setLoading(true); setErr('')
     try {
       const { data, error } = await supabase.rpc('reserve_waitlist_rpc', {
-        p_email: email.trim(), p_phone: null, p_source: mkt ? 'reserve_mkt' : 'reserve',
+        p_email: email.trim(), p_phone: null, p_source: 'reserve', p_marketing: mkt,
       })
       if (error || !data?.ok) { setErr(data?.error || '잠시 후 다시 시도해 주세요.'); setLoading(false); return }
       setDone(true); loadCount()
@@ -87,7 +88,18 @@ export default function Reserve() {
 
   const share = async () => {
     try {
-      if (navigator.share) { await navigator.share({ title: '크로닛 사전예약', text: '편집 못 해도 링크만 넣으면 쇼핑 숏폼 자동완성! 사전예약하면 프로 무료 혜택', url: SHARE_URL }); return }
+      const K = await ensureKakao()
+      K.Share.sendDefault({
+        objectType: 'feed',
+        content: {
+          title: '크로닛 사전예약 — 7월 오픈',
+          description: '편집 1도 못 해도 링크만 넣으면 쇼핑 숏폼 자동완성! 사전예약하면 프로 무료 혜택, 함께할수록 다 같이 더 받아요.',
+          imageUrl: SHARE_IMG,
+          link: { mobileWebUrl: SHARE_URL, webUrl: SHARE_URL },
+        },
+        buttons: [{ title: '사전예약하기', link: { mobileWebUrl: SHARE_URL, webUrl: SHARE_URL } }],
+      })
+      return
     } catch {}
     try { await navigator.clipboard.writeText(SHARE_URL); setCopied(true); setTimeout(() => setCopied(false), 2000) } catch {}
   }
@@ -228,8 +240,8 @@ export default function Reserve() {
             함께 부를수록 다 같이 더 받는 구조예요.
           </p>
           <button onClick={share}
-            className="mx-auto mt-5 flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 text-base font-bold text-[#0f3628] transition hover:bg-white/90">
-            🔗 {copied ? '링크 복사됨!' : '친구에게 공유하기'}
+            className="mx-auto mt-5 flex items-center justify-center gap-2 rounded-xl bg-[#FEE500] px-6 py-3.5 text-base font-bold text-[#3C1E1E] transition hover:brightness-95">
+            💬 {copied ? '링크 복사됨!' : '카카오톡으로 공유하기'}
           </button>
         </section>
 
@@ -272,7 +284,7 @@ export default function Reserve() {
                 className="mx-auto mt-5 flex items-center justify-center gap-2 rounded-xl bg-[#FEE500] px-6 py-3.5 text-base font-bold text-[#3C1E1E] transition hover:brightness-95">
                 💬 카카오 채널 추가하기
               </button>
-              <button onClick={share} className="mx-auto mt-3 block text-sm font-bold text-white/60 underline">친구에게 공유하기</button>
+              <button onClick={share} className="mx-auto mt-3 block text-sm font-bold text-white/60 underline">카카오톡으로 공유하기</button>
             </div>
           )}
         </section>
