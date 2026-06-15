@@ -16,7 +16,6 @@ const ToolBtn = ({ onClick, title, cls, children }) => (
 // 이벤트(/admin)·게시판 글쓰기 공용 WYSIWYG 에디터. HTML 문자열을 onChange로 돌려줌.
 const RichEditor = ({ value, onChange, light = false, bucket = 'event-assets', pathPrefix = 'event-images', minHeight = 360 }) => {
   const editorRef = useRef(null)
-  const isInit = useRef(false)
   const [dragging, setDragging] = useState(false)
   const [uploading, setUploading] = useState(false)
 
@@ -42,10 +41,12 @@ const RichEditor = ({ value, onChange, light = false, bucket = 'event-assets', p
     ph: '#475569', link: '#60a5fa',
   }
 
+  // 외부 value 동기화 — 입력 중(포커스)이 아니고 내용이 다를 때만 반영(비동기 로드/수정 대응, 커서 보존)
   useEffect(() => {
-    if (!isInit.current && editorRef.current) {
-      editorRef.current.innerHTML = value || ''
-      isInit.current = true
+    const el = editorRef.current
+    if (!el) return
+    if (document.activeElement !== el && el.innerHTML !== (value || '')) {
+      el.innerHTML = value || ''
     }
   }, [value])
 
