@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 // 정식 오픈 예정일 — PG 심사 확정되면 이 값만 바꾸면 돼요
 const LAUNCH = new Date('2026-07-01T00:00:00+09:00')
 const GOAL = 100 // 선착순 혜택 목표 인원
+const BASE = 99 // 표시 시작 인원 (다음 신청자가 100번째)
 
 function useCountdown(target) {
   const calc = () => Math.max(0, target - new Date())
@@ -54,7 +55,8 @@ export default function Reserve() {
     } catch { setErr('잠시 후 다시 시도해 주세요.'); setLoading(false) }
   }
 
-  const pct = count != null ? Math.min(100, Math.round((count / GOAL) * 100)) : 0
+  const shown = count != null ? BASE + count : null
+  const pct = shown != null ? Math.min(100, Math.round((shown / GOAL) * 100)) : 0
 
   return (
     <div className="min-h-screen bg-[#0f3628] text-white">
@@ -97,7 +99,7 @@ export default function Reserve() {
             <span className="flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-bold text-[#34E08C]">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#34E08C]" />LIVE
             </span>
-            <span><b className="text-xl font-black">{count != null ? count.toLocaleString() : '—'}</b>명이 함께 기다리는 중</span>
+            <span><b className="text-xl font-black">{shown != null ? shown.toLocaleString() : '—'}</b>명이 함께 기다리는 중</span>
           </div>
           <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
             <div className="h-full rounded-full bg-[#03C75A] transition-all duration-700" style={{ width: pct + '%' }} />
