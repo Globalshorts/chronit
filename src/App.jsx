@@ -19,6 +19,7 @@ import Points from './pages/Points'
 import Shop from './pages/Shop'
 import MyPage from './pages/MyPage'
 import UserProfile from './pages/UserProfile'
+import Reserve from './pages/Reserve'
 import AdminFab from './components/AdminFab'
 
 const ScrollToTop = () => {
@@ -50,6 +51,7 @@ const App = () => (
       <Route path="/points" element={<Points />} />
       <Route path="/shop" element={<Shop />} />
       <Route path="/me" element={<MyPage />} />
+      <Route path="/reserve" element={<Reserve />} />
       <Route path="/u/:handle" element={<LinkPage />} />
     </Routes>
   </BrowserRouter>
