@@ -9,7 +9,7 @@ const BASE = 99 // 표시 시작 인원 (다음 신청자가 100번째)
 const KAKAO_JS_KEY = import.meta.env?.VITE_KAKAO_JS_KEY || '84ee352af8ddaf49632d40de964fa9f4'
 const CHANNEL_ID = '_DcNnX'
 const SHARE_URL = 'https://chronit.kr/reserve'
-const SHARE_IMG = 'https://chronit.kr/reserve_share.png'
+const SHARE_IMG = 'https://chronit.kr/reserve_card_v2.png'
 
 const MILESTONES = [
   { n: 100,  tag: '선착순',   label: '첫 100명',     reward: '프로 7일 무료',  sub: '런칭일 코드 자동 발송' },
