@@ -6,18 +6,13 @@ import NicknameModal from '../components/NicknameModal'
 import { supabase } from '../lib/supabase'
 import RichEditor from '../components/RichEditor'
 
-const WRITE_CATS = [
-  { key: 'free', label: '자유' },
-  { key: 'show', label: '수익인증' },
-  { key: 'qna',  label: '질문' },
-]
-
 const BoardWrite = () => {
   const nav = useNavigate()
   const [params] = useSearchParams()
   const editId = params.get('edit')
   const [user, setUser] = useState(undefined) // undefined=확인중
-  const [cat, setCat] = useState('free')
+  const [role, setRole] = useState(undefined) // undefined=확인중
+  const [cat] = useState('notice')
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [err, setErr] = useState('')
@@ -28,7 +23,13 @@ const BoardWrite = () => {
   const [imgErr, setImgErr] = useState('')
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null))
+    supabase.auth.getSession().then(({ data }) => {
+      const u = data.session?.user ?? null
+      setUser(u)
+      if (!u) { setRole(null); return }
+      supabase.from('subscriptions').select('role').eq('user_id', u.id).maybeSingle()
+        .then(({ data: sub }) => setRole(sub?.role ?? 'user'))
+    })
   }, [])
 
   useEffect(() => {
@@ -36,7 +37,7 @@ const BoardWrite = () => {
     supabase.from('board_posts').select('category, title, body, is_deleted, image_url').eq('id', editId).maybeSingle()
       .then(({ data }) => {
         if (!data || data.is_deleted) { nav('/board'); return }
-        setCat(data.category || 'free'); setTitle(data.title || ''); setBody(data.body || ''); setImageUrl(data.image_url || '')
+        setTitle(data.title || ''); setBody(data.body || ''); setImageUrl(data.image_url || '')
       })
   }, [editId]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -94,6 +95,23 @@ const BoardWrite = () => {
     )
   }
 
+  // 공지 작성은 운영자 전용
+  if (user && role !== undefined && role !== 'super_admin') {
+    return (
+      <div className="min-h-screen bg-[#FAFAF8] font-sans text-gray-900">
+        <CommunityHeader active="board" />
+        <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-5 text-center">
+          <p className="text-lg font-bold">공지는 운영자만 작성할 수 있어요</p>
+          <p className="text-sm text-slate-500">후기·질문·자랑은 공식 네이버 카페에서 자유롭게 남겨주세요.</p>
+          <div className="flex gap-2">
+            <a href="https://cafe.naver.com/chronit" target="_blank" rel="noreferrer" className="rounded-full bg-[#03C75A] px-6 py-2.5 font-bold text-white">공식 카페 가기</a>
+            <button onClick={() => nav('/board')} className="rounded-full bg-white px-6 py-2.5 font-bold text-slate-600 ring-1 ring-gray-200">목록으로</button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans break-keep text-gray-900">
       <CommunityHeader active="board" />
@@ -102,15 +120,6 @@ const BoardWrite = () => {
           <ArrowLeft size={16} /> 목록으로
         </button>
         <h1 className="mb-6 text-2xl font-black md:text-3xl">{editId ? '글 수정' : '글쓰기'}</h1>
-
-        <div className="mb-4 flex gap-2">
-          {WRITE_CATS.map(c => (
-            <button key={c.key} onClick={() => setCat(c.key)}
-              className={`rounded-full px-4 py-1.5 text-sm font-bold transition-all ${cat === c.key ? 'bg-[#03C75A] text-white' : 'bg-white text-slate-500 ring-1 ring-gray-200 hover:ring-[#03C75A]/40'}`}>
-              {c.label}
-            </button>
-          ))}
-        </div>
 
         <input value={title} onChange={e => setTitle(e.target.value)} maxLength={80} placeholder="제목"
           className="mb-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base font-bold outline-none focus:border-[#03C75A]" />
@@ -135,7 +144,6 @@ const BoardWrite = () => {
         </div>
 
         {err && <p className="mt-3 text-sm font-medium text-red-500">{err}</p>}
-        {!editId && <p className="mt-3 text-xs text-slate-400">글을 등록하면 20P가 적립돼요 (하루 1회까지).</p>}
 
         <button onClick={submit} disabled={saving}
           className="mt-5 w-full rounded-xl bg-[#03C75A] py-3.5 text-base font-bold text-white transition-all hover:bg-[#02b350] active:scale-95 disabled:opacity-50">
