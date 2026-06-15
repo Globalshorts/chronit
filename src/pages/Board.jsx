@@ -81,7 +81,7 @@ const Board = () => {
             <Users size={14} /> <span>크로닛 커뮤니티</span>
           </div>
           <h1 className="mb-3 text-4xl font-black tracking-tight md:text-5xl">커뮤니티</h1>
-          <p className="text-base leading-[1.8] text-slate-500 md:text-lg">공지·이벤트를 확인하고, 글·댓글·추천으로 포인트를 모아보세요.</p>
+          <p className="text-base leading-[1.8] text-slate-500 md:text-lg">공지·이벤트를 확인하고, 커뮤니티는 공식 네이버 카페에서 만나요.</p>
         </div>
       </section>
 
@@ -94,6 +94,17 @@ const Board = () => {
               <span>🎯</span><span>이번 주 챌린지 — {challenge}</span>
             </div>
           )}
+
+          {/* 네이버 공식 카페 유도 */}
+          <a href="https://cafe.naver.com/chronit" target="_blank" rel="noreferrer"
+            className="mb-6 flex items-center gap-3 rounded-2xl border border-[#03C75A]/25 bg-gradient-to-r from-[#03C75A]/10 to-[#03C75A]/5 px-5 py-4 transition hover:from-[#03C75A]/15">
+            <span className="text-2xl">💬</span>
+            <div className="flex-1">
+              <p className="text-sm font-black text-gray-900">크로닛 공식 네이버 카페</p>
+              <p className="text-xs text-slate-500">후기·꿀팁·질문은 공식 카페에서 — 가입하고 이벤트 받기</p>
+            </div>
+            <span className="flex-none rounded-full bg-[#03C75A] px-3 py-1.5 text-xs font-bold text-white">가입하기 →</span>
+          </a>
 
           {/* 공지·이벤트 (게시판에 통합 — 컴팩트 리스트) */}
           {events.length > 0 && (

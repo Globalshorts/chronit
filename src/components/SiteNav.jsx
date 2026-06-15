@@ -13,14 +13,17 @@ export const SITE_MENUS = [
     ['/manual', '사용 방법'],
   ] },
   { key: 'community', label: '커뮤니티', items: [
-    ['/board', '게시판'],
+    ['/board', '공지·이벤트'],
+    ['https://cafe.naver.com/chronit', '공식 카페'],
     ['/points', '포인트'],
     ['/shop', '교환소'],
   ] },
 ]
 
 const NavLink = ({ to, children, className }) =>
-  to.startsWith('/#')
+  to.startsWith('http')
+    ? <a href={to} target="_blank" rel="noreferrer" className={className}>{children}</a>
+    : to.startsWith('/#')
     ? <a href={to} className={className}>{children}</a>
     : <Link to={to} className={className}>{children}</Link>
 
