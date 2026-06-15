@@ -149,9 +149,6 @@ export default function Reserve() {
               <input type="email" value={email} onChange={e => { setEmail(e.target.value); setErr('') }}
                 placeholder="이메일 주소 (오픈 알림 받을 곳)"
                 className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3.5 text-base placeholder-white/50 outline-none focus:border-[#34E08C]" />
-              <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
-                placeholder="휴대폰 번호 (선택)"
-                className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3.5 text-base placeholder-white/50 outline-none focus:border-[#34E08C]" />
               <label className="flex items-start gap-2 px-1 text-sm text-white/70">
                 <input type="checkbox" checked={agree} onChange={e => setAgree(e.target.checked)} className="mt-1" />
                 <span>오픈 안내를 위한 개인정보 수집·이용 및 알림 수신에 동의합니다.
@@ -165,12 +162,16 @@ export default function Reserve() {
               <p className="text-center text-xs text-white/40">※ 지금은 결제 없이 예약만 받아요. 수익은 상품·꾸준함에 따라 달라요.</p>
             </>
           ) : (
-            <div className="rounded-2xl bg-white/10 py-10 text-center">
+            <div className="rounded-2xl bg-white/10 py-8 text-center">
               <div className="text-5xl">🎉</div>
               <h3 className="mt-4 text-xl font-black">사전예약 완료!</h3>
               <p className="mt-2 text-sm leading-relaxed text-white/70">
-                정식 오픈하면 가장 먼저,<br />선착순 프로 7일 무료 혜택과 함께 알려드릴게요.
+                마지막으로 카카오 채널을 추가하면<br />오픈 소식을 <b className="text-white/90">카톡으로 가장 먼저</b> 받아요.
               </p>
+              <button onClick={addKakaoChannel}
+                className="mx-auto mt-5 flex items-center justify-center gap-2 rounded-xl bg-[#FEE500] px-6 py-3.5 text-base font-bold text-[#3C1E1E] transition hover:brightness-95">
+                💬 카카오 채널 추가하기
+              </button>
             </div>
           )}
         </div>
