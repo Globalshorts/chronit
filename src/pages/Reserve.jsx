@@ -211,22 +211,8 @@ export default function Reserve() {
           </div>
         </section>
 
-        {/* 친구와 함께 */}
-        <section className="mt-16 rounded-3xl border border-[#03C75A]/20 bg-[#03C75A]/5 p-6 text-center">
-          <p className="text-xs font-black tracking-widest text-[#03C75A]">SHARE</p>
-          <h2 className="mt-1 text-xl font-black">친구가 많을수록<br />모두의 혜택이 커져요</h2>
-          <p className="mt-2 text-sm leading-relaxed text-gray-600">
-            누적 인원이 250 · 500 · 1,000명을 넘을 때마다 <b className="text-gray-900">먼저 예약한 분 전원</b>에게 혜택이 소급 지급돼요.
-            함께 부를수록 다 같이 더 받는 구조예요.
-          </p>
-          <button onClick={share}
-            className="mx-auto mt-5 flex items-center justify-center gap-2 rounded-xl bg-[#FEE500] px-6 py-3.5 text-base font-bold text-[#3C1E1E] transition hover:brightness-95">
-            💬 {copied ? '링크 복사됨!' : '카카오톡으로 공유하기'}
-          </button>
-        </section>
-
         {/* 신청 폼 */}
-        <section id="form" className="mt-16">
+        <section id="form" className="mt-16 scroll-mt-20">
           <p className="text-center text-xs font-black tracking-widest text-[#03C75A]">SIGN UP</p>
           <h2 className="mt-1 text-center text-xl font-black">사전예약 신청</h2>
           <p className="mt-2 text-center text-xs text-gray-400">입력 정보는 오픈 알림 목적으로만 사용 · 오픈 후 6개월 내 파기</p>
@@ -267,6 +253,20 @@ export default function Reserve() {
               <button onClick={share} className="mx-auto mt-3 block text-sm font-bold text-gray-500 underline">카카오톡으로 공유하기</button>
             </div>
           )}
+        </section>
+
+        {/* 친구와 함께 */}
+        <section className="mt-16 rounded-3xl border border-[#03C75A]/20 bg-[#03C75A]/5 p-6 text-center">
+          <p className="text-xs font-black tracking-widest text-[#03C75A]">SHARE</p>
+          <h2 className="mt-1 text-xl font-black">친구가 많을수록<br />모두의 혜택이 커져요</h2>
+          <p className="mt-2 text-sm leading-relaxed text-gray-600">
+            누적 인원이 250 · 500 · 1,000명을 넘을 때마다 <b className="text-gray-900">먼저 예약한 분 전원</b>에게 혜택이 소급 지급돼요.
+            함께 부를수록 다 같이 더 받는 구조예요.
+          </p>
+          <button onClick={share}
+            className="mx-auto mt-5 flex items-center justify-center gap-2 rounded-xl bg-[#FEE500] px-6 py-3.5 text-base font-bold text-[#3C1E1E] transition hover:brightness-95">
+            💬 {copied ? '링크 복사됨!' : '카카오톡으로 공유하기'}
+          </button>
         </section>
 
         {/* FAQ */}
