@@ -95,6 +95,16 @@ export default function Reserve() {
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-gray-900">
+      <style>{`
+        @keyframes barflow { from { background-position: 0 0 } to { background-position: 28px 0 } }
+        @keyframes barglow { 0%,100% { box-shadow: 0 0 0 0 rgba(3,199,90,.0) } 50% { box-shadow: 0 0 10px 1px rgba(3,199,90,.45) } }
+        .live-bar {
+          background-color: #03C75A;
+          background-image: linear-gradient(135deg, rgba(255,255,255,.35) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.35) 50%, rgba(255,255,255,.35) 75%, transparent 75%, transparent);
+          background-size: 28px 28px;
+          animation: barflow .8s linear infinite, barglow 1.8s ease-in-out infinite;
+        }
+      `}</style>
       {/* 상단 바 */}
       <div className="sticky top-0 z-10 border-b border-gray-200 bg-[#FAFAF8]/90 backdrop-blur">
         <div className="mx-auto flex max-w-md items-center justify-between px-5 py-3">
@@ -138,8 +148,8 @@ export default function Reserve() {
               </span>
               <span><b className="text-xl font-black text-gray-900">{shown != null ? shown.toLocaleString() : '—'}</b>명이 함께 기다리는 중</span>
             </div>
-            <div className="mt-3 h-2 overflow-hidden rounded-full bg-gray-100">
-              <div className="h-full rounded-full bg-[#03C75A] transition-all duration-700" style={{ width: segPct + '%' }} />
+            <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-gray-100">
+              <div className="live-bar h-full rounded-full transition-all duration-700" style={{ width: segPct + '%' }} />
             </div>
             {remain != null && remain > 0 && (
               <p className="mt-2 text-xs text-gray-500">
