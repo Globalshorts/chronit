@@ -6,6 +6,27 @@ import { supabase } from '../lib/supabase'
 const LAUNCH = new Date('2026-07-01T00:00:00+09:00')
 const GOAL = 100 // 선착순 혜택 목표 인원
 const BASE = 99 // 표시 시작 인원 (다음 신청자가 100번째)
+const KAKAO_JS_KEY = import.meta.env?.VITE_KAKAO_JS_KEY || '84ee352af8ddaf49632d40de964fa9f4'
+const CHANNEL_ID = '_DcNnX'
+
+function ensureKakao() {
+  return new Promise((resolve, reject) => {
+    const w = window
+    const init = () => { try { if (w.Kakao && !w.Kakao.isInitialized()) w.Kakao.init(KAKAO_JS_KEY); resolve(w.Kakao) } catch (e) { reject(e) } }
+    if (w.Kakao?.isInitialized?.()) return resolve(w.Kakao)
+    if (w.Kakao) return init()
+    const ex = document.getElementById('kakao-sdk')
+    if (ex) { ex.addEventListener('load', init); ex.addEventListener('error', () => reject(new Error('kakao'))); return }
+    const sc = document.createElement('script')
+    sc.id = 'kakao-sdk'; sc.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js'; sc.async = true
+    sc.onload = init; sc.onerror = () => reject(new Error('kakao load fail'))
+    document.head.appendChild(sc)
+  })
+}
+async function addKakaoChannel() {
+  try { const K = await ensureKakao(); K.Channel.addChannel({ channelPublicId: CHANNEL_ID }) }
+  catch { window.open('https://pf.kakao.com/' + CHANNEL_ID, '_blank') }
+}
 
 function useCountdown(target) {
   const calc = () => Math.max(0, target - new Date())
@@ -92,6 +113,12 @@ export default function Reserve() {
           className="mt-7 w-full rounded-xl bg-[#03C75A] py-4 text-lg font-black transition hover:bg-[#02b350]">
           지금 사전예약 신청 →
         </button>
+
+        <button onClick={addKakaoChannel}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#FEE500] py-3.5 text-base font-bold text-[#3C1E1E] transition hover:brightness-95">
+          💬 카카오 채널 추가하고 오픈 알림받기
+        </button>
+        <p className="mt-1.5 text-xs text-white/40">채널을 추가하면 오픈 소식을 카톡으로 가장 먼저 받아요</p>
 
         {/* 실시간 인원 */}
         <div className="mt-9">
