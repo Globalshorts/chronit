@@ -46,22 +46,12 @@ const Board = () => {
   const [loading, setLoading] = useState(true)
   const [uid, setUid] = useState(null)
   const [events, setEvents] = useState([])
-  const [challenge, setChallenge] = useState('')
 
   useEffect(() => { supabase.auth.getSession().then(({ data }) => setUid(data.session?.user?.id ?? null)) }, [])
 
   useEffect(() => {
     supabase.from('events').select('*').order('created_at', { ascending: false })
       .then(({ data }) => setEvents(data || []))
-    supabase.from('point_challenges').select('label, starts_at, ends_at')
-      .eq('active', true).neq('label', '').order('id', { ascending: false }).limit(1).maybeSingle()
-      .then(({ data }) => {
-        if (!data) return setChallenge('')
-        const now = Date.now()
-        const okStart = !data.starts_at || new Date(data.starts_at).getTime() <= now
-        const okEnd = !data.ends_at || new Date(data.ends_at).getTime() >= now
-        setChallenge(okStart && okEnd ? (data.label || '') : '')
-      })
   }, [])
 
   useEffect(() => {
@@ -87,13 +77,6 @@ const Board = () => {
 
       <section className="px-5 pb-28 md:px-8">
         <div className="mx-auto max-w-3xl">
-
-          {/* 이번 주 챌린지 배너 (활성 시 항상 노출) */}
-          {challenge && (
-            <div className="mb-6 flex items-center gap-2 rounded-2xl border border-[#03C75A]/25 bg-[#03C75A]/10 px-5 py-3.5 text-sm font-bold text-[#03C75A] sm:text-base">
-              <span>🎯</span><span>이번 주 챌린지 — {challenge}</span>
-            </div>
-          )}
 
           {/* 네이버 공식 카페 유도 */}
           <a href="https://cafe.naver.com/chronit" target="_blank" rel="noreferrer"
