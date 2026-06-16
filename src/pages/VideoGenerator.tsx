@@ -831,7 +831,7 @@ export default function VideoGenerator() {
           cta_text: overrides?.ctaText ?? ctaText,
           product_name: analysisMetaRef.current.name,
           search_keyword: analysisMetaRef.current.keyword,
-          poster_src: analysisMetaRef.current.poster,
+          poster_src: analysisMetaRef.current.poster ? ("data:image/jpeg;base64," + analysisMetaRef.current.poster) : "",
         }),
       });
       const data = await resp.json();
