@@ -50,6 +50,7 @@ function AppTopBar({ onMenuClick, onInvite }: { onMenuClick?: () => void; onInvi
 type Clip = {
   video_id: string; title: string; author: string;
   thumbnail_url: string; page_url: string; duration: number; source: string;
+  download_url?: string; video_url?: string;
 };
 type Job = {
   id: string; status: "pending"|"processing"|"done"|"error";
@@ -589,7 +590,10 @@ export default function VideoGenerator() {
             body: JSON.stringify({ reference_frames: refFrames, candidates: rawClips, clip_count: 80 }),
           });
           const data2 = await resp2.json();
-          const finalClips: Clip[] = data2.ok ? (data2.clips ?? rawClips) : rawClips.slice(0, 20);
+          let finalClips: Clip[] = data2.ok ? (data2.clips ?? rawClips) : rawClips.slice(0, 20);
+          // clip-filter가 download_url(CDN)을 떨궈도 video_id로 원본에서 다시 붙임 (렌더 다운로드용)
+          const _dlMap = new Map(rawClips.map((c: any) => [c.video_id, c.download_url]));
+          finalClips = finalClips.map((c: any) => ({ ...c, download_url: c.download_url || _dlMap.get(c.video_id) || "" }));
           setClips(finalClips);
           if (!finalClips.length) setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요.");
         } catch { setClips(rawClips); }
