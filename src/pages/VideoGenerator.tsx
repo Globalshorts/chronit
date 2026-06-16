@@ -574,7 +574,8 @@ export default function VideoGenerator() {
         // 성공
         const rawClips: Clip[] = data1.clips ?? [];
         const refFrames: string[] = data1.reference_frames ?? [];
-        analysisMetaRef.current = { name: data1.product_name || "", keyword: data1.keyword || "", poster: (data1.reference_frames && data1.reference_frames[0]) || "" };
+        const _pf = (data1.reference_frames && data1.reference_frames[0]) || "";
+        analysisMetaRef.current = { name: data1.product_name || "", keyword: data1.keyword || "", poster: (_pf && !_pf.startsWith("data:") && !_pf.startsWith("http")) ? ("data:image/jpeg;base64," + _pf) : _pf };
         if (!rawClips.length) { setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요."); return; }
         if (!refFrames.length) { setClips(rawClips); return; }
 

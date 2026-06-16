@@ -407,7 +407,7 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
             <div className="flex gap-1.5">
               <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="쿠팡 파트너스 링크 붙여넣기"
                 className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
-              <a href={`https://partners.coupang.com/#affiliate/ws/link/0/${encodeURIComponent((job.product_name || job.search_keyword || title || '').trim())}`}
+              <a href={`https://partners.coupang.com/#affiliate/ws/link/0/${encodeURIComponent((job.search_keyword || job.product_name || title || '').trim())}`}
                 target="_blank" rel="noreferrer"
                 className="shrink-0 whitespace-nowrap rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-200">🔍 쿠팡에서 찾기</a>
             </div>
