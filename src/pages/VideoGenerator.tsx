@@ -2462,12 +2462,10 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
   const isPartner = userRole === "partner" || userRole === "super_admin";
   const isAdmin = userRole === "super_admin";
   const GROUPS = [
-    { title: "제작", items: [
+    { title: "자주 쓰는 메뉴", items: [
       { v: "generator",      label: "프로젝트" },
+      { v: "history",        label: "생성 내역" },
       { v: "product-search", label: "내 링크" },
-    ]},
-    { title: "기록", items: [
-      { v: "history", label: "생성 내역" },
     ]},
     { title: "설정", items: [
       { v: "studio",   label: "콘셉트/스타일" },
