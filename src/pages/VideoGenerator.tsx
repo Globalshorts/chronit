@@ -1531,6 +1531,8 @@ function friendlyError(raw?: string): string {
   if (!e) return "영상 생성에 실패했어요. 잠시 후 다시 시도해 주세요.";
   if (e.includes("insufficient") || e.includes("credit") || e.includes("크레딧"))
     return "크레딧이 부족해요. 충전 후 다시 시도해 주세요.";
+  if (e.includes("다운로드 실패") || e.includes("download fail") || e.includes("not available") || e.includes("yt-dlp") || e.includes("video stream"))
+    return "클립 영상을 불러오지 못했어요. 원본 클립이 일시적으로 막혔을 수 있어요 — 잠시 후 다시 시도하거나 다른 클립을 담아 주세요. (크레딧은 환불됐어요)";
   if (e.includes("no clip") || e.includes("not found") || e.includes("검색 결과") || e.includes("상품을 찾") || e.includes("clip"))
     return "영상에서 상품·클립을 충분히 찾지 못했어요. 상품이 잘 보이는 다른 쇼핑 숏폼으로 다시 시도해 주세요.";
   if (e.includes("timeout") || e.includes("시간 초과"))
