@@ -755,6 +755,19 @@ const DemoCarousel = () => {
   const [active, setActive] = useState(0)
   const dragStartX = useRef(0)
   const videoRefs = useRef([])
+  const sectionRef = useRef(null)
+  const [inView, setInView] = useState(false)
+
+  // 캐러셀이 화면 근처에 올 때만 영상 로드 (전송량 절감, 시각 변화 없음)
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el || inView) return
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some(e => e.isIntersecting)) { setInView(true); io.disconnect() }
+    }, { rootMargin: '600px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [inView, videos])
 
   useEffect(() => {
     supabase.from('demo_videos').select('*').order('sort_order').then(({ data }) => {
@@ -789,7 +802,7 @@ const DemoCarousel = () => {
   if (!n) return null
 
   return (
-    <section className="px-5 pt-16 pb-10 md:pt-20 md:pb-16">
+    <section ref={sectionRef} className="px-5 pt-16 pb-10 md:pt-20 md:pb-16">
       <div className="mb-10 text-center md:mb-14">
         <h2 className="text-2xl font-black tracking-tight text-gray-900 md:text-4xl">이렇게 만들어져요</h2>
         <p className="mt-3 text-lg text-gray-500">실제로 크로닛이 만든 영상이에요</p>
@@ -814,7 +827,7 @@ const DemoCarousel = () => {
               <div style={{ width: 'min(52vw, 280px)', aspectRatio: '9/16', borderRadius: '1.5rem', overflow: 'hidden',
                 boxShadow: isCenter ? '0 30px 60px -10px rgba(0,0,0,0.25), 0 4px 6px rgba(0,0,0,0.08)' : '0 10px 30px -5px rgba(0,0,0,0.15)',
                 transition: 'box-shadow 0.5s ease', border: '1px solid rgba(0,0,0,0.06)' }}>
-                <video ref={el => { videoRefs.current[vidIdx] = el }} src={src} muted loop playsInline autoPlay={isCenter} preload="auto"
+                <video ref={el => { videoRefs.current[vidIdx] = el }} src={inView ? src : undefined} muted loop playsInline autoPlay={isCenter} preload="metadata"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', background: '#f3f4f6' }} />
               </div>
             </div>
