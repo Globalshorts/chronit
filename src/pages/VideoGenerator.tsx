@@ -1250,9 +1250,9 @@ export default function VideoGenerator() {
               className="flex items-center gap-1.5 rounded-xl bg-amber-50 px-3 py-2 text-sm font-black text-amber-600 transition hover:bg-amber-100">
               <span>⭐</span><span>{points !== null ? points.toLocaleString() : "—"}P</span>
             </a>
-            <a href="/board/write"
+            <a href="https://cafe.naver.com/chronit" target="_blank" rel="noreferrer"
               className="ml-auto flex items-center gap-1 rounded-xl border border-gray-200 px-3 py-2 text-sm font-bold text-gray-600 transition hover:border-[#03C75A]/40 hover:text-[#03C75A]">
-              <span>📣</span><span className="hidden sm:inline">자랑하기</span>
+              <span>📣</span><span className="hidden sm:inline">카페에 자랑</span>
             </a>
           </div>
 
