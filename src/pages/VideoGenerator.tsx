@@ -439,6 +439,9 @@ export default function VideoGenerator() {
         genRetryRef.current = 0;
         setCompletionAlert("❌ " + friendlyError(job.error_message));
         setCurrentJobId("");
+        // 실패 잡은 생성내역에 남기지 않고 즉시 삭제 (토스트로만 안내)
+        try { supabase.functions.invoke("delete-job", { body: { job_id: job.id } }); } catch {}
+        setJobs(prev => prev.filter(j => j.id !== job.id));
       }
     }
   }, [jobs, currentJobId, stage]);
@@ -1252,7 +1255,7 @@ export default function VideoGenerator() {
             </a>
             <a href="https://cafe.naver.com/chronit" target="_blank" rel="noreferrer"
               className="ml-auto flex items-center gap-1 rounded-xl border border-gray-200 px-3 py-2 text-sm font-bold text-gray-600 transition hover:border-[#03C75A]/40 hover:text-[#03C75A]">
-              <span>📣</span><span className="hidden sm:inline">카페에 자랑</span>
+              <span>🤝</span><span className="hidden sm:inline">N잡러 모임</span>
             </a>
           </div>
 
@@ -3616,7 +3619,7 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
       try {
         const r = await fetch("https://oxygqtbdpnxxcgzwdlzi.supabase.co/rest/v1/video_jobs?select=*&order=created_at.desc&limit=50",
           {headers:{Authorization:`Bearer ${session.access_token}`,apikey:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NTU4NTYsImV4cCI6MjA5MjMzMTg1Nn0.G8ZtLSZf9rWRbKlrEUchEmFUEBdV4J2L1s_5rGEPZjY"}});
-        const d = await r.json(); setJobs(Array.isArray(d)?d:[]);
+        const d = await r.json(); setJobs(Array.isArray(d)?d.filter((x:any)=>x.status!=="error"):[]);
       } catch {} finally { setLoading(false); }
     })();
   },[session]);
