@@ -107,6 +107,8 @@ export default function VideoGenerator() {
   // Stage 2
   const [targetSeconds, setTargetSeconds] = useState(15);
   const [styleProfileId, setStyleProfileId] = useState("auto");
+  const [videoOnly, setVideoOnly] = useState<boolean>(() => { try { return localStorage.getItem("chronit_video_only") === "1"; } catch { return false; } });
+  const toggleVideoOnly = () => setVideoOnly(v => { const nv = !v; try { localStorage.setItem("chronit_video_only", nv ? "1" : "0"); } catch {} return nv; });
 
   // Stage 3
   const [ctaText, setCtaText] = useState("");  // CTA 입력 (비우면 프로필 링크 안내)
@@ -759,9 +761,10 @@ export default function VideoGenerator() {
     genRetryRef.current = 0;
     setAutoRunning(true);
     try {
-      // Step 1: 대본 생성
-      setAutoRunStep("1/3  대본 생성 중...");
+      // Step 1: 대본 생성 (영상만 모드면 대본/음성 건너뜀)
       let genSegments: any = null;
+      if (!videoOnly) {
+      setAutoRunStep("1/3  대본 생성 중...");
       await new Promise<void>(async (resolve, reject) => {
         setScriptError(""); setScriptLoading(true); setScript(null);
         const { data: { session: s } } = await supabase.auth.getSession();
@@ -796,9 +799,10 @@ export default function VideoGenerator() {
       // Step 2: 음성 생성 — voiceId 직접 전달 (state 비동기 문제 방지)
       setAutoRunStep("2/3  음성 생성 중...");
       await handleVoiceGenerate(voiceId);
+      }  // end if(!videoOnly)
 
       // Step 3: 영상 합성 — state 비동기 문제 방지: ctaOverride, voiceId 직접 전달
-      setAutoRunStep("3/3  영상 합성 중...");
+      setAutoRunStep(videoOnly ? "영상 합성 중... (영상만)" : "3/3  영상 합성 중...");
       await handleRender({ voiceId, ctaText: ctaOverride ?? ctaText, script: genSegments });
 
       setAutoRunStep("✅ 완료!");
@@ -834,7 +838,8 @@ export default function VideoGenerator() {
           subtitle_style: subtitleStyle,
           thumbnail_style: thumbnailStyle,
           show_thumbnail: showThumbnail,
-          script_segments: _script,
+          script_segments: videoOnly ? null : _script,
+          video_only: videoOnly,
           cta_text: overrides?.ctaText ?? ctaText,
           product_name: analysisMetaRef.current.name,
           search_keyword: analysisMetaRef.current.keyword,
@@ -996,7 +1001,12 @@ export default function VideoGenerator() {
 
             {/* ⚠️ 스타일/클립 경고 */}
             <div className="space-y-2">
-              {(!styleProfileId || styleProfileId === "auto") ? (
+              {videoOnly ? (
+                <div className="flex items-center gap-2 rounded-xl bg-gray-50 border border-gray-200 px-3 py-2">
+                  <span className="text-sm">🎬</span>
+                  <p className="text-xs font-bold text-gray-600">영상만 모드 — AI 음성·자막 없이 클립 몽타주만 생성돼요.</p>
+                </div>
+              ) : (!styleProfileId || styleProfileId === "auto") ? (
                 <div className="flex items-start gap-2 rounded-xl bg-red-50 border border-red-200 px-3 py-2">
                   <span className="text-sm">⚠️</span>
                   <p className="text-xs font-bold text-red-600">스타일 미적용 — 영상이 어색할 수 있어요. <span className="font-normal text-red-500">'콘셉트/스타일'에서 설정하면 훨씬 좋아져요.</span></p>
@@ -1356,6 +1366,11 @@ export default function VideoGenerator() {
                     </div>
                     <div className="mt-0.5 text-xs font-medium text-gray-400">많이 담을수록 영상이 더 좋아져요</div>
                   </div>
+                  <label className="mb-3 flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 cursor-pointer select-none">
+                    <input type="checkbox" checked={videoOnly} onChange={toggleVideoOnly} className="h-4 w-4 accent-[#03C75A]" />
+                    <span className="text-sm font-bold text-gray-800">🎬 영상만 만들기</span>
+                    <span className="text-xs text-gray-400">AI 음성·자막 없이 (직접 더빙용)</span>
+                  </label>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {clips.map(clip => (
                       <ClipCard key={clip.video_id} clip={clip}
