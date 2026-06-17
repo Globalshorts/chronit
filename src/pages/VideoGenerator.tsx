@@ -1029,7 +1029,8 @@ export default function VideoGenerator() {
               )}
             </div>
 
-            {/* CTA 입력 */}
+            {/* CTA 입력 (영상만이면 숨김) */}
+            {!videoOnly && (
             <div className="space-y-2">
               <p className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
                 💬 댓글 유도 단어 (CTA)
@@ -1045,6 +1046,7 @@ export default function VideoGenerator() {
                 <p className="text-xs text-[#03C75A]">→ "댓글에 {modalCtaText.trim()} 남겨주시면 링크 보내드릴게요"</p>
               )}
             </div>
+            )}
 
             {/* 버튼 */}
             <div className="flex gap-3 pt-1">
