@@ -967,7 +967,7 @@ export default function VideoGenerator() {
                 const isPro = VOICES_PRO.some(v => v.id === voiceId);
                 const scriptCr = 20;
                 const voiceCr = isPro ? 20 : 0;
-                const renderCr = 50;
+                const renderCr = 110;
                 const total = videoOnly ? renderCr : (scriptCr + voiceCr + renderCr);
                 return (
                   <>
@@ -1056,7 +1056,7 @@ export default function VideoGenerator() {
               </button>
               <button
                 onClick={() => { setCtaText(modalCtaText); handleAutoRun(modalCtaText); }}
-                disabled={balance !== null && balance < (videoOnly ? 50 : (VOICES_PRO.some(v => v.id === voiceId) ? 90 : 70))}
+                disabled={balance !== null && balance < (videoOnly ? 110 : (VOICES_PRO.some(v => v.id === voiceId) ? 150 : 130))}
                 className="flex-1 rounded-xl bg-[#03C75A] py-3 text-sm font-black text-white hover:bg-[#02b350] disabled:opacity-40 transition">
                 진행
               </button>
