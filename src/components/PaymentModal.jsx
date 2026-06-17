@@ -23,6 +23,14 @@ const PLAN_META = {
   pkg6:    { name: '프로 6개월', badge: '안심 패키지' },
 }
 
+// Paddle (카드·간편결제 자동결제)
+const PADDLE_TOKEN = 'live_629b836f204361e374fe079907d'
+const PADDLE_PRICE_IDS = {
+  starter: 'pri_01kvabnryqdwkh6chvfydwhx9y',
+  pro:     'pri_01kvabmdv33vdh4mb079gmjw8c',
+  master:  'pri_01kvabjps0wbgh98qy7xpte2na',
+}
+
 // 쿠폰에서 특정 플랜의 할인 설정을 해석
 const resolveDiscount = (coupon, planKey) => {
   if (!coupon) return null
@@ -54,6 +62,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
   const [codeStatus, setCodeStatus] = useState(null) // null | 'loading' | 'valid' | 'invalid' | 'expired'
   const [trialMsg, setTrialMsg] = useState(null)
   const [dbPrices, setDbPrices] = useState(null)
+  const [payMsg, setPayMsg] = useState(null)
 
   useEffect(() => {
     if (initialCode) {
@@ -109,6 +118,35 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
     if (data?.ok === false) { setTrialMsg('실패: ' + data.error); return }
     setTrialMsg(`${data.days}일 무료 체험이 시작됐어요! 잠시 후 새로고침됩니다.`)
     setTimeout(() => window.location.reload(), 1300)
+  }
+
+  // Paddle.js 로드 + 초기화 (모달 열릴 때 1회)
+  useEffect(() => {
+    if (!open) return
+    if (window.Paddle) return
+    const sc = document.createElement('script')
+    sc.src = 'https://cdn.paddle.com/paddle/v2/paddle.js'
+    sc.async = true
+    sc.onload = () => { try { window.Paddle.Initialize({ token: PADDLE_TOKEN }) } catch (e) { console.error('Paddle init', e) } }
+    document.body.appendChild(sc)
+  }, [open])
+
+  const payWithPaddle = async () => {
+    setPayMsg(null)
+    const priceId = PADDLE_PRICE_IDS[selectedPlan]
+    if (!priceId) { setPayMsg('이 플랜은 카드결제 준비 중이에요. 계좌이체로 진행해주세요.'); return }
+    const { data: ses } = await supabase.auth.getSession()
+    const user = ses?.session?.user
+    if (!user) { setPayMsg('로그인 후 결제할 수 있어요.'); return }
+    if (!window.Paddle) { setPayMsg('결제 모듈 로딩 중이에요. 잠시 후 다시 눌러주세요.'); return }
+    try {
+      window.Paddle.Checkout.open({
+        items: [{ priceId, quantity: 1 }],
+        customer: { email: user.email },
+        customData: { user_id: user.id, user_email: user.email },
+        settings: { displayMode: 'overlay', theme: 'light', successUrl: 'https://chronit.kr/?paid=1' },
+      })
+    } catch (e) { setPayMsg('결제창을 여는 중 오류가 났어요: ' + (e?.message || e)) }
   }
 
   useEffect(() => {
@@ -340,12 +378,26 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
             {trialMsg && <p className="mt-3 text-center text-sm font-bold text-[#03C75A]">{trialMsg}</p>}
           </div>
         ) : (
-          <button
-            onClick={() => copyToClipboard(`${account.bank} ${account.number} ${account.holder} / ${plan.price.toLocaleString('ko-KR')}원 (${plan.name})`, 'all')}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#03C75A] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(3,199,90,0.6)] transition-all hover:bg-[#02b350] active:scale-[0.98]"
-          >
-            {copied === 'all' ? <><Check size={18} /> 입금 정보 복사됨</> : <><Copy size={18} /> 입금 정보 한 번에 복사</>}
-          </button>
+          <div className="space-y-3">
+            {!hasDiscount && PADDLE_PRICE_IDS[selectedPlan] && (
+              <button
+                onClick={payWithPaddle}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#03C75A] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(3,199,90,0.6)] transition-all hover:bg-[#02b350] active:scale-[0.98]"
+              >
+                <CreditCard size={18} /> 카드·간편결제로 결제 ({plan.price.toLocaleString('ko-KR')}원)
+              </button>
+            )}
+            {hasDiscount && (
+              <p className="text-center text-xs font-bold text-amber-600">할인 코드 결제는 아래 계좌이체로 진행해주세요.</p>
+            )}
+            <button
+              onClick={() => copyToClipboard(`${account.bank} ${account.number} ${account.holder} / ${plan.price.toLocaleString('ko-KR')}원 (${plan.name})`, 'all')}
+              className={`flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 text-base font-black transition-all active:scale-[0.98] ${(!hasDiscount && PADDLE_PRICE_IDS[selectedPlan]) ? 'border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100' : 'bg-[#03C75A] text-white shadow-[0_15px_40px_-12px_rgba(3,199,90,0.6)] hover:bg-[#02b350]'}`}
+            >
+              {copied === 'all' ? <><Check size={18} /> 입금 정보 복사됨</> : <><Copy size={18} /> 계좌이체 정보 복사</>}
+            </button>
+            {payMsg && <p className="text-center text-sm font-bold text-red-500">{payMsg}</p>}
+          </div>
         )}
 
         <p className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-500 md:text-base">
