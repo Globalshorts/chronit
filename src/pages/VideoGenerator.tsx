@@ -1329,8 +1329,11 @@ export default function VideoGenerator() {
                     </span>
                     <span className="text-sm font-bold text-[#03C75A]">{cart.size}개 담음</span>
                   </div>
-                  <div className="mb-3 rounded-xl border border-[#03C75A]/30 bg-[#03C75A]/5 px-3 py-2 text-center text-sm font-bold text-gray-700">
-                    마음에 드는 클립을 담고 <span className="text-[#03C75A]">🚀 자동 생성</span>을 누르세요
+                  <div className="mb-3 rounded-xl border border-[#03C75A]/30 bg-[#03C75A]/5 px-3 py-2 text-center">
+                    <div className="text-sm font-bold text-gray-700">
+                      클립 <span className="text-[#03C75A]">3개 이상</span> 담고 <span className="text-[#03C75A]">🚀 자동 생성</span>
+                    </div>
+                    <div className="mt-0.5 text-xs font-medium text-gray-400">많이 담을수록 영상이 더 좋아져요</div>
                   </div>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {clips.map(clip => (
