@@ -278,7 +278,8 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
           )}
         </div>
 
-        {/* 플랜 선택 */}
+        {/* 플랜 선택 (무료체험 시 숨김 — 체험은 플랜 무관) */}
+        {!isFreedays && (
         <div className="mb-6">
           <p className="mb-3 text-sm font-bold tracking-widest text-gray-500 uppercase">요금제 선택</p>
           <div className="grid grid-cols-3 gap-2">
@@ -332,6 +333,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
             </button>
           )}
         </div>
+        )}
 
         {/* free_days: 무료 체험 안내 */}
         {isFreedays ? (
