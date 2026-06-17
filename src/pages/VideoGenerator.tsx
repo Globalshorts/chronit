@@ -968,9 +968,11 @@ export default function VideoGenerator() {
                 const scriptCr = 20;
                 const voiceCr = isPro ? 20 : 0;
                 const renderCr = 50;
-                const total = scriptCr + voiceCr + renderCr;
+                const total = videoOnly ? renderCr : (scriptCr + voiceCr + renderCr);
                 return (
                   <>
+                    {!videoOnly && (
+                    <>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-700">📄 AI 대본 생성</span>
                       <span className="text-gray-900 font-bold">{scriptCr} CR</span>
@@ -979,8 +981,10 @@ export default function VideoGenerator() {
                       <span className="text-gray-700">🎙 음성 합성 ({isPro ? "고품질" : "일반"})</span>
                       <span className={voiceCr === 0 ? "text-green-400 font-bold" : "text-gray-900 font-bold"}>{voiceCr === 0 ? "무료" : `${voiceCr} CR`}</span>
                     </div>
+                    </>
+                    )}
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-700">🎬 영상 합성 + 자막</span>
+                      <span className="text-gray-700">{videoOnly ? "🎬 영상 합성 (영상만)" : "🎬 영상 합성 + 자막"}</span>
                       <span className="text-gray-900 font-bold">{renderCr} CR</span>
                     </div>
                     <div className="border-t border-gray-200 my-2" />
@@ -1050,7 +1054,7 @@ export default function VideoGenerator() {
               </button>
               <button
                 onClick={() => { setCtaText(modalCtaText); handleAutoRun(modalCtaText); }}
-                disabled={balance !== null && balance < (VOICES_PRO.some(v => v.id === voiceId) ? 90 : 70)}
+                disabled={balance !== null && balance < (videoOnly ? 50 : (VOICES_PRO.some(v => v.id === voiceId) ? 90 : 70))}
                 className="flex-1 rounded-xl bg-[#03C75A] py-3 text-sm font-black text-white hover:bg-[#02b350] disabled:opacity-40 transition">
                 진행
               </button>
