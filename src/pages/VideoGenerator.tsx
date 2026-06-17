@@ -3839,10 +3839,6 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
                   ) : (
                     <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-center text-[11px] text-gray-400">업로드 정보 생성 중…</div>
                   )}
-                  <button onClick={()=>shareToBoard(j)} disabled={sharing===j.id}
-                    className="block w-full text-center rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-600 hover:bg-amber-100 disabled:opacity-50 transition">
-                    {sharing===j.id ? "올리는 중…" : "🎁 자랑하고 보상받기"}
-                  </button>
                   <p className="px-1 text-center text-[10px] leading-snug text-gray-400">
                     {isIOS ? "공유 창에서 '동영상 저장' → 사진앱" : isAndroid ? "갤러리 › 앨범 › Download 에서 확인" : "내 컴퓨터에 mp4로 저장돼요"}
                   </p>

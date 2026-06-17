@@ -362,10 +362,19 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
               )}
             </div>
             {(!hasDiscount && QR_IMAGES[selectedPlan]) ? (
-              <div className="flex flex-col items-center gap-2 rounded-xl bg-white p-4">
-                <img src={QR_IMAGES[selectedPlan]} alt="토스 송금 QR" className="h-48 w-48" />
-                <p className="text-sm font-bold text-gray-900">토스로 스캔하면 <span className="text-[#03C75A]">{plan.price.toLocaleString('ko-KR')}원</span>이 자동 입력돼요</p>
-                <p className="text-xs text-gray-500">{account.bank} {account.number} · {account.holder}</p>
+              <div className="flex flex-col items-center gap-3 rounded-xl bg-white p-4">
+                <a
+                  href={`supertoss://send?amount=${plan.price}&bank=${encodeURIComponent('토스뱅크')}&accountNo=100147568390&origin=qr`}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(0,100,255,0.55)] transition-all hover:brightness-110 active:scale-[0.98]"
+                >
+                  토스로 결제하기 ({plan.price.toLocaleString('ko-KR')}원)
+                </a>
+                <p className="text-center text-xs text-gray-500">버튼을 누르면 토스 앱이 열리고 금액이 자동 입력돼요 (휴대폰)</p>
+                <div className="mt-1 flex w-full flex-col items-center gap-1 border-t border-gray-100 pt-3">
+                  <p className="text-[11px] font-bold text-gray-400">PC에서는 QR 스캔</p>
+                  <img src={QR_IMAGES[selectedPlan]} alt="토스 송금 QR" className="h-36 w-36" />
+                  <p className="text-xs text-gray-500">{account.bank} {account.number} · {account.holder}</p>
+                </div>
               </div>
             ) : (
               <div className="rounded-xl bg-amber-50 p-4 text-center text-sm font-bold text-amber-700">
@@ -378,7 +387,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
         {/* 안내사항 */}
         {!isFreedays && (
           <div className="mb-6 space-y-2 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm leading-relaxed text-gray-600 md:text-base">
-            <p>• QR 스캔 후 <strong className="text-gray-800">표시된 금액 그대로</strong> 송금해 주세요.</p>
+            <p>• <strong className="text-gray-800">토스로 결제하기</strong> 버튼(휴대폰) 또는 QR(PC)로 <strong className="text-gray-800">표시된 금액 그대로</strong> 송금해 주세요.</p>
             <p>• 송금 후 <strong className="rounded bg-amber-100 px-1.5 py-0.5 font-black text-amber-700 ring-1 ring-amber-300">우측 하단 채널톡으로 가입 이메일</strong>을 보내주세요.</p>
             <p>• 확인 후 영업일 기준 <strong className="text-gray-800">1일 이내</strong> 활성화됩니다. (카드 결제는 즉시 활성화)</p>
             <p>• <strong className="text-gray-800">환불 규정:</strong> 본 상품은 디지털 콘텐츠로, 결제 후 크레딧을 1회라도 사용(영상 분석·생성 등)하면 환불이 불가합니다. 이용 이력이 전혀 없는 경우에 한해 결제일로부터 <strong className="text-gray-800">7일 이내</strong> 전액 환불이 가능합니다.</p>
@@ -402,7 +411,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
                 <CreditCard size={18} /> 카드·간편결제로 결제 ({plan.price.toLocaleString('ko-KR')}원)
               </button>
             )}
-            <p className="text-center text-xs text-gray-500">위 토스 QR로 송금 후, 우측 하단 채널톡으로 가입 이메일을 보내주세요.</p>
+            <p className="text-center text-xs text-gray-500">위 토스 결제 후, 우측 하단 채널톡으로 가입 이메일을 보내주세요.</p>
             {payMsg && <p className="text-center text-sm font-bold text-red-500">{payMsg}</p>}
           </div>
         )}
