@@ -2268,10 +2268,22 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
     if (!c) { setCouponMsg({ok:false, text:"코드를 입력해주세요"}); return; }
     setCouponLoading(true); setCouponMsg(null);
     try {
+      // 1) 크레딧 코드 시도
       const { data, error } = await supabase.rpc("redeem_credit_code_rpc", { p_code: c });
       if (error) throw error;
-      if (data?.ok) { setCouponMsg({ok:true, text:`🎉 ${Number(data.credits).toLocaleString()} 크레딧이 지급됐어요!`}); setCoupon(""); onCredited?.(); }
-      else setCouponMsg({ok:false, text:data?.error || "사용할 수 없는 코드예요"});
+      if (data?.ok) {
+        setCouponMsg({ok:true, text:`🎉 ${Number(data.credits).toLocaleString()} 크레딧이 지급됐어요!`}); setCoupon(""); onCredited?.();
+        setCouponLoading(false); return;
+      }
+      // 2) 크레딧 코드가 아니면 무료체험(free_days) 코드로 재시도
+      const { data: t, error: te } = await supabase.rpc("redeem_free_trial_rpc", { p_code: c });
+      if (te) throw te;
+      if (t?.ok) {
+        setCouponMsg({ok:true, text:`🎉 프로 ${t.days}일 무료 체험이 시작됐어요! 잠시 후 새로고침됩니다.`}); setCoupon("");
+        setTimeout(()=>window.location.reload(), 1300);
+        setCouponLoading(false); return;
+      }
+      setCouponMsg({ok:false, text: t?.error || data?.error || "사용할 수 없는 코드예요"});
     } catch(e){ setCouponMsg({ok:false, text:String(e)}); }
     setCouponLoading(false);
   };
