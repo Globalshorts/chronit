@@ -30,6 +30,13 @@ const PADDLE_PRICE_IDS = {
   pro:     'pri_01kvabmdv33vdh4mb079gmjw8c',
   master:  'pri_01kvabjps0wbgh98qy7xpte2na',
 }
+// 토스 송금 QR (고정 금액, public/ 에 위치)
+const QR_IMAGES = {
+  starter: '/qr_starter.png',
+  pro:     '/qr_pro.png',
+  master:  '/qr_master.png',
+  pkg6:    '/qr_pkg6.png',
+}
 
 // 쿠폰에서 특정 플랜의 할인 설정을 해석
 const resolveDiscount = (coupon, planKey) => {
@@ -338,7 +345,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
           </div>
         ) : (
           <div className="mb-6 rounded-2xl border border-[#03C75A]/20 bg-[#03C75A]/5 p-5">
-            <p className="mb-1 text-sm font-bold tracking-widest text-[#03C75A] uppercase">입금 금액</p>
+            <p className="mb-1 text-sm font-bold tracking-widest text-[#03C75A] uppercase">결제 금액</p>
             <div className="mb-4 flex items-baseline gap-2 flex-wrap">
               <span className="text-xl font-bold text-gray-400 line-through">
                 {plan.list.toLocaleString('ko-KR')}
@@ -352,20 +359,26 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
                 <span className="rounded-full bg-[#03C75A]/15 px-2 py-0.5 text-[10px] font-bold text-[#03C75A]">+ {discountLabel()}</span>
               )}
             </div>
-            <div className="space-y-2">
-              <Row label="은행" value={account.bank} />
-              <Row label="계좌번호" value={account.number} copyKey="number" copied={copied === 'number'} onCopy={() => copyToClipboard(account.number.replace(/-/g, ''), 'number')} />
-              <Row label="예금주" value={account.holder} />
-            </div>
+            {(!hasDiscount && QR_IMAGES[selectedPlan]) ? (
+              <div className="flex flex-col items-center gap-2 rounded-xl bg-white p-4">
+                <img src={QR_IMAGES[selectedPlan]} alt="토스 송금 QR" className="h-48 w-48" />
+                <p className="text-sm font-bold text-gray-900">토스로 스캔하면 <span className="text-[#03C75A]">{plan.price.toLocaleString('ko-KR')}원</span>이 자동 입력돼요</p>
+                <p className="text-xs text-gray-500">{account.bank} {account.number} · {account.holder}</p>
+              </div>
+            ) : (
+              <div className="rounded-xl bg-amber-50 p-4 text-center text-sm font-bold text-amber-700">
+                할인가 결제는 우측 하단 채널톡으로 문의해 주세요 🙏
+              </div>
+            )}
           </div>
         )}
 
         {/* 안내사항 */}
         {!isFreedays && (
           <div className="mb-6 space-y-2 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm leading-relaxed text-gray-600 md:text-base">
-            <p>• <strong className="rounded bg-amber-100 px-1.5 py-0.5 font-black text-amber-700 ring-1 ring-amber-300">입금자명을 가입 이메일과</strong> 동일하게 적어주세요.</p>
-            <p>• 영업일 기준 <strong className="text-gray-800">1일 이내</strong> 요금제가 자동 활성화됩니다.</p>
-            <p>• 활성화 후 크로닛 앱에서 동일 이메일로 로그인하시면 즉시 사용 가능합니다.</p>
+            <p>• QR 스캔 후 <strong className="text-gray-800">표시된 금액 그대로</strong> 송금해 주세요.</p>
+            <p>• 송금 후 <strong className="rounded bg-amber-100 px-1.5 py-0.5 font-black text-amber-700 ring-1 ring-amber-300">우측 하단 채널톡으로 가입 이메일</strong>을 보내주세요.</p>
+            <p>• 확인 후 영업일 기준 <strong className="text-gray-800">1일 이내</strong> 활성화됩니다. (카드 결제는 즉시 활성화)</p>
             <p>• <strong className="text-gray-800">환불 규정:</strong> 본 상품은 디지털 콘텐츠로, 결제 후 크레딧을 1회라도 사용(영상 분석·생성 등)하면 환불이 불가합니다. 이용 이력이 전혀 없는 경우에 한해 결제일로부터 <strong className="text-gray-800">7일 이내</strong> 전액 환불이 가능합니다.</p>
           </div>
         )}
@@ -387,15 +400,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
                 <CreditCard size={18} /> 카드·간편결제로 결제 ({plan.price.toLocaleString('ko-KR')}원)
               </button>
             )}
-            {hasDiscount && (
-              <p className="text-center text-xs font-bold text-amber-600">할인 코드 결제는 아래 계좌이체로 진행해주세요.</p>
-            )}
-            <button
-              onClick={() => copyToClipboard(`${account.bank} ${account.number} ${account.holder} / ${plan.price.toLocaleString('ko-KR')}원 (${plan.name})`, 'all')}
-              className={`flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 text-base font-black transition-all active:scale-[0.98] ${(!hasDiscount && PADDLE_PRICE_IDS[selectedPlan]) ? 'border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100' : 'bg-[#03C75A] text-white shadow-[0_15px_40px_-12px_rgba(3,199,90,0.6)] hover:bg-[#02b350]'}`}
-            >
-              {copied === 'all' ? <><Check size={18} /> 입금 정보 복사됨</> : <><Copy size={18} /> 계좌이체 정보 복사</>}
-            </button>
+            <p className="text-center text-xs text-gray-500">위 토스 QR로 송금 후, 우측 하단 채널톡으로 가입 이메일을 보내주세요.</p>
             {payMsg && <p className="text-center text-sm font-bold text-red-500">{payMsg}</p>}
           </div>
         )}
