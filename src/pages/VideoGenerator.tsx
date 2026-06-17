@@ -984,7 +984,7 @@ export default function VideoGenerator() {
                     </>
                     )}
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-700">{videoOnly ? "🎬 영상 합성 (영상만)" : "🎬 영상 합성 + 자막"}</span>
+                      <span className="text-gray-700">{videoOnly ? `🎬 영상 합성 (영상만, ${targetSeconds}초)` : `🎬 영상 합성 + 자막 (${targetSeconds}초)`}</span>
                       <span className="text-gray-900 font-bold">{renderCr} CR</span>
                     </div>
                     <div className="border-t border-gray-200 my-2" />
@@ -2893,10 +2893,10 @@ function AutoSettingsView({
   session: any;
 }) {
   const DURATIONS = [
-    { s: 10, label: "10초", sub: "숏 / 2~3 클립" },
-    { s: 15, label: "15초", sub: "기본 / 4~5 클립" },
-    { s: 20, label: "20초", sub: "미들 / 5~6 클립" },
-    { s: 30, label: "30초", sub: "롱 / 6+ 클립" },
+    { s: 10, label: "10초", sub: "숏 / 2~3 클립", cr: 90 },
+    { s: 15, label: "15초", sub: "기본 / 4~5 클립", cr: 110 },
+    { s: 20, label: "20초", sub: "미들 / 5~6 클립", cr: 130 },
+    { s: 30, label: "30초", sub: "롱 / 6+ 클립", cr: 160 },
   ];
 
   return (
@@ -2910,11 +2910,12 @@ function AutoSettingsView({
       <div className="rounded-2xl bg-white border border-gray-200 p-5 space-y-4">
         <p className="text-sm font-black text-gray-900">📐 영상 길이</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {DURATIONS.map(({ s, label, sub }) => (
+          {DURATIONS.map(({ s, label, sub, cr }) => (
             <button key={s} onClick={() => setTargetSeconds(s)}
               className={`rounded-xl border p-3 text-center transition ${targetSeconds===s ? "border-[#03C75A] bg-[#03C75A]/10" : "border-gray-200 hover:border-gray-500"}`}>
               <p className={`text-sm font-black ${targetSeconds===s ? "text-[#03C75A]" : "text-gray-900"}`}>{label}</p>
               <p className="text-xs text-gray-500 mt-0.5">{sub}</p>
+              <p className="text-[11px] font-bold text-[#03C75A] mt-1">합성 {cr} CR</p>
             </button>
           ))}
         </div>
