@@ -404,12 +404,15 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
           <div className="min-w-0 flex-1 space-y-2">
             <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="카드 제목"
               className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
-            <div className="flex gap-1.5">
-              <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="쿠팡 파트너스 링크 붙여넣기"
-                className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
-              <a href={`https://partners.coupang.com/#affiliate/ws/link/0/${encodeURIComponent(([job.search_keyword, job.product_name, title].find(k => k && /[가-힣]/.test(k)) || title || '').trim())}`}
-                target="_blank" rel="noreferrer"
-                className="shrink-0 whitespace-nowrap rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-200">🔍 쿠팡에서 찾기</a>
+            <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="쿠팡 파트너스 링크 붙여넣기"
+              className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[11px] font-bold text-gray-400">🔍 쿠팡 검색:</span>
+              {Array.from(new Set([job.product_name, job.search_keyword, title].map(k => (k || '').trim()).filter(Boolean))).slice(0, 3).map((kw, i) => (
+                <a key={i} href={`https://partners.coupang.com/#affiliate/ws/link/0/${encodeURIComponent(kw)}`}
+                  target="_blank" rel="noreferrer" title={kw}
+                  className="shrink-0 whitespace-nowrap rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-200">{kw.length > 12 ? kw.slice(0, 12) + '…' : kw}</a>
+              ))}
             </div>
             <div className="flex items-center gap-2">
               {active ? (
