@@ -994,6 +994,27 @@ export default function VideoGenerator() {
               })()}
             </div>
 
+            {/* ⚠️ 스타일/클립 경고 */}
+            <div className="space-y-2">
+              {(!styleProfileId || styleProfileId === "auto") ? (
+                <div className="flex items-start gap-2 rounded-xl bg-red-50 border border-red-200 px-3 py-2">
+                  <span className="text-sm">⚠️</span>
+                  <p className="text-xs font-bold text-red-600">스타일 미적용 — 영상이 어색할 수 있어요. <span className="font-normal text-red-500">'콘셉트/스타일'에서 설정하면 훨씬 좋아져요.</span></p>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 rounded-xl bg-green-50 border border-green-200 px-3 py-2">
+                  <span className="text-sm">🎨</span>
+                  <p className="text-xs font-bold text-green-700">스타일 적용됨</p>
+                </div>
+              )}
+              {cart.size < 3 && (
+                <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2">
+                  <span className="text-sm">⚠️</span>
+                  <p className="text-xs font-bold text-amber-700">클립 {cart.size}개 — 3개 이상 담아야 영상이 자연스러워요.</p>
+                </div>
+              )}
+            </div>
+
             {/* CTA 입력 */}
             <div className="space-y-2">
               <p className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
