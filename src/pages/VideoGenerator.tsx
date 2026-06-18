@@ -837,7 +837,14 @@ export default function VideoGenerator() {
         const path = `${uid}/${Date.now()}_${Math.random().toString(36).slice(2, 7)}.${ext}`;
         const { error: upErr } = await supabase.storage.from("user-uploads")
           .upload(path, file, { contentType: file.type || "video/mp4", upsert: false });
-        if (upErr) { setUploadError("업로드 실패: " + upErr.message); continue; }
+        if (upErr) {
+          console.error("[upload]", file.name, upErr);
+          const big = (file.size > 500 * 1024 * 1024);
+          setUploadError(big
+            ? `"${file.name}" 파일이 너무 커요(500MB 초과). 더 짧게 잘라서 올려주세요.`
+            : `업로드 실패: ${upErr.message}`);
+          continue;
+        }
         const { data: pub } = supabase.storage.from("user-uploads").getPublicUrl(path);
         const url = pub.publicUrl;
         added.push({
