@@ -3417,19 +3417,23 @@ function proxyThumb(url: string) {
 
 function TrendCard({ item, onUse }: { item: any; onUse: () => void }) {
   const [imgErr, setImgErr] = useState(false);
-  const fmt = (n: number) => n >= 10000 ? (n / 10000).toFixed(1) + "만" : n >= 1000 ? (n / 1000).toFixed(1) + "천" : String(n || 0);
+  const f = (n: number) => { n = Math.max(0, Math.trunc(Number(n) || 0)); return n >= 10000 ? (n / 10000).toFixed(1) + "만" : n >= 1000 ? (n / 1000).toFixed(1) + "천" : String(n); };
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white">
-      <div className="relative aspect-[9/16] bg-gray-100">
+      <a href={item.url} target="_blank" rel="noreferrer" className="group relative block aspect-[9/16] bg-gray-100">
         {!imgErr && item.thumbnail_url
           ? <img src={item.thumbnail_url} referrerPolicy="no-referrer" onError={() => setImgErr(true)} className="h-full w-full object-cover" />
           : <div className="flex h-full w-full items-center justify-center text-3xl text-gray-300">🎬</div>}
-        <div className="absolute left-1 top-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white">💬 {fmt(item.comment_count)}</div>
-      </div>
+        <div className="absolute left-1 top-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white">💬 {f(item.comment_count)}</div>
+        <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/35">
+          <span className="rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-gray-900 opacity-0 shadow transition group-hover:opacity-100">▶ 영상 보기</span>
+        </div>
+      </a>
       <div className="flex flex-1 flex-col gap-1.5 p-2">
         <p className="line-clamp-2 text-[11px] leading-snug text-gray-700">{item.caption || "(설명 없음)"}</p>
-        <div className="mt-auto flex items-center gap-2 text-[10px] text-gray-400">
-          <span>❤️ {fmt(item.like_count)}</span><span>👁 {fmt(item.view_count)}</span>
+        <div className="mt-auto flex items-center gap-2 text-[10px] font-medium text-gray-400">
+          <span title="좋아요">❤️ {f(item.like_count)}</span>
+          <span title="조회수">▶ {f(item.view_count)}</span>
         </div>
         <button onClick={onUse}
           className="mt-1 w-full rounded-lg bg-[#03C75A] py-2 text-xs font-bold text-white hover:bg-[#02b350] transition">이 영상으로 만들기</button>
