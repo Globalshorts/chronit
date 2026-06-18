@@ -902,7 +902,9 @@ export default function VideoGenerator() {
     finally { setTrendLoading(false); }
   };
   const openTrend = () => { setTrendOpen(o => { const nv = !o; if (nv && !trendItems.length) fetchTrends(); return nv; }); };
-  const useTrendItem = (it: any) => { setTrendOpen(false); setClips([]); setCart(new Set()); handleSearch(it.url); try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (_) {} };
+  const useTrendItem = (it: any) => { setActiveView("generator"); setClips([]); setCart(new Set()); handleSearch(it.url); try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (_) {} };
+  // 트렌드 탭 진입 시 자동 로드
+  useEffect(() => { if (activeView === "trends" && !trendItems.length && !trendLoading) fetchTrends(); /* eslint-disable-next-line */ }, [activeView]);
 
   // Apify 토큰 저장 (주인 전용) — store-config가 서버에서 이메일 검증
   const saveApifyToken = async () => {
@@ -1372,6 +1374,35 @@ export default function VideoGenerator() {
                 )}
               </div>
             )}
+            {activeView === "trends" && (
+              <div className="max-w-5xl mx-auto">
+                <div className="mb-1 flex items-center justify-between">
+                  <h2 className="text-xl font-black text-gray-900">🔥 오늘의 트렌드</h2>
+                  <button onClick={() => fetchTrends(true)} disabled={trendLoading}
+                    className="text-sm font-bold text-amber-600 hover:underline disabled:opacity-40">{trendLoading ? "불러오는 중…" : "↻ 새로고침"}</button>
+                </div>
+                <p className="mb-4 text-sm text-gray-500">댓글 많은 쇼핑 릴스를 자동 수집해 댓글수 순으로 보여줘요. 카드를 누르면 그 영상으로 바로 제작 흐름으로 넘어가요.</p>
+                {trendNote && <p className="mb-3 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">{trendNote}</p>}
+                {trendNeedsSetup && (session?.user?.email || "").toLowerCase() === "pv2066pv@gmail.com" && (
+                  <div className="mb-4 max-w-md space-y-2 rounded-xl border border-amber-300 bg-amber-50 p-3">
+                    <p className="text-xs font-bold text-amber-700">🔑 Apify 토큰 연결 <span className="font-normal text-amber-500">· 주인 전용 · 한 번만</span></p>
+                    <input type="password" value={apifyTok} onChange={e => setApifyTok(e.target.value)} placeholder="apify_api_..."
+                      className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm outline-none focus:border-amber-500" />
+                    <button onClick={saveApifyToken} disabled={savingTok || !apifyTok.trim()}
+                      className="w-full rounded-lg bg-amber-500 py-2 text-sm font-bold text-white hover:bg-amber-600 disabled:opacity-40 transition">{savingTok ? "저장 중…" : "토큰 저장"}</button>
+                  </div>
+                )}
+                {trendLoading && !trendItems.length && (
+                  <div className="flex flex-col items-center gap-2 py-12">
+                    <span className="h-7 w-7 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
+                    <span className="text-xs text-gray-400">처음 불러올 땐 1~2분 걸려요…</span>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                  {trendItems.map((it: any) => (<TrendCard key={it.shortcode} item={it} onUse={() => useTrendItem(it)} />))}
+                </div>
+              </div>
+            )}
             {activeView === "history" && (
               <>
                 <h2 className="text-xl font-black text-gray-900 mb-6">📹 생성 내역</h2>
@@ -1447,44 +1478,6 @@ export default function VideoGenerator() {
               </button>
             }>
             <div className="space-y-4">
-              {FEATURES.trendFeed && (
-                <div>
-                  <button type="button" onClick={openTrend}
-                    className="flex w-full items-center justify-between rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-left transition hover:bg-amber-100">
-                    <span className="text-base font-black text-amber-700">🔥 오늘의 트렌드 (댓글 많은 쇼핑 릴스)</span>
-                    <span className="text-amber-500 text-sm">{trendOpen ? "▴ 접기" : "▾ 펼치기"}</span>
-                  </button>
-                  {trendOpen && (
-                    <div className="mt-2">
-                      <div className="mb-2 flex items-center justify-between">
-                        <p className="text-xs text-gray-500">댓글수 순으로 자동 정렬 · 클릭하면 그 영상으로 바로 제작</p>
-                        <button onClick={() => fetchTrends(true)} disabled={trendLoading}
-                          className="text-xs font-bold text-amber-600 hover:underline disabled:opacity-40">{trendLoading ? "불러오는 중…" : "↻ 새로고침"}</button>
-                      </div>
-                      {trendNote && <p className="mb-2 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">{trendNote}</p>}
-                      {trendNeedsSetup && (session?.user?.email || "").toLowerCase() === "pv2066pv@gmail.com" && (
-                        <div className="mb-2 space-y-2 rounded-xl border border-amber-300 bg-amber-50 p-3">
-                          <p className="text-xs font-bold text-amber-700">🔑 Apify 토큰 연결 <span className="font-normal text-amber-500">· 주인 전용 · 한 번만</span></p>
-                          <input type="password" value={apifyTok} onChange={e => setApifyTok(e.target.value)} placeholder="apify_api_..."
-                            className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm outline-none focus:border-amber-500" />
-                          <button onClick={saveApifyToken} disabled={savingTok || !apifyTok.trim()}
-                            className="w-full rounded-lg bg-amber-500 py-2 text-sm font-bold text-white hover:bg-amber-600 disabled:opacity-40 transition">{savingTok ? "저장 중…" : "토큰 저장"}</button>
-                        </div>
-                      )}
-                      {trendLoading && !trendItems.length && (
-                        <div className="flex flex-col items-center gap-2 py-6">
-                          <span className="h-6 w-6 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
-                          <span className="text-xs text-gray-400">처음 불러올 땐 1~2분 걸려요…</span>
-                        </div>
-                      )}
-                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
-                        {trendItems.map((it: any) => (<TrendCard key={it.shortcode} item={it} onUse={() => useTrendItem(it)} />))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
               <div>
                 <label className="mb-1 block text-base font-bold text-gray-700">재창작할 쇼핑 숏폼 URL <span className="font-normal text-gray-400">· 인스타 · 틱톡 · 유튜브</span></label>
                 <p className="mb-2 text-sm leading-relaxed text-gray-500">
@@ -2719,6 +2712,7 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
   const GROUPS = [
     { title: "자주 쓰는 메뉴", items: [
       { v: "generator",      label: "프로젝트" },
+      ...(FEATURES.trendFeed ? [{ v: "trends", label: "오늘의 트렌드", icon: "🔥" }] : []),
       { v: "history",        label: "생성 내역" },
       { v: "product-search", label: "내 링크" },
     ]},
