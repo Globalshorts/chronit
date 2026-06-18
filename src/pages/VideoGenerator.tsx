@@ -562,9 +562,10 @@ export default function VideoGenerator() {
   // ── Stage 1: 검색 ────────────────────────────────────────
   const handleSearch = async (overrideUrl?: string, keepClips?: any[]) => {
     setSearchError("");
-    const su = (overrideUrl ?? sourceUrl);
+    const ov = (typeof overrideUrl === "string") ? overrideUrl : undefined; // onClick 이벤트 객체 방어
+    const su = (ov ?? sourceUrl);
     const keepUploads: any[] = keepClips ?? (clips as any[]).filter((c: any) => c.source === "upload");
-    if (overrideUrl !== undefined) setSourceUrl(overrideUrl);
+    if (ov !== undefined) setSourceUrl(ov);
     if (!su.trim()) { setSearchError("URL을 입력해주세요"); return; }
     const lu = su.toLowerCase();
     if (!["instagram.com","youtube.com","youtu.be","tiktok.com"].some(p => lu.includes(p))) {
@@ -1551,7 +1552,7 @@ export default function VideoGenerator() {
                     placeholder="인스타·틱톡·유튜브 영상 링크 붙여넣기"
                     disabled={searching}
                     className="flex-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-3.5 text-base text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] focus:ring-1 focus:ring-[#03C75A] disabled:opacity-50 transition" />
-                  <button onClick={handleSearch} disabled={searching || !sourceUrl.trim()}
+                  <button onClick={() => handleSearch()} disabled={searching || !sourceUrl.trim()}
                     className="w-full sm:w-auto shrink-0 rounded-xl bg-[#03C75A] px-5 py-3.5 text-base font-bold text-white hover:bg-[#02b350] disabled:opacity-40 transition flex items-center justify-center gap-2">
                     {searching
                       ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />분석 중...</>
