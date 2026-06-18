@@ -3475,13 +3475,15 @@ function proxyThumb(url: string) {
 function TrendCard({ item, onAdd, onAnalyze }: { item: any; onAdd: () => void; onAnalyze: () => void }) {
   const [imgErr, setImgErr] = useState(false);
   const f = (n: number) => { n = Math.max(0, Math.trunc(Number(n) || 0)); return n >= 10000 ? (n / 10000).toFixed(1) + "만" : n >= 1000 ? (n / 1000).toFixed(1) + "천" : String(n); };
+  const cc = Math.max(0, Math.trunc(Number(item.comment_count) || 0));
+  const badge = cc >= 300 ? { bg: "bg-red-500", ic: "🔥" } : cc >= 100 ? { bg: "bg-blue-600", ic: "🔥" } : { bg: "bg-black/70", ic: "💬" };
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white">
       <a href={item.url} target="_blank" rel="noreferrer" className="group relative block aspect-[9/16] bg-gray-100">
         {!imgErr && item.thumbnail_url
           ? <img src={item.thumbnail_url} referrerPolicy="no-referrer" onError={() => setImgErr(true)} className="h-full w-full object-cover" />
           : <div className="flex h-full w-full items-center justify-center text-3xl text-gray-300">🎬</div>}
-        <div className="absolute left-1 top-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white">💬 {f(item.comment_count)}</div>
+        <div className={`absolute left-1 top-1 rounded ${badge.bg} px-1.5 py-0.5 text-[10px] font-black text-white shadow`}>{badge.ic} {f(cc)}</div>
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/35">
           <span className="rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-gray-900 opacity-0 shadow transition group-hover:opacity-100">▶ 영상 보기</span>
         </div>
