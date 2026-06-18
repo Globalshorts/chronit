@@ -106,6 +106,11 @@ export default function VideoGenerator() {
   const [uploading, setUploading]   = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [uploadOpen, setUploadOpen]   = useState(false);
+  // ── 트렌드 소스 피드 (FEATURES.trendFeed) ──
+  const [trendOpen, setTrendOpen]     = useState(false);
+  const [trendItems, setTrendItems]   = useState<any[]>([]);
+  const [trendLoading, setTrendLoading] = useState(false);
+  const [trendNote, setTrendNote]     = useState("");
   const [searching, setSearching]   = useState(false);
   const [showSrc, setShowSrc] = useState(false);
   const [searchError, setSearchError] = useState("");
@@ -551,10 +556,12 @@ export default function VideoGenerator() {
       styleProfileId, subtitleStyle, thumbnailStyle, showThumbnail, voiceId, voiceSpeed]);
 
   // ── Stage 1: 검색 ────────────────────────────────────────
-  const handleSearch = async () => {
+  const handleSearch = async (overrideUrl?: string) => {
     setSearchError("");
-    if (!sourceUrl.trim()) { setSearchError("URL을 입력해주세요"); return; }
-    const lu = sourceUrl.toLowerCase();
+    const su = (overrideUrl ?? sourceUrl);
+    if (overrideUrl !== undefined) setSourceUrl(overrideUrl);
+    if (!su.trim()) { setSearchError("URL을 입력해주세요"); return; }
+    const lu = su.toLowerCase();
     if (!["instagram.com","youtube.com","youtu.be","tiktok.com"].some(p => lu.includes(p))) {
       setSearchError("Instagram Reels, YouTube Shorts, TikTok URL을 입력해주세요"); return;
     }
@@ -571,7 +578,7 @@ export default function VideoGenerator() {
         try {
           resp1 = await fetch(FN("search-clips"), {
             method: "POST", headers,
-            body: JSON.stringify({ source_url: sourceUrl.trim(), clip_count: 80 }),
+            body: JSON.stringify({ source_url: su.trim(), clip_count: 80 }),
           });
           data1 = await resp1.json();
         } catch (netErr) {
@@ -874,6 +881,24 @@ export default function VideoGenerator() {
       if (m) await supabase.storage.from("user-uploads").remove([decodeURIComponent(m)]);
     } catch (_) { /* 삭제 실패 무시 */ }
   };
+
+  // 트렌드 피드 로드 (실시간+캐시, 서버가 하루 1회 갱신)
+  const fetchTrends = async (force = false) => {
+    if (trendLoading) return;
+    setTrendLoading(true); setTrendNote("");
+    try {
+      const { data: { session: s } } = await supabase.auth.getSession();
+      if (!s) { setTrendNote("로그인이 필요합니다"); return; }
+      const r = await fetch(FN("trend-feed"), { method: "POST", headers: { Authorization: `Bearer ${s.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify({ force }) });
+      const d = await r.json();
+      setTrendItems(d.items || []);
+      if (d.needs_setup) setTrendNote("연결 준비 중 — Apify 토큰을 설정하면 표시돼요");
+      else if (!(d.items || []).length) setTrendNote("아직 결과가 없어요. 잠시 후 새로고침 해주세요" + (d.status ? ` (${d.status})` : ""));
+    } catch (e) { setTrendNote(String(e)); }
+    finally { setTrendLoading(false); }
+  };
+  const openTrend = () => { setTrendOpen(o => { const nv = !o; if (nv && !trendItems.length) fetchTrends(); return nv; }); };
+  const useTrendItem = (it: any) => { setTrendOpen(false); setClips([]); setCart(new Set()); handleSearch(it.url); try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (_) {} };
 
   // 선택 클립 수집 + 업로드 클립에 상품정보(대본용) 주입 + analysisMeta 보정
   const collectSelected = () => {
@@ -1403,6 +1428,32 @@ export default function VideoGenerator() {
               </button>
             }>
             <div className="space-y-4">
+              {FEATURES.trendFeed && (
+                <div>
+                  <button type="button" onClick={openTrend}
+                    className="flex w-full items-center justify-between rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-left transition hover:bg-amber-100">
+                    <span className="text-base font-black text-amber-700">🔥 오늘의 트렌드 (댓글 많은 쇼핑 릴스)</span>
+                    <span className="text-amber-500 text-sm">{trendOpen ? "▴ 접기" : "▾ 펼치기"}</span>
+                  </button>
+                  {trendOpen && (
+                    <div className="mt-2">
+                      <div className="mb-2 flex items-center justify-between">
+                        <p className="text-xs text-gray-500">댓글수 순으로 자동 정렬 · 클릭하면 그 영상으로 바로 제작</p>
+                        <button onClick={() => fetchTrends(true)} disabled={trendLoading}
+                          className="text-xs font-bold text-amber-600 hover:underline disabled:opacity-40">{trendLoading ? "불러오는 중…" : "↻ 새로고침"}</button>
+                      </div>
+                      {trendNote && <p className="mb-2 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">{trendNote}</p>}
+                      {trendLoading && !trendItems.length && (
+                        <div className="flex justify-center py-6"><span className="h-6 w-6 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" /></div>
+                      )}
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
+                        {trendItems.map((it: any) => (<TrendCard key={it.shortcode} item={it} onUse={() => useTrendItem(it)} />))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div>
                 <label className="mb-1 block text-base font-bold text-gray-700">재창작할 쇼핑 숏폼 URL <span className="font-normal text-gray-400">· 인스타 · 틱톡 · 유튜브</span></label>
                 <p className="mb-2 text-sm leading-relaxed text-gray-500">
@@ -3342,6 +3393,29 @@ function proxyThumb(url: string) {
 
 // ── 클립 미리보기 모달 ──────────────────────────────────────
 
+
+function TrendCard({ item, onUse }: { item: any; onUse: () => void }) {
+  const [imgErr, setImgErr] = useState(false);
+  const fmt = (n: number) => n >= 10000 ? (n / 10000).toFixed(1) + "만" : n >= 1000 ? (n / 1000).toFixed(1) + "천" : String(n || 0);
+  return (
+    <div className="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white">
+      <div className="relative aspect-[9/16] bg-gray-100">
+        {!imgErr && item.thumbnail_url
+          ? <img src={item.thumbnail_url} referrerPolicy="no-referrer" onError={() => setImgErr(true)} className="h-full w-full object-cover" />
+          : <div className="flex h-full w-full items-center justify-center text-3xl text-gray-300">🎬</div>}
+        <div className="absolute left-1 top-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white">💬 {fmt(item.comment_count)}</div>
+      </div>
+      <div className="flex flex-1 flex-col gap-1.5 p-2">
+        <p className="line-clamp-2 text-[11px] leading-snug text-gray-700">{item.caption || "(설명 없음)"}</p>
+        <div className="mt-auto flex items-center gap-2 text-[10px] text-gray-400">
+          <span>❤️ {fmt(item.like_count)}</span><span>👁 {fmt(item.view_count)}</span>
+        </div>
+        <button onClick={onUse}
+          className="mt-1 w-full rounded-lg bg-[#03C75A] py-2 text-xs font-bold text-white hover:bg-[#02b350] transition">이 영상으로 만들기</button>
+      </div>
+    </div>
+  );
+}
 
 function ClipCard({ clip, selected, onToggle, onRemove }: { clip: Clip; selected: boolean; onToggle: () => void; onRemove?: () => void }) {
   const [imgError, setImgError] = useState(false);
