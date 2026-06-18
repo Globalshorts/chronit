@@ -15,6 +15,7 @@ import type { Session } from "@supabase/supabase-js";
 import PaymentModal from "../components/PaymentModal";
 import ColorPalette from "../components/ColorPalette";
 import { LinkPageManager, captureVideoFrame } from "./LinksManager";
+import { FEATURES } from "../config/features";
 
 const SB = "https://oxygqtbdpnxxcgzwdlzi.supabase.co";
 const FN = (n: string) => `${SB}/functions/v1/${n}`;
@@ -97,6 +98,13 @@ export default function VideoGenerator() {
 
   // Stage 1
   const [sourceUrl, setSourceUrl]   = useState("");
+  // ── 내 영상 직접 업로드 (FEATURES.directUpload) ──
+  const [inputMode, setInputMode]   = useState<"url"|"upload">("url");
+  const [uploadFile, setUploadFile] = useState<File|null>(null);
+  const [uploadName, setUploadName] = useState("");
+  const [uploadDesc, setUploadDesc] = useState("");
+  const [uploading, setUploading]   = useState(false);
+  const [uploadError, setUploadError] = useState("");
   const [searching, setSearching]   = useState(false);
   const [showSrc, setShowSrc] = useState(false);
   const [searchError, setSearchError] = useState("");
@@ -815,6 +823,39 @@ export default function VideoGenerator() {
     }
   };
 
+  // ── 내 영상 업로드 → 합성 클립 1개로 만들어 기존 자동생성 흐름에 태움 ──
+  const handleUploadGenerate = async () => {
+    if (uploading || autoRunning) return;
+    if (!uploadFile) { setUploadError("영상 파일을 선택해주세요"); return; }
+    if (!videoOnly && !uploadName.trim()) { setUploadError("상품명을 입력해주세요 (대본 생성에 사용돼요)"); return; }
+    setUploadError(""); setUploading(true);
+    try {
+      const { data: { session: s } } = await supabase.auth.getSession();
+      if (!s) { setUploadError("로그인이 필요합니다"); return; }
+      const uid = s.user.id;
+      const ext = ((uploadFile.name.split(".").pop() || "mp4").toLowerCase().replace(/[^a-z0-9]/g, "")) || "mp4";
+      const path = `${uid}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("user-uploads")
+        .upload(path, uploadFile, { contentType: uploadFile.type || "video/mp4", upsert: false });
+      if (upErr) { setUploadError("업로드 실패: " + upErr.message); return; }
+      const { data: pub } = supabase.storage.from("user-uploads").getPublicUrl(path);
+      const url = pub.publicUrl;
+      const clip: any = {
+        video_id: `upload_${Date.now()}`,
+        source: "upload",
+        page_url: url, download_url: url,
+        title: uploadName.trim() || "내 영상",
+        description: [uploadName.trim(), uploadDesc.trim()].filter(Boolean).join("\n"),
+        thumbnail_url: "", duration: 0, author: "",
+      };
+      analysisMetaRef.current = { name: uploadName.trim(), keyword: uploadName.trim(), poster: "" };
+      setSourceUrl(url);
+      setClips([clip]); setCart(new Set([clip.video_id]));
+      setModalCtaText(ctaText); setShowAutoModal(true);
+    } catch (e) { setUploadError(String(e)); }
+    finally { setUploading(false); }
+  };
+
   const handleRender = async (overrides?: { voiceId?: string; ctaText?: string; script?: any }) => {
     lastRenderArgsRef.current = overrides ?? {};
     setRenderError(""); setRendering(true);
@@ -1330,6 +1371,15 @@ export default function VideoGenerator() {
               </button>
             }>
             <div className="space-y-4">
+              {FEATURES.directUpload && (
+                <div className="flex gap-2 rounded-xl bg-gray-100 p-1">
+                  <button onClick={() => { setInputMode("url"); setUploadError(""); }}
+                    className={`flex-1 rounded-lg px-3 py-2 text-sm font-bold transition ${inputMode === "url" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>🔗 URL로 생성</button>
+                  <button onClick={() => { setInputMode("upload"); setSearchError(""); setClips([]); setCart(new Set()); }}
+                    className={`flex-1 rounded-lg px-3 py-2 text-sm font-bold transition ${inputMode === "upload" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>⬆️ 내 영상 업로드</button>
+                </div>
+              )}
+              {(!FEATURES.directUpload || inputMode === "url") && (
               <div>
                 <label className="mb-1 block text-base font-bold text-gray-700">재창작할 쇼핑 숏폼 URL <span className="font-normal text-gray-400">· 인스타 · 틱톡 · 유튜브</span></label>
                 <p className="mb-2 text-sm leading-relaxed text-gray-500">
@@ -1357,8 +1407,20 @@ export default function VideoGenerator() {
                 {searchError && <p className="mt-2 text-sm text-red-400">{searchError}</p>}
                 {searching && <AnalyzeProgress />}
               </div>
+              )}
 
-              {clips.length > 0 && (
+              {FEATURES.directUpload && inputMode === "upload" && (
+                <UploadPanel
+                  file={uploadFile} setFile={setUploadFile}
+                  name={uploadName} setName={setUploadName}
+                  desc={uploadDesc} setDesc={setUploadDesc}
+                  videoOnly={videoOnly} toggleVideoOnly={toggleVideoOnly}
+                  uploading={uploading} error={uploadError}
+                  busy={autoRunning} step={autoRunStep}
+                  onSubmit={handleUploadGenerate} />
+              )}
+
+              {clips.length > 0 && inputMode === "url" && (
                 <div>
                   <div className="mb-3 flex items-center justify-between">
                     <span className="text-sm font-bold text-gray-900">
@@ -3226,6 +3288,54 @@ function proxyThumb(url: string) {
 
 // ── 클립 미리보기 모달 ──────────────────────────────────────
 
+
+function UploadPanel({ file, setFile, name, setName, desc, setDesc, videoOnly, toggleVideoOnly, uploading, error, busy, step, onSubmit }: any) {
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="mb-1 block text-base font-bold text-gray-700">내 영상 업로드 <span className="font-normal text-gray-400">· mp4 · 최대 300MB</span></label>
+        <p className="mb-2 text-sm leading-relaxed text-gray-500">
+          직접 촬영했거나 보유한 영상을 올리면 9:16로 정리하고{videoOnly ? " " : " AI 대본·음성·한글 자막을 입혀 "}숏폼으로 만들어드려요. <span className="font-bold text-[#03C75A]">해외 클립처럼 자막 제거 과정이 없어 더 빠르고 깔끔해요.</span>
+        </p>
+        <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-center hover:border-[#03C75A] transition">
+          <input type="file" accept="video/*" className="hidden"
+            onChange={e => setFile(e.target.files?.[0] ?? null)} disabled={uploading || busy} />
+          <span className="text-2xl">🎞️</span>
+          <span className="text-sm font-bold text-gray-800 break-all px-2">{file ? file.name : "영상 파일 선택"}</span>
+          {file && <span className="text-xs text-gray-400">{(file.size / 1024 / 1024).toFixed(1)}MB</span>}
+        </label>
+      </div>
+      <label className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 cursor-pointer select-none">
+        <input type="checkbox" checked={videoOnly} onChange={toggleVideoOnly} className="h-4 w-4 accent-[#03C75A]" />
+        <span className="text-sm font-bold text-gray-800">🎬 영상만 만들기</span>
+        <span className="text-xs text-gray-400">AI 음성·자막 없이 (9:16 정리만)</span>
+      </label>
+      {!videoOnly && (
+        <div className="space-y-2">
+          <div>
+            <label className="mb-1 block text-sm font-bold text-gray-700">상품명 <span className="text-red-500">*</span></label>
+            <input type="text" value={name} onChange={e => setName(e.target.value)}
+              placeholder="예: 휴대용 미니 가습기"
+              className="w-full rounded-xl bg-gray-100 border border-gray-200 px-4 py-3 text-base text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] focus:ring-1 focus:ring-[#03C75A] transition" />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-bold text-gray-700">상품 설명 <span className="font-normal text-gray-400">· 선택 (대본 품질↑)</span></label>
+            <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={3}
+              placeholder="핵심 기능·장점·타깃을 적어주세요. AI가 이 내용으로 대본을 만들어요."
+              className="w-full rounded-xl bg-gray-100 border border-gray-200 px-4 py-3 text-base text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] focus:ring-1 focus:ring-[#03C75A] transition resize-none" />
+          </div>
+        </div>
+      )}
+      {error && <p className="text-sm text-red-500">{error}</p>}
+      <button onClick={onSubmit} disabled={uploading || busy || !file}
+        className="w-full rounded-xl bg-[#03C75A] px-5 py-3.5 text-base font-bold text-white hover:bg-[#02b350] disabled:opacity-40 transition flex items-center justify-center gap-2">
+        {uploading
+          ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />업로드 중...</>
+          : busy ? (step || "생성 중...") : "🚀 업로드하고 자동 생성"}
+      </button>
+    </div>
+  );
+}
 
 function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean; onToggle: () => void }) {
   const [imgError, setImgError] = useState(false);
