@@ -1414,7 +1414,7 @@ export default function VideoGenerator() {
 
               {FEATURES.directUpload && (
                 <div>
-                  <label className="mb-1 block text-base font-bold text-gray-700">또는 내 영상 추가 <span className="font-normal text-gray-400">· 샤오훙슈 등에서 받은 클립</span></label>
+                  <label className="mb-1 block text-base font-bold text-gray-700">또는 내 영상 추가</label>
                   <p className="mb-2 text-sm leading-relaxed text-gray-500">URL 검색 클립과 <span className="font-bold text-[#03C75A]">섞어서</span> 합성할 수 있어요. 업로드 영상도 자막 제거·컷편집·자막/더빙이 똑같이 적용됩니다.</p>
                   <label className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-5 text-center transition ${uploading ? "border-gray-200 opacity-60" : "border-gray-300 hover:border-[#03C75A]"}`}>
                     <input type="file" accept="video/*" multiple className="hidden" disabled={uploading}
@@ -1446,13 +1446,15 @@ export default function VideoGenerator() {
                     <span className="text-sm font-bold text-gray-800">🎬 영상만 만들기</span>
                     <span className="text-xs text-gray-400">AI 음성·자막 없이 (직접 더빙용)</span>
                   </label>
-                  {clips.some((c: any) => c.source === "upload") && !videoOnly && (
+                  {clips.some((c: any) => c.source === "upload") && (
                     <div className="mb-3 space-y-2 rounded-xl border border-[#03C75A]/30 bg-[#03C75A]/5 p-3">
-                      <p className="text-xs font-bold text-gray-700">📝 업로드 영상 대본 정보 <span className="font-normal text-gray-400">· URL 분석이 없을 때 대본에 사용</span></p>
+                      <p className="text-xs font-bold text-gray-700">📝 업로드 영상 상품 정보 <span className="font-normal text-gray-400">· 쿠팡 검색어{!videoOnly ? "·대본" : ""}에 사용</span></p>
                       <input type="text" value={uploadName} onChange={e => setUploadName(e.target.value)} placeholder="상품명 (예: 휴대용 미니 가습기)"
                         className="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] focus:ring-1 focus:ring-[#03C75A] transition" />
-                      <textarea value={uploadDesc} onChange={e => setUploadDesc(e.target.value)} rows={2} placeholder="상품 설명 (선택) — 핵심 기능·장점·타깃"
-                        className="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] focus:ring-1 focus:ring-[#03C75A] transition resize-none" />
+                      {!videoOnly && (
+                        <textarea value={uploadDesc} onChange={e => setUploadDesc(e.target.value)} rows={2} placeholder="상품 설명 (선택) — 핵심 기능·장점·타깃"
+                          className="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] focus:ring-1 focus:ring-[#03C75A] transition resize-none" />
+                      )}
                     </div>
                   )}
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
