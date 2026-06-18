@@ -1472,7 +1472,10 @@ export default function VideoGenerator() {
                         </div>
                       )}
                       {trendLoading && !trendItems.length && (
-                        <div className="flex justify-center py-6"><span className="h-6 w-6 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" /></div>
+                        <div className="flex flex-col items-center gap-2 py-6">
+                          <span className="h-6 w-6 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
+                          <span className="text-xs text-gray-400">처음 불러올 땐 1~2분 걸려요…</span>
+                        </div>
                       )}
                       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
                         {trendItems.map((it: any) => (<TrendCard key={it.shortcode} item={it} onUse={() => useTrendItem(it)} />))}
