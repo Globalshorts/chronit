@@ -902,7 +902,26 @@ export default function VideoGenerator() {
     finally { setTrendLoading(false); }
   };
   const openTrend = () => { setTrendOpen(o => { const nv = !o; if (nv && !trendItems.length) fetchTrends(); return nv; }); };
-  const useTrendItem = (it: any) => { setActiveView("generator"); setClips([]); setCart(new Set()); handleSearch(it.url); try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (_) {} };
+  // 트렌드 영상을 업로드처럼 처리 — 그 릴스를 소스 클립으로 넣어 자막제거+컷편집+합성 (유사클립 검색 X)
+  const useTrendItem = (it: any) => {
+    setActiveView("generator");
+    setUploadOpen(true);
+    const clip: any = {
+      video_id: `trend_${it.shortcode}`,
+      source: "upload",                       // 업로드 경로 재사용 → 자막제거+합성 적용
+      page_url: it.url,                       // CDN 만료 시 yt-dlp 폴백용 인스타 원본
+      download_url: it.video_url || it.url,   // 0순위 직접 다운로드
+      title: String(it.caption || "트렌드 영상").slice(0, 40),
+      description: String(it.caption || ""),
+      thumbnail_url: it.thumbnail_url || "",
+      duration: 0, author: it.owner || "",
+    };
+    setClips([clip] as any); setCart(new Set([clip.video_id]));
+    setUploadName(""); setUploadDesc("");
+    analysisMetaRef.current = { name: "", keyword: "", poster: "" };
+    setSourceUrl(it.url);
+    try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (_) {}
+  };
   // 트렌드 탭 진입 시 자동 로드
   useEffect(() => { if (activeView === "trends" && !trendItems.length && !trendLoading) fetchTrends(); /* eslint-disable-next-line */ }, [activeView]);
 
