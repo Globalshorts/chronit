@@ -111,6 +111,9 @@ export default function VideoGenerator() {
   const [trendItems, setTrendItems]   = useState<any[]>([]);
   const [trendLoading, setTrendLoading] = useState(false);
   const [trendNote, setTrendNote]     = useState("");
+  const [trendNeedsSetup, setTrendNeedsSetup] = useState(false);
+  const [apifyTok, setApifyTok]       = useState("");
+  const [savingTok, setSavingTok]     = useState(false);
   const [searching, setSearching]   = useState(false);
   const [showSrc, setShowSrc] = useState(false);
   const [searchError, setSearchError] = useState("");
@@ -892,6 +895,7 @@ export default function VideoGenerator() {
       const r = await fetch(FN("trend-feed"), { method: "POST", headers: { Authorization: `Bearer ${s.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify({ force }) });
       const d = await r.json();
       setTrendItems(d.items || []);
+      setTrendNeedsSetup(!!d.needs_setup);
       if (d.needs_setup) setTrendNote("연결 준비 중 — Apify 토큰을 설정하면 표시돼요");
       else if (!(d.items || []).length) setTrendNote("아직 결과가 없어요. 잠시 후 새로고침 해주세요" + (d.status ? ` (${d.status})` : ""));
     } catch (e) { setTrendNote(String(e)); }
@@ -899,6 +903,21 @@ export default function VideoGenerator() {
   };
   const openTrend = () => { setTrendOpen(o => { const nv = !o; if (nv && !trendItems.length) fetchTrends(); return nv; }); };
   const useTrendItem = (it: any) => { setTrendOpen(false); setClips([]); setCart(new Set()); handleSearch(it.url); try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (_) {} };
+
+  // Apify 토큰 저장 (주인 전용) — store-config가 서버에서 이메일 검증
+  const saveApifyToken = async () => {
+    if (!apifyTok.trim() || savingTok) return;
+    setSavingTok(true);
+    try {
+      const { data: { session: s } } = await supabase.auth.getSession();
+      if (!s) { setTrendNote("로그인이 필요합니다"); return; }
+      const r = await fetch(FN("store-config"), { method: "POST", headers: { Authorization: `Bearer ${s.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify({ key: "APIFY_TOKEN", value: apifyTok.trim() }) });
+      const d = await r.json();
+      if (d.ok) { setApifyTok(""); setTrendNeedsSetup(false); setTrendNote("✅ 토큰 저장됨 — 트렌드 불러오는 중…"); await fetchTrends(true); }
+      else setTrendNote("토큰 저장 실패: " + (d.error || ""));
+    } catch (e) { setTrendNote(String(e)); }
+    finally { setSavingTok(false); }
+  };
 
   // 선택 클립 수집 + 업로드 클립에 상품정보(대본용) 주입 + analysisMeta 보정
   const collectSelected = () => {
@@ -1443,6 +1462,15 @@ export default function VideoGenerator() {
                           className="text-xs font-bold text-amber-600 hover:underline disabled:opacity-40">{trendLoading ? "불러오는 중…" : "↻ 새로고침"}</button>
                       </div>
                       {trendNote && <p className="mb-2 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">{trendNote}</p>}
+                      {trendNeedsSetup && (session?.user?.email || "").toLowerCase() === "pv2066pv@gmail.com" && (
+                        <div className="mb-2 space-y-2 rounded-xl border border-amber-300 bg-amber-50 p-3">
+                          <p className="text-xs font-bold text-amber-700">🔑 Apify 토큰 연결 <span className="font-normal text-amber-500">· 주인 전용 · 한 번만</span></p>
+                          <input type="password" value={apifyTok} onChange={e => setApifyTok(e.target.value)} placeholder="apify_api_..."
+                            className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm outline-none focus:border-amber-500" />
+                          <button onClick={saveApifyToken} disabled={savingTok || !apifyTok.trim()}
+                            className="w-full rounded-lg bg-amber-500 py-2 text-sm font-bold text-white hover:bg-amber-600 disabled:opacity-40 transition">{savingTok ? "저장 중…" : "토큰 저장"}</button>
+                        </div>
+                      )}
                       {trendLoading && !trendItems.length && (
                         <div className="flex justify-center py-6"><span className="h-6 w-6 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" /></div>
                       )}
