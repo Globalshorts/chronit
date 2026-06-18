@@ -512,7 +512,7 @@ export default function VideoGenerator() {
       const raw = localStorage.getItem(PROJECT_KEY);
       if (!raw) return false;
       const data = JSON.parse(raw);
-      if (data.sourceUrl) setSourceUrl(data.sourceUrl);
+      if (typeof data.sourceUrl === "string") setSourceUrl(data.sourceUrl);
       if (data.clips?.length) setClips(data.clips);
       if (data.cart?.length) setCart(new Set(data.cart));
       if (data.script) setScript(data.script);
@@ -1050,7 +1050,7 @@ export default function VideoGenerator() {
   const currentData = { stage, sourceUrl, clips, cart: [...cart], script, ctaText, targetSeconds, styleProfileId, subtitleStyle, thumbnailStyle, showThumbnail, voiceId, voiceSpeed, voiceVolume };
   const handleLoad = (d: any) => {
     // ★ 프로젝트별 데이터만 복원 — 전역 설정(음성/스타일/길이)은 자동화 세팅 유지
-    setSourceUrl(d.sourceUrl ?? "");
+    setSourceUrl(typeof d.sourceUrl === "string" ? d.sourceUrl : "");
     setClips(d.clips ?? []);
     setCart(new Set(d.cart ?? []));
     setScript(d.script ?? null);
@@ -1833,7 +1833,7 @@ function friendlyError(raw?: string): string {
 
 // ── URL 입력 라이브 힌트 (잘못된 링크 즉시 안내) ──────────────────────────
 function UrlHint({ url }: { url: string }) {
-  const u = (url || "").trim().toLowerCase();
+  const u = (typeof url === "string" ? url : "").trim().toLowerCase();
   if (!u) return null;
   if (["instagram.com","youtube.com","youtu.be","tiktok.com"].some(p => u.includes(p)))
     return <p className="mt-1.5 text-sm font-bold text-[#03C75A]">✅ 분석할 수 있는 영상 링크예요</p>;
