@@ -1444,9 +1444,9 @@ export default function VideoGenerator() {
                     <span className="text-xs text-gray-400">처음 불러올 땐 1~2분 걸려요…</span>
                   </div>
                 )}
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                   {(() => {
-                    const cutoff = Date.now() - 10 * 86400000; // 최근 10일
+                    const cutoff = Date.now() - 30 * 86400000; // 최근 30일
                     const recent = trendItems
                       .filter((it: any) => it.taken_at && new Date(it.taken_at).getTime() >= cutoff)
                       .sort((a: any, b: any) => (b.comment_count || 0) - (a.comment_count || 0)); // 댓글 많은 순
