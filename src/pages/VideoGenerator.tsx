@@ -559,16 +559,17 @@ export default function VideoGenerator() {
       styleProfileId, subtitleStyle, thumbnailStyle, showThumbnail, voiceId, voiceSpeed]);
 
   // ── Stage 1: 검색 ────────────────────────────────────────
-  const handleSearch = async (overrideUrl?: string) => {
+  const handleSearch = async (overrideUrl?: string, keepClips?: any[]) => {
     setSearchError("");
     const su = (overrideUrl ?? sourceUrl);
+    const keepUploads: any[] = keepClips ?? (clips as any[]).filter((c: any) => c.source === "upload");
     if (overrideUrl !== undefined) setSourceUrl(overrideUrl);
     if (!su.trim()) { setSearchError("URL을 입력해주세요"); return; }
     const lu = su.toLowerCase();
     if (!["instagram.com","youtube.com","youtu.be","tiktok.com"].some(p => lu.includes(p))) {
       setSearchError("Instagram Reels, YouTube Shorts, TikTok URL을 입력해주세요"); return;
     }
-    setSearching(true); setClips([]); setCart(new Set());
+    setSearching(true); setClips(keepUploads as any); setCart(new Set(keepUploads.map((c: any) => c.video_id)));
     const MAX = 2; // 일시적 분석 실패 시 추가 재시도 횟수 (실패 화면 노출 방지)
     try {
       const { data: { session: s } } = await supabase.auth.getSession();
@@ -601,8 +602,8 @@ export default function VideoGenerator() {
         const refFrames: string[] = data1.reference_frames ?? [];
         const _pf = (data1.reference_frames && data1.reference_frames[0]) || "";
         analysisMetaRef.current = { name: data1.product_name || "", keyword: data1.keyword || "", poster: (_pf && !_pf.startsWith("data:") && !_pf.startsWith("http")) ? ("data:image/jpeg;base64," + _pf) : _pf };
-        if (!rawClips.length) { setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요."); return; }
-        if (!refFrames.length) { setClips(rawClips); return; }
+        if (!rawClips.length) { if (!keepUploads.length) setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요."); return; }
+        if (!refFrames.length) { setClips([...(keepUploads as any), ...rawClips]); return; }
 
         // Step 2: CLIP filter (실패해도 rawClips로 폴백 — 재시도 안 함)
         try {
@@ -615,9 +616,9 @@ export default function VideoGenerator() {
           // clip-filter가 download_url(CDN)을 떨궈도 video_id로 원본에서 다시 붙임 (렌더 다운로드용)
           const _dlMap = new Map(rawClips.map((c: any) => [c.video_id, c.download_url]));
           finalClips = finalClips.map((c: any) => ({ ...c, download_url: c.download_url || _dlMap.get(c.video_id) || "" }));
-          setClips(finalClips);
-          if (!finalClips.length) setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요.");
-        } catch { setClips(rawClips); }
+          setClips([...(keepUploads as any), ...finalClips]);
+          if (!finalClips.length && !keepUploads.length) setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요.");
+        } catch { setClips([...(keepUploads as any), ...rawClips]); }
         return;
       }
     } catch (e) { setSearchError("분석 중 일시적인 오류가 있었어요. 잠시 후 다시 시도해 주세요."); }
@@ -903,23 +904,40 @@ export default function VideoGenerator() {
   };
   const openTrend = () => { setTrendOpen(o => { const nv = !o; if (nv && !trendItems.length) fetchTrends(); return nv; }); };
   // 트렌드 영상을 업로드처럼 처리 — 그 릴스를 소스 클립으로 넣어 자막제거+컷편집+합성 (유사클립 검색 X)
-  const useTrendItem = (it: any) => {
-    setActiveView("generator");
-    setUploadOpen(true);
-    const clip: any = {
-      video_id: `trend_${it.shortcode}`,
-      source: "upload",                       // 업로드 경로 재사용 → 자막제거+합성 적용
-      page_url: it.url,                       // CDN 만료 시 yt-dlp 폴백용 인스타 원본
-      download_url: it.video_url || it.url,   // 0순위 직접 다운로드
-      title: String(it.caption || "트렌드 영상").slice(0, 40),
-      description: String(it.caption || ""),
-      thumbnail_url: it.thumbnail_url || "",
-      duration: 0, author: it.owner || "",
-    };
+  // 트렌드 영상 = 타인 콘텐츠 → 최초 1회 저작권 동의(거부감 최소)
+  const confirmTrendLegal = (): boolean => {
+    try { if (localStorage.getItem("chronit_trend_legal_ok") === "1") return true; } catch (_) {}
+    const ok = typeof window !== "undefined" && window.confirm(
+      "⚠️ 이 영상은 다른 사람이 올린 콘텐츠예요.\n\n재가공·업로드에 따른 저작권 등 모든 책임은 이용자 본인에게 있으며, 크로닛은 이에 대해 책임지지 않습니다.\n\n동의하고 계속할까요?");
+    if (ok) { try { localStorage.setItem("chronit_trend_legal_ok", "1"); } catch (_) {} }
+    return ok;
+  };
+  const buildTrendClip = (it: any): any => ({
+    video_id: `trend_${it.shortcode}`,
+    source: "upload",                       // 업로드 경로 재사용 → 자막제거+컷편집+합성
+    page_url: it.url,                       // CDN 만료 시 yt-dlp 폴백
+    download_url: it.video_url || it.url,
+    title: String(it.caption || "트렌드 영상").slice(0, 40),
+    description: String(it.caption || ""),
+    thumbnail_url: it.thumbnail_url || "",
+    duration: 0, author: it.owner || "",
+  });
+  // 담기: 소스 클립으로 추가(업로드처럼, 무료) — 여러 개 누적 가능
+  const trendAdd = (it: any) => {
+    if (!confirmTrendLegal()) return;
+    const clip = buildTrendClip(it);
+    setClips(prev => (prev as any[]).some((c: any) => c.video_id === clip.video_id) ? prev : [clip, ...(prev as any[])] as any);
+    setCart(prev => { const n = new Set(prev); n.add(clip.video_id); return n; });
+    setActiveView("generator"); setUploadOpen(true);
+    try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (_) {}
+  };
+  // 분석: 담기 + 분석(유사클립·상품명, 10CR) — reel은 유지하고 유사클립을 추가
+  const trendAnalyze = (it: any) => {
+    if (!confirmTrendLegal()) return;
+    const clip = buildTrendClip(it);
+    setActiveView("generator"); setUploadOpen(true);
     setClips([clip] as any); setCart(new Set([clip.video_id]));
-    setUploadName(""); setUploadDesc("");
-    analysisMetaRef.current = { name: "", keyword: "", poster: "" };
-    setSourceUrl(it.url);
+    handleSearch(it.url, [clip]);
     try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (_) {}
   };
   // 트렌드 탭 진입 시 자동 로드
@@ -1420,7 +1438,7 @@ export default function VideoGenerator() {
                       .filter((it: any) => it.taken_at && new Date(it.taken_at).getTime() >= cutoff)
                       .sort((a: any, b: any) => (b.comment_count || 0) - (a.comment_count || 0)); // 댓글 많은 순
                     const shown = recent.length >= 5 ? recent : trendItems; // 최근글 너무 적으면 전체 표시
-                    return shown.map((it: any) => (<TrendCard key={it.shortcode} item={it} onUse={() => useTrendItem(it)} />));
+                    return shown.map((it: any) => (<TrendCard key={it.shortcode} item={it} onAdd={() => trendAdd(it)} onAnalyze={() => trendAnalyze(it)} />));
                   })()}
                 </div>
               </div>
@@ -3441,7 +3459,7 @@ function proxyThumb(url: string) {
 // ── 클립 미리보기 모달 ──────────────────────────────────────
 
 
-function TrendCard({ item, onUse }: { item: any; onUse: () => void }) {
+function TrendCard({ item, onAdd, onAnalyze }: { item: any; onAdd: () => void; onAnalyze: () => void }) {
   const [imgErr, setImgErr] = useState(false);
   const f = (n: number) => { n = Math.max(0, Math.trunc(Number(n) || 0)); return n >= 10000 ? (n / 10000).toFixed(1) + "만" : n >= 1000 ? (n / 1000).toFixed(1) + "천" : String(n); };
   return (
@@ -3461,8 +3479,12 @@ function TrendCard({ item, onUse }: { item: any; onUse: () => void }) {
           <span title="좋아요">❤️ {f(item.like_count)}</span>
           <span title="조회수">▶ {f(item.view_count)}</span>
         </div>
-        <button onClick={onUse}
-          className="mt-1 w-full rounded-lg bg-[#03C75A] py-2 text-xs font-bold text-white hover:bg-[#02b350] transition">이 영상으로 만들기</button>
+        <div className="mt-1 flex gap-1.5">
+          <button onClick={onAdd} title="이 영상을 소스로 담기 (무료)"
+            className="flex-1 rounded-lg border border-[#03C75A] py-2 text-xs font-bold text-[#03C75A] hover:bg-[#03C75A]/10 transition">＋ 담기</button>
+          <button onClick={onAnalyze} title="담기 + 유사클립·상품명 분석 (10 CR)"
+            className="flex-1 rounded-lg bg-[#03C75A] py-2 text-xs font-bold text-white hover:bg-[#02b350] transition">🔍 분석</button>
+        </div>
       </div>
     </div>
   );
