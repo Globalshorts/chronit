@@ -347,6 +347,7 @@ export default function LinksManager() {
 function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
   const [title, setTitle] = useState(item?.title ?? (job.seo_title || job.product_name || ''))
   const [url, setUrl] = useState(item?.target_url ?? '')
+  const [searchKw, setSearchKw] = useState((job.product_name || job.search_keyword || '').trim())
   const [badge, setBadge] = useState(item?.badge ?? '')
   const [badgeColor, setBadgeColor] = useState(item?.badge_color || '#ff4d4f')
   const [img, setImg] = useState(item?.image_url || job.poster_url || '')
@@ -406,13 +407,27 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
               className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
             <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="쿠팡 파트너스 링크 붙여넣기"
               className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[11px] font-bold text-gray-400">🔍 쿠팡 검색:</span>
-              {Array.from(new Set([job.product_name, job.search_keyword, title].map(k => (k || '').trim()).filter(Boolean))).slice(0, 3).map((kw, i) => (
-                <a key={i} href={`https://partners.coupang.com/#affiliate/ws/link/0/${encodeURIComponent(kw)}`}
-                  target="_blank" rel="noreferrer" title={kw}
-                  className="shrink-0 whitespace-nowrap rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-200">{kw.length > 12 ? kw.slice(0, 12) + '…' : kw}</a>
-              ))}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <span className="shrink-0 text-[11px] font-bold text-gray-400">🔍 쿠팡 검색:</span>
+                <input value={searchKw} onChange={(e) => setSearchKw(e.target.value)} placeholder="상품명 입력 (예: 미니 봉지 밀봉기)"
+                  className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
+                <a href={`https://partners.coupang.com/#affiliate/ws/link/0/${encodeURIComponent((searchKw || title || '').trim())}`}
+                  target="_blank" rel="noreferrer"
+                  className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold text-white transition ${(searchKw || title || '').trim() ? 'bg-[#03C75A] hover:bg-[#02b350]' : 'pointer-events-none bg-gray-300'}`}>검색</a>
+              </div>
+              {(() => {
+                const chips = Array.from(new Set([job.product_name, job.search_keyword].map(k => (k || '').trim()).filter(Boolean))).filter(k => k !== searchKw.trim()).slice(0, 2);
+                return chips.length > 0 ? (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-[10px] text-gray-400">추천:</span>
+                    {chips.map((kw, i) => (
+                      <button key={i} type="button" onClick={() => setSearchKw(kw)} title={kw}
+                        className="shrink-0 whitespace-nowrap rounded-lg bg-gray-100 px-2 py-1 text-[11px] font-bold text-gray-600 hover:bg-gray-200">{kw.length > 14 ? kw.slice(0, 14) + '…' : kw}</button>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
             </div>
             <div className="flex items-center gap-2">
               {active ? (
