@@ -1446,7 +1446,7 @@ export default function VideoGenerator() {
                 )}
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                   {(() => {
-                    const cutoff = Date.now() - 7 * 86400000; // 최근 7일
+                    const cutoff = Date.now() - 10 * 86400000; // 최근 10일
                     const recent = trendItems
                       .filter((it: any) => it.taken_at && new Date(it.taken_at).getTime() >= cutoff)
                       .sort((a: any, b: any) => (b.comment_count || 0) - (a.comment_count || 0)); // 댓글 많은 순
