@@ -565,7 +565,7 @@ export default function VideoGenerator() {
     setSearchError("");
     const ov = (typeof overrideUrl === "string") ? overrideUrl : undefined; // onClick 이벤트 객체 방어
     const su = (ov ?? sourceUrl);
-    const keepUploads: any[] = keepClips ?? (clips as any[]).filter((c: any) => c.source === "upload");
+    const keepUploads: any[] = keepClips ?? (clips as any[]).filter((c: any) => c.source === "upload" || c.source === "trend");
     if (ov !== undefined) setSourceUrl(ov);
     if (!su.trim()) { setSearchError("URL을 입력해주세요"); return; }
     const lu = su.toLowerCase();
@@ -938,7 +938,7 @@ export default function VideoGenerator() {
   };
   const buildTrendClip = (it: any): any => ({
     video_id: `trend_${it.shortcode}`,
-    source: "upload",                       // 업로드 경로 재사용 → 자막제거+컷편집+합성
+    source: "trend",                        // 분석/트렌드 — 상품명 필수 아님(분석이 product_name 제공)
     page_url: it.url,                       // CDN 만료 시 yt-dlp 폴백
     download_url: it.video_url || it.url,
     title: String(it.caption || "트렌드 영상").slice(0, 40),
@@ -1623,7 +1623,7 @@ export default function VideoGenerator() {
                     {clips.map(clip => (
                       <ClipCard key={clip.video_id} clip={clip}
                         selected={cart.has(clip.video_id)} onToggle={() => toggleCart(clip.video_id)}
-                        onRemove={(clip as any).source === "upload" ? () => handleRemoveUpload(clip) : undefined} />
+                        onRemove={((clip as any).source === "upload" || (clip as any).source === "trend") ? () => handleRemoveUpload(clip) : undefined} />
                     ))}
                   </div>
                   {(() => {
@@ -3559,7 +3559,7 @@ function ClipCard({ clip, selected, onToggle, onRemove }: { clip: Clip; selected
         )}
         {onRemove && (
           <>
-            <span className="absolute bottom-1 left-1 rounded bg-[#03C75A]/90 px-1.5 py-0.5 text-[10px] font-bold text-white">내 영상</span>
+            <span className="absolute bottom-1 left-1 rounded bg-[#03C75A]/90 px-1.5 py-0.5 text-[10px] font-bold text-white">{(clip as any).source === "trend" ? "트렌드" : "내 영상"}</span>
             <button onClick={e => { e.stopPropagation(); onRemove(); }} title="영상 빼기"
               className="absolute top-1.5 right-1.5 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-xs font-black text-white transition hover:bg-red-500">
               ✕
