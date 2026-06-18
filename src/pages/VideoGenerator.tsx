@@ -1434,6 +1434,17 @@ export default function VideoGenerator() {
                     </div>
                   </div>
                   {uploadError && <p className="mt-2 text-sm text-red-500">{uploadError}</p>}
+                  {clips.some((c: any) => c.source === "upload") && (
+                    <div className="mt-2 space-y-2 rounded-xl border border-[#03C75A]/30 bg-[#03C75A]/5 p-3">
+                      <p className="text-xs font-bold text-gray-700">📝 업로드 영상 상품 정보 <span className="font-normal text-red-500">*</span> <span className="font-normal text-gray-400">· 쿠팡 검색어{!videoOnly ? "·대본" : ""}에 사용</span></p>
+                      <input type="text" value={uploadName} onChange={e => setUploadName(e.target.value)} placeholder="상품명 (예: 휴대용 미니 가습기)"
+                        className="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] focus:ring-1 focus:ring-[#03C75A] transition" />
+                      {!videoOnly && (
+                        <textarea value={uploadDesc} onChange={e => setUploadDesc(e.target.value)} rows={2} placeholder="상품 설명 (선택) — 핵심 기능·장점·타깃"
+                          className="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] focus:ring-1 focus:ring-[#03C75A] transition resize-none" />
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1456,27 +1467,21 @@ export default function VideoGenerator() {
                     <span className="text-sm font-bold text-gray-800">🎬 영상만 만들기</span>
                     <span className="text-xs text-gray-400">AI 음성·자막 없이 (직접 더빙용)</span>
                   </label>
-                  {clips.some((c: any) => c.source === "upload") && (
-                    <div className="mb-3 space-y-2 rounded-xl border border-[#03C75A]/30 bg-[#03C75A]/5 p-3">
-                      <p className="text-xs font-bold text-gray-700">📝 업로드 영상 상품 정보 <span className="font-normal text-gray-400">· 쿠팡 검색어{!videoOnly ? "·대본" : ""}에 사용</span></p>
-                      <input type="text" value={uploadName} onChange={e => setUploadName(e.target.value)} placeholder="상품명 (예: 휴대용 미니 가습기)"
-                        className="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] focus:ring-1 focus:ring-[#03C75A] transition" />
-                      {!videoOnly && (
-                        <textarea value={uploadDesc} onChange={e => setUploadDesc(e.target.value)} rows={2} placeholder="상품 설명 (선택) — 핵심 기능·장점·타깃"
-                          className="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] focus:ring-1 focus:ring-[#03C75A] transition resize-none" />
-                      )}
-                    </div>
-                  )}
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {clips.map(clip => (
                       <ClipCard key={clip.video_id} clip={clip}
                         selected={cart.has(clip.video_id)} onToggle={() => toggleCart(clip.video_id)} />
                     ))}
                   </div>
+                  {(() => {
+                    const needUploadName = clips.some((c: any) => c.source === "upload") && !uploadName.trim();
+                    return (
                   <FloatingNext
-                    label={autoRunning ? (autoRunStep || "처리 중...") : cart.size > 0 ? `🚀 자동 생성 (${cart.size}개)` : "👇 클립을 담아주세요"}
-                    onClick={() => { if (!autoRunning && cart.size > 0) { setModalCtaText(ctaText); setShowAutoModal(true); } }}
-                    disabled={autoRunning || cart.size === 0} />
+                    label={autoRunning ? (autoRunStep || "처리 중...") : cart.size === 0 ? "👇 클립을 담아주세요" : needUploadName ? "✏️ 상품명을 입력해주세요" : `🚀 자동 생성 (${cart.size}개)`}
+                    onClick={() => { if (!autoRunning && cart.size > 0 && !needUploadName) { setModalCtaText(ctaText); setShowAutoModal(true); } }}
+                    disabled={autoRunning || cart.size === 0 || needUploadName} />
+                    );
+                  })()}
                   {!autoRunning && autoRunError && (
                     <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300 flex items-start gap-2">
                       <span>❌</span>
