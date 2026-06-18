@@ -1078,6 +1078,7 @@ export default function VideoGenerator() {
     setSeoTitle("");
     setSeoDesc("");
     setSeoTags("");
+    try { clearProject(); } catch (_) {}
     // 유지: subtitleStyle, thumbnailStyle, voiceId, voiceSpeed, voiceVolume,
     //       targetSeconds, styleProfileId, showThumbnail
   };
@@ -1368,18 +1369,6 @@ export default function VideoGenerator() {
           balance={balance} userPlan={userPlan} session={session} onCredited={loadBalance} />
       </div>
 
-      {/* ── 중간 패널 — 프로젝트 탭일 때만 표시 (데스크탑) ── */}
-      {activeView === "generator" && (
-        <div className="hidden md:flex w-60 shrink-0 border-r border-gray-200 flex-col overflow-y-auto">
-          <ProjectPanel
-            activeView={activeView}
-            current={currentData} onLoad={handleLoad} onReset={handleReset}
-            session={session}
-            styleProfileId={styleProfileId} onSelectStyle={setStyleProfileId}
-          />
-        </div>
-      )}
-
       {/* ── 메인 콘텐츠 ── */}
       <div className="flex-1 min-w-0 flex flex-col">
         {activeView !== "generator" && (
@@ -1510,26 +1499,10 @@ export default function VideoGenerator() {
             </a>
           </div>
 
-          {/* 모바일: 프로젝트 드롭다운 */}
-          <div className="md:hidden mb-4">
-            <button onClick={() => setMobileProjOpen(v => !v)}
-              className="flex w-full items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-gray-700 active:scale-[0.99] transition">
-              <span>📁 내 프로젝트 — 생성 · 선택 · 삭제</span>
-              <span className="text-xs text-gray-400 transition-transform" style={{ transform: mobileProjOpen ? "rotate(180deg)" : "rotate(0deg)" }}>▼</span>
-            </button>
-            {mobileProjOpen && (
-              <div className="mt-2 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-                <ProjectPanel
-                  compact
-                  activeView="generator"
-                  current={currentData}
-                  onLoad={(d) => { handleLoad(d); setMobileProjOpen(false); }}
-                  onReset={() => { handleReset(); setMobileProjOpen(false); }}
-                  session={session}
-                  styleProfileId={styleProfileId} onSelectStyle={setStyleProfileId}
-                />
-              </div>
-            )}
+          {/* 새로 시작 (작업 초기화) */}
+          <div className="mb-3 flex justify-end">
+            <button onClick={() => { if (window.confirm("현재 작업을 비우고 새로 시작할까요?\n(완성된 영상은 생성 내역에 그대로 있어요)")) handleReset(); }}
+              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-500 transition hover:border-[#03C75A]/50 hover:text-[#03C75A]">🆕 새로 시작</button>
           </div>
 
           <StagePanel n={1} title="영상 분석" subtitle="URL 입력 → 관련 TikTok 클립 검색 → 담기" current={stage}
