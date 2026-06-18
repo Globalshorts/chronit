@@ -1449,7 +1449,7 @@ export default function VideoGenerator() {
                     <span className="text-xs text-gray-400">처음 불러올 땐 1~2분 걸려요…</span>
                   </div>
                 )}
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                   {(() => {
                     const cutoff = Date.now() - 30 * 86400000; // 최근 30일
                     const isComp = (c: string) => /top ?\d|베스트|순위|랭킹|모음|총정리|\d+ ?가지|\d+ ?위/i.test(c || ""); // TOP5·모음 등 컴필레이션
