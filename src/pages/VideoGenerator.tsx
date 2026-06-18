@@ -114,6 +114,7 @@ export default function VideoGenerator() {
   const [trendNeedsSetup, setTrendNeedsSetup] = useState(false);
   const [apifyTok, setApifyTok]       = useState("");
   const [savingTok, setSavingTok]     = useState(false);
+  const [trendShowComp, setTrendShowComp] = useState(false);  // TOP·모음 컴필레이션 표시 여부
   const [searching, setSearching]   = useState(false);
   const [showSrc, setShowSrc] = useState(false);
   const [searchError, setSearchError] = useState("");
@@ -1428,6 +1429,10 @@ export default function VideoGenerator() {
               <div className="max-w-5xl mx-auto">
                 <h2 className="mb-1 text-xl font-black text-gray-900">🔥 오늘의 트렌드</h2>
                 <p className="mb-4 text-sm text-gray-500">댓글 많은 쇼핑 릴스를 매일 서버에서 자동 수집해 댓글수 순으로 보여줘요. 카드를 누르면 그 영상으로 바로 제작 흐름으로 넘어가요.</p>
+                <label className="mb-3 inline-flex items-center gap-2 cursor-pointer text-xs text-gray-500 select-none">
+                  <input type="checkbox" checked={trendShowComp} onChange={(e) => setTrendShowComp(e.target.checked)} className="h-3.5 w-3.5 accent-[#03C75A]" />
+                  TOP·모음(컴필레이션) 영상도 보기
+                </label>
                 {trendNote && <p className="mb-3 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">{trendNote}</p>}
                 {trendNeedsSetup && (session?.user?.email || "").toLowerCase() === "pv2066pv@gmail.com" && (
                   <div className="mb-4 max-w-md space-y-2 rounded-xl border border-amber-300 bg-amber-50 p-3">
@@ -1447,10 +1452,13 @@ export default function VideoGenerator() {
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                   {(() => {
                     const cutoff = Date.now() - 30 * 86400000; // 최근 30일
-                    const recent = trendItems
-                      .filter((it: any) => it.taken_at && new Date(it.taken_at).getTime() >= cutoff)
+                    const isComp = (c: string) => /top ?\d|베스트|순위|랭킹|모음|총정리|\d+ ?가지|\d+ ?위/i.test(c || ""); // TOP5·모음 등 컴필레이션
+                    const within = trendItems.filter((it: any) => it.taken_at && new Date(it.taken_at).getTime() >= cutoff);
+                    const single = trendShowComp ? within : within.filter((it: any) => !isComp(it.caption));
+                    const base = single.length >= 5 ? single : within; // 단일상품이 너무 적으면 전체(최근)
+                    const shown = (base.length ? base : trendItems)
+                      .slice()
                       .sort((a: any, b: any) => (b.comment_count || 0) - (a.comment_count || 0)); // 댓글 많은 순
-                    const shown = recent.length >= 5 ? recent : trendItems; // 최근글 너무 적으면 전체 표시
                     return shown.map((it: any) => (<TrendCard key={it.shortcode} item={it} onAdd={() => trendAdd(it)} onAnalyze={() => trendAnalyze(it)} />));
                   })()}
                 </div>
