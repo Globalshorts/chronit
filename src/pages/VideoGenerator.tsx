@@ -1395,7 +1395,12 @@ export default function VideoGenerator() {
                   </div>
                 )}
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                  {trendItems.map((it: any) => (<TrendCard key={it.shortcode} item={it} onUse={() => useTrendItem(it)} />))}
+                  {(() => {
+                    const cutoff = Date.now() - 30 * 86400000; // 최근 30일
+                    const recent = trendItems.filter((it: any) => it.taken_at && new Date(it.taken_at).getTime() >= cutoff);
+                    const shown = recent.length >= 8 ? recent : trendItems; // 최근글 너무 적으면 전체 표시
+                    return shown.map((it: any) => (<TrendCard key={it.shortcode} item={it} onUse={() => useTrendItem(it)} />));
+                  })()}
                 </div>
               </div>
             )}
