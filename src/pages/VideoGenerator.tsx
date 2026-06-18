@@ -105,6 +105,7 @@ export default function VideoGenerator() {
   const [uploadDesc, setUploadDesc] = useState("");
   const [uploading, setUploading]   = useState(false);
   const [uploadError, setUploadError] = useState("");
+  const [uploadOpen, setUploadOpen]   = useState(false);
   const [searching, setSearching]   = useState(false);
   const [showSrc, setShowSrc] = useState(false);
   const [searchError, setSearchError] = useState("");
@@ -827,6 +828,7 @@ export default function VideoGenerator() {
   const handleAddUploads = async (files: File[]) => {
     if (!files || files.length === 0 || uploading) return;
     setUploadError(""); setUploading(true);
+    setUploadOpen(true);
     try {
       const { data: { session: s } } = await supabase.auth.getSession();
       if (!s) { setUploadError("로그인이 필요합니다"); return; }
@@ -861,6 +863,16 @@ export default function VideoGenerator() {
       }
     } catch (e) { setUploadError(String(e)); }
     finally { setUploading(false); }
+  };
+
+  // 업로드 클립 제거 (목록·장바구니에서 빼고 스토리지에서도 best-effort 삭제)
+  const handleRemoveUpload = async (clip: any) => {
+    setClips(prev => (prev as any[]).filter(c => c.video_id !== clip.video_id) as any);
+    setCart(prev => { const n = new Set(prev); n.delete(clip.video_id); return n; });
+    try {
+      const m = String(clip.download_url || "").split("/user-uploads/")[1];
+      if (m) await supabase.storage.from("user-uploads").remove([decodeURIComponent(m)]);
+    } catch (_) { /* 삭제 실패 무시 */ }
   };
 
   // 선택 클립 수집 + 업로드 클립에 상품정보(대본용) 주입 + analysisMeta 보정
@@ -1421,7 +1433,13 @@ export default function VideoGenerator() {
 
               {FEATURES.directUpload && (
                 <div>
-                  <label className="mb-1 block text-base font-bold text-gray-700">또는 내 영상 추가</label>
+                  <button type="button" onClick={() => setUploadOpen(o => !o)}
+                    className="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 text-left transition hover:border-[#03C75A]/50">
+                    <span className="text-base font-bold text-gray-700">⬆️ 또는 내 영상 추가</span>
+                    <span className="text-gray-400 text-sm">{uploadOpen ? "▴ 접기" : "▾ 펼치기"}</span>
+                  </button>
+                  {uploadOpen && (
+                  <div className="mt-2">
                   <p className="mb-2 text-sm leading-relaxed text-gray-500">URL 검색 클립과 <span className="font-bold text-[#03C75A]">섞어서</span> 합성할 수 있어요. 업로드 영상도 자막 제거·컷편집·자막/더빙이 똑같이 적용됩니다.</p>
                   <div className="relative">
                     <input type="file" accept="video/*" multiple disabled={uploading}
@@ -1444,6 +1462,8 @@ export default function VideoGenerator() {
                           className="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] focus:ring-1 focus:ring-[#03C75A] transition resize-none" />
                       )}
                     </div>
+                  )}
+                  </div>
                   )}
                 </div>
               )}
@@ -1470,7 +1490,8 @@ export default function VideoGenerator() {
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {clips.map(clip => (
                       <ClipCard key={clip.video_id} clip={clip}
-                        selected={cart.has(clip.video_id)} onToggle={() => toggleCart(clip.video_id)} />
+                        selected={cart.has(clip.video_id)} onToggle={() => toggleCart(clip.video_id)}
+                        onRemove={(clip as any).source === "upload" ? () => handleRemoveUpload(clip) : undefined} />
                     ))}
                   </div>
                   {(() => {
@@ -3322,7 +3343,7 @@ function proxyThumb(url: string) {
 // ── 클립 미리보기 모달 ──────────────────────────────────────
 
 
-function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean; onToggle: () => void }) {
+function ClipCard({ clip, selected, onToggle, onRemove }: { clip: Clip; selected: boolean; onToggle: () => void; onRemove?: () => void }) {
   const [imgError, setImgError] = useState(false);
   const [playing, setPlaying] = useState(false);
   const rawUrl = clip.download_url || clip.video_url || "";
@@ -3368,6 +3389,15 @@ function ClipCard({ clip, selected, onToggle }: { clip: Clip; selected: boolean;
           <div className="absolute top-1.5 left-1.5 h-5 w-5 rounded-full bg-[#03C75A] flex items-center justify-center">
             <span className="text-white text-xs font-black">✓</span>
           </div>
+        )}
+        {onRemove && (
+          <>
+            <span className="absolute bottom-1 left-1 rounded bg-[#03C75A]/90 px-1.5 py-0.5 text-[10px] font-bold text-white">내 영상</span>
+            <button onClick={e => { e.stopPropagation(); onRemove(); }} title="영상 빼기"
+              className="absolute top-1.5 right-1.5 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-xs font-black text-white transition hover:bg-red-500">
+              ✕
+            </button>
+          </>
         )}
       </div>
       <div className="p-1.5 bg-white">
