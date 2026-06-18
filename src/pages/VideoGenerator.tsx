@@ -824,7 +824,7 @@ export default function VideoGenerator() {
   };
 
   // ── 내 영상 추가 → URL 클립과 같은 장바구니에 합성 클립으로 append ──
-  const handleAddUploads = async (files: FileList | null) => {
+  const handleAddUploads = async (files: File[]) => {
     if (!files || files.length === 0 || uploading) return;
     setUploadError(""); setUploading(true);
     try {
@@ -832,7 +832,7 @@ export default function VideoGenerator() {
       if (!s) { setUploadError("로그인이 필요합니다"); return; }
       const uid = s.user.id;
       const added: any[] = [];
-      for (const file of Array.from(files)) {
+      for (const file of files) {
         const ext = ((file.name.split(".").pop() || "mp4").toLowerCase().replace(/[^a-z0-9]/g, "")) || "mp4";
         const path = `${uid}/${Date.now()}_${Math.random().toString(36).slice(2, 7)}.${ext}`;
         const { error: upErr } = await supabase.storage.from("user-uploads")
@@ -1425,7 +1425,7 @@ export default function VideoGenerator() {
                   <p className="mb-2 text-sm leading-relaxed text-gray-500">URL 검색 클립과 <span className="font-bold text-[#03C75A]">섞어서</span> 합성할 수 있어요. 업로드 영상도 자막 제거·컷편집·자막/더빙이 똑같이 적용됩니다.</p>
                   <div className="relative">
                     <input type="file" accept="video/*" multiple disabled={uploading}
-                      onChange={e => { handleAddUploads(e.target.files); (e.currentTarget as HTMLInputElement).value = ""; }}
+                      onChange={e => { const arr = Array.from(e.target.files || []); (e.currentTarget as HTMLInputElement).value = ""; handleAddUploads(arr); }}
                       className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed" />
                     <div className={`pointer-events-none flex items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-5 text-center transition ${uploading ? "border-gray-200 opacity-60" : "border-gray-300"}`}>
                       {uploading
