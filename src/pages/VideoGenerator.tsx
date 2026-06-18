@@ -180,6 +180,7 @@ export default function VideoGenerator() {
   const [refLoading, setRefLoading] = useState(false);
   const [refAlready, setRefAlready] = useState(false);  // 추천 코드가 이미 적용됨(링크 유입 등)
   const [modalCtaText, setModalCtaText]   = useState("");   // 자동화 진행 단계 메시지
+  const [manualScript, setManualScript] = useState("");   // 대본 직접 입력 (비우면 AI 자동)
   const [voiceSegments, setVoiceSegments] = useState<any[]>([]);  // 장면별 편집용
   const [freeRegen, setFreeRegen] = useState(3);  // Stage 3 무료 재생성 횟수
   const [seoTitle, setSeoTitle] = useState("");
@@ -689,8 +690,9 @@ export default function VideoGenerator() {
   const [voiceLoading, setVoiceLoading] = useState(false);
   const [voiceError, setVoiceError] = useState("");
 
-  const handleVoiceGenerate = async (overrideVoiceId?: string) => {
-    if (!script || script.length === 0) return;
+  const handleVoiceGenerate = async (overrideVoiceId?: string, overrideScript?: any[]) => {
+    const sc = (overrideScript && overrideScript.length) ? overrideScript : script;
+    if (!sc || sc.length === 0) return;
     const _voiceId = overrideVoiceId ?? voiceId;
     setVoiceLoading(true); setVoiceError("");
     try {
@@ -706,7 +708,7 @@ export default function VideoGenerator() {
         body: JSON.stringify({
           voice_id: _voiceId,
           voice_speed: voiceSpeed / 100,
-          segments: script.map((s, i) => ({
+          segments: sc.map((s: any, i: number) => ({
             idx: i,
             text: s.text || s.sentence || "",
             duration_hint: s.duration_sec || 2,
@@ -786,6 +788,14 @@ export default function VideoGenerator() {
       // Step 1: 대본 생성 (영상만 모드면 대본/음성 건너뜀)
       let genSegments: any = null;
       if (!videoOnly) {
+      const _manual = manualScript.trim();
+      if (_manual) {
+        // ── 대본 직접 입력: AI 대본 생성 건너뛰고 그대로 사용 (영상 컷은 음성 길이에 맞춰 잘림) ──
+        setAutoRunStep("1/3  대본 적용 중...");
+        genSegments = _manual.split(/\n+|(?<=[.!?。])\s+/).map((t: string) => t.trim()).filter(Boolean).map((text: string) => ({ text }));
+        if (!genSegments.length) genSegments = [{ text: _manual }];
+        setScript(genSegments);
+      } else {
       setAutoRunStep("1/3  대본 생성 중...");
       await new Promise<void>(async (resolve, reject) => {
         setScriptError(""); setScriptLoading(true); setScript(null);
@@ -817,10 +827,11 @@ export default function VideoGenerator() {
         }
         reject(new Error("대본 생성 시간 초과"));
       });
+      }
 
-      // Step 2: 음성 생성 — voiceId 직접 전달 (state 비동기 문제 방지)
+      // Step 2: 음성 생성 — 대본 명시 전달(상태 타이밍 방지)
       setAutoRunStep("2/3  음성 생성 중...");
-      await handleVoiceGenerate(voiceId);
+      await handleVoiceGenerate(voiceId, genSegments);
       }  // end if(!videoOnly)
 
       // Step 3: 영상 합성 — state 비동기 문제 방지: ctaOverride, voiceId 직접 전달
@@ -1200,6 +1211,17 @@ export default function VideoGenerator() {
                 </div>
               )}
             </div>
+
+            {/* 대본 직접 입력 (영상만이면 숨김) */}
+            {!videoOnly && (
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-gray-700 flex items-center gap-1.5">✍️ 대본 직접 입력 <span className="font-normal text-gray-400">· 선택 (비우면 AI가 자동 생성)</span></p>
+              <p className="text-xs text-gray-500">직접 쓰면 그 대본으로 음성·자막이 만들어지고, <b>영상 컷이 대본(문장)에 맞춰</b> 잘려요. 한 줄(또는 한 문장)이 한 컷이에요.</p>
+              <textarea value={manualScript} onChange={e => setManualScript(e.target.value)} rows={4}
+                placeholder={"예:\n이거 진짜 신세계예요\n버튼 하나로 끝나거든요\n주방 좁아도 걱정 없어요"}
+                className="w-full rounded-xl bg-gray-100 border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-[#03C75A] transition resize-none" />
+            </div>
+            )}
 
             {/* CTA 입력 (영상만이면 숨김) */}
             {!videoOnly && (
