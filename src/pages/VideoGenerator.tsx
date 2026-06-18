@@ -1376,12 +1376,8 @@ export default function VideoGenerator() {
             )}
             {activeView === "trends" && (
               <div className="max-w-5xl mx-auto">
-                <div className="mb-1 flex items-center justify-between">
-                  <h2 className="text-xl font-black text-gray-900">🔥 오늘의 트렌드</h2>
-                  <button onClick={() => fetchTrends(true)} disabled={trendLoading}
-                    className="text-sm font-bold text-amber-600 hover:underline disabled:opacity-40">{trendLoading ? "불러오는 중…" : "↻ 새로고침"}</button>
-                </div>
-                <p className="mb-4 text-sm text-gray-500">댓글 많은 쇼핑 릴스를 자동 수집해 댓글수 순으로 보여줘요. 카드를 누르면 그 영상으로 바로 제작 흐름으로 넘어가요.</p>
+                <h2 className="mb-1 text-xl font-black text-gray-900">🔥 오늘의 트렌드</h2>
+                <p className="mb-4 text-sm text-gray-500">댓글 많은 쇼핑 릴스를 매일 서버에서 자동 수집해 댓글수 순으로 보여줘요. 카드를 누르면 그 영상으로 바로 제작 흐름으로 넘어가요.</p>
                 {trendNote && <p className="mb-3 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">{trendNote}</p>}
                 {trendNeedsSetup && (session?.user?.email || "").toLowerCase() === "pv2066pv@gmail.com" && (
                   <div className="mb-4 max-w-md space-y-2 rounded-xl border border-amber-300 bg-amber-50 p-3">
