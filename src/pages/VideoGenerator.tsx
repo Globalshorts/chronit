@@ -904,12 +904,23 @@ export default function VideoGenerator() {
   };
   const openTrend = () => { setTrendOpen(o => { const nv = !o; if (nv && !trendItems.length) fetchTrends(); return nv; }); };
   // 트렌드 영상을 업로드처럼 처리 — 그 릴스를 소스 클립으로 넣어 자막제거+컷편집+합성 (유사클립 검색 X)
-  // 트렌드 영상 = 타인 콘텐츠 → 최초 1회 저작권 동의(거부감 최소)
+  // 트렌드 영상 = 타인 콘텐츠 → 최초 1회 저작권 동의 + 서버 로그(법적 증빙)
+  const TERMS_VERSION = "trend-v1";
+  const TERMS_TEXT = "이 영상은 다른 사람이 올린 콘텐츠입니다. 재가공·업로드에 따른 저작권 등 모든 책임은 이용자 본인에게 있으며, 크로닛은 이에 대해 책임지지 않습니다.";
+  // 서버에 동의/사용 기록 (누가·언제·약관버전·어떤 영상) — 변조 불가 증거
+  const logConsent = async (action: "agree" | "add" | "analyze", it?: any) => {
+    try {
+      const { data: { session: s } } = await supabase.auth.getSession();
+      if (!s) return;
+      fetch(FN("log-consent"), { method: "POST", headers: { Authorization: `Bearer ${s.access_token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ action, terms_version: TERMS_VERSION, terms_text: action === "agree" ? TERMS_TEXT : undefined, shortcode: it?.shortcode, source_url: it?.url }) });
+    } catch (_) {}
+  };
   const confirmTrendLegal = (): boolean => {
     try { if (localStorage.getItem("chronit_trend_legal_ok") === "1") return true; } catch (_) {}
     const ok = typeof window !== "undefined" && window.confirm(
-      "⚠️ 이 영상은 다른 사람이 올린 콘텐츠예요.\n\n재가공·업로드에 따른 저작권 등 모든 책임은 이용자 본인에게 있으며, 크로닛은 이에 대해 책임지지 않습니다.\n\n동의하고 계속할까요?");
-    if (ok) { try { localStorage.setItem("chronit_trend_legal_ok", "1"); } catch (_) {} }
+      "⚠️ " + TERMS_TEXT + "\n\n동의하고 계속할까요?");
+    if (ok) { try { localStorage.setItem("chronit_trend_legal_ok", "1"); } catch (_) {} logConsent("agree"); }
     return ok;
   };
   const buildTrendClip = (it: any): any => ({
@@ -925,6 +936,7 @@ export default function VideoGenerator() {
   // 담기: 소스 클립으로 추가(업로드처럼, 무료) — 여러 개 누적 가능
   const trendAdd = (it: any) => {
     if (!confirmTrendLegal()) return;
+    logConsent("add", it);
     const clip = buildTrendClip(it);
     setClips(prev => (prev as any[]).some((c: any) => c.video_id === clip.video_id) ? prev : [clip, ...(prev as any[])] as any);
     setCart(prev => { const n = new Set(prev); n.add(clip.video_id); return n; });
@@ -934,6 +946,7 @@ export default function VideoGenerator() {
   // 분석: 담기 + 분석(유사클립·상품명, 10CR) — reel은 유지하고 유사클립을 추가
   const trendAnalyze = (it: any) => {
     if (!confirmTrendLegal()) return;
+    logConsent("analyze", it);
     const clip = buildTrendClip(it);
     setActiveView("generator"); setUploadOpen(true);
     setClips([clip] as any); setCart(new Set([clip.video_id]));
