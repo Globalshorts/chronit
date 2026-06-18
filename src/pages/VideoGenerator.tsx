@@ -2751,8 +2751,8 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
   const isAdmin = userRole === "super_admin";
   const GROUPS = [
     { title: "자주 쓰는 메뉴", items: [
-      { v: "generator",      label: "프로젝트" },
       ...(FEATURES.trendFeed ? [{ v: "trends", label: "오늘의 트렌드", icon: "🔥" }] : []),
+      { v: "generator",      label: "프로젝트" },
       { v: "history",        label: "생성 내역" },
       { v: "product-search", label: "내 링크" },
     ]},
