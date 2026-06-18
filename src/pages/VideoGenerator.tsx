@@ -1416,13 +1416,16 @@ export default function VideoGenerator() {
                 <div>
                   <label className="mb-1 block text-base font-bold text-gray-700">또는 내 영상 추가</label>
                   <p className="mb-2 text-sm leading-relaxed text-gray-500">URL 검색 클립과 <span className="font-bold text-[#03C75A]">섞어서</span> 합성할 수 있어요. 업로드 영상도 자막 제거·컷편집·자막/더빙이 똑같이 적용됩니다.</p>
-                  <label className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-5 text-center transition ${uploading ? "border-gray-200 opacity-60" : "border-gray-300 hover:border-[#03C75A]"}`}>
-                    <input type="file" accept="video/*" multiple className="hidden" disabled={uploading}
-                      onChange={e => { handleAddUploads(e.target.files); (e.currentTarget as HTMLInputElement).value = ""; }} />
-                    {uploading
-                      ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-[#03C75A] border-t-transparent" /><span className="text-sm font-bold text-gray-600">업로드 중...</span></>
-                      : <><span className="text-xl">⬆️</span><span className="text-sm font-bold text-gray-800">영상 파일 선택 (여러 개 가능)</span></>}
-                  </label>
+                  <div className="relative">
+                    <input type="file" accept="video/*" multiple disabled={uploading}
+                      onChange={e => { handleAddUploads(e.target.files); (e.currentTarget as HTMLInputElement).value = ""; }}
+                      className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed" />
+                    <div className={`pointer-events-none flex items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-5 text-center transition ${uploading ? "border-gray-200 opacity-60" : "border-gray-300"}`}>
+                      {uploading
+                        ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-[#03C75A] border-t-transparent" /><span className="text-sm font-bold text-gray-600">업로드 중...</span></>
+                        : <><span className="text-xl">⬆️</span><span className="text-sm font-bold text-gray-800">영상 파일 선택 (여러 개 가능)</span></>}
+                    </div>
+                  </div>
                   {uploadError && <p className="mt-2 text-sm text-red-500">{uploadError}</p>}
                 </div>
               )}
