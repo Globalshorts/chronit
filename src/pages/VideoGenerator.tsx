@@ -3475,6 +3475,7 @@ function TrendCard({ item, onAdd, onAnalyze }: { item: any; onAdd: () => void; o
         <div className="mt-auto flex items-center gap-2 text-[10px] font-medium text-gray-400">
           <span title="좋아요">❤️ {f(item.like_count)}</span>
           <span title="조회수">▶ {f(item.view_count)}</span>
+          {item.taken_at && (() => { const d = Math.floor((Date.now() - new Date(item.taken_at).getTime()) / 86400000); return <span title={new Date(item.taken_at).toLocaleDateString("ko")} className="ml-auto">📅 {d <= 0 ? "오늘" : d + "일 전"}</span>; })()}
         </div>
         <div className="mt-1 flex gap-1.5">
           <button onClick={onAdd} title="이 영상을 소스로 담기 (무료)"
