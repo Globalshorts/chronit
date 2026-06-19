@@ -988,10 +988,10 @@ export default function VideoGenerator() {
   const collectSelected = () => {
     const sel = clips.filter(c => cart.has(c.video_id));
     const pn = uploadName.trim(), pd = uploadDesc.trim();
-    const hasUpload = sel.some((c: any) => c.source === "upload");
+    const hasUpload = sel.some((c: any) => c.source === "upload" && !String(c.video_id || "").startsWith("trend_"));
     if (hasUpload) {
       if (!analysisMetaRef.current.name && pn) analysisMetaRef.current = { name: pn, keyword: pn, poster: "" };
-      if (pn || pd) return sel.map((c: any) => c.source === "upload"
+      if (pn || pd) return sel.map((c: any) => (c.source === "upload" && !String(c.video_id || "").startsWith("trend_"))
         ? { ...c, description: [pn, pd].filter(Boolean).join("\n") } : c);
     }
     return sel;
@@ -1584,7 +1584,7 @@ export default function VideoGenerator() {
                     </div>
                   </div>
                   {uploadError && <p className="mt-2 text-sm text-red-500">{uploadError}</p>}
-                  {clips.some((c: any) => c.source === "upload") && (
+                  {clips.some((c: any) => c.source === "upload" && !String(c.video_id || "").startsWith("trend_")) && (
                     <div className="mt-2 space-y-2 rounded-xl border border-[#03C75A]/30 bg-[#03C75A]/5 p-3">
                       <p className="text-xs font-bold text-gray-700">📝 업로드 영상 상품 정보 <span className="font-normal text-red-500">*</span> <span className="font-normal text-gray-400">· 쿠팡 검색어{!videoOnly ? "·대본" : ""}에 사용</span></p>
                       <input type="text" value={uploadName} onChange={e => setUploadName(e.target.value)} placeholder="상품명 (예: 휴대용 미니 가습기)"
@@ -1627,7 +1627,7 @@ export default function VideoGenerator() {
                     ))}
                   </div>
                   {(() => {
-                    const needUploadName = clips.some((c: any) => c.source === "upload") && !uploadName.trim();
+                    const needUploadName = clips.some((c: any) => c.source === "upload" && !String(c.video_id || "").startsWith("trend_")) && !uploadName.trim();
                     return (
                   <FloatingNext
                     label={autoRunning ? (autoRunStep || "처리 중...") : cart.size === 0 ? "👇 클립을 담아주세요" : needUploadName ? "✏️ 상품명을 입력해주세요" : `🚀 자동 생성 (${cart.size}개)`}
