@@ -605,23 +605,26 @@ export default function VideoGenerator() {
           const dx = await rx.json();
           if (dx?.ok && Array.isArray(dx.clips)) xhsClips = dx.clips;
         } catch { /* XHS 실패 무시 */ }
-        if (!rawClips.length) { if (xhsClips.length || keepUploads.length) setClips([...(keepUploads as any), ...xhsClips]); else setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요."); return; }
-        if (!refFrames.length) { setClips([...(keepUploads as any), ...xhsClips, ...rawClips]); return; }
+        // ★ 틱톡+XHS 후보를 합쳐 CLIP 필터에 함께 태움 → 관련성 통합 필터 + 점수순 정렬
+        //   (기존: XHS는 필터 없이 상단 prepend → 특징 안 맞는 XHS 다수 + 틱톡 묻힘)
+        const allCand: Clip[] = [...rawClips, ...xhsClips];
+        if (!allCand.length) { if (keepUploads.length) setClips([...(keepUploads as any)]); else setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요."); return; }
+        if (!refFrames.length) { setClips([...(keepUploads as any), ...allCand]); return; }
 
-        // Step 2: CLIP filter (실패해도 rawClips로 폴백 — 재시도 안 함)
+        // Step 2: CLIP filter (틱톡+XHS 통합, 실패해도 폴백 — 재시도 안 함)
         try {
           const resp2 = await fetch(FN("clip-filter"), {
             method: "POST", headers,
-            body: JSON.stringify({ reference_frames: refFrames, candidates: rawClips, clip_count: 80 }),
+            body: JSON.stringify({ reference_frames: refFrames, candidates: allCand, clip_count: 80 }),
           });
           const data2 = await resp2.json();
-          let finalClips: Clip[] = data2.ok ? (data2.clips ?? rawClips) : rawClips.slice(0, 20);
+          let finalClips: Clip[] = data2.ok ? (data2.clips ?? allCand) : allCand.slice(0, 20);
           // clip-filter가 download_url(CDN)을 떨궈도 video_id로 원본에서 다시 붙임 (렌더 다운로드용)
-          const _dlMap = new Map(rawClips.map((c: any) => [c.video_id, c.download_url]));
+          const _dlMap = new Map(allCand.map((c: any) => [c.video_id, c.download_url]));
           finalClips = finalClips.map((c: any) => ({ ...c, download_url: c.download_url || _dlMap.get(c.video_id) || "" }));
-          setClips([...(keepUploads as any), ...xhsClips, ...finalClips]);
+          setClips([...(keepUploads as any), ...finalClips]);
           if (!finalClips.length && !keepUploads.length) setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요.");
-        } catch { setClips([...(keepUploads as any), ...xhsClips, ...rawClips]); }
+        } catch { setClips([...(keepUploads as any), ...allCand]); }
         return;
       }
     } catch (e) { setSearchError("분석 중 일시적인 오류가 있었어요. 잠시 후 다시 시도해 주세요."); }
