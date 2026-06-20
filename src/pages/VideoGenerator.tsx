@@ -162,7 +162,6 @@ export default function VideoGenerator() {
   const [voiceVolume, setVoiceVolume] = useState(() => { try { return Number(localStorage.getItem("chronit_voice_volume")) || 100; } catch { return 100; } });
   const [rendering, setRendering]   = useState(false);
   const [renderError, setRenderError] = useState("");
-  const [voiceGenerated, setVoiceGenerated] = useState(false);  // Stage 5 음성 생성 완료
   const [autoRunning, setAutoRunning]   = useState(false);
   const [autoRunStep, setAutoRunStep]   = useState("");
   const [autoRunError, setAutoRunError] = useState("");
@@ -180,14 +179,9 @@ export default function VideoGenerator() {
   const [refAlready, setRefAlready] = useState(false);  // 추천 코드가 이미 적용됨(링크 유입 등)
   const [modalCtaText, setModalCtaText]   = useState("");   // 자동화 진행 단계 메시지
   const [manualScript, setManualScript] = useState("");   // 대본 직접 입력 (비우면 AI 자동)
-  const [voiceSegments, setVoiceSegments] = useState<any[]>([]);  // 장면별 편집용
   const [freeRegen, setFreeRegen] = useState(3);  // Stage 3 무료 재생성 횟수
-  const [seoTitle, setSeoTitle] = useState("");
   const [selectedSubtitlePresetId, setSelectedSubtitlePresetId] = useState("");
   const [selectedThumbnailPresetId, setSelectedThumbnailPresetId] = useState("");
-  const [seoDesc, setSeoDesc] = useState("");
-  const [seoTags, setSeoTags] = useState("");
-  const [seoLoading, setSeoLoading] = useState(false);
   const [currentJobId, setCurrentJobId] = useState(() => {
     try { return localStorage.getItem("chronit_current_job") || ""; } catch { return ""; }
   });
@@ -686,66 +680,7 @@ export default function VideoGenerator() {
 
   // ── Stage 5: 렌더링 ──────────────────────────────────────
   // Stage 5: 음성 세그먼트 자동 배분
-  const [voiceLoading, setVoiceLoading] = useState(false);
-  const [voiceError, setVoiceError] = useState("");
 
-  const handleVoiceGenerate = async (overrideVoiceId?: string, overrideScript?: any[]) => {
-    const sc = (overrideScript && overrideScript.length) ? overrideScript : script;
-    if (!sc || sc.length === 0) return;
-    const _voiceId = overrideVoiceId ?? voiceId;
-    setVoiceLoading(true); setVoiceError("");
-    try {
-      const { data: { session: s } } = await supabase.auth.getSession();
-      if (!s) { setVoiceError("로그인이 필요합니다"); return; }
-
-      const selected = collectSelected();
-      const clipDuration = targetSeconds / (selected.length || 1);
-
-      const resp = await fetch(FN("generate-voice"), {
-        method: "POST",
-        headers: { Authorization: `Bearer ${s.access_token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          voice_id: _voiceId,
-          voice_speed: voiceSpeed / 100,
-          segments: sc.map((s: any, i: number) => ({
-            idx: i,
-            text: s.text || s.sentence || "",
-            duration_hint: s.duration_sec || 2,
-          })),
-          clips: selected.length > 0
-            ? selected.map(c => ({
-                clip_id: c.video_id,
-                clip_title: c.title || "",
-                // 클립 사용 시간: 2~5초 규칙 (5초 초과는 5초까지만, 2초 미만은 제외됨)
-                clip_duration: Math.min(5, Math.max(2, c.duration_sec || clipDuration)),
-              }))
-            : [{ clip_id: "dummy", clip_title: "전체 대본", clip_duration: Math.min(5, Math.max(2, clipDuration)) }],
-        }),
-      });
-      const data = await resp.json();
-      if (!data.ok) throw new Error(data.error ?? "음성 생성 실패");
-
-      // voice_clips를 voiceSegments 형태로 변환
-      const newVoiceSegs = data.voice_clips.map((vc: any) => ({
-        clip_id: vc.clip_id,
-        clip_title: vc.clip_title || vc.clip_id,
-        clip_duration: vc.clip_duration,
-        used_duration: vc.used_duration,
-        segments: vc.segments.map((seg: any) => ({
-          idx: seg.idx,
-          text: seg.text,
-          duration: seg.duration_sec,
-          audio_url: seg.audio_url,
-        })),
-      }));
-      setVoiceSegments(newVoiceSegs);
-      setVoiceGenerated(true);
-    } catch (e) {
-      setVoiceError(String(e));
-    } finally {
-      setVoiceLoading(false);
-    }
-  };
 
   // Stage 3: 재생성 (무료 횟수 차감)
   const handleRegenerateScript = async () => {
@@ -755,25 +690,6 @@ export default function VideoGenerator() {
     await handleGenerateScript();
   };
 
-  // Stage 6: SEO AI 추천
-  const handleSeoGenerate = async () => {
-    if (!script || !sourceUrl) return;
-    setSeoLoading(true);
-    try {
-      const { data: { session: s } } = await supabase.auth.getSession();
-      if (!s) return;
-      const resp = await fetch(FN("generate-seo"), {
-        method: "POST",
-        headers: { Authorization: `Bearer ${s.access_token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ source_url: sourceUrl, script_segments: script }),
-      });
-      const data = await resp.json();
-      if (data.title) setSeoTitle(data.title);
-      if (data.description) setSeoDesc(data.description);
-      if (data.tags) setSeoTags(data.tags);
-    } catch {}
-    finally { setSeoLoading(false); }
-  };
 
   // ── 자동 생성 (Stage 2~6 순서 실행) ─────────────────────────
   const handleAutoRun = async (ctaOverride?: string) => {
@@ -1067,11 +983,6 @@ export default function VideoGenerator() {
     setSearchError("");
     setCurrentJobId("");
     setCtaText("");
-    setVoiceGenerated(false);
-    setVoiceSegments([]);
-    setSeoTitle("");
-    setSeoDesc("");
-    setSeoTags("");
     try { clearProject(); } catch (_) {}
     // 유지: subtitleStyle, thumbnailStyle, voiceId, voiceSpeed, voiceVolume,
     //       targetSeconds, styleProfileId, showThumbnail
@@ -1686,7 +1597,6 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
     localStorage.setItem("chronit_voice_id", id);
   };
   const handleSetSpeed = (v: number) => { setVoiceSpeed(v); localStorage.setItem("chronit_voice_speed", String(v)); };
-  const handleSetVolume = (v: number) => { setVoiceVolume(v); localStorage.setItem("chronit_voice_volume", String(v)); };
 
   return (
     <div className="space-y-5">
