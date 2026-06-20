@@ -179,7 +179,6 @@ export default function VideoGenerator() {
   const [refAlready, setRefAlready] = useState(false);  // 추천 코드가 이미 적용됨(링크 유입 등)
   const [modalCtaText, setModalCtaText]   = useState("");   // 자동화 진행 단계 메시지
   const [manualScript, setManualScript] = useState("");   // 대본 직접 입력 (비우면 AI 자동)
-  const [freeRegen, setFreeRegen] = useState(3);  // Stage 3 무료 재생성 횟수
   const [selectedSubtitlePresetId, setSelectedSubtitlePresetId] = useState("");
   const [selectedThumbnailPresetId, setSelectedThumbnailPresetId] = useState("");
   const [currentJobId, setCurrentJobId] = useState(() => {
@@ -625,70 +624,11 @@ export default function VideoGenerator() {
   };
 
   // ── Stage 3: 대본 생성 ───────────────────────────────────
-  const handleGenerateScript = async () => {
-    setScriptError(""); setScriptLoading(true); setScript(null);
-    try {
-      const { data: { session: s } } = await supabase.auth.getSession();
-      if (!s) { setScriptError("로그인이 필요합니다"); return; }
-      const selected = collectSelected();
-
-      // 1단계: prediction 생성 (빠르게 반환)
-      const resp = await fetch(FN("generate-script"), {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          source_url: sourceUrl.trim(),
-          selected_clips: selected,
-          target_seconds: targetSeconds,
-          style_profile_id: styleProfileId,
-          cta_text: ctaText.trim(),
-        }),
-      });
-      const data = await resp.json();
-      if (!data.ok) { setScriptError(data.error ?? "대본 생성 실패"); return; }
-
-      const predId = data.prediction_id;
-      setScriptPredId(predId ?? "");
-
-      // 이미 완료된 경우 (구버전 호환)
-      if (data.status === "succeeded" && data.segments) {
-        setScript(data.segments); return;
-      }
-
-      // 2단계: 프론트에서 폴링 (5분 최대)
-      const startTime = Date.now();
-      while (Date.now() - startTime < 300_000) {
-        await new Promise(r => setTimeout(r, 2000));
-        const pollResp = await fetch(FN("generate-script"), {
-          method: "POST",
-          headers: { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ poll: true, prediction_id: predId }),
-        });
-        const pollData = await pollResp.json();
-        if (pollData.status === "succeeded") {
-          setScript(pollData.segments ?? []); return;
-        }
-        if (pollData.status === "failed" || pollData.status === "canceled") {
-          setScriptError(pollData.error ?? "대본 생성 실패"); return;
-        }
-        // starting/processing → 계속 폴링
-      }
-      setScriptError("대본 생성 시간 초과 (5분)");
-    } catch (e) { setScriptError(String(e)); }
-    finally { setScriptLoading(false); }
-  };
 
   // ── Stage 5: 렌더링 ──────────────────────────────────────
   // Stage 5: 음성 세그먼트 자동 배분
 
 
-  // Stage 3: 재생성 (무료 횟수 차감)
-  const handleRegenerateScript = async () => {
-    if (freeRegen > 0) {
-      setFreeRegen(prev => prev - 1);
-    }
-    await handleGenerateScript();
-  };
 
 
   // ── 자동 생성 (Stage 2~6 순서 실행) ─────────────────────────
