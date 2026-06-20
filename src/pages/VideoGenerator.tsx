@@ -1449,7 +1449,7 @@ export default function VideoGenerator() {
                 )}
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                   {(() => {
-                    const cutoff = Date.now() - 30 * 86400000; // 최근 30일
+                    const cutoff = Date.now() - 7 * 86400000; // 최근 7일
                     const isComp = (c: string) => /top ?\d|베스트|순위|랭킹|모음|총정리|\d+ ?가지|\d+ ?위/i.test(c || ""); // TOP5·모음 등 컴필레이션
                     const within = trendItems.filter((it: any) => it.taken_at && new Date(it.taken_at).getTime() >= cutoff);
                     const single = trendShowComp ? within : within.filter((it: any) => !isComp(it.caption));
