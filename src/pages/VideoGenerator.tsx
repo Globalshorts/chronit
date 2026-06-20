@@ -597,8 +597,16 @@ export default function VideoGenerator() {
         const refFrames: string[] = data1.reference_frames ?? [];
         const _pf = (data1.reference_frames && data1.reference_frames[0]) || "";
         analysisMetaRef.current = { name: data1.product_name || "", keyword: data1.keyword || "", poster: (_pf && !_pf.startsWith("data:") && !_pf.startsWith("http")) ? ("data:image/jpeg;base64," + _pf) : _pf };
-        if (!rawClips.length) { if (!keepUploads.length) setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요."); return; }
-        if (!refFrames.length) { setClips([...(keepUploads as any), ...rawClips]); return; }
+        // 샤오홍슈(XHS) 보조 소스 — 격리(실패해도 틱톡 결과 영향 없음)
+        let xhsClips: Clip[] = [];
+        try {
+          const rx = await fetch(FN("search-xhs"), { method: "POST", headers,
+            body: JSON.stringify({ product_name: data1.product_name || "", keyword: data1.keyword || "", keywords: data1.keywords || [] }) });
+          const dx = await rx.json();
+          if (dx?.ok && Array.isArray(dx.clips)) xhsClips = dx.clips;
+        } catch { /* XHS 실패 무시 */ }
+        if (!rawClips.length) { if (xhsClips.length || keepUploads.length) setClips([...(keepUploads as any), ...xhsClips]); else setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요."); return; }
+        if (!refFrames.length) { setClips([...(keepUploads as any), ...rawClips, ...xhsClips]); return; }
 
         // Step 2: CLIP filter (실패해도 rawClips로 폴백 — 재시도 안 함)
         try {
@@ -611,9 +619,9 @@ export default function VideoGenerator() {
           // clip-filter가 download_url(CDN)을 떨궈도 video_id로 원본에서 다시 붙임 (렌더 다운로드용)
           const _dlMap = new Map(rawClips.map((c: any) => [c.video_id, c.download_url]));
           finalClips = finalClips.map((c: any) => ({ ...c, download_url: c.download_url || _dlMap.get(c.video_id) || "" }));
-          setClips([...(keepUploads as any), ...finalClips]);
+          setClips([...(keepUploads as any), ...finalClips, ...xhsClips]);
           if (!finalClips.length && !keepUploads.length) setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요.");
-        } catch { setClips([...(keepUploads as any), ...rawClips]); }
+        } catch { setClips([...(keepUploads as any), ...rawClips, ...xhsClips]); }
         return;
       }
     } catch (e) { setSearchError("분석 중 일시적인 오류가 있었어요. 잠시 후 다시 시도해 주세요."); }
