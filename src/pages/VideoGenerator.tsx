@@ -606,7 +606,7 @@ export default function VideoGenerator() {
           if (dx?.ok && Array.isArray(dx.clips)) xhsClips = dx.clips;
         } catch { /* XHS 실패 무시 */ }
         if (!rawClips.length) { if (xhsClips.length || keepUploads.length) setClips([...(keepUploads as any), ...xhsClips]); else setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요."); return; }
-        if (!refFrames.length) { setClips([...(keepUploads as any), ...rawClips, ...xhsClips]); return; }
+        if (!refFrames.length) { setClips([...(keepUploads as any), ...xhsClips, ...rawClips]); return; }
 
         // Step 2: CLIP filter (실패해도 rawClips로 폴백 — 재시도 안 함)
         try {
@@ -619,9 +619,9 @@ export default function VideoGenerator() {
           // clip-filter가 download_url(CDN)을 떨궈도 video_id로 원본에서 다시 붙임 (렌더 다운로드용)
           const _dlMap = new Map(rawClips.map((c: any) => [c.video_id, c.download_url]));
           finalClips = finalClips.map((c: any) => ({ ...c, download_url: c.download_url || _dlMap.get(c.video_id) || "" }));
-          setClips([...(keepUploads as any), ...finalClips, ...xhsClips]);
+          setClips([...(keepUploads as any), ...xhsClips, ...finalClips]);
           if (!finalClips.length && !keepUploads.length) setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요.");
-        } catch { setClips([...(keepUploads as any), ...rawClips, ...xhsClips]); }
+        } catch { setClips([...(keepUploads as any), ...xhsClips, ...rawClips]); }
         return;
       }
     } catch (e) { setSearchError("분석 중 일시적인 오류가 있었어요. 잠시 후 다시 시도해 주세요."); }
