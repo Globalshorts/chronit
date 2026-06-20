@@ -664,7 +664,7 @@ export default function VideoGenerator() {
       // 2단계: 프론트에서 폴링 (5분 최대)
       const startTime = Date.now();
       while (Date.now() - startTime < 300_000) {
-        await new Promise(r => setTimeout(r, 5000));
+        await new Promise(r => setTimeout(r, 2000));
         const pollResp = await fetch(FN("generate-script"), {
           method: "POST",
           headers: { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" },
@@ -815,7 +815,7 @@ export default function VideoGenerator() {
         // 폴링
         const start = Date.now();
         while (Date.now() - start < 300_000) {
-          await new Promise(r => setTimeout(r, 5000));
+          await new Promise(r => setTimeout(r, 2000));
           const poll = await (await fetch(FN("generate-script"), {
             method: "POST",
             headers: { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" },
@@ -828,13 +828,10 @@ export default function VideoGenerator() {
       });
       }
 
-      // Step 2: 음성 생성 — 대본 명시 전달(상태 타이밍 방지)
-      setAutoRunStep("2/3  음성 생성 중...");
-      await handleVoiceGenerate(voiceId, genSegments);
       }  // end if(!videoOnly)
 
       // Step 3: 영상 합성 — state 비동기 문제 방지: ctaOverride, voiceId 직접 전달
-      setAutoRunStep(videoOnly ? "영상 합성 중... (영상만)" : "3/3  영상 합성 중...");
+      setAutoRunStep(videoOnly ? "영상 합성 중... (영상만)" : "2/2  영상 합성 중...");
       await handleRender({ voiceId, ctaText: ctaOverride ?? ctaText, script: genSegments });
 
       setAutoRunStep("✅ 완료!");
