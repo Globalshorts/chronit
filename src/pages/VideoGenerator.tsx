@@ -601,7 +601,7 @@ export default function VideoGenerator() {
         let xhsClips: Clip[] = [];
         try {
           const rx = await fetch(FN("search-xhs"), { method: "POST", headers,
-            body: JSON.stringify({ product_name: data1.product_name || "", keyword: data1.keyword || "", keywords: data1.keywords || [] }) });
+            body: JSON.stringify({ product_name: data1.product_name || "", keyword: data1.keyword || "", keywords: data1.keywords || [], tiktok_queries: data1.tiktok_queries || [] }) });
           const dx = await rx.json();
           if (dx?.ok && Array.isArray(dx.clips)) xhsClips = dx.clips;
         } catch { /* XHS 실패 무시 */ }
