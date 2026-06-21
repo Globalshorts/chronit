@@ -1378,7 +1378,7 @@ export default function VideoGenerator() {
       {/* ── 메인 콘텐츠 ── */}
       <div className="flex-1 min-w-0 flex flex-col">
         {activeView !== "generator" && (
-          <div className="flex-1 overflow-y-auto px-4 md:px-8 py-5 md:py-6">
+          <div className="mx-auto w-full max-w-5xl flex-1 overflow-y-auto px-4 md:px-8 py-5 md:py-6">
             {/* ── 콘셉트/스타일 (스타일 찾기 + 자동화 세팅) ── */}
             {activeView === "studio" && (
               <div>
@@ -1482,7 +1482,7 @@ export default function VideoGenerator() {
         )}
         {/* 영상 생성 뷰 — generator일 때만 표시 */}
         {activeView === "generator" && <>
-        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-5">
+        <div className="mx-auto w-full max-w-5xl flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-5">
           <div className="space-y-0">
 
           {/* 포인트·연속·출석 바 */}
