@@ -996,7 +996,7 @@ export default function VideoGenerator() {
                 ["📦", "영상을 최대한 많이 담기", "많을수록 편집·연출 선택지가 늘어나요"],
                 ["🎨", "분위기가 비슷한 영상들 담기", "톤이 일관돼 영상이 매끄러워요"],
                 ["🛍️", "같은 제품이 선명하게 보이는 영상", "제품이 또렷할수록 설득력이 높아요"],
-                ["🚫", "워터마크·로고·계정명이 적은 영상", "화면을 가리는 요소가 적어야 깔끔해요"],
+                ["🚫", "화면이 깔끔한 영상 (가림 요소 적게)", "화면을 가리는 요소가 적어야 깔끔해요"],
                 ["📱", "세로(9:16) 영상 위주로 담기", "쇼츠/릴스 비율에 맞아 잘림이 적어요"],
                 ["🙌", "손으로 쓰는 사용 장면이 있는 영상", "실사용 컷이 신뢰감을 줘요"],
                 ["✨", "너무 어둡거나 흔들리는 영상은 피하기", "화질이 선명해야 완성도가 높아요"],
@@ -1419,7 +1419,7 @@ export default function VideoGenerator() {
             }>
             <div className="space-y-4">
               <div>
-                <label className="mb-1 block text-base font-bold text-gray-700">재창작할 쇼핑 숏폼 URL <span className="font-normal text-gray-400">· 인스타 · 틱톡 · 유튜브</span></label>
+                <label className="mb-1 block text-base font-bold text-gray-700">편집할 소스 영상 URL <span className="font-normal text-gray-400">· 인스타 · 틱톡 · 유튜브</span></label>
                 <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                   <input type="url" value={sourceUrl}
                     onChange={e => { setSourceUrl(e.target.value); setSearchError(""); setClips([]); setCart(new Set()); }}
@@ -1434,14 +1434,6 @@ export default function VideoGenerator() {
                       : "🔍 분석 시작 (10 CR)"}
                   </button>
                 </div>
-                {!searchError && <UrlHint url={sourceUrl} />}
-                <a href="/board/5" target="_blank" rel="noreferrer"
-                  className="mt-2 inline-block text-sm font-bold text-[#03C75A] hover:underline">
-                  🔍 영상은 어디서 가져오나요? →
-                </a>
-                {searchError && <p className="mt-2 text-sm text-red-400">{searchError}</p>}
-                {searching && <AnalyzeProgress />}
-              </div>
 
               <div className="flex flex-wrap gap-2">
                 <button type="button" onClick={() => setCoupangOpen(o => !o)}
@@ -1451,7 +1443,7 @@ export default function VideoGenerator() {
                 {FEATURES.directUpload && (
                   <button type="button" onClick={() => setUploadOpen(o => !o)}
                     className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold transition ${uploadOpen ? "border-[#03C75A] bg-[#03C75A]/10 text-[#03C75A]" : "border-gray-200 bg-white text-gray-600 hover:border-[#03C75A]/50"}`}>
-                    ⬆️ 내 영상 추가
+                    ⬆️ 직접 업로드
                   </button>
                 )}
                 <button type="button" onClick={toggleVideoOnly}
@@ -1505,6 +1497,15 @@ export default function VideoGenerator() {
                   )}
                 </div>
               )}
+
+                {!searchError && <UrlHint url={sourceUrl} />}
+                <a href="/board/5" target="_blank" rel="noreferrer"
+                  className="mt-2 inline-block text-sm font-bold text-[#03C75A] hover:underline">
+                  영상 준비 가이드 →
+                </a>
+                {searchError && <p className="mt-2 text-sm text-red-400">{searchError}</p>}
+                {searching && <AnalyzeProgress />}
+              </div>
 
               {clips.length > 0 && (
                 <div>

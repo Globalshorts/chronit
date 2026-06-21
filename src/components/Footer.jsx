@@ -91,9 +91,7 @@ const Footer = ({ dark = false, user = null }) => {
           <p>상호: 크로닛(Chronit) &middot; 대표자: 최승호 &middot; 사업자등록번호: 277-20-02625</p>
           <p>주소: 대전광역시 서구 가장로 107, 205동 101호</p>
           <p>
-            이메일: pv2066pv@gmail.com &middot; 연락처: 010-4915-3066 &middot;{' '}
-            {/* TODO: 통신판매업 신고 완료 후 신고번호로 교체 */}
-            통신판매업 신고번호: 신고 진행 중
+            이메일: pv2066pv@gmail.com &middot; 연락처: 010-4915-3066
           </p>
         </div>
         <div className="mt-6 flex flex-col items-center justify-between gap-6 md:flex-row">
