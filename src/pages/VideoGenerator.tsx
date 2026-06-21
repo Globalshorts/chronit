@@ -22,7 +22,7 @@ const SB = "https://oxygqtbdpnxxcgzwdlzi.supabase.co";
 const FN = (n: string) => `${SB}/functions/v1/${n}`;
 
 // ── 상단 바 (홈페이지와 동일 스타일) ───────────────────────────
-function AppTopBar({ onMenuClick, onInvite, session }: { onMenuClick?: () => void; onInvite?: () => void; session?: any }) {
+function AppTopBar({ onMenuClick, onInvite, session, balance, userPlan, onHistory }: { onMenuClick?: () => void; onInvite?: () => void; session?: any; balance?: number|null; userPlan?: string|null; onHistory?: () => void }) {
   const ICON = `${SB}/storage/v1/object/public/assets/icon.png`;
   const [menuOpen, setMenuOpen] = useState(false);
   const [nick, setNick] = useState("");
@@ -48,7 +48,9 @@ function AppTopBar({ onMenuClick, onInvite, session }: { onMenuClick?: () => voi
       </div>
       <SiteNav />
       <nav className="flex shrink-0 items-center gap-2 text-sm font-bold text-gray-600 md:gap-3">
-        <button onClick={onInvite} className="hidden sm:inline-flex rounded-full bg-[#03C75A] px-3.5 py-1.5 font-black text-white transition-colors hover:bg-[#02b350]">🎁 친구 초대</button>
+        {balance !== null && balance !== undefined && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#03C75A]/10 px-3 py-1.5 text-xs font-black text-[#03C75A]">💎 {balance.toLocaleString()}{userPlan ? ` · ${userPlan}` : ""}</span>
+        )}
         <div className="relative">
           <button onClick={() => setMenuOpen(o => !o)}
             className="flex items-center gap-1.5 rounded-full bg-gray-900 px-3.5 py-1.5 font-bold text-white transition-colors hover:bg-[#03C75A]">
@@ -60,8 +62,9 @@ function AppTopBar({ onMenuClick, onInvite, session }: { onMenuClick?: () => voi
               <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
               <div className="absolute right-0 top-full z-50 mt-2 w-48 rounded-2xl border border-gray-200 bg-white p-1.5 shadow-xl shadow-black/5">
                 <a href="/me" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">👤 마이페이지</a>
-                <button onClick={() => { setMenuOpen(false); onInvite && onInvite(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">🎁 추천인 보상</button>
-                <a href="https://forms.gle/LCDeSEXSM7ALykqv5" target="_blank" rel="noreferrer" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">💬 피드백 보내기</a>
+                <button onClick={() => { setMenuOpen(false); onInvite && onInvite(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">🎁 무료 크레딧 받기</button>
+                <a href="https://forms.gle/LCDeSEXSM7ALykqv5" target="_blank" rel="noreferrer" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">📝 피드백 보내고 500 CR</a>
+                <button onClick={() => { setMenuOpen(false); onHistory && onHistory(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">📒 크레딧 사용 내역</button>
                 <button onClick={logout} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50">↩ 로그아웃</button>
               </div>
             </>
@@ -69,6 +72,43 @@ function AppTopBar({ onMenuClick, onInvite, session }: { onMenuClick?: () => voi
         </div>
       </nav>
     </header>
+  );
+}
+
+// ── 상단 탭 바 (사이드바를 위로) ───────────────────────────────
+function AppTabBar({ activeView, onViewChange, userRole }: { activeView: string; onViewChange: (v:string)=>void; userRole: string }) {
+  const [extractRunning, setExtractRunning] = useState(
+    _extractMgr.state?.status === "starting" || _extractMgr.state?.status === "processing");
+  useEffect(() => {
+    const l = (st:any) => setExtractRunning(st?.status === "starting" || st?.status === "processing");
+    _extractMgr.listeners.add(l);
+    return () => { _extractMgr.listeners.delete(l); };
+  }, []);
+  const isPartner = userRole === "partner" || userRole === "super_admin";
+  const isAdmin = userRole === "super_admin";
+  const TABS: any[] = [
+    ...(FEATURES.trendFeed ? [{ v: "trends", label: "오늘의 트렌드", icon: "🔥" }] : []),
+    { v: "generator", label: "프로젝트" },
+    { v: "history", label: "생성 내역" },
+    { v: "product-search", label: "내 링크" },
+    { v: "studio", label: "콘셉트/스타일" },
+    { v: "settings", label: "결제·계정" },
+    ...(isPartner ? [{ v: "partner", label: "파트너스", icon: "📊" }] : []),
+    ...(isAdmin ? [{ v: "admin", label: "관리자", icon: "👑" }] : []),
+  ];
+  return (
+    <div className="hidden md:block shrink-0 border-b border-gray-200 bg-[#ECEAE3]">
+      <div className="flex items-center gap-1 overflow-x-auto px-4 py-2 md:px-6">
+        {TABS.map(({ v, label, icon }: any) => (
+          <button key={v} onClick={() => onViewChange(v)}
+            className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition ${activeView === v ? "bg-[#03C75A]/15 text-[#03C75A]" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}>
+            {icon && <span>{icon}</span>}
+            <span>{label}</span>
+            {v === "product-search" && extractRunning && <span className="ml-0.5 h-2 w-2 rounded-full bg-[#03C75A] animate-pulse" />}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -227,6 +267,7 @@ export default function VideoGenerator() {
   const [gacha, setGacha] = useState<any>(null);
   const [showInvite, setShowInvite] = useState(false);
   const [balance, setBalance]       = useState<number | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
   const [points, setPoints]         = useState<number | null>(null);
   const [streak, setStreak]         = useState<number>(0);
   const [checkedToday, setCheckedToday] = useState<boolean>(false);
@@ -1313,8 +1354,9 @@ export default function VideoGenerator() {
       )}
 
       {/* ── 상단 바 ── */}
-      <AppTopBar onMenuClick={() => setMobileMenuOpen(true)} onInvite={() => setShowInvite(true)} session={session} />
+      <AppTopBar onMenuClick={() => setMobileMenuOpen(true)} onInvite={() => setShowInvite(true)} session={session} balance={balance} userPlan={userPlan} onHistory={() => setShowHistory(true)} />
       <CreditMissionsModal open={showInvite} onClose={() => setShowInvite(false)} session={session} onCredited={loadBalance} />
+      <CreditHistoryModal open={showHistory} onClose={() => setShowHistory(false)} session={session} />
 
       {/* ── 모바일 사이드바 드로어 ── */}
       {mobileMenuOpen && (
@@ -1328,14 +1370,11 @@ export default function VideoGenerator() {
         </div>
       )}
 
-      {/* ── 본문 행 (사이드바 + 패널 + 메인) ── */}
-      <div className="flex flex-1">
-      {/* ── 왼쪽 사이드바 (데스크탑) ── */}
-      <div className="hidden md:flex w-52 shrink-0 border-r border-gray-200 flex-col sticky top-16 h-[calc(100vh-4rem)] self-start">
-        <NavSidebar activeView={activeView} onViewChange={setActiveView} userRole={userRole}
-          balance={balance} userPlan={userPlan} session={session} onCredited={loadBalance} />
-      </div>
+      {/* ── 상단 탭 바 (데스크탑) ── */}
+      <AppTabBar activeView={activeView} onViewChange={setActiveView} userRole={userRole} />
 
+      {/* ── 본문 행 ── */}
+      <div className="flex flex-1">
       {/* ── 메인 콘텐츠 ── */}
       <div className="flex-1 min-w-0 flex flex-col">
         {activeView !== "generator" && (
