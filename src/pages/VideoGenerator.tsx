@@ -1125,44 +1125,16 @@ export default function VideoGenerator() {
             {/* 크레딧 내역 */}
             <div className="rounded-xl bg-gray-100 p-4 space-y-2">
               <p className="text-xs font-bold text-gray-400 mb-3">다음 작업을 자동 진행합니다:</p>
-              {(() => {
-                const isPro = VOICES_PRO.some(v => v.id === voiceId);
-                const scriptCr = 20;
-                const voiceCr = isPro ? 20 : 0;
-                const renderCr = targetSeconds <= 10 ? 90 : targetSeconds <= 15 ? 110 : targetSeconds <= 20 ? 130 : 160;
-                const total = videoOnly ? renderCr : (scriptCr + voiceCr + renderCr);
-                return (
-                  <>
-                    {!videoOnly && (
-                    <>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-700">📄 AI 대본 생성</span>
-                      <span className="text-gray-900 font-bold">{scriptCr} CR</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-700">🎙 음성 합성 ({isPro ? "고품질" : "일반"})</span>
-                      <span className={voiceCr === 0 ? "text-green-400 font-bold" : "text-gray-900 font-bold"}>{voiceCr === 0 ? "무료" : `${voiceCr} CR`}</span>
-                    </div>
-                    </>
-                    )}
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-700">{videoOnly ? `🎬 영상 합성 (영상만, ${targetSeconds}초)` : `🎬 영상 합성 + 자막 (${targetSeconds}초)`}</span>
-                      <span className="text-gray-900 font-bold">{renderCr} CR</span>
-                    </div>
-                    <div className="border-t border-gray-200 my-2" />
-                    <div className="flex justify-between text-sm font-black">
-                      <span className="text-gray-900">합계</span>
-                      <span className="text-[#03C75A]">{total} CR</span>
-                    </div>
-                    {balance !== null && (
-                      <p className="text-xs text-gray-400 pt-1">
-                        현재 남은 크레딧: <span className={balance >= total ? "text-gray-900" : "text-red-400"}>{balance.toLocaleString()} CR</span>
-                        {balance < total && <span className="text-red-400 ml-2">⚠ 크레딧 부족</span>}
-                      </p>
-                    )}
-                  </>
-                );
-              })()}
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-700">📄 대본 · 🎙 음성 · 🎬 합성·자막</span>
+                <span className="text-green-500 font-bold">분석·대본·음성 무료</span>
+              </div>
+              <div className="border-t border-gray-200 my-2" />
+              <div className="flex justify-between text-sm font-black">
+                <span className="text-gray-900">이 작업으로 영상 1개 사용</span>
+                {balance !== null && <span className={balance >= 1 ? "text-[#03C75A]" : "text-red-400"}>남은 {balance.toLocaleString()}개</span>}
+              </div>
+              {balance !== null && balance < 1 && <p className="text-xs text-red-400 pt-1">⚠ 이용권이 부족해요 — 요금제를 확인해 주세요</p>}
             </div>
 
             {/* ⚠️ 스타일/클립 경고 */}
@@ -1229,7 +1201,7 @@ export default function VideoGenerator() {
               </button>
               <button
                 onClick={() => { setCtaText(modalCtaText); handleAutoRun(modalCtaText); }}
-                disabled={balance !== null && balance < (videoOnly ? (targetSeconds<=10?90:targetSeconds<=15?110:targetSeconds<=20?130:160) : (20 + (targetSeconds<=10?90:targetSeconds<=15?110:targetSeconds<=20?130:160) + (VOICES_PRO.some(v => v.id === voiceId) ? 20 : 0)))}
+                disabled={balance !== null && balance < 1}
                 className="flex-1 rounded-xl bg-[#03C75A] py-3 text-sm font-black text-white hover:bg-[#02b350] disabled:opacity-40 transition">
                 진행
               </button>
@@ -1569,7 +1541,7 @@ export default function VideoGenerator() {
                     className="w-full sm:w-auto shrink-0 rounded-xl bg-[#03C75A] px-5 py-3.5 text-base font-bold text-white hover:bg-[#02b350] disabled:opacity-40 transition flex items-center justify-center gap-2">
                     {searching
                       ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />분석 중...</>
-                      : "🔍 분석 시작 (10 CR)"}
+                      : "🔍 분석 시작"}
                   </button>
                 </div>
                 {!searchError && <UrlHint url={sourceUrl} />}
@@ -1617,7 +1589,7 @@ export default function VideoGenerator() {
                       <div className="flex-1">
                         <div className="font-semibold">자동 생성 실패</div>
                         <div className="text-red-300/80 mt-0.5">{friendlyError(autoRunError)}</div>
-                        <div className="text-red-300/60 text-xs mt-1">영상 합성 크레딧은 합성 단계에서 차감되며, 합성 전에 실패한 경우 차감되지 않습니다. 잠시 후 다시 시도해 주세요. (영상 분석 10 CR은 별도로 차감됩니다)</div>
+                        <div className="text-red-300/60 text-xs mt-1">영상은 합성 성공 시 이용권 1개가 차감되고, 실패하면 차감되지 않아요. (분석·대본·음성은 무료예요)</div>
                       </div>
                       <button onClick={() => setAutoRunError("")} className="text-red-300/60 hover:text-red-300">✕</button>
                     </div>
@@ -1797,7 +1769,7 @@ function friendlyError(raw?: string): string {
   if (e.includes("no clip") || e.includes("not found") || e.includes("검색 결과") || e.includes("상품을 찾") || e.includes("clip"))
     return "영상에서 상품·클립을 충분히 찾지 못했어요. 상품이 잘 보이는 다른 쇼핑 숏폼으로 다시 시도해 주세요.";
   if (e.includes("timeout") || e.includes("시간 초과"))
-    return "처리 시간이 초과됐어요. 잠시 후 다시 시도해 주세요. (합성 크레딧은 자동 환불돼요)";
+    return "처리 시간이 초과됐어요. 잠시 후 다시 시도해 주세요. (이용권은 자동 환불돼요)";
   return "영상 생성 중 일시적인 오류가 발생했어요. 합성에 쓰인 크레딧은 자동 환불됐어요 — 잠시 후 다시 시도하면 대부분 해결돼요.";
 }
 
@@ -2866,7 +2838,6 @@ function AutoSettingsView({
               className={`rounded-xl border p-3 text-center transition ${targetSeconds===s ? "border-[#03C75A] bg-[#03C75A]/10" : "border-gray-200 hover:border-gray-500"}`}>
               <p className={`text-sm font-black ${targetSeconds===s ? "text-[#03C75A]" : "text-gray-900"}`}>{label}</p>
               <p className="text-xs text-gray-500 mt-0.5">{sub}</p>
-              <p className="text-[11px] font-bold text-[#03C75A] mt-1">합성 {cr} CR</p>
             </button>
           ))}
         </div>
@@ -3098,7 +3069,7 @@ function JobCard({ job }: { job: Job }) {
         <div className="min-w-0 flex-1">
           <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${s.cls}`}>{s.icon} {s.label}</span>
           <p className="mt-1.5 truncate text-sm text-gray-700">{job.product_url}</p>
-          <p className="mt-0.5 text-xs text-gray-500">{new Date(job.created_at).toLocaleString("ko-KR")} · {job.credits_used} CR</p>
+          <p className="mt-0.5 text-xs text-gray-500">{new Date(job.created_at).toLocaleString("ko-KR")}</p>
           {job.status === "error" && <p className="mt-1 text-xs text-red-400">{friendlyError(job.error_message)}</p>}
         </div>
         {job.status === "done" && job.video_url && (
@@ -3740,8 +3711,8 @@ function SettingsView({ session, supabase, balance, userPlan }:
 
       <Section title="멤버십 크레딧">
         <div className="flex items-baseline justify-between mb-2">
-          <span className="text-xs text-gray-500">남은 크레딧</span>
-          <span className="text-sm font-black text-[#03C75A]">{bal.toLocaleString()} CR / {maxC.toLocaleString()} CR</span>
+          <span className="text-xs text-gray-500">남은 영상</span>
+          <span className="text-sm font-black text-[#03C75A]">{bal.toLocaleString()}개 / {maxC.toLocaleString()}개</span>
         </div>
         <div className="h-2 rounded-full bg-gray-100 overflow-hidden mb-4">
           <div className="h-full bg-[#03C75A] transition-all" style={{ width:`${pct}%` }} />
