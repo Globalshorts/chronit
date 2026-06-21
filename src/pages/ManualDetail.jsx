@@ -241,8 +241,8 @@ const SECTIONS = {
   },
   credits: {
     emoji: '🪙',
-    title: '크레딧 안내',
-    callout: '영상 1개당 크레딧, 플랜, 이월·환불을 정리했어요.',
+    title: '이용권 안내',
+    callout: '영상 1개 = 이용권 1개, 플랜·환불을 정리했어요.',
     type: 'markdown',
     content: creditsMd,
   },

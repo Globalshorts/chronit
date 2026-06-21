@@ -108,7 +108,7 @@ const Register = () => {
     setSaving(true); setRefMsg(null)
     try {
       const { data } = await supabase.rpc('redeem_referral_rpc', { p_referral_code: code })
-      if (data?.ok) { setRefMsg({ ok: true, text: `🎉 추천 코드 적용! +${data.reward ?? 500} CR` }); setRefApplied(true) }
+      if (data?.ok) { setRefMsg({ ok: true, text: `🎉 추천 코드 적용! 프로 7일 체험이 시작됐어요` }); setRefApplied(true) }
       else setRefMsg({ ok: false, text: data?.error ?? '추천 코드 적용에 실패했어요' })
     } catch { setRefMsg({ ok: false, text: '추천 코드 적용에 실패했어요' }) }
     setSaving(false)

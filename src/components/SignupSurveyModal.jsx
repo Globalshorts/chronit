@@ -43,7 +43,7 @@ const SignupSurveyModal = ({ open, onDone }) => {
     try {
       const { data } = await supabase.rpc('redeem_referral_rpc', { p_referral_code: code })
       if (data?.ok) {
-        setRefMsg({ ok: true, text: `🎉 추천 코드 적용! +${data.reward ?? 500} CR` })
+        setRefMsg({ ok: true, text: `🎉 추천 코드 적용! 프로 7일 체험이 시작됐어요` })
         setTimeout(() => onDone?.(), 1400)
       } else {
         setRefMsg({ ok: false, text: data?.error ?? '추천 코드 적용에 실패했어요' })

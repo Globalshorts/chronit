@@ -584,7 +584,7 @@ const Home = () => {
                 <span className="rounded-full bg-[#FFB800] px-3 py-1 text-xs font-black text-white">안심 패키지</span>
                 <h4 className="text-xl font-black text-gray-900">프로 6개월</h4>
               </div>
-              <p className="text-base text-gray-600">프로 요금제를 <strong className="text-gray-900">6개월 동안</strong> · 매월 크레딧 충전 · 가장 알뜰한 장기 플랜</p>
+              <p className="text-base text-gray-600">프로 요금제를 <strong className="text-gray-900">6개월 동안</strong> · 매월 영상 30개 지급 · 가장 알뜰한 장기 플랜</p>
             </div>
             <div className="shrink-0 text-left sm:text-right">
               <span className="text-base font-bold text-gray-400 line-through">{wonFmt(planPrices.pkg6.list)}원</span><span className="ml-2 rounded-md bg-[#FFB800]/20 px-1.5 py-0.5 text-xs font-black text-[#b07d00]">{pctOff(planPrices.pkg6.list, planPrices.pkg6.sale)}% 할인</span>
@@ -608,7 +608,7 @@ const Home = () => {
                 </div>
               </div>
               <ul className="space-y-3 text-base font-medium text-gray-700">
-                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" /><span>월 <strong>약 16개</strong> 영상 제작</span></li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" /><span>월 <strong>15개</strong> 영상 제작</span></li>
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" />모든 자동화 기능 사용</li>
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" />자동 자막·제목 추천</li>
               </ul>
@@ -627,7 +627,7 @@ const Home = () => {
                 </div>
               </div>
               <ul className="space-y-3 text-base font-medium text-white">
-                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-white" /><span>월 <strong>약 33개</strong> 영상 제작</span></li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-white" /><span>월 <strong>30개</strong> 영상 제작</span></li>
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-white" />스타터의 모든 기능 포함</li>
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-white" />고급 AI 음성 사용</li>
               </ul>
@@ -645,7 +645,7 @@ const Home = () => {
                 </div>
               </div>
               <ul className="space-y-3 text-base font-medium text-gray-700">
-                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" /><span>월 <strong>약 83개</strong> 영상 제작</span></li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" /><span>월 <strong>50개</strong> 영상 제작</span></li>
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" />프로의 모든 기능 포함</li>
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" />새 기능 우선 체험</li>
               </ul>

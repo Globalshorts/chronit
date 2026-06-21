@@ -64,7 +64,7 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, userPlan, onHistor
                 <a href="/me" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">👤 마이페이지</a>
                 <button onClick={() => { setMenuOpen(false); onInvite && onInvite(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">🎁 무료 이용권 받기</button>
                 <a href="https://forms.gle/LCDeSEXSM7ALykqv5" target="_blank" rel="noreferrer" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">📝 피드백 보내고 영상 2개</a>
-                <button onClick={() => { setMenuOpen(false); onHistory && onHistory(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">📒 크레딧 사용 내역</button>
+                <button onClick={() => { setMenuOpen(false); onHistory && onHistory(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">📒 사용 내역</button>
                 <button onClick={logout} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50">↩ 로그아웃</button>
               </div>
             </>
@@ -1513,7 +1513,7 @@ export default function VideoGenerator() {
 
               {coupangOpen && (
                 <div className="rounded-xl border border-blue-100 bg-blue-50/40 p-3">
-                  <p className="mb-2 text-sm text-blue-600">분석·생성 전에 이 상품이 쿠팡 파트너스에 있는지 먼저 검색해 보세요. 없으면 다른 상품으로 바꾸면 크레딧을 아껴요.</p>
+                  <p className="mb-2 text-sm text-blue-600">분석·생성 전에 이 상품이 쿠팡 파트너스에 있는지 먼저 검색해 보세요. 없으면 다른 상품으로 바꾸면 이용권을 아껴요.</p>
                   <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                     <input type="text" value={coupangQ}
                       onChange={e => setCoupangQ(e.target.value)}
@@ -1765,12 +1765,12 @@ function friendlyError(raw?: string): string {
   if (e.includes("insufficient") || e.includes("credit") || e.includes("크레딧"))
     return "이용권이 부족해요. 요금제를 확인해 주세요.";
   if (e.includes("다운로드 실패") || e.includes("download fail") || e.includes("not available") || e.includes("yt-dlp") || e.includes("video stream"))
-    return "클립 영상을 불러오지 못했어요. 원본 클립이 일시적으로 막혔을 수 있어요 — 잠시 후 다시 시도하거나 다른 클립을 담아 주세요. (크레딧은 환불됐어요)";
+    return "클립 영상을 불러오지 못했어요. 원본 클립이 일시적으로 막혔을 수 있어요 — 잠시 후 다시 시도하거나 다른 클립을 담아 주세요. (이용권은 환불됐어요)";
   if (e.includes("no clip") || e.includes("not found") || e.includes("검색 결과") || e.includes("상품을 찾") || e.includes("clip"))
     return "영상에서 상품·클립을 충분히 찾지 못했어요. 상품이 잘 보이는 다른 쇼핑 숏폼으로 다시 시도해 주세요.";
   if (e.includes("timeout") || e.includes("시간 초과"))
     return "처리 시간이 초과됐어요. 잠시 후 다시 시도해 주세요. (이용권은 자동 환불돼요)";
-  return "영상 생성 중 일시적인 오류가 발생했어요. 합성에 쓰인 크레딧은 자동 환불됐어요 — 잠시 후 다시 시도하면 대부분 해결돼요.";
+  return "영상 생성 중 일시적인 오류가 발생했어요. 합성에 쓰인 이용권은 자동 환불됐어요 — 잠시 후 다시 시도하면 대부분 해결돼요.";
 }
 
 // ── URL 입력 라이브 힌트 (잘못된 링크 즉시 안내) ──────────────────────────
@@ -2512,7 +2512,7 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
       const { data, error } = await supabase.rpc("redeem_credit_code_rpc", { p_code: c });
       if (error) throw error;
       if (data?.ok) {
-        setCouponMsg({ok:true, text:`🎉 ${Number(data.credits).toLocaleString()} 크레딧이 지급됐어요!`}); setCoupon(""); onCredited?.();
+        setCouponMsg({ok:true, text:`🎉 영상 ${Number(data.credits).toLocaleString()}개가 지급됐어요!`}); setCoupon(""); onCredited?.();
         setCouponLoading(false); return;
       }
       // 2) 크레딧 코드가 아니면 무료체험(free_days) 코드로 재시도
@@ -2643,10 +2643,10 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
 
         {/* 미션 B — 후기 */}
         <div className="rounded-2xl bg-gray-100/60 border border-gray-200 p-4">
-          <span className="inline-block rounded-lg bg-purple-600 text-white text-xs font-bold px-2.5 py-1 mb-2">미션 B · +1000 크레딧</span>
-          <p className="text-sm text-gray-700 mb-3">네이버 카페, 블로그, 커뮤니티 등에 크로닛 사용 후기를 <b className="text-gray-900">전체 공개</b>로 작성한 뒤 URL을 입력해주세요. 확인 후 <b className="text-gray-900">1000 크레딧</b>이 지급됩니다.</p>
+          <span className="inline-block rounded-lg bg-purple-600 text-white text-xs font-bold px-2.5 py-1 mb-2">미션 B · 영상 5개</span>
+          <p className="text-sm text-gray-700 mb-3">네이버 카페, 블로그, 커뮤니티 등에 크로닛 사용 후기를 <b className="text-gray-900">전체 공개</b>로 작성한 뒤 URL을 입력해주세요. 확인 후 <b className="text-gray-900">영상 5개</b>가 지급됩니다.</p>
           {reviewStatus==="approved" ? (
-            <div className="rounded-xl px-3 py-2.5 text-sm text-center bg-green-500/15 text-green-400">✅ 후기 승인 — 1000 크레딧 지급 완료</div>
+            <div className="rounded-xl px-3 py-2.5 text-sm text-center bg-green-500/15 text-green-400">✅ 후기 승인 — 영상 5개 지급 완료</div>
           ) : reviewStatus==="pending" ? (
             <div className="rounded-xl px-3 py-2.5 text-sm text-center bg-white text-gray-400">⏳ 검토 중입니다</div>
           ) : (
@@ -2667,7 +2667,7 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
           <div key={m.id} className="rounded-2xl bg-gray-100/60 border border-gray-200 p-4 mt-3">
             <span className="inline-block rounded-lg text-white text-xs font-bold px-2.5 py-1 mb-2"
               style={{ backgroundColor: m.badge_color || "#03C75A" }}>
-              {m.badge_label || "이벤트"}{m.reward ? ` · +${m.reward.toLocaleString()} 크레딧` : ""}
+              {m.badge_label || "이벤트"}{m.reward ? ` · +${m.reward.toLocaleString()} 영상` : ""}
             </span>
             {m.title && <p className="text-sm font-bold text-gray-900 mb-1">{m.title}</p>}
             {m.description && <p className="text-sm text-gray-700 mb-3 whitespace-pre-wrap">{m.description}</p>}
@@ -2772,7 +2772,7 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
         )}
         {balance !== null && (
           <div className="flex justify-between text-xs">
-            <span className="text-gray-500">크레딧</span>
+            <span className="text-gray-500">남은 영상</span>
             <span className="font-black text-[#03C75A]">💎 {balance.toLocaleString()}</span>
           </div>
         )}
@@ -2973,7 +2973,7 @@ function TrendCard({ item, onAdd, onAnalyze }: { item: any; onAdd: () => void; o
         <div className="mt-1 flex gap-1.5">
           <button onClick={onAdd} title="이 영상을 소스로 담기 (무료)"
             className="flex-1 rounded-lg border border-[#03C75A] py-2 text-xs font-bold text-[#03C75A] hover:bg-[#03C75A]/10 transition">＋ 담기</button>
-          <button onClick={onAnalyze} title="담기 + 유사클립·상품명 분석 (10 CR)"
+          <button onClick={onAnalyze} title="담기 + 유사클립·상품명 분석"
             className="flex-1 rounded-lg bg-[#03C75A] py-2 text-xs font-bold text-white hover:bg-[#02b350] transition">🔍 분석</button>
         </div>
       </div>
@@ -3709,7 +3709,7 @@ function SettingsView({ session, supabase, balance, userPlan }:
         </div>
       </Section>
 
-      <Section title="멤버십 크레딧">
+      <Section title="멤버십 이용권">
         <div className="flex items-baseline justify-between mb-2">
           <span className="text-xs text-gray-500">남은 영상</span>
           <span className="text-sm font-black text-[#03C75A]">{bal.toLocaleString()}개 / {maxC.toLocaleString()}개</span>
@@ -3766,7 +3766,7 @@ function SettingsView({ session, supabase, balance, userPlan }:
         <div className="rounded-xl border border-red-200 bg-red-50 p-4">
           <p className="mb-1 text-sm font-bold text-red-600">계정을 영구 삭제합니다</p>
           <p className="mb-3 text-xs leading-relaxed text-gray-600">
-            탈퇴하면 <b>남은 크레딧·구독·생성한 영상·내 링크가 즉시 삭제</b>되고 되돌릴 수 없어요.
+            탈퇴하면 <b>남은 이용권·구독·생성한 영상·내 링크가 즉시 삭제</b>되고 되돌릴 수 없어요.
             유료 기간이 남아 있어도 환불되지 않습니다. (법령상 보존 의무가 있는 결제 기록은 일정 기간 보관돼요.)
           </p>
           <p className="mb-1.5 text-xs text-gray-700">계속하려면 아래에 <b className="text-red-600">탈퇴한다</b> 를 입력하세요.</p>
@@ -4019,7 +4019,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
   const [pcTrialPlan, setPcTrialPlan] = React.useState("pro");
   const [pcTrialDays, setPcTrialDays] = React.useState("7");
   const [pcUpEmail, setPcUpEmail] = React.useState("");
-  const [pcUpOv, setPcUpOv] = React.useState<Record<string,string>>({starter:"10000",pro:"15000",master:"20000"});
+  const [pcUpOv, setPcUpOv] = React.useState<Record<string,string>>({starter:"15",pro:"30",master:"50"});
   const [upMsg, setUpMsg] = React.useState("");
   const setPCD = (k:string, patch:any) => setPcDisc(p=>({ ...p, [k]:{ ...p[k], ...patch } }));
   const [pcMsg, setPcMsg] = React.useState("");
@@ -4098,7 +4098,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
       if (!Number.isFinite(n) || n <= 0) { setMsg("변동량을 올바르게 입력하세요"); return; }
       if (n > 1000000) { setMsg("변동량이 너무 큽니다 (최대 1,000,000)"); return; }
     }
-    run(()=>supabase.rpc("admin_adjust_credits_rpc",{p_target_user_id:sel,p_action:action,p_amount:Math.min(Math.max(Math.floor(Number(amt)||0),0),1000000)}), "크레딧 처리 완료");
+    run(()=>supabase.rpc("admin_adjust_credits_rpc",{p_target_user_id:sel,p_action:action,p_amount:Math.min(Math.max(Math.floor(Number(amt)||0),0),1000000)}), "이용권 처리 완료");
   };
   const applyRole = () => run(()=>supabase.rpc("set_user_role_rpc",{p_target_user_id:sel,p_new_role:roleSel}), "권한 변경 완료");
 
@@ -4119,7 +4119,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
     setPartnerRates(freshPR()); setPrMsg("");
     // 파트너 쿠폰 기본값: 이메일 앞부분 기반 코드 추천
     setPcDisc(freshPR()); setPcMsg("");
-    setPcUpEmail(""); setPcUpOv({starter:"10000",pro:"15000",master:"20000"}); setUpMsg("");
+    setPcUpEmail(""); setPcUpOv({starter:"15",pro:"30",master:"50"}); setUpMsg("");
     setPcCode(selUser?.email ? String(selUser.email).split("@")[0].replace(/[^a-zA-Z0-9]/g,"").toUpperCase().slice(0,8) : "");
     if (sel && selUser?.role === "partner") {
       supabase.rpc("admin_get_partner_upline_rpc",{ p_teacher_id: sel }).then((res:any)=>{
@@ -4127,7 +4127,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
         if (d?.ok && d.upline_email) {
           setPcUpEmail(d.upline_email);
           const o = d.override||{};
-          setPcUpOv({ starter:String(o.starter??10000), pro:String(o.pro??15000), master:String(o.master??20000) });
+          setPcUpOv({ starter:String(o.starter??15), pro:String(o.pro??30), master:String(o.master??50) });
         }
       }, ()=>{});
       supabase.rpc("admin_get_partner_rates_rpc",{ p_partner_id: sel }).then((res:any)=>{
@@ -4256,7 +4256,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
       <div className="rounded-2xl bg-white border border-gray-200 overflow-hidden mb-5 max-h-[340px] overflow-y-auto">
         <table className="w-full text-xs">
           <thead className="border-b border-gray-200 text-gray-400 sticky top-0 bg-white">
-            <tr><th className="px-3 py-2.5 text-left">이메일</th><th className="px-3 py-2.5 text-left">닉네임</th><th className="px-3 py-2.5 text-left">이름</th><th className="px-3 py-2.5 text-left">권한</th><th className="px-3 py-2.5 text-left">플랜</th><th className="px-3 py-2.5 text-left">만료일</th><th className="px-3 py-2.5 text-left">📣마케팅</th><th className="px-3 py-2.5 text-center">상태</th><th className="px-3 py-2.5 text-right">포인트</th><th className="px-3 py-2.5 text-right">크레딧(잔량/한도)</th></tr>
+            <tr><th className="px-3 py-2.5 text-left">이메일</th><th className="px-3 py-2.5 text-left">닉네임</th><th className="px-3 py-2.5 text-left">이름</th><th className="px-3 py-2.5 text-left">권한</th><th className="px-3 py-2.5 text-left">플랜</th><th className="px-3 py-2.5 text-left">만료일</th><th className="px-3 py-2.5 text-left">📣마케팅</th><th className="px-3 py-2.5 text-center">상태</th><th className="px-3 py-2.5 text-right">포인트</th><th className="px-3 py-2.5 text-right">이용권(잔량/한도)</th></tr>
           </thead>
           <tbody>
             {loading ? <tr><td colSpan={10} className="py-8 text-center text-gray-500">불러오는 중...</td></tr>
@@ -4456,7 +4456,7 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
     let row:any;
     if (mode === "credits") {
       const cr = Number(credits) || 0;
-      if (cr <= 0) { setMsg("지급할 크레딧 수를 입력하세요"); return; }
+      if (cr <= 0) { setMsg("지급할 영상 수를 입력하세요"); return; }
       const mu = maxUses.trim() === "" ? null : (Number(maxUses) || 0);
       if (mu !== null && mu <= 0) { setMsg("선착순 인원은 1 이상이거나 비워두세요(무제한)"); return; }
       row = {
@@ -4514,7 +4514,7 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
   };
   const summarize = (c:any) => {
     if (c.type === "credits") {
-      return `💎 크레딧 ${Number(c.value).toLocaleString()}` + (c.max_uses ? ` · 선착순 ${c.max_uses}명` : " · 인원무제한");
+      return `💎 영상 ${Number(c.value).toLocaleString()}개` + (c.max_uses ? ` · 선착순 ${c.max_uses}명` : " · 인원무제한");
     }
     const pd = c.plan_discounts;
     if (pd && typeof pd === "object") {
@@ -4671,7 +4671,7 @@ function AdminReviewsTab({ session, supabase }: { session:any; supabase:any }) {
     try { const r = await fn(); if (r?.data?.ok===false) setMsg("실패: "+r.data.error); else { setMsg(okMsg); setSel(""); await load(); } }
     catch(e){ setMsg("실패: "+String(e)); }
   };
-  const approve = () => act(()=>supabase.rpc("approve_review_rpc",{p_submission_id:sel,p_admin_id:session.user.id,p_credits:1000}), "승인 완료 (+1000 CR)");
+  const approve = () => act(()=>supabase.rpc("approve_review_rpc",{p_submission_id:sel,p_admin_id:session.user.id,p_credits:5}), "승인 완료 (+영상 5개)");
   const reject  = () => act(()=>supabase.rpc("reject_review_rpc",{p_submission_id:sel,p_admin_id:session.user.id}), "거절 완료");
   const fmt = (d:string)=> d ? new Date(d).toLocaleString("ko-KR",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}) : "-";
 
@@ -4702,7 +4702,7 @@ function AdminReviewsTab({ session, supabase }: { session:any; supabase:any }) {
         </table>
       </div>
       <div className="flex items-center gap-2">
-        <button onClick={approve} className="rounded-xl bg-green-600 hover:bg-green-500 px-5 py-2.5 text-sm font-bold text-white transition">✓ 승인 (+1000 크레딧)</button>
+        <button onClick={approve} className="rounded-xl bg-green-600 hover:bg-green-500 px-5 py-2.5 text-sm font-bold text-white transition">✓ 승인 (+영상 5개)</button>
         <button onClick={reject} className="rounded-xl bg-red-600 hover:bg-red-500 px-5 py-2.5 text-sm font-bold text-white transition">✕ 거절</button>
         {msg && <span className="text-xs text-[#03C75A] ml-2">{msg}</span>}
       </div>
@@ -4810,7 +4810,7 @@ function PartnerView({ session, supabase }: { session: any; supabase: any }) {
                   <th className="px-3 py-3 text-left font-semibold">멤버 이메일</th>
                   <th className="px-3 py-3 text-left font-semibold">파트너</th>
                   <th className="px-3 py-3 text-left font-semibold">플랜</th>
-                  <th className="px-3 py-3 text-right font-semibold">남은 크레딧</th>
+                  <th className="px-3 py-3 text-right font-semibold">남은 영상</th>
                   <th className="px-3 py-3 text-right font-semibold">사용량</th>
                   <th className="px-3 py-3 text-left font-semibold">만료일</th>
                   <th className="px-3 py-3 text-left font-semibold">등록일</th>

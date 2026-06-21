@@ -12,8 +12,8 @@ const SHARE_IMG = 'https://chronit.kr/reserve_card_v2.png'
 
 const MILESTONES = [
   { n: 100,  tag: '선착순',   label: '첫 100명',     reward: '프로 7일 무료',  sub: '런칭일 코드 자동 발송' },
-  { n: 250,  tag: '마일스톤', label: '누적 250명',   reward: '1,000 크레딧',   sub: '예약 전원 소급 지급' },
-  { n: 500,  tag: '마일스톤', label: '누적 500명',   reward: '2,000 크레딧',   sub: '예약 전원 소급 지급' },
+  { n: 250,  tag: '마일스톤', label: '누적 250명',   reward: '영상 7개',   sub: '예약 전원 소급 지급' },
+  { n: 500,  tag: '마일스톤', label: '누적 500명',   reward: '영상 14개',   sub: '예약 전원 소급 지급' },
   { n: 1000, tag: '마일스톤', label: '누적 1,000명', reward: '프로 30일 무료', sub: '예약 전원 소급 지급' },
 ]
 
@@ -205,8 +205,8 @@ export default function Reserve() {
             })}
           </div>
           <p className="mt-4 text-center text-[11px] leading-relaxed text-gray-400">
-            ※ 사전예약 혜택(크레딧·프로 기간)은 정식 오픈 시 일괄·소급 지급돼요.
-            프로 무료 기간 동안은 월 무료 크레딧이 별도 지급되지 않아요. 수익은 상품·꾸준함에 따라 달라요.
+            ※ 사전예약 혜택(이용권·프로 기간)은 정식 오픈 시 일괄·소급 지급돼요.
+            프로 무료 기간 동안은 월 무료 이용권이 별도 지급되지 않아요. 수익은 상품·꾸준함에 따라 달라요.
           </p>
         </section>
 
