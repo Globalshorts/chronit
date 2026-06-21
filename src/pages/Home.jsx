@@ -444,19 +444,19 @@ const Home = () => {
 
       {/* ── Hero ── */}
       <section className="relative px-5 pt-32 pb-16 md:px-8 md:pt-40 md:pb-24">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-12">
-          <div className="flex flex-col items-start">
+        <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
+          <div className="flex w-full flex-col items-center">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#03C75A]/30 bg-[#03C75A]/10 px-4 py-2 text-sm font-bold text-[#03C75A] md:text-base">
               🛍️ 쇼핑 숏폼 특화 AI
             </div>
-            <h1 className="mb-5 text-4xl font-black leading-[1.2] tracking-tight text-gray-900 md:text-5xl">
+            <h1 className="mb-5 text-4xl font-black leading-[1.15] tracking-tight text-gray-900 md:text-6xl">
               하루 한 편도 벅찼던 쇼핑 숏폼<br /><span className="bg-gradient-to-r from-[#10b981] to-[#03C75A] bg-clip-text text-transparent">제작 시간 95% 단축</span>
             </h1>
             <p className="mb-9 text-xl font-bold text-gray-500 md:text-2xl">
               크로닛은 영상만 넣으면 상품 분석·자막·TTS·편집까지 끝낸 쇼핑 숏폼을 만들어드립니다.
             </p>
 
-            <div className="flex w-full flex-col gap-3">
+            <div className="flex w-full max-w-2xl flex-col gap-3">
               <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
                 <input
                   type="text"
@@ -477,31 +477,6 @@ const Home = () => {
             <p className="mt-4 text-sm font-medium text-gray-500">
               <span className="font-black text-[#03C75A]">설치 없이</span> 웹에서 바로 시작 · 구글 로그인이면 끝
             </p>
-          </div>
-
-          {/* 우측: 수익 흐름 */}
-          <div className="relative flex justify-center">
-            <div className="w-full max-w-sm">
-              <p className="mb-3 text-center text-base font-black text-gray-900">이렇게 수익이 돼요 👇</p>
-              {[
-                { emoji: '🔗', title: '쇼핑 영상 고르기', desc: '소개할 상품의 영상을' },
-                { emoji: '🎬', title: '영상 자동 생성', desc: '크로닛이 숏폼으로 만들어요' },
-                { emoji: '📱', title: '추천 링크와 함께 업로드', desc: '인스타·유튜브 등 내 채널에' },
-                { emoji: '💰', title: '구매 시 수수료', desc: '쿠팡 파트너스 등 제휴', highlight: true },
-              ].map((s, i, arr) => (
-                <div key={s.title}>
-                  <div className={`flex items-center gap-4 rounded-2xl border p-4 ${s.highlight ? 'border-[#03C75A] bg-[#03C75A]/8 shadow-lg shadow-[#03C75A]/15' : 'border-gray-200 bg-white'}`}>
-                    <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-2xl ${s.highlight ? 'bg-[#03C75A]/15' : 'bg-gray-50'}`}>{s.emoji}</div>
-                    <div className="min-w-0">
-                      <p className={`text-base font-black ${s.highlight ? 'text-[#03C75A]' : 'text-gray-900'}`}>{s.title}</p>
-                      <p className="text-sm text-gray-500">{s.desc}</p>
-                    </div>
-                  </div>
-                  {i < arr.length - 1 && <div className="flex justify-center py-1"><span className="text-lg text-gray-300">↓</span></div>}
-                </div>
-              ))}
-              <p className="mt-3 text-center text-xs text-gray-400">※ 수익은 보장되지 않아요</p>
-            </div>
           </div>
         </div>
       </section>
