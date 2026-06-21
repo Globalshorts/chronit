@@ -689,7 +689,6 @@ const Home = () => {
             </div>
           </div>
 
-          <p className="mt-4 text-center text-sm text-gray-400">* 영상 개수는 분석 1회 + 일반 음성 기준 예상치예요. 음성·옵션에 따라 달라질 수 있어요.</p>
 
           <div className="mt-12 text-center">
             <button onClick={handleStart}
