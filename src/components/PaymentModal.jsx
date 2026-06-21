@@ -170,6 +170,23 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
 
   if (!open) return null
 
+  // ── 결제 준비 중 (토스페이먼츠 연동 전까지 비워둠) ──
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm" onClick={onClose}>
+      <div className="relative w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-8 text-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <button className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-full text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600" onClick={onClose}>
+          <X size={20} />
+        </button>
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#03C75A]/10 text-[#03C75A]">
+          <CreditCard size={26} />
+        </div>
+        <h3 className="text-xl font-black tracking-tight text-gray-900">결제 준비 중이에요</h3>
+        <p className="mt-2 text-sm leading-relaxed text-gray-500">곧 정식 결제를 오픈할 예정이에요.<br />조금만 기다려 주세요 🙏</p>
+        <button onClick={onClose} className="mt-6 w-full rounded-xl bg-gray-900 py-3 text-sm font-bold text-white transition hover:bg-[#03C75A]">닫기</button>
+      </div>
+    </div>
+  )
+
   const buildPlan = (key) => ({
     name: PLAN_META[key].name,
     badge: PLAN_META[key].badge,

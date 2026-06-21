@@ -49,7 +49,7 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, userPlan, onHistor
       <SiteNav />
       <nav className="flex shrink-0 items-center gap-2 text-sm font-bold text-gray-600 md:gap-3">
         {balance !== null && balance !== undefined && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#03C75A]/10 px-3 py-1.5 text-xs font-black text-[#03C75A]">💎 {balance.toLocaleString()}{userPlan ? ` · ${userPlan}` : ""}</span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#03C75A]/10 px-3 py-1.5 text-xs font-black text-[#03C75A]">이용권 {balance.toLocaleString()}개{userPlan ? ` · ${userPlan}` : ""}</span>
         )}
         <div className="relative">
           <button onClick={() => setMenuOpen(o => !o)}
