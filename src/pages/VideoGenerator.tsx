@@ -635,6 +635,7 @@ export default function VideoGenerator() {
         // 성공
         const rawClips: Clip[] = data1.clips ?? [];
         const refFrames: string[] = data1.reference_frames ?? [];
+        const urlClip: any = (ov === undefined) ? buildUrlSourceClip(su.trim(), data1) : null;
         const _pf = (data1.reference_frames && data1.reference_frames[0]) || "";
         analysisMetaRef.current = { name: data1.product_name || "", keyword: data1.keyword || "", poster: (_pf && !_pf.startsWith("data:") && !_pf.startsWith("http")) ? ("data:image/jpeg;base64," + _pf) : _pf };
         // 샤오홍슈(XHS) 보조 소스 — 격리(실패해도 틱톡 결과 영향 없음)
@@ -648,8 +649,8 @@ export default function VideoGenerator() {
         // ★ 틱톡+XHS 후보를 합쳐 CLIP 필터에 함께 태움 → 관련성 통합 필터 + 점수순 정렬
         //   (기존: XHS는 필터 없이 상단 prepend → 특징 안 맞는 XHS 다수 + 틱톡 묻힘)
         const allCand: Clip[] = [...rawClips, ...xhsClips];
-        if (!allCand.length) { if (keepUploads.length) setClips([...(keepUploads as any)]); else setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요."); return; }
-        if (!refFrames.length) { setClips([...(keepUploads as any), ...allCand]); return; }
+        if (!allCand.length) { setClips([...(keepUploads as any), ...(urlClip ? [urlClip] : [])]); return; }
+        if (!refFrames.length) { setClips([...(keepUploads as any), ...(urlClip ? [urlClip] : []), ...allCand]); return; }
 
         // Step 2: CLIP filter (틱톡+XHS 통합, 실패해도 폴백 — 재시도 안 함)
         try {
@@ -662,15 +663,25 @@ export default function VideoGenerator() {
           // clip-filter가 download_url(CDN)을 떨궈도 video_id로 원본에서 다시 붙임 (렌더 다운로드용)
           const _dlMap = new Map(allCand.map((c: any) => [c.video_id, c.download_url]));
           finalClips = finalClips.map((c: any) => ({ ...c, download_url: c.download_url || _dlMap.get(c.video_id) || "" }));
-          setClips([...(keepUploads as any), ...finalClips]);
-          if (!finalClips.length && !keepUploads.length) setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요.");
-        } catch { setClips([...(keepUploads as any), ...allCand]); }
+          setClips([...(keepUploads as any), ...(urlClip ? [urlClip] : []), ...finalClips]);
+          if (!finalClips.length && !keepUploads.length && !urlClip) setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요.");
+        } catch { setClips([...(keepUploads as any), ...(urlClip ? [urlClip] : []), ...allCand]); }
         return;
       }
     } catch (e) { setSearchError("분석 중 일시적인 오류가 있었어요. 잠시 후 다시 시도해 주세요."); }
     finally { setSearching(false); }
   };
   const toggleCart = (id: string) => {
+    const adding = !cart.has(id);
+    const clip = (clips as any[]).find((c: any) => c.video_id === id);
+    if (adding && clip && clip.source !== "upload") {
+      // 타인 콘텐츠(원본 링크·유사 클립·트렌드) 담기 → 매번 저작권 확인
+      askConsent(() => {
+        logConsent("add", { url: clip.page_url || clip.download_url, shortcode: clip.video_id });
+        setCart(prev => { const n = new Set(prev); n.add(id); return n; });
+      });
+      return;
+    }
     setCart(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   };
 
@@ -831,6 +842,18 @@ export default function VideoGenerator() {
       fetch(FN("log-consent"), { method: "POST", headers: { Authorization: `Bearer ${s.access_token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ action, terms_version: TERMS_VERSION, terms_text: action === "agree" ? TERMS_TEXT : undefined, shortcode: it?.shortcode, source_url: it?.url }) });
     } catch (_) {}
+  };
+  // 링크로 가져온 "원본 영상" 자체를 목록에 넣기 (유사 클립만 뜨지 않도록)
+  const buildUrlSourceClip = (url: string, d: any): any => {
+    const pf = (d.reference_frames && d.reference_frames[0]) || "";
+    const thumb = pf ? ((pf.startsWith("data:") || pf.startsWith("http")) ? pf : "data:image/jpeg;base64," + pf) : "";
+    return {
+      video_id: "url_" + String(url).replace(/[^a-zA-Z0-9]/g, "").slice(-24),
+      source: "url",                 // 직접 링크 원본 — 캡션제거 적용(업로드 아님), page_url로 yt-dlp 다운로드
+      page_url: url, download_url: url,
+      title: String(d.product_name || "원본 영상").slice(0, 40),
+      description: "", thumbnail_url: thumb, duration: 0, author: "원본",
+    };
   };
   const buildTrendClip = (it: any): any => ({
     video_id: `trend_${it.shortcode}`,
@@ -1501,11 +1524,11 @@ export default function VideoGenerator() {
                 <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                   <input type="url" value={sourceUrl}
                     onChange={e => { setSourceUrl(e.target.value); setSearchError(""); setClips([]); setCart(new Set()); }}
-                    onKeyDown={e => { if (e.key === "Enter") askConsent(() => { logConsent("analyze", { url: sourceUrl }); handleSearch(); }); }}
+                    onKeyDown={e => e.key === "Enter" && handleSearch()}
                     placeholder="인스타·틱톡·유튜브 영상 링크 붙여넣기"
                     disabled={searching}
                     className="flex-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-3.5 text-base text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] focus:ring-1 focus:ring-[#03C75A] disabled:opacity-50 transition" />
-                  <button onClick={() => askConsent(() => { logConsent("analyze", { url: sourceUrl }); handleSearch(); })} disabled={searching || !sourceUrl.trim()}
+                  <button onClick={() => handleSearch()} disabled={searching || !sourceUrl.trim()}
                     className="w-full sm:w-auto shrink-0 rounded-xl bg-[#03C75A] px-5 py-3.5 text-base font-bold text-white hover:bg-[#02b350] disabled:opacity-40 transition flex items-center justify-center gap-2">
                     {searching
                       ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />분석 중...</>
@@ -1539,7 +1562,7 @@ export default function VideoGenerator() {
                     {clips.map(clip => (
                       <ClipCard key={clip.video_id} clip={clip}
                         selected={cart.has(clip.video_id)} onToggle={() => toggleCart(clip.video_id)}
-                        onRemove={((clip as any).source === "upload" || (clip as any).source === "trend") ? () => handleRemoveUpload(clip) : undefined} />
+                        onRemove={((clip as any).source === "upload" || (clip as any).source === "trend" || (clip as any).source === "url") ? () => handleRemoveUpload(clip) : undefined} />
                     ))}
                   </div>
                   {(() => {
@@ -2999,7 +3022,7 @@ function ClipCard({ clip, selected, onToggle, onRemove }: { clip: Clip; selected
         )}
         {onRemove && (
           <>
-            <span className="absolute bottom-1 left-1 rounded bg-[#03C75A]/90 px-1.5 py-0.5 text-[10px] font-bold text-white">{(clip as any).source === "trend" ? "트렌드" : "내 영상"}</span>
+            <span className="absolute bottom-1 left-1 rounded bg-[#03C75A]/90 px-1.5 py-0.5 text-[10px] font-bold text-white">{(clip as any).source === "trend" ? "트렌드" : (clip as any).source === "url" ? "원본" : "내 영상"}</span>
             <button onClick={e => { e.stopPropagation(); onRemove(); }} title="영상 빼기"
               className="absolute top-1.5 right-1.5 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-xs font-black text-white transition hover:bg-red-500">
               ✕
