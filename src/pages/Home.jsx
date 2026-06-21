@@ -259,6 +259,16 @@ const Home = () => {
     return () => subscription.unsubscribe()
   }, [])
 
+  // 다른 페이지에서 /#faq · /#pricing 등으로 진입 시 해당 섹션으로 스크롤
+  useEffect(() => {
+    const id = (window.location.hash || '').replace('#', '')
+    if (!id || id.includes('access_token')) return
+    const t = setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 350)
+    return () => clearTimeout(t)
+  }, [])
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
 

@@ -65,6 +65,7 @@ const Footer = ({ dark = false, user = null }) => {
             <Link to="/#pricing" className={`text-base font-medium transition-colors ${t.link}`}>가격 안내</Link>
             <Link to="/events" className={`text-base font-medium transition-colors ${t.link}`}>이벤트</Link>
             <Link to="/manual" className={`text-base font-medium transition-colors ${t.link}`}>사용 방법</Link>
+            <Link to="/manual/credits" className={`text-base font-medium transition-colors ${t.link}`}>서비스 이용 안내</Link>
             {user?.email === 'pv2066pv@gmail.com' && (
               <Link to="/admin" className={`text-base font-medium transition-colors ${t.admin}`}>👑 관리자</Link>
             )}
