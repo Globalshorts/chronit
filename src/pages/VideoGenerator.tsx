@@ -22,8 +22,18 @@ const SB = "https://oxygqtbdpnxxcgzwdlzi.supabase.co";
 const FN = (n: string) => `${SB}/functions/v1/${n}`;
 
 // ── 상단 바 (홈페이지와 동일 스타일) ───────────────────────────
-function AppTopBar({ onMenuClick, onInvite }: { onMenuClick?: () => void; onInvite?: () => void }) {
+function AppTopBar({ onMenuClick, onInvite, session }: { onMenuClick?: () => void; onInvite?: () => void; session?: any }) {
   const ICON = `${SB}/storage/v1/object/public/assets/icon.png`;
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [nick, setNick] = useState("");
+  useEffect(() => {
+    const uid = session?.user?.id;
+    if (!uid) return;
+    supabase.from("profiles").select("nickname").eq("id", uid).maybeSingle()
+      .then(({ data }: any) => { if (data?.nickname) setNick(data.nickname); });
+  }, [session?.user?.id]);
+  const name = nick || (session?.user?.email ? String(session.user.email).split("@")[0] : "내 계정");
+  const logout = async () => { try { await supabase.auth.signOut(); } catch (_) {} window.location.href = "/"; };
   return (
     <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-gray-200 bg-white/90 px-4 backdrop-blur-xl md:px-6">
       <div className="flex min-w-0 items-center gap-2 md:gap-3">
@@ -38,8 +48,25 @@ function AppTopBar({ onMenuClick, onInvite }: { onMenuClick?: () => void; onInvi
       </div>
       <SiteNav />
       <nav className="flex shrink-0 items-center gap-2 text-sm font-bold text-gray-600 md:gap-3">
-        <button onClick={onInvite} className="rounded-full bg-[#03C75A] px-3.5 py-1.5 font-black text-white transition-colors hover:bg-[#02b350]">🎁 친구 초대</button>
-        <a href="/" className="rounded-full bg-[#03C75A]/10 px-3.5 py-1.5 text-[#03C75A] transition-colors hover:bg-[#03C75A]/20">홈</a>
+        <button onClick={onInvite} className="hidden sm:inline-flex rounded-full bg-[#03C75A] px-3.5 py-1.5 font-black text-white transition-colors hover:bg-[#02b350]">🎁 친구 초대</button>
+        <div className="relative">
+          <button onClick={() => setMenuOpen(o => !o)}
+            className="flex items-center gap-1.5 rounded-full bg-gray-900 px-3.5 py-1.5 font-bold text-white transition-colors hover:bg-[#03C75A]">
+            <span className="max-w-[110px] truncate">{name}</span>
+            <span className="text-[10px] opacity-80">▾</span>
+          </button>
+          {menuOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+              <div className="absolute right-0 top-full z-50 mt-2 w-48 rounded-2xl border border-gray-200 bg-white p-1.5 shadow-xl shadow-black/5">
+                <a href="/me" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">👤 마이페이지</a>
+                <button onClick={() => { setMenuOpen(false); onInvite && onInvite(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">🎁 추천인 보상</button>
+                <a href="https://forms.gle/LCDeSEXSM7ALykqv5" target="_blank" rel="noreferrer" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">💬 피드백 보내기</a>
+                <button onClick={logout} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50">↩ 로그아웃</button>
+              </div>
+            </>
+          )}
+        </div>
       </nav>
     </header>
   );
@@ -1286,7 +1313,7 @@ export default function VideoGenerator() {
       )}
 
       {/* ── 상단 바 ── */}
-      <AppTopBar onMenuClick={() => setMobileMenuOpen(true)} onInvite={() => setShowInvite(true)} />
+      <AppTopBar onMenuClick={() => setMobileMenuOpen(true)} onInvite={() => setShowInvite(true)} session={session} />
       <CreditMissionsModal open={showInvite} onClose={() => setShowInvite(false)} session={session} onCredited={loadBalance} />
 
       {/* ── 모바일 사이드바 드로어 ── */}
