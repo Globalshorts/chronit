@@ -221,6 +221,8 @@ export default function VideoGenerator() {
     try { localStorage.setItem("chronit_active_view", activeView); } catch {}
   }, [activeView]);
   const [showTips, setShowTips] = useState(false);
+  const [consentAsk, setConsentAsk] = useState<null | (() => void)>(null);
+  const askConsent = (onAgree: () => void) => setConsentAsk(() => onAgree);
 
   // auth
   useEffect(() => {
@@ -820,7 +822,7 @@ export default function VideoGenerator() {
   // 트렌드 영상을 업로드처럼 처리 — 그 릴스를 소스 클립으로 넣어 자막제거+컷편집+합성 (유사클립 검색 X)
   // 트렌드 영상 = 타인 콘텐츠 → 최초 1회 저작권 동의 + 서버 로그(법적 증빙)
   const TERMS_VERSION = "trend-v1";
-  const TERMS_TEXT = "이 영상은 다른 사람이 올린 콘텐츠입니다. 재가공·업로드에 따른 저작권 등 모든 책임은 이용자 본인에게 있으며, 크로닛은 이에 대해 책임지지 않습니다.";
+  const TERMS_TEXT = "이 영상에 사용 권리가 있는지 확인하세요. 타인의 콘텐츠를 무단으로 재가공·업로드할 경우 저작권 등 모든 책임은 이용자 본인에게 있으며, 크로닛은 이에 대해 책임지지 않습니다.";
   // 서버에 동의/사용 기록 (누가·언제·약관버전·어떤 영상) — 변조 불가 증거
   const logConsent = async (action: "agree" | "add" | "analyze", it?: any) => {
     try {
@@ -829,13 +831,6 @@ export default function VideoGenerator() {
       fetch(FN("log-consent"), { method: "POST", headers: { Authorization: `Bearer ${s.access_token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ action, terms_version: TERMS_VERSION, terms_text: action === "agree" ? TERMS_TEXT : undefined, shortcode: it?.shortcode, source_url: it?.url }) });
     } catch (_) {}
-  };
-  const confirmTrendLegal = (): boolean => {
-    try { if (localStorage.getItem("chronit_trend_legal_ok") === "1") return true; } catch (_) {}
-    const ok = typeof window !== "undefined" && window.confirm(
-      "⚠️ " + TERMS_TEXT + "\n\n동의하고 계속할까요?");
-    if (ok) { try { localStorage.setItem("chronit_trend_legal_ok", "1"); } catch (_) {} logConsent("agree"); }
-    return ok;
   };
   const buildTrendClip = (it: any): any => ({
     video_id: `trend_${it.shortcode}`,
@@ -848,25 +843,23 @@ export default function VideoGenerator() {
     duration: 0, author: it.owner || "",
   });
   // 담기: 소스 클립으로 추가(업로드처럼, 무료) — 여러 개 누적 가능
-  const trendAdd = (it: any) => {
-    if (!confirmTrendLegal()) return;
+  const trendAdd = (it: any) => askConsent(() => {
     logConsent("add", it);
     const clip = buildTrendClip(it);
     setClips(prev => (prev as any[]).some((c: any) => c.video_id === clip.video_id) ? prev : [clip, ...(prev as any[])] as any);
     setCart(prev => { const n = new Set(prev); n.add(clip.video_id); return n; });
     setActiveView("generator"); setUploadOpen(true);
     try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (_) {}
-  };
+  });
   // 분석: 담기 + 분석(유사클립·상품명, 10CR) — reel은 유지하고 유사클립을 추가
-  const trendAnalyze = (it: any) => {
-    if (!confirmTrendLegal()) return;
+  const trendAnalyze = (it: any) => askConsent(() => {
     logConsent("analyze", it);
     const clip = buildTrendClip(it);
     setActiveView("generator"); setUploadOpen(true);
     setClips([clip] as any); setCart(new Set([clip.video_id]));
     handleSearch(it.url, [clip]);
     try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (_) {}
-  };
+  });
   // 트렌드 탭 진입 시 자동 로드
   useEffect(() => { if (activeView === "trends" && !trendItems.length && !trendLoading) fetchTrends(); /* eslint-disable-next-line */ }, [activeView]);
 
@@ -979,6 +972,27 @@ export default function VideoGenerator() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#ECEAE3] text-gray-900">
+      {/* ── 저작권 동의 모달 (매번) ── */}
+      {consentAsk && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+          onClick={() => setConsentAsk(null)}>
+          <div className="rounded-2xl bg-white border border-gray-200 shadow-2xl w-full max-w-sm p-5 space-y-4"
+            onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-2">
+              <span className="text-xl">⚠️</span>
+              <h2 className="text-base font-black text-gray-900">저작권 확인</h2>
+            </div>
+            <p className="text-sm leading-relaxed text-gray-600">{TERMS_TEXT}</p>
+            <div className="flex gap-2">
+              <button onClick={() => setConsentAsk(null)}
+                className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 transition">취소</button>
+              <button onClick={() => { logConsent("agree"); const fn = consentAsk; setConsentAsk(null); if (fn) fn(); }}
+                className="flex-1 rounded-xl bg-[#03C75A] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#02b350] transition">동의하고 계속</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── 영상 선택 팁 모달 ── */}
       {showTips && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
@@ -1487,11 +1501,11 @@ export default function VideoGenerator() {
                 <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                   <input type="url" value={sourceUrl}
                     onChange={e => { setSourceUrl(e.target.value); setSearchError(""); setClips([]); setCart(new Set()); }}
-                    onKeyDown={e => e.key === "Enter" && handleSearch()}
+                    onKeyDown={e => { if (e.key === "Enter") askConsent(() => { logConsent("analyze", { url: sourceUrl }); handleSearch(); }); }}
                     placeholder="인스타·틱톡·유튜브 영상 링크 붙여넣기"
                     disabled={searching}
                     className="flex-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-3.5 text-base text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] focus:ring-1 focus:ring-[#03C75A] disabled:opacity-50 transition" />
-                  <button onClick={() => handleSearch()} disabled={searching || !sourceUrl.trim()}
+                  <button onClick={() => askConsent(() => { logConsent("analyze", { url: sourceUrl }); handleSearch(); })} disabled={searching || !sourceUrl.trim()}
                     className="w-full sm:w-auto shrink-0 rounded-xl bg-[#03C75A] px-5 py-3.5 text-base font-bold text-white hover:bg-[#02b350] disabled:opacity-40 transition flex items-center justify-center gap-2">
                     {searching
                       ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />분석 중...</>
