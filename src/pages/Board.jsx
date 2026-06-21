@@ -70,9 +70,6 @@ const Board = () => {
 
       <section className="relative px-5 pt-32 pb-8 md:px-8 md:pt-44 md:pb-10">
         <div className="relative z-10 mx-auto max-w-3xl text-center">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#03C75A]/20 bg-[#03C75A]/10 px-4 py-1.5 text-sm font-bold text-[#03C75A]">
-            <Users size={14} /> <span>크로닛 커뮤니티</span>
-          </div>
           <h1 className="mb-3 text-4xl font-black tracking-tight md:text-5xl">공지·이벤트</h1>
           <p className="text-base leading-[1.8] text-slate-500 md:text-lg">크로닛 소식을 확인하고, 후기·질문·자랑은 공식 네이버 카페에서 만나요.</p>
         </div>
@@ -114,7 +111,7 @@ const Board = () => {
             loading ? (
               <p className="py-16 text-center text-sm text-slate-500">불러오는 중…</p>
             ) : posts.length === 0 ? (
-              <BoardEmptyState />
+              <BoardEmptyState isAdmin={isAdmin} />
             ) : (
               <ul className="divide-y divide-gray-100 pt-2">
                 {posts.map(p => (
