@@ -2899,7 +2899,7 @@ function ClipCard({ clip, selected, onToggle, onRemove }: { clip: Clip; selected
       <div className="aspect-[9/16] bg-gray-100 relative cursor-pointer"
         onClick={() => playing ? setPlaying(false) : handlePlay()}>
         {playing && (proxyUrl || rawUrl) ? (
-          <video src={proxyUrl || rawUrl} autoPlay playsInline controls={false}
+          <video src={proxyUrl || rawUrl} autoPlay muted playsInline controls={false}
             className="w-full h-full object-cover"
             onClick={e => { e.stopPropagation(); setPlaying(false); }}
             onError={() => { setPlaying(false); }} />
