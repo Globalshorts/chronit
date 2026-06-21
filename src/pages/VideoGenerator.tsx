@@ -129,7 +129,7 @@ export default function VideoGenerator() {
   const toggleVideoOnly = () => setVideoOnly(v => { const nv = !v; try { localStorage.setItem("chronit_video_only", nv ? "1" : "0"); } catch {} return nv; });
   const [coupangOpen, setCoupangOpen] = useState(false);
   const [coupangQ, setCoupangQ] = useState("");
-  const coupangSearch = () => { const q = coupangQ.trim(); if (q) window.open(`https://www.coupang.com/np/search?q=${encodeURIComponent(q)}`, "_blank", "noopener"); };
+  const coupangSearch = () => { const q = coupangQ.trim(); if (q) window.open(`https://partners.coupang.com/#affiliate/ws/link/0/${encodeURIComponent(q)}`, "_blank", "noopener"); };
 
   // Stage 3
   const [ctaText, setCtaText] = useState("");  // CTA 입력 (비우면 프로필 링크 안내)
@@ -1446,39 +1446,43 @@ export default function VideoGenerator() {
                 {searching && <AnalyzeProgress />}
               </div>
 
-              <div>
+              <div className="flex flex-wrap gap-2">
                 <button type="button" onClick={() => setCoupangOpen(o => !o)}
-                  className="flex w-full items-center justify-between rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-left transition hover:border-blue-300">
-                  <span className="text-base font-bold text-blue-700">🛒 쿠팡에 파는 상품인지 확인 <span className="font-normal text-blue-400">(선택 · 생성 전 확인)</span></span>
-                  <span className="text-blue-400 text-sm">{coupangOpen ? "▴ 접기" : "▾ 펼치기"}</span>
+                  className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold transition ${coupangOpen ? "border-blue-400 bg-blue-50 text-blue-700" : "border-gray-200 bg-white text-gray-600 hover:border-blue-300"}`}>
+                  🛒 쿠팡 상품 확인
                 </button>
-                {coupangOpen && (
-                  <div className="mt-2 rounded-xl border border-blue-100 bg-blue-50/40 p-3">
-                    <p className="mb-2 text-sm text-blue-600">분석·생성 전에 이 상품이 쿠팡에 있는지 먼저 검색해 보세요. 없으면 다른 상품으로 바꾸면 크레딧을 아껴요.</p>
-                    <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-                      <input type="text" value={coupangQ}
-                        onChange={e => setCoupangQ(e.target.value)}
-                        onKeyDown={e => e.key === "Enter" && coupangSearch()}
-                        placeholder="상품명 입력 (예: 음식 밀봉기)"
-                        className="flex-1 rounded-lg bg-white border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition" />
-                      <button type="button" onClick={coupangSearch} disabled={!coupangQ.trim()}
-                        className="w-full sm:w-auto shrink-0 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-40 transition">
-                        쿠팡에서 검색 →
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {FEATURES.directUpload && (
-                <div>
+                {FEATURES.directUpload && (
                   <button type="button" onClick={() => setUploadOpen(o => !o)}
-                    className="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 text-left transition hover:border-[#03C75A]/50">
-                    <span className="text-base font-bold text-gray-700">⬆️ 또는 내 영상 추가</span>
-                    <span className="text-gray-400 text-sm">{uploadOpen ? "▴ 접기" : "▾ 펼치기"}</span>
+                    className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold transition ${uploadOpen ? "border-[#03C75A] bg-[#03C75A]/10 text-[#03C75A]" : "border-gray-200 bg-white text-gray-600 hover:border-[#03C75A]/50"}`}>
+                    ⬆️ 내 영상 추가
                   </button>
-                  {uploadOpen && (
-                  <div className="mt-2">
+                )}
+                <button type="button" onClick={toggleVideoOnly}
+                  className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold transition ${videoOnly ? "border-[#03C75A] bg-[#03C75A]/10 text-[#03C75A]" : "border-gray-200 bg-white text-gray-600 hover:border-[#03C75A]/50"}`}>
+                  🎬 영상만 만들기{videoOnly ? " ✓" : ""}
+                </button>
+              </div>
+              {videoOnly && <p className="-mt-2 text-xs text-gray-400">AI 음성·자막 없이 (직접 더빙용)</p>}
+
+              {coupangOpen && (
+                <div className="rounded-xl border border-blue-100 bg-blue-50/40 p-3">
+                  <p className="mb-2 text-sm text-blue-600">분석·생성 전에 이 상품이 쿠팡 파트너스에 있는지 먼저 검색해 보세요. 없으면 다른 상품으로 바꾸면 크레딧을 아껴요.</p>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+                    <input type="text" value={coupangQ}
+                      onChange={e => setCoupangQ(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && coupangSearch()}
+                      placeholder="상품명 입력 (예: 음식 밀봉기)"
+                      className="flex-1 rounded-lg bg-white border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition" />
+                    <button type="button" onClick={coupangSearch} disabled={!coupangQ.trim()}
+                      className="w-full sm:w-auto shrink-0 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-40 transition">
+                      쿠팡 파트너스에서 검색 →
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {FEATURES.directUpload && uploadOpen && (
+                <div>
                   <p className="mb-2 text-sm leading-relaxed text-gray-500">URL 검색 클립과 <span className="font-bold text-[#03C75A]">섞어서</span> 합성할 수 있어요. 업로드 영상도 자막 제거·컷편집·자막/더빙이 똑같이 적용됩니다.</p>
                   <div className="relative">
                     <input type="file" accept="video/*" multiple disabled={uploading}
@@ -1502,8 +1506,6 @@ export default function VideoGenerator() {
                       )}
                     </div>
                   )}
-                  </div>
-                  )}
                 </div>
               )}
 
@@ -1521,11 +1523,6 @@ export default function VideoGenerator() {
                     </div>
                     <div className="mt-0.5 text-xs font-medium text-gray-400">많이 담을수록 영상이 더 좋아져요</div>
                   </div>
-                  <label className="mb-3 flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 cursor-pointer select-none">
-                    <input type="checkbox" checked={videoOnly} onChange={toggleVideoOnly} className="h-4 w-4 accent-[#03C75A]" />
-                    <span className="text-sm font-bold text-gray-800">🎬 영상만 만들기</span>
-                    <span className="text-xs text-gray-400">AI 음성·자막 없이 (직접 더빙용)</span>
-                  </label>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {clips.map(clip => (
                       <ClipCard key={clip.video_id} clip={clip}
