@@ -497,6 +497,32 @@ export default function VideoGenerator() {
       voiceId, voiceSpeed,
     };
     localStorage.setItem(PROJECT_KEY, JSON.stringify(data));
+    // ★ 서버에도 저장 — 기기 간 동기화 (실패 무시) ★
+    const _uid = session?.user?.id;
+    if (_uid) {
+      supabase.from("user_projects").upsert(
+        { user_id: _uid, data, saved_at: data.savedAt, updated_at: new Date().toISOString() },
+        { onConflict: "user_id" }
+      ).then(undefined, () => {});
+    }
+  };
+
+  // 프로젝트 데이터 적용(로컬/서버 공용)
+  const applyProjectData = (data: any) => {
+    if (!data) return;
+    if (typeof data.sourceUrl === "string") setSourceUrl(data.sourceUrl);
+    if (data.clips?.length) setClips(data.clips);
+    if (data.cart?.length) setCart(new Set(data.cart));
+    if (data.script) setScript(data.script);
+    if (data.scriptPredId) setScriptPredId(data.scriptPredId);
+    if (data.targetSeconds) setTargetSeconds(data.targetSeconds);
+    if (data.styleProfileId) setStyleProfileId(data.styleProfileId);
+    if (data.subtitleStyle) setSubtitleStyle(data.subtitleStyle);
+    if (data.thumbnailStyle) setThumbnailStyle(data.thumbnailStyle);
+    if (data.showThumbnail !== undefined) setShowThumbnail(data.showThumbnail);
+    if (data.voiceId) setVoiceId(data.voiceId);
+    if (data.voiceSpeed) setVoiceSpeed(data.voiceSpeed);
+    if (data.stage) setStage(data.stage);
   };
 
   // 복원
@@ -504,20 +530,7 @@ export default function VideoGenerator() {
     try {
       const raw = localStorage.getItem(PROJECT_KEY);
       if (!raw) return false;
-      const data = JSON.parse(raw);
-      if (typeof data.sourceUrl === "string") setSourceUrl(data.sourceUrl);
-      if (data.clips?.length) setClips(data.clips);
-      if (data.cart?.length) setCart(new Set(data.cart));
-      if (data.script) setScript(data.script);
-      if (data.scriptPredId) setScriptPredId(data.scriptPredId);
-      if (data.targetSeconds) setTargetSeconds(data.targetSeconds);
-      if (data.styleProfileId) setStyleProfileId(data.styleProfileId);
-      if (data.subtitleStyle) setSubtitleStyle(data.subtitleStyle);
-      if (data.thumbnailStyle) setThumbnailStyle(data.thumbnailStyle);
-      if (data.showThumbnail !== undefined) setShowThumbnail(data.showThumbnail);
-      if (data.voiceId) setVoiceId(data.voiceId);
-      if (data.voiceSpeed) setVoiceSpeed(data.voiceSpeed);
-      if (data.stage) setStage(data.stage);
+      applyProjectData(JSON.parse(raw));
       return true;
     } catch { return false; }
   };
@@ -541,6 +554,28 @@ export default function VideoGenerator() {
     loadProject();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ★ 서버 프로젝트가 로컬보다 최신이면 적용 — 기기 간 동기화 ★
+  const _serverSynced = useRef(false);
+  useEffect(() => {
+    const uid = session?.user?.id;
+    if (!uid || _serverSynced.current) return;
+    _serverSynced.current = true;
+    (async () => {
+      try {
+        const { data } = await supabase.from("user_projects").select("data, saved_at").eq("user_id", uid).maybeSingle();
+        if (!data?.data) return;
+        let localSavedAt = 0;
+        try { const raw = localStorage.getItem(PROJECT_KEY); if (raw) localSavedAt = JSON.parse(raw).savedAt || 0; } catch {}
+        const serverSavedAt = Number((data as any).saved_at || (data.data as any)?.savedAt || 0);
+        if (serverSavedAt > localSavedAt) {
+          applyProjectData(data.data);
+          try { localStorage.setItem(PROJECT_KEY, JSON.stringify(data.data)); } catch {}
+        }
+      } catch { /* 무시 */ }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session]);
 
   // ★ 작업 상태 변경 시 자동 저장 (디바운스). 첫 렌더는 건너뛰어 빈 상태로 덮어쓰기 방지 ★
   const _autosaveReady = useRef(false);
