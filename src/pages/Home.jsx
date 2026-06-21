@@ -229,7 +229,13 @@ const Home = () => {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
+      const u = session?.user ?? null
+      setUser(u)
+      // 로그인 상태로 순수 '/' 진입 → 앱(/generate)을 홈으로
+      // (해시 #pricing 등 / OAuth 콜백은 제외, 온보딩 미완료는 /generate가 /register로 보냄)
+      if (u && !window.location.hash && !window.location.search.includes('access_token')) {
+        window.location.replace('/generate')
+      }
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -450,15 +456,22 @@ const Home = () => {
               크로닛은 영상만 넣으면 상품 분석·자막·TTS·편집까지 끝낸 쇼핑 숏폼을 만들어드립니다.
             </p>
 
-            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-stretch">
-              <button onClick={handleStart}
-                className="group flex items-center justify-center gap-2 rounded-2xl bg-[#03C75A] px-10 py-5 text-xl font-extrabold text-white shadow-lg shadow-[#03C75A]/30 transition-all hover:bg-[#02b350] active:scale-95">
-                영상 만들기 <ArrowRight size={22} className="transition-transform group-hover:translate-x-1" />
-              </button>
+            <div className="flex w-full flex-col gap-3">
+              <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
+                <input
+                  type="text"
+                  placeholder="상품 영상 링크 또는 직접 업로드"
+                  onKeyDown={e => { if (e.key === 'Enter') handleStart() }}
+                  className="flex-1 rounded-2xl border-2 border-gray-300 bg-white px-5 py-4 text-base font-bold text-gray-900 placeholder-gray-400 outline-none transition-all focus:border-[#03C75A] focus:ring-4 focus:ring-[#03C75A]/15"
+                />
+                <button onClick={handleStart}
+                  className="group flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-[#03C75A] px-8 py-4 text-lg font-extrabold text-white shadow-lg shadow-[#03C75A]/30 transition-all hover:bg-[#02b350] active:scale-95">
+                  쇼핑 숏폼 만들기 <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
+                </button>
+              </div>
               <Link to="/manual"
-                className="flex flex-col items-center justify-center rounded-2xl border-2 border-gray-300 bg-white px-8 py-3 text-center text-xl font-extrabold leading-tight text-gray-700 transition-all hover:border-[#03C75A] hover:text-[#03C75A] active:scale-95">
-                <span>👋 처음이세요?</span>
-                <span>1분 사용법</span>
+                className="text-base font-bold text-gray-500 transition-colors hover:text-[#03C75A]">
+                👋 처음이세요? 1분 사용법 →
               </Link>
             </div>
             <p className="mt-4 text-sm font-medium text-gray-500">
