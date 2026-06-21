@@ -52,7 +52,7 @@ const Footer = ({ dark = false, user = null }) => {
             당신의 시간을 아껴주는<br />가장 쉬운 숏폼 도구.
           </p>
         </div>
-        <div className="grid w-full grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-12 md:w-auto md:gap-16">
+        <div className="grid w-full grid-cols-2 gap-6 sm:grid-cols-3 sm:gap-12 md:w-auto md:gap-16">
           <div className="flex flex-col gap-4">
             <span className={`text-base font-bold ${t.head}`}>커뮤니티</span>
             <Link to="/board"  className={`text-base font-medium transition-colors ${t.link}`}>공지·이벤트</Link>
@@ -64,11 +64,7 @@ const Footer = ({ dark = false, user = null }) => {
             <Link to="/#features" className={`text-base font-medium transition-colors ${t.link}`}>기능</Link>
             <Link to="/#pricing" className={`text-base font-medium transition-colors ${t.link}`}>요금제</Link>
             <Link to="/events" className={`text-base font-medium transition-colors ${t.link}`}>이벤트</Link>
-          </div>
-          <div className="flex flex-col gap-4">
-            <span className={`text-base font-bold ${t.head}`}>회사</span>
             <Link to="/manual" className={`text-base font-medium transition-colors ${t.link}`}>사용 방법</Link>
-            <a href="mailto:pv2066pv@gmail.com" className={`text-base font-medium transition-colors ${t.link}`}>문의하기</a>
             {user?.email === 'pv2066pv@gmail.com' && (
               <Link to="/admin" className={`text-base font-medium transition-colors ${t.admin}`}>👑 관리자</Link>
             )}
