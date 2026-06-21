@@ -274,7 +274,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
             <p className="mt-2 text-sm font-bold text-red-500">만료된 코드입니다.</p>
           )}
           {codeStatus === 'credit_only' && (
-            <p className="mt-2 text-sm font-bold text-amber-600">크레딧 지급 코드예요. 앱의 "🎁 크레딧 더 받기"에서 사용해주세요.</p>
+            <p className="mt-2 text-sm font-bold text-amber-600">이용권 지급 코드예요. 앱의 "🎁 무료 이용권 받기"에서 사용해주세요.</p>
           )}
         </div>
 
@@ -324,7 +324,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
                   <span className="text-base font-bold text-gray-900">프로 6개월</span>
                   <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-black text-amber-700">안심 패키지</span>
                 </div>
-                <div className="mt-0.5 text-xs text-gray-500">프로 요금제 6개월 유지 · 매월 크레딧 충전</div>
+                <div className="mt-0.5 text-xs text-gray-500">프로 요금제 6개월 유지 · 매월 영상 30개 지급</div>
               </div>
               <div className="text-right leading-tight">
                 <div className="text-[11px] font-medium text-gray-400 line-through">{plans.pkg6.list.toLocaleString('ko-KR')}</div>

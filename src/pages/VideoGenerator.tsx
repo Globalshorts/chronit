@@ -62,8 +62,8 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, userPlan, onHistor
               <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
               <div className="absolute right-0 top-full z-50 mt-2 w-48 rounded-2xl border border-gray-200 bg-white p-1.5 shadow-xl shadow-black/5">
                 <a href="/me" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">👤 마이페이지</a>
-                <button onClick={() => { setMenuOpen(false); onInvite && onInvite(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">🎁 무료 크레딧 받기</button>
-                <a href="https://forms.gle/LCDeSEXSM7ALykqv5" target="_blank" rel="noreferrer" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">📝 피드백 보내고 500 CR</a>
+                <button onClick={() => { setMenuOpen(false); onInvite && onInvite(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">🎁 무료 이용권 받기</button>
+                <a href="https://forms.gle/LCDeSEXSM7ALykqv5" target="_blank" rel="noreferrer" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">📝 피드백 보내고 영상 2개</a>
                 <button onClick={() => { setMenuOpen(false); onHistory && onHistory(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">📒 크레딧 사용 내역</button>
                 <button onClick={logout} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50">↩ 로그아웃</button>
               </div>
@@ -687,7 +687,7 @@ export default function VideoGenerator() {
         if (!data1.ok) {
           const credit = (resp1.status === 402 || data1.code === "INSUFFICIENT_CREDITS");
           if (!credit && attempt < MAX) { await new Promise(r => setTimeout(r, 1500)); continue; } // 서버 일시 오류 → 자동 재시도
-          setSearchError(credit ? (data1.error ?? "크레딧이 부족합니다. 충전 후 다시 시도해주세요.") : (data1.error ?? "분석에 실패했어요. 잠시 후 다시 시도해 주세요."));
+          setSearchError(credit ? (data1.error ?? "이용권이 부족해요. 요금제를 확인해 주세요.") : (data1.error ?? "분석에 실패했어요. 잠시 후 다시 시도해 주세요."));
           return;
         }
 
@@ -1763,7 +1763,7 @@ function friendlyError(raw?: string): string {
   const e = (raw || "").toLowerCase();
   if (!e) return "영상 생성에 실패했어요. 잠시 후 다시 시도해 주세요.";
   if (e.includes("insufficient") || e.includes("credit") || e.includes("크레딧"))
-    return "크레딧이 부족해요. 충전 후 다시 시도해 주세요.";
+    return "이용권이 부족해요. 요금제를 확인해 주세요.";
   if (e.includes("다운로드 실패") || e.includes("download fail") || e.includes("not available") || e.includes("yt-dlp") || e.includes("video stream"))
     return "클립 영상을 불러오지 못했어요. 원본 클립이 일시적으로 막혔을 수 있어요 — 잠시 후 다시 시도하거나 다른 클립을 담아 주세요. (크레딧은 환불됐어요)";
   if (e.includes("no clip") || e.includes("not found") || e.includes("검색 결과") || e.includes("상품을 찾") || e.includes("clip"))
@@ -2757,9 +2757,9 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
       {/* 크레딧 받기 CTA */}
       <div className="px-3 pt-2 space-y-2">
         <a href="https://forms.gle/LCDeSEXSM7ALykqv5" target="_blank" rel="noreferrer"
-          className="block text-center rounded-xl bg-[#E8F8EE] border border-[#03C75A]/40 px-3 py-2 leading-tight transition hover:bg-[#dcf3e6]"><span className="block text-[11px] font-bold text-[#222222]">📝 피드백 쓰고</span><span className="block font-black text-[#222222]"><span className="text-lg text-[#03C75A]">500 CR</span> 받기</span></a>
+          className="block text-center rounded-xl bg-[#E8F8EE] border border-[#03C75A]/40 px-3 py-2 leading-tight transition hover:bg-[#dcf3e6]"><span className="block text-[11px] font-bold text-[#222222]">📝 피드백 쓰고</span><span className="block font-black text-[#222222]"><span className="text-lg text-[#03C75A]">영상 2개</span> 받기</span></a>
         <button onClick={()=>setShowMissions(true)}
-          className="credit-glow w-full text-center rounded-xl bg-[#FEE500] hover:bg-[#f5dd00] px-3 py-2.5 text-sm font-bold text-[#222222] transition">🎁 무료 크레딧 받기</button>
+          className="credit-glow w-full text-center rounded-xl bg-[#FEE500] hover:bg-[#f5dd00] px-3 py-2.5 text-sm font-bold text-[#222222] transition">🎁 무료 이용권 받기</button>
       </div>
       {/* 하단 계정/플랜/크레딧 */}
       <div className="border-t border-gray-200 px-4 py-3 space-y-1.5 mt-2">
