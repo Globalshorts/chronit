@@ -2450,7 +2450,7 @@ function LoadingTips({ intervalMs = 30000 }: { intervalMs?: number }) {
   const go = (d:number)=> setIdx(i => (i + d + tips.length) % tips.length);
   return (
     <div className="mt-5 rounded-2xl bg-[#FAFAF8] border border-gray-200 p-4 text-left">
-      <p className="text-[11px] font-black text-[#03C75A] mb-2">📚 터지는 숏폼 부업 꿀팁 <span className="text-gray-400 font-bold">· 지식 충전 시간</span></p>
+      <p className="text-[11px] font-black text-[#03C75A] mb-2">📚 터지는 숏폼 제작 꿀팁 <span className="text-gray-400 font-bold">· 지식 충전 시간</span></p>
       <div key={idx} className="tip-fade flex items-start gap-3 min-h-[64px]">
         <div className="text-3xl leading-none shrink-0">{tip.emoji || "💡"}</div>
         <p className="text-sm font-bold text-gray-800 leading-relaxed">{tip.text}</p>
@@ -2734,7 +2734,7 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
       {/* 로고 */}
       <div className="px-5 py-5 border-b border-gray-200">
         <p className="text-sm font-black text-gray-900 tracking-tight">CHRONIT</p>
-        <p className="text-xs text-gray-600 mt-0.5">쇼핑 릴스 자동화</p>
+        <p className="text-xs text-gray-600 mt-0.5">쇼핑 숏폼 자동화</p>
       </div>
       {/* 탭 */}
       <div className="px-2 py-3 flex-1 overflow-y-auto">
@@ -2973,7 +2973,7 @@ function TrendCard({ item, onAdd, onAnalyze }: { item: any; onAdd: () => void; o
         <div className="mt-1 flex gap-1.5">
           <button onClick={onAdd} title="이 영상을 소스로 담기 (무료)"
             className="flex-1 rounded-lg border border-[#03C75A] py-2 text-xs font-bold text-[#03C75A] hover:bg-[#03C75A]/10 transition">＋ 담기</button>
-          <button onClick={onAnalyze} title="담기 + 유사클립·상품명 분석"
+          <button onClick={onAnalyze} title="담기 + 상품 분석"
             className="flex-1 rounded-lg bg-[#03C75A] py-2 text-xs font-bold text-white hover:bg-[#02b350] transition">🔍 분석</button>
         </div>
       </div>

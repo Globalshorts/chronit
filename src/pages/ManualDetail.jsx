@@ -116,7 +116,7 @@ const GUIDE_STEPS = [
   { img: '/guide/03-style.jpg', title: '② 스타일 찾기 — 따라 할 영상 등록', desc: "**🔍 스타일 찾기**에 따라 하고 싶은 영상(인스타·틱톡) 링크를 넣고 **분석 시작**을 누르면, 그 말투·구성이 내 스타일로 저장돼요." },
   { img: '/guide/04-setup-length.jpg', title: '③ 자동화 세팅 — 길이·목소리·자막', desc: "**⚙️ 자동화 세팅**에서 **영상 길이**(잘 모르면 15초), **목소리**(미리듣기 가능), **자막 모양**을 한 번 정해두면 다음부터 자동이에요.", note: "전부 **기본값 그대로 둬도** 예쁘게 나와요." },
   { group: '영상 만들 때마다 — 이것만 반복!', once: false },
-  { img: '/guide/08-link.jpg', title: '① 새 프로젝트 + 쇼핑 링크 분석', desc: "**＋ 새 프로젝트**를 누르고, 홍보할 **쇼핑 영상 링크**를 붙여넣은 뒤 **분석 시작**을 눌러요. 잠깐 기다리면 관련 클립을 찾아줘요.", note: "**프로젝트**는 영상 한 편을 만드는 작업 공간이에요 (영상 하나 = 프로젝트 하나)." },
+  { img: '/guide/08-link.jpg', title: '① 새 프로젝트 + 쇼핑 링크 분석', desc: "**＋ 새 프로젝트**를 누르고, 준비한 **상품 영상을 올리거나 링크**를 넣은 뒤 **분석 시작**을 눌러요. 잠깐 기다리면 상품을 분석해줘요.", note: "**프로젝트**는 영상 한 편을 만드는 작업 공간이에요 (영상 하나 = 프로젝트 하나)." },
   { img: '/guide/09-clips.jpg', title: '② 클립 담고 → 자동 생성', desc: "찾아준 클립 중 마음에 드는 걸 **담기** → **자동 생성**을 누르고 내용 확인 후 **진행**! 보통 **1~5분**이면 완성돼요." },
   { img: '/guide/11-addlink.jpg', title: '③ 완성되면 → 🔗 내 링크에 추가', desc: "영상이 완성되면 **생성 내역**에서 **🔗 내 링크에 추가**를 눌러요.", note: "**내 링크 페이지** = 만든 영상을 쿠팡 링크와 함께 모아 공유하는 나만의 페이지예요." },
   { img: '/guide/12-mylink.jpg', title: '④ 카드 완성 → 내 주소 공유', desc: "카드에 **쿠팡 링크**를 넣고 **＋ 페이지에 표시**. 맨 위 **내 주소**를 복사해 인스타 프로필에 붙이면 끝!", note: "이미지는 자동으로 뽑혀요 — 별로면 **🔄 다른 컷 / 📷 업로드**로 변경." },
@@ -377,7 +377,7 @@ const ManualDetail = () => {
             <div className="mt-10 rounded-3xl border-2 border-[#03C75A]/40 bg-gradient-to-br from-[#03C75A]/12 to-[#03C75A]/5 p-7 text-center md:p-8">
               <h3 className="text-xl font-black text-gray-900 md:text-2xl">이제 직접 만들어 볼까요?</h3>
               <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">
-                쇼핑 영상 링크만 있으면 돼요. <b className="text-[#03C75A]">가입은 무료</b>, 구글 로그인이면 바로 시작할 수 있어요.
+                상품 영상만 준비하면 돼요. <b className="text-[#03C75A]">가입은 무료</b>, 구글 로그인이면 바로 시작할 수 있어요.
               </p>
               <Link to="/generate" className="group mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#03C75A] px-8 py-4 text-lg font-black text-white shadow-md shadow-[#03C75A]/25 transition-all hover:bg-[#02b350]">
                 무료로 시작하기 <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />

@@ -124,7 +124,7 @@ export default function Reserve() {
             <span className="text-[#03C75A]">크로닛</span>이<br />곧 문을 열어요
           </h1>
           <p className="mt-4 text-sm leading-relaxed text-gray-500">
-            편집 1도 못 해도, <b className="text-gray-900">쇼핑 영상 링크만 넣으면</b><br />
+            편집 1도 못 해도, <b className="text-gray-900">상품 영상만 준비하면</b><br />
             자막·AI목소리·썸네일까지 입은 숏폼이<br />5분 만에 자동으로 만들어져요.
           </p>
           <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#03C75A]/30 bg-[#03C75A]/10 px-4 py-2 text-sm font-bold text-[#03C75A]">
@@ -164,7 +164,7 @@ export default function Reserve() {
           <p className="text-center text-xs font-black tracking-widest text-[#03C75A]">WHAT IS CHRONIT</p>
           <h2 className="mt-1 text-center text-xl font-black">크로닛이 뭐예요?</h2>
           <p className="mt-2 text-center text-sm leading-relaxed text-gray-500">
-            쿠팡파트너스 같은 부업엔 상품 소개 <b className="text-gray-900">영상</b>이 필요해요.
+            쿠팡파트너스 같은 제휴 수익엔 상품 소개 <b className="text-gray-900">영상</b>이 필요해요.
             크로닛은 그 영상을 <b className="text-gray-900">대신 만들어주는</b> 도구예요. 설치도, 편집 지식도 필요 없어요.
           </p>
           <div className="mt-6 grid grid-cols-2 gap-3">
@@ -287,7 +287,7 @@ export default function Reserve() {
             <Faq q="혜택은 언제, 어떻게 받나요?" a="정식 오픈일에 카카오 채널 메시지와 이메일로 혜택 코드를 발송해요. 가입할 때 코드를 넣으면 자동 적용됩니다." />
             <Faq q="지금 결제해야 하나요?" a="아니요. 결제 없이 이메일만으로 예약돼요. 오픈 전까지 어떤 비용도 청구되지 않아요." />
             <Faq q="카카오 채널은 왜 추가하나요?" a="오픈 소식을 카톡으로 가장 빠르게 받기 위해서예요. 추가는 무료고, 언제든 차단할 수 있어요." />
-            <Faq q="컴퓨터를 잘 못 하는데 쓸 수 있나요?" a="설치할 앱이 없어요. 구글 로그인 후 쇼핑 영상 링크만 붙여넣으면 5분 뒤 영상이 자동완성됩니다." />
+            <Faq q="컴퓨터를 잘 못 하는데 쓸 수 있나요?" a="설치할 앱이 없어요. 구글 로그인 후 상품 영상만 준비하면 5분 뒤 영상이 자동완성됩니다." />
             <Faq q="수익이 보장되나요?" a="아니요. 크로닛은 영상 만드는 노동을 줄여주는 도구일 뿐이에요. 수익은 상품 선택과 꾸준함에 따라 달라집니다." />
             <Faq q="선착순 100명은 어떻게 정해지나요?" a="사전예약(이메일 등록) 완료 시각 순서예요." />
           </div>

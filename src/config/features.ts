@@ -4,6 +4,6 @@
  */
 export const FEATURES = {
   directUpload: true,   // ① 내 영상 직접 업로드
-  trendFeed:   true,   // ② 트렌드 소스 피드 (예정)
+  trendFeed:   false,   // ② 트렌드 소스 피드 (예정)
   linkLanding: false,   // ③ 상품 링크 랜딩 페이지 (예정)
 };
