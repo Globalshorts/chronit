@@ -241,7 +241,7 @@ const SECTIONS = {
   },
   credits: {
     emoji: '🪙',
-    title: '이용권 안내',
+    title: '서비스 이용 안내',
     callout: '영상 1개 = 이용권 1개, 플랜·환불을 정리했어요.',
     type: 'markdown',
     content: creditsMd,
