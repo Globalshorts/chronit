@@ -127,6 +127,9 @@ export default function VideoGenerator() {
   const [styleProfileId, setStyleProfileId] = useState("auto");
   const [videoOnly, setVideoOnly] = useState<boolean>(() => { try { return localStorage.getItem("chronit_video_only") === "1"; } catch { return false; } });
   const toggleVideoOnly = () => setVideoOnly(v => { const nv = !v; try { localStorage.setItem("chronit_video_only", nv ? "1" : "0"); } catch {} return nv; });
+  const [coupangOpen, setCoupangOpen] = useState(false);
+  const [coupangQ, setCoupangQ] = useState("");
+  const coupangSearch = () => { const q = coupangQ.trim(); if (q) window.open(`https://www.coupang.com/np/search?q=${encodeURIComponent(q)}`, "_blank", "noopener"); };
 
   // Stage 3
   const [ctaText, setCtaText] = useState("");  // CTA 입력 (비우면 프로필 링크 안내)
@@ -1407,7 +1410,7 @@ export default function VideoGenerator() {
               className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-500 transition hover:border-[#03C75A]/50 hover:text-[#03C75A]">🆕 새로 시작</button>
           </div>
 
-          <StagePanel n={1} title="영상 분석" subtitle="URL 입력 → 관련 TikTok 클립 검색 → 담기" current={stage}
+          <StagePanel n={1} title="영상 분석" current={stage} hideNum
             headerRight={
               <button onClick={() => setShowTips(true)}
                 className="shrink-0 rounded-full border border-amber-400/60 bg-amber-400/10 px-3 py-1.5 text-xs font-bold text-amber-300 hover:bg-amber-400/20 transition flex items-center gap-1">
@@ -1441,6 +1444,30 @@ export default function VideoGenerator() {
                 </a>
                 {searchError && <p className="mt-2 text-sm text-red-400">{searchError}</p>}
                 {searching && <AnalyzeProgress />}
+              </div>
+
+              <div>
+                <button type="button" onClick={() => setCoupangOpen(o => !o)}
+                  className="flex w-full items-center justify-between rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-left transition hover:border-blue-300">
+                  <span className="text-base font-bold text-blue-700">🛒 쿠팡에 파는 상품인지 확인 <span className="font-normal text-blue-400">(선택 · 생성 전 확인)</span></span>
+                  <span className="text-blue-400 text-sm">{coupangOpen ? "▴ 접기" : "▾ 펼치기"}</span>
+                </button>
+                {coupangOpen && (
+                  <div className="mt-2 rounded-xl border border-blue-100 bg-blue-50/40 p-3">
+                    <p className="mb-2 text-sm text-blue-600">분석·생성 전에 이 상품이 쿠팡에 있는지 먼저 검색해 보세요. 없으면 다른 상품으로 바꾸면 크레딧을 아껴요.</p>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+                      <input type="text" value={coupangQ}
+                        onChange={e => setCoupangQ(e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && coupangSearch()}
+                        placeholder="상품명 입력 (예: 음식 밀봉기)"
+                        className="flex-1 rounded-lg bg-white border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition" />
+                      <button type="button" onClick={coupangSearch} disabled={!coupangQ.trim()}
+                        className="w-full sm:w-auto shrink-0 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-40 transition">
+                        쿠팡에서 검색 →
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {FEATURES.directUpload && (
@@ -2848,18 +2875,18 @@ function StyleLibraryList({ session, onSelect, selectedId }: { session: any; onS
 }
 
 // ── Stage Panel ───────────────────────────────────────────────
-function StagePanel({ n, title, subtitle, current, children, headerRight }: {
-  n: number; title: string; subtitle: string; current: number; children: React.ReactNode;
-  headerRight?: React.ReactNode;
+function StagePanel({ n, title, subtitle, current, children, headerRight, hideNum }: {
+  n: number; title: string; subtitle?: string; current: number; children: React.ReactNode;
+  headerRight?: React.ReactNode; hideNum?: boolean;
 }) {
   if (n !== current) return null; // 현재 단계만 표시
   return (
     <div className="rounded-2xl border border-[#03C75A]/50 bg-white shadow-[0_0_20px_rgba(3,199,90,0.10)]">
       <div className="px-6 py-4 flex items-center gap-3">
-        <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 bg-[#03C75A]/20 border-2 border-[#03C75A] text-[#03C75A]">{n}</div>
+        {!hideNum && <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 bg-[#03C75A]/20 border-2 border-[#03C75A] text-[#03C75A]">{n}</div>}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-black text-gray-900">{title}</p>
-          <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>
+          {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
         </div>
         {headerRight}
       </div>
