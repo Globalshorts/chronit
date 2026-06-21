@@ -441,13 +441,13 @@ const Home = () => {
         <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-12">
           <div className="flex flex-col items-start">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#03C75A]/30 bg-[#03C75A]/10 px-4 py-2 text-sm font-bold text-[#03C75A] md:text-base">
-              🛍️ 상품 소개 콘텐츠 자동 제작
+              🛍️ 쇼핑 숏폼 특화 AI
             </div>
             <h1 className="mb-5 text-4xl font-black leading-[1.2] tracking-tight text-gray-900 md:text-5xl">
-              좋은 상품을 소개하고<br /><span className="text-[#03C75A]">추가 수익</span>에 도전해보세요
+              하루 한 편도 벅찼던 쇼핑 숏폼<br /><span className="bg-gradient-to-r from-[#10b981] to-[#03C75A] bg-clip-text text-transparent">제작 시간 95% 단축</span>
             </h1>
             <p className="mb-9 text-xl font-bold text-gray-500 md:text-2xl">
-              영상은 <span className="text-gray-900">크로닛</span>이 만듭니다.
+              크로닛은 영상만 넣으면 상품 분석·자막·TTS·편집까지 끝낸 쇼핑 숏폼을 만들어드립니다.
             </p>
 
             <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-stretch">
