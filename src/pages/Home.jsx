@@ -82,6 +82,7 @@ const Home = () => {
   const [scrolled, setScrolled] = useState(false)
   const [paymentOpen, setPaymentOpen] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState('pro')
+  const [heroTab, setHeroTab] = useState('link')  // 히어로 입력 탭: link | upload
   const [user, setUser] = useState(null)
   const [nickname, setNickname] = useState(null)
   const [nickOpen, setNickOpen] = useState(false)
@@ -456,18 +457,44 @@ const Home = () => {
             </p>
 
             <div className="flex w-full max-w-2xl flex-col gap-3">
-              <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
-                <input
-                  type="text"
-                  placeholder="상품 영상 링크 또는 직접 업로드"
-                  onKeyDown={e => { if (e.key === 'Enter') handleStart() }}
-                  className="flex-1 rounded-2xl border-2 border-gray-300 bg-white px-5 py-4 text-base font-bold text-gray-900 placeholder-gray-400 outline-none transition-all focus:border-[#03C75A] focus:ring-4 focus:ring-[#03C75A]/15"
-                />
-                <button onClick={handleStart}
-                  className="group flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-[#03C75A] px-8 py-4 text-lg font-extrabold text-white shadow-lg shadow-[#03C75A]/30 transition-all hover:bg-[#02b350] active:scale-95">
-                  쇼핑 숏폼 만들기 <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
+              {/* 입력 방식 탭 */}
+              <div className="flex gap-1.5 rounded-2xl border-2 border-gray-200 bg-white p-1.5">
+                <button onClick={() => setHeroTab('link')}
+                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold transition-all ${heroTab === 'link' ? 'bg-[#03C75A] text-white shadow' : 'text-gray-500 hover:text-gray-800'}`}>
+                  🔗 영상 링크
+                </button>
+                <button onClick={() => setHeroTab('upload')}
+                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold transition-all ${heroTab === 'upload' ? 'bg-[#03C75A] text-white shadow' : 'text-gray-500 hover:text-gray-800'}`}>
+                  ⬆️ 직접 업로드
                 </button>
               </div>
+
+              {heroTab === 'link' ? (
+                <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
+                  <input
+                    type="text"
+                    placeholder="상품 영상 링크를 입력하세요"
+                    onKeyDown={e => { if (e.key === 'Enter') handleStart() }}
+                    className="flex-1 rounded-2xl border-2 border-gray-300 bg-white px-5 py-4 text-base font-bold text-gray-900 placeholder-gray-400 outline-none transition-all focus:border-[#03C75A] focus:ring-4 focus:ring-[#03C75A]/15"
+                  />
+                  <button onClick={handleStart}
+                    className="group flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-[#03C75A] px-8 py-4 text-lg font-extrabold text-white shadow-lg shadow-[#03C75A]/30 transition-all hover:bg-[#02b350] active:scale-95">
+                    쇼핑 숏폼 만들기 <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
+                  </button>
+                </div>
+              ) : (
+                <div
+                  onClick={handleStart}
+                  onDragOver={e => e.preventDefault()}
+                  onDrop={e => { e.preventDefault(); handleStart() }}
+                  className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-300 bg-white px-5 py-10 text-center transition-all hover:border-[#03C75A]/60 hover:bg-[#03C75A]/5"
+                >
+                  <span className="text-3xl">📁</span>
+                  <p className="text-base font-bold text-gray-800">동영상 파일을 드래그하거나 클릭하여 선택하세요</p>
+                  <p className="text-xs text-gray-400">지원 형식: MP4, MOV, WEBM, MKV · 최대 5GB</p>
+                </div>
+              )}
+
               <Link to="/manual"
                 className="text-base font-bold text-gray-500 transition-colors hover:text-[#03C75A]">
                 👋 처음이세요? 1분 사용법 →
