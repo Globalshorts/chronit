@@ -442,14 +442,14 @@ const Home = () => {
       </div>
 
       {/* ── Hero ── */}
-      <section className="relative px-5 pt-32 pb-16 md:px-8 md:pt-40 md:pb-24">
+      <section className="relative bg-gradient-to-b from-[#E4EFE7] via-[#EDF3EE] to-[#FAFAF8] px-5 pt-32 pb-16 md:px-8 md:pt-40 md:pb-24">
         <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
           <div className="flex w-full flex-col items-center">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#03C75A]/30 bg-[#03C75A]/10 px-4 py-2 text-sm font-bold text-[#03C75A] md:text-base">
               🛍️ 쇼핑 숏폼 특화 AI
             </div>
-            <h1 className="mb-5 text-4xl font-black leading-[1.15] tracking-tight text-gray-900 md:text-6xl">
-              하루 한 편도 벅찼던 쇼핑 숏폼<br /><span className="bg-gradient-to-r from-[#10b981] to-[#03C75A] bg-clip-text text-transparent">제작 시간 95% 단축</span>
+            <h1 className="mb-5 text-4xl font-black leading-[1.15] tracking-tight text-gray-900 break-keep md:text-6xl">
+              하루 한 편도 벅찼던 <span className="whitespace-nowrap">쇼핑 숏폼</span><br /><span className="bg-gradient-to-r from-[#10b981] to-[#03C75A] bg-clip-text text-transparent">제작 시간 95% 단축</span>
             </h1>
             <p className="mb-9 text-xl font-bold text-gray-500 md:text-2xl">
               크로닛은 영상만 넣으면 상품 분석·자막·TTS·편집까지 끝낸 쇼핑 숏폼을 만들어드립니다.
@@ -505,7 +505,7 @@ const Home = () => {
       </div>
 
       {/* ── 데모 캐러셀 ── */}
-      <div id="demo"><DemoCarousel /></div>
+      {/* 데모 캐러셀 임시 숨김 — 깨끗한(스톡·직접촬영) 데모로 교체 예정 */}
 
       {/* ── 왜 크로닛 (시간 절약) ── */}
       <section className="px-5 py-16 md:px-8 md:py-20">
