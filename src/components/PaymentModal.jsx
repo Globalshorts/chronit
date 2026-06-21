@@ -390,7 +390,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
             <p>• <strong className="text-gray-800">토스로 결제하기</strong> 버튼(휴대폰) 또는 QR(PC)로 <strong className="text-gray-800">표시된 금액 그대로</strong> 송금해 주세요.</p>
             <p>• 송금 후 <strong className="rounded bg-amber-100 px-1.5 py-0.5 font-black text-amber-700 ring-1 ring-amber-300">우측 하단 채널톡으로 가입 이메일</strong>을 보내주세요.</p>
             <p>• 확인 후 영업일 기준 <strong className="text-gray-800">1일 이내</strong> 활성화됩니다. (카드 결제는 즉시 활성화)</p>
-            <p>• <strong className="text-gray-800">환불 규정:</strong> 본 상품은 디지털 콘텐츠로, 결제 후 크레딧을 1회라도 사용(영상 분석·생성 등)하면 환불이 불가합니다. 이용 이력이 전혀 없는 경우에 한해 결제일로부터 <strong className="text-gray-800">7일 이내</strong> 전액 환불이 가능합니다.</p>
+            <p>• <strong className="text-gray-800">환불 규정:</strong> 본 상품은 디지털 콘텐츠로, 결제 후 영상을 1회라도 생성하면 환불이 불가합니다. 이용 이력이 전혀 없는 경우에 한해 결제일로부터 <strong className="text-gray-800">7일 이내</strong> 전액 환불이 가능합니다.</p>
           </div>
         )}
 

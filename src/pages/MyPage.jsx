@@ -98,7 +98,7 @@ const MyPage = () => {
         {/* 요약 stats */}
         <div className="mt-4">
           <Link to="/generate" className="block rounded-2xl border border-gray-200 bg-white p-4 transition-all hover:border-[#03C75A]/40">
-            <div className="flex items-center gap-1 text-xs text-slate-400"><Film size={13} /> 영상 크레딧</div>
+            <div className="flex items-center gap-1 text-xs text-slate-400"><Film size={13} /> 남은 영상</div>
             <div className="mt-1 text-xl font-black text-gray-800">{credits === null ? '…' : credits.toLocaleString()}</div>
           </Link>
         </div>

@@ -212,7 +212,7 @@ const MissionsPanel = () => {
       <div><label className={labelCls}>제목</label><input className={inputCls} value={form.title} onChange={e => set('title', e.target.value)} placeholder="예) 첫 영상 만들기 도전!" /></div>
       <div><label className={labelCls}>설명</label><textarea className={inputCls} rows={3} value={form.description} onChange={e => set('description', e.target.value)} placeholder="이벤트 안내 문구 (줄바꿈 가능)" /></div>
       <div className="grid grid-cols-2 gap-4">
-        <div><label className={labelCls}>지급 크레딧</label><input type="number" className={inputCls} value={form.reward} onChange={e => set('reward', e.target.value)} /></div>
+        <div><label className={labelCls}>지급 영상 수</label><input type="number" className={inputCls} value={form.reward} onChange={e => set('reward', e.target.value)} /></div>
         <div><label className={labelCls}>정렬 순서 (작을수록 위)</label><input type="number" className={inputCls} value={form.sort_order} onChange={e => set('sort_order', e.target.value)} /></div>
       </div>
       <div className="grid grid-cols-2 gap-4">
@@ -227,10 +227,10 @@ const MissionsPanel = () => {
       <div>
         <label className={labelCls}>유형</label>
         <div className="flex gap-2">
-          <button onClick={() => set('type', 'claim')} className={`flex-1 rounded-xl px-3 py-2 text-sm font-bold ${form.type === 'claim' ? 'bg-blue-600 text-white' : 'border border-white/10 text-slate-400'}`}>즉시 지급 (버튼 누르면 크레딧)</button>
+          <button onClick={() => set('type', 'claim')} className={`flex-1 rounded-xl px-3 py-2 text-sm font-bold ${form.type === 'claim' ? 'bg-blue-600 text-white' : 'border border-white/10 text-slate-400'}`}>즉시 지급 (버튼 누르면 이용권)</button>
           <button onClick={() => set('type', 'link')} className={`flex-1 rounded-xl px-3 py-2 text-sm font-bold ${form.type === 'link' ? 'bg-blue-600 text-white' : 'border border-white/10 text-slate-400'}`}>링크 이동 (구글폼 등)</button>
         </div>
-        {form.type === 'link' && <p className="mt-1 text-xs text-slate-500">※ 링크형은 크레딧을 자동 지급하지 않아요. 지급은 수동/쿠폰으로.</p>}
+        {form.type === 'link' && <p className="mt-1 text-xs text-slate-500">※ 링크형은 이용권을 자동 지급하지 않아요. 지급은 수동/쿠폰으로.</p>}
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div><label className={labelCls}>버튼 문구</label><input className={inputCls} value={form.action_label} onChange={e => set('action_label', e.target.value)} placeholder={form.type === 'link' ? '참여하기' : '받기'} /></div>
@@ -284,12 +284,12 @@ const MissionsPanel = () => {
     <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-black text-white">이벤트 (크레딧 미션)</h2>
+          <h2 className="text-lg font-black text-white">이벤트 (이용권 미션)</h2>
           <span className="rounded-full bg-white/8 px-2 py-0.5 text-xs text-slate-400">{list.length}</span>
         </div>
         <button onClick={openNew} className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white"><Plus size={15} /> 새 이벤트</button>
       </div>
-      <p className="mb-4 text-xs text-slate-500">영상 만들기 → "🎁 무료 크레딧 받기" 모달에 노출됩니다. 추천·후기 미션은 코드 고정이라 여기엔 없어요.</p>
+      <p className="mb-4 text-xs text-slate-500">영상 만들기 → "🎁 무료 이용권 받기" 모달에 노출됩니다. 추천·후기 미션은 코드 고정이라 여기엔 없어요.</p>
       {list.length === 0 ? (
         <div className="py-12 text-center text-slate-500"><Gift size={28} className="mx-auto mb-2 opacity-40" /><p className="text-sm">아직 이벤트가 없어요</p></div>
       ) : (
@@ -299,7 +299,7 @@ const MissionsPanel = () => {
               <span className="inline-block rounded-lg px-2 py-1 text-xs font-bold text-white shrink-0" style={{ backgroundColor: m.badge_color }}>{m.badge_label}</span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-bold text-white">{m.title || '(제목 없음)'}</p>
-                <p className="text-xs text-slate-500">{m.type === 'link' ? `링크 · ${m.action_url || '-'}` : `즉시 지급 +${m.reward} CR`}{m.active ? '' : ' · 비공개'}</p>
+                <p className="text-xs text-slate-500">{m.type === 'link' ? `링크 · ${m.action_url || '-'}` : `즉시 지급 +${m.reward}개`}{m.active ? '' : ' · 비공개'}</p>
               </div>
               <button onClick={() => toggle(m)} title={m.active ? '숨기기' : '공개'} className="text-slate-400 hover:text-white">{m.active ? <Eye size={16} /> : <EyeOff size={16} />}</button>
               <button onClick={() => openEdit(m)} className="text-slate-400 hover:text-white"><Pencil size={16} /></button>
@@ -690,7 +690,7 @@ const Admin = () => {
         <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
           {[
             { key: 'events', icon: <Megaphone size={15} />, label: 'Events' },
-            { key: 'missions', icon: <Gift size={15} />, label: '이벤트(크레딧)' },
+            { key: 'missions', icon: <Gift size={15} />, label: '이벤트(이용권)' },
             { key: 'tips', icon: <Megaphone size={15} />, label: '꿀팁' },
             { key: 'videos', icon: <Film size={15} />, label: 'Demo Videos' },
             { key: 'reports', icon: <Flag size={15} />, label: '신고관리' },

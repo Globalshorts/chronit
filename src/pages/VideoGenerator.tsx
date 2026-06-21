@@ -2390,7 +2390,7 @@ function CreditHistoryModal({ open, onClose, session }: { open:boolean; onClose:
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
       <div className="w-full max-w-md rounded-3xl bg-white border border-gray-200 p-6 max-h-[85vh] flex flex-col" onClick={e=>e.stopPropagation()}>
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-xl font-black text-gray-900">📒 크레딧 사용 내역</h2>
+          <h2 className="text-xl font-black text-gray-900">📒 사용 내역</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-900 text-xl">✕</button>
         </div>
         <p className="text-xs text-gray-500 mb-4">최근 100건까지 표시됩니다</p>
@@ -2595,10 +2595,10 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
       <div className="w-full max-w-md rounded-3xl bg-white border border-gray-200 p-6 max-h-[90vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-xl font-black text-gray-900">🎁 크레딧 더 받기</h2>
+          <h2 className="text-xl font-black text-gray-900">🎁 무료 이용권 더 받기</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-900 text-xl">✕</button>
         </div>
-        <p className="text-xs text-gray-500 mb-5">미션을 완료하면 크레딧이 지급됩니다</p>
+        <p className="text-xs text-gray-500 mb-5">미션을 완료하면 이용권이 지급됩니다</p>
 
         {/* 쿠폰 코드 */}
         <div className="rounded-2xl bg-[#03C75A]/5 border border-[#03C75A]/30 p-4 mb-3">
@@ -2777,7 +2777,7 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
           </div>
         )}
         <button onClick={()=>setShowHistory(true)}
-          className="w-full mt-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-100 transition">📒 크레딧 사용 내역</button>
+          className="w-full mt-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-100 transition">📒 사용 내역</button>
       </div>
       <CreditMissionsModal open={showMissions} onClose={()=>setShowMissions(false)} session={session} onCredited={onCredited} />
       <CreditHistoryModal open={showHistory} onClose={()=>setShowHistory(false)} session={session} />
@@ -3721,7 +3721,7 @@ function SettingsView({ session, supabase, balance, userPlan }:
       </Section>
 
       <Section title="🎟 파트너 코드 등록">
-        <p className="text-xs text-gray-400 mb-3">파트너로부터 받은 코드를 입력하면 파트너가 회원님의 사용 현황(이메일·플랜·크레딧)을 조회할 수 있게 됩니다.</p>
+        <p className="text-xs text-gray-400 mb-3">파트너로부터 받은 코드를 입력하면 파트너가 회원님의 사용 현황(이메일·플랜·이용권)을 조회할 수 있게 됩니다.</p>
         <div className="flex gap-2">
           <input value={code} onChange={e=>setCode(e.target.value)} placeholder="예: TEACHER_KIM"
             onKeyDown={e=>{ if(e.key==="Enter") registerCode(); }}
@@ -4296,10 +4296,10 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
           </div>
         </div>
         <div className="rounded-2xl bg-white border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 mb-2">크레딧 관리</p>
+          <p className="text-xs text-gray-500 mb-2">이용권 관리</p>
           <div className="flex flex-wrap items-center gap-2">
             <input type="number" min={0} max={1000000} value={amt} onChange={e=>setAmt(e.target.value)} className="w-36 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none" placeholder="변동량" />
-            <Btn onClick={()=>credit("add")} color="bg-green-600 hover:bg-green-500">＋ 충전 (잔량 증가)</Btn>
+            <Btn onClick={()=>credit("add")} color="bg-green-600 hover:bg-green-500">＋ 지급 (잔량 증가)</Btn>
             <Btn onClick={()=>credit("sub")} color="bg-orange-600 hover:bg-orange-500">－ 차감 (잔량 감소)</Btn>
             <Btn onClick={()=>credit("reset")} color="bg-gray-200 hover:bg-gray-300">🔄 사용량 0으로 초기화</Btn>
           </div>
@@ -4548,7 +4548,7 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
             <button type="button" onClick={()=>setMode("discount")}
               className={`rounded-xl px-4 py-2 text-sm font-bold transition ${mode==="discount"?"bg-[#03C75A] text-white":"bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>💳 플랜 할인</button>
             <button type="button" onClick={()=>setMode("credits")}
-              className={`rounded-xl px-4 py-2 text-sm font-bold transition ${mode==="credits"?"bg-[#03C75A] text-white":"bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>💎 크레딧 지급</button>
+              className={`rounded-xl px-4 py-2 text-sm font-bold transition ${mode==="credits"?"bg-[#03C75A] text-white":"bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>💎 이용권 지급</button>
             <button type="button" onClick={()=>setMode("free_days")}
               className={`rounded-xl px-4 py-2 text-sm font-bold transition ${mode==="free_days"?"bg-[#03C75A] text-white":"bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>🎁 무료체험</button>
           </div>
@@ -4556,7 +4556,7 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
 
         {mode === "credits" && (
           <div className="mb-4 flex flex-wrap items-end gap-3">
-            <div><label className="text-xs text-gray-500">지급 크레딧</label>
+            <div><label className="text-xs text-gray-500">지급 영상 수</label>
               <input type="number" value={credits} onChange={e=>setCredits(e.target.value)} placeholder="예: 500"
                 className="block w-32 mt-1 rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-[#03C75A]" /></div>
             <div><label className="text-xs text-gray-500">선착순 인원 (비우면 무제한)</label>
@@ -4765,7 +4765,7 @@ function PartnerView({ session, supabase }: { session: any; supabase: any }) {
   return (
     <div className="max-w-5xl">
       <h2 className="text-xl font-black text-gray-900 mb-1">📊 파트너스 — 내 멤버 관리</h2>
-      <p className="text-sm text-gray-400 mb-5">파트너 코드를 입력한 멤버들의 사용 현황을 확인할 수 있습니다. 조회 전용이며 크레딧 수정 권한은 없습니다.</p>
+      <p className="text-sm text-gray-400 mb-5">파트너 코드를 입력한 멤버들의 사용 현황을 확인할 수 있습니다. 조회 전용이며 이용권 수정 권한은 없습니다.</p>
 
       {/* 통계 카드 */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-3">
