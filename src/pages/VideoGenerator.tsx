@@ -14,6 +14,7 @@ import { supabase } from "../lib/supabase";
 import type { Session } from "@supabase/supabase-js";
 import PaymentModal from "../components/PaymentModal";
 import ColorPalette from "../components/ColorPalette";
+import SiteNav from "../components/SiteNav";
 import { LinkPageManager, captureVideoFrame } from "./LinksManager";
 import { FEATURES } from "../config/features";
 
@@ -23,23 +24,20 @@ const FN = (n: string) => `${SB}/functions/v1/${n}`;
 // ── 상단 바 (홈페이지와 동일 스타일) ───────────────────────────
 function AppTopBar({ onMenuClick, onInvite }: { onMenuClick?: () => void; onInvite?: () => void }) {
   const ICON = `${SB}/storage/v1/object/public/assets/icon.png`;
-  const link = "transition-colors hover:text-[#03C75A]";
   return (
-    <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white/90 px-4 backdrop-blur-xl md:px-6">
-      <div className="flex items-center gap-2 md:gap-3">
+    <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-gray-200 bg-white/90 px-4 backdrop-blur-xl md:px-6">
+      <div className="flex min-w-0 items-center gap-2 md:gap-3">
         <button onClick={onMenuClick} aria-label="메뉴"
           className="md:hidden -ml-1 flex h-9 w-9 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
-        <a href="/" className="flex items-center gap-2">
-          <img src={ICON} alt="Chronit" className="h-8 w-8" />
-          <span className="text-xl font-black tracking-tighter text-gray-900">Chronit</span>
+        <a href="/" className="flex min-w-0 items-center gap-2 md:gap-3">
+          <img src={ICON} alt="Chronit" className="h-9 w-9 shrink-0 md:h-10 md:w-10" />
+          <span className="text-2xl font-black tracking-tight text-gray-900 md:text-3xl">Chronit</span>
         </a>
       </div>
-      <nav className="flex items-center gap-3 text-sm font-bold text-gray-600 md:gap-7">
-        <a href="/manual" className={`hidden sm:inline ${link}`}>사용 방법</a>
-        <a href="/#pricing" className={`hidden sm:inline ${link}`}>요금제</a>
-        <a href="/events" className={`hidden sm:inline ${link}`}>이벤트</a>
+      <SiteNav />
+      <nav className="flex shrink-0 items-center gap-2 text-sm font-bold text-gray-600 md:gap-3">
         <button onClick={onInvite} className="rounded-full bg-[#03C75A] px-3.5 py-1.5 font-black text-white transition-colors hover:bg-[#02b350]">🎁 친구 초대</button>
         <a href="/" className="rounded-full bg-[#03C75A]/10 px-3.5 py-1.5 text-[#03C75A] transition-colors hover:bg-[#03C75A]/20">홈</a>
       </nav>
