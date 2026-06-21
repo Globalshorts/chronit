@@ -8,8 +8,8 @@ import { ChevronDown } from 'lucide-react'
  */
 export const SITE_MENUS = [
   { key: 'service', label: '서비스', items: [
-    ['/#features', '기능'],
-    ['/#pricing', '요금제'],
+    ['/#faq', '자주 묻는 질문'],
+    ['/#pricing', '가격 안내'],
     ['/manual', '사용 방법'],
   ] },
   { key: 'community', label: '커뮤니티', items: [

@@ -61,8 +61,8 @@ const Footer = ({ dark = false, user = null }) => {
           </div>
           <div className="flex flex-col gap-4">
             <span className={`text-base font-bold ${t.head}`}>서비스</span>
-            <Link to="/#features" className={`text-base font-medium transition-colors ${t.link}`}>기능</Link>
-            <Link to="/#pricing" className={`text-base font-medium transition-colors ${t.link}`}>요금제</Link>
+            <Link to="/#faq" className={`text-base font-medium transition-colors ${t.link}`}>자주 묻는 질문</Link>
+            <Link to="/#pricing" className={`text-base font-medium transition-colors ${t.link}`}>가격 안내</Link>
             <Link to="/events" className={`text-base font-medium transition-colors ${t.link}`}>이벤트</Link>
             <Link to="/manual" className={`text-base font-medium transition-colors ${t.link}`}>사용 방법</Link>
             {user?.email === 'pv2066pv@gmail.com' && (

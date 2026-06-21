@@ -403,12 +403,12 @@ const Home = () => {
       <div className={`fixed top-0 left-0 right-0 z-40 transform transition-all duration-300 ease-in-out md:hidden ${menuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`} style={{ paddingTop: `${bannerH + 76}px` }}>
         <div className="border-b border-gray-200 bg-white px-6 py-6 shadow-lg">
           <nav className="flex flex-col gap-1 text-lg font-bold text-gray-700">
-            <a href="#features" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">기능</a>
+            <a href="#faq" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">자주 묻는 질문</a>
             <Link to="/manual" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">사용 방법</Link>
             <Link to="/board" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">공지·이벤트</Link>
             <a href="https://cafe.naver.com/chronit" target="_blank" rel="noreferrer" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">공식 카페</a>
             <Link to="/me" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">마이페이지</Link>
-            <a href="#pricing" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">요금제</a>
+            <a href="#pricing" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">가격 안내</a>
           </nav>
           <div className="mt-4 border-t border-gray-200 pt-4 flex flex-col gap-2">
             {user ? (
@@ -565,7 +565,7 @@ const Home = () => {
           </div>
         </div>
       </section>
-      <section id="features" className="px-5 py-16 md:px-8 md:py-20">
+      <section id="faq" className="px-5 py-16 md:px-8 md:py-20">
         <div className="mx-auto max-w-2xl">
           <div className="mb-12 text-center">
             <h2 className="text-3xl font-black text-gray-900 md:text-4xl">많이 물어보시는 것들</h2>
