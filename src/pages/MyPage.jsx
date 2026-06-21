@@ -96,23 +96,12 @@ const MyPage = () => {
         </div>
 
         {/* 요약 stats */}
-        <div className="mt-4 grid grid-cols-3 gap-3">
-          <Link to="/points" className="rounded-2xl border border-gray-200 bg-white p-4 transition-all hover:border-[#03C75A]/40">
-            <div className="flex items-center gap-1 text-xs text-slate-400"><Coins size={13} /> 포인트</div>
-            <div className="mt-1 text-xl font-black text-[#03C75A]">{points.toLocaleString()}</div>
-          </Link>
-          <Link to="/points" className="rounded-2xl border border-gray-200 bg-white p-4 transition-all hover:border-[#03C75A]/40">
-            <div className="flex items-center gap-1 text-xs text-slate-400"><Flame size={13} /> 연속출석</div>
-            <div className="mt-1 text-xl font-black text-orange-500">{streak}일</div>
-          </Link>
-          <Link to="/generate" className="rounded-2xl border border-gray-200 bg-white p-4 transition-all hover:border-[#03C75A]/40">
+        <div className="mt-4">
+          <Link to="/generate" className="block rounded-2xl border border-gray-200 bg-white p-4 transition-all hover:border-[#03C75A]/40">
             <div className="flex items-center gap-1 text-xs text-slate-400"><Film size={13} /> 영상 크레딧</div>
             <div className="mt-1 text-xl font-black text-gray-800">{credits === null ? '…' : credits.toLocaleString()}</div>
           </Link>
         </div>
-        <Link to="/shop" className="mt-3 flex items-center justify-center gap-1.5 rounded-2xl bg-[#03C75A] py-3 text-sm font-bold text-white transition-all hover:bg-[#02b350] active:scale-95">
-          <Gift size={16} /> 기프티콘 교환소
-        </Link>
 
         {/* 탭 */}
         <div className="mt-8 mb-1 flex border-b border-gray-200">

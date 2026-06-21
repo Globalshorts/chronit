@@ -43,7 +43,7 @@ const CARDS = [
     to: '/manual/credits',
     emoji: '🪙',
     title: '크레딧 안내',
-    desc: '영상 1개당 크레딧과\n플랜·이월·환불 안내',
+    desc: '영상 1개당 크레딧과\n플랜·환불 안내',
     color: 'from-yellow-50 to-yellow-50 border-yellow-300 hover:border-yellow-400 bg-white',
     badge: null,
     badgeColor: '',

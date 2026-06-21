@@ -15,8 +15,6 @@ import LinksManager from './pages/LinksManager'
 import Board from './pages/Board'
 import BoardWrite from './pages/BoardWrite'
 import BoardPost from './pages/BoardPost'
-import Points from './pages/Points'
-import Shop from './pages/Shop'
 import MyPage from './pages/MyPage'
 import UserProfile from './pages/UserProfile'
 import Reserve from './pages/Reserve'
@@ -48,8 +46,6 @@ const App = () => (
       <Route path="/board/write" element={<BoardWrite />} />
       <Route path="/board/u/:id" element={<UserProfile />} />
       <Route path="/board/:id" element={<BoardPost />} />
-      <Route path="/points" element={<Points />} />
-      <Route path="/shop" element={<Shop />} />
       <Route path="/me" element={<MyPage />} />
       <Route path="/reserve" element={<Reserve />} />
       <Route path="/u/:handle" element={<LinkPage />} />

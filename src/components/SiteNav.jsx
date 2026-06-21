@@ -15,8 +15,6 @@ export const SITE_MENUS = [
   { key: 'community', label: '커뮤니티', items: [
     ['/board', '공지·이벤트'],
     ['https://cafe.naver.com/chronit', '공식 카페'],
-    ['/points', '포인트'],
-    ['/shop', '교환소'],
   ] },
 ]
 

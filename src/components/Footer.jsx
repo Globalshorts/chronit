@@ -57,8 +57,6 @@ const Footer = ({ dark = false, user = null }) => {
             <span className={`text-base font-bold ${t.head}`}>커뮤니티</span>
             <Link to="/board"  className={`text-base font-medium transition-colors ${t.link}`}>공지·이벤트</Link>
             <a href="https://cafe.naver.com/chronit" target="_blank" rel="noreferrer" className={`text-base font-medium transition-colors ${t.link}`}>공식 카페</a>
-            <Link to="/points" className={`text-base font-medium transition-colors ${t.link}`}>포인트</Link>
-            <Link to="/shop"   className={`text-base font-medium transition-colors ${t.link}`}>기프티콘 교환소</Link>
             <Link to="/me"     className={`text-base font-medium transition-colors ${t.link}`}>마이페이지</Link>
           </div>
           <div className="flex flex-col gap-4">

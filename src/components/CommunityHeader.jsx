@@ -50,10 +50,6 @@ const CommunityHeader = ({ active = null }) => {
             {user ? (
               <>
                 <Link to="/generate" className="hidden items-center gap-1.5 rounded-full bg-[#03C75A] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#02b350] active:scale-95 md:flex">시작하기</Link>
-                <Link to="/points" className="flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-2 text-sm font-bold text-amber-600 ring-1 ring-amber-200 transition-all hover:bg-amber-100 active:scale-95 md:px-3.5">
-                  <Coins size={16} />
-                  {points === null ? '…' : `${points.toLocaleString()}P`}
-                </Link>
                 <Link to="/me" className="hidden items-center gap-1.5 rounded-full bg-gray-900 px-3.5 py-2 text-sm font-bold text-white transition-all hover:bg-[#03C75A] active:scale-95 md:flex">
                   <User size={16} /> <span className="max-w-[90px] truncate">{nickname || '마이페이지'}</span>
                 </Link>

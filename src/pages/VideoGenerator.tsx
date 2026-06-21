@@ -383,7 +383,7 @@ export default function VideoGenerator() {
 
   useEffect(() => {
     if (!session) return;
-    loadJobs(); loadBalance(); loadRewards();
+    loadJobs(); loadBalance();
     loadUserSettings();
     const ch = supabase.channel("vj")
       .on("postgres_changes", { event: "*", schema: "public", table: "video_jobs" }, () => {
@@ -505,13 +505,6 @@ export default function VideoGenerator() {
       setCompletionAlert("✅ 영상 생성 완료! 생성 내역으로 이동합니다.");
       try { new Audio("https://www.soundjay.com/buttons/sounds/button-09a.mp3").play(); } catch {}
       setCurrentJobId("");
-      // 완성 변동보상(가챠) — 유료 전용, 영상당 1회
-      (async () => {
-        try {
-          const { data: rw } = await supabase.rpc("claim_video_reward_rpc", { p_ref_id: job.id });
-          if (rw?.ok && rw.awarded > 0) setGacha({ tier: rw.tier, points: rw.awarded, jackpot: rw.jackpot });
-        } catch {}
-      })();
       setActiveView("history"); // 완료 시 생성 내역으로 자동 이동
     } else if (job.status === "error") {
       // 간헐적 서버 오류는 사용자에게 실패를 노출하지 않고 자동으로 다시 시도
@@ -1257,7 +1250,6 @@ export default function VideoGenerator() {
         </div>
       )}
 
-      {gacha && <GachaModal data={gacha} onClose={() => { setGacha(null); loadRewards(); }} />}
       {/* ── 자동 생성 중 중앙 오버레이 ── */}
       {autoRunning && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm">
@@ -1485,25 +1477,6 @@ export default function VideoGenerator() {
         <div className="mx-auto w-full max-w-5xl flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-5">
           <div className="space-y-0">
 
-          {/* 포인트·연속·출석 바 */}
-          <div className="mb-4 flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-3 py-2.5">
-            <button onClick={handleCheckIn} disabled={checkingIn || checkedToday}
-              className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-black transition ${checkedToday ? "bg-gray-100 text-gray-400" : "bg-[#03C75A] text-white hover:bg-[#02b350]"}`}>
-              <span>🔥</span>
-              <span>{streak > 0 ? `연속 ${streak}일` : "출석체크"}</span>
-              {checkedToday
-                ? <span className="text-xs">✓ 완료</span>
-                : <span className="rounded-md bg-white/20 px-1.5 py-0.5 text-[11px] font-bold">+10P</span>}
-            </button>
-            <a href="/points" title="포인트 내역"
-              className="flex items-center gap-1.5 rounded-xl bg-amber-50 px-3 py-2 text-sm font-black text-amber-600 transition hover:bg-amber-100">
-              <span>⭐</span><span>{points !== null ? points.toLocaleString() : "—"}P</span>
-            </a>
-            <a href="https://cafe.naver.com/chronit" target="_blank" rel="noreferrer"
-              className="ml-auto flex items-center gap-1 rounded-xl border border-gray-200 px-3 py-2 text-sm font-bold text-gray-600 transition hover:border-[#03C75A]/40 hover:text-[#03C75A]">
-              <span>🤝</span><span className="hidden sm:inline">N잡러 모임</span>
-            </a>
-          </div>
 
           {/* 새로 시작 (작업 초기화) */}
           <div className="mb-3 flex justify-end">
@@ -3564,10 +3537,6 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
       const postId = data.id;
       if (postId && img) { try { await supabase.from("board_posts").update({ image_url: img }).eq("id", postId); } catch {} }
       setShareToast({ text: "자랑 게시판에 올렸어요!", link: postId ? `/board/${postId}` : "/board" });
-      try {
-        const { data: rw } = await supabase.rpc("claim_share_reward_rpc", { p_ref_id: j.id });
-        if (rw?.ok && rw.awarded > 0 && onGacha) onGacha({ tier: rw.tier, points: rw.awarded, jackpot: rw.jackpot });
-      } catch {}
     } catch { setShareToast({ text:"발행에 실패했어요" }); }
     finally { setSharing(null); setTimeout(()=>setShareToast(null), 6000); }
   };
