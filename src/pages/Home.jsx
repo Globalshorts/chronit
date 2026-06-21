@@ -413,6 +413,7 @@ const Home = () => {
       <div className={`fixed top-0 left-0 right-0 z-40 transform transition-all duration-300 ease-in-out md:hidden ${menuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`} style={{ paddingTop: `${bannerH + 76}px` }}>
         <div className="border-b border-gray-200 bg-white px-6 py-6 shadow-lg">
           <nav className="flex flex-col gap-1 text-lg font-bold text-gray-700">
+            <a href="#features" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">기능</a>
             <a href="#faq" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">자주 묻는 질문</a>
             <Link to="/manual" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">사용 방법</Link>
             <Link to="/board" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">공지·이벤트</Link>
@@ -575,6 +576,32 @@ const Home = () => {
           </div>
         </div>
       </section>
+      {/* ── 기능 소개 (서비스 구성) ── */}
+      <section id="features" className="px-5 py-16 md:px-8 md:py-24">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-12 text-center">
+            <h2 className="text-3xl font-black text-gray-900 md:text-4xl">영상 한 번 넣으면, 이걸 다 해드려요</h2>
+            <p className="mt-3 text-lg text-gray-500 md:text-xl">제작에 필요한 과정을 크로닛이 자동으로 처리해요</p>
+          </div>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              { icon: '\u{1F50E}', title: '상품 자동 분석', desc: '영상 속 상품을 인식해 상품명·키워드를 잡아줘요.' },
+              { icon: '\u{1F4AC}', title: 'AI 자동 자막', desc: '음성을 인식해 자막을 자동으로 만들어 넣어드려요.' },
+              { icon: '\u{1F399}\uFE0F', title: 'AI 음성 (TTS)', desc: '자연스러운 한국어 나레이션을 자동으로 생성해요.' },
+              { icon: '\u2702\uFE0F', title: '자동 컷편집', desc: '숏폼 길이에 맞춰 영상을 자동으로 잘라 구성해요.' },
+              { icon: '\u{1F3A8}', title: '스타일·썸네일 프리셋', desc: '자막·썸네일 스타일을 골라 일관된 톤으로 완성해요.' },
+              { icon: '\u26A1', title: '편집 없이 빠르게', desc: '영상만 넣으면 몇 분 뒤 완성 — 매일 여러 개도 거뜬해요.' },
+            ].map(({ icon, title, desc }) => (
+              <div key={title} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-0.5 hover:border-[#03C75A]/40">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#03C75A]/10 text-2xl">{icon}</div>
+                <h3 className="mb-1.5 text-lg font-black text-gray-900">{title}</h3>
+                <p className="text-sm leading-relaxed text-gray-500">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section id="faq" className="px-5 py-16 md:px-8 md:py-20">
         <div className="mx-auto max-w-2xl">
           <div className="mb-12 text-center">
