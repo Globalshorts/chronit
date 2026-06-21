@@ -451,8 +451,8 @@ const Home = () => {
             <h1 className="mb-5 text-4xl font-black leading-[1.15] tracking-tight text-gray-900 break-keep md:text-6xl">
               하루 한 편도 벅찼던 <span className="whitespace-nowrap">쇼핑 숏폼</span><br /><span className="bg-gradient-to-r from-[#10b981] to-[#03C75A] bg-clip-text text-transparent">제작 시간 95% 단축</span>
             </h1>
-            <p className="mb-9 text-xl font-bold text-gray-500 md:text-2xl">
-              크로닛은 영상만 넣으면 상품 분석·자막·TTS·편집까지 끝낸 쇼핑 숏폼을 만들어드립니다.
+            <p className="mb-9 text-xl font-bold text-gray-500 break-keep md:text-2xl">
+              크로닛은 영상만 넣으면 상품 분석·자막·TTS·편집까지 끝낸<br />쇼핑 숏폼을 만들어드립니다.
             </p>
 
             <div className="flex w-full max-w-2xl flex-col gap-3">
