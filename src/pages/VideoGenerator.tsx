@@ -1418,34 +1418,18 @@ export default function VideoGenerator() {
               </button>
             }>
             <div className="space-y-4">
-              <div>
-                <label className="mb-1 block text-base font-bold text-gray-700">편집할 소스 영상 URL <span className="font-normal text-gray-400">· 인스타 · 틱톡 · 유튜브</span></label>
-                <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-                  <input type="url" value={sourceUrl}
-                    onChange={e => { setSourceUrl(e.target.value); setSearchError(""); setClips([]); setCart(new Set()); }}
-                    onKeyDown={e => e.key === "Enter" && handleSearch()}
-                    placeholder="인스타·틱톡·유튜브 영상 링크 붙여넣기"
-                    disabled={searching}
-                    className="flex-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-3.5 text-base text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] focus:ring-1 focus:ring-[#03C75A] disabled:opacity-50 transition" />
-                  <button onClick={() => handleSearch()} disabled={searching || !sourceUrl.trim()}
-                    className="w-full sm:w-auto shrink-0 rounded-xl bg-[#03C75A] px-5 py-3.5 text-base font-bold text-white hover:bg-[#02b350] disabled:opacity-40 transition flex items-center justify-center gap-2">
-                    {searching
-                      ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />분석 중...</>
-                      : "🔍 분석 시작 (10 CR)"}
-                  </button>
-                </div>
-
+              {/* 영상 준비 — 직접 업로드 메인 + 보조 도구 (최상단) */}
               <div className="flex flex-wrap gap-2">
+                {FEATURES.directUpload && (
+                  <button type="button" onClick={() => setUploadOpen(o => !o)}
+                    className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-sm font-bold transition ${uploadOpen ? "border-[#03C75A] bg-[#03C75A]/10 text-[#03C75A]" : "border-[#03C75A]/40 bg-[#03C75A]/5 text-[#03C75A] hover:border-[#03C75A]"}`}>
+                    ⬆️ 직접 업로드
+                  </button>
+                )}
                 <button type="button" onClick={() => setCoupangOpen(o => !o)}
                   className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold transition ${coupangOpen ? "border-blue-400 bg-blue-50 text-blue-700" : "border-gray-200 bg-white text-gray-600 hover:border-blue-300"}`}>
                   🛒 쿠팡 상품 확인
                 </button>
-                {FEATURES.directUpload && (
-                  <button type="button" onClick={() => setUploadOpen(o => !o)}
-                    className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold transition ${uploadOpen ? "border-[#03C75A] bg-[#03C75A]/10 text-[#03C75A]" : "border-gray-200 bg-white text-gray-600 hover:border-[#03C75A]/50"}`}>
-                    ⬆️ 직접 업로드
-                  </button>
-                )}
                 <button type="button" onClick={toggleVideoOnly}
                   className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold transition ${videoOnly ? "border-[#03C75A] bg-[#03C75A]/10 text-[#03C75A]" : "border-gray-200 bg-white text-gray-600 hover:border-[#03C75A]/50"}`}>
                   🎬 영상만 만들기{videoOnly ? " ✓" : ""}
@@ -1453,26 +1437,9 @@ export default function VideoGenerator() {
               </div>
               {videoOnly && <p className="-mt-2 text-xs text-gray-400">AI 음성·자막 없이 (직접 더빙용)</p>}
 
-              {coupangOpen && (
-                <div className="rounded-xl border border-blue-100 bg-blue-50/40 p-3">
-                  <p className="mb-2 text-sm text-blue-600">분석·생성 전에 이 상품이 쿠팡 파트너스에 있는지 먼저 검색해 보세요. 없으면 다른 상품으로 바꾸면 크레딧을 아껴요.</p>
-                  <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-                    <input type="text" value={coupangQ}
-                      onChange={e => setCoupangQ(e.target.value)}
-                      onKeyDown={e => e.key === "Enter" && coupangSearch()}
-                      placeholder="상품명 입력 (예: 음식 밀봉기)"
-                      className="flex-1 rounded-lg bg-white border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition" />
-                    <button type="button" onClick={coupangSearch} disabled={!coupangQ.trim()}
-                      className="w-full sm:w-auto shrink-0 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-40 transition">
-                      쿠팡 파트너스에서 검색 →
-                    </button>
-                  </div>
-                </div>
-              )}
-
               {FEATURES.directUpload && uploadOpen && (
                 <div>
-                  <p className="mb-2 text-sm leading-relaxed text-gray-500">URL 검색 클립과 <span className="font-bold text-[#03C75A]">섞어서</span> 합성할 수 있어요. 업로드 영상도 자막 제거·컷편집·자막/더빙이 똑같이 적용됩니다.</p>
+                  <p className="mb-2 text-sm leading-relaxed text-gray-500">직접 촬영했거나 사용 권리가 있는 영상을 올리세요. 업로드 영상도 자막·컷편집·더빙이 똑같이 적용돼요.</p>
                   <div className="relative">
                     <input type="file" accept="video/*" multiple disabled={uploading}
                       onChange={e => { const arr = Array.from(e.target.files || []); (e.currentTarget as HTMLInputElement).value = ""; handleAddUploads(arr); }}
@@ -1498,6 +1465,39 @@ export default function VideoGenerator() {
                 </div>
               )}
 
+              {coupangOpen && (
+                <div className="rounded-xl border border-blue-100 bg-blue-50/40 p-3">
+                  <p className="mb-2 text-sm text-blue-600">분석·생성 전에 이 상품이 쿠팡 파트너스에 있는지 먼저 검색해 보세요. 없으면 다른 상품으로 바꾸면 크레딧을 아껴요.</p>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+                    <input type="text" value={coupangQ}
+                      onChange={e => setCoupangQ(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && coupangSearch()}
+                      placeholder="상품명 입력 (예: 음식 밀봉기)"
+                      className="flex-1 rounded-lg bg-white border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition" />
+                    <button type="button" onClick={coupangSearch} disabled={!coupangQ.trim()}
+                      className="w-full sm:w-auto shrink-0 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-40 transition">
+                      쿠팡 파트너스에서 검색 →
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="mb-1 block text-base font-bold text-gray-700">또는 링크로 가져오기 <span className="font-normal text-gray-400">· 인스타 · 틱톡 · 유튜브</span></label>
+                <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+                  <input type="url" value={sourceUrl}
+                    onChange={e => { setSourceUrl(e.target.value); setSearchError(""); setClips([]); setCart(new Set()); }}
+                    onKeyDown={e => e.key === "Enter" && handleSearch()}
+                    placeholder="인스타·틱톡·유튜브 영상 링크 붙여넣기"
+                    disabled={searching}
+                    className="flex-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-3.5 text-base text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] focus:ring-1 focus:ring-[#03C75A] disabled:opacity-50 transition" />
+                  <button onClick={() => handleSearch()} disabled={searching || !sourceUrl.trim()}
+                    className="w-full sm:w-auto shrink-0 rounded-xl bg-[#03C75A] px-5 py-3.5 text-base font-bold text-white hover:bg-[#02b350] disabled:opacity-40 transition flex items-center justify-center gap-2">
+                    {searching
+                      ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />분석 중...</>
+                      : "🔍 분석 시작 (10 CR)"}
+                  </button>
+                </div>
                 {!searchError && <UrlHint url={sourceUrl} />}
                 <a href="/board/5" target="_blank" rel="noreferrer"
                   className="mt-2 inline-block text-sm font-bold text-[#03C75A] hover:underline">
