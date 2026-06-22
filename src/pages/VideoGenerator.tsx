@@ -167,6 +167,7 @@ export default function VideoGenerator() {
   const [inputMode, setInputMode]   = useState<"url"|"upload">("url");
   const [uploadFile, setUploadFile] = useState<File|null>(null);
   const [uploadName, setUploadName] = useState("");
+  const [nameDetecting, setNameDetecting] = useState(false);
   const [uploadDesc, setUploadDesc] = useState("");
   const [uploading, setUploading]   = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -857,9 +858,41 @@ export default function VideoGenerator() {
       if (added.length) {
         setClips(prev => [...added, ...(prev as any[])] as any);
         setCart(prev => { const n = new Set(prev); added.forEach(c => n.add(c.video_id)); return n; });
+        if (!uploadName.trim()) detectProductName(files[0]); // 상품명 자동 제안 (best-effort)
       }
     } catch (e) { setUploadError(String(e)); }
     finally { setUploading(false); }
+  };
+
+  // 업로드 영상에서 상품명 자동 인식 (프레임 1장 → OpenAI 비전) — best-effort, 제안값
+  const detectProductName = async (file: File) => {
+    setNameDetecting(true);
+    try {
+      const objUrl = URL.createObjectURL(file);
+      let blob: any = null;
+      try { blob = await captureVideoFrame(objUrl, 0.45); } finally { URL.revokeObjectURL(objUrl); }
+      if (!blob) return;
+      const dataUrl: string = await new Promise((res, rej) => {
+        const fr = new FileReader(); fr.onload = () => res(String(fr.result)); fr.onerror = rej; fr.readAsDataURL(blob);
+      });
+      const { data: { session: s2 } } = await supabase.auth.getSession();
+      if (!s2) return;
+      const r = await fetch(FN("openai_chat"), {
+        method: "POST",
+        headers: { Authorization: `Bearer ${s2.access_token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "gpt-4o-mini", max_tokens: 30, temperature: 0,
+          messages: [{ role: "user", content: [
+            { type: "text", text: "이 영상 프레임 속 핵심 상품의 이름을 한국어로 2~6단어 이내로만 답해. 상품이 명확하지 않으면 빈 문자열만. 설명·따옴표 없이 상품명만 출력." },
+            { type: "image_url", image_url: { url: dataUrl } },
+          ] }],
+        }),
+      });
+      const d = await r.json();
+      const name = String(d?.choices?.[0]?.message?.content ?? "").trim().replace(/^["'`]+|["'`]+$/g, "").slice(0, 40);
+      if (name) setUploadName(prev => (prev.trim() ? prev : name));
+    } catch (_) { /* 무시 */ }
+    finally { setNameDetecting(false); }
   };
 
   // 업로드 클립 제거 (목록·장바구니에서 빼고 스토리지에서도 best-effort 삭제)
@@ -1499,7 +1532,7 @@ export default function VideoGenerator() {
                   {uploadError && <p className="mt-2 text-sm text-red-500">{uploadError}</p>}
                   {clips.some((c: any) => c.source === "upload" && !String(c.video_id || "").startsWith("trend_")) && (
                     <div className="mt-2 space-y-2 rounded-xl border border-[#03C75A]/30 bg-[#03C75A]/5 p-3">
-                      <p className="text-xs font-bold text-gray-700">📝 업로드 영상 상품 정보 <span className="font-normal text-red-500">*</span> <span className="font-normal text-gray-400">· 쿠팡 검색어{!videoOnly ? "·대본" : ""}에 사용</span></p>
+                      <p className="text-xs font-bold text-gray-700">📝 업로드 영상 상품 정보 <span className="font-normal text-red-500">*</span> <span className="font-normal text-gray-400">· 쿠팡 검색어{!videoOnly ? "·대본" : ""}에 사용</span>{nameDetecting && <span className="ml-1 font-normal text-[#03C75A]">· 🔎 AI가 상품명 찾는 중…</span>}</p>
                       <input type="text" value={uploadName} onChange={e => setUploadName(e.target.value)} placeholder="상품명 (예: 휴대용 미니 가습기)"
                         className="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#03C75A] focus:ring-1 focus:ring-[#03C75A] transition" />
                       {!videoOnly && (
