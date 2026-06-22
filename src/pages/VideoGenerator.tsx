@@ -3021,6 +3021,9 @@ function ClipCard({ clip, selected, onToggle, onRemove }: { clip: Clip; selected
   const proxyUrl = rawUrl
     ? `https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/video-proxy?url=${encodeURIComponent(rawUrl)}`
     : "";
+  // 자기 스토리지(업로드) URL은 프록시 없이 직접 재생, 외부 CDN(틱톡·XHS)만 프록시
+  const isOwnStorage = rawUrl.includes("supabase.co/storage/v1/object/public/");
+  const playUrl = isOwnStorage ? rawUrl : (proxyUrl || rawUrl);
   const handlePlay = async () => {
     if (!proxyUrl && !rawUrl) return;
     setPlaying(true);
@@ -3033,8 +3036,8 @@ function ClipCard({ clip, selected, onToggle, onRemove }: { clip: Clip; selected
     }`}>
       <div className="aspect-[9/16] bg-gray-100 relative cursor-pointer"
         onClick={() => playing ? setPlaying(false) : handlePlay()}>
-        {playing && (proxyUrl || rawUrl) ? (
-          <video src={proxyUrl || rawUrl} autoPlay muted playsInline controls={false}
+        {playing && playUrl ? (
+          <video src={playUrl} autoPlay muted playsInline controls={false}
             className="w-full h-full object-cover"
             onClick={e => { e.stopPropagation(); setPlaying(false); }}
             onError={() => { setPlaying(false); }} />
@@ -3042,6 +3045,8 @@ function ClipCard({ clip, selected, onToggle, onRemove }: { clip: Clip; selected
           <>
             {thumbSrc ? (
               <img src={thumbSrc} alt={clip.title} onError={() => setImgError(true)} className="w-full h-full object-cover" />
+            ) : playUrl ? (
+              <video src={playUrl + "#t=0.1"} muted playsInline preload="metadata" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-3xl text-gray-600">🎬</div>
             )}
