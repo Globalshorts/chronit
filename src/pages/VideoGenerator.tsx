@@ -119,7 +119,7 @@ type Clip = {
   download_url?: string; video_url?: string;
 };
 type Job = {
-  id: string; status: "pending"|"processing"|"done"|"error";
+  id: string; status: "pending"|"processing"|"done"|"error"|"canceled";
   product_url: string; video_url: string; error_message: string;
   created_at: string; credits_used: number;
   expired?: boolean; product_name?: string;
@@ -507,6 +507,11 @@ export default function VideoGenerator() {
       try { new Audio("https://www.soundjay.com/buttons/sounds/button-09a.mp3").play(); } catch {}
       setCurrentJobId("");
       setActiveView("history"); // 완료 시 생성 내역으로 자동 이동
+    } else if (job.status === "canceled") {
+      // 사용자가 강제 종료 — 환불 없음, 조용히 정리
+      genRetryRef.current = 0;
+      setCurrentJobId("");
+      setJobs(prev => prev.filter(j => j.id !== job.id));
     } else if (job.status === "error") {
       // 간헐적 서버 오류는 사용자에게 실패를 노출하지 않고 자동으로 다시 시도
       if (genRetryRef.current < 2 && lastRenderArgsRef.current) {
@@ -1049,6 +1054,27 @@ export default function VideoGenerator() {
   // 합성 실패 시 자동 재시도가 호출할 함수 (최신 handleRender 참조)
   doRetryRef.current = () => { handleRender(lastRenderArgsRef.current ?? undefined); };
 
+  // ── 렌더 강제 종료 (이용권 환불 안 함 — 컴퓨팅이 이미 돌아갔으므로) ──
+  const handleCancelRender = async (jobId: string) => {
+    if (!jobId) return;
+    if (!window.confirm("지금 강제 종료하면 영상은 만들어지지 않고, 사용한 이용권은 환불되지 않아요.\n정말 종료할까요?")) return;
+    try {
+      const { data: { session: s } } = await supabase.auth.getSession();
+      if (s) {
+        await fetch(FN("cancel-render"), {
+          method: "POST",
+          headers: { Authorization: `Bearer ${s.access_token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ job_id: jobId }),
+        });
+      }
+    } catch (e) { /* noop */ }
+    setCurrentJobId("");
+    setRenderMini(false);
+    setCompletionAlert("렌더를 종료했어요. (이용권은 환불되지 않아요)");
+    setJobs(prev => prev.filter(j => j.id !== jobId));
+    try { loadJobs(); loadBalance(); } catch {}
+  };
+
   // ── Auth 화면 ────────────────────────────────────────────
   if (authLoading) return (
     <div className="flex items-center justify-center min-h-screen bg-[#ECEAE3]">
@@ -1269,9 +1295,9 @@ export default function VideoGenerator() {
       {/* ── 백그라운드 렌더 진행 (제출 후 합성 도는 동안) ── */}
       {!autoRunning && currentJobId && (() => {
         const bg = jobs.find(j => j.id === currentJobId);
-        if (bg && (bg.status === "done" || bg.status === "error")) return null;
+        if (bg && (bg.status === "done" || bg.status === "error" || bg.status === "canceled")) return null;
         if (!renderMini) {
-          return <RenderProgressCard job={bg} tick={genTick} onMinimize={()=>setRenderMini(true)} />;
+          return <RenderProgressCard job={bg} tick={genTick} onMinimize={()=>setRenderMini(true)} onCancel={()=>handleCancelRender(currentJobId)} />;
         }
         return (
           <button onClick={()=>setRenderMini(false)}
@@ -2498,7 +2524,7 @@ function LoadingTips({ intervalMs = 30000 }: { intervalMs?: number }) {
 }
 
 // 렌더 중 진행 카드 (넷플릭스 봐도 OK + 진행 바 + 꿀팁)
-function RenderProgressCard({ job, tick, onMinimize }: { job:any; tick:number; onMinimize:()=>void }) {
+function RenderProgressCard({ job, tick, onMinimize, onCancel }: { job:any; tick:number; onMinimize:()=>void; onCancel?:()=>void }) {
   void tick; // 1초 틱으로 경과시간/진행률 갱신
   const TYPICAL = 240; // 실제 평균(중앙값 ~238초)으로 보정
   const started = job?.created_at ? new Date(job.created_at).getTime() : Date.now();
@@ -2517,6 +2543,9 @@ function RenderProgressCard({ job, tick, onMinimize }: { job:any; tick:number; o
         <p className="text-xs text-gray-500 mt-2">{mm}분 {String(ss).padStart(2,"0")}초 경과 · 보통 약 4분 걸려요</p>
         <LoadingTips />
         <button onClick={onMinimize} className="mt-5 w-full rounded-xl bg-gray-100 hover:bg-gray-200 py-3 text-sm font-bold text-gray-700">최소화하고 다른 작업 하기</button>
+        {onCancel && (
+          <button onClick={onCancel} className="mt-2 w-full rounded-xl border border-red-200 text-red-600 hover:bg-red-50 py-2.5 text-xs font-bold">강제 종료 (이용권 환불 안 됨)</button>
+        )}
       </div>
     </div>,
     document.body
