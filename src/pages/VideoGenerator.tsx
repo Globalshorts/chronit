@@ -661,11 +661,8 @@ export default function VideoGenerator() {
     if (ov !== undefined) setSourceUrl(ov);
     if (!su.trim()) { setSearchError("URL을 입력해주세요"); return; }
     const lu = su.toLowerCase();
-    if (lu.includes("instagram.com")) {
-      setSearchError("인스타 링크는 현재 불안정해요 — 영상을 직접 업로드하거나 틱톡 링크를 사용해 주세요."); return;
-    }
-    if (!["youtube.com","youtu.be","tiktok.com"].some(p => lu.includes(p))) {
-      setSearchError("틱톡·유튜브 링크를 입력하거나, 영상을 직접 업로드해 주세요."); return;
+    if (!["youtube.com","youtu.be","tiktok.com","instagram.com"].some(p => lu.includes(p))) {
+      setSearchError("틱톡·유튜브·인스타 링크를 입력하거나, 영상을 직접 업로드해 주세요."); return;
     }
     setSearching(true); setClips(keepUploads as any); setCart(new Set(keepUploads.map((c: any) => c.video_id)));
     const MAX = 2; // 일시적 분석 실패 시 추가 재시도 횟수 (실패 화면 노출 방지)
