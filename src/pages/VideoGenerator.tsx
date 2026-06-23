@@ -273,6 +273,7 @@ export default function VideoGenerator() {
   const [gacha, setGacha] = useState<any>(null);
   const [showInvite, setShowInvite] = useState(false);
   const [balance, setBalance]       = useState<number | null>(null);
+  const [refInfo, setRefInfo] = useState<any>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [points, setPoints]         = useState<number | null>(null);
   const [streak, setStreak]         = useState<number>(0);
@@ -321,6 +322,7 @@ export default function VideoGenerator() {
     if (data?.balance !== undefined) setBalance(data.balance);
     if (data?.plan) setUserPlan(data.plan);
     if (data?.role) setUserRole(data.role);
+    try { const _u = (await supabase.auth.getUser()).data.user; if (_u) { const { data: _ri } = await supabase.rpc("get_referral_info_rpc", { p_user_id: _u.id }); if (_ri) setRefInfo(_ri); } } catch {}
     if (!data?.plan || !data?.role) {
       // 폴백 — plan/role 누락 시 직접 조회
       const { data: sub } = await supabase.from("subscriptions")
@@ -1139,44 +1141,6 @@ export default function VideoGenerator() {
         </div>
       )}
 
-      {/* ── 영상 선택 팁 모달 ── */}
-      {showTips && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
-          onClick={() => setShowTips(false)}>
-          <div className="rounded-2xl bg-white border border-amber-400/40 shadow-2xl w-full max-w-md p-6 space-y-4"
-            onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-black text-gray-900">⭐ 좋은 결과를 위한 팁</h2>
-              <button onClick={() => setShowTips(false)} className="text-gray-500 hover:text-gray-900 text-xl">✕</button>
-            </div>
-            <p className="text-xs text-gray-400 -mt-1">관련 클립을 담을 때 참고하세요</p>
-            <ul className="space-y-2.5 text-sm text-gray-700">
-              {[
-                ["💬", "자막이 없거나 적은 영상 사용하기", "기존 자막이 우리 자막과 겹치지 않아요"],
-                ["📦", "영상을 최대한 많이 담기", "많을수록 편집·연출 선택지가 늘어나요"],
-                ["🎨", "분위기가 비슷한 영상들 담기", "톤이 일관돼 영상이 매끄러워요"],
-                ["🛍️", "같은 제품이 선명하게 보이는 영상", "제품이 또렷할수록 설득력이 높아요"],
-                ["🚫", "화면이 깔끔한 영상 (가림 요소 적게)", "화면을 가리는 요소가 적어야 깔끔해요"],
-                ["📱", "세로(9:16) 영상 위주로 담기", "쇼츠/릴스 비율에 맞아 잘림이 적어요"],
-                ["🙌", "손으로 쓰는 사용 장면이 있는 영상", "실사용 컷이 신뢰감을 줘요"],
-                ["✨", "너무 어둡거나 흔들리는 영상은 피하기", "화질이 선명해야 완성도가 높아요"],
-              ].map(([emoji, title, desc], i) => (
-                <li key={i} className="flex gap-2.5">
-                  <span className="shrink-0">{emoji}</span>
-                  <div>
-                    <p className="font-bold text-gray-900 leading-snug">{title}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{desc}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <button onClick={() => setShowTips(false)}
-              className="w-full rounded-xl bg-amber-400/90 py-2.5 text-sm font-bold text-gray-900 hover:bg-amber-300 transition">
-              알겠어요
-            </button>
-          </div>
-        </div>
-      )}
       {/* ── 자동 생성 확인 모달 ── */}
       {showAutoModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
@@ -1518,10 +1482,17 @@ export default function VideoGenerator() {
 
           <StagePanel n={1} title="영상 분석" current={stage} hideNum
             headerRight={
-              <button onClick={() => setShowTips(true)}
-                className="shrink-0 rounded-full border border-amber-400/60 bg-amber-400/10 px-3 py-1.5 text-xs font-bold text-amber-300 hover:bg-amber-400/20 transition flex items-center gap-1">
-                팁 ⭐
-              </button>
+              (refInfo && refInfo.ref_cap_days) ? (
+              <div className="shrink-0 w-36 sm:w-44">
+                <div className="mb-1 flex items-center justify-between text-[11px]">
+                  <span className="font-bold text-[#03C75A]">🎁 추천 프로</span>
+                  <span className="text-gray-400">{refInfo.ref_used_days}/{refInfo.ref_cap_days}일</span>
+                </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
+                  <div className="h-full rounded-full bg-[#03C75A] transition-all" style={{ width: `${Math.min(100, Math.round((refInfo.ref_used_days / Math.max(1, refInfo.ref_cap_days)) * 100))}%` }} />
+                </div>
+              </div>
+              ) : null
             }>
             <div className="space-y-4">
               {/* 영상 준비 — 직접 업로드 메인 + 보조 도구 (최상단) */}
