@@ -1448,10 +1448,6 @@ export default function VideoGenerator() {
               <div className="max-w-5xl mx-auto">
                 <h2 className="mb-1 text-xl font-black text-gray-900">🔥 오늘의 트렌드</h2>
                 <p className="mb-4 text-sm text-gray-500">댓글 많은 쇼핑 릴스를 매일 서버에서 자동 수집해 댓글수 순으로 보여줘요. 카드를 누르면 그 영상으로 바로 제작 흐름으로 넘어가요.</p>
-                <label className="mb-3 inline-flex items-center gap-2 cursor-pointer text-xs text-gray-500 select-none">
-                  <input type="checkbox" checked={trendShowComp} onChange={(e) => setTrendShowComp(e.target.checked)} className="h-3.5 w-3.5 accent-[#03C75A]" />
-                  TOP·모음(컴필레이션) 영상도 보기
-                </label>
                 {trendNote && <p className="mb-3 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">{trendNote}</p>}
                 {trendNeedsSetup && (session?.user?.email || "").toLowerCase() === "pv2066pv@gmail.com" && (
                   <div className="mb-4 max-w-md space-y-2 rounded-xl border border-amber-300 bg-amber-50 p-3">
@@ -1473,7 +1469,7 @@ export default function VideoGenerator() {
                     const cutoff = Date.now() - 7 * 86400000; // 최근 7일
                     const isComp = (c: string) => /top ?\d|베스트|순위|랭킹|모음|총정리|\d+ ?가지|\d+ ?위/i.test(c || ""); // TOP5·모음 등 컴필레이션
                     const within = trendItems.filter((it: any) => it.taken_at && new Date(it.taken_at).getTime() >= cutoff);
-                    const single = trendShowComp ? within : within.filter((it: any) => !isComp(it.caption));
+                    const single = within;
                     const base = single.length >= 5 ? single : within; // 단일상품이 너무 적으면 전체(최근)
                     const shown = (base.length ? base : trendItems)
                       .slice()
@@ -3003,7 +2999,7 @@ function StagePanel({ n, title, subtitle, current, children, headerRight, hideNu
 const THUMB_PROXY = "https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/thumbnail-proxy";
 function proxyThumb(url: string) {
   if (!url) return "";
-  return url;
+  return `${THUMB_PROXY}?url=${encodeURIComponent(url)}`;
 }
 
 // ── 클립 미리보기 모달 ──────────────────────────────────────
@@ -3018,7 +3014,7 @@ function TrendCard({ item, onAdd, onAnalyze }: { item: any; onAdd: () => void; o
     <div className="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white">
       <a href={item.url} target="_blank" rel="noreferrer" className="group relative block aspect-[9/16] bg-gray-100">
         {!imgErr && item.thumbnail_url
-          ? <img src={item.thumbnail_url} referrerPolicy="no-referrer" onError={() => setImgErr(true)} className="h-full w-full object-cover" />
+          ? <img src={proxyThumb(item.thumbnail_url)} referrerPolicy="no-referrer" onError={() => setImgErr(true)} className="h-full w-full object-cover" />
           : <div className="flex h-full w-full items-center justify-center text-3xl text-gray-300">🎬</div>}
         <div className={`absolute left-1 top-1 rounded ${badge.bg} px-1.5 py-0.5 text-[10px] font-black text-white shadow`}>{badge.ic} {f(cc)}</div>
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/35">
