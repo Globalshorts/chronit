@@ -217,6 +217,11 @@ export default function VideoGenerator() {
     bgColor: "#000000",
     bgOpacity: 60,
     bgRadius: 8,
+    shadowOn: true,
+    shadowColor: "#000000",
+    shadowOpacity: 55,
+    shadowSize: 1,
+    blur: 0,
     yPos: 75,
     xPos: 50,
   };
@@ -1910,6 +1915,7 @@ type SubtitleStyle = {
   fontWeight: "400"|"700"|"900";
   strokeColor: string; strokeWidth: number; strokeOn: boolean;
   bgOn: boolean; bgColor: string; bgOpacity: number; bgRadius?: number;
+  shadowOn?: boolean; shadowColor?: string; shadowOpacity?: number; shadowSize?: number; blur?: number;
   yPos: number; xPos: number;
 };
 
@@ -2030,6 +2036,12 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
     //   렌더(ASS Outline은 글자 바깥 전체)와 두께를 맞추려면 ×2 해야 실제와 일치.
     WebkitTextStroke: st.strokeOn ? `${st.strokeWidth * PREVIEW_SCALE * 2}px ${st.strokeColor}` : undefined,
     paintOrder: st.strokeOn ? "stroke fill" : undefined,
+    textShadow: (() => {
+      const sh: string[] = [];
+      if (st.shadowOn) { const o = (st.shadowSize ?? 1) * PREVIEW_SCALE; sh.push(`${o}px ${o}px ${o*0.6}px ${(st.shadowColor ?? "#000000")}${Math.round((st.shadowOpacity ?? 55)*2.55).toString(16).padStart(2,"0")}`); }
+      if ((st.blur ?? 0) > 0) { const g = (st.blur ?? 0) * PREVIEW_SCALE * 3; sh.push(`0 0 ${g}px ${st.color}`); }
+      return sh.length ? sh.join(", ") : undefined;
+    })(),
     lineHeight: 1.3,
     whiteSpace: "nowrap",
     textAlign: "center",
@@ -2143,6 +2155,45 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
             </div>
           </div>
         )}
+      </div>
+
+      {/* 그림자 */}
+      <div>
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-bold text-gray-400">그림자</label>
+          <button onClick={() => upd("shadowOn", !s.shadowOn)}
+            className={`rounded-full px-3 py-1 text-xs font-black transition ${s.shadowOn ? "bg-[#03C75A] text-white" : "bg-gray-200 text-gray-400"}`}>
+            {s.shadowOn ? "ON" : "OFF"}
+          </button>
+        </div>
+        {s.shadowOn && (
+          <div className="grid grid-cols-2 gap-3 mt-2">
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">색상</label>
+              <ColorPalette value={s.shadowColor ?? "#000000"} onChange={(c) => upd("shadowColor", c)} />
+            </div>
+            <div>
+              <label className="text-xs text-gray-400">진하기 {s.shadowOpacity ?? 55}%</label>
+              <input type="range" min={10} max={100} step={5} value={s.shadowOpacity ?? 55}
+                onChange={e => upd("shadowOpacity", Number(e.target.value))} className="w-full accent-[#03C75A] mt-1" />
+            </div>
+            <div className="col-span-2">
+              <label className="text-xs text-gray-400">크기 {s.shadowSize ?? 1}</label>
+              <input type="range" min={0} max={6} step={0.5} value={s.shadowSize ?? 1}
+                onChange={e => upd("shadowSize", Number(e.target.value))} className="w-full accent-[#03C75A] mt-1" />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 글로우(번짐) */}
+      <div>
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-bold text-gray-400">글로우(번짐)</label>
+          <span className="text-xs text-gray-400">{s.blur ?? 0}</span>
+        </div>
+        <input type="range" min={0} max={5} step={0.5} value={s.blur ?? 0}
+          onChange={e => upd("blur", Number(e.target.value))} className="w-full accent-[#03C75A] mt-1" />
       </div>
     </div>
   );
