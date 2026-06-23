@@ -102,16 +102,16 @@ const MyPage = () => {
               <p>• 친구가 <b>결제</b>하면 → 나에게 <b>프로 30일</b></p>
               <p className="mt-1.5 text-slate-400">※ 추천 보상은 최근 30일 기준 무료 회원 최대 14일, 유료 회원 최대 30일까지 쌓여요.</p>
             </div>
-            {refInfo && refInfo.ref_cap_days ? (
+            {refInfo && !refInfo.ref_is_paid && refInfo.ref_cap_days ? (
               <div className="mt-2 rounded-xl border border-[#03C75A]/20 bg-white px-4 py-3">
                 <div className="mb-1.5 flex items-center justify-between text-xs">
-                  <span className="font-bold text-gray-700">추천 프로 적립</span>
-                  <span className="text-slate-500">{refInfo.ref_used_days} / {refInfo.ref_cap_days}일</span>
+                  <span className="font-bold text-gray-700">🎁 프로 체험 잔여</span>
+                  <span className={refInfo.ref_remaining_days <= 3 ? "font-bold text-red-500" : "text-slate-500"}>{refInfo.ref_remaining_days}일</span>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
-                  <div className="h-full rounded-full bg-[#03C75A] transition-all" style={{ width: `${Math.min(100, Math.round((refInfo.ref_used_days / Math.max(1, refInfo.ref_cap_days)) * 100))}%` }} />
+                  <div className={`h-full rounded-full transition-all ${refInfo.ref_remaining_days <= 3 ? "bg-red-500" : "bg-[#03C75A]"}`} style={{ width: `${Math.min(100, Math.round((refInfo.ref_remaining_days / Math.max(1, refInfo.ref_cap_days)) * 100))}%` }} />
                 </div>
-                <p className="mt-1.5 text-[11px] text-slate-400">최근 30일 기준 · {refInfo.ref_is_paid ? '유료' : '무료'} 회원 최대 {refInfo.ref_cap_days}일 (시간이 지나면 다시 채워져요)</p>
+                <p className="mt-1.5 text-[11px] text-slate-400">매일 줄어들어요 · 친구가 영상 만들면 +7일 (최대 {refInfo.ref_cap_days}일)</p>
               </div>
             ) : null}
             </>
