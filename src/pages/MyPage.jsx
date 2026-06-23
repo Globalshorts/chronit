@@ -88,10 +88,19 @@ const MyPage = () => {
             </button>
           </div>
           {profile?.referral_code && (
+            <>
             <button onClick={copyRef} className="mt-4 flex w-full items-center justify-between rounded-xl bg-gray-50 px-4 py-3 text-left transition-colors hover:bg-gray-100">
               <span className="text-sm text-slate-500">내 추천 링크 <span className="font-bold text-gray-800">?ref={profile.referral_code}</span></span>
               {copied ? <Check size={16} className="text-[#03C75A]" /> : <Copy size={16} className="text-slate-400" />}
             </button>
+            <div className="mt-2 rounded-xl bg-[#03C75A]/5 px-4 py-3 text-xs leading-relaxed text-slate-600">
+              <p className="mb-1 font-bold text-gray-800">🎁 친구 초대 보상</p>
+              <p>• 친구가 내 링크로 <b>가입</b>하면 → 친구에게 <b>프로 7일</b></p>
+              <p>• 친구가 <b>첫 영상</b>을 만들면 → 나에게 <b>프로 7일</b></p>
+              <p>• 친구가 <b>결제</b>하면 → 나에게 <b>프로 30일</b></p>
+              <p className="mt-1.5 text-slate-400">※ 추천 보상은 매월 최대 5명까지(유료 회원은 20명까지) 지급돼요.</p>
+            </div>
+            </>
           )}
         </div>
 
