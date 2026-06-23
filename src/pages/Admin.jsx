@@ -4,7 +4,7 @@ import RichEditor from '../components/RichEditor'
 import {
   Megaphone, Save, LogOut, ShieldCheck, Loader, Eye, EyeOff,
   Plus, Pencil, Trash2, ChevronLeft,
-  Film, ChevronUp, ChevronDown, Upload, Gift, Flag,
+  Film, ChevronUp, ChevronDown, Upload, Gift, Flag, Flame, RefreshCw,
 } from 'lucide-react'
 
 
@@ -695,6 +695,7 @@ const Admin = () => {
             { key: 'videos', icon: <Film size={15} />, label: 'Demo Videos' },
             { key: 'reports', icon: <Flag size={15} />, label: '신고관리' },
             { key: 'pricing', icon: <ShieldCheck size={15} />, label: '요금제' },
+            { key: 'trends', icon: <Flame size={15} />, label: '오늘의 트렌드' },
           ].map(t => (
             <button key={t.key} onClick={() => { setTab(t.key); setView('list') }}
               className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2 text-sm font-bold transition-all ${tab === t.key ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'border border-white/10 text-slate-400 hover:text-white'}`}>
@@ -708,6 +709,7 @@ const Admin = () => {
         {tab === 'missions' && <MissionsPanel />}
         {tab === 'tips' && <TipsPanel />}
         {tab === 'pricing' && <PricingPanel />}
+        {tab === 'trends' && <TrendAccountsPanel />}
 
         {tab === 'events' && view === 'list' && (
           <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
@@ -846,5 +848,107 @@ const Admin = () => {
     </div>
   )
 }
+
+function TrendAccountsPanel() {
+  const [list, setList] = useState([])
+  const [bulk, setBulk] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [scanning, setScanning] = useState(false)
+  const [msg, setMsg] = useState(null)
+
+  const load = async () => {
+    const { data } = await supabase.from('trend_accounts').select('*').order('active', { ascending: false }).order('follower_count', { ascending: true, nullsFirst: false })
+    setList(data || [])
+  }
+  useEffect(() => { load() }, [])
+
+  const parseUsernames = (text) => {
+    const out = []
+    text.split(/[\n,]+/).forEach(raw => {
+      let s = raw.trim()
+      if (!s) return
+      const m = s.match(/instagram\.com\/([^/?#\s]+)/i)
+      if (m) s = m[1]
+      s = s.replace(/^@/, '').replace(/\/+$/, '').trim()
+      if (s && !/^https?:/i.test(s)) out.push(s)
+    })
+    return [...new Set(out)]
+  }
+
+  const addBulk = async () => {
+    const users = parseUsernames(bulk)
+    if (!users.length) { setMsg('추가할 계정이 없어요'); return }
+    setBusy(true); setMsg(null)
+    const rows = users.map(u => ({ username: u, active: true }))
+    const { error } = await supabase.from('trend_accounts').upsert(rows, { onConflict: 'username', ignoreDuplicates: true })
+    setBusy(false)
+    if (error) { setMsg('오류: ' + error.message); return }
+    setBulk(''); setMsg(users.length + '개 추가 완료'); load()
+  }
+
+  const toggle = async (a) => { await supabase.from('trend_accounts').update({ active: !a.active }).eq('id', a.id); load() }
+  const del = async (id) => { await supabase.from('trend_accounts').delete().eq('id', id); load() }
+
+  const scanNow = async () => {
+    setScanning(true); setMsg(null)
+    const { data, error } = await supabase.functions.invoke('trend-scan', { body: {} })
+    setScanning(false)
+    if (error) { setMsg('스캔 오류: ' + error.message); return }
+    setMsg('스캔: ' + (data?.scanned ?? 0) + '계정 / 터진글 ' + (data?.breakouts ?? 0) + '건 (피드 ' + (data?.feed_total ?? 0) + ')')
+    load()
+  }
+
+  const activeCount = list.filter(a => a.active).length
+
+  return (
+    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Flame size={18} className="text-orange-400" />
+          <h2 className="text-base font-bold">오늘의 트렌드 — 계정 리스트</h2>
+          <span className="rounded-full bg-white/8 px-2 py-0.5 text-xs text-slate-400">{activeCount} / {list.length}</span>
+        </div>
+        <button onClick={scanNow} disabled={scanning}
+          className="flex items-center gap-2 rounded-xl bg-orange-600 px-4 py-2 text-sm font-bold text-white hover:bg-orange-500 disabled:opacity-40">
+          {scanning ? <Loader size={15} className="animate-spin" /> : <RefreshCw size={15} />} 지금 스캔
+        </button>
+      </div>
+
+      <div className="mb-5">
+        <label className="mb-2 block text-sm font-bold text-slate-400">계정 추가 (한 줄에 하나 · @·URL·아이디 다 인식)</label>
+        <textarea value={bulk} onChange={e => setBulk(e.target.value)} rows={4}
+          placeholder={'home.basket_0\n@salimgom_\nhttps://www.instagram.com/moa_zoa/'}
+          className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 outline-none focus:border-orange-500/50" />
+        <div className="mt-2 flex items-center gap-3">
+          <button onClick={addBulk} disabled={busy}
+            className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-500 disabled:opacity-40">
+            <Plus size={15} /> 추가
+          </button>
+          {msg && <span className="text-sm font-bold text-slate-300">{msg}</span>}
+        </div>
+      </div>
+
+      {list.length === 0 ? (
+        <div className="py-12 text-center text-slate-500"><Flame size={28} className="mx-auto mb-3 opacity-30" /><p className="text-sm">계정이 없어요. 위에 추가하세요.</p></div>
+      ) : (
+        <div className="space-y-1.5">
+          {list.map(a => (
+            <div key={a.id} className={'flex items-center gap-3 rounded-xl border border-white/6 px-4 py-2.5 ' + (a.active ? 'bg-white/[0.02]' : 'bg-white/[0.01] opacity-50')}>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold text-slate-200">@{a.username}{a.nickname ? <span className="ml-2 text-xs font-normal text-slate-500">{a.nickname}</span> : null}</p>
+                <p className="text-xs text-slate-500">{a.follower_count ? '팔로워 ' + a.follower_count : ''}{a.last_found_at ? ' · 최근발견 ' + new Date(a.last_found_at).toLocaleDateString() : (a.last_checked_at ? ' · 확인됨' : ' · 미확인')}</p>
+              </div>
+              <a href={'https://www.instagram.com/' + a.username + '/'} target="_blank" rel="noreferrer" className="text-xs text-slate-500 hover:text-white">열기</a>
+              <button onClick={() => toggle(a)} title={a.active ? '끄기' : '켜기'} className="text-slate-400 hover:text-white">{a.active ? <Eye size={16} /> : <EyeOff size={16} />}</button>
+              <button onClick={() => del(a.id)} className="text-slate-400 hover:text-red-400"><Trash2 size={16} /></button>
+            </div>
+          ))}
+        </div>
+      )}
+      <p className="mt-4 text-xs text-slate-500">자동 스캔: 2시간마다(cron). 켜진 계정만 스캔하고, 최근 3일 내 댓글 300+ 글을 오늘의 트렌드에 올려요.</p>
+    </div>
+  )
+}
+
 
 export default Admin
