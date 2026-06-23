@@ -27,12 +27,13 @@ const MyPage = () => {
   const [tab, setTab] = useState('posts')
   const [nickOpen, setNickOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [refInfo, setRefInfo] = useState(null)
 
   useEffect(() => { supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null)) }, [])
 
   const load = async (uid) => {
     const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })
-    const [{ data: prof }, { data: pts }, { data: bal }, { data: att }, { data: ps }, { data: cs }, { data: rs }] = await Promise.all([
+    const [{ data: prof }, { data: pts }, { data: bal }, { data: att }, { data: ps }, { data: cs }, { data: rs }, { data: refi }] = await Promise.all([
       supabase.from('profiles').select('nickname,email,referral_code,created_at').eq('id', uid).maybeSingle(),
       supabase.rpc('get_my_points_rpc'),
       supabase.rpc('get_my_balance_rpc').single(),
@@ -40,12 +41,13 @@ const MyPage = () => {
       supabase.from('board_posts').select('*').eq('user_id', uid).eq('is_deleted', false).order('created_at', { ascending: false }).limit(50),
       supabase.from('board_comments').select('*').eq('user_id', uid).eq('is_deleted', false).order('created_at', { ascending: false }).limit(50),
       supabase.from('gifticon_redemptions').select('*').order('created_at', { ascending: false }).limit(30),
+      supabase.rpc('get_referral_info_rpc', { p_user_id: uid }),
     ])
     setProfile(prof || { email: user?.email })
     setPoints(pts ?? 0)
     setCredits(bal?.balance ?? 0)
     setStreak(att?.streak ?? 0)
-    setPosts(ps || []); setComments(cs || []); setReds(rs || [])
+    setPosts(ps || []); setComments(cs || []); setReds(rs || []); setRefInfo(refi || null)
   }
   useEffect(() => { if (user) load(user.id) }, [user])
 
@@ -98,8 +100,20 @@ const MyPage = () => {
               <p>• 친구가 내 링크로 <b>가입</b>하면 → 친구에게 <b>프로 7일</b></p>
               <p>• 친구가 <b>첫 영상</b>을 만들면 → 나에게 <b>프로 7일</b></p>
               <p>• 친구가 <b>결제</b>하면 → 나에게 <b>프로 30일</b></p>
-              <p className="mt-1.5 text-slate-400">※ 추천 보상은 매월 최대 5명까지(유료 회원은 20명까지) 지급돼요.</p>
+              <p className="mt-1.5 text-slate-400">※ 추천 보상은 최근 30일 기준 무료 회원 최대 14일, 유료 회원 최대 30일까지 쌓여요.</p>
             </div>
+            {refInfo && refInfo.ref_cap_days ? (
+              <div className="mt-2 rounded-xl border border-[#03C75A]/20 bg-white px-4 py-3">
+                <div className="mb-1.5 flex items-center justify-between text-xs">
+                  <span className="font-bold text-gray-700">추천 프로 적립</span>
+                  <span className="text-slate-500">{refInfo.ref_used_days} / {refInfo.ref_cap_days}일</span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
+                  <div className="h-full rounded-full bg-[#03C75A] transition-all" style={{ width: `${Math.min(100, Math.round((refInfo.ref_used_days / Math.max(1, refInfo.ref_cap_days)) * 100))}%` }} />
+                </div>
+                <p className="mt-1.5 text-[11px] text-slate-400">최근 30일 기준 · {refInfo.ref_is_paid ? '유료' : '무료'} 회원 최대 {refInfo.ref_cap_days}일 (시간이 지나면 다시 채워져요)</p>
+              </div>
+            ) : null}
             </>
           )}
         </div>
