@@ -1482,14 +1482,14 @@ export default function VideoGenerator() {
 
           <StagePanel n={1} title="영상 분석" current={stage} hideNum
             headerRight={
-              (refInfo && refInfo.ref_cap_days) ? (
+              (refInfo && !refInfo.ref_is_paid && refInfo.ref_cap_days) ? (
               <div className="shrink-0 w-36 sm:w-44">
                 <div className="mb-1 flex items-center justify-between text-[11px]">
-                  <span className="font-bold text-[#03C75A]">🎁 추천 프로</span>
-                  <span className="text-gray-400">{refInfo.ref_used_days}/{refInfo.ref_cap_days}일</span>
+                  <span className="font-bold text-[#03C75A]">🎁 프로 잔여</span>
+                  <span className={refInfo.ref_remaining_days <= 3 ? "font-bold text-red-500" : "text-gray-400"}>{refInfo.ref_remaining_days}일</span>
                 </div>
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
-                  <div className="h-full rounded-full bg-[#03C75A] transition-all" style={{ width: `${Math.min(100, Math.round((refInfo.ref_used_days / Math.max(1, refInfo.ref_cap_days)) * 100))}%` }} />
+                  <div className={`h-full rounded-full transition-all ${refInfo.ref_remaining_days <= 3 ? "bg-red-500" : "bg-[#03C75A]"}`} style={{ width: `${Math.min(100, Math.round((refInfo.ref_remaining_days / Math.max(1, refInfo.ref_cap_days)) * 100))}%` }} />
                 </div>
               </div>
               ) : null
