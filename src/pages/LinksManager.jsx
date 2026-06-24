@@ -73,21 +73,19 @@ export function LinkPageManager({ session }) {
         ])
         if (!alive) return
         setPage(pg || null); setJobs(jb.data || []); setItems(it.data || [])
-        // ★ 썸네일 백필: 이미지 없고 영상이 아직 살아있는 카드 → 프레임 캡처해 영구 저장(영상 3일 후 삭제 대비) ★
+        // ★ 깨끗한 포스터 연결: cog가 자막 굽기 전 프레임을 card-images/{uid}/{job}.jpg 에 올려둠.
+        //   이미지 없는 카드 → 그 깨끗한 포스터가 있으면 연결. (자막 달린 프레임 캡처는 더이상 하지 않음) ★
         ;(async () => {
-          const liveJobs = new Map((jb.data || []).map((j) => [j.id, j]))
           for (const i of (it.data || [])) {
             if (!alive) break
             if (i.image_url || !i.video_job_id) continue
-            const j = liveJobs.get(i.video_job_id)
-            if (!j || !j.video_url) continue
             try {
-              const blob = await captureVideoFrame(j.video_url)
-              const path = `${uid}/${j.id}.jpg`
-              const up = await supabase.storage.from('card-images').upload(path, blob, { upsert: true, contentType: 'image/jpeg', cacheControl: '3600' })
-              if (up.error) continue
-              const purl = supabase.storage.from('card-images').getPublicUrl(path).data.publicUrl + '?v=' + Date.now()
-              const { data: upd } = await supabase.from('link_items').update({ image_url: purl }).eq('id', i.id).select('*').single()
+              const path = `${uid}/${i.video_job_id}.jpg`
+              const purl = supabase.storage.from('card-images').getPublicUrl(path).data.publicUrl
+              const head = await fetch(purl, { method: 'HEAD' })
+              if (!head.ok) continue
+              const finalUrl = purl + '?v=' + Date.now()
+              const { data: upd } = await supabase.from('link_items').update({ image_url: finalUrl }).eq('id', i.id).select('*').single()
               if (upd && alive) setItems((p) => p.map((x) => (x.id === upd.id ? upd : x)))
             } catch {}
           }
@@ -165,12 +163,20 @@ export function LinkPageManager({ session }) {
     const existing = existingArg || itemFor(job.id)
     let img = image_url || null
     if (!img && !existing?.image_url) {
+      // 1순위: cog가 올린 깨끗한 포스터(자막 전). 없을 때만 영상 프레임 캡처(자막 포함).
       try {
-        const blob = await captureVideoFrame(job.video_url)
-        const path = `${uid}/${job.id}.jpg`
-        const up = await supabase.storage.from('card-images').upload(path, blob, { upsert: true, contentType: 'image/jpeg', cacheControl: '3600' })
-        if (!up.error) img = supabase.storage.from('card-images').getPublicUrl(path).data.publicUrl + '?v=' + Date.now()
-      } catch (e) { /* 캡처 실패 → 영상 폴백 */ }
+        const purl = supabase.storage.from('card-images').getPublicUrl(`${uid}/${job.id}.jpg`).data.publicUrl
+        const head = await fetch(purl, { method: 'HEAD' })
+        if (head.ok) img = purl + '?v=' + Date.now()
+      } catch (e) { /* noop */ }
+      if (!img) {
+        try {
+          const blob = await captureVideoFrame(job.video_url)
+          const path = `${uid}/${job.id}.jpg`
+          const up = await supabase.storage.from('card-images').upload(path, blob, { upsert: true, contentType: 'image/jpeg', cacheControl: '3600' })
+          if (!up.error) img = supabase.storage.from('card-images').getPublicUrl(path).data.publicUrl + '?v=' + Date.now()
+        } catch (e) { /* 캡처 실패 → 영상 폴백 */ }
+      }
     }
     if (existing) {
       const patch = { title, target_url, active, badge: badge ?? null, badge_color: badge_color ?? null }
