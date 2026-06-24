@@ -73,6 +73,25 @@ export function LinkPageManager({ session }) {
         ])
         if (!alive) return
         setPage(pg || null); setJobs(jb.data || []); setItems(it.data || [])
+        // ★ 썸네일 백필: 이미지 없고 영상이 아직 살아있는 카드 → 프레임 캡처해 영구 저장(영상 3일 후 삭제 대비) ★
+        ;(async () => {
+          const liveJobs = new Map((jb.data || []).map((j) => [j.id, j]))
+          for (const i of (it.data || [])) {
+            if (!alive) break
+            if (i.image_url || !i.video_job_id) continue
+            const j = liveJobs.get(i.video_job_id)
+            if (!j || !j.video_url) continue
+            try {
+              const blob = await captureVideoFrame(j.video_url)
+              const path = `${uid}/${j.id}.jpg`
+              const up = await supabase.storage.from('card-images').upload(path, blob, { upsert: true, contentType: 'image/jpeg', cacheControl: '3600' })
+              if (up.error) continue
+              const purl = supabase.storage.from('card-images').getPublicUrl(path).data.publicUrl + '?v=' + Date.now()
+              const { data: upd } = await supabase.from('link_items').update({ image_url: purl }).eq('id', i.id).select('*').single()
+              if (upd && alive) setItems((p) => p.map((x) => (x.id === upd.id ? upd : x)))
+            } catch {}
+          }
+        })()
       } finally {
         if (alive) setLoading(false)
       }
