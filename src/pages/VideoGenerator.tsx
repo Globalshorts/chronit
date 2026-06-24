@@ -295,7 +295,12 @@ export default function VideoGenerator() {
   }, [activeView]);
   const [showTips, setShowTips] = useState(false);
   const [consentAsk, setConsentAsk] = useState<null | (() => void)>(null);
-  const askConsent = (onAgree: () => void) => setConsentAsk(() => onAgree);
+  const [consentSkip, setConsentSkip] = useState(false); // '다시 보지 않기' 체크 상태
+  const askConsent = (onAgree: () => void) => {
+    // 이미 '다시 보지 않기'에 동의했으면 모달 생략 (담기 로그는 onAgree 내부에서 그대로 남음)
+    try { if (localStorage.getItem(`chronit_consent_skip_${TERMS_VERSION}`) === "1") { onAgree(); return; } } catch {}
+    setConsentAsk(() => onAgree);
+  };
 
   // auth
   useEffect(() => {
@@ -1123,7 +1128,7 @@ export default function VideoGenerator() {
       {/* ── 저작권 동의 모달 (매번) ── */}
       {consentAsk && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
-          onClick={() => setConsentAsk(null)}>
+          onClick={() => { setConsentAsk(null); setConsentSkip(false); }}>
           <div className="rounded-2xl bg-white border border-gray-200 shadow-2xl w-full max-w-sm p-5 space-y-4"
             onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-2">
@@ -1131,10 +1136,15 @@ export default function VideoGenerator() {
               <h2 className="text-base font-black text-gray-900">저작권 확인</h2>
             </div>
             <p className="text-sm leading-relaxed text-gray-600">{TERMS_TEXT}</p>
+            <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer select-none">
+              <input type="checkbox" checked={consentSkip} onChange={e => setConsentSkip(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 accent-[#03C75A]" />
+              이 안내 다시 보지 않기
+            </label>
             <div className="flex gap-2">
-              <button onClick={() => setConsentAsk(null)}
+              <button onClick={() => { setConsentAsk(null); setConsentSkip(false); }}
                 className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 transition">취소</button>
-              <button onClick={() => { logConsent("agree"); const fn = consentAsk; setConsentAsk(null); if (fn) fn(); }}
+              <button onClick={() => { if (consentSkip) { try { localStorage.setItem(`chronit_consent_skip_${TERMS_VERSION}`, "1"); } catch {} } logConsent("agree"); const fn = consentAsk; setConsentAsk(null); setConsentSkip(false); if (fn) fn(); }}
                 className="flex-1 rounded-xl bg-[#03C75A] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#02b350] transition">동의하고 계속</button>
             </div>
           </div>
