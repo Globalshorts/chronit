@@ -85,6 +85,7 @@ const Footer = ({ dark = false, user = null }) => {
       <div className={`mx-auto mt-12 max-w-7xl border-t ${t.divider} pt-8 md:pt-10`}>
         <div className={`space-y-1 text-xs leading-relaxed ${t.biz}`}>
           <p>상호: 크로닛(Chronit) &middot; 대표자: 최승호 &middot; 사업자등록번호: 277-20-02625</p>
+          <p>통신판매업신고: 제 2026-대전서구-0996호</p>
           <p>주소: 대전광역시 서구 가장로 107, 205동 101호</p>
           <p>
             이메일: pv2066pv@gmail.com &middot; 연락처: 010-4915-3066
