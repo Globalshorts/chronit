@@ -384,7 +384,8 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
   const canShow = url.trim().length > 0
 
   const pickFrame = async () => {
-    if (!job.video_url || imgBusy) return
+    if (imgBusy) return
+    if (!job.video_url) { alert('영상이 만료돼(생성 후 3일 경과) 다른 컷을 가져올 수 없어요.\n📷 업로드로 직접 이미지를 넣어주세요.'); return }
     setImgBusy(true)
     try {
       const f = fracs.current[fracIdx.current % fracs.current.length]; fracIdx.current++
@@ -477,7 +478,7 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
           <div className="mt-3 space-y-3 border-t border-gray-100 pt-3">
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="w-10 text-xs font-bold text-gray-500">이미지</span>
-              <button onClick={pickFrame} disabled={imgBusy} title="다른 장면으로 바꾸기"
+              <button onClick={pickFrame} disabled={imgBusy || !job.video_url} title={job.video_url ? "다른 장면으로 바꾸기" : "영상이 만료돼 사용할 수 없어요 — 업로드로 넣어주세요"}
                 className="rounded-md bg-gray-100 px-2 py-1 text-[11px] font-bold text-gray-600 hover:bg-gray-200 disabled:opacity-40">{imgBusy ? '…' : '🔄 다른 컷'}</button>
               <label className="cursor-pointer rounded-md bg-gray-100 px-2 py-1 text-[11px] font-bold text-gray-600 hover:bg-gray-200" title="직접 업로드">📷 업로드
                 <input type="file" accept="image/*" className="hidden" disabled={imgBusy} onChange={(e) => uploadImg(e.target.files?.[0])} />
