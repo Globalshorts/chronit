@@ -689,25 +689,44 @@ export default function VideoGenerator() {
       const headers = { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" };
 
       for (let attempt = 0; attempt <= MAX; attempt++) {
-        // Step 1: 영상 분석 + TikTok 검색 (search-clips)
-        let resp1: Response, data1: any;
+        // Step 1: 분석 제출(submit) — 예측만 띄움. 콜드부팅(수분)에도 edge 150초 한계에 안 걸리게 비동기.
+        let data1: any = null;
+        let subResp: Response, sub: any;
         try {
-          resp1 = await fetch(FN("search-clips"), {
+          subResp = await fetch(FN("search-clips"), {
             method: "POST", headers,
-            body: JSON.stringify({ source_url: su.trim(), clip_count: 80 }),
+            body: JSON.stringify({ action: "submit", source_url: su.trim() }),
           });
-          data1 = await resp1.json();
+          sub = await subResp.json();
         } catch (netErr) {
           if (attempt < MAX) { await new Promise(r => setTimeout(r, 1500)); continue; } // 네트워크 일시 오류 → 자동 재시도
           setSearchError("분석 중 일시적인 오류가 있었어요. 잠시 후 다시 시도해 주세요."); return;
         }
-        loadBalance(); // 분석 차감/환불 즉시 반영
-        if (!data1.ok) {
-          const credit = (resp1.status === 402 || data1.code === "INSUFFICIENT_CREDITS");
+        if (!sub.ok || !sub.prediction_id) {
+          const credit = (subResp.status === 402 || sub.code === "INSUFFICIENT_CREDITS");
           if (!credit && attempt < MAX) { await new Promise(r => setTimeout(r, 1500)); continue; } // 서버 일시 오류 → 자동 재시도
-          setSearchError(credit ? (data1.error ?? "이용권이 부족해요. 요금제를 확인해 주세요.") : (data1.error ?? "분석에 실패했어요. 잠시 후 다시 시도해 주세요."));
+          setSearchError(credit ? (sub.error ?? "이용권이 부족해요. 요금제를 확인해 주세요.") : (sub.error ?? "분석에 실패했어요. 잠시 후 다시 시도해 주세요."));
           return;
         }
+        // Step 1b: 폴링 — 콜드부팅 포함 최대 수분까지 끊김 없이 완료 대기 (로딩 화면 유지)
+        {
+          const _pid = sub.prediction_id;
+          const _t0 = Date.now();
+          while (Date.now() - _t0 < 600_000) {
+            await new Promise(r => setTimeout(r, 2500));
+            let pr: any;
+            try {
+              const presp = await fetch(FN("search-clips"), { method: "POST", headers,
+                body: JSON.stringify({ action: "poll", prediction_id: _pid }) });
+              pr = await presp.json();
+            } catch { continue; } // 일시 네트워크 → 다음 폴링
+            if (pr?.status === "processing") continue;
+            if (pr?.ok && pr?.status === "done") { data1 = pr; break; }
+            if (pr && pr.ok === false) { setSearchError(pr.error ?? "분석에 실패했어요. 잠시 후 다시 시도해 주세요."); return; }
+          }
+        }
+        if (!data1) { setSearchError("분석이 지연되고 있어요. 잠시 후 다시 시도해 주세요."); return; }
+        loadBalance(); // 잔액 즉시 반영
 
         // 성공
         const rawClips: Clip[] = data1.clips ?? [];
