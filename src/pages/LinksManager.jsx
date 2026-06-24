@@ -155,6 +155,12 @@ export function LinkPageManager({ session }) {
   }
 
   const upsertItem = async (job, { title, target_url, active, image_url, badge, badge_color }, existingArg) => {
+    // ★ 링크 검증: 쓠파 생짜 상품 URL(파트너스 링크 아님)이면 표시 저장 차단 ★
+    const _t = (target_url || '').trim()
+    if (active && _t && /coupang\.com/i.test(_t) && !/link\.coupang\.com/i.test(_t)) {
+      alert('⚠️ 정식 쿠팡 파트너스 링크가 아니에요.\n쿠팡 파트너스에서 "링크 복사"한 link.coupang.com/ 형식을 붙여넣어 주세요.\n(상품 페이지 주소를 그대로 복사하면 수수료가 안 잡혀요)')
+      return
+    }
     const uid = session.user.id
     const existing = existingArg || itemFor(job.id)
     let img = image_url || null
@@ -426,6 +432,9 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
               className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
             <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="쿠팡 파트너스 링크 붙여넣기"
               className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
+            {url && /coupang\.com/i.test(url) && !/link\.coupang\.com/i.test(url) && (
+              <p className="text-[11px] font-bold text-red-500">⚠️ 파트너스 링크(link.coupang.com)가 아니에요 — 수수료가 안 잡혀요</p>
+            )}
             <div className="space-y-1.5">
               <div className="flex items-center gap-1.5">
                 <span className="shrink-0 text-[11px] font-bold text-gray-400">🔍 쿠팡 검색:</span>
