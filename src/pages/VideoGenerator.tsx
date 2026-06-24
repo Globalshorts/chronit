@@ -1605,10 +1605,6 @@ export default function VideoGenerator() {
                   </button>
                 </div>
                 {!searchError && <UrlHint url={sourceUrl} />}
-                <a href="/board/5" target="_blank" rel="noreferrer"
-                  className="mt-2 inline-block text-sm font-bold text-[#03C75A] hover:underline">
-                  영상 준비 가이드 →
-                </a>
                 {searchError && <p className="mt-2 text-sm text-red-400">{searchError}</p>}
                 {searching && <AnalyzeProgress />}
               </div>
