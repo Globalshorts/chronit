@@ -2928,7 +2928,7 @@ function AutoSettingsView({
   ];
 
   return (
-    <div className="max-w-2xl space-y-8">
+    <div className="max-w-4xl space-y-8">
       <div>
         <h2 className="text-xl font-black text-gray-900 mb-1">⚙️ 자동화 세팅</h2>
         <p className="text-sm text-gray-400">한 번 설정해두면 자동 생성마다 그대로 사용됩니다.</p>
