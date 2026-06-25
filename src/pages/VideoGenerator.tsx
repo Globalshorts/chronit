@@ -1082,8 +1082,8 @@ export default function VideoGenerator() {
           voice_speed: voiceSpeed / 100,
           voice_volume: voiceVolume / 100,
           subtitle_preset: subtitlePreset,
-          subtitle_style: toCogStyle(subtitleStyle),
-          thumbnail_style: toCogStyle(thumbnailStyle),
+          subtitle_style: subtitleStyle,   // ★ 원본 camelCase 그대로 — cog _convert_web_style 가 camelCase 를 변환함(이중변환 금지)
+          thumbnail_style: thumbnailStyle,
           show_thumbnail: showThumbnail,
           script_segments: videoOnly ? null : _script,
           video_only: videoOnly,
