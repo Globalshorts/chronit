@@ -2035,7 +2035,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
     textShadow: (() => {
       const sh: string[] = [];
       if (st.shadowOn) { const o = (st.shadowSize ?? 1) * PREVIEW_SCALE; sh.push(`${o}px ${o}px ${o*0.6}px ${(st.shadowColor ?? "#000000")}${Math.round((st.shadowOpacity ?? 55)*2.55).toString(16).padStart(2,"0")}`); }
-      if ((st.blur ?? 0) > 0) { const g = (st.blur ?? 0) * PREVIEW_SCALE * 3; sh.push(`0 0 ${g}px ${st.color}`); }
+      if ((st.blur ?? 0) > 0) { const _b = (st.blur ?? 0); const _r = _b * PREVIEW_SCALE * 2; const _n = Math.max(2, Math.round(_b * 1.5)); for (let _i = 0; _i < _n; _i++) sh.push(`0 0 ${_r}px ${st.color}`); }
       return sh.length ? sh.join(", ") : undefined;
     })(),
     lineHeight: 1.3,
@@ -2052,7 +2052,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
   } : { display: "inline-block" };
 
   const stylePanel = (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-5 gap-y-3">
       {/* 글씨체 */}
       <div>
         <label className="text-xs font-bold text-gray-400 block mb-1.5">글씨체</label>
@@ -2294,7 +2294,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
       </div>
 
       {/* 오른쪽 프리뷰 */}
-      <div className="flex flex-col items-center gap-3 shrink-0">
+      <div className="flex flex-col items-center gap-3 shrink-0 md:sticky md:top-4 md:self-start">
         <p className="text-xs font-bold text-gray-400">실시간 프리뷰</p>
         <div className="relative rounded-2xl overflow-hidden border border-gray-200"
           style={{ width: 300, height: 533, backgroundColor: previewBg === "white" ? "#FFFFFF" : "#000000" }}>
