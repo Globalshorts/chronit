@@ -596,7 +596,7 @@ export default function VideoGenerator() {
       savedAt: Date.now(),
       stage, sourceUrl, clips, cart: [...cart], script, scriptPredId,
       targetSeconds, styleProfileId,
-      subtitleStyle, thumbnailStyle, showThumbnail,
+      showThumbnail, // ★ subtitleStyle/thumbnailStyle 는 user_settings 가 단일 출처 — 프로젝트에 저장 안 함(덮어쓰기 버그 방지)
       voiceId, voiceSpeed,
     };
     localStorage.setItem(PROJECT_KEY, JSON.stringify(data));
@@ -620,8 +620,7 @@ export default function VideoGenerator() {
     if (data.scriptPredId) setScriptPredId(data.scriptPredId);
     if (data.targetSeconds) setTargetSeconds(data.targetSeconds);
     if (data.styleProfileId) setStyleProfileId(data.styleProfileId);
-    if (data.subtitleStyle) setSubtitleStyle(data.subtitleStyle);
-    if (data.thumbnailStyle) setThumbnailStyle(data.thumbnailStyle);
+    // ★ 스타일은 user_settings 가 단일 출처 — 프로젝트 복원이 user_settings 커스텀을 덮어쓰지 않도록 적용하지 않음
     if (data.showThumbnail !== undefined) setShowThumbnail(data.showThumbnail);
     if (data.voiceId) setVoiceId(data.voiceId);
     if (data.voiceSpeed) setVoiceSpeed(data.voiceSpeed);
@@ -688,7 +687,7 @@ export default function VideoGenerator() {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage, sourceUrl, clips, cart, script, scriptPredId, targetSeconds,
-      styleProfileId, subtitleStyle, thumbnailStyle, showThumbnail, voiceId, voiceSpeed]);
+      styleProfileId, showThumbnail, voiceId, voiceSpeed]);
 
   // ── Stage 1: 검색 ────────────────────────────────────────
   const handleSearch = async (overrideUrl?: string, keepClips?: any[]) => {
