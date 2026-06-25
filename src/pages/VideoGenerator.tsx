@@ -229,6 +229,27 @@ export default function VideoGenerator() {
   const [thumbnailStyle, setThumbnailStyle] = useState({ ...DEFAULT_STYLE, yPos: 50 });
   const [showThumbnail, setShowThumbnail] = useState(true);
   const subtitlePreset = "custom";
+  // ★ 프론트 camelCase 스타일 → cog가 기대하는 snake_case 키로 변환 (자막 ASS + 썸네일 빌더 공용) ★
+  const toCogStyle = (st: any) => ({
+    font: String(st.fontFamily || "").replace(/['"]/g, "").split(",")[0].trim() || "Pretendard",
+    size: st.fontSize,
+    thick: (st.fontWeight === "400" ? "보통" : "굵게"),
+    color: st.color,
+    outline: !!st.strokeOn,
+    outline_color: st.strokeColor,
+    outline_width: st.strokeWidth,
+    background: !!st.bgOn,
+    bg_color: st.bgColor,
+    bg_alpha: st.bgOpacity,
+    bg_radius: Math.round((st.bgRadius ?? 0) * 6.4),
+    shadow: !!st.shadowOn,
+    shadow_color: st.shadowColor,
+    shadow_alpha: st.shadowOpacity,
+    shadow_size: st.shadowSize,
+    blur: st.blur ?? 0,
+    x: Math.round((st.xPos ?? 50) * 10.8),
+    y: Math.round((st.yPos ?? 75) * 19.2),
+  });
 
   // Stage 5
   const [voiceId, setVoiceId]       = useState(() => { try { return localStorage.getItem("chronit_voice_id") || "nova"; } catch { return "nova"; } });
@@ -1062,8 +1083,8 @@ export default function VideoGenerator() {
           voice_speed: voiceSpeed / 100,
           voice_volume: voiceVolume / 100,
           subtitle_preset: subtitlePreset,
-          subtitle_style: subtitleStyle,
-          thumbnail_style: thumbnailStyle,
+          subtitle_style: toCogStyle(subtitleStyle),
+          thumbnail_style: toCogStyle(thumbnailStyle),
           show_thumbnail: showThumbnail,
           script_segments: videoOnly ? null : _script,
           video_only: videoOnly,
