@@ -1927,6 +1927,41 @@ const FONTS = [
   { label: "이순신돋움체",         value: "'YiSunShin Dotum M', sans-serif" },
 ];
 
+// ★ 커스텀 폰트 드롭다운 — 각 옵션을 자기 폰트로 표시 (네이티브 select와 달리 모바일·사파리에서도 적용) ★
+function FontDropdown({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (!open) return;
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [open]);
+  const cur = FONTS.find(f => f.value === value) || FONTS[0];
+  return (
+    <div className="relative" ref={ref}>
+      <button type="button" onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-[#03C75A]"
+        style={{ fontFamily: cur.value }}>
+        <span className="truncate">{cur.label}</span>
+        <span className="ml-2 shrink-0 text-gray-400">▾</span>
+      </button>
+      {open && (
+        <div className="absolute left-0 right-0 z-30 mt-1 max-h-60 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
+          {FONTS.map(f => (
+            <button key={f.value} type="button"
+              onClick={() => { onChange(f.value); setOpen(false); }}
+              className={`block w-full truncate text-left px-3 py-2.5 text-sm hover:bg-gray-100 ${f.value === value ? "bg-[#03C75A]/10 text-[#03C75A]" : "text-gray-900"}`}
+              style={{ fontFamily: f.value }}>
+              {f.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 type SubtitleStyle = {
   fontFamily: string; color: string; fontSize: number;
   fontWeight: "400"|"700"|"900";
@@ -2077,11 +2112,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
       {/* 글씨체 */}
       <div>
         <label className="text-xs font-bold text-gray-400 block mb-1.5">글씨체</label>
-        <select value={s.fontFamily} onChange={e => upd("fontFamily", e.target.value)}
-          className="w-full rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-[#03C75A]"
-          style={{ fontFamily: s.fontFamily }}>
-          {FONTS.map(f => <option key={f.value} value={f.value} style={{ fontFamily: f.value }}>{f.label}</option>)}
-        </select>
+        <FontDropdown value={s.fontFamily} onChange={(v) => upd("fontFamily", v)} />
       </div>
       {/* 색상 + 두께 */}
       <div className="grid grid-cols-2 gap-3">
