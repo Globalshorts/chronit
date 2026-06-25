@@ -2080,7 +2080,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
         <select value={s.fontFamily} onChange={e => upd("fontFamily", e.target.value)}
           className="w-full rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-[#03C75A]"
           style={{ fontFamily: s.fontFamily }}>
-          {FONTS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+          {FONTS.map(f => <option key={f.value} value={f.value} style={{ fontFamily: f.value }}>{f.label}</option>)}
         </select>
       </div>
       {/* 색상 + 두께 */}
