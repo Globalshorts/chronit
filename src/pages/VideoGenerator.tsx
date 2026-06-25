@@ -4023,12 +4023,13 @@ function ProductSearchView({ session }: { session:any }) {
 }
 
 function AdminView({ session, supabase }: { session: any; supabase: any }) {
-  const [tab, setTab] = React.useState<"subs"|"coupons"|"reviews"|"payouts">("subs");
+  const [tab, setTab] = React.useState<"subs"|"coupons"|"reviews"|"payouts"|"api">("subs");
   const TABS = [
     { v:"subs",    label:"👑 구독 관리" },
     { v:"coupons", label:"🎟 쿠폰 코드" },
     { v:"payouts", label:"📊 파트너 정산" },
     { v:"reviews", label:"📝 후기 승인" },
+    { v:"api",     label:"🔌 API 잔량" },
   ] as const;
   return (
     <div>
@@ -4044,9 +4045,68 @@ function AdminView({ session, supabase }: { session: any; supabase: any }) {
       {tab==="coupons" && <AdminCouponsTab session={session} supabase={supabase} />}
       {tab==="payouts" && <AdminPayoutsTab session={session} supabase={supabase} />}
       {tab==="reviews" && <AdminReviewsTab session={session} supabase={supabase} />}
+      {tab==="api"     && <AdminApiTab session={session} />}
     </div>
   );
 }
+
+// ── 관리자: 외부 API 잔량 ──
+function AdminApiTab({ session }: { session:any }) {
+  const [rows, setRows] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [err, setErr] = React.useState("");
+  const [checkedAt, setCheckedAt] = React.useState("");
+  const load = React.useCallback(async () => {
+    setLoading(true); setErr("");
+    try {
+      const r = await fetch(FN("admin-api-balances"), {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
+        body: "{}",
+      });
+      const d = await r.json();
+      if (!d.ok) { setErr(d.error || "조회 실패"); return; }
+      setRows(d.providers || []);
+      setCheckedAt(d.checked_at || "");
+    } catch (e) { setErr(String(e)); }
+    finally { setLoading(false); }
+  }, [session]);
+  React.useEffect(() => { load(); }, [load]);
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-500">외부 API 제공자 잔량{checkedAt && ` · ${new Date(checkedAt).toLocaleString("ko-KR")}`}</p>
+        <button onClick={load} disabled={loading}
+          className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-100 disabled:opacity-50">
+          {loading ? "조회 중…" : "↻ 새로고침"}
+        </button>
+      </div>
+      {err && <p className="text-sm text-red-500">{err}</p>}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {rows.map((p) => (
+          <div key={p.key} className="rounded-xl border border-gray-200 bg-white p-4">
+            <div className="flex items-center justify-between">
+              <span className="font-black text-gray-900">{p.label}</span>
+              <span className={`text-xs font-bold ${p.ok ? "text-[#03C75A]" : "text-gray-300"}`}>●</span>
+            </div>
+            {p.ok ? (
+              <p className="mt-2 text-2xl font-black text-gray-900">
+                {p.unit === "$" ? "$" : ""}{Number(p.value).toLocaleString()}{p.unit === "자" ? " 자" : ""}
+              </p>
+            ) : (
+              <p className="mt-2 text-sm text-gray-400">잔액 조회 불가</p>
+            )}
+            {p.detail && <p className="mt-1 text-xs text-gray-500">{p.detail}</p>}
+            {p.note && <p className="mt-1 text-xs text-gray-400">{p.note}</p>}
+            {p.dashboard && <a href={p.dashboard} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs font-bold text-[#03C75A] hover:underline">대시보드 ↗</a>}
+          </div>
+        ))}
+        {!rows.length && !loading && !err && <p className="text-sm text-gray-400">데이터 없음</p>}
+      </div>
+    </div>
+  );
+}
+
 
 // ── 관리자: 파트너 정산 ──
 function AdminPayoutsTab({ session, supabase }: { session:any; supabase:any }) {
