@@ -37,6 +37,12 @@ const QR_IMAGES = {
   master:  '/qr_master.png',
   pkg6:    '/qr_pkg6.png',
 }
+// 네이버 스마트스토어 상품 URL (플랜별) — 네이버페이 결제 → 닉네임 매칭 자동 충전
+const STORE_URLS = {
+  starter: 'https://smartstore.naver.com/chronit/products/13643192175',
+  pro:     'https://smartstore.naver.com/chronit/products/13643192399',
+  master:  'https://smartstore.naver.com/chronit/products/13643192539',
+}
 
 // 쿠폰에서 특정 플랜의 할인 설정을 해석
 const resolveDiscount = (coupon, planKey) => {
@@ -170,7 +176,9 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
 
   if (!open) return null
 
-  // ── 결제 준비 중 (토스페이먼츠 연동 전까지 비워둠) ──
+  // ── 네이버 스마트스토어 구매 (네이버페이 결제 → 닉네임 매칭 자동 충전) ──
+  const storeUrl = STORE_URLS[selectedPlan] || 'https://smartstore.naver.com/chronit'
+  const storePlanName = PLAN_META[selectedPlan]?.name || ''
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm" onClick={onClose}>
       <div className="relative w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-8 text-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
@@ -180,9 +188,22 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#03C75A]/10 text-[#03C75A]">
           <CreditCard size={26} />
         </div>
-        <h3 className="text-xl font-black tracking-tight text-gray-900">결제 준비 중이에요</h3>
-        <p className="mt-2 text-sm leading-relaxed text-gray-500">곧 정식 결제를 오픈할 예정이에요.<br />조금만 기다려 주세요 🙏</p>
-        <button onClick={onClose} className="mt-6 w-full rounded-xl bg-gray-900 py-3 text-sm font-bold text-white transition hover:bg-[#03C75A]">닫기</button>
+        <h3 className="text-xl font-black tracking-tight text-gray-900">네이버 스마트스토어에서 구매</h3>
+        <p className="mt-2 text-sm leading-relaxed text-gray-500">안전한 네이버페이로 결제하고,<br />결제 후 이용권이 <strong className="text-gray-700">자동으로 충전</strong>돼요.</p>
+        <a href={storeUrl} target="_blank" rel="noopener noreferrer" className="mt-6 flex w-full items-center justify-center rounded-xl bg-[#03C75A] py-3.5 text-sm font-bold text-white transition hover:brightness-95">
+          {storePlanName ? storePlanName + ' ' : ''}스마트스토어에서 구매하기
+        </a>
+        <div className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-left text-xs leading-relaxed text-amber-700">
+          구매 시 <strong>크로닛 가입 닉네임</strong>을 옵션에 정확히 입력해 주세요. 해당 닉네임으로 이용권이 자동 충전됩니다.
+        </div>
+        <div className="mt-4 flex items-center justify-center gap-3 text-xs font-bold text-gray-400">
+          <a href={STORE_URLS.starter} target="_blank" rel="noopener noreferrer" className="hover:text-[#03C75A]">스타터</a>
+          <span>·</span>
+          <a href={STORE_URLS.pro} target="_blank" rel="noopener noreferrer" className="hover:text-[#03C75A]">프로</a>
+          <span>·</span>
+          <a href={STORE_URLS.master} target="_blank" rel="noopener noreferrer" className="hover:text-[#03C75A]">마스터</a>
+        </div>
+        <button onClick={onClose} className="mt-6 w-full rounded-xl bg-gray-100 py-3 text-sm font-bold text-gray-600 transition hover:bg-gray-200">닫기</button>
       </div>
     </div>
   )
