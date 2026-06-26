@@ -49,7 +49,7 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
       <SiteNav />
       <nav className="flex shrink-0 items-center gap-2 text-sm font-bold text-gray-600 md:gap-3">
         {balance !== null && balance !== undefined && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#03C75A]/10 px-3 py-1.5 text-xs font-black text-[#03C75A]">이용권 {balance.toLocaleString()}개{daysLeft && daysLeft > 0 ? ` · D-${daysLeft}` : ""}</span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#03C75A]/10 px-3 py-1.5 text-xs font-black text-[#03C75A]">이용권 {balance.toLocaleString()}개 · D-{daysLeft ?? 0}</span>
         )}
         <div className="relative">
           <button onClick={() => setMenuOpen(o => !o)}
@@ -1286,10 +1286,9 @@ export default function VideoGenerator() {
                 취소
               </button>
               <button
-                onClick={() => { setCtaText(modalCtaText); handleAutoRun(modalCtaText); }}
-                disabled={balance !== null && balance < 1}
-                className="flex-1 rounded-xl bg-[#03C75A] py-3 text-sm font-black text-white hover:bg-[#02b350] disabled:opacity-40 transition">
-                진행
+                onClick={() => { if (balance !== null && balance < 1) { setShowAutoModal(false); setCreditWall("empty"); return; } setCtaText(modalCtaText); handleAutoRun(modalCtaText); }}
+                className="flex-1 rounded-xl bg-[#03C75A] py-3 text-sm font-black text-white hover:bg-[#02b350] transition">
+                {balance !== null && balance < 1 ? "요금제 보기" : "진행"}
               </button>
             </div>
           </div>
@@ -4147,7 +4146,7 @@ function AdminPayoutsTab({ session, supabase }: { session:any; supabase:any }) {
     setLoading(false);
   }, [supabase]);
   React.useEffect(()=>{ if(session) load(); }, [session, load]);
-  React.useEffect(()=>{ if(!sel){ setRefData(null); return; } supabase.rpc("admin_get_referrals_rpc",{p_user_id:sel}).then(({data})=>setRefData(data?.ok ? data : null)).catch(()=>setRefData(null)); }, [sel]);
+  React.useEffect(()=>{ if(!sel){ setRefData(null); return; } supabase.rpc("admin_get_referrals_rpc",{p_user_id:sel}).then(({data}:any)=>setRefData(data ?? {ok:false,error:"응답 없음"})).catch((e:any)=>setRefData({ok:false,error:String(e?.message||e)})); }, [sel]);
 
   const payAll = async () => {
     if (!window.confirm("확정된(7일 지난) 모든 수수료를 '지급완료'로 처리할까요?")) return;
@@ -4559,9 +4558,10 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
         </div>
 
         {/* 추천 현황 (1인 다계정 적발용) */}
-        {sel && refData && (
+        {sel && (
           <div className="rounded-2xl bg-white border border-gray-200 p-4">
-            <p className="text-xs text-gray-500 mb-2">추천 현황 {refData.code && <span className="text-[#03C75A]">— 코드 {refData.code}</span>}</p>
+            <p className="text-xs text-gray-500 mb-2">추천 현황{refData?.code ? <span className="text-[#03C75A]"> — 코드 {refData.code}</span> : null}</p>
+            {!refData ? <p className="text-xs text-gray-400">불러오는 중...</p> : refData.ok === false ? <p className="text-xs text-red-400">불러오기 실패: {refData.error || "권한 없음/오류"}</p> : (<>
             <div className="mb-3 flex gap-4 text-sm">
               <span className="font-bold text-gray-800">초대 {refData.count}명</span>
               <span className="text-gray-500">활성 {refData.activated}</span>
@@ -4589,6 +4589,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
               </div>
             ) : <p className="text-xs text-gray-400">초대한 사람이 없어요</p>}
             <p className="mt-2 text-[11px] text-gray-400">⚠️ 같은 가입경로 + 폰인증✗ + 짧은 간격 가입이 몰려있으면 다계정 의심</p>
+            </>)}
           </div>
         )}
         {/* 파트너 플랜별 정산 — 권한이 파트너일 때만 */}
