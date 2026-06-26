@@ -4146,7 +4146,6 @@ function AdminPayoutsTab({ session, supabase }: { session:any; supabase:any }) {
     setLoading(false);
   }, [supabase]);
   React.useEffect(()=>{ if(session) load(); }, [session, load]);
-  React.useEffect(()=>{ if(!sel){ setRefData(null); return; } supabase.rpc("admin_get_referrals_rpc",{p_user_id:sel}).then(({data}:any)=>setRefData(data ?? {ok:false,error:"응답 없음"})).catch((e:any)=>setRefData({ok:false,error:String(e?.message||e)})); }, [sel]);
 
   const payAll = async () => {
     if (!window.confirm("확정된(7일 지난) 모든 수수료를 '지급완료'로 처리할까요?")) return;
@@ -4254,6 +4253,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
   const [payAmt, setPayAmt] = React.useState("");   // 결제금액(파트너 정산 적립용)
   const [roleSel, setRoleSel] = React.useState("user");
   const [refData, setRefData] = React.useState<any>(null);
+  React.useEffect(()=>{ if(!sel){ setRefData(null); return; } supabase.rpc("admin_get_referrals_rpc",{p_user_id:sel}).then(({data}:any)=>setRefData(data ?? {ok:false,error:"응답 없음"})).catch((e:any)=>setRefData({ok:false,error:String(e?.message||e)})); }, [sel]);
   const freshPR = () => ({ starter:{type:"none",value:""}, pro:{type:"none",value:""}, master:{type:"none",value:""} });
   const [partnerRates, setPartnerRates] = React.useState<Record<string,{type:string;value:string}>>(freshPR);
   const [prMsg, setPrMsg] = React.useState("");
