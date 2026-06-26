@@ -4253,6 +4253,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
   const [payAmt, setPayAmt] = React.useState("");   // 결제금액(파트너 정산 적립용)
   const [roleSel, setRoleSel] = React.useState("user");
   const [refData, setRefData] = React.useState<any>(null);
+  const [refModalOpen, setRefModalOpen] = React.useState(false);
   React.useEffect(()=>{ if(!sel){ setRefData(null); return; } supabase.rpc("admin_get_referrals_rpc",{p_user_id:sel}).then(({data}:any)=>setRefData(data ?? {ok:false,error:"응답 없음"})).catch((e:any)=>setRefData({ok:false,error:String(e?.message||e)})); }, [sel]);
   const freshPR = () => ({ starter:{type:"none",value:""}, pro:{type:"none",value:""}, master:{type:"none",value:""} });
   const [partnerRates, setPartnerRates] = React.useState<Record<string,{type:string;value:string}>>(freshPR);
@@ -4509,7 +4510,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
             : filtered.map(u=>{
               const max = (planMax[u.plan] ?? 0) + (u.bonus_credits||0); const left = max - (u.credits_used||0); const act = isActive(u);
               return (
-                <tr key={u.user_id} onClick={()=>{setSel(u.user_id); setRoleSel(u.role||"user"); if(u.plan)setPlanSel(u.plan);}}
+                <tr key={u.user_id} onClick={()=>{setSel(u.user_id); setRoleSel(u.role||"user"); if(u.plan)setPlanSel(u.plan); setRefModalOpen(true);}}
                   className={`border-b border-gray-200/50 cursor-pointer ${sel===u.user_id?"bg-[#03C75A]/10":"hover:bg-gray-100/40"}`}>
                   <td className="px-3 py-2.5 text-gray-700 truncate max-w-[200px]"><ProvBadge p={u.provider} />{u.email}</td><td className="px-3 py-2.5 text-gray-700 truncate max-w-[120px]">{u.nickname||"-"}</td><td className="px-3 py-2.5 text-gray-700 truncate max-w-[100px]">{u.name||"-"}</td>
                   <td className="px-3 py-2.5">{u.role==="super_admin"?<span className="text-yellow-400 font-bold">👑 관리자</span>:u.role==="partner"?<span className="text-[#03C75A]">파트너</span>:<span className="text-gray-400">일반</span>}</td>
@@ -4557,11 +4558,14 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
           </div>
         </div>
 
-        {/* 추천 현황 (1인 다계정 적발용) */}
-        {sel && (
-          <div className="rounded-2xl bg-white border border-gray-200 p-4">
-            <p className="text-xs text-gray-500 mb-2">추천 현황{refData?.code ? <span className="text-[#03C75A]"> — 코드 {refData.code}</span> : null}</p>
-            {!refData ? <p className="text-xs text-gray-400">불러오는 중...</p> : refData.ok === false ? <p className="text-xs text-red-400">불러오기 실패: {refData.error || "권한 없음/오류"}</p> : (<>
+        {/* 추천 현황 팝업 (1인 다계정 적발용) */}
+        {refModalOpen && sel && (
+          <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm" onClick={()=>setRefModalOpen(false)}>
+          <div className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl" onClick={e=>e.stopPropagation()}>
+            <button onClick={()=>setRefModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">✕</button>
+            <p className="text-sm font-black text-gray-900 mb-1">추천 현황{selUser ? ` — ${selUser.email}` : ""}</p>
+            <p className="text-xs text-gray-400 mb-3">{refData?.code ? `추천코드 ${refData.code}` : ""}</p>
+            {!refData ? <p className="text-sm text-gray-400">불러오는 중...</p> : refData.ok === false ? <p className="text-sm text-red-400">불러오기 실패: {refData.error || "권한 없음/오류"}</p> : (<>
             <div className="mb-3 flex gap-4 text-sm">
               <span className="font-bold text-gray-800">초대 {refData.count}명</span>
               <span className="text-gray-500">활성 {refData.activated}</span>
@@ -4590,6 +4594,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
             ) : <p className="text-xs text-gray-400">초대한 사람이 없어요</p>}
             <p className="mt-2 text-[11px] text-gray-400">⚠️ 같은 가입경로 + 폰인증✗ + 짧은 간격 가입이 몰려있으면 다계정 의심</p>
             </>)}
+          </div>
           </div>
         )}
         {/* 파트너 플랜별 정산 — 권한이 파트너일 때만 */}
