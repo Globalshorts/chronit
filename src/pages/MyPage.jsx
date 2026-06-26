@@ -1,29 +1,19 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Coins, Flame, Film, Pencil, LogOut, Copy, Check, Gift } from 'lucide-react'
+import { Film, Pencil, LogOut, Copy, Check } from 'lucide-react'
 import CommunityHeader from '../components/CommunityHeader'
 import NicknameModal from '../components/NicknameModal'
 import Footer from '../components/Footer'
 import { supabase } from '../lib/supabase'
 import { CAT_LABEL, CAT_CLS, fmtWhen } from './Board'
 
-const RED_STATUS = {
-  requested: { label: '처리 중', cls: 'bg-amber-100 text-amber-600' },
-  sent: { label: '발송 완료', cls: 'bg-[#03C75A]/15 text-[#03C75A]' },
-  failed: { label: '발송 실패', cls: 'bg-red-100 text-red-500' },
-  rejected: { label: '반려', cls: 'bg-gray-100 text-gray-500' },
-}
-
 const MyPage = () => {
   const nav = useNavigate()
   const [user, setUser] = useState(undefined)
   const [profile, setProfile] = useState(null)
-  const [points, setPoints] = useState(0)
   const [credits, setCredits] = useState(null)
-  const [streak, setStreak] = useState(0)
   const [posts, setPosts] = useState([])
   const [comments, setComments] = useState([])
-  const [reds, setReds] = useState([])
   const [tab, setTab] = useState('posts')
   const [nickOpen, setNickOpen] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -32,22 +22,16 @@ const MyPage = () => {
   useEffect(() => { supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null)) }, [])
 
   const load = async (uid) => {
-    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })
-    const [{ data: prof }, { data: pts }, { data: bal }, { data: att }, { data: ps }, { data: cs }, { data: rs }, { data: refi }] = await Promise.all([
+    const [{ data: prof }, { data: bal }, { data: ps }, { data: cs }, { data: refi }] = await Promise.all([
       supabase.from('profiles').select('nickname,email,referral_code,created_at').eq('id', uid).maybeSingle(),
-      supabase.rpc('get_my_points_rpc'),
       supabase.rpc('get_my_balance_rpc').single(),
-      supabase.from('attendance_checks').select('streak').eq('user_id', uid).eq('check_date', today).maybeSingle(),
       supabase.from('board_posts').select('*').eq('user_id', uid).eq('is_deleted', false).order('created_at', { ascending: false }).limit(50),
       supabase.from('board_comments').select('*').eq('user_id', uid).eq('is_deleted', false).order('created_at', { ascending: false }).limit(50),
-      supabase.from('gifticon_redemptions').select('*').order('created_at', { ascending: false }).limit(30),
       supabase.rpc('get_referral_info_rpc', { p_user_id: uid }),
     ])
     setProfile(prof || { email: user?.email })
-    setPoints(pts ?? 0)
     setCredits(bal?.balance ?? 0)
-    setStreak(att?.streak ?? 0)
-    setPosts(ps || []); setComments(cs || []); setReds(rs || []); setRefInfo(refi || null)
+    setPosts(ps || []); setComments(cs || []); setRefInfo(refi || null)
   }
   useEffect(() => { if (user) load(user.id) }, [user])
 
@@ -67,7 +51,7 @@ const MyPage = () => {
     </div>
   )
 
-  const tabs = [['posts', `내 글 ${posts.length}`], ['comments', `내 댓글 ${comments.length}`], ['reds', `교환내역 ${reds.length}`]]
+  const tabs = [['posts', `내 글 ${posts.length}`], ['comments', `내 댓글 ${comments.length}`]]
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans break-keep text-gray-900">
@@ -157,23 +141,6 @@ const MyPage = () => {
                 <span className="text-xs text-slate-400">{fmtWhen(c.created_at)}</span>
               </Link></li>
             ))}
-          </ul>
-        )}
-        {tab === 'reds' && (
-          reds.length === 0 ? <p className="py-10 text-center text-sm text-slate-400">교환 내역이 없어요</p> :
-          <ul className="divide-y divide-gray-100">
-            {reds.map(r => {
-              const st = RED_STATUS[r.status] || RED_STATUS.requested
-              return (
-                <li key={r.id} className="flex items-center justify-between gap-3 py-3.5">
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-bold text-gray-800">{r.gifticon_name}</div>
-                    <div className="text-xs text-slate-400">{fmtWhen(r.created_at)} · {r.point_cost.toLocaleString()}P</div>
-                  </div>
-                  <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${st.cls}`}>{st.label}</span>
-                </li>
-              )
-            })}
           </ul>
         )}
       </section>

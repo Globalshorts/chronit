@@ -4183,7 +4183,7 @@ function AdminPayoutsTab({ session, supabase }: { session:any; supabase:any }) {
             </tr>
           </thead>
           <tbody>
-            {rows.length===0 && <tr><td colSpan={10} className="px-3 py-6 text-center text-gray-400">파트너가 없어요.</td></tr>}
+            {rows.length===0 && <tr><td colSpan={9} className="px-3 py-6 text-center text-gray-400">파트너가 없어요.</td></tr>}
             {rows.map((r:any)=>(
               <tr key={r.pid} className="border-b border-gray-100">
                 <td className="px-3 py-2.5 font-medium text-gray-900">{r.email}
@@ -4477,11 +4477,11 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
       <div className="rounded-2xl bg-white border border-gray-200 overflow-hidden mb-5 max-h-[340px] overflow-y-auto">
         <table className="w-full text-xs">
           <thead className="border-b border-gray-200 text-gray-400 sticky top-0 bg-white">
-            <tr><th className="px-3 py-2.5 text-left">이메일</th><th className="px-3 py-2.5 text-left">닉네임</th><th className="px-3 py-2.5 text-left">이름</th><th className="px-3 py-2.5 text-left">권한</th><th className="px-3 py-2.5 text-left">플랜</th><th className="px-3 py-2.5 text-left">만료일</th><th className="px-3 py-2.5 text-left">📣마케팅</th><th className="px-3 py-2.5 text-center">상태</th><th className="px-3 py-2.5 text-right">포인트</th><th className="px-3 py-2.5 text-right">이용권(잔량/한도)</th></tr>
+            <tr><th className="px-3 py-2.5 text-left">이메일</th><th className="px-3 py-2.5 text-left">닉네임</th><th className="px-3 py-2.5 text-left">이름</th><th className="px-3 py-2.5 text-left">권한</th><th className="px-3 py-2.5 text-left">플랜</th><th className="px-3 py-2.5 text-left">만료일</th><th className="px-3 py-2.5 text-left">📣마케팅</th><th className="px-3 py-2.5 text-center">상태</th><th className="px-3 py-2.5 text-right">이용권(잔량/한도)</th></tr>
           </thead>
           <tbody>
-            {loading ? <tr><td colSpan={10} className="py-8 text-center text-gray-500">불러오는 중...</td></tr>
-            : filtered.length===0 ? <tr><td colSpan={10} className="py-8 text-center text-gray-500">결과 없음</td></tr>
+            {loading ? <tr><td colSpan={9} className="py-8 text-center text-gray-500">불러오는 중...</td></tr>
+            : filtered.length===0 ? <tr><td colSpan={9} className="py-8 text-center text-gray-500">결과 없음</td></tr>
             : filtered.map(u=>{
               const max = (planMax[u.plan] ?? 0) + (u.bonus_credits||0); const left = max - (u.credits_used||0); const act = isActive(u);
               return (
@@ -4493,7 +4493,6 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
                   <td className="px-3 py-2.5 text-gray-400">{fmt(u.expires_at)}</td>
                   <td className="px-3 py-2.5">{u.marketing_consent?<span className="text-[#03C75A] font-bold">동의</span>:<span className="text-gray-300">-</span>}</td>
                   <td className="px-3 py-2.5 text-center"><span title={act?"유효":"만료"} className={`inline-block h-2.5 w-2.5 rounded-full ${act?"bg-green-500":"bg-red-500"}`} /></td>
-                  <td className="px-3 py-2.5 text-right font-bold text-amber-600">{Number(u.points||0).toLocaleString()}P</td>
                   <td className="px-3 py-2.5 text-right text-gray-700">{left.toLocaleString()} / {max.toLocaleString()}</td>
                 </tr>
               );

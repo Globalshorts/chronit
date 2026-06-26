@@ -1,18 +1,17 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Coins, User, Menu, X } from 'lucide-react'
+import { User, Menu, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import SiteNav, { SITE_MENUS } from './SiteNav'
 
 /**
  * 사이트 공통 헤더 (커뮤니티·정보 페이지 공용).
- * - active: 'manual' | 'board' | 'points' | 'shop' | 'events' | 'me'
- * - 로그인 시 포인트 pill + 마이페이지(닉네임) 버튼, 모바일 메뉴 포함
+ * - active: 'manual' | 'board' | 'events' | 'me'
+ * - 로그인 시 마이페이지(닉네임) 버튼, 모바일 메뉴 포함
  */
 const CommunityHeader = ({ active = null }) => {
   const [scrolled, setScrolled] = useState(false)
   const [user, setUser] = useState(null)
-  const [points, setPoints] = useState(null)
   const [nickname, setNickname] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -29,8 +28,7 @@ const CommunityHeader = ({ active = null }) => {
   }, [])
 
   useEffect(() => {
-    if (!user) { setPoints(null); setNickname(null); return }
-    supabase.rpc('get_my_points_rpc').then(({ data }) => setPoints(data ?? 0))
+    if (!user) { setNickname(null); return }
     supabase.from('profiles').select('nickname').eq('id', user.id).maybeSingle()
       .then(({ data }) => setNickname(data?.nickname ?? null))
   }, [user])
@@ -44,7 +42,7 @@ const CommunityHeader = ({ active = null }) => {
             <h1 className="text-2xl font-black tracking-tighter text-gray-900 md:text-3xl">Chronit</h1>
           </Link>
 
-          <SiteNav active={active === 'manual' ? '/manual' : active === 'board' ? '/board' : active === 'points' ? '/points' : active === 'shop' ? '/shop' : null} />
+          <SiteNav active={active === 'manual' ? '/manual' : active === 'board' ? '/board' : null} />
 
           <div className="flex shrink-0 items-center gap-2">
             {user ? (
