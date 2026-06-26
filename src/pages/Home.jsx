@@ -543,7 +543,7 @@ const Home = () => {
       </div>
 
       {/* ── 데모 캐러셀 ── */}
-      {/* 데모 캐러셀 임시 숨김 — 깨끗한(스톡·직접촬영) 데모로 교체 예정 */}
+      <DemoCarousel />
 
       {/* ── 왜 크로닛 (시간 절약) ── */}
       <section className="px-5 py-16 md:px-8 md:py-20">
