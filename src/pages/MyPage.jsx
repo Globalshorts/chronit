@@ -86,7 +86,7 @@ const MyPage = () => {
               <p>• 친구가 <b>결제</b>하면 → 나에게 <b>프로 30일</b></p>
               <p className="mt-1.5 text-slate-400">※ 추천 보상은 최근 30일 기준 무료 회원 최대 14일, 유료 회원 최대 30일까지 쌓여요.</p>
             </div>
-            {refInfo && !refInfo.ref_is_paid && refInfo.ref_cap_days ? (
+            {refInfo && !refInfo.ref_is_paid && refInfo.ref_remaining_days > 0 ? (
               <div className="mt-2 rounded-xl border border-[#03C75A]/20 bg-white px-4 py-3">
                 <div className="mb-1.5 flex items-center justify-between text-xs">
                   <span className="font-bold text-gray-700">🎁 프로 체험 잔여</span>

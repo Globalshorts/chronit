@@ -1552,7 +1552,7 @@ export default function VideoGenerator() {
 
           <StagePanel n={1} title="영상 분석" current={stage} hideNum
             headerRight={
-              (refInfo && !refInfo.ref_is_paid && refInfo.ref_cap_days) ? (
+              (refInfo && !refInfo.ref_is_paid && refInfo.ref_remaining_days > 0) ? (
               <div className="shrink-0 w-36 sm:w-44">
                 <div className="mb-1 flex items-center justify-between text-[11px]">
                   <span className="font-bold text-[#03C75A]">🎁 프로 잔여</span>
