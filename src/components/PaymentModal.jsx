@@ -42,6 +42,7 @@ const STORE_URLS = {
   starter: 'https://smartstore.naver.com/chronit/products/13643192175',
   pro:     'https://smartstore.naver.com/chronit/products/13643192399',
   master:  'https://smartstore.naver.com/chronit/products/13643192539',
+  pkg6:    'https://smartstore.naver.com/chronit/products/13643669408',
 }
 
 // 쿠폰에서 특정 플랜의 할인 설정을 해석
