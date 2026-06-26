@@ -22,7 +22,7 @@ const SB = "https://oxygqtbdpnxxcgzwdlzi.supabase.co";
 const FN = (n: string) => `${SB}/functions/v1/${n}`;
 
 // ── 상단 바 (홈페이지와 동일 스타일) ───────────────────────────
-function AppTopBar({ onMenuClick, onInvite, session, balance, userPlan, onHistory }: { onMenuClick?: () => void; onInvite?: () => void; session?: any; balance?: number|null; userPlan?: string|null; onHistory?: () => void }) {
+function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan, onHistory }: { onMenuClick?: () => void; onInvite?: () => void; session?: any; balance?: number|null; daysLeft?: number|null; userPlan?: string|null; onHistory?: () => void }) {
   const ICON = `${SB}/storage/v1/object/public/assets/icon.png`;
   const [menuOpen, setMenuOpen] = useState(false);
   const [nick, setNick] = useState("");
@@ -43,13 +43,13 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, userPlan, onHistor
         </button>
         <a href="/" className="flex min-w-0 items-center gap-2 md:gap-3">
           <img src={ICON} alt="Chronit" className="h-9 w-9 shrink-0 md:h-10 md:w-10" />
-          <span className="text-2xl font-black tracking-tight text-gray-900 md:text-3xl">Chronit</span>
+          <span className="hidden md:inline text-2xl font-black tracking-tight text-gray-900 md:text-3xl">Chronit</span>
         </a>
       </div>
       <SiteNav />
       <nav className="flex shrink-0 items-center gap-2 text-sm font-bold text-gray-600 md:gap-3">
         {balance !== null && balance !== undefined && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#03C75A]/10 px-3 py-1.5 text-xs font-black text-[#03C75A]">이용권 {balance.toLocaleString()}개{userPlan ? ` · ${userPlan}` : ""}</span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#03C75A]/10 px-3 py-1.5 text-xs font-black text-[#03C75A]">이용권 {balance.toLocaleString()}개{daysLeft && daysLeft > 0 ? ` · D-${daysLeft}` : ""}</span>
         )}
         <div className="relative">
           <button onClick={() => setMenuOpen(o => !o)}
@@ -294,6 +294,8 @@ export default function VideoGenerator() {
   const [gacha, setGacha] = useState<any>(null);
   const [showInvite, setShowInvite] = useState(false);
   const [balance, setBalance]       = useState<number | null>(null);
+  const [daysLeft, setDaysLeft]     = useState<number | null>(null);
+  const [canProVoice, setCanProVoice] = useState<boolean>(true);
   const [refInfo, setRefInfo] = useState<any>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [points, setPoints]         = useState<number | null>(null);
@@ -1395,7 +1397,7 @@ export default function VideoGenerator() {
       )}
 
       {/* ── 상단 바 ── */}
-      <AppTopBar onMenuClick={() => setMobileMenuOpen(true)} onInvite={() => setShowInvite(true)} session={session} balance={balance} userPlan={userPlan} onHistory={() => setShowHistory(true)} />
+      <AppTopBar onMenuClick={() => setMobileMenuOpen(true)} onInvite={() => setShowInvite(true)} session={session} balance={balance} daysLeft={daysLeft} userPlan={userPlan} onHistory={() => setShowHistory(true)} />
       <CreditMissionsModal open={showInvite} onClose={() => setShowInvite(false)} session={session} onCredited={loadBalance} />
       <CreditHistoryModal open={showHistory} onClose={() => setShowHistory(false)} session={session} />
 
