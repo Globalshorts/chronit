@@ -232,11 +232,8 @@ const Home = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       const u = session?.user ?? null
       setUser(u)
-      // 로그인 상태로 순수 '/' 진입 → 앱(/generate)을 홈으로
-      // (해시 #pricing 등 / OAuth 콜백은 제외, 온보딩 미완료는 /generate가 /register로 보냄)
-      if (u && !window.location.hash && !window.location.search.includes('access_token')) {
-        window.location.replace('/generate')
-      }
+      // (제거) 로그인 시 /generate 강제 이동 — 결제/광고 랜딩 접근을 막아 비활성화함.
+      //  로그인 상태여도 홈에 머무를 수 있게 함. 앱 진입은 상단 CTA/네비로.
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
