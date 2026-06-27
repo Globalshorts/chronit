@@ -58,6 +58,17 @@ const Register = () => {
         }
       } catch { /* noop */ }
 
+      // 프로 7일 무료체험 코드 자동 적용 (chronit_code / ?code) — 광고 랜딩용
+      try {
+        const urlCode = new URLSearchParams(window.location.search).get('code')
+        const storedCode = sessionStorage.getItem('chronit_code')
+        const promo = (urlCode || storedCode || '').toUpperCase()
+        if (promo) {
+          await supabase.rpc('redeem_free_trial_rpc', { p_code: promo })
+          sessionStorage.removeItem('chronit_code')
+        }
+      } catch { /* noop */ }
+
       // 시작 스텝: 비어있는 첫 단계부터
       if (!prof?.terms_agreed_at) setStep(STEP.TERMS)
       else if (!prof?.nickname) setStep(STEP.NICK)

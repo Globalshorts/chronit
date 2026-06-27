@@ -31,7 +31,7 @@ const CouponBar = ({ codeFromUrl, onApply }) => {
     return (
       <div className="mx-auto mb-10 flex max-w-sm items-center gap-3 rounded-2xl border-2 border-[#03C75A]/30 bg-[#03C75A]/10 px-5 py-3">
         <Gift size={16} className="shrink-0 text-[#03C75A]" />
-        <span className="text-base font-bold text-gray-700">할인 코드 <strong className="text-gray-900">{codeFromUrl}</strong> 적용됨</span>
+        <span className="text-base font-bold text-gray-700">코드 <strong className="text-gray-900">{codeFromUrl}</strong> 적용됨</span>
         <button onClick={() => { onApply(null); sessionStorage.removeItem('chronit_code') }} className="ml-auto text-gray-400 hover:text-gray-700">✕</button>
       </div>
     )
@@ -346,7 +346,7 @@ const Home = () => {
       {/* 할인 코드 배너 */}
       {codeFromUrl && (
         <div className={`fixed right-0 left-0 z-[60] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[#FFB800] px-4 py-3 text-sm font-bold text-[#5b4200] shadow-md ${refFromUrl ? 'top-11' : 'top-0'}`}>
-          <span>🎟️ 할인 코드 <strong>{codeFromUrl}</strong> 감지됨 — 결제할 때 자동으로 적용됩니다</span>
+          <span>🎟️ 코드 <strong>{codeFromUrl}</strong> 감지됨 — 가입하면 자동으로 적용됩니다</span>
           <button onClick={() => { setCodeFromUrl(null); sessionStorage.removeItem('chronit_code') }} className="ml-2 opacity-70 hover:opacity-100">✕</button>
         </div>
       )}
