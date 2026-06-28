@@ -1368,10 +1368,6 @@ export default function VideoGenerator() {
                     </button>
                   ))}
                 </div>
-                <button disabled={sourceSaving} onClick={() => setSurveyPage(2)}
-                  className="mt-3 w-full text-center text-xs text-gray-400 hover:text-gray-600">
-                  건너뛰기
-                </button>
               </>
             ) : refAlready ? (
               <>
@@ -2955,7 +2951,7 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
         {userPlan && (
           <div className="flex justify-between text-xs">
             <span className="text-gray-500">플랜</span>
-            <span className="font-bold text-gray-900 capitalize">{userPlan}</span>
+            <span className="font-bold text-gray-900 capitalize">{userPlan === "free" && canProVoice && (daysLeft ?? 0) > 0 ? `프로 체험 D-${daysLeft}` : userPlan}</span>
           </div>
         )}
         {balance !== null && (
