@@ -4,9 +4,12 @@ import { supabase } from '../lib/supabase'
 const AuthModal = ({ open, onClose, referralCode }) => {
   if (!open) return null
 
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : ''
+  // Meta(인스타/페북) 인앱 브라우저: 구글 OAuth가 차단됨(disallowed_useragent)
+  const inApp = /Instagram|FBAN|FBAV|FB_IAB/i.test(ua)
+
   const signIn = async (provider) => {
     const options = { redirectTo: window.location.origin + window.location.pathname }
-    // 카카오: 닉네임만 요청 (account_email은 검수 이슈로 KOE205 유발 → 검수 완료 후 추가)
     if (provider === 'kakao') options.scopes = 'profile_nickname'
     await supabase.auth.signInWithOAuth({ provider, options })
   }
@@ -35,7 +38,13 @@ const AuthModal = ({ open, onClose, referralCode }) => {
           </p>
         </div>
 
-        {/* 추천인 코드 표시 */}
+        {inApp && (
+          <div className="mb-5 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800">
+            인스타 인앱 브라우저에서는 <b>구글 로그인이 제한</b>돼요.<br />
+            아래 <b>카카오로 계속하기</b>를 이용하거나, 우측 상단 <b>⋯ → 다른 브라우저로 열기</b>(Chrome/Safari)를 눌러주세요.
+          </div>
+        )}
+
         {referralCode && (
           <div className="mb-5 flex items-center gap-2 rounded-xl border border-[#03C75A]/30 bg-[#03C75A]/10 px-4 py-3">
             <Gift size={15} className="shrink-0 text-[#03C75A]" />
@@ -46,6 +55,17 @@ const AuthModal = ({ open, onClose, referralCode }) => {
         )}
 
         <div className="space-y-3">
+          {/* Kakao — 모바일/인앱에서 안정적 (1순위) */}
+          <button
+            onClick={() => signIn('kakao')}
+            className="flex w-full items-center justify-center gap-3 rounded-2xl bg-[#FEE500] px-4 py-3.5 font-bold text-[#191919] transition-all hover:bg-[#f5dc00] active:scale-[0.98]"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+              <path fill="#191919" d="M9 1.5C4.86 1.5 1.5 4.14 1.5 7.38c0 2.07 1.38 3.9 3.45 4.95l-.75 2.85a.225.225 0 0 0 .33.255l3.15-2.1c.42.06.855.09 1.32.09 4.14 0 7.5-2.64 7.5-5.88S13.14 1.5 9 1.5z"/>
+            </svg>
+            카카오로 계속하기
+          </button>
+
           {/* Google */}
           <button
             onClick={() => signIn('google')}
@@ -58,17 +78,6 @@ const AuthModal = ({ open, onClose, referralCode }) => {
               <path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/>
             </svg>
             Google로 계속하기
-          </button>
-
-          {/* Kakao */}
-          <button
-            onClick={() => signIn('kakao')}
-            className="flex w-full items-center justify-center gap-3 rounded-2xl bg-[#FEE500] px-4 py-3.5 font-bold text-[#191919] transition-all hover:bg-[#f5dc00] active:scale-[0.98]"
-          >
-            <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-              <path fill="#191919" d="M9 1.5C4.86 1.5 1.5 4.14 1.5 7.38c0 2.07 1.38 3.9 3.45 4.95l-.75 2.85a.225.225 0 0 0 .33.255l3.15-2.1c.42.06.855.09 1.32.09 4.14 0 7.5-2.64 7.5-5.88S13.14 1.5 9 1.5z"/>
-            </svg>
-            카카오로 계속하기
           </button>
         </div>
       </div>
