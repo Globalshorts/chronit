@@ -635,6 +635,14 @@ const Home = () => {
             <p className="mt-3 text-lg text-gray-500 md:text-xl">부담 없이 시작하고, 언제든 바꿀 수 있어요</p>
           </div>
 
+          <div className="mb-6 flex items-center justify-center gap-3 rounded-2xl border-2 border-[#3182F6] bg-[#EFF6FF] px-5 py-4 text-center">
+            <span className="text-2xl">🎁</span>
+            <p className="text-[15px] font-black text-gray-900 md:text-base">
+              첫 결제 한정 <span className="text-[#3182F6]">프로 1개월 + 1개월 무료</span>
+              <span className="ml-1 font-bold text-gray-500">· 1인 1회</span>
+            </p>
+          </div>
+
           <CouponBar codeFromUrl={codeFromUrl} onApply={(code) => { setCodeFromUrl(code); sessionStorage.setItem('chronit_code', code) }} />
 
           {/* 6개월 안심 패키지 */}

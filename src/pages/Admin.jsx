@@ -33,7 +33,7 @@ const DemoVideosPanel = () => {
   const [msg, setMsg] = useState(null)
 
   const load = async () => {
-    const { data } = await supabase.from('demo_videos').select('*').order('sort_order')
+    const { data } = await supabase.from('demo_videos').select('*').order('sort_order').order('id')
     if (data) setVideos(data)
   }
 
@@ -79,9 +79,12 @@ const DemoVideosPanel = () => {
   const move = async (idx, dir) => {
     const next = idx + dir
     if (next < 0 || next >= videos.length) return
-    const a = videos[idx], b = videos[next]
-    await supabase.from('demo_videos').update({ sort_order: b.sort_order }).eq('id', a.id)
-    await supabase.from('demo_videos').update({ sort_order: a.sort_order }).eq('id', b.id)
+    const arr = [...videos]
+    const [item] = arr.splice(idx, 1)
+    arr.splice(next, 0, item)
+    setVideos(arr.map((v, i) => ({ ...v, sort_order: i })))  // 즉시 반영
+    await Promise.all(arr.map((v, i) =>
+      supabase.from('demo_videos').update({ sort_order: i }).eq('id', v.id)))
     await load()
   }
 
