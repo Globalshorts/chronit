@@ -638,7 +638,7 @@ const Home = () => {
           <div className="mb-6 flex items-center justify-center gap-3 rounded-2xl border-2 border-[#3182F6] bg-[#EFF6FF] px-5 py-4 text-center">
             <span className="text-2xl">🎁</span>
             <p className="text-[15px] font-black text-gray-900 md:text-base">
-              첫 결제 한정 <span className="text-[#3182F6]">프로 1개월 + 1개월 무료</span>
+              첫 결제 한정 <span className="text-[#3182F6]">모든 플랜 1개월 무료 추가</span>
               <span className="ml-1 font-bold text-gray-500">· 1인 1회</span>
             </p>
           </div>
@@ -652,6 +652,7 @@ const Home = () => {
               <div className="mb-1 flex items-center gap-2">
                 <span className="rounded-full bg-[#FFB800] px-3 py-1 text-xs font-black text-white">안심 패키지</span>
                 <h4 className="text-xl font-black text-gray-900">프로 6개월</h4>
+                <span className="rounded-full bg-[#3182F6]/10 px-2.5 py-1 text-xs font-black text-[#3182F6]">🎁 첫 구매 +1개월</span>
               </div>
               <p className="text-base text-gray-600">프로 요금제를 <strong className="text-gray-900">6개월 동안</strong> · 매월 영상 30개 지급 · 가장 알뜰한 장기 플랜</p>
             </div>
@@ -667,6 +668,7 @@ const Home = () => {
           <div className="grid gap-6 md:grid-cols-3 md:gap-7">
             {/* 스타터 */}
             <div onClick={() => openPayment('starter')} className="flex cursor-pointer flex-col rounded-[2rem] border border-gray-200 bg-white p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all hover:border-[#03C75A]/50 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:p-10">
+              <span className="mb-2 inline-flex w-fit items-center gap-1 rounded-full bg-[#3182F6]/10 px-2.5 py-1 text-xs font-black text-[#3182F6]">🎁 첫 구매 1개월 추가</span>
               <h4 className="mb-2 text-xl font-black text-gray-900">스타터</h4>
               <p className="mb-5 text-base text-gray-500">처음 시작하는 분께</p>
               <div className="mb-8">
@@ -686,6 +688,7 @@ const Home = () => {
             {/* 프로 (추천) */}
             <div onClick={() => openPayment('pro')} className="relative flex cursor-pointer flex-col rounded-[2rem] border-2 border-[#03C75A] bg-[#03C75A] p-8 shadow-[0_12px_40px_-8px_rgba(3,199,90,0.5)] transition-all hover:-translate-y-1 md:p-10">
               <div className="absolute -top-3 right-6 rounded-full bg-[#FFB800] px-4 py-1 text-sm font-black text-white shadow-md">가장 인기</div>
+              <span className="mb-2 inline-flex w-fit items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-black text-[#03C75A]">🎁 첫 구매 1개월 추가</span>
               <h4 className="mb-2 text-xl font-black text-white">프로</h4>
               <p className="mb-5 text-base text-white/80">매일 꾸준히 올리는 분께</p>
               <div className="mb-8">
@@ -704,6 +707,7 @@ const Home = () => {
 
             {/* 마스터 */}
             <div onClick={() => openPayment('master')} className="flex cursor-pointer flex-col rounded-[2rem] border border-gray-200 bg-white p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all hover:border-[#03C75A]/50 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:p-10">
+              <span className="mb-2 inline-flex w-fit items-center gap-1 rounded-full bg-[#3182F6]/10 px-2.5 py-1 text-xs font-black text-[#3182F6]">🎁 첫 구매 1개월 추가</span>
               <h4 className="mb-2 text-xl font-black text-gray-900">마스터</h4>
               <p className="mb-5 text-base text-gray-500">여러 채널을 운영하는 분께</p>
               <div className="mb-8">
