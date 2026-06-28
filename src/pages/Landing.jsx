@@ -52,13 +52,13 @@ export default function Landing() {
       `}</style>
 
       {/* ── 상단 고정 선착순 바 ── */}
-      <div className="sticky top-0 z-50 border-b border-gray-100 bg-white/90 px-4 py-2 backdrop-blur">
-        <div className="mx-auto flex max-w-md items-center gap-3">
-          <span className="shrink-0 text-xs font-black text-[#FF5A5F]">🔥 선착순 100명 무료</span>
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-200">
-            <div className="h-full rounded-full transition-all" style={{ width: pct + '%', background: '#FF5A5F' }} />
+      <div className="sticky top-0 z-50 bg-[#FF5A5F] px-4 py-3 shadow-md">
+        <div className="mx-auto flex max-w-md items-center gap-3 text-white">
+          <span className="shrink-0 text-sm font-black">🔥 선착순 100명 무료</span>
+          <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-white/30">
+            <div className="h-full rounded-full bg-white transition-all" style={{ width: pct + '%' }} />
           </div>
-          <span className="shrink-0 text-xs font-bold text-gray-500">{spots == null ? '–' : spots}/100</span>
+          <span className="shrink-0 text-sm font-black">{spots == null ? '–' : spots}/100</span>
         </div>
       </div>
 
