@@ -421,6 +421,16 @@ export default function VideoGenerator() {
 
   useEffect(() => {
     if (!session) return;
+    // 광고 랜딩 프로모 코드 자동 적용 (?code → sessionStorage 대기분, 1회 redeem)
+    (async () => {
+      try {
+        const promo = (sessionStorage.getItem("chronit_code") || "").trim();
+        if (!promo) return;
+        const { data: tr } = await supabase.rpc("redeem_free_trial_rpc", { p_code: promo });
+        if (tr?.ok) { sessionStorage.removeItem("chronit_code"); loadBalance(); }
+        else if (tr?.error && !String(tr.error).includes("무료 체험 코드가 아닙")) { sessionStorage.removeItem("chronit_code"); }
+      } catch { /* noop */ }
+    })();
     loadJobs(); loadBalance();
     loadUserSettings();
     const ch = supabase.channel("vj")
