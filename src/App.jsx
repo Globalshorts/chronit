@@ -17,7 +17,6 @@ import BoardWrite from './pages/BoardWrite'
 import BoardPost from './pages/BoardPost'
 import MyPage from './pages/MyPage'
 import UserProfile from './pages/UserProfile'
-import Reserve from './pages/Reserve'
 import AdminFab from './components/AdminFab'
 
 const ScrollToTop = () => {
@@ -47,7 +46,6 @@ const App = () => (
       <Route path="/board/u/:id" element={<UserProfile />} />
       <Route path="/board/:id" element={<BoardPost />} />
       <Route path="/me" element={<MyPage />} />
-      <Route path="/reserve" element={<Reserve />} />
       <Route path="/u/:handle" element={<LinkPage />} />
     </Routes>
   </BrowserRouter>
