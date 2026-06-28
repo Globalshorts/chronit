@@ -40,6 +40,7 @@ export default function Landing() {
   }, [])
 
   const start = () => { if (session) window.location.href = '/generate'; else setAuthOpen(true) }
+  const pct = spots == null ? 0 : Math.min(100, Math.round((spots / CAP) * 100))
 
   return (
     <div className="min-h-screen bg-white text-[#191F28]">
@@ -49,6 +50,17 @@ export default function Landing() {
         .lp-overlay { animation: lpFade 3.2s ease forwards }
         .lp-bar { animation: lpFill 3s ease forwards }
       `}</style>
+
+      {/* ── 상단 고정 선착순 바 ── */}
+      <div className="sticky top-0 z-50 border-b border-gray-100 bg-white/90 px-4 py-2 backdrop-blur">
+        <div className="mx-auto flex max-w-md items-center gap-3">
+          <span className="shrink-0 text-xs font-black text-[#FF5A5F]">🔥 선착순 100명 무료</span>
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-200">
+            <div className="h-full rounded-full transition-all" style={{ width: pct + '%', background: '#FF5A5F' }} />
+          </div>
+          <span className="shrink-0 text-xs font-bold text-gray-500">{spots == null ? '–' : spots}/100</span>
+        </div>
+      </div>
 
       {/* ── HERO ── */}
       <section className="mx-auto max-w-md px-5 pt-12 pb-8 text-center">

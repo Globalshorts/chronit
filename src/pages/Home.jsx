@@ -75,6 +75,23 @@ const EventBadge = ({ status, label }) => {
 }
 
 const PLAN_FALLBACK = { starter: { list: 49000, sale: 29000 }, pro: { list: 99000, sale: 49000 }, master: { list: 199000, sale: 79000 }, pkg6: { list: 594000, sale: 249000 } }
+
+const HOME_CAP = 100
+function HomeScarcity({ spots }) {
+  if (spots == null) return null
+  const pct = Math.min(100, Math.round((spots / HOME_CAP) * 100))
+  return (
+    <div className="mx-auto mb-6 max-w-md rounded-2xl border-2 border-[#FF5A5F]/30 bg-[#FFF5F5] px-5 py-4">
+      <div className="mb-2 flex items-center justify-between text-sm font-black">
+        <span className="text-[#FF5A5F]">🔥 선착순 100명 무료</span>
+        <span className="text-gray-500">현재 {spots}명 신청</span>
+      </div>
+      <div className="h-2.5 w-full overflow-hidden rounded-full bg-white">
+        <div className="h-full rounded-full transition-all" style={{ width: pct + '%', background: '#FF5A5F' }} />
+      </div>
+    </div>
+  )
+}
 const wonFmt = (n) => Number(n || 0).toLocaleString('ko-KR')
 const pctOff = (list, sale) => (list > 0 ? Math.round((list - sale) / list * 100) : 0)
 
@@ -97,7 +114,9 @@ const Home = () => {
   const [events, setEvents] = useState([])
   const [eventTab, setEventTab] = useState('active')
   const [planPrices, setPlanPrices] = useState(PLAN_FALLBACK)
+  const [spots, setSpots] = useState(null)
   useEffect(() => {
+    supabase.rpc('public_signup_count').then(({ data }) => { if (typeof data === 'number') setSpots(data) })
     supabase.from('plans').select('id, list_price, monthly_price').in('id', ['starter', 'pro', 'master'])
       .then(({ data }) => {
         if (!data || !data.length) return
@@ -642,6 +661,8 @@ const Home = () => {
               <span className="ml-1 font-bold text-gray-500">· 1인 1회</span>
             </p>
           </div>
+
+          <HomeScarcity spots={spots} />
 
           <CouponBar codeFromUrl={codeFromUrl} onApply={(code) => { setCodeFromUrl(code); sessionStorage.setItem('chronit_code', code) }} />
 
