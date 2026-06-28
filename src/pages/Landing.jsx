@@ -3,12 +3,30 @@ import { supabase } from '../lib/supabase'
 import AuthModal from '../components/AuthModal'
 
 const BLUE = '#3182F6'
+const CAP = 100
+
+function Scarcity({ spots }) {
+  if (spots == null) return null
+  const pct = Math.min(100, Math.round((spots / CAP) * 100))
+  return (
+    <div className="mx-auto mt-4 max-w-xs">
+      <div className="mb-1.5 flex items-center justify-between text-xs font-bold">
+        <span className="text-[#FF5A5F]">🔥 선착순 100명 무료</span>
+        <span className="text-gray-500">현재 {spots}명 신청</span>
+      </div>
+      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+        <div className="h-full rounded-full transition-all" style={{ width: pct + '%', background: '#FF5A5F' }} />
+      </div>
+    </div>
+  )
+}
 
 export default function Landing() {
   const [authOpen, setAuthOpen] = useState(false)
   const [code, setCode] = useState(null)
   const [session, setSession] = useState(null)
   const [demo, setDemo] = useState(null)
+  const [spots, setSpots] = useState(null)
 
   useEffect(() => {
     const p = new URLSearchParams(window.location.search)
@@ -18,6 +36,7 @@ export default function Landing() {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
     supabase.from('demo_videos').select('url').order('sort_order').limit(1)
       .then(({ data }) => { if (data && data[0]) setDemo(data[0].url) })
+    supabase.rpc('public_signup_count').then(({ data }) => { if (typeof data === 'number') setSpots(data) })
   }, [])
 
   const start = () => { if (session) window.location.href = '/generate'; else setAuthOpen(true) }
@@ -64,6 +83,7 @@ export default function Landing() {
           카카오로 시작 · 프로 7일 무료
         </button>
         <p className="mt-2 text-xs text-gray-400">카드 등록 없이 바로 시작</p>
+        <Scarcity spots={spots} />
       </section>
 
       {/* ── 공감(은근한 압박) ── */}
@@ -148,6 +168,7 @@ export default function Landing() {
             카카오로 시작 · 프로 7일 무료
           </button>
           <p className="mt-2 text-xs text-gray-400">3초면 시작돼요</p>
+          <Scarcity spots={spots} />
         </div>
       </section>
 
