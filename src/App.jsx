@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import VideoGenerator from './pages/VideoGenerator'
 import Home from './pages/Home'
+import Landing from './pages/Landing'
 import Register from './pages/Register'
 import Manual from './pages/Manual'
 import ManualDetail from './pages/ManualDetail'
@@ -31,6 +32,7 @@ const App = () => (
     <AdminFab />
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/start" element={<Landing />} />
       <Route path="/register" element={<Register />} />
       <Route path="/manual" element={<Manual />} />
       <Route path="/manual/:section" element={<ManualDetail />} />
