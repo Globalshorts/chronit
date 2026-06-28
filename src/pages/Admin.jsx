@@ -906,7 +906,7 @@ function TrendAccountsPanel() {
         <div className="flex items-center gap-2">
           <Flame size={18} className="text-orange-400" />
           <h2 className="text-base font-bold">오늘의 트렌드 — 계정 리스트</h2>
-          <span className="rounded-full bg-white/8 px-2 py-0.5 text-xs text-slate-400">{activeCount} / {list.length}</span>
+          <span className="rounded-full bg-white/8 px-2 py-0.5 text-xs text-slate-400">활성 {activeCount} · 비활성 {list.length - activeCount}</span>
         </div>
         <button onClick={scanNow} disabled={scanning}
           className="flex items-center gap-2 rounded-xl bg-orange-600 px-4 py-2 text-sm font-bold text-white hover:bg-orange-500 disabled:opacity-40">
@@ -937,6 +937,7 @@ function TrendAccountsPanel() {
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-bold text-slate-200">@{a.username}{a.nickname ? <span className="ml-2 text-xs font-normal text-slate-500">{a.nickname}</span> : null}</p>
                 <p className="text-xs text-slate-500">{a.follower_count ? '팔로워 ' + a.follower_count : ''}{a.last_found_at ? ' · 최근발견 ' + new Date(a.last_found_at).toLocaleDateString() : (a.last_checked_at ? ' · 확인됨' : ' · 미확인')}</p>
+                {a.note ? <span className="mt-1 inline-block rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold text-amber-300">{a.note}</span> : null}
               </div>
               <a href={'https://www.instagram.com/' + a.username + '/'} target="_blank" rel="noreferrer" className="text-xs text-slate-500 hover:text-white">열기</a>
               <button onClick={() => toggle(a)} title={a.active ? '끄기' : '켜기'} className="text-slate-400 hover:text-white">{a.active ? <Eye size={16} /> : <EyeOff size={16} />}</button>
