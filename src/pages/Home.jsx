@@ -345,7 +345,7 @@ const Home = () => {
   const navItems = null
 
   const eventBannerOn = events.filter(e => e.status === 'active').length > 0 && !(typeof sessionStorage !== 'undefined' && sessionStorage.getItem('chronit_event_banner_closed'))
-  const bannerCount = (refFromUrl ? 1 : 0) + (codeFromUrl ? 1 : 0) + (eventBannerOn ? 1 : 0)
+  const bannerCount = (refFromUrl ? 1 : 0) + (codeFromUrl ? 1 : 0) + (eventBannerOn ? 1 : 0) + 1 /* 선착순 상시 배너 */
   const bannerH = bannerCount * 44
 
   return (
@@ -379,6 +379,15 @@ const Home = () => {
           <button onClick={e => { e.stopPropagation(); sessionStorage.setItem('chronit_event_banner_closed', '1'); window.location.reload() }} className="ml-2 opacity-80 hover:opacity-100">✕</button>
         </div>
       )}
+
+      {/* 선착순 상시 배너 */}
+      <div
+        className="fixed right-0 left-0 z-[58] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[#FF5A5F] px-4 py-3 text-sm font-bold text-white shadow-md"
+        style={{ top: `${((refFromUrl ? 1 : 0) + (codeFromUrl ? 1 : 0) + (eventBannerOn ? 1 : 0)) * 44}px` }}
+      >
+        <span>🔥</span>
+        <span><strong>선착순 100명</strong> 프로 7일 무료{spots != null ? ` · 현재 ${spots}/100명` : ''}</span>
+      </div>
 
       {/* Header */}
       <header style={{ top: `${bannerH}px` }} className={`fixed right-0 left-0 z-50 transition-all duration-300 ${scrolled ? 'border-b border-gray-200 bg-[#FAFAF8]/90 py-3 backdrop-blur-md' : 'bg-transparent py-4 md:py-5'}`}>
@@ -652,14 +661,6 @@ const Home = () => {
           <div className="mb-4 text-center">
             <h2 className="text-3xl font-black text-gray-900 md:text-5xl">필요한 만큼만 고르세요</h2>
             <p className="mt-3 text-lg text-gray-500 md:text-xl">부담 없이 시작하고, 언제든 바꿀 수 있어요</p>
-          </div>
-
-          <div className="mb-6 flex items-center justify-center gap-3 rounded-2xl border-2 border-[#3182F6] bg-[#EFF6FF] px-5 py-4 text-center">
-            <span className="text-2xl">🎁</span>
-            <p className="text-[15px] font-black text-gray-900 md:text-base">
-              첫 결제 한정 <span className="text-[#3182F6]">모든 플랜 1개월 무료 추가</span>
-              <span className="ml-1 font-bold text-gray-500">· 1인 1회</span>
-            </p>
           </div>
 
           <HomeScarcity spots={spots} />
