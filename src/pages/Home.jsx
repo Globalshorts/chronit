@@ -687,7 +687,25 @@ const Home = () => {
             </div>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-3 md:gap-7">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 md:gap-7">
+            {/* Free (무료) */}
+            <div onClick={handleStart} className="flex cursor-pointer flex-col rounded-[2rem] border border-gray-200 bg-gray-50 p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all hover:border-gray-300 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:p-10">
+              <h4 className="mb-2 text-xl font-black text-gray-700">Free</h4>
+              <p className="mb-5 text-base text-gray-500">부담 없이 시작</p>
+              <div className="mb-8">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-black text-gray-700">₩0</span>
+                  <span className="text-lg font-bold text-gray-500">/ 월</span>
+                </div>
+              </div>
+              <ul className="space-y-3 text-base font-medium text-gray-700">
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-gray-400" /><span>월 <strong>2개</strong> 영상 제작</span></li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-gray-400" />가입 시 프로 7일 무료 체험</li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-gray-400" />모든 기본 기능</li>
+              </ul>
+              <button onClick={(e) => { e.stopPropagation(); handleStart() }} className="mt-8 w-full rounded-2xl bg-gray-200 py-4 text-base font-black text-gray-700 transition-all hover:bg-gray-300">무료로 시작</button>
+            </div>
+
             {/* 스타터 */}
             <div onClick={() => openPayment('starter')} className="flex cursor-pointer flex-col rounded-[2rem] border border-gray-200 bg-white p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all hover:border-[#03C75A]/50 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:p-10">
               <span className="mb-2 inline-flex w-fit items-center gap-1 rounded-full bg-[#3182F6]/10 px-2.5 py-1 text-xs font-black text-[#3182F6]">🎁 첫 구매 1개월 추가</span>
