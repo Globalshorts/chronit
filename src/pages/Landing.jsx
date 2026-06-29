@@ -70,11 +70,11 @@ export default function Landing() {
       <section className="mx-auto max-w-md px-5 pt-12 pb-8 text-center">
         <p className="text-sm font-bold tracking-wide" style={{ color: BLUE }}>이미 영상으로 매출 내는 셀러를 위한</p>
         <h1 className="mt-3 text-[2.05rem] font-black leading-tight">
-          터질 영상 고르기만,<br/>재가공은 5분이면 끝
+          잘 만든 1개보다,<br/>많이 만든 10개
         </h1>
         <p className="mt-3 text-[15px] leading-relaxed text-gray-500">
-          캡컷 자막·더빙·재가공에 매일 <b className="text-[#191F28]">2~3시간</b> 갈아넣지 마세요.<br/>
-          링크만 넣으면 5분에 한 편 — 찍는 족족 다 올릴 수 있어요.
+          터질 영상 골라 링크만 넣으면 <b className="text-[#191F28]">5분</b>에 한 편.<br/>
+          같은 시간에 더 많이 던지세요 — 쇼츠는 확률 게임이니까.
         </p>
 
         {/* 폰 + 로딩바 → 데모 영상 */}
