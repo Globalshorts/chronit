@@ -70,11 +70,11 @@ export default function Landing() {
       <section className="mx-auto max-w-md px-5 pt-12 pb-8 text-center">
         <p className="text-sm font-bold tracking-wide" style={{ color: BLUE }}>이미 영상으로 매출 내는 셀러를 위한</p>
         <h1 className="mt-3 text-[2.05rem] font-black leading-tight">
-          잘 만든 1개보다,<br/>많이 만든 10개
+          잘 만든 1개보다,<br/>꾸준히 올린 30개
         </h1>
         <p className="mt-3 text-[15px] leading-relaxed text-gray-500">
           터질 영상 골라 링크만 넣으면 <b className="text-[#191F28]">5분</b>에 한 편.<br/>
-          같은 시간에 더 많이 던지세요 — 쇼츠는 확률 게임이니까.
+          외주·편집 없이, 매일 꾸준히 올리세요.
         </p>
 
         {/* 폰 + 로딩바 → 데모 영상 */}
