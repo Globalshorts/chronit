@@ -431,6 +431,24 @@ export default function VideoGenerator() {
         else if (tr?.error && !String(tr.error).includes("무료 체험 코드가 아닙")) { sessionStorage.removeItem("chronit_code"); }
       } catch { /* noop */ }
     })();
+    // ​웹 신규 가입 자동 프로7일 체험: 브라우저 지문(핑거프린트) + IP 1회 제한 (세션당 1회)
+    (async () => {
+      try {
+        if (sessionStorage.getItem("chronit_trial_tried")) return;
+        sessionStorage.setItem("chronit_trial_tried", "1");
+        let fpId = localStorage.getItem("chronit_fp");
+        if (!fpId) {
+          fpId = (crypto?.randomUUID?.() || String(Date.now()) + Math.random());
+          localStorage.setItem("chronit_fp", fpId);
+        }
+        const raw = [fpId, navigator.userAgent, String(screen.width) + "x" + String(screen.height) + "x" + String(screen.colorDepth)].join("|");
+        let h = 0;
+        for (let i = 0; i < raw.length; i++) { h = (h * 31 + raw.charCodeAt(i)) | 0; }
+        const fingerprint = fpId + "." + (h >>> 0).toString(36);
+        const { data: gt } = await supabase.functions.invoke("grant-trial", { body: { fingerprint } });
+        if (gt?.granted) loadBalance();
+      } catch { /* noop */ }
+    })();
     loadJobs(); loadBalance();
     loadUserSettings();
     const ch = supabase.channel("vj")
