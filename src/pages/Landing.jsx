@@ -68,13 +68,13 @@ export default function Landing() {
 
       {/* ── HERO ── */}
       <section className="mx-auto max-w-md px-5 pt-12 pb-8 text-center">
-        <p className="text-sm font-bold tracking-wide" style={{ color: BLUE }}>쇼핑 릴스 자동화</p>
+        <p className="text-sm font-bold tracking-wide" style={{ color: BLUE }}>대량 업로드 셀러를 위한 릴스 자동화</p>
         <h1 className="mt-3 text-[2.05rem] font-black leading-tight">
-          링크만 넣으면,<br/>릴스가 완성돼요
+          편집 노가다 빼고,<br/>업로드 개수만 늘리세요
         </h1>
         <p className="mt-3 text-[15px] leading-relaxed text-gray-500">
-          직접 찍은 영상이나 릴스·틱톡·쇼츠 링크 하나면 충분해요.<br/>
-          자막·더빙·썸네일까지 AI가 <b className="text-[#191F28]">5분 만에</b>.
+          직촬 영상·릴스·틱톡·쇼츠 링크 하나면 <b className="text-[#191F28]">5분에 한 편</b>.<br/>
+          자막·더빙·썸네일까지 자동이라, 하루에 몇 개든 뽑아내요.
         </p>
 
         {/* 폰 + 로딩바 → 데모 영상 */}
@@ -105,12 +105,12 @@ export default function Landing() {
       {/* ── 공감(은근한 압박) ── */}
       <section className="bg-[#F7FAFF] px-5 py-12">
         <div className="mx-auto max-w-md">
-          <h2 className="text-center text-xl font-black">이런 고민, 있으셨죠?</h2>
+          <h2 className="text-center text-xl font-black">매일 올리고 싶은데, 편집이 발목이죠?</h2>
           <div className="mt-6 space-y-3">
             {[
-              ['⏱', '편집 한 편에 두세 시간', '하루가 그냥 사라져요'],
-              ['💸', '외주는 건당 비용이 부담', '꾸준히 맡기긴 어렵죠'],
-              ['📈', '고민하는 사이', '경쟁 셀러는 매일 올려요'],
+              ['⏱', '한 편 편집에 두세 시간', '올리고 싶은 만큼 못 올려요'],
+              ['💸', '외주는 개수 늘릴수록 비용 폭발', '양산은 답이 없죠'],
+              ['📈', '경쟁 셀러는 매일 도배', '개수에서 밀리면 노출도 밀려요'],
             ].map(([e, t, s]) => (
               <div key={t} className="flex items-center gap-4 rounded-2xl bg-white p-4 shadow-sm">
                 <span className="text-2xl">{e}</span>
@@ -122,7 +122,7 @@ export default function Landing() {
             ))}
           </div>
           <p className="mt-6 text-center text-[15px] font-bold text-gray-700">
-            콘텐츠는 결국 <span style={{ color: BLUE }}>꾸준히 올린 사람</span>이 가져가요.
+            결국 <span style={{ color: BLUE }}>많이 올린 사람</span>이 이겨요. 문제는 편집 속도예요.
           </p>
         </div>
       </section>
