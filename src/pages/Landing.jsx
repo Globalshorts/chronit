@@ -68,13 +68,13 @@ export default function Landing() {
 
       {/* ── HERO ── */}
       <section className="mx-auto max-w-md px-5 pt-12 pb-8 text-center">
-        <p className="text-sm font-bold tracking-wide" style={{ color: BLUE }}>대량 업로드 셀러를 위한 릴스 자동화</p>
+        <p className="text-sm font-bold tracking-wide" style={{ color: BLUE }}>이미 영상으로 매출 내는 셀러를 위한</p>
         <h1 className="mt-3 text-[2.05rem] font-black leading-tight">
-          편집 노가다 빼고,<br/>업로드 개수만 늘리세요
+          소싱은 당신 몫,<br/>재가공은 5분이면 끝
         </h1>
         <p className="mt-3 text-[15px] leading-relaxed text-gray-500">
-          직촬 영상·릴스·틱톡·쇼츠 링크 하나면 <b className="text-[#191F28]">5분에 한 편</b>.<br/>
-          자막·더빙·썸네일까지 자동이라, 하루에 몇 개든 뽑아내요.
+          터지는 영상 골라 링크만 넣으세요. 자막·더빙·재가공 노가다는 크로닛이.<br/>
+          캡컷에 갈아넣던 하루 <b className="text-[#191F28]">2~3시간</b>을 업로드 개수로 바꾸세요.
         </p>
 
         {/* 폰 + 로딩바 → 데모 영상 */}
@@ -105,12 +105,12 @@ export default function Landing() {
       {/* ── 공감(은근한 압박) ── */}
       <section className="bg-[#F7FAFF] px-5 py-12">
         <div className="mx-auto max-w-md">
-          <h2 className="text-center text-xl font-black">매일 올리고 싶은데, 편집이 발목이죠?</h2>
+          <h2 className="text-center text-xl font-black">찍고 싶은 만큼, 왜 못 올릴까요?</h2>
           <div className="mt-6 space-y-3">
             {[
-              ['⏱', '한 편 편집에 두세 시간', '올리고 싶은 만큼 못 올려요'],
-              ['💸', '외주는 개수 늘릴수록 비용 폭발', '양산은 답이 없죠'],
-              ['📈', '경쟁 셀러는 매일 도배', '개수에서 밀리면 노출도 밀려요'],
+              ['⏱', '소싱→다운로드→캡컷 재가공→업로드', '한 편에 매일 2~3시간'],
+              ['🧱', '계정 늘리면 수익도 느는 걸 아는데', '몸이 하나라 스케일업이 막혀요'],
+              ['🥱', '퇴근하고 또 밤샘 편집', '체력이 먼저 바닥나죠'],
             ].map(([e, t, s]) => (
               <div key={t} className="flex items-center gap-4 rounded-2xl bg-white p-4 shadow-sm">
                 <span className="text-2xl">{e}</span>
@@ -122,7 +122,7 @@ export default function Landing() {
             ))}
           </div>
           <p className="mt-6 text-center text-[15px] font-bold text-gray-700">
-            결국 <span style={{ color: BLUE }}>많이 올린 사람</span>이 이겨요. 문제는 편집 속도예요.
+            병목은 아이디어가 아니라 <span style={{ color: BLUE }}>재가공 속도</span>예요.
           </p>
         </div>
       </section>
@@ -130,12 +130,12 @@ export default function Landing() {
       {/* ── 작동 방식 ── */}
       <section className="px-5 py-12">
         <div className="mx-auto max-w-md">
-          <h2 className="text-center text-xl font-black">링크 하나면, 끝</h2>
+          <h2 className="text-center text-xl font-black">당신은 소싱만 하면 돼요</h2>
           <div className="mt-7 space-y-5">
             {[
-              ['1', '영상이나 링크 넣기', '직촬 영상·릴스·틱톡·쇼츠 링크 아무거나'],
-              ['2', 'AI가 5분 만에 재창작', '자막·더빙·썸네일 전부 자동'],
-              ['3', '다운로드 후 업로드', '바로 노출 시작'],
+              ['1', '터지는 영상 소싱', '직촬·릴스·틱톡·쇼츠 링크 아무거나'],
+              ['2', '자막·더빙·재가공 자동', '5분이면 한 편 완성'],
+              ['3', '다운로드 후 업로드', '그 시간에 다음 걸 소싱하세요'],
             ].map(([n, t, s]) => (
               <div key={n} className="flex items-start gap-4">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-black text-white" style={{ background: BLUE }}>{n}</span>
@@ -155,10 +155,10 @@ export default function Landing() {
           <h2 className="text-center text-xl font-black">이렇게 바뀌어요</h2>
           <div className="mt-6 grid grid-cols-2 gap-3">
             {[
-              ['2시간 → 5분', '편집 시간'],
-              ['0원', '외주비'],
-              ['매일 여러 편', '양산 가능'],
-              ['몰라도 OK', '편집 실력'],
+              ['2~3시간 → 5분', '재가공 시간'],
+              ['하루 10개+', '대량 양산'],
+              ['계정 N개', '동시 운영'],
+              ['소싱에 집중', '남는 시간'],
             ].map(([big, sm]) => (
               <div key={sm} className="rounded-2xl bg-white/5 p-5 text-center">
                 <p className="text-lg font-black" style={{ color: '#7DB0FF' }}>{big}</p>
@@ -172,11 +172,11 @@ export default function Landing() {
       {/* ── 오퍼 ── */}
       <section className="px-5 py-14 text-center">
         <div className="mx-auto max-w-md">
-          <h2 className="text-2xl font-black leading-snug">일단, 7일 무료로<br/>써보세요</h2>
+          <h2 className="text-2xl font-black leading-snug">고수는 데모로<br/>판단하죠</h2>
           <p className="mt-4 text-[15px] leading-relaxed text-gray-500">
-            프로 기능 7일 — <b className="text-[#191F28]">카드 등록 없이</b>.<br/>
-            마음에 안 들면 그냥 안 쓰면 돼요. 자동결제 없어요.<br/>
-            첫 결제 땐 <b className="text-[#191F28]">1개월 + 1개월</b>까지.
+            프로 기능 7일 무료 — <b className="text-[#191F28]">카드 없이</b>.<br/>
+            캡컷·Vrew 써본 눈으로 자막싱크·더빙 퀄을 직접 확인하세요.<br/>
+            첫 결제 땐 <b className="text-[#191F28]">1개월 + 1개월</b>. 자동결제 없어요.
           </p>
           <button onClick={start}
             className="mt-7 w-full rounded-2xl py-4 text-base font-black text-white shadow-lg transition active:scale-[0.98]"
@@ -192,9 +192,9 @@ export default function Landing() {
       <section className="bg-[#F7FAFF] px-5 py-12">
         <div className="mx-auto max-w-md space-y-4">
           {[
-            ['편집을 못 하는데 괜찮나요?', '네. 영상이나 링크만 넣으면 AI가 다 해요. 클릭 몇 번이면 끝나요.'],
-            ['무료 7일 끝나면요?', '자동으로 결제되지 않아요. 마음에 들 때 결제하면 됩니다.'],
-            ['어떤 영상이 되나요?', '직접 찍은 영상이나 릴스·틱톡·쇼츠 링크면 다 가능해요.'],
+            ['퀄리티가 캡컷만큼 나오나요?', '자막싱크·AI 더빙·썸네일까지 7일 직접 돌려보고 판단하세요. 데모로 먼저 확인할 수 있어요.'],
+            ['하루에 몇 개까지 되나요?', '플랜 한도 안에서 계속 뽑아낼 수 있어요. 대량 양산을 전제로 설계됐어요.'],
+            ['무료 7일 끝나면요?', '자동결제 없어요. 마음에 들 때 결제하면 됩니다.'],
           ].map(([q, a]) => (
             <div key={q} className="rounded-2xl bg-white p-5 shadow-sm">
               <p className="text-[15px] font-bold">Q. {q}</p>
@@ -206,13 +206,14 @@ export default function Landing() {
 
       {/* ── 푸터 CTA ── */}
       <section className="px-5 py-12 text-center">
-        <p className="text-lg font-black">오늘 한 편, 5분이면 돼요</p>
+        <p className="text-lg font-black">소싱할 시간, 지금 벌어두세요</p>
         <button onClick={start}
           className="mx-auto mt-5 block w-full max-w-md rounded-2xl py-4 text-base font-black text-white shadow-lg transition active:scale-[0.98]"
           style={{ background: BLUE }}>
           카카오로 시작 · 프로 7일 무료
         </button>
-        <p className="mt-6 text-xs text-gray-400">© Chronit · chronit.kr</p>
+        <p className="mt-6 text-xs text-gray-400">* 수익은 상품·콘텐츠·꾸준함에 따라 달라질 수 있어요.</p>
+        <p className="mt-1 text-xs text-gray-400">© Chronit · chronit.kr</p>
       </section>
 
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} referralCode={code} />
