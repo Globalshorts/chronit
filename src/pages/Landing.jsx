@@ -70,11 +70,11 @@ export default function Landing() {
       <section className="mx-auto max-w-md px-5 pt-12 pb-8 text-center">
         <p className="text-sm font-bold tracking-wide" style={{ color: BLUE }}>이미 영상으로 매출 내는 셀러를 위한</p>
         <h1 className="mt-3 text-[2.05rem] font-black leading-tight">
-          소싱은 당신 몫,<br/>재가공은 5분이면 끝
+          터질 영상 고르기만,<br/>재가공은 5분이면 끝
         </h1>
         <p className="mt-3 text-[15px] leading-relaxed text-gray-500">
-          터지는 영상 골라 링크만 넣으세요. 자막·더빙·재가공 노가다는 크로닛이.<br/>
-          캡컷에 갈아넣던 하루 <b className="text-[#191F28]">2~3시간</b>을 업로드 개수로 바꾸세요.
+          캡컷 자막·더빙·재가공에 매일 <b className="text-[#191F28]">2~3시간</b> 갈아넣지 마세요.<br/>
+          링크만 넣으면 5분에 한 편 — 찍는 족족 다 올릴 수 있어요.
         </p>
 
         {/* 폰 + 로딩바 → 데모 영상 */}
@@ -130,7 +130,7 @@ export default function Landing() {
       {/* ── 작동 방식 ── */}
       <section className="px-5 py-12">
         <div className="mx-auto max-w-md">
-          <h2 className="text-center text-xl font-black">당신은 소싱만 하면 돼요</h2>
+          <h2 className="text-center text-xl font-black">당신은 고르기만 하면 돼요</h2>
           <div className="mt-7 space-y-5">
             {[
               ['1', '터지는 영상 소싱', '직촬·릴스·틱톡·쇼츠 링크 아무거나'],
