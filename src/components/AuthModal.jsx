@@ -9,6 +9,7 @@ const AuthModal = ({ open, onClose, referralCode }) => {
   const inApp = /Instagram|FBAN|FBAV|FB_IAB/i.test(ua)
 
   const signIn = async (provider) => {
+    try { window.gtag?.('event', 'auth_start', { provider, page: window.location.pathname }) } catch {}
     const options = { redirectTo: window.location.origin + window.location.pathname }
     if (provider === 'kakao') options.scopes = 'profile_nickname'
     await supabase.auth.signInWithOAuth({ provider, options })

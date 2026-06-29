@@ -29,6 +29,7 @@ export default function Landing() {
   const [spots, setSpots] = useState(null)
 
   useEffect(() => {
+    try { window.gtag?.('event', 'landing_view', { page: 'start' }) } catch {}
     const p = new URLSearchParams(window.location.search)
     const c = p.get('code')
     if (c) { setCode(c.toUpperCase()); sessionStorage.setItem('chronit_code', c) }
@@ -39,7 +40,10 @@ export default function Landing() {
     supabase.rpc('public_signup_count').then(({ data }) => { if (typeof data === 'number') setSpots(data) })
   }, [])
 
-  const start = () => { if (session) window.location.href = '/generate'; else setAuthOpen(true) }
+  const start = () => {
+    try { window.gtag?.('event', 'cta_click', { page: 'start', logged_in: !!session }) } catch {}
+    if (session) window.location.href = '/generate'; else setAuthOpen(true)
+  }
   const pct = spots == null ? 0 : Math.min(100, Math.round((spots / CAP) * 100))
 
   return (
