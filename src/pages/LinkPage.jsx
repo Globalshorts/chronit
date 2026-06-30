@@ -85,6 +85,11 @@ export default function LinkPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: bgColor, color: dark ? '#F3F4F6' : '#111827', ['--accent']: btnColor }}>
+      <style>{`@keyframes cpMarquee { 0% { transform: translateX(0) } 100% { transform: translateX(-100%) } } .cp-track { display: inline-block; padding-left: 100%; white-space: nowrap; animation: cpMarquee 22s linear infinite; }`}</style>
+      {/* 쿠팡파트너스 고지 (상단 고정, 우→좌 흐름) */}
+      <div className="sticky top-0 z-50 overflow-hidden whitespace-nowrap border-b border-black/10 bg-white py-1.5">
+        <span className="cp-track text-xs font-medium text-black">{DISCLOSURE}</span>
+      </div>
       <div className={`mx-auto w-full ${maxW} px-5 py-10`}>
         <header className="mb-8 text-center">
           {page.avatar_url ? (
@@ -144,9 +149,6 @@ export default function LinkPage() {
           </>
         )}
 
-        <footer className={`mt-10 border-t pt-5 text-center ${dark ? 'border-white/10' : 'border-gray-200'}`}>
-          <p className={`text-[11px] leading-relaxed ${sub}`}>{DISCLOSURE}</p>
-        </footer>
       </div>
     </div>
   )
