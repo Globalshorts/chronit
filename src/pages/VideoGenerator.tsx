@@ -4318,7 +4318,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
   React.useEffect(()=>{ if(session) load(); }, [session, load]);
 
   const now = Date.now();
-  const isActive = (u:any) => u.expires_at && new Date(u.expires_at).getTime() > now;
+  const isActive = (u:any) => (u.expires_at && new Date(u.expires_at).getTime() > now) || (u.event_expires_at && new Date(u.event_expires_at).getTime() > now && (u.event_credits||0) > 0);
   const filtered = users.filter(u=>{
     if (q.trim()) { const _q = q.trim().toLowerCase(); const _hay = [(u.email||""),(u.nickname||""),(u.name||"")].join(" ").toLowerCase(); if (!_hay.includes(_q)) return false; }
     if (stFilter==="active" && !isActive(u)) return false;
@@ -4532,7 +4532,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
             {loading ? <tr><td colSpan={9} className="py-8 text-center text-gray-500">불러오는 중...</td></tr>
             : filtered.length===0 ? <tr><td colSpan={9} className="py-8 text-center text-gray-500">결과 없음</td></tr>
             : filtered.map(u=>{
-              const max = (planMax[u.plan] ?? 0) + (u.bonus_credits||0); const left = max - (u.credits_used||0); const act = isActive(u);
+              const max = (planMax[u.plan] ?? 0) + (u.bonus_credits||0); const left = max - (u.credits_used||0); const evA = (u.event_expires_at && new Date(u.event_expires_at).getTime() > now && (u.event_credits||0) > 0) ? (u.event_credits||0) : 0; const act = isActive(u);
               return (
                 <tr key={u.user_id} onClick={()=>{setSel(u.user_id); setRoleSel(u.role||"user"); if(u.plan)setPlanSel(u.plan); setRefModalOpen(true);}}
                   className={`border-b border-gray-200/50 cursor-pointer ${sel===u.user_id?"bg-[#03C75A]/10":"hover:bg-gray-100/40"}`}>
@@ -4542,7 +4542,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
                   <td className="px-3 py-2.5 text-gray-400">{fmt(u.expires_at)}</td>
                   <td className="px-3 py-2.5">{u.marketing_consent?<span className="text-[#03C75A] font-bold">동의</span>:<span className="text-gray-300">-</span>}</td>
                   <td className="px-3 py-2.5 text-center"><span title={act?"유효":"만료"} className={`inline-block h-2.5 w-2.5 rounded-full ${act?"bg-green-500":"bg-red-500"}`} /></td>
-                  <td className="px-3 py-2.5 text-right text-gray-700">{left.toLocaleString()} / {max.toLocaleString()}</td>
+                  <td className="px-3 py-2.5 text-right text-gray-700">{left.toLocaleString()} / {max.toLocaleString()}{evA>0 && <span className="ml-1 font-bold text-[#03C75A]">+{evA}체험</span>}</td>
                 </tr>
               );
             })}
