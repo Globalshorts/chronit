@@ -1637,14 +1637,14 @@ export default function VideoGenerator() {
                 <div className="grid grid-cols-2 gap-2">
                   {STYLE_PACKS.map((pk) => (
                     <button key={pk.key} onClick={() => applyPack(pk)}
-                      className={`rounded-xl border p-3 text-left transition ${activePack === pk.key ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 hover:border-gray-400"}`}>
+                      className={`rounded-xl border p-3 text-left transition ${activePack === pk.key ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 bg-white hover:border-gray-400"}`}>
                       <p className={`text-sm font-black ${activePack === pk.key ? "text-[#0064FF]" : "text-gray-900"}`}>{pk.emoji} {pk.name}</p>
                       <p className="text-xs text-gray-500 mt-0.5 leading-tight">{pk.desc}</p>
                     </button>
                   ))}
                   {userPacks.map((up) => (
                     <button key={up.id} onClick={() => applyPack(up.config, "user:" + up.id)}
-                      className={`relative rounded-xl border p-3 text-left transition ${activePack === ("user:" + up.id) ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 hover:border-gray-400"}`}>
+                      className={`relative rounded-xl border p-3 text-left transition ${activePack === ("user:" + up.id) ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 bg-white hover:border-gray-400"}`}>
                       <span onClick={(e) => { e.stopPropagation(); deleteUserPack(up.id); }}
                         className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 text-xs text-gray-400 hover:bg-gray-200 hover:text-gray-600">✕</span>
                       <p className={`text-sm font-black ${activePack === ("user:" + up.id) ? "text-[#0064FF]" : "text-gray-900"}`}>💾 {up.name}</p>
@@ -1652,7 +1652,7 @@ export default function VideoGenerator() {
                     </button>
                   ))}
                   <button onClick={saveCurrentPack}
-                    className="rounded-xl border border-dashed border-gray-300 p-3 text-left text-gray-400 transition hover:border-[#0064FF] hover:text-[#0064FF]">
+                    className="rounded-xl border border-dashed border-gray-300 bg-white p-3 text-left text-gray-400 transition hover:border-[#0064FF] hover:text-[#0064FF]">
                     <p className="text-sm font-black">＋ 현재 설정 저장</p>
                     <p className="text-xs mt-0.5 leading-tight">지금 세팅을 내 팩으로</p>
                   </button>
@@ -1666,7 +1666,7 @@ export default function VideoGenerator() {
                     {SCRIPT_STYLES.map(s => (
                       <button key={s.key} type="button" onClick={() => setStyleProfileId(s.key)}
                         className={`rounded-xl border p-3 text-left transition ${
-                          styleProfileId === s.key ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 hover:border-gray-400"
+                          styleProfileId === s.key ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 bg-white hover:border-gray-400"
                         }`}>
                         <p className={`text-sm font-black ${styleProfileId === s.key ? "text-[#0064FF]" : "text-gray-900"}`}>{s.emoji} {s.name}</p>
                         <p className="text-xs text-gray-500 mt-0.5 leading-tight">{s.desc}</p>
