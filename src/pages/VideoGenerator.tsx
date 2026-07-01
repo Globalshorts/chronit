@@ -274,7 +274,8 @@ export default function VideoGenerator() {
 
   // Stage 2
   const [targetSeconds, setTargetSeconds] = useState(15);
-  const [styleProfileId, setStyleProfileId] = useState("story");
+  const [styleProfileId, setStyleProfileId] = useState<string>(() => { try { return localStorage.getItem("chronit_script_style") || "story"; } catch { return "story"; } });
+  useEffect(() => { try { localStorage.setItem("chronit_script_style", styleProfileId); } catch {} }, [styleProfileId]);
   const [videoOnly, setVideoOnly] = useState<boolean>(() => { try { return localStorage.getItem("chronit_video_only") === "1"; } catch { return false; } });
   const toggleVideoOnly = () => setVideoOnly(v => { const nv = !v; try { localStorage.setItem("chronit_video_only", nv ? "1" : "0"); } catch {} return nv; });
   const [coupangOpen, setCoupangOpen] = useState(false);
