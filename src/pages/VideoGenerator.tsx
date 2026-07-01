@@ -15,6 +15,7 @@ import type { Session } from "@supabase/supabase-js";
 import PaymentModal from "../components/PaymentModal";
 import ColorPalette from "../components/ColorPalette";
 import SiteNav from "../components/SiteNav";
+import PwaInstall from "../components/PwaInstall";
 import { LinkPageManager, captureVideoFrame } from "./LinksManager";
 import { FEATURES } from "../config/features";
 
@@ -34,6 +35,13 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
   }, [session?.user?.id]);
   const name = nick || (session?.user?.email ? String(session.user.email).split("@")[0] : "내 계정");
   const logout = async () => { try { await supabase.auth.signOut(); } catch (_) {} window.location.href = "/"; };
+  const [canInstall, setCanInstall] = useState(false);
+  useEffect(() => {
+    try {
+      const standalone = window.matchMedia?.('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+      setCanInstall(!standalone);
+    } catch { setCanInstall(true); }
+  }, []);
   return (
     <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-gray-200 bg-white/90 px-4 backdrop-blur-xl md:px-6">
       <div className="flex min-w-0 items-center gap-2 md:gap-3">
@@ -48,6 +56,13 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
       </div>
       <SiteNav />
       <nav className="flex shrink-0 items-center gap-2 text-sm font-bold text-gray-600 md:gap-3">
+        {canInstall && (
+          <button onClick={() => window.dispatchEvent(new Event('chronit:open-install'))} title="홈 화면에 앱으로 추가"
+            className="inline-flex items-center gap-1 rounded-full border border-[#03C75A]/40 bg-white px-2.5 py-1.5 text-xs font-black text-[#03C75A] hover:bg-[#03C75A]/10">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+            <span className="hidden sm:inline">앱 설치</span>
+          </button>
+        )}
         {balance !== null && balance !== undefined && (
           <span className="inline-flex items-center gap-1 rounded-full bg-[#03C75A]/10 px-3 py-1.5 text-xs font-black text-[#03C75A]">이용권 {balance.toLocaleString()}개 · D-{daysLeft ?? 0}</span>
         )}
@@ -569,6 +584,7 @@ export default function VideoGenerator() {
       genRetryRef.current = 0;
       if (stage === 5) setStage(1); // 자동 생성 흐름이면 1단계로 복귀
       setCompletionAlert("✅ 영상 생성 완료! 생성 내역으로 이동합니다.");
+      try { if (!localStorage.getItem("chronit_install_nudged")) { localStorage.setItem("chronit_install_nudged","1"); setTimeout(() => window.dispatchEvent(new Event("chronit:open-install")), 1800); } } catch {}
       try { new Audio("https://www.soundjay.com/buttons/sounds/button-09a.mp3").play(); } catch {}
       setCurrentJobId("");
       setActiveView("history"); // 완료 시 생성 내역으로 자동 이동
@@ -1428,6 +1444,7 @@ export default function VideoGenerator() {
 
       {/* ── 상단 바 ── */}
       <AppTopBar onMenuClick={() => setMobileMenuOpen(true)} onInvite={() => setShowInvite(true)} session={session} balance={balance} daysLeft={daysLeft} userPlan={userPlan} onHistory={() => setShowHistory(true)} />
+      <PwaInstall />
       <CreditMissionsModal open={showInvite} onClose={() => setShowInvite(false)} session={session} onCredited={loadBalance} />
       {creditWall && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm" onClick={()=>setCreditWall(null)}>
