@@ -58,9 +58,9 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
       <nav className="flex shrink-0 items-center gap-2 text-sm font-bold text-gray-600 md:gap-3">
         {canInstall && (
           <button onClick={() => window.dispatchEvent(new Event('chronit:open-install'))} title="홈 화면에 앱으로 추가"
-            className="inline-flex items-center gap-1 rounded-full border border-[#03C75A]/40 bg-white px-2.5 py-1.5 text-xs font-black text-[#03C75A] hover:bg-[#03C75A]/10">
+            className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#03C75A] px-2.5 py-1.5 text-xs font-black text-white shadow-sm active:scale-95">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
-            <span className="hidden sm:inline">앱 설치</span>
+            앱 설치
           </button>
         )}
         {balance !== null && balance !== undefined && (
