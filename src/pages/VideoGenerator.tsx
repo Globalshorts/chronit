@@ -2291,6 +2291,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
   const [previewBg, setPreviewBg] = useState<"black" | "white">(
     () => (localStorage.getItem("chronit_preview_bg") as "black" | "white") || "white"
   );
+  const [styleTab, setStyleTab] = useState<"basic" | "effect">("basic");
   const updPreviewBg = (v: "black" | "white") => {
     setPreviewBg(v);
     localStorage.setItem("chronit_preview_bg", v);
@@ -2391,7 +2392,17 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
   } : { display: "inline-block" };
 
   const stylePanel = (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-5 gap-y-3">
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        {(["basic","effect"] as const).map(t => (
+          <button key={t} onClick={() => setStyleTab(t)}
+            className={`flex-1 rounded-lg py-1.5 text-xs font-bold transition border ${styleTab===t ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 text-gray-400"}`}>
+            {t === "basic" ? "기본" : "효과"}
+          </button>
+        ))}
+      </div>
+      {styleTab === "basic" && (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-5 gap-y-3">
       {/* 글씨체 */}
       <div>
         <label className="text-xs font-bold text-gray-400 block mb-1.5">글씨체</label>
@@ -2436,6 +2447,10 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
       </div>
       <button onClick={() => setS({ ...s, yPos: 75, xPos: 50 })}
         className="text-xs text-gray-500 hover:text-[#0064FF] transition underline">↺ 위치 초기화</button>
+      </div>
+      )}
+      {styleTab === "effect" && (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-5 gap-y-3">
       {/* 외곽선 */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
@@ -2526,6 +2541,8 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
         <input type="range" min={0} max={5} step={0.5} value={s.blur ?? 0}
           onChange={e => upd("blur", Number(e.target.value))} className="w-full accent-[#0064FF] mt-1" />
       </div>
+      </div>
+      )}
     </div>
   );
 
