@@ -395,7 +395,7 @@ export default function VideoGenerator() {
     if (data && (data as any).can_pro_voice !== undefined) setCanProVoice(!!(data as any).can_pro_voice);
     if (!proDefaultRef.current && data && (data as any).can_pro_voice && !localStorage.getItem("chronit_voice_pref")) {
       proDefaultRef.current = true;
-      setVoiceId("74i8I1pZi98ZjmmYLdaF"); setVoiceVolume(150);   // 프로/체험 기본 = 고급 음성 '차콜'
+      setVoiceId("74i8I1pZi98ZjmmYLdaF");   // 프로/체험 기본 = 고급 음성 '차콜' (여성 볼륨은 모델이 자동 부스트)
     }
     if (data?.plan) setUserPlan(data.plan);
     if (data?.role) setUserRole(data.role);
