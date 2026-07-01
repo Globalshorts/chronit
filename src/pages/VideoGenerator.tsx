@@ -1668,7 +1668,7 @@ export default function VideoGenerator() {
                       userPlan={userPlan} canProVoice={canProVoice}
                       selectedSubtitlePresetId={selectedSubtitlePresetId} setSelectedSubtitlePresetId={setSelectedSubtitlePresetId}
                       selectedThumbnailPresetId={selectedThumbnailPresetId} setSelectedThumbnailPresetId={setSelectedThumbnailPresetId}
-                      session={session}
+                      session={session} isAdmin={isAdmin}
                     />
                   </div>
                 )}
@@ -3212,7 +3212,7 @@ function AutoSettingsView({
   userPlan, canProVoice,
   selectedSubtitlePresetId, setSelectedSubtitlePresetId,
   selectedThumbnailPresetId, setSelectedThumbnailPresetId,
-  session,
+  session, isAdmin,
 }: {
   targetSeconds: number; setTargetSeconds: (v:number)=>void;
   styleProfileId: string; setStyleProfileId: (v:string)=>void;
@@ -3226,7 +3226,7 @@ function AutoSettingsView({
   userPlan?: string | null; canProVoice?: boolean;
   selectedSubtitlePresetId: string; setSelectedSubtitlePresetId: (v:string)=>void;
   selectedThumbnailPresetId: string; setSelectedThumbnailPresetId: (v:string)=>void;
-  session: any;
+  session: any; isAdmin?: boolean;
 }) {
   const DURATIONS = [
     { s: 10, label: "10초", sub: "숏 / 2~3 클립", cr: 90 },
