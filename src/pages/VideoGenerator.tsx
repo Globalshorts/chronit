@@ -199,20 +199,20 @@ const SUBTITLE_PRESETS = [
 const STYLE_PACKS = [
   { key:"review", name:"감성 리뷰", emoji:"🤍", desc:"차분·신뢰 · 뷰티·리빙",
     targetSeconds:15, voiceId:"tIXHSlSWOafJawXSV1g4", voiceIdBasic:"shimmer", voiceSpeed:130, voiceVolume:130, styleProfileId:"auto",
-    subtitleStyle:{fontFamily:"'Gowun Dodum', sans-serif",color:"#FFFFFF",fontSize:11,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
-    thumbnailStyle:{fontFamily:"'Gowun Dodum', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
+    subtitleStyle:{fontFamily:"'Gowun Dodum', sans-serif",color:"#FFFFFF",fontSize:12,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
+    thumbnailStyle:{fontFamily:"'Gowun Dodum', sans-serif",color:"#FFFFFF",fontSize:23,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
   { key:"unboxing", name:"다이나믹 언박싱", emoji:"⚡", desc:"쨍·활기 · 가전·잡화",
     targetSeconds:15, voiceId:"5DWGv3VDkihNUcbvaonB", voiceIdBasic:"nova", voiceSpeed:130, voiceVolume:130, styleProfileId:"auto",
-    subtitleStyle:{fontFamily:"'Moneygraphy Rounded', sans-serif",color:"#FFE500",fontSize:11,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
-    thumbnailStyle:{fontFamily:"'Moneygraphy Rounded', sans-serif",color:"#FFE500",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
+    subtitleStyle:{fontFamily:"'Moneygraphy Rounded', sans-serif",color:"#FFE500",fontSize:12,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
+    thumbnailStyle:{fontFamily:"'Moneygraphy Rounded', sans-serif",color:"#FFE500",fontSize:23,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
   { key:"info", name:"정보형 꿀템", emoji:"📌", desc:"가독성 · 주방·기능성",
     targetSeconds:15, voiceId:"fHzGR8qcnsDR2uaj9r16", voiceIdBasic:"echo", voiceSpeed:130, voiceVolume:130, styleProfileId:"auto",
-    subtitleStyle:{fontFamily:"'Kakao Big Sans', sans-serif",color:"#FFFFFF",fontSize:11,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:70,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
-    thumbnailStyle:{fontFamily:"'Kakao Big Sans', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:70,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
+    subtitleStyle:{fontFamily:"'Kakao Big Sans', sans-serif",color:"#FFFFFF",fontSize:12,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:70,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
+    thumbnailStyle:{fontFamily:"'Kakao Big Sans', sans-serif",color:"#FFFFFF",fontSize:23,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:70,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
   { key:"hand", name:"손글씨 감성", emoji:"✍️", desc:"따뜻 · 육아·감성소품",
     targetSeconds:15, voiceId:"AW5wrnG1jVizOYY7R1Oo", voiceIdBasic:"fable", voiceSpeed:130, voiceVolume:130, styleProfileId:"auto",
-    subtitleStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:11,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
-    thumbnailStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
+    subtitleStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:12,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
+    thumbnailStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:23,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
 ];
 
 // ── 대본 스타일 4팩 (전 유저 공통, profile_json 인라인 전달) ──
@@ -292,7 +292,7 @@ export default function VideoGenerator() {
   const DEFAULT_STYLE = {
     fontFamily: "'Noto Sans KR', sans-serif",
     color: "#FFFFFF",
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: "900" as "400"|"700"|"900",
     strokeColor: "#000000",
     strokeWidth: 2,
