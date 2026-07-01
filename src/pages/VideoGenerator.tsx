@@ -63,6 +63,13 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
       </div>
       <SiteNav />
       <nav className="flex shrink-0 items-center gap-2 text-sm font-bold text-gray-600 md:gap-3">
+        {canInstall && (
+          <button onClick={() => window.dispatchEvent(new Event('chronit:open-install'))} title="홈 화면에 앱으로 추가"
+            className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#03C75A] px-2.5 py-1.5 text-xs font-black text-white shadow-sm active:scale-95">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+            앱 설치
+          </button>
+        )}
         <div className="relative">
           <button onClick={() => setMenuOpen(o => !o)}
             className="flex items-center gap-1.5 rounded-full bg-gray-900 px-3.5 py-1.5 font-bold text-white transition-colors hover:bg-[#03C75A]">
@@ -77,9 +84,6 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
                   <div className="mb-1 rounded-xl bg-[#03C75A]/10 px-3 py-2.5 text-center text-sm font-black text-[#03C75A]">이용권 {balance.toLocaleString()}개 · D-{daysLeft ?? 0}</div>
                 )}
                 <a href="/me" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">👤 마이페이지</a>
-                {canInstall && (
-                  <button onClick={() => { setMenuOpen(false); window.dispatchEvent(new Event('chronit:open-install')); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">📲 앱 설치</button>
-                )}
                 <button onClick={() => { setMenuOpen(false); onInvite && onInvite(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">🎁 무료 이용권 받기</button>
                 <a href="https://forms.gle/LCDeSEXSM7ALykqv5" target="_blank" rel="noreferrer" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">📝 피드백 보내고 영상 2개</a>
                 <button onClick={() => { setMenuOpen(false); onHistory && onHistory(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">📒 사용 내역</button>
@@ -1977,6 +1981,7 @@ const FONTS = [
   { label: "검은고딕",             value: "'Black Han Sans', sans-serif" },
   { label: "배달의민족 주아체",     value: "'Jua', sans-serif" },
   { label: "배달의민족 도현체",     value: "'Do Hyeon', sans-serif" },
+  { label: "고운돋움",             value: "'Gowun Dodum', sans-serif" },
   // 추가 번들 (self-host woff2)
   { label: "에스코어 드림",        value: "'S-Core Dream', sans-serif" },
   { label: "G마켓 산스",           value: "'Gmarket Sans', sans-serif" },
