@@ -339,6 +339,7 @@ export default function VideoGenerator() {
   const [balance, setBalance]       = useState<number | null>(null);
   const [daysLeft, setDaysLeft]     = useState<number | null>(null);
   const [canProVoice, setCanProVoice] = useState<boolean>(true);
+  const proDefaultRef = useRef(false);
   const [refInfo, setRefInfo] = useState<any>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [points, setPoints]         = useState<number | null>(null);
@@ -392,6 +393,10 @@ export default function VideoGenerator() {
     const { data } = await supabase.rpc("get_my_balance_rpc").single();
     if (data?.balance !== undefined) setBalance(data.balance);
     if (data && (data as any).can_pro_voice !== undefined) setCanProVoice(!!(data as any).can_pro_voice);
+    if (!proDefaultRef.current && data && (data as any).can_pro_voice && !localStorage.getItem("chronit_voice_pref")) {
+      proDefaultRef.current = true;
+      setVoiceId("74i8I1pZi98ZjmmYLdaF"); setVoiceVolume(150);   // 프로/체험 기본 = 고급 음성 '차콜'
+    }
     if (data?.plan) setUserPlan(data.plan);
     if (data?.role) setUserRole(data.role);
     try { const _u = (await supabase.auth.getUser()).data.user; if (_u) { const { data: _ri } = await supabase.rpc("get_referral_info_rpc", { p_user_id: _u.id }); if (_ri) setRefInfo(_ri); } } catch {}
@@ -1815,8 +1820,7 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
   const handleSetVoiceId = (id: string) => {
     setVoiceId(id);
     localStorage.setItem("chronit_voice_id", id);
-    const vol = EL_FEMALE_IDS.has(id) ? 150 : 100;   // 여성 EL 보이스는 음량이 작아 150% 기본
-    setVoiceVolume(vol); localStorage.setItem("chronit_voice_volume", String(vol));
+    localStorage.setItem("chronit_voice_pref", "1"); // 직접 선택 → 기본값 자동적용 중단(볼륨 유지)
   };
   const handleSetSpeed = (v: number) => { setVoiceSpeed(v); localStorage.setItem("chronit_voice_speed", String(v)); };
 
