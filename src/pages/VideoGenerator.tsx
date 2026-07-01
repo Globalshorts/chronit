@@ -1668,7 +1668,7 @@ export default function VideoGenerator() {
                       userPlan={userPlan} canProVoice={canProVoice}
                       selectedSubtitlePresetId={selectedSubtitlePresetId} setSelectedSubtitlePresetId={setSelectedSubtitlePresetId}
                       selectedThumbnailPresetId={selectedThumbnailPresetId} setSelectedThumbnailPresetId={setSelectedThumbnailPresetId}
-                      session={session} isAdmin={isAdmin}
+                      session={session} isAdmin={userRole === "super_admin"}
                     />
                   </div>
                 )}
