@@ -377,12 +377,15 @@ export default function VideoGenerator() {
   const [studioTab, setStudioTab] = useState("style"); // 'style'(스타일 찾기) | 'auto'(자동화 세팅)
   const [activePack, setActivePack] = useState<string>(() => { try { return localStorage.getItem("chronit_active_pack") || ""; } catch { return ""; } });
   const [advOpen, setAdvOpen] = useState(false);
+  const [packVoiceMsg, setPackVoiceMsg] = useState("");
   const [userPacks, setUserPacks] = useState<any[]>([]);
   const [packOnboardOpen, setPackOnboardOpen] = useState(false);
   const applyPack = (p:any, key?:string) => {
     setTargetSeconds(p.targetSeconds);
     const _basicV = new Set(["nova","shimmer","onyx","echo","fable"]);
-    setVoiceId((!canProVoice && !_basicV.has(p.voiceId)) ? (p.voiceIdBasic || "shimmer") : p.voiceId);
+    const _needBasic = !canProVoice && !_basicV.has(p.voiceId);
+    setVoiceId(_needBasic ? (p.voiceIdBasic || "shimmer") : p.voiceId);
+    if (_needBasic) { setPackVoiceMsg("고급 음성은 프로 플랜부터예요 — 기본 음성으로 적용됐어요."); setTimeout(() => setPackVoiceMsg(""), 3500); }
     setVoiceSpeed(p.voiceSpeed); setVoiceVolume(p.voiceVolume);
     setSubtitleStyle(p.subtitleStyle); setThumbnailStyle(p.thumbnailStyle);
     setStyleProfileId(p.styleProfileId || "auto");
@@ -1364,7 +1367,7 @@ export default function VideoGenerator() {
                   <span className="text-sm">🎬</span>
                   <p className="text-xs font-bold text-gray-600">영상만 모드 — AI 음성·자막 없이 클립 몽타주만 생성돼요.</p>
                 </div>
-              ) : (!styleProfileId || styleProfileId === "auto") ? (
+              ) : (!activePack && (!styleProfileId || styleProfileId === "auto")) ? (
                 <div className="flex items-start gap-2 rounded-xl bg-red-50 border border-red-200 px-3 py-2">
                   <span className="text-sm">⚠️</span>
                   <p className="text-xs font-bold text-red-600">스타일 미적용 — 영상이 어색할 수 있어요. <span className="font-normal text-red-500">'스타일'에서 설정하면 훨씬 좋아져요.</span></p>
@@ -1430,6 +1433,11 @@ export default function VideoGenerator() {
       )}
 
       {/* 완성 알림 팝업 */}
+      {packVoiceMsg && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] rounded-2xl bg-amber-500 px-5 py-3 text-sm font-bold text-white shadow-2xl shadow-amber-500/40">
+          🔒 {packVoiceMsg}
+        </div>
+      )}
       {completionAlert && (
         <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 rounded-2xl shadow-2xl px-6 py-4 flex items-center gap-3 text-white ${completionAlert.startsWith("❌") ? "bg-red-500 shadow-red-500/40" : "bg-green-500 shadow-green-500/40"}`}>
           <span className="text-2xl">{completionAlert.startsWith("❌") ? "⚠️" : "🎉"}</span>
