@@ -1661,6 +1661,32 @@ export default function VideoGenerator() {
                   </button>
                 </div>
 
+                {/* 🎨 대본 스타일 (스타일 팩 아래) */}
+                <div className="mt-6">
+                  <p className="text-sm font-black text-gray-900 mb-1">🎨 대본 스타일</p>
+                  <p className="text-xs text-gray-400 mb-3">영상 대본의 전개 방식을 골라주세요.</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {SCRIPT_STYLES.map(s => (
+                      <button key={s.key} type="button" onClick={() => setStyleProfileId(s.key)}
+                        className={`rounded-xl border p-3 text-left transition ${
+                          styleProfileId === s.key ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 hover:border-gray-400"
+                        }`}>
+                        <p className={`text-sm font-black ${styleProfileId === s.key ? "text-[#0064FF]" : "text-gray-900"}`}>{s.emoji} {s.name}</p>
+                        <p className="text-xs text-gray-500 mt-0.5 leading-tight">{s.desc}</p>
+                      </button>
+                    ))}
+                  </div>
+                  {userRole === "super_admin" && (
+                    <details className="border-t border-gray-100 pt-3 mt-3">
+                      <summary className="text-xs font-bold text-gray-400 cursor-pointer">＋ URL로 대본 스타일 분석 (관리자 전용)</summary>
+                      <div className="mt-3 space-y-3">
+                        <StyleSelector selected={styleProfileId} onSelect={setStyleProfileId} session={session} />
+                        <StyleFinderView session={session} onImport={(id:string) => setStyleProfileId(id)} />
+                      </div>
+                    </details>
+                  )}
+                </div>
+
                 <button onClick={() => setAdvOpen(v => !v)}
                   className="mt-6 flex items-center gap-1 text-sm font-bold text-gray-500 hover:text-gray-900">
                   고급 설정 {advOpen ? "▴" : "▾"}
@@ -3267,32 +3293,6 @@ function AutoSettingsView({
             </button>
           ))}
         </div>
-      </div>
-
-      {/* 대본 스타일 */}
-      <div className="rounded-2xl bg-white border border-gray-200 p-5 space-y-3">
-        <p className="text-sm font-black text-gray-900">🎨 대본 스타일</p>
-        <p className="text-xs text-gray-500 -mt-1">영상 대본의 전개 방식을 골라주세요.</p>
-        <div className="grid grid-cols-2 gap-2">
-          {SCRIPT_STYLES.map(s => (
-            <button key={s.key} type="button" onClick={() => setStyleProfileId(s.key)}
-              className={`rounded-xl border p-3 text-left transition ${
-                styleProfileId === s.key ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 hover:border-gray-400"
-              }`}>
-              <p className={`text-sm font-black ${styleProfileId === s.key ? "text-[#0064FF]" : "text-gray-900"}`}>{s.emoji} {s.name}</p>
-              <p className="text-xs text-gray-500 mt-0.5 leading-tight">{s.desc}</p>
-            </button>
-          ))}
-        </div>
-        {isAdmin && (
-          <details className="border-t border-gray-100 pt-3">
-            <summary className="text-xs font-bold text-gray-400 cursor-pointer">＋ URL로 대본 스타일 분석 (관리자 전용)</summary>
-            <div className="mt-3 space-y-3">
-              <StyleSelector selected={styleProfileId} onSelect={setStyleProfileId} session={session} />
-              <StyleFinderView session={session} onImport={(id:string) => setStyleProfileId(id)} />
-            </div>
-          </details>
-        )}
       </div>
 
       {/* 음성 설정 */}
