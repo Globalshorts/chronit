@@ -381,6 +381,7 @@ export default function VideoGenerator() {
   const loadBalance = useCallback(async () => {
     const { data } = await supabase.rpc("get_my_balance_rpc").single();
     if (data?.balance !== undefined) setBalance(data.balance);
+    if (data && (data as any).can_pro_voice !== undefined) setCanProVoice(!!(data as any).can_pro_voice);
     if (data?.plan) setUserPlan(data.plan);
     if (data?.role) setUserRole(data.role);
     try { const _u = (await supabase.auth.getUser()).data.user; if (_u) { const { data: _ri } = await supabase.rpc("get_referral_info_rpc", { p_user_id: _u.id }); if (_ri) setRefInfo(_ri); } } catch {}
@@ -3111,7 +3112,7 @@ function AutoSettingsView({
         <p className="text-sm font-black text-gray-900">🔊 음성 설정</p>
         <VoicePanel voiceId={voiceId} setVoiceId={setVoiceId}
           voiceSpeed={voiceSpeed} setVoiceSpeed={setVoiceSpeed}
-          voiceVolume={voiceVolume} setVoiceVolume={setVoiceVolume} userPlan={userPlan} />
+          voiceVolume={voiceVolume} setVoiceVolume={setVoiceVolume} userPlan={userPlan} canProVoice={canProVoice} />
       </div>
 
       {/* 자막 스타일 */}
