@@ -215,6 +215,30 @@ const STYLE_PACKS = [
     thumbnailStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
 ];
 
+// ── 대본 스타일 4팩 (전 유저 공통, profile_json 인라인 전달) ──
+const SCRIPT_STYLES = [
+  { key:"story", emoji:"📖", name:"스토리텔링", desc:"1인칭 경험담으로 자연스럽게",
+    profile:{ type:"story", label:"스토리텔링",
+      tone:{ speaker:"일상 경험을 편하게 들려주는 화자", formality:"친근한 존댓말 구어체", energy:"경쾌하고 자연스러운 템포", signatures:[] },
+      subtitle:{ avg_chars:"12~18자", split_rule:"호흡 단위로 짧게", rhythm:"말 속도에 맞춰 경쾌하게", emphasis:"핵심 키워드 강조" } } },
+  { key:"info", emoji:"📌", name:"정보성", desc:"일화 없이 알짜 정보 전달",
+    profile:{ type:"info", label:"정보성",
+      tone:{ speaker:"믿음직하게 정보를 정리해주는 화자", formality:"담백한 존댓말", energy:"차분하고 신뢰감 있는 톤", signatures:[] },
+      subtitle:{ avg_chars:"12~18자", split_rule:"의미 단위로 끊기", rhythm:"또박또박", emphasis:"수치·기능 키워드 강조" } } },
+  { key:"review", emoji:"⭐", name:"리뷰형", desc:"직접 써본 솔직 후기",
+    profile:{ type:"review", label:"리뷰형",
+      tone:{ speaker:"직접 써본 실사용자", formality:"친근한 존댓말 후기체", energy:"솔직담백, 확신 있는 톤", signatures:[] },
+      subtitle:{ avg_chars:"12~18자", split_rule:"호흡 단위", rhythm:"자연스럽게", emphasis:"체감 변화 강조" } } },
+  { key:"problem", emoji:"🔧", name:"문제제기형", desc:"불편 공감 → 해결(비포·애프터)",
+    profile:{ type:"problem", label:"문제제기형",
+      tone:{ speaker:"같은 불편을 겪어본 화자", formality:"공감형 존댓말", energy:"문제 공감 후 시원하게 해결", signatures:[] },
+      subtitle:{ avg_chars:"12~18자", split_rule:"의미 단위", rhythm:"문제→해결 리듬", emphasis:"불편/해결 키워드 강조" } } },
+];
+function scriptStyleJsonFor(id: string): string {
+  const s = SCRIPT_STYLES.find(x => x.key === id);
+  return s ? JSON.stringify(s.profile) : "";
+}
+
 // ── 메인 ─────────────────────────────────────────────────────
 export default function VideoGenerator() {
   const [session, setSession]       = useState<Session | null>(null);
@@ -250,7 +274,7 @@ export default function VideoGenerator() {
 
   // Stage 2
   const [targetSeconds, setTargetSeconds] = useState(15);
-  const [styleProfileId, setStyleProfileId] = useState("auto");
+  const [styleProfileId, setStyleProfileId] = useState("story");
   const [videoOnly, setVideoOnly] = useState<boolean>(() => { try { return localStorage.getItem("chronit_video_only") === "1"; } catch { return false; } });
   const toggleVideoOnly = () => setVideoOnly(v => { const nv = !v; try { localStorage.setItem("chronit_video_only", nv ? "1" : "0"); } catch {} return nv; });
   const [coupangOpen, setCoupangOpen] = useState(false);
@@ -390,7 +414,7 @@ export default function VideoGenerator() {
     if (_needBasic) { setPackVoiceMsg("고급 음성은 프로 플랜부터예요 — 기본 음성으로 적용됐어요."); setTimeout(() => setPackVoiceMsg(""), 3500); }
     setVoiceSpeed(p.voiceSpeed); setVoiceVolume(p.voiceVolume);
     setSubtitleStyle(p.subtitleStyle); setThumbnailStyle(p.thumbnailStyle);
-    setStyleProfileId(p.styleProfileId || "auto");
+    // 대본 스타일은 별도 선택 — 음성 팩이 덮어쓰지 않음
     try { localStorage.setItem("chronit_voice_pref","1"); localStorage.setItem("chronit_active_pack", key ?? p.key ?? ""); } catch {}
     setActivePack(key ?? p.key ?? "");
   };
@@ -982,7 +1006,7 @@ export default function VideoGenerator() {
           method: "POST",
           headers: { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" },
           body: JSON.stringify({ source_url: sourceUrl.trim(), selected_clips: selected,
-            target_seconds: targetSeconds, style_profile_id: styleProfileId, cta_text: (ctaOverride ?? ctaText).trim() }),
+            target_seconds: targetSeconds, style_profile_id: styleProfileId, style_profile_json: scriptStyleJsonFor(styleProfileId), cta_text: (ctaOverride ?? ctaText).trim() }),
         });
         const data = await resp.json();
         if (!data.ok) { reject(new Error(data.error ?? "대본 생성 실패")); return; }
@@ -3235,11 +3259,27 @@ function AutoSettingsView({
       {/* 대본 스타일 */}
       <div className="rounded-2xl bg-white border border-gray-200 p-5 space-y-3">
         <p className="text-sm font-black text-gray-900">🎨 대본 스타일</p>
-        <StyleSelector selected={styleProfileId} onSelect={setStyleProfileId} session={session} />
-        <div className="border-t border-gray-100 pt-3">
-          <p className="text-xs font-bold text-gray-500 mb-2">＋ URL로 새 대본 스타일 찾기</p>
-          <StyleFinderView session={session} onImport={(id:string) => setStyleProfileId(id)} />
+        <p className="text-xs text-gray-500 -mt-1">영상 대본의 전개 방식을 골라주세요.</p>
+        <div className="grid grid-cols-2 gap-2">
+          {SCRIPT_STYLES.map(s => (
+            <button key={s.key} type="button" onClick={() => setStyleProfileId(s.key)}
+              className={`rounded-xl border p-3 text-left transition ${
+                styleProfileId === s.key ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 hover:border-gray-400"
+              }`}>
+              <p className={`text-sm font-black ${styleProfileId === s.key ? "text-[#0064FF]" : "text-gray-900"}`}>{s.emoji} {s.name}</p>
+              <p className="text-xs text-gray-500 mt-0.5 leading-tight">{s.desc}</p>
+            </button>
+          ))}
         </div>
+        {isAdmin && (
+          <details className="border-t border-gray-100 pt-3">
+            <summary className="text-xs font-bold text-gray-400 cursor-pointer">＋ URL로 대본 스타일 분석 (관리자 전용)</summary>
+            <div className="mt-3 space-y-3">
+              <StyleSelector selected={styleProfileId} onSelect={setStyleProfileId} session={session} />
+              <StyleFinderView session={session} onImport={(id:string) => setStyleProfileId(id)} />
+            </div>
+          </details>
+        )}
       </div>
 
       {/* 음성 설정 */}
