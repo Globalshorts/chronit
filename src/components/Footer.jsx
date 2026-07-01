@@ -28,12 +28,12 @@ const Footer = ({ dark = false, user = null }) => {
         brand: 'text-gray-900',
         lead: 'text-gray-600',
         head: 'text-gray-900',
-        link: 'text-gray-500 hover:text-[#03C75A]',
-        admin: 'text-[#03C75A]/80 hover:text-[#03C75A]',
+        link: 'text-gray-500 hover:text-[#0064FF]',
+        admin: 'text-[#0064FF]/80 hover:text-[#0064FF]',
         divider: 'border-gray-200',
         biz: 'text-gray-400',
         copy: 'text-gray-400',
-        social: 'bg-gray-100 text-gray-500 hover:bg-[#03C75A] hover:text-white',
+        social: 'bg-gray-100 text-gray-500 hover:bg-[#0064FF] hover:text-white',
       }
 
   return (

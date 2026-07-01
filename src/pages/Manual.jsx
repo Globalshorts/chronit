@@ -8,16 +8,16 @@ const CARDS = [
     emoji: '👋',
     title: '이렇게 쓰면 돼요',
     desc: '링크 붙여넣고 버튼 한 번,\n3단계면 영상 완성',
-    color: 'from-[#03C75A]/10 to-[#03C75A]/10 border-[#03C75A]/30 hover:border-[#03C75A] bg-white',
+    color: 'from-[#0064FF]/10 to-[#0064FF]/10 border-[#0064FF]/30 hover:border-[#0064FF] bg-white',
     badge: '필수',
-    badgeColor: 'bg-[#03C75A]/15 text-[#03C75A]',
+    badgeColor: 'bg-[#0064FF]/15 text-[#0064FF]',
   },
   {
     to: '/manual/revenue',
     emoji: '💰',
     title: '쿠팡 파트너스 & 수익 구조',
     desc: '뭔지, 어떻게 쓰는지,\n돈이 통장에 어떻게 들어오는지',
-    color: 'from-[#03C75A]/10 to-[#03C75A]/10 border-[#03C75A]/30 hover:border-[#03C75A] bg-white',
+    color: 'from-[#0064FF]/10 to-[#0064FF]/10 border-[#0064FF]/30 hover:border-[#0064FF] bg-white',
     badge: '꼭 읽기',
     badgeColor: 'bg-[#FFB800]/15 text-[#9a6b00]',
   },
@@ -26,16 +26,16 @@ const CARDS = [
     emoji: '📸',
     title: '사진 보고 따라하기 (전체 흐름)',
     desc: '세팅(처음 한 번만)부터 영상 만들기·내 링크 공유까지\n다음 ▶ 으로 한 단계씩',
-    color: 'from-[#03C75A]/10 to-[#03C75A]/10 border-[#03C75A]/30 hover:border-[#03C75A] bg-white',
+    color: 'from-[#0064FF]/10 to-[#0064FF]/10 border-[#0064FF]/30 hover:border-[#0064FF] bg-white',
     badge: '추천',
-    badgeColor: 'bg-[#03C75A]/15 text-[#03C75A]',
+    badgeColor: 'bg-[#0064FF]/15 text-[#0064FF]',
   },
   {
     to: '/manual/app',
     emoji: '📱',
     title: '앱으로 사용하는 방법',
     desc: '휴대폰 홈 화면에 추가해\n앱처럼 사용하기',
-    color: 'from-[#03C75A]/10 to-[#03C75A]/10 border-[#03C75A]/30 hover:border-[#03C75A] bg-white',
+    color: 'from-[#0064FF]/10 to-[#0064FF]/10 border-[#0064FF]/30 hover:border-[#0064FF] bg-white',
     badge: null,
     badgeColor: '',
   },
@@ -71,14 +71,14 @@ const CARDS = [
 const Manual = () => {
   const { pathname } = useLocation()
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans text-gray-900 selection:bg-[#03C75A]/30">
+    <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans text-gray-900 selection:bg-[#0064FF]/30">
       <ManualHeader currentPath={pathname} />
 
       {/* 히어로 */}
       <section className="relative px-5 pt-32 pb-12 md:px-8 md:pt-48 md:pb-16">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_60%,transparent_100%)]" />
         <div className="relative z-10 mx-auto max-w-4xl text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#03C75A]/20 bg-[#03C75A]/10 px-4 py-1.5 text-sm font-bold text-[#03C75A] shadow-[0_0_20px_rgba(59,130,246,0.15)] md:text-base">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#0064FF]/20 bg-[#0064FF]/10 px-4 py-1.5 text-sm font-bold text-[#0064FF] shadow-[0_0_20px_rgba(59,130,246,0.15)] md:text-base">
             <Sparkles size={14} fill="currentColor" /> <span>크로닛 사용 방법</span>
           </div>
           <h1 className="mb-4 text-4xl font-black tracking-tight text-gray-900 md:text-6xl">사용 방법</h1>
@@ -105,7 +105,7 @@ const Manual = () => {
                 <h2 className="text-lg font-black text-gray-900">{card.title}</h2>
                 <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-slate-500">{card.desc}</p>
               </div>
-              <div className="mt-auto flex items-center gap-1 text-sm font-bold text-[#03C75A] transition-gap group-hover:gap-2">
+              <div className="mt-auto flex items-center gap-1 text-sm font-bold text-[#0064FF] transition-gap group-hover:gap-2">
                 바로가기 <ChevronRight size={16} />
               </div>
             </Link>
@@ -114,7 +114,7 @@ const Manual = () => {
       </section>
 
       <section className="px-5 py-8 text-center md:px-8">
-        <Link to="/" className="group inline-flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-3 text-base font-bold text-slate-700 transition-all hover:border-[#03C75A] hover:text-[#03C75A] md:text-lg">
+        <Link to="/" className="group inline-flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-3 text-base font-bold text-slate-700 transition-all hover:border-[#0064FF] hover:text-[#0064FF] md:text-lg">
           홈으로 돌아가기
         </Link>
       </section>

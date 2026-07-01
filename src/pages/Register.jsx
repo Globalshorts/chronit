@@ -146,7 +146,7 @@ const Register = () => {
         {/* 진행바 */}
         <div className="mb-7 flex items-center justify-center gap-1.5">
           {Array.from({ length: TOTAL }).map((_, i) => (
-            <span key={i} className={`h-1.5 rounded-full transition-all ${i === step ? 'w-7 bg-[#03C75A]' : i < step ? 'w-1.5 bg-[#03C75A]/50' : 'w-1.5 bg-gray-200'}`} />
+            <span key={i} className={`h-1.5 rounded-full transition-all ${i === step ? 'w-7 bg-[#0064FF]' : i < step ? 'w-1.5 bg-[#0064FF]/50' : 'w-1.5 bg-gray-200'}`} />
           ))}
         </div>
 
@@ -156,20 +156,20 @@ const Register = () => {
             <h2 className="mb-1 text-lg font-black text-gray-900">서비스 이용 동의</h2>
             <p className="mb-5 text-sm leading-relaxed text-gray-500">시작하려면 아래 약관에 동의해주세요.</p>
 
-            <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-gray-200 bg-[#FAFAF8] p-4 transition-all hover:border-[#03C75A]/40">
+            <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-gray-200 bg-[#FAFAF8] p-4 transition-all hover:border-[#0064FF]/40">
               <div className="mt-0.5 shrink-0">
-                {agree ? <CheckCircle2 size={20} className="text-[#03C75A]" /> : <div className="h-5 w-5 rounded-full border-2 border-gray-300" />}
+                {agree ? <CheckCircle2 size={20} className="text-[#0064FF]" /> : <div className="h-5 w-5 rounded-full border-2 border-gray-300" />}
               </div>
               <input type="checkbox" className="sr-only" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
               <span className="text-sm leading-relaxed text-gray-600">
-                <Link to="/terms" className="font-bold text-[#03C75A] underline underline-offset-2" target="_blank">이용약관</Link>{' '}및{' '}
-                <Link to="/privacy" className="font-bold text-[#03C75A] underline underline-offset-2" target="_blank">개인정보처리방침</Link>에 동의합니다. <span className="text-red-400">(필수)</span>
+                <Link to="/terms" className="font-bold text-[#0064FF] underline underline-offset-2" target="_blank">이용약관</Link>{' '}및{' '}
+                <Link to="/privacy" className="font-bold text-[#0064FF] underline underline-offset-2" target="_blank">개인정보처리방침</Link>에 동의합니다. <span className="text-red-400">(필수)</span>
               </span>
             </label>
 
-            <label className="mt-3 flex cursor-pointer items-start gap-3 rounded-2xl border border-gray-200 bg-white p-4 transition-all hover:border-[#03C75A]/40">
+            <label className="mt-3 flex cursor-pointer items-start gap-3 rounded-2xl border border-gray-200 bg-white p-4 transition-all hover:border-[#0064FF]/40">
               <div className="mt-0.5 shrink-0">
-                {marketing ? <CheckCircle2 size={20} className="text-[#03C75A]" /> : <div className="h-5 w-5 rounded-full border-2 border-gray-300" />}
+                {marketing ? <CheckCircle2 size={20} className="text-[#0064FF]" /> : <div className="h-5 w-5 rounded-full border-2 border-gray-300" />}
               </div>
               <input type="checkbox" className="sr-only" checked={marketing} onChange={(e) => setMarketing(e.target.checked)} />
               <span className="text-sm leading-relaxed text-gray-600">
@@ -179,7 +179,7 @@ const Register = () => {
             </label>
 
             <button onClick={submitTerms} disabled={!agree || saving}
-              className="mt-6 w-full rounded-2xl bg-[#03C75A] px-6 py-3.5 text-base font-black text-white shadow-[0_10px_30px_-10px_rgba(3,199,90,0.5)] transition-all hover:bg-[#02b350] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40">
+              className="mt-6 w-full rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-black text-white shadow-[0_10px_30px_-10px_rgba(3,199,90,0.5)] transition-all hover:bg-[#0052D6] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40">
               동의하고 계속하기
             </button>
           </div>
@@ -192,10 +192,10 @@ const Register = () => {
             <p className="mb-5 text-sm leading-relaxed text-gray-500">서비스에 표시될 닉네임을 정해주세요. (2~10자, 중복 불가)</p>
             <input value={nick} onChange={(e) => setNick(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submitNick()}
               maxLength={10} placeholder="예: 숏폼장인" autoFocus
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base text-gray-900 outline-none focus:border-[#03C75A]" />
+              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base text-gray-900 outline-none focus:border-[#0064FF]" />
             {nickErr && <p className="mt-2 text-sm font-medium text-red-500">{nickErr}</p>}
             <button onClick={submitNick} disabled={saving || nick.trim().length < 2}
-              className="mt-6 w-full rounded-2xl bg-[#03C75A] px-6 py-3.5 text-base font-black text-white transition-all hover:bg-[#02b350] active:scale-[0.98] disabled:opacity-40">
+              className="mt-6 w-full rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-black text-white transition-all hover:bg-[#0052D6] active:scale-[0.98] disabled:opacity-40">
               {saving ? '저장 중…' : '다음'}
             </button>
           </div>
@@ -209,7 +209,7 @@ const Register = () => {
             <div className="grid grid-cols-2 gap-2.5">
               {SOURCE_OPTIONS.map((opt) => (
                 <button key={opt} disabled={saving} onClick={() => chooseSource(opt)}
-                  className="rounded-xl border border-gray-200 bg-[#FAFAF8] px-3 py-3.5 text-sm font-bold text-gray-800 transition hover:border-[#03C75A] hover:text-[#03C75A] active:scale-[0.98] disabled:opacity-50">
+                  className="rounded-xl border border-gray-200 bg-[#FAFAF8] px-3 py-3.5 text-sm font-bold text-gray-800 transition hover:border-[#0064FF] hover:text-[#0064FF] active:scale-[0.98] disabled:opacity-50">
                   {opt}
                 </button>
               ))}
@@ -229,15 +229,15 @@ const Register = () => {
                 <div className="flex gap-2">
                   <input value={refCode} onChange={(e) => setRefCode(e.target.value.toUpperCase())} onKeyDown={(e) => e.key === 'Enter' && applyReferral()}
                     placeholder="추천 코드"
-                    className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-3 text-base font-bold tracking-widest text-gray-900 outline-none focus:border-[#03C75A]" />
+                    className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-3 text-base font-bold tracking-widest text-gray-900 outline-none focus:border-[#0064FF]" />
                   <button onClick={applyReferral} disabled={saving}
-                    className="shrink-0 rounded-xl bg-[#03C75A] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#02b350] disabled:opacity-50">적용</button>
+                    className="shrink-0 rounded-xl bg-[#0064FF] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#0052D6] disabled:opacity-50">적용</button>
                 </div>
                 {refMsg && <p className={`mt-2 text-sm font-medium ${refMsg.ok ? 'text-green-600' : 'text-red-500'}`}>{refMsg.text}</p>}
               </>
             )}
             <button onClick={finish} disabled={saving}
-              className="mt-6 w-full rounded-2xl bg-[#03C75A] px-6 py-3.5 text-base font-black text-white transition-all hover:bg-[#02b350] active:scale-[0.98] disabled:opacity-40">
+              className="mt-6 w-full rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-black text-white transition-all hover:bg-[#0052D6] active:scale-[0.98] disabled:opacity-40">
               {saving ? '시작하는 중…' : '시작하기'}
             </button>
             {!refApplied && (

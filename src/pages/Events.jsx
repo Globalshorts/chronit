@@ -6,7 +6,7 @@ import Footer from '../components/Footer'
 import { supabase } from '../lib/supabase'
 
 const statusCfg = {
-  active: { label: '진행중',      cls: 'bg-[#03C75A]/20 text-[#03C75A] border-[#03C75A]/30',   dot: true  },
+  active: { label: '진행중',      cls: 'bg-[#0064FF]/20 text-[#0064FF] border-[#0064FF]/30',   dot: true  },
   ended:  { label: '종료됨',      cls: 'bg-slate-600/30 text-slate-400 border-slate-500/20', dot: false },
   winner: { label: '당첨자 발표', cls: 'bg-amber-500/20 text-amber-300 border-amber-500/30', dot: false },
 }
@@ -15,7 +15,7 @@ const EventBadge = ({ status, label }) => {
   const cfg = statusCfg[status] || statusCfg.active
   return (
     <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold ${cfg.cls}`}>
-      {cfg.dot && <span className="h-1.5 w-1.5 rounded-full bg-[#03C75A] animate-[badge-pulse_1.4s_ease-in-out_infinite]" />}
+      {cfg.dot && <span className="h-1.5 w-1.5 rounded-full bg-[#0064FF] animate-[badge-pulse_1.4s_ease-in-out_infinite]" />}
       {cfg.label}
     </span>
   )
@@ -67,7 +67,7 @@ const Events = () => {
       <section className="relative px-5 pt-32 pb-12 md:px-8 md:pt-48 md:pb-16">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_60%,transparent_100%)]" />
         <div className="relative z-10 mx-auto max-w-4xl text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#03C75A]/20 bg-[#03C75A]/10 px-4 py-1.5 text-sm font-bold text-[#03C75A] shadow-[0_0_20px_rgba(59,130,246,0.15)] md:text-base">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#0064FF]/20 bg-[#0064FF]/10 px-4 py-1.5 text-sm font-bold text-[#0064FF] shadow-[0_0_20px_rgba(59,130,246,0.15)] md:text-base">
             <Megaphone size={14} /> <span>크로닛 이벤트</span>
           </div>
           <h1 className="mb-4 text-4xl font-black tracking-tight text-gray-900 md:text-6xl">이벤트</h1>
@@ -86,7 +86,7 @@ const Events = () => {
                 onClick={() => setEventTab(tab.key)}
                 className={`px-5 py-3 text-sm font-bold transition-colors border-b-2 -mb-px ${
                   eventTab === tab.key
-                    ? 'border-[#03C75A] text-[#03C75A]'
+                    ? 'border-[#0064FF] text-[#0064FF]'
                     : 'border-transparent text-slate-500 hover:text-slate-300'
                 }`}
               >
@@ -109,14 +109,14 @@ const Events = () => {
                 <Link
                   key={ev.id}
                   to={`/events/${ev.id}`}
-                  className="group flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#03C75A]/40 hover:shadow-lg"
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#0064FF]/40 hover:shadow-lg"
                 >
-                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-br from-[#03C75A]/15 to-[#03C75A]/5">
+                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-br from-[#0064FF]/15 to-[#0064FF]/5">
                     {ev.thumbnail_url ? (
                       <img src={ev.thumbnail_url} alt="" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center">
-                        <Megaphone size={40} className="text-[#03C75A]/40" />
+                        <Megaphone size={40} className="text-[#0064FF]/40" />
                       </div>
                     )}
                     <div className="absolute left-3 top-3">
@@ -130,7 +130,7 @@ const Events = () => {
                     )}
                     <div className="mt-auto flex items-center justify-between pt-3">
                       <span className="text-xs text-slate-400">{fmtDate(ev.created_at)}</span>
-                      <span className="flex items-center gap-1 text-sm font-bold text-[#03C75A] transition-all group-hover:gap-2">자세히 보기 →</span>
+                      <span className="flex items-center gap-1 text-sm font-bold text-[#0064FF] transition-all group-hover:gap-2">자세히 보기 →</span>
                     </div>
                   </div>
                 </Link>

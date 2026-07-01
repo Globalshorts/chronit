@@ -92,7 +92,7 @@ const BoardPost = () => {
     <div className="min-h-screen bg-[#FAFAF8] font-sans"><CommunityHeader active="board" />
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-5 pt-24 text-center">
         <p className="text-lg font-bold">게시글을 찾을 수 없어요</p>
-        <button onClick={() => nav('/board')} className="rounded-full bg-[#03C75A] px-6 py-2.5 font-bold text-white">목록으로</button>
+        <button onClick={() => nav('/board')} className="rounded-full bg-[#0064FF] px-6 py-2.5 font-bold text-white">목록으로</button>
       </div>
     </div>
   )
@@ -110,7 +110,7 @@ const BoardPost = () => {
         </div>
         <h1 className="mb-3 text-2xl font-black leading-snug md:text-3xl">{post.title}</h1>
         <div className="flex items-center gap-3 border-b border-gray-200 pb-4 text-sm text-slate-400">
-          <Link to={post.user_id === user?.id ? '/me' : `/board/u/${post.user_id}`} className="font-bold text-slate-600 hover:text-[#03C75A] hover:underline">{post.author_nickname}</Link>
+          <Link to={post.user_id === user?.id ? '/me' : `/board/u/${post.user_id}`} className="font-bold text-slate-600 hover:text-[#0064FF] hover:underline">{post.author_nickname}</Link>
           <span>{fmtWhen(post.created_at)}</span>
           <span className="ml-auto flex items-center gap-1"><Eye size={14} />{post.view_count}</span>
           {user && post.user_id !== user.id && (
@@ -118,7 +118,7 @@ const BoardPost = () => {
           )}
           {user && post.user_id === user.id && (
             <>
-              <button onClick={() => nav(`/board/write?edit=${post.id}`)} className="font-bold text-slate-400 transition-colors hover:text-[#03C75A]">수정</button>
+              <button onClick={() => nav(`/board/write?edit=${post.id}`)} className="font-bold text-slate-400 transition-colors hover:text-[#0064FF]">수정</button>
               <button onClick={delPost} className="font-bold text-slate-400 transition-colors hover:text-red-500">삭제</button>
             </>
           )}
@@ -143,15 +143,15 @@ const BoardPost = () => {
           .event-post ol { list-style:decimal; }
           .event-post li { margin:.4em 0; }
           .event-post b,.event-post strong { color:#111827; font-weight:800; }
-          .event-post a { color:#03C75A; text-decoration:underline; font-weight:600; }
+          .event-post a { color:#0064FF; text-decoration:underline; font-weight:600; }
           .event-post img { max-width:100%; border-radius:14px; margin:1.2em 0; }
           .event-post hr { border:0; border-top:1px solid #e5e7eb; margin:1.7em 0; }
-          .event-post blockquote { border-left:3px solid #03C75A; background:rgba(3,199,90,.06); padding:.7em 1.1em; border-radius:10px; margin:1.1em 0; }
+          .event-post blockquote { border-left:3px solid #0064FF; background:rgba(3,199,90,.06); padding:.7em 1.1em; border-radius:10px; margin:1.1em 0; }
         `}</style>
 
         <div className="flex justify-center pb-8">
           <button onClick={toggleLike}
-            className={`flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold transition-all active:scale-95 ${liked ? 'bg-[#03C75A] text-white shadow-lg shadow-[#03C75A]/25' : 'bg-white text-slate-600 ring-1 ring-gray-200 hover:ring-[#03C75A]/40'}`}>
+            className={`flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold transition-all active:scale-95 ${liked ? 'bg-[#0064FF] text-white shadow-lg shadow-[#0064FF]/25' : 'bg-white text-slate-600 ring-1 ring-gray-200 hover:ring-[#0064FF]/40'}`}>
             <ThumbsUp size={16} /> 추천 {post.like_count}
           </button>
         </div>
@@ -162,9 +162,9 @@ const BoardPost = () => {
           <div className="mb-5 flex flex-col gap-2 sm:flex-row">
             <input value={text} onChange={e => setText(e.target.value)} onKeyDown={e => e.key === 'Enter' && submitComment()}
               placeholder={user ? '댓글을 입력하세요' : '로그인 후 댓글을 남길 수 있어요'}
-              className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#03C75A]" />
+              className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#0064FF]" />
             <button onClick={submitComment} disabled={posting}
-              className="rounded-xl bg-[#03C75A] px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#02b350] active:scale-95 disabled:opacity-50">
+              className="rounded-xl bg-[#0064FF] px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#0052D6] active:scale-95 disabled:opacity-50">
               {posting ? '등록 중' : '등록'}
             </button>
           </div>
@@ -177,7 +177,7 @@ const BoardPost = () => {
               {comments.map(c => (
                 <li key={c.id} className="py-3.5">
                   <div className="mb-1 flex items-center gap-2 text-xs text-slate-400">
-                    <Link to={c.user_id === user?.id ? '/me' : `/board/u/${c.user_id}`} className="font-bold text-slate-600 hover:text-[#03C75A] hover:underline">{c.author_nickname}</Link>
+                    <Link to={c.user_id === user?.id ? '/me' : `/board/u/${c.user_id}`} className="font-bold text-slate-600 hover:text-[#0064FF] hover:underline">{c.author_nickname}</Link>
                     <span>{fmtWhen(c.created_at)}</span>
                     {user && c.user_id !== user.id && (
                       <button onClick={() => setReportTarget({ type: 'comment', id: c.id })} className="ml-auto flex items-center gap-1 transition-colors hover:text-red-500"><Flag size={11} />신고</button>

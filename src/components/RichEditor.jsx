@@ -28,7 +28,7 @@ const RichEditor = ({ value, onChange, light = false, bucket = 'event-assets', p
     colorBtn: 'flex h-8 w-8 cursor-pointer items-center justify-center rounded text-sm font-bold text-slate-500 hover:bg-gray-100',
     imgBtn: 'flex h-8 w-8 cursor-pointer items-center justify-center rounded text-slate-500 hover:bg-gray-100',
     surface: 'bg-white text-gray-800',
-    ph: '#9ca3af', link: '#03C75A',
+    ph: '#9ca3af', link: '#0064FF',
   } : {
     wrap: 'border-white/12',
     bar: 'border-b border-white/10 bg-slate-800/80',

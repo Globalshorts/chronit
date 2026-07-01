@@ -14,7 +14,7 @@ import NicknameModal from '../components/NicknameModal'
 import SignupSurveyModal from '../components/SignupSurveyModal'
 import { supabase } from '../lib/supabase'
 
-const GREEN = '#03C75A'
+const GREEN = '#0064FF'
 
 /* 가격표 위 쿠폰 입력 바 */
 const CouponBar = ({ codeFromUrl, onApply }) => {
@@ -29,8 +29,8 @@ const CouponBar = ({ codeFromUrl, onApply }) => {
 
   if (codeFromUrl) {
     return (
-      <div className="mx-auto mb-10 flex max-w-sm items-center gap-3 rounded-2xl border-2 border-[#03C75A]/30 bg-[#03C75A]/10 px-5 py-3">
-        <Gift size={16} className="shrink-0 text-[#03C75A]" />
+      <div className="mx-auto mb-10 flex max-w-sm items-center gap-3 rounded-2xl border-2 border-[#0064FF]/30 bg-[#0064FF]/10 px-5 py-3">
+        <Gift size={16} className="shrink-0 text-[#0064FF]" />
         <span className="text-base font-bold text-gray-700">코드 <strong className="text-gray-900">{codeFromUrl}</strong> 적용됨</span>
         <button onClick={() => { onApply(null); sessionStorage.removeItem('chronit_code') }} className="ml-auto text-gray-400 hover:text-gray-700">✕</button>
       </div>
@@ -46,21 +46,21 @@ const CouponBar = ({ codeFromUrl, onApply }) => {
           onChange={(e) => { setInput(e.target.value.toUpperCase()); setStatus(null) }}
           onKeyDown={(e) => e.key === 'Enter' && handleApply()}
           placeholder="쿠폰 / 할인 코드 (있으면 입력)"
-          className="flex-1 rounded-2xl border-2 border-gray-300 bg-white px-5 py-4 text-base font-bold text-gray-900 placeholder-gray-400 outline-none transition-all focus:border-[#03C75A] focus:ring-4 focus:ring-[#03C75A]/15"
+          className="flex-1 rounded-2xl border-2 border-gray-300 bg-white px-5 py-4 text-base font-bold text-gray-900 placeholder-gray-400 outline-none transition-all focus:border-[#0064FF] focus:ring-4 focus:ring-[#0064FF]/15"
         />
         <button onClick={handleApply}
-          className="rounded-2xl bg-[#03C75A] px-6 py-4 text-base font-bold text-white transition-all hover:bg-[#02b350] active:scale-95">
+          className="rounded-2xl bg-[#0064FF] px-6 py-4 text-base font-bold text-white transition-all hover:bg-[#0052D6] active:scale-95">
           적용
         </button>
       </div>
-      {status === 'ok' && <p className="text-sm font-bold text-[#03C75A]">✓ 코드가 적용됐어요 — 결제할 때 할인이 반영됩니다</p>}
+      {status === 'ok' && <p className="text-sm font-bold text-[#0064FF]">✓ 코드가 적용됐어요 — 결제할 때 할인이 반영됩니다</p>}
       {status === 'fail' && <p className="text-sm font-bold text-red-500">코드를 다시 확인해 주세요</p>}
     </div>
   )
 }
 
 const statusCfg = {
-  active:  { label: '진행중',      cls: 'bg-[#03C75A]/12 text-[#03C75A] border-[#03C75A]/30', dot: true },
+  active:  { label: '진행중',      cls: 'bg-[#0064FF]/12 text-[#0064FF] border-[#0064FF]/30', dot: true },
   ended:   { label: '종료됨',      cls: 'bg-gray-100 text-gray-500 border-gray-200', dot: false },
   winner:  { label: '당첨자 발표', cls: 'bg-[#FFB800]/15 text-[#b07d00] border-[#FFB800]/40', dot: false },
 }
@@ -68,7 +68,7 @@ const EventBadge = ({ status, label }) => {
   const cfg = statusCfg[status] || statusCfg.active
   return (
     <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold ${cfg.cls}`}>
-      {cfg.dot && <span className="badge-pulse h-1.5 w-1.5 rounded-full bg-[#03C75A]" />}
+      {cfg.dot && <span className="badge-pulse h-1.5 w-1.5 rounded-full bg-[#0064FF]" />}
       {cfg.label}
     </span>
   )
@@ -349,10 +349,10 @@ const Home = () => {
   const bannerH = bannerCount * 44
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans break-keep text-gray-900 selection:bg-[#03C75A]/20" style={{ paddingTop: bannerH ? `${bannerH}px` : undefined }}>
+    <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans break-keep text-gray-900 selection:bg-[#0064FF]/20" style={{ paddingTop: bannerH ? `${bannerH}px` : undefined }}>
       {/* 추천인 코드 배너 */}
       {refFromUrl && (
-        <div className="fixed top-0 right-0 left-0 z-[61] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[#03C75A] px-4 py-3 text-sm font-bold text-white shadow-md">
+        <div className="fixed top-0 right-0 left-0 z-[61] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[#0064FF] px-4 py-3 text-sm font-bold text-white shadow-md">
           <Gift size={15} />
           <span>추천 코드 <strong>{refFromUrl}</strong> 적용됨 — 가입하면 <strong>프로 7일 무료 체험</strong>을 드려요!</span>
           <button onClick={() => { setRefFromUrl(null); sessionStorage.removeItem('chronit_ref') }} className="ml-2 opacity-80 hover:opacity-100">✕</button>
@@ -370,7 +370,7 @@ const Home = () => {
       {/* 진행중인 이벤트 배너 */}
       {eventBannerOn && (
         <div
-          className="fixed right-0 left-0 z-[59] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[#02b350] px-4 py-3 text-sm font-bold text-white shadow-md cursor-pointer"
+          className="fixed right-0 left-0 z-[59] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[#0052D6] px-4 py-3 text-sm font-bold text-white shadow-md cursor-pointer"
           style={{ top: `${((refFromUrl ? 1 : 0) + (codeFromUrl ? 1 : 0)) * 44}px` }}
           onClick={() => { window.location.href = '/events' }}
         >
@@ -402,11 +402,11 @@ const Home = () => {
               {user ? (
                 <>
                   {nickname ? (
-                    <Link to="/me" className="flex items-center gap-1.5 rounded-full bg-gray-900 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#03C75A] active:scale-95">
+                    <Link to="/me" className="flex items-center gap-1.5 rounded-full bg-gray-900 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#0064FF] active:scale-95">
                       <User size={16} /> <span className="max-w-[110px] truncate">{nickname}</span>
                     </Link>
                   ) : (
-                    <button onClick={() => setNickOpen(true)} className="flex items-center gap-1.5 rounded-full border-2 border-[#03C75A] px-4 py-1.5 text-sm font-bold text-[#03C75A] transition-all hover:bg-[#03C75A]/10 active:scale-95">
+                    <button onClick={() => setNickOpen(true)} className="flex items-center gap-1.5 rounded-full border-2 border-[#0064FF] px-4 py-1.5 text-sm font-bold text-[#0064FF] transition-all hover:bg-[#0064FF]/10 active:scale-95">
                       <User size={16} /> 닉네임 설정
                     </button>
                   )}
@@ -422,7 +422,7 @@ const Home = () => {
                 </button>
               )}
               <button onClick={handleStart}
-                className="rounded-full bg-[#03C75A] px-7 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-md shadow-[#03C75A]/25 transition-all hover:bg-[#02b350] active:scale-95">
+                className="rounded-full bg-[#0064FF] px-7 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-md shadow-[#0064FF]/25 transition-all hover:bg-[#0052D6] active:scale-95">
                 시작하기
               </button>
             </div>
@@ -438,23 +438,23 @@ const Home = () => {
       <div className={`fixed top-0 left-0 right-0 z-40 transform transition-all duration-300 ease-in-out md:hidden ${menuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`} style={{ paddingTop: `${bannerH + 76}px` }}>
         <div className="border-b border-gray-200 bg-white px-6 py-6 shadow-lg">
           <nav className="flex flex-col gap-1 text-lg font-bold text-gray-700">
-            <a href="#features" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">기능</a>
-            <a href="#faq" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">자주 묻는 질문</a>
-            <Link to="/manual" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">사용 방법</Link>
-            <Link to="/board" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">공지·이벤트</Link>
-            <a href="https://cafe.naver.com/chronit" target="_blank" rel="noreferrer" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">공식 카페</a>
-            <Link to="/me" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">마이페이지</Link>
-            <a href="#pricing" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#03C75A]">가격 안내</a>
+            <a href="#features" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#0064FF]">기능</a>
+            <a href="#faq" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#0064FF]">자주 묻는 질문</a>
+            <Link to="/manual" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#0064FF]">사용 방법</Link>
+            <Link to="/board" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#0064FF]">공지·이벤트</Link>
+            <a href="https://cafe.naver.com/chronit" target="_blank" rel="noreferrer" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#0064FF]">공식 카페</a>
+            <Link to="/me" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#0064FF]">마이페이지</Link>
+            <a href="#pricing" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#0064FF]">가격 안내</a>
           </nav>
           <div className="mt-4 border-t border-gray-200 pt-4 flex flex-col gap-2">
             {user ? (
               <>
                 {nickname ? (
-                  <Link to="/me" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-3.5 text-lg font-bold text-white transition-colors hover:bg-[#03C75A]">
+                  <Link to="/me" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-3.5 text-lg font-bold text-white transition-colors hover:bg-[#0064FF]">
                     <User size={18} /> {nickname} <span className="ml-auto text-sm font-medium text-white/70">마이페이지 →</span>
                   </Link>
                 ) : (
-                  <button onClick={() => { setNickOpen(true); setMenuOpen(false) }} className="flex items-center gap-2 rounded-xl border-2 border-[#03C75A] px-4 py-3.5 text-lg font-bold text-[#03C75A] transition-colors hover:bg-[#03C75A]/10">
+                  <button onClick={() => { setNickOpen(true); setMenuOpen(false) }} className="flex items-center gap-2 rounded-xl border-2 border-[#0064FF] px-4 py-3.5 text-lg font-bold text-[#0064FF] transition-colors hover:bg-[#0064FF]/10">
                     <User size={18} /> 닉네임 설정하기
                   </button>
                 )}
@@ -471,7 +471,7 @@ const Home = () => {
               </button>
             )}
             <button onClick={() => { setMenuOpen(false); handleStart() }}
-              className="w-full rounded-xl bg-[#03C75A] px-4 py-4 text-lg font-extrabold text-white shadow-md transition-all hover:bg-[#02b350] active:scale-95">
+              className="w-full rounded-xl bg-[#0064FF] px-4 py-4 text-lg font-extrabold text-white shadow-md transition-all hover:bg-[#0052D6] active:scale-95">
               시작하기
             </button>
           </div>
@@ -482,11 +482,11 @@ const Home = () => {
       <section className="relative bg-gradient-to-b from-[#E4EFE7] via-[#EDF3EE] to-[#FAFAF8] px-5 pt-32 pb-16 md:px-8 md:pt-40 md:pb-24">
         <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
           <div className="flex w-full flex-col items-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#03C75A]/30 bg-[#03C75A]/10 px-4 py-2 text-sm font-bold text-[#03C75A] md:text-base">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#0064FF]/30 bg-[#0064FF]/10 px-4 py-2 text-sm font-bold text-[#0064FF] md:text-base">
               🛍️ 쇼핑 숏폼 특화 AI
             </div>
             <h1 className="mb-5 text-4xl font-black leading-[1.15] tracking-tight text-gray-900 break-keep md:text-6xl">
-              하루 한 편도 벅찼던 <span className="whitespace-nowrap">쇼핑 숏폼</span><br /><span className="bg-gradient-to-r from-[#10b981] to-[#03C75A] bg-clip-text text-transparent">제작 시간 95% 단축</span>
+              하루 한 편도 벅찼던 <span className="whitespace-nowrap">쇼핑 숏폼</span><br /><span className="bg-gradient-to-r from-[#10b981] to-[#0064FF] bg-clip-text text-transparent">제작 시간 95% 단축</span>
             </h1>
             <p className="mb-9 text-xl font-bold text-gray-500 break-keep md:text-2xl">
               크로닛은 영상만 넣으면 상품 분석·자막·TTS·편집까지 끝낸<br />쇼핑 숏폼을 만들어드립니다.
@@ -496,11 +496,11 @@ const Home = () => {
               {/* 입력 방식 탭 */}
               <div className="flex gap-1.5 rounded-2xl border-2 border-gray-200 bg-white p-1.5">
                 <button onClick={() => setHeroTab('link')}
-                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold transition-all ${heroTab === 'link' ? 'bg-[#03C75A] text-white shadow' : 'text-gray-500 hover:text-gray-800'}`}>
+                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold transition-all ${heroTab === 'link' ? 'bg-[#0064FF] text-white shadow' : 'text-gray-500 hover:text-gray-800'}`}>
                   🔗 영상 링크
                 </button>
                 <button onClick={() => setHeroTab('upload')}
-                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold transition-all ${heroTab === 'upload' ? 'bg-[#03C75A] text-white shadow' : 'text-gray-500 hover:text-gray-800'}`}>
+                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold transition-all ${heroTab === 'upload' ? 'bg-[#0064FF] text-white shadow' : 'text-gray-500 hover:text-gray-800'}`}>
                   ⬆️ 직접 업로드
                 </button>
               </div>
@@ -511,10 +511,10 @@ const Home = () => {
                     type="text"
                     placeholder="상품 영상 링크를 입력하세요"
                     onKeyDown={e => { if (e.key === 'Enter') handleStart() }}
-                    className="flex-1 rounded-2xl border-2 border-gray-300 bg-white px-5 py-4 text-base font-bold text-gray-900 placeholder-gray-400 outline-none transition-all focus:border-[#03C75A] focus:ring-4 focus:ring-[#03C75A]/15"
+                    className="flex-1 rounded-2xl border-2 border-gray-300 bg-white px-5 py-4 text-base font-bold text-gray-900 placeholder-gray-400 outline-none transition-all focus:border-[#0064FF] focus:ring-4 focus:ring-[#0064FF]/15"
                   />
                   <button onClick={handleStart}
-                    className="group flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-[#03C75A] px-8 py-4 text-lg font-extrabold text-white shadow-lg shadow-[#03C75A]/30 transition-all hover:bg-[#02b350] active:scale-95">
+                    className="group flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-[#0064FF] px-8 py-4 text-lg font-extrabold text-white shadow-lg shadow-[#0064FF]/30 transition-all hover:bg-[#0052D6] active:scale-95">
                     쇼핑 숏폼 만들기 <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
                   </button>
                 </div>
@@ -523,7 +523,7 @@ const Home = () => {
                   onClick={handleStart}
                   onDragOver={e => e.preventDefault()}
                   onDrop={e => { e.preventDefault(); handleStart() }}
-                  className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-300 bg-white px-5 py-10 text-center transition-all hover:border-[#03C75A]/60 hover:bg-[#03C75A]/5"
+                  className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-300 bg-white px-5 py-10 text-center transition-all hover:border-[#0064FF]/60 hover:bg-[#0064FF]/5"
                 >
                   <span className="text-3xl">📁</span>
                   <p className="text-base font-bold text-gray-800">동영상 파일을 드래그하거나 클릭하여 선택하세요</p>
@@ -532,12 +532,12 @@ const Home = () => {
               )}
 
               <Link to="/manual"
-                className="text-base font-bold text-gray-500 transition-colors hover:text-[#03C75A]">
+                className="text-base font-bold text-gray-500 transition-colors hover:text-[#0064FF]">
                 👋 처음이세요? 1분 사용법 →
               </Link>
             </div>
             <p className="mt-4 text-sm font-medium text-gray-500">
-              <span className="font-black text-[#03C75A]">설치 없이</span> 웹에서 바로 시작 · 구글 로그인이면 끝
+              <span className="font-black text-[#0064FF]">설치 없이</span> 웹에서 바로 시작 · 구글 로그인이면 끝
             </p>
           </div>
         </div>
@@ -547,7 +547,7 @@ const Home = () => {
       <div className="px-5 md:px-8">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-x-8 gap-y-2 border-b border-gray-100 py-5 text-sm font-bold text-gray-600 md:text-base">
           {['사업자 등록 불필요', '재고 보유 불필요', '영상 편집 불필요'].map((t) => (
-            <span key={t} className="inline-flex items-center gap-1.5"><CheckCircle2 size={18} className="text-[#03C75A]" /> {t}</span>
+            <span key={t} className="inline-flex items-center gap-1.5"><CheckCircle2 size={18} className="text-[#0064FF]" /> {t}</span>
           ))}
         </div>
       </div>
@@ -555,13 +555,13 @@ const Home = () => {
       {/* 쿠팡 파트너스 안내 진입 */}
       <div className="px-5 pt-10 md:px-8 md:pt-14">
         <Link to="/manual/revenue"
-          className="group mx-auto flex max-w-3xl flex-col items-center gap-3 rounded-3xl border border-[#03C75A]/30 bg-[#03C75A]/5 p-6 text-center transition-all hover:border-[#03C75A] hover:bg-[#03C75A]/10 sm:flex-row sm:text-left md:p-7">
+          className="group mx-auto flex max-w-3xl flex-col items-center gap-3 rounded-3xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-6 text-center transition-all hover:border-[#0064FF] hover:bg-[#0064FF]/10 sm:flex-row sm:text-left md:p-7">
           <span className="text-4xl">💰</span>
           <div className="flex-1">
             <p className="text-lg font-black text-gray-900 md:text-xl">쿠팡으로 어떻게 돈이 들어오나요?</p>
             <p className="mt-1 text-sm text-gray-600 md:text-base">쇼핑 영상 하나로 수수료가 통장에 들어오기까지 — 1분이면 이해할 수 있어요.</p>
           </div>
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-[#03C75A] px-5 py-3 text-sm font-extrabold text-white transition-all group-hover:gap-2 md:text-base">
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-[#0064FF] px-5 py-3 text-sm font-extrabold text-white transition-all group-hover:gap-2 md:text-base">
             수익 나는 과정 보기 <ArrowRight size={18} />
           </span>
         </Link>
@@ -595,7 +595,7 @@ const Home = () => {
           </div>
           <div className="mt-8 text-center">
             <Link to="/manual/app"
-              className="inline-flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-bold text-gray-600 transition-all hover:border-[#03C75A] hover:text-[#03C75A]">
+              className="inline-flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-bold text-gray-600 transition-all hover:border-[#0064FF] hover:text-[#0064FF]">
               📱 앱으로 사용하는 방법 <ArrowRight size={14} />
             </Link>
           </div>
@@ -617,8 +617,8 @@ const Home = () => {
               { icon: '\u{1F3A8}', title: '스타일·썸네일 프리셋', desc: '자막·썸네일 스타일을 골라 일관된 톤으로 완성해요.' },
               { icon: '\u26A1', title: '편집 없이 빠르게', desc: '영상만 넣으면 몇 분 뒤 완성 — 매일 여러 개도 거뜬해요.' },
             ].map(({ icon, title, desc }) => (
-              <div key={title} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-0.5 hover:border-[#03C75A]/40">
-                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#03C75A]/10 text-2xl">{icon}</div>
+              <div key={title} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-0.5 hover:border-[#0064FF]/40">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0064FF]/10 text-2xl">{icon}</div>
                 <h3 className="mb-1.5 text-lg font-black text-gray-900">{title}</h3>
                 <p className="text-sm leading-relaxed text-gray-500">{desc}</p>
               </div>
@@ -642,7 +642,7 @@ const Home = () => {
             ].map(({ q, a }) => (
               <div key={q} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] md:p-7">
                 <div className="mb-3 flex items-start gap-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#03C75A] text-sm font-black text-white">Q</span>
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0064FF] text-sm font-black text-white">Q</span>
                   <p className="pt-0.5 text-lg font-black text-gray-900">{q}</p>
                 </div>
                 <div className="flex items-start gap-3">
@@ -707,28 +707,28 @@ const Home = () => {
             </div>
 
             {/* 스타터 */}
-            <div onClick={() => openPayment('starter')} className="flex cursor-pointer flex-col rounded-[2rem] border border-gray-200 bg-white p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all hover:border-[#03C75A]/50 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:p-10">
+            <div onClick={() => openPayment('starter')} className="flex cursor-pointer flex-col rounded-[2rem] border border-gray-200 bg-white p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all hover:border-[#0064FF]/50 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:p-10">
               <span className="mb-2 inline-flex w-fit items-center gap-1 rounded-full bg-[#3182F6]/10 px-2.5 py-1 text-xs font-black text-[#3182F6]">🎁 첫 구매 1개월 추가</span>
               <h4 className="mb-2 text-xl font-black text-gray-900">스타터</h4>
               <p className="mb-5 text-base text-gray-500">처음 시작하는 분께</p>
               <div className="mb-8">
-                <span className="text-base font-bold text-gray-400 line-through">{wonFmt(planPrices.starter.list)}원</span><span className="ml-2 rounded-md bg-[#03C75A]/15 px-1.5 py-0.5 text-xs font-black text-[#03C75A]">{pctOff(planPrices.starter.list, planPrices.starter.sale)}% 할인</span>
+                <span className="text-base font-bold text-gray-400 line-through">{wonFmt(planPrices.starter.list)}원</span><span className="ml-2 rounded-md bg-[#0064FF]/15 px-1.5 py-0.5 text-xs font-black text-[#0064FF]">{pctOff(planPrices.starter.list, planPrices.starter.sale)}% 할인</span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-black text-gray-900">{wonFmt(planPrices.starter.sale)}</span>
                   <span className="text-lg font-bold text-gray-500">원 / 월</span>
                 </div>
               </div>
               <ul className="space-y-3 text-base font-medium text-gray-700">
-                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" /><span>월 <strong>15개</strong> 영상 제작</span></li>
-                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" />모든 자동화 기능 사용</li>
-                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" />자동 자막·제목 추천</li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#0064FF]" /><span>월 <strong>15개</strong> 영상 제작</span></li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#0064FF]" />모든 자동화 기능 사용</li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#0064FF]" />자동 자막·제목 추천</li>
               </ul>
             </div>
 
             {/* 프로 (추천) */}
-            <div onClick={() => openPayment('pro')} className="relative flex cursor-pointer flex-col rounded-[2rem] border-2 border-[#03C75A] bg-[#03C75A] p-8 shadow-[0_12px_40px_-8px_rgba(3,199,90,0.5)] transition-all hover:-translate-y-1 md:p-10">
+            <div onClick={() => openPayment('pro')} className="relative flex cursor-pointer flex-col rounded-[2rem] border-2 border-[#0064FF] bg-[#0064FF] p-8 shadow-[0_12px_40px_-8px_rgba(3,199,90,0.5)] transition-all hover:-translate-y-1 md:p-10">
               <div className="absolute -top-3 right-6 rounded-full bg-[#FFB800] px-4 py-1 text-sm font-black text-white shadow-md">가장 인기</div>
-              <span className="mb-2 inline-flex w-fit items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-black text-[#03C75A]">🎁 첫 구매 1개월 추가</span>
+              <span className="mb-2 inline-flex w-fit items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-black text-[#0064FF]">🎁 첫 구매 1개월 추가</span>
               <h4 className="mb-2 text-xl font-black text-white">프로</h4>
               <p className="mb-5 text-base text-white/80">매일 꾸준히 올리는 분께</p>
               <div className="mb-8">
@@ -746,21 +746,21 @@ const Home = () => {
             </div>
 
             {/* 마스터 */}
-            <div onClick={() => openPayment('master')} className="flex cursor-pointer flex-col rounded-[2rem] border border-gray-200 bg-white p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all hover:border-[#03C75A]/50 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:p-10">
+            <div onClick={() => openPayment('master')} className="flex cursor-pointer flex-col rounded-[2rem] border border-gray-200 bg-white p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all hover:border-[#0064FF]/50 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:p-10">
               <span className="mb-2 inline-flex w-fit items-center gap-1 rounded-full bg-[#3182F6]/10 px-2.5 py-1 text-xs font-black text-[#3182F6]">🎁 첫 구매 1개월 추가</span>
               <h4 className="mb-2 text-xl font-black text-gray-900">마스터</h4>
               <p className="mb-5 text-base text-gray-500">여러 채널을 운영하는 분께</p>
               <div className="mb-8">
-                <span className="text-base font-bold text-gray-400 line-through">{wonFmt(planPrices.master.list)}원</span><span className="ml-2 rounded-md bg-[#03C75A]/15 px-1.5 py-0.5 text-xs font-black text-[#03C75A]">{pctOff(planPrices.master.list, planPrices.master.sale)}% 할인</span>
+                <span className="text-base font-bold text-gray-400 line-through">{wonFmt(planPrices.master.list)}원</span><span className="ml-2 rounded-md bg-[#0064FF]/15 px-1.5 py-0.5 text-xs font-black text-[#0064FF]">{pctOff(planPrices.master.list, planPrices.master.sale)}% 할인</span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-black text-gray-900">{wonFmt(planPrices.master.sale)}</span>
                   <span className="text-lg font-bold text-gray-500">원 / 월</span>
                 </div>
               </div>
               <ul className="space-y-3 text-base font-medium text-gray-700">
-                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" /><span>월 <strong>50개</strong> 영상 제작</span></li>
-                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" />프로의 모든 기능 포함</li>
-                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#03C75A]" />새 기능 우선 체험</li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#0064FF]" /><span>월 <strong>50개</strong> 영상 제작</span></li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#0064FF]" />프로의 모든 기능 포함</li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#0064FF]" />새 기능 우선 체험</li>
               </ul>
             </div>
           </div>
@@ -768,7 +768,7 @@ const Home = () => {
 
           <div className="mt-12 text-center">
             <button onClick={handleStart}
-              className="w-full rounded-2xl bg-[#03C75A] px-8 py-5 text-xl font-black text-white shadow-lg shadow-[#03C75A]/25 transition-all hover:bg-[#02b350] active:scale-95 sm:w-auto md:px-20 md:py-6">
+              className="w-full rounded-2xl bg-[#0064FF] px-8 py-5 text-xl font-black text-white shadow-lg shadow-[#0064FF]/25 transition-all hover:bg-[#0052D6] active:scale-95 sm:w-auto md:px-20 md:py-6">
               무료로 영상 만들기
             </button>
           </div>
@@ -787,7 +787,7 @@ const Home = () => {
                 { key: 'winner', label: '당첨자 발표' },
               ].map(tab => (
                 <button key={tab.key} onClick={() => setEventTab(tab.key)}
-                  className={`px-5 py-3 text-sm font-bold transition-colors border-b-2 -mb-px ${eventTab === tab.key ? 'border-[#03C75A] text-[#03C75A]' : 'border-transparent text-gray-400 hover:text-gray-600'}`}>
+                  className={`px-5 py-3 text-sm font-bold transition-colors border-b-2 -mb-px ${eventTab === tab.key ? 'border-[#0064FF] text-[#0064FF]' : 'border-transparent text-gray-400 hover:text-gray-600'}`}>
                   {tab.label}
                   <span className="ml-1.5 rounded-full bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">{events.filter(e => e.status === tab.key).length}</span>
                 </button>
@@ -824,8 +824,8 @@ const Home = () => {
         .event-content h3 { font-size:1.1em; font-weight:700; margin:0.6em 0 0.3em; color:#111827; }
         .event-content ul, .event-content ol { padding-left:1.5em; margin:0.5em 0; }
         .event-content li { margin:0.3em 0; }
-        .event-content blockquote { border-left:3px solid #03C75A; padding-left:1em; color:#6b7280; margin:0.6em 0; }
-        .event-content a { color:#03C75A; text-decoration:underline; }
+        .event-content blockquote { border-left:3px solid #0064FF; padding-left:1em; color:#6b7280; margin:0.6em 0; }
+        .event-content a { color:#0064FF; text-decoration:underline; }
         .event-content strong { color:#111827; font-weight:700; }
         @keyframes badge-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
         .badge-pulse { animation: badge-pulse 2s ease-in-out infinite; }
@@ -934,14 +934,14 @@ const DemoCarousel = () => {
         })}
       </div>
       <div className="mt-8 flex items-center justify-center gap-6">
-        <button onClick={prev} className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-700 shadow transition-all hover:border-[#03C75A] hover:text-[#03C75A] active:scale-95">{"<"}</button>
+        <button onClick={prev} className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-700 shadow transition-all hover:border-[#0064FF] hover:text-[#0064FF] active:scale-95">{"<"}</button>
         <div className="flex gap-2">
           {videos.map((_, i) => (
             <button key={i} onClick={() => setActive(i)} className="h-1.5 rounded-full transition-all duration-300"
-              style={{ width: i === active ? '24px' : '6px', background: i === active ? '#03C75A' : '#d1d5db' }} />
+              style={{ width: i === active ? '24px' : '6px', background: i === active ? '#0064FF' : '#d1d5db' }} />
           ))}
         </div>
-        <button onClick={next} className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-700 shadow transition-all hover:border-[#03C75A] hover:text-[#03C75A] active:scale-95">{">"}</button>
+        <button onClick={next} className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-700 shadow transition-all hover:border-[#0064FF] hover:text-[#0064FF] active:scale-95">{">"}</button>
       </div>
     </section>
   )

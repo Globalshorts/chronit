@@ -186,23 +186,23 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
         <button className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-full text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600" onClick={onClose}>
           <X size={20} />
         </button>
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#03C75A]/10 text-[#03C75A]">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0064FF]/10 text-[#0064FF]">
           <CreditCard size={26} />
         </div>
         <h3 className="text-xl font-black tracking-tight text-gray-900">네이버 스마트스토어에서 구매</h3>
         <p className="mt-2 text-sm leading-relaxed text-gray-500">안전한 네이버페이로 결제하고,<br />결제 후 이용권이 <strong className="text-gray-700">자동으로 충전</strong>돼요.</p>
-        <a href={storeUrl} target="_blank" rel="noopener noreferrer" className="mt-6 flex w-full items-center justify-center rounded-xl bg-[#03C75A] py-3.5 text-sm font-bold text-white transition hover:brightness-95">
+        <a href={storeUrl} target="_blank" rel="noopener noreferrer" className="mt-6 flex w-full items-center justify-center rounded-xl bg-[#0064FF] py-3.5 text-sm font-bold text-white transition hover:brightness-95">
           {storePlanName ? storePlanName + ' ' : ''}스마트스토어에서 구매하기
         </a>
         <div className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-left text-xs leading-relaxed text-amber-700">
           구매 시 <strong>크로닛 가입 닉네임</strong>을 옵션에 정확히 입력해 주세요. 해당 닉네임으로 이용권이 자동 충전됩니다.
         </div>
         <div className="mt-4 flex items-center justify-center gap-3 text-xs font-bold text-gray-400">
-          <a href={STORE_URLS.starter} target="_blank" rel="noopener noreferrer" className="hover:text-[#03C75A]">스타터</a>
+          <a href={STORE_URLS.starter} target="_blank" rel="noopener noreferrer" className="hover:text-[#0064FF]">스타터</a>
           <span>·</span>
-          <a href={STORE_URLS.pro} target="_blank" rel="noopener noreferrer" className="hover:text-[#03C75A]">프로</a>
+          <a href={STORE_URLS.pro} target="_blank" rel="noopener noreferrer" className="hover:text-[#0064FF]">프로</a>
           <span>·</span>
-          <a href={STORE_URLS.master} target="_blank" rel="noopener noreferrer" className="hover:text-[#03C75A]">마스터</a>
+          <a href={STORE_URLS.master} target="_blank" rel="noopener noreferrer" className="hover:text-[#0064FF]">마스터</a>
         </div>
         <button onClick={onClose} className="mt-6 w-full rounded-xl bg-gray-100 py-3 text-sm font-bold text-gray-600 transition hover:bg-gray-200">닫기</button>
       </div>
@@ -264,7 +264,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
         </button>
 
         <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#03C75A]/10 text-[#03C75A]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0064FF]/10 text-[#0064FF]">
             <CreditCard size={22} />
           </div>
           <div>
@@ -287,19 +287,19 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
               onChange={(e) => { setCodeInput(e.target.value.toUpperCase()); setCodeStatus(null); setDiscount(null) }}
               onKeyDown={(e) => e.key === 'Enter' && applyCode()}
               placeholder="코드 입력 (선택)"
-              className="flex-1 rounded-2xl border border-gray-200 bg-gray-100 px-4 py-2.5 text-sm font-bold text-gray-900 placeholder-gray-400 outline-none transition-all focus:border-[#03C75A] focus:bg-white"
+              className="flex-1 rounded-2xl border border-gray-200 bg-gray-100 px-4 py-2.5 text-sm font-bold text-gray-900 placeholder-gray-400 outline-none transition-all focus:border-[#0064FF] focus:bg-white"
             />
             <button
               onClick={() => applyCode()}
               disabled={codeStatus === 'loading' || !codeInput.trim()}
-              className="flex items-center gap-1.5 rounded-2xl bg-[#03C75A] px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#02b350] disabled:opacity-40 active:scale-95"
+              className="flex items-center gap-1.5 rounded-2xl bg-[#0064FF] px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#0052D6] disabled:opacity-40 active:scale-95"
             >
               {codeStatus === 'loading' ? <Loader2 size={14} className="animate-spin" /> : '적용'}
             </button>
           </div>
 
           {codeStatus === 'valid' && discount && !notApplicable && (
-            <div className="mt-2 flex items-center gap-2 text-sm font-bold text-[#03C75A]">
+            <div className="mt-2 flex items-center gap-2 text-sm font-bold text-[#0064FF]">
               <Check size={14} /> {discountLabel()} 적용됨
             </div>
           )}
@@ -330,17 +330,17 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
                   onClick={() => setSelectedPlan(key)}
                   className={`rounded-2xl border px-3 py-3 text-center transition-all ${
                     selectedPlan === key
-                      ? 'border-[#03C75A] bg-[#03C75A]/10 text-gray-900 shadow-[0_0_20px_-8px_rgba(3,199,90,0.5)]'
+                      ? 'border-[#0064FF] bg-[#0064FF]/10 text-gray-900 shadow-[0_0_20px_-8px_rgba(3,199,90,0.5)]'
                       : 'border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300 hover:text-gray-900'
                   }`}
                 >
                   <div className="text-base font-bold">{p.name}</div>
                   {isFreedays ? (
-                    <div className="mt-1 text-sm font-medium text-[#03C75A]">무료</div>
+                    <div className="mt-1 text-sm font-medium text-[#0064FF]">무료</div>
                   ) : (
                     <div className="mt-1 leading-tight">
                       <div className="text-[11px] font-medium text-gray-400 line-through">{p.list.toLocaleString('ko-KR')}</div>
-                      <div className="text-sm font-bold text-[#03C75A]">{p.price.toLocaleString('ko-KR')}원</div>
+                      <div className="text-sm font-bold text-[#0064FF]">{p.price.toLocaleString('ko-KR')}원</div>
                     </div>
                   )}
                 </button>
@@ -376,8 +376,8 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
 
         {/* free_days: 무료 체험 안내 */}
         {isFreedays ? (
-          <div className="mb-6 rounded-2xl border border-[#03C75A]/20 bg-[#03C75A]/5 p-5">
-            <p className="mb-3 text-sm font-bold tracking-widest text-[#03C75A] uppercase">무료 체험 안내</p>
+          <div className="mb-6 rounded-2xl border border-[#0064FF]/20 bg-[#0064FF]/5 p-5">
+            <p className="mb-3 text-sm font-bold tracking-widest text-[#0064FF] uppercase">무료 체험 안내</p>
             <div className="space-y-2 text-sm leading-relaxed text-gray-600 md:text-base">
               <p>• 크로닛 앱에서 코드 <strong className="text-gray-900">{discount.code}</strong>를 입력하세요.</p>
               <p>• 로그인 후 <strong className="text-gray-900">{discount.value}일간</strong> 무료로 이용 가능합니다.</p>
@@ -385,8 +385,8 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
             </div>
           </div>
         ) : (
-          <div className="mb-6 rounded-2xl border border-[#03C75A]/20 bg-[#03C75A]/5 p-5">
-            <p className="mb-1 text-sm font-bold tracking-widest text-[#03C75A] uppercase">결제 금액</p>
+          <div className="mb-6 rounded-2xl border border-[#0064FF]/20 bg-[#0064FF]/5 p-5">
+            <p className="mb-1 text-sm font-bold tracking-widest text-[#0064FF] uppercase">결제 금액</p>
             <div className="mb-4 flex items-baseline gap-2 flex-wrap">
               <span className="text-xl font-bold text-gray-400 line-through">
                 {plan.list.toLocaleString('ko-KR')}
@@ -395,9 +395,9 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
                 {plan.price.toLocaleString('ko-KR')}
               </span>
               <span className="text-base font-bold text-gray-500">원</span>
-              <span className="rounded-full bg-[#03C75A]/15 px-2 py-0.5 text-[10px] font-bold text-[#03C75A]">{plan.name}</span>
+              <span className="rounded-full bg-[#0064FF]/15 px-2 py-0.5 text-[10px] font-bold text-[#0064FF]">{plan.name}</span>
               {hasDiscount && (
-                <span className="rounded-full bg-[#03C75A]/15 px-2 py-0.5 text-[10px] font-bold text-[#03C75A]">+ {discountLabel()}</span>
+                <span className="rounded-full bg-[#0064FF]/15 px-2 py-0.5 text-[10px] font-bold text-[#0064FF]">+ {discountLabel()}</span>
               )}
             </div>
             {(!hasDiscount && QR_IMAGES[selectedPlan]) ? (
@@ -435,17 +435,17 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
 
         {isFreedays ? (
           <div>
-            <button onClick={startTrial} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#03C75A] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(3,199,90,0.6)] transition-all hover:bg-[#02b350] active:scale-[0.98]">
+            <button onClick={startTrial} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(3,199,90,0.6)] transition-all hover:bg-[#0052D6] active:scale-[0.98]">
             {discount.value}일 무료 체험 시작
           </button>
-            {trialMsg && <p className="mt-3 text-center text-sm font-bold text-[#03C75A]">{trialMsg}</p>}
+            {trialMsg && <p className="mt-3 text-center text-sm font-bold text-[#0064FF]">{trialMsg}</p>}
           </div>
         ) : (
           <div className="space-y-3">
             {!hasDiscount && PADDLE_PRICE_IDS[selectedPlan] && (
               <button
                 onClick={payWithPaddle}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#03C75A] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(3,199,90,0.6)] transition-all hover:bg-[#02b350] active:scale-[0.98]"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(3,199,90,0.6)] transition-all hover:bg-[#0052D6] active:scale-[0.98]"
               >
                 <CreditCard size={18} /> 카드·간편결제로 결제 ({plan.price.toLocaleString('ko-KR')}원)
               </button>
@@ -456,7 +456,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
         )}
 
         <p className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-500 md:text-base">
-          <MessageCircle size={14} className="text-[#03C75A]" />
+          <MessageCircle size={14} className="text-[#0064FF]" />
           문의: pv2066pv@gmail.com · 010-4915-3066
         </p>
       </div>
@@ -470,7 +470,7 @@ const Row = ({ label, value, copyKey, copied, onCopy }) => (
     <div className="flex items-center gap-2">
       <span className="font-mono text-base font-bold text-gray-900 md:text-lg">{value}</span>
       {copyKey && (
-        <button onClick={onCopy} className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 text-gray-600 transition-all hover:bg-[#03C75A] hover:text-white">
+        <button onClick={onCopy} className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 text-gray-600 transition-all hover:bg-[#0064FF] hover:text-white">
           {copied ? <Check size={14} /> : <Copy size={14} />}
         </button>
       )}

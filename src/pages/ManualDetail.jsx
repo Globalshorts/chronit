@@ -30,9 +30,9 @@ function parseTips(md) {
 
 /* ── 팁 카드 색상 ── */
 const TIP_COLORS = [
-  { border: 'border-[#03C75A]/30',   accent: 'bg-[#03C75A]',   light: 'bg-[#03C75A]/15 text-[#03C75A]' },
-  { border: 'border-[#03C75A]/30', accent: 'bg-[#03C75A]', light: 'bg-[#03C75A]/15 text-[#03C75A]' },
-  { border: 'border-[#03C75A]/30',   accent: 'bg-[#03C75A]',   light: 'bg-[#03C75A]/15 text-[#03C75A]' },
+  { border: 'border-[#0064FF]/30',   accent: 'bg-[#0064FF]',   light: 'bg-[#0064FF]/15 text-[#0064FF]' },
+  { border: 'border-[#0064FF]/30', accent: 'bg-[#0064FF]', light: 'bg-[#0064FF]/15 text-[#0064FF]' },
+  { border: 'border-[#0064FF]/30',   accent: 'bg-[#0064FF]',   light: 'bg-[#0064FF]/15 text-[#0064FF]' },
   { border: 'border-green-200',  accent: 'bg-green-500',  light: 'bg-green-100 text-green-600' },
   { border: 'border-yellow-200', accent: 'bg-yellow-500', light: 'bg-yellow-100 text-yellow-600' },
   { border: 'border-orange-200', accent: 'bg-orange-500', light: 'bg-orange-100 text-orange-600' },
@@ -72,7 +72,7 @@ const TipsCards = ({ md }) => {
 /* ── 시작하기 STEP 카드 ── */
 const fmtInline = (s) => s
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-  .replace(/\*\*(.+?)\*\*/g, '<strong class="font-black text-[#03C75A]">$1</strong>')
+  .replace(/\*\*(.+?)\*\*/g, '<strong class="font-black text-[#0064FF]">$1</strong>')
 
 const StartSteps = ({ md }) => {
   const steps = useMemo(() => parseTips(md), [md])
@@ -85,13 +85,13 @@ const StartSteps = ({ md }) => {
         return (
           <div key={i} className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm md:p-7">
             <div className="flex items-start gap-4 md:gap-5">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#03C75A] text-lg font-black text-white shadow-md shadow-[#03C75A]/30 md:h-14 md:w-14 md:text-xl">{num}</div>
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#0064FF] text-lg font-black text-white shadow-md shadow-[#0064FF]/30 md:h-14 md:w-14 md:text-xl">{num}</div>
               <div className="min-w-0 flex-1 pt-1">
                 <h3 className="mb-4 text-lg font-black leading-snug text-gray-900 md:text-xl">{title}</h3>
                 <ul className="space-y-3">
                   {bullets.map((b, j) => (
                     <li key={j} className="flex items-start gap-3 text-base leading-relaxed text-gray-700 md:text-lg">
-                      <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#03C75A]/15 text-[11px] font-black text-[#03C75A]">✓</span>
+                      <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#0064FF]/15 text-[11px] font-black text-[#0064FF]">✓</span>
                       <span className="[overflow-wrap:anywhere]" dangerouslySetInnerHTML={{ __html: fmtInline(b) }} />
                     </li>
                   ))}
@@ -101,7 +101,7 @@ const StartSteps = ({ md }) => {
           </div>
         )
       })}
-      <div className="rounded-3xl border border-[#03C75A]/30 bg-[#03C75A]/5 p-5 text-center md:p-6">
+      <div className="rounded-3xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-5 text-center md:p-6">
         <p className="text-base font-black text-gray-900 md:text-lg">🎉 정말 이게 전부예요!</p>
         <p className="mt-1.5 text-sm text-gray-500 md:text-base">영상 길이·목소리·자막은 처음에 한 번만 정해두면 다음부터 자동이에요. 잘 모르겠으면 그대로 둬도 괜찮아요.</p>
       </div>
@@ -133,13 +133,13 @@ const GuideWalkthrough = ({ steps, onImageClick }) => {
   })
   return (
     <div className="space-y-8">
-      <div className="rounded-2xl border border-[#03C75A]/30 bg-[#03C75A]/5 px-5 py-4">
+      <div className="rounded-2xl border border-[#0064FF]/30 bg-[#0064FF]/5 px-5 py-4">
         <p className="mb-2.5 text-sm font-bold text-gray-500">핵심은 이게 다예요</p>
         <div className="flex flex-wrap items-center gap-2 text-sm font-black text-gray-900">
           <span className="rounded-lg border border-gray-200 bg-white px-3 py-1.5">쇼핑 링크 넣기</span>
-          <span className="text-[#03C75A]">→</span>
+          <span className="text-[#0064FF]">→</span>
           <span className="rounded-lg border border-gray-200 bg-white px-3 py-1.5">자동 생성</span>
-          <span className="text-[#03C75A]">→</span>
+          <span className="text-[#0064FF]">→</span>
           <span className="rounded-lg border border-gray-200 bg-white px-3 py-1.5">내 링크에 공유</span>
         </div>
       </div>
@@ -155,7 +155,7 @@ const StepGroup = ({ group, onImageClick }) => {
   const total = items.length
   const s = items[Math.min(idx, total - 1)]
   const badge = (
-    <span className={`rounded-full px-3 py-1 text-xs font-black ${group.once ? 'bg-[#03C75A]/15 text-[#03C75A]' : 'bg-amber-100 text-amber-700'}`}>
+    <span className={`rounded-full px-3 py-1 text-xs font-black ${group.once ? 'bg-[#0064FF]/15 text-[#0064FF]' : 'bg-amber-100 text-amber-700'}`}>
       {group.once ? '처음 한 번만' : '매번 반복'}
     </span>
   )
@@ -180,7 +180,7 @@ const StepGroup = ({ group, onImageClick }) => {
           <h3 className="mb-2 text-base font-black leading-snug text-gray-900 md:text-lg" dangerouslySetInnerHTML={{ __html: fmtInline(s.title) }} />
           <p className="text-sm leading-[1.85] text-slate-600 md:text-base" dangerouslySetInnerHTML={{ __html: fmtInline(s.desc) }} />
           {s.note && (
-            <div className="mt-3 rounded-xl bg-[#03C75A]/8 px-4 py-3 text-sm leading-[1.8] text-gray-700" dangerouslySetInnerHTML={{ __html: '💡 ' + fmtInline(s.note) }} />
+            <div className="mt-3 rounded-xl bg-[#0064FF]/8 px-4 py-3 text-sm leading-[1.8] text-gray-700" dangerouslySetInnerHTML={{ __html: '💡 ' + fmtInline(s.note) }} />
           )}
         </div>
         {s.img && (
@@ -194,14 +194,14 @@ const StepGroup = ({ group, onImageClick }) => {
           <div className="flex flex-wrap justify-center gap-1.5">
             {items.map((_, i) => (
               <button key={i} onClick={() => setIdx(i)} aria-label={`${i + 1}단계`}
-                className={`h-2 w-2 rounded-full transition ${i === idx ? 'bg-[#03C75A]' : 'bg-gray-300 hover:bg-gray-400'}`} />
+                className={`h-2 w-2 rounded-full transition ${i === idx ? 'bg-[#0064FF]' : 'bg-gray-300 hover:bg-gray-400'}`} />
             ))}
           </div>
           {idx < total - 1 ? (
             <button onClick={() => setIdx((i) => Math.min(total - 1, i + 1))}
-              className="rounded-xl bg-[#03C75A] px-4 py-2 text-sm font-bold text-white">다음 →</button>
+              className="rounded-xl bg-[#0064FF] px-4 py-2 text-sm font-bold text-white">다음 →</button>
           ) : (
-            <span className="rounded-xl bg-[#03C75A]/10 px-4 py-2 text-sm font-bold text-[#03C75A]">완료 ✓</span>
+            <span className="rounded-xl bg-[#0064FF]/10 px-4 py-2 text-sm font-bold text-[#0064FF]">완료 ✓</span>
           )}
         </div>
       </div>
@@ -272,7 +272,7 @@ const FaqItem = ({ question, answer, onImageClick }) => {
         className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-gray-50"
       >
         <span className="text-base font-bold text-gray-900 md:text-lg">Q. {question}</span>
-        <span className="shrink-0 text-[#03C75A] text-sm transition-transform duration-200" style={{ transform: open ? 'rotate(90deg)' : 'rotate(0deg)' }}>▶</span>
+        <span className="shrink-0 text-[#0064FF] text-sm transition-transform duration-200" style={{ transform: open ? 'rotate(90deg)' : 'rotate(0deg)' }}>▶</span>
       </button>
       <div className="grid transition-all duration-200 ease-in-out" style={{ gridTemplateRows: open ? '1fr' : '0fr' }}>
         <div className="overflow-hidden">
@@ -304,14 +304,14 @@ const ManualDetail = () => {
       <div className="flex min-h-screen items-center justify-center bg-white text-gray-900">
         <div className="text-center">
           <p className="mb-4 text-xl">페이지를 찾을 수 없습니다.</p>
-          <Link to="/manual" className="text-[#03C75A] underline">사용 방법으로 돌아가기</Link>
+          <Link to="/manual" className="text-[#0064FF] underline">사용 방법으로 돌아가기</Link>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans text-gray-900 selection:bg-[#03C75A]/30">
+    <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans text-gray-900 selection:bg-[#0064FF]/30">
       {lightbox && <Lightbox src={lightbox.src} alt={lightbox.alt} onClose={() => setLightbox(null)} />}
       <ManualHeader currentPath={pathname} />
 
@@ -319,7 +319,7 @@ const ManualDetail = () => {
       <section className="relative px-5 pt-32 pb-10 md:px-8 md:pt-44 md:pb-12">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_60%,transparent_100%)]" />
         <div className="relative z-10 mx-auto max-w-3xl">
-          <Link to="/manual" className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition-colors hover:text-[#03C75A]">
+          <Link to="/manual" className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition-colors hover:text-[#0064FF]">
             <ArrowLeft size={16} /> 사용 방법 목록
           </Link>
           <h1 className="text-3xl font-black tracking-tight text-gray-900 md:text-5xl">
@@ -332,7 +332,7 @@ const ManualDetail = () => {
       <section className="px-5 pb-24 md:px-8">
         <div className="mx-auto max-w-3xl">
           {data.callout && (
-            <div className="mb-6 flex items-center gap-2 rounded-xl border border-[#03C75A]/30 bg-[#03C75A]/10 px-4 py-3 text-sm font-semibold text-[#03C75A] md:text-base">
+            <div className="mb-6 flex items-center gap-2 rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/10 px-4 py-3 text-sm font-semibold text-[#0064FF] md:text-base">
               <span>📌</span> {data.callout}
             </div>
           )}
@@ -362,24 +362,24 @@ const ManualDetail = () => {
           )}
 
           {section === 'start' && (
-            <Link to="/manual/features" className="group mt-8 block overflow-hidden rounded-3xl border-2 border-[#03C75A]/40 bg-gradient-to-br from-[#03C75A]/12 to-[#03C75A]/5 p-6 transition-all hover:-translate-y-0.5 hover:border-[#03C75A] hover:shadow-xl md:p-7">
-              <span className="inline-block rounded-full bg-[#03C75A] px-3 py-1 text-xs font-black text-white">사진 보고 따라하기</span>
+            <Link to="/manual/features" className="group mt-8 block overflow-hidden rounded-3xl border-2 border-[#0064FF]/40 bg-gradient-to-br from-[#0064FF]/12 to-[#0064FF]/5 p-6 transition-all hover:-translate-y-0.5 hover:border-[#0064FF] hover:shadow-xl md:p-7">
+              <span className="inline-block rounded-full bg-[#0064FF] px-3 py-1 text-xs font-black text-white">사진 보고 따라하기</span>
               <h3 className="mt-3 text-xl font-black leading-snug text-gray-900 md:text-2xl">세팅부터 내 링크 공유까지 한 단계씩 📸</h3>
               <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">
-                처음 한 번만 하는 <b className="text-[#03C75A]">세팅</b>과, 영상 만들 때마다 반복하는 단계를 <b className="text-[#03C75A]">다음 ▶ 으로 한 단계씩</b> 따라할 수 있어요.
+                처음 한 번만 하는 <b className="text-[#0064FF]">세팅</b>과, 영상 만들 때마다 반복하는 단계를 <b className="text-[#0064FF]">다음 ▶ 으로 한 단계씩</b> 따라할 수 있어요.
               </p>
-              <span className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#03C75A] px-6 py-3.5 text-base font-black text-white shadow-md shadow-[#03C75A]/25 transition-all group-hover:gap-3">
+              <span className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-black text-white shadow-md shadow-[#0064FF]/25 transition-all group-hover:gap-3">
                 사진 가이드 보러가기 <ArrowRight size={18} />
               </span>
             </Link>
           )}
           {section === 'revenue' && (
-            <div className="mt-10 rounded-3xl border-2 border-[#03C75A]/40 bg-gradient-to-br from-[#03C75A]/12 to-[#03C75A]/5 p-7 text-center md:p-8">
+            <div className="mt-10 rounded-3xl border-2 border-[#0064FF]/40 bg-gradient-to-br from-[#0064FF]/12 to-[#0064FF]/5 p-7 text-center md:p-8">
               <h3 className="text-xl font-black text-gray-900 md:text-2xl">이제 직접 만들어 볼까요?</h3>
               <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">
-                상품 영상만 준비하면 돼요. <b className="text-[#03C75A]">가입은 무료</b>, 구글 로그인이면 바로 시작할 수 있어요.
+                상품 영상만 준비하면 돼요. <b className="text-[#0064FF]">가입은 무료</b>, 구글 로그인이면 바로 시작할 수 있어요.
               </p>
-              <Link to="/generate" className="group mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#03C75A] px-8 py-4 text-lg font-black text-white shadow-md shadow-[#03C75A]/25 transition-all hover:bg-[#02b350]">
+              <Link to="/generate" className="group mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0064FF] px-8 py-4 text-lg font-black text-white shadow-md shadow-[#0064FF]/25 transition-all hover:bg-[#0052D6]">
                 무료로 시작하기 <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
@@ -388,7 +388,7 @@ const ManualDetail = () => {
       </section>
       <section className="px-5 pb-16 md:px-8">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
-          <Link to="/manual" className="group inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition-all hover:border-[#03C75A] hover:text-[#03C75A]">
+          <Link to="/manual" className="group inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition-all hover:border-[#0064FF] hover:text-[#0064FF]">
             <ArrowLeft size={16} /> 목록으로
           </Link>
         </div>

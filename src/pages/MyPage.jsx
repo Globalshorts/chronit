@@ -46,7 +46,7 @@ const MyPage = () => {
     <div className="min-h-screen bg-[#FAFAF8] font-sans"><CommunityHeader active="me" />
       <div className="flex min-h-[70vh] flex-col items-center justify-center gap-4 px-5 text-center">
         <p className="text-lg font-bold">로그인이 필요해요</p>
-        <button onClick={() => nav('/generate')} className="rounded-full bg-[#03C75A] px-6 py-2.5 font-bold text-white">로그인하러 가기</button>
+        <button onClick={() => nav('/generate')} className="rounded-full bg-[#0064FF] px-6 py-2.5 font-bold text-white">로그인하러 가기</button>
       </div>
     </div>
   )
@@ -63,7 +63,7 @@ const MyPage = () => {
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <span className="truncate text-2xl font-black">{profile?.nickname || '닉네임 미설정'}</span>
-                <button onClick={() => setNickOpen(true)} className="shrink-0 text-slate-400 hover:text-[#03C75A]" title="닉네임 변경"><Pencil size={16} /></button>
+                <button onClick={() => setNickOpen(true)} className="shrink-0 text-slate-400 hover:text-[#0064FF]" title="닉네임 변경"><Pencil size={16} /></button>
               </div>
               <div className="mt-1 truncate text-sm text-slate-500">{profile?.email || user?.email}</div>
               {profile?.created_at && <div className="mt-0.5 text-xs text-slate-400">가입일 {new Date(profile.created_at).toLocaleDateString('ko-KR')}</div>}
@@ -77,9 +77,9 @@ const MyPage = () => {
             <>
             <button onClick={copyRef} className="mt-4 flex w-full items-center justify-between rounded-xl bg-gray-50 px-4 py-3 text-left transition-colors hover:bg-gray-100">
               <span className="text-sm text-slate-500">내 추천 링크 <span className="font-bold text-gray-800">?ref={profile.referral_code}</span></span>
-              {copied ? <Check size={16} className="text-[#03C75A]" /> : <Copy size={16} className="text-slate-400" />}
+              {copied ? <Check size={16} className="text-[#0064FF]" /> : <Copy size={16} className="text-slate-400" />}
             </button>
-            <div className="mt-2 rounded-xl bg-[#03C75A]/5 px-4 py-3 text-xs leading-relaxed text-slate-600">
+            <div className="mt-2 rounded-xl bg-[#0064FF]/5 px-4 py-3 text-xs leading-relaxed text-slate-600">
               <p className="mb-1 font-bold text-gray-800">🎁 친구 초대 보상</p>
               <p>• 친구가 내 링크로 <b>가입</b>하면 → 친구에게 <b>프로 7일</b></p>
               <p>• 친구가 <b>첫 영상</b>을 만들면 → 나에게 <b>프로 7일</b></p>
@@ -87,13 +87,13 @@ const MyPage = () => {
               <p className="mt-1.5 text-slate-400">※ 추천 보상은 최근 30일 기준 무료 회원 최대 14일, 유료 회원 최대 30일까지 쌓여요.</p>
             </div>
             {refInfo && !refInfo.ref_is_paid && refInfo.ref_remaining_days > 0 ? (
-              <div className="mt-2 rounded-xl border border-[#03C75A]/20 bg-white px-4 py-3">
+              <div className="mt-2 rounded-xl border border-[#0064FF]/20 bg-white px-4 py-3">
                 <div className="mb-1.5 flex items-center justify-between text-xs">
                   <span className="font-bold text-gray-700">🎁 프로 체험 잔여</span>
                   <span className={refInfo.ref_remaining_days <= 3 ? "font-bold text-red-500" : "text-slate-500"}>{refInfo.ref_remaining_days}일</span>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
-                  <div className={`h-full rounded-full transition-all ${refInfo.ref_remaining_days <= 3 ? "bg-red-500" : "bg-[#03C75A]"}`} style={{ width: `${Math.min(100, Math.round((refInfo.ref_remaining_days / Math.max(1, refInfo.ref_cap_days)) * 100))}%` }} />
+                  <div className={`h-full rounded-full transition-all ${refInfo.ref_remaining_days <= 3 ? "bg-red-500" : "bg-[#0064FF]"}`} style={{ width: `${Math.min(100, Math.round((refInfo.ref_remaining_days / Math.max(1, refInfo.ref_cap_days)) * 100))}%` }} />
                 </div>
                 <p className="mt-1.5 text-[11px] text-slate-400">매일 줄어들어요 · 친구가 영상 만들면 +7일 (최대 {refInfo.ref_cap_days}일)</p>
               </div>
@@ -104,7 +104,7 @@ const MyPage = () => {
 
         {/* 요약 stats */}
         <div className="mt-4">
-          <Link to="/generate" className="block rounded-2xl border border-gray-200 bg-white p-4 transition-all hover:border-[#03C75A]/40">
+          <Link to="/generate" className="block rounded-2xl border border-gray-200 bg-white p-4 transition-all hover:border-[#0064FF]/40">
             <div className="flex items-center gap-1 text-xs text-slate-400"><Film size={13} /> 남은 영상</div>
             <div className="mt-1 text-xl font-black text-gray-800">{credits === null ? '…' : credits.toLocaleString()}</div>
           </Link>
@@ -114,7 +114,7 @@ const MyPage = () => {
         <div className="mt-8 mb-1 flex border-b border-gray-200">
           {tabs.map(([k, label]) => (
             <button key={k} onClick={() => setTab(k)}
-              className={`-mb-px border-b-2 px-4 py-3 text-sm font-bold transition-colors ${tab === k ? 'border-[#03C75A] text-[#03C75A]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+              className={`-mb-px border-b-2 px-4 py-3 text-sm font-bold transition-colors ${tab === k ? 'border-[#0064FF] text-[#0064FF]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
               {label}
             </button>
           ))}

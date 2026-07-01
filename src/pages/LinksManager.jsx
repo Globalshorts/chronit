@@ -226,12 +226,12 @@ export function LinkPageManager({ session }) {
   }
 
   if (loading)
-    return <div className="py-20 text-center"><div className="mx-auto h-7 w-7 animate-spin rounded-full border-2 border-[#03C75A] border-t-transparent" /></div>
+    return <div className="py-20 text-center"><div className="mx-auto h-7 w-7 animate-spin rounded-full border-2 border-[#0064FF] border-t-transparent" /></div>
   if (!page)
     return (
       <div className="py-20 text-center">
         <p className="text-gray-500">페이지를 불러오지 못했어요.</p>
-        <button onClick={() => window.location.reload()} className="mt-3 rounded-xl bg-[#03C75A] px-5 py-2 text-sm font-bold text-white">다시 시도</button>
+        <button onClick={() => window.location.reload()} className="mt-3 rounded-xl bg-[#0064FF] px-5 py-2 text-sm font-bold text-white">다시 시도</button>
       </div>
     )
 
@@ -240,12 +240,12 @@ export function LinkPageManager({ session }) {
   return (
     <div>
       {/* 내 주소 */}
-      <div className="mb-5 rounded-3xl border border-[#03C75A]/30 bg-[#03C75A]/5 p-5">
+      <div className="mb-5 rounded-3xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-5">
         <p className="text-xs font-bold text-gray-500">내 페이지 주소 (인스타 프로필에 이걸 넣으세요)</p>
         <div className="mt-2 flex items-center gap-2">
-          <code className="flex-1 truncate rounded-lg bg-white px-3 py-2 text-sm font-bold text-[#03C75A]">{pageUrl}</code>
+          <code className="flex-1 truncate rounded-lg bg-white px-3 py-2 text-sm font-bold text-[#0064FF]">{pageUrl}</code>
           <button onClick={() => { navigator.clipboard?.writeText(pageUrl); flash('복사됨') }}
-            className="shrink-0 rounded-lg bg-[#03C75A] px-3 py-2 text-sm font-bold text-white">복사</button>
+            className="shrink-0 rounded-lg bg-[#0064FF] px-3 py-2 text-sm font-bold text-white">복사</button>
           <a href={`/u/${page.handle}`} target="_blank" rel="noreferrer"
             className="shrink-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-gray-700">보기</a>
         </div>
@@ -262,7 +262,7 @@ export function LinkPageManager({ session }) {
         <div className="flex items-center gap-3">
           {page.avatar_url
             ? <img src={page.avatar_url} alt="" className="h-14 w-14 rounded-full object-cover ring-1 ring-gray-200" />
-            : <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#03C75A]/10 text-2xl">🛍️</div>}
+            : <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#0064FF]/10 text-2xl">🛍️</div>}
           <div className="flex flex-col items-start gap-1">
             <label className="cursor-pointer rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-200">
               {uploading ? '업로드 중…' : '프로필 이미지 변경'}
@@ -292,7 +292,7 @@ export function LinkPageManager({ session }) {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <span className="w-20 text-sm font-bold text-gray-600">카드 색상</span>
-          <ColorPalette value={page.accent_color || '#03C75A'} onChange={(c) => savePage({ accent_color: c })} />
+          <ColorPalette value={page.accent_color || '#0064FF'} onChange={(c) => savePage({ accent_color: c })} />
         </div>
         </div>
         )}
@@ -351,14 +351,14 @@ export default function LinksManager() {
   }, [])
 
   if (!authReady)
-    return <div className="flex min-h-screen items-center justify-center bg-[#ECEAE3]"><div className="h-8 w-8 animate-spin rounded-full border-2 border-[#03C75A] border-t-transparent" /></div>
+    return <div className="flex min-h-screen items-center justify-center bg-[#ECEAE3]"><div className="h-8 w-8 animate-spin rounded-full border-2 border-[#0064FF] border-t-transparent" /></div>
 
   if (!session)
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-5 bg-[#ECEAE3] px-6 text-center">
         <h1 className="text-2xl font-black text-gray-900">로그인이 필요해요</h1>
         <button onClick={() => supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + window.location.pathname } })}
-          className="rounded-xl bg-[#03C75A] px-8 py-3 font-bold text-white hover:bg-[#02b350]">구글로 로그인</button>
+          className="rounded-xl bg-[#0064FF] px-8 py-3 font-bold text-white hover:bg-[#0052D6]">구글로 로그인</button>
       </div>
     )
 
@@ -367,7 +367,7 @@ export default function LinksManager() {
       <div className="mx-auto w-full max-w-2xl">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-black text-gray-900">내 링크 페이지</h1>
-          <a href="/generate" className="text-sm font-bold text-gray-500 hover:text-[#03C75A]">← 영상 만들기</a>
+          <a href="/generate" className="text-sm font-bold text-gray-500 hover:text-[#0064FF]">← 영상 만들기</a>
         </div>
         <LinkPageManager session={session} />
       </div>
@@ -417,12 +417,12 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
   }
 
   return (
-    <div className={`flex overflow-hidden rounded-2xl border bg-white ${active ? 'border-[#03C75A]' : 'border-gray-200'}`}>
+    <div className={`flex overflow-hidden rounded-2xl border bg-white ${active ? 'border-[#0064FF]' : 'border-gray-200'}`}>
       {/* 좌측 정렬 레일 (표시중 카드만) */}
       {active && onMove && (
         <div className="flex shrink-0 flex-col items-center justify-center gap-3 border-r border-gray-100 bg-gray-50 px-2 text-gray-400">
-          <button onClick={() => onMove(-1)} title="위로" className="leading-none transition hover:text-[#03C75A]">▲</button>
-          <button onClick={() => onMove(1)} title="아래로" className="leading-none transition hover:text-[#03C75A]">▼</button>
+          <button onClick={() => onMove(-1)} title="위로" className="leading-none transition hover:text-[#0064FF]">▲</button>
+          <button onClick={() => onMove(1)} title="아래로" className="leading-none transition hover:text-[#0064FF]">▼</button>
         </div>
       )}
 
@@ -449,7 +449,7 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
                   className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
                 <a href={`https://partners.coupang.com/#affiliate/ws/link/0/${encodeURIComponent((searchKw || title || '').trim())}`}
                   target="_blank" rel="noreferrer"
-                  className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold text-white transition ${(searchKw || title || '').trim() ? 'bg-[#03C75A] hover:bg-[#02b350]' : 'pointer-events-none bg-gray-300'}`}>검색</a>
+                  className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold text-white transition ${(searchKw || title || '').trim() ? 'bg-[#0064FF] hover:bg-[#0052D6]' : 'pointer-events-none bg-gray-300'}`}>검색</a>
               </div>
               {(() => {
                 const chips = Array.from(new Set([job.product_name, job.search_keyword].map(k => (k || '').trim()).filter(Boolean))).filter(k => k !== searchKw.trim()).slice(0, 2);
@@ -467,10 +467,10 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
             <div className="flex items-center gap-2">
               {active ? (
                 <button onClick={() => onSave({ title, target_url: url, active: true, image_url: img, badge, badge_color: badgeColor })}
-                  className="rounded-lg bg-[#03C75A] px-3 py-1.5 text-xs font-bold text-white">저장</button>
+                  className="rounded-lg bg-[#0064FF] px-3 py-1.5 text-xs font-bold text-white">저장</button>
               ) : (
                 <button onClick={() => onSave({ title, target_url: url, active: true, image_url: img, badge, badge_color: badgeColor })} disabled={!canShow}
-                  className="rounded-lg bg-[#03C75A] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40">＋ 페이지에 표시</button>
+                  className="rounded-lg bg-[#0064FF] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40">＋ 페이지에 표시</button>
               )}
               {!canShow && !active && <span className="text-[11px] text-gray-400">쿠팡 링크 필요</span>}
               <button type="button" onClick={() => setOpen((o) => !o)}
@@ -503,7 +503,7 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
                   className="rounded-md border border-gray-300 px-1.5 py-1 text-[11px] font-bold text-gray-700">
                   <option value="#ff4d4f">🔴 빨강</option>
                   <option value="#facc15">🟡 노랑</option>
-                  <option value="#03c75a">🟢 초록</option>
+                  <option value="#0064FF">🟢 초록</option>
                 </select>
               )}
               {badge && (

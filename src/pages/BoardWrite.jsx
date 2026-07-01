@@ -89,7 +89,7 @@ const BoardWrite = () => {
         <CommunityHeader active="board" />
         <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-5 text-center">
           <p className="text-lg font-bold">로그인이 필요해요</p>
-          <button onClick={() => nav('/generate')} className="rounded-full bg-[#03C75A] px-6 py-2.5 font-bold text-white">로그인하러 가기</button>
+          <button onClick={() => nav('/generate')} className="rounded-full bg-[#0064FF] px-6 py-2.5 font-bold text-white">로그인하러 가기</button>
         </div>
       </div>
     )
@@ -104,7 +104,7 @@ const BoardWrite = () => {
           <p className="text-lg font-bold">공지는 운영자만 작성할 수 있어요</p>
           <p className="text-sm text-slate-500">후기·질문·자랑은 공식 네이버 카페에서 자유롭게 남겨주세요.</p>
           <div className="flex gap-2">
-            <a href="https://cafe.naver.com/chronit" target="_blank" rel="noreferrer" className="rounded-full bg-[#03C75A] px-6 py-2.5 font-bold text-white">공식 카페 가기</a>
+            <a href="https://cafe.naver.com/chronit" target="_blank" rel="noreferrer" className="rounded-full bg-[#0064FF] px-6 py-2.5 font-bold text-white">공식 카페 가기</a>
             <button onClick={() => nav('/board')} className="rounded-full bg-white px-6 py-2.5 font-bold text-slate-600 ring-1 ring-gray-200">목록으로</button>
           </div>
         </div>
@@ -122,7 +122,7 @@ const BoardWrite = () => {
         <h1 className="mb-6 text-2xl font-black md:text-3xl">{editId ? '글 수정' : '글쓰기'}</h1>
 
         <input value={title} onChange={e => setTitle(e.target.value)} maxLength={80} placeholder="제목"
-          className="mb-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base font-bold outline-none focus:border-[#03C75A]" />
+          className="mb-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base font-bold outline-none focus:border-[#0064FF]" />
         <RichEditor light value={body} onChange={setBody} bucket="assets" pathPrefix="board" minHeight={300} />
 
         <div className="mt-3">
@@ -135,7 +135,7 @@ const BoardWrite = () => {
               </button>
             </div>
           ) : (
-            <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 bg-white py-3.5 text-sm font-bold text-slate-500 transition-colors hover:border-[#03C75A]/50 hover:text-[#03C75A]">
+            <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 bg-white py-3.5 text-sm font-bold text-slate-500 transition-colors hover:border-[#0064FF]/50 hover:text-[#0064FF]">
               <ImagePlus size={18} /> {uploading ? '업로드 중…' : '이미지 첨부 (선택)'}
               <input type="file" accept="image/*" className="hidden" onChange={onPickImage} disabled={uploading} />
             </label>
@@ -146,7 +146,7 @@ const BoardWrite = () => {
         {err && <p className="mt-3 text-sm font-medium text-red-500">{err}</p>}
 
         <button onClick={submit} disabled={saving}
-          className="mt-5 w-full rounded-xl bg-[#03C75A] py-3.5 text-base font-bold text-white transition-all hover:bg-[#02b350] active:scale-95 disabled:opacity-50">
+          className="mt-5 w-full rounded-xl bg-[#0064FF] py-3.5 text-base font-bold text-white transition-all hover:bg-[#0052D6] active:scale-95 disabled:opacity-50">
           {saving ? (editId ? '수정 중…' : '등록 중…') : (editId ? '수정 완료' : '등록하기')}
         </button>
       </section>

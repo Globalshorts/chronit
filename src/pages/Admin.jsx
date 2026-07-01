@@ -149,7 +149,7 @@ const DemoVideosPanel = () => {
 // 영상 만들기 → "무료 크레딧 받기" 모달에 노출되는 이벤트(미션) 관리
 const emptyMission = () => ({
   title: '', description: '', reward: 100, badge_label: '이벤트',
-  badge_color: '#03C75A', type: 'claim', action_url: '', action_label: '받기',
+  badge_color: '#0064FF', type: 'claim', action_url: '', action_label: '받기',
   active: true, sort_order: 0,
   start_at: '', end_at: '', req_plan: 'any', req_audience: 'all',
   req_signup_days: 7, req_min_videos: 0, auto: false,
@@ -174,7 +174,7 @@ const MissionsPanel = () => {
   const openNew = () => { setForm(emptyMission()); setEditing('new') }
   const openEdit = (m) => {
     setForm({ title: m.title || '', description: m.description || '', reward: m.reward || 0,
-      badge_label: m.badge_label || '이벤트', badge_color: m.badge_color || '#03C75A',
+      badge_label: m.badge_label || '이벤트', badge_color: m.badge_color || '#0064FF',
       type: m.type || 'claim', action_url: m.action_url || '', action_label: m.action_label || '받기',
       active: !!m.active, sort_order: m.sort_order || 0,
       start_at: toInput(m.start_at), end_at: toInput(m.end_at),
@@ -506,7 +506,7 @@ const PricingPanel = () => {
   return (
     <div className="max-w-2xl rounded-2xl border border-white/8 bg-white/[0.03] p-8">
       <div className="mb-2 flex items-center gap-2">
-        <ShieldCheck size={18} className="text-[#03C75A]" />
+        <ShieldCheck size={18} className="text-[#0064FF]" />
         <h2 className="text-lg font-black text-white">요금제 가격</h2>
       </div>
       <p className="mb-5 text-xs leading-relaxed text-slate-500">정가와 할인(할인율 % / 정액 원 / 판매가 직접)을 설정하면 판매가가 계산돼 홈 요금제·결제 금액에 반영돼요.</p>
@@ -541,7 +541,7 @@ const PricingPanel = () => {
                   </div>
                 </div>
                 <div className="mt-3 flex items-center justify-between">
-                  <span className="text-sm text-slate-300">→ 판매가 <b className="text-[#03C75A]">{sale.toLocaleString('ko-KR')}원</b> <span className="text-slate-500">({pct}% 할인)</span></span>
+                  <span className="text-sm text-slate-300">→ 판매가 <b className="text-[#0064FF]">{sale.toLocaleString('ko-KR')}원</b> <span className="text-slate-500">({pct}% 할인)</span></span>
                   <button onClick={() => save(id)} disabled={saving === id}
                     className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">
                     {saving === id ? <Loader size={14} className="animate-spin" /> : <Save size={14} />} 저장

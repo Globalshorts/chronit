@@ -34,7 +34,7 @@ const makeMdComponents = (onImageClick) => ({
   ul: (p) => <ul className="my-2 list-disc space-y-1.5 pl-5 text-slate-600 [overflow-wrap:anywhere]" {...p} />,
   ol: (p) => <ol className="my-2 list-decimal space-y-1.5 pl-5 text-slate-600 [overflow-wrap:anywhere]" {...p} />,
   li: (p) => <li className="text-base leading-[1.9] [overflow-wrap:anywhere] md:text-lg" {...p} />,
-  a:  (p) => <a className="text-[#03C75A] underline underline-offset-4 hover:text-[#03C75A]" target="_blank" rel="noopener noreferrer" {...p} />,
+  a:  (p) => <a className="text-[#0064FF] underline underline-offset-4 hover:text-[#0064FF]" target="_blank" rel="noopener noreferrer" {...p} />,
   strong: (p) => <strong className="font-bold text-gray-900 [overflow-wrap:anywhere]" {...p} />,
   em:     (p) => <em className="italic text-slate-600" {...p} />,
   blockquote: (p) => (
@@ -42,7 +42,7 @@ const makeMdComponents = (onImageClick) => ({
   ),
   code: ({ inline, ...p }) =>
     inline
-      ? <code className="rounded bg-[#03C75A]/10 px-1.5 py-0.5 font-mono text-sm text-[#03C75A] border border-[#03C75A]/15" {...p} />
+      ? <code className="rounded bg-[#0064FF]/10 px-1.5 py-0.5 font-mono text-sm text-[#0064FF] border border-[#0064FF]/15" {...p} />
       : <code className="block rounded-xl bg-gray-50 p-4 font-mono text-sm text-slate-700" {...p} />,
   pre: (p) => <pre className="my-3 overflow-x-auto rounded-2xl border border-gray-200 bg-gray-50 p-4" {...p} />,
   table: (p) => (
@@ -50,8 +50,8 @@ const makeMdComponents = (onImageClick) => ({
       <table className="w-full border-collapse text-left text-sm" {...p} />
     </div>
   ),
-  thead: (p) => <thead className="bg-[#03C75A]/10" {...p} />,
-  th: (p) => <th className="border-b border-gray-200 px-4 py-2 text-xs font-black tracking-widest text-[#03C75A] uppercase" {...p} />,
+  thead: (p) => <thead className="bg-[#0064FF]/10" {...p} />,
+  th: (p) => <th className="border-b border-gray-200 px-4 py-2 text-xs font-black tracking-widest text-[#0064FF] uppercase" {...p} />,
   td: (p) => <td className="border-b border-gray-100 px-4 py-2.5 text-slate-600 last:border-b-0" {...p} />,
   hr: (p) => <hr className="my-8 border-gray-200" {...p} />,
   img: ({ src, alt, ...p }) => (

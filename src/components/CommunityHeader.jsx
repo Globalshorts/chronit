@@ -47,13 +47,13 @@ const CommunityHeader = ({ active = null }) => {
           <div className="flex shrink-0 items-center gap-2">
             {user ? (
               <>
-                <Link to="/generate" className="hidden items-center gap-1.5 rounded-full bg-[#03C75A] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#02b350] active:scale-95 md:flex">시작하기</Link>
-                <Link to="/me" className="hidden items-center gap-1.5 rounded-full bg-gray-900 px-3.5 py-2 text-sm font-bold text-white transition-all hover:bg-[#03C75A] active:scale-95 md:flex">
+                <Link to="/generate" className="hidden items-center gap-1.5 rounded-full bg-[#0064FF] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#0052D6] active:scale-95 md:flex">시작하기</Link>
+                <Link to="/me" className="hidden items-center gap-1.5 rounded-full bg-gray-900 px-3.5 py-2 text-sm font-bold text-white transition-all hover:bg-[#0064FF] active:scale-95 md:flex">
                   <User size={16} /> <span className="max-w-[90px] truncate">{nickname || '마이페이지'}</span>
                 </Link>
               </>
             ) : (
-              <Link to="/generate" className="hidden rounded-full bg-[#03C75A] px-7 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-lg shadow-[#03C75A]/25 transition-all hover:bg-[#02b350] active:scale-95 md:block">
+              <Link to="/generate" className="hidden rounded-full bg-[#0064FF] px-7 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-lg shadow-[#0064FF]/25 transition-all hover:bg-[#0052D6] active:scale-95 md:block">
                 로그인 / 시작하기
               </Link>
             )}
@@ -75,10 +75,10 @@ const CommunityHeader = ({ active = null }) => {
                 {menu.items.map(([to, label]) => (
                   to.startsWith('/#') ? (
                     <a key={to} href={to} onClick={() => setMenuOpen(false)}
-                      className="block rounded-xl px-4 py-2.5 text-base font-bold transition-colors hover:bg-gray-50 hover:text-[#03C75A]">{label}</a>
+                      className="block rounded-xl px-4 py-2.5 text-base font-bold transition-colors hover:bg-gray-50 hover:text-[#0064FF]">{label}</a>
                   ) : (
                     <Link key={to} to={to} onClick={() => setMenuOpen(false)}
-                      className={`block rounded-xl px-4 py-2.5 text-base font-bold transition-colors hover:bg-gray-50 ${to === '/' + (active || '') ? 'text-[#03C75A]' : 'hover:text-[#03C75A]'}`}>{label}</Link>
+                      className={`block rounded-xl px-4 py-2.5 text-base font-bold transition-colors hover:bg-gray-50 ${to === '/' + (active || '') ? 'text-[#0064FF]' : 'hover:text-[#0064FF]'}`}>{label}</Link>
                   )
                 ))}
               </div>
@@ -86,14 +86,14 @@ const CommunityHeader = ({ active = null }) => {
           </nav>
           <div className="mt-3 border-t border-gray-200 pt-3">
             {user && (
-              <Link to="/generate" onClick={() => setMenuOpen(false)} className="mb-2 block rounded-xl bg-[#03C75A] px-4 py-3.5 text-center text-lg font-bold text-white">시작하기</Link>
+              <Link to="/generate" onClick={() => setMenuOpen(false)} className="mb-2 block rounded-xl bg-[#0064FF] px-4 py-3.5 text-center text-lg font-bold text-white">시작하기</Link>
             )}
             {user ? (
               <Link to="/me" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-3.5 text-lg font-bold text-white">
                 <User size={18} /> {nickname || '마이페이지'} <span className="ml-auto text-sm font-medium text-white/70">마이페이지 →</span>
               </Link>
             ) : (
-              <Link to="/generate" onClick={() => setMenuOpen(false)} className="block rounded-xl bg-[#03C75A] px-4 py-3.5 text-center text-lg font-bold text-white">로그인 / 시작하기</Link>
+              <Link to="/generate" onClick={() => setMenuOpen(false)} className="block rounded-xl bg-[#0064FF] px-4 py-3.5 text-center text-lg font-bold text-white">로그인 / 시작하기</Link>
             )}
           </div>
         </div>

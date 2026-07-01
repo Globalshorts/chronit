@@ -1,7 +1,7 @@
 // 모든 기기에서 동작하는 색상 선택 팔레트
 // 네이티브 input[type=color]가 안 뜨는 태블릿/웹뷰를 위해 항상 보이는 스와치 제공
 const DEFAULT_PRESETS = [
-  '#FFFFFF', '#000000', '#03C75A', '#FF4D4F', '#FF7A00', '#FFC400',
+  '#FFFFFF', '#000000', '#0064FF', '#FF4D4F', '#FF7A00', '#FFC400',
   '#1E90FF', '#7C3AED', '#FF4D9D', '#10B981', '#64748B', '#1E2235',
 ]
 
@@ -16,7 +16,7 @@ export default function ColorPalette({ value, onChange, presets = DEFAULT_PRESET
           onClick={() => onChange(c)}
           aria-label={c}
           title={c}
-          className={`h-7 w-7 rounded-full border transition ${eq(value, c) ? 'border-white ring-2 ring-[#03C75A] ring-offset-1' : 'border-gray-300 hover:scale-110'}`}
+          className={`h-7 w-7 rounded-full border transition ${eq(value, c) ? 'border-white ring-2 ring-[#0064FF] ring-offset-1' : 'border-gray-300 hover:scale-110'}`}
           style={{ backgroundColor: c }}
         />
       ))}

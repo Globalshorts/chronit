@@ -21,3 +21,25 @@
 @font-face{font-family:'Ownglyph mirinaeman';src:url('/fonts/OwnglyphMirinae.woff2') format('woff2');font-weight:400;font-display:swap;}
 @font-face{font-family:'Binggrae Samanco';src:url('/fonts/BinggraeSamanco.woff2') format('woff2');font-weight:400;font-display:swap;}
 @font-face{font-family:'YiSunShin Dotum M';src:url('/fonts/YiSunShinDotum.woff2') format('woff2');font-weight:400;font-display:swap;}
+
+/* 신규 번들 폰트 (2026-07 추가) */
+@font-face{font-family:'SD UNICEF Hearty';src:url('/fonts/SDUNICEFHearty.otf') format('opentype');font-weight:400;font-display:swap;}
+@font-face{font-family:'SD UNICEF Sunny';src:url('/fonts/SDUNICEFSunny.otf') format('opentype');font-weight:400;font-display:swap;}
+@font-face{font-family:'Gabia Gosran';src:url('/fonts/GabiaGosran.ttf') format('truetype');font-weight:400;font-display:swap;}
+@font-face{font-family:'Gabia Sai';src:url('/fonts/GabiaSai.ttf') format('truetype');font-weight:400;font-display:swap;}
+@font-face{font-family:'Moneygraphy Rounded';src:url('/fonts/MoneygraphyRounded.otf') format('opentype');font-weight:400;font-display:swap;}
+@font-face{font-family:'Moneygraphy Pixel';src:url('/fonts/MoneygraphyPixel.otf') format('opentype');font-weight:400;font-display:swap;}
+@font-face{font-family:'JNE Yuna TTF';src:url('/fonts/JNEYunaTTF.ttf') format('truetype');font-weight:400;font-display:swap;}
+@font-face{font-family:'Kakao Small Sans';src:url('/fonts/KakaoSmallSans.ttf') format('truetype');font-weight:400;font-display:swap;}
+@font-face{font-family:'Kakao Big Sans';src:url('/fonts/KakaoBigSans.ttf') format('truetype');font-weight:400;font-display:swap;}
+@font-face{font-family:'Hakgyoansim Geurimilgi TTF';src:url('/fonts/HakgyoansimGeurimilgiTTF.ttf') format('truetype');font-weight:400;font-display:swap;}
+@font-face{font-family:'Hakgyoansim Dunggeunmiso TTF';src:url('/fonts/HakgyoansimDunggeunmisoTTF.ttf') format('truetype');font-weight:400;font-display:swap;}
+@font-face{font-family:'Hakgyoansim Mindeulleholssi R';src:url('/fonts/HakgyoansimMindeulleholssiR.ttf') format('truetype');font-weight:400;font-display:swap;}
+@font-face{font-family:'Hakgyoansim Byeoljari TTF';src:url('/fonts/HakgyoansimByeoljariTTF.ttf') format('truetype');font-weight:400;font-display:swap;}
+@font-face{font-family:'Hakgyoansim Susukkang L';src:url('/fonts/HakgyoansimSusukkangL.ttf') format('truetype');font-weight:400;font-display:swap;}
+@font-face{font-family:'Hakgyoansim Jayusigan R';src:url('/fonts/HakgyoansimJayusiganR.ttf') format('truetype');font-weight:400;font-display:swap;}
+@font-face{font-family:'Hakgyoansim Chaekgalpi R';src:url('/fonts/HakgyoansimChaekgalpiR.ttf') format('truetype');font-weight:400;font-display:swap;}
+@font-face{font-family:'Hakgyoansim Chilpanjiugae TTF';src:url('/fonts/HakgyoansimChilpanjiugaeTTF.ttf') format('truetype');font-weight:400;font-display:swap;}
+@font-face{font-family:'Kyobo Handwriting 2025';src:url('/fonts/KyoboHandwriting2025.ttf') format('truetype');font-weight:400;font-display:swap;}
+@font-face{font-family:'Ownglyph BERRY RW';src:url('/fonts/OwnglyphBERRYRW.ttf') format('truetype');font-weight:400;font-display:swap;}
+@font-face{font-family:'LeeSeoyun';src:url('/fonts/LeeSeoyun.ttf') format('truetype');font-weight:400;font-display:swap;}

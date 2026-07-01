@@ -57,8 +57,8 @@ const SignupSurveyModal = ({ open, onDone }) => {
       <div className="w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl">
         {/* 진행 표시 */}
         <div className="mb-4 flex items-center justify-center gap-1.5">
-          <span className={`h-1.5 rounded-full transition-all ${page === 1 ? 'w-6 bg-[#03C75A]' : 'w-1.5 bg-gray-300'}`} />
-          <span className={`h-1.5 rounded-full transition-all ${page === 2 ? 'w-6 bg-[#03C75A]' : 'w-1.5 bg-gray-300'}`} />
+          <span className={`h-1.5 rounded-full transition-all ${page === 1 ? 'w-6 bg-[#0064FF]' : 'w-1.5 bg-gray-300'}`} />
+          <span className={`h-1.5 rounded-full transition-all ${page === 2 ? 'w-6 bg-[#0064FF]' : 'w-1.5 bg-gray-300'}`} />
         </div>
 
         {page === 1 ? (
@@ -68,7 +68,7 @@ const SignupSurveyModal = ({ open, onDone }) => {
             <div className="mt-5 grid grid-cols-2 gap-2.5">
               {OPTIONS.map(opt => (
                 <button key={opt} disabled={saving} onClick={() => chooseSource(opt)}
-                  className="rounded-xl border border-gray-200 bg-[#FAFAF8] px-3 py-3 text-sm font-bold text-gray-800 transition hover:border-[#03C75A] hover:text-[#03C75A] active:scale-[0.98] disabled:opacity-50">
+                  className="rounded-xl border border-gray-200 bg-[#FAFAF8] px-3 py-3 text-sm font-bold text-gray-800 transition hover:border-[#0064FF] hover:text-[#0064FF] active:scale-[0.98] disabled:opacity-50">
                   {opt}
                 </button>
               ))}
@@ -82,9 +82,9 @@ const SignupSurveyModal = ({ open, onDone }) => {
               <input value={refCode} onChange={e => setRefCode(e.target.value.toUpperCase())}
                 onKeyDown={e => e.key === 'Enter' && applyReferral()}
                 placeholder="추천 코드"
-                className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-3 text-base font-bold tracking-widest text-gray-900 outline-none focus:border-[#03C75A]" />
+                className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-3 text-base font-bold tracking-widest text-gray-900 outline-none focus:border-[#0064FF]" />
               <button onClick={applyReferral} disabled={refLoading}
-                className="shrink-0 rounded-xl bg-[#03C75A] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#02b350] disabled:opacity-50">
+                className="shrink-0 rounded-xl bg-[#0064FF] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#0052D6] disabled:opacity-50">
                 {refLoading ? '...' : '적용'}
               </button>
             </div>

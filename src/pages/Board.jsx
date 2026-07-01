@@ -9,9 +9,9 @@ import { supabase } from '../lib/supabase'
 // 게시판은 운영자 공지 전용. 아래 라벨은 기존 글(자유/수익인증/질문) 호환 + 신규 notice 표시용.
 export const CAT_LABEL = { notice: '공지', free: '자유', show: '수익인증', qna: '질문' }
 export const CAT_CLS = {
-  notice: 'bg-[#03C75A]/15 text-[#03C75A]',
+  notice: 'bg-[#0064FF]/15 text-[#0064FF]',
   free: 'bg-gray-100 text-gray-500',
-  show: 'bg-[#03C75A]/15 text-[#03C75A]',
+  show: 'bg-[#0064FF]/15 text-[#0064FF]',
   qna:  'bg-amber-100 text-amber-600',
 }
 export const fmtWhen = (s) => {
@@ -28,7 +28,7 @@ const TABS = [
   { key: 'event',  label: '이벤트' },
 ]
 const evStatus = {
-  active: { label: '진행중', cls: 'bg-[#03C75A]/15 text-[#03C75A]' },
+  active: { label: '진행중', cls: 'bg-[#0064FF]/15 text-[#0064FF]' },
   ended:  { label: '종료', cls: 'bg-gray-100 text-slate-400' },
   winner: { label: '당첨자 발표', cls: 'bg-amber-100 text-amber-600' },
 }
@@ -80,13 +80,13 @@ const Board = () => {
 
           {/* 네이버 공식 카페 유도 */}
           <a href="https://cafe.naver.com/chronit" target="_blank" rel="noreferrer"
-            className="mb-6 flex items-center gap-3 rounded-2xl border border-[#03C75A]/25 bg-gradient-to-r from-[#03C75A]/10 to-[#03C75A]/5 px-5 py-4 transition hover:from-[#03C75A]/15">
+            className="mb-6 flex items-center gap-3 rounded-2xl border border-[#0064FF]/25 bg-gradient-to-r from-[#0064FF]/10 to-[#0064FF]/5 px-5 py-4 transition hover:from-[#0064FF]/15">
             <span className="text-2xl">💬</span>
             <div className="flex-1">
               <p className="text-sm font-black text-gray-900">크로닛 공식 네이버 카페</p>
               <p className="text-xs text-slate-500">후기·꿀팁·질문은 공식 카페에서 — 가입하고 이벤트 받기</p>
             </div>
-            <span className="flex-none rounded-full bg-[#03C75A] px-3 py-1.5 text-xs font-bold text-white">가입하기 →</span>
+            <span className="flex-none rounded-full bg-[#0064FF] px-3 py-1.5 text-xs font-bold text-white">가입하기 →</span>
           </a>
 
           {/* 탭 (공지 / 이벤트) */}
@@ -94,13 +94,13 @@ const Board = () => {
             <div className="flex">
               {TABS.map(c => (
                 <button key={c.key} onClick={() => setTab(c.key)}
-                  className={`-mb-px border-b-2 px-4 py-3 text-sm font-bold transition-colors md:px-5 ${tab === c.key ? 'border-[#03C75A] text-[#03C75A]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+                  className={`-mb-px border-b-2 px-4 py-3 text-sm font-bold transition-colors md:px-5 ${tab === c.key ? 'border-[#0064FF] text-[#0064FF]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
                   {c.label}
                 </button>
               ))}
             </div>
             {isAdmin && tab === 'notice' && (
-              <Link to="/board/write" className="hidden items-center gap-1.5 rounded-full bg-[#03C75A] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#02b350] active:scale-95 sm:flex">
+              <Link to="/board/write" className="hidden items-center gap-1.5 rounded-full bg-[#0064FF] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#0052D6] active:scale-95 sm:flex">
                 <PenLine size={15} /> 공지 작성
               </Link>
             )}
@@ -122,7 +122,7 @@ const Board = () => {
                       )}
                       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                         <div className="flex items-center gap-2">
-                          <span className="rounded-md bg-[#03C75A]/15 px-2 py-0.5 text-xs font-bold text-[#03C75A]">공지</span>
+                          <span className="rounded-md bg-[#0064FF]/15 px-2 py-0.5 text-xs font-bold text-[#0064FF]">공지</span>
                           <h3 className="flex-1 truncate text-base font-bold text-gray-900">{p.title}</h3>
                         </div>
                         <div className="flex items-center gap-3 text-xs text-slate-400">
@@ -171,7 +171,7 @@ const Board = () => {
       {/* 모바일 공지 작성 FAB (운영자만) */}
       {isAdmin && tab === 'notice' && (
         <button onClick={() => nav('/board/write')}
-          className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#03C75A] text-white shadow-xl shadow-[#03C75A]/30 transition-all active:scale-90 sm:hidden">
+          className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#0064FF] text-white shadow-xl shadow-[#0064FF]/30 transition-all active:scale-90 sm:hidden">
           <PenLine size={22} />
         </button>
       )}

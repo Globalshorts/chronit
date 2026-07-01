@@ -33,7 +33,7 @@ export default function AdminFab() {
       to="/admin"
       title="관리자"
       aria-label="관리자"
-      className="fixed bottom-6 left-6 z-[60] flex h-12 w-12 items-center justify-center rounded-full bg-gray-900 text-xl text-white shadow-xl ring-2 ring-[#03C75A]/40 transition-all hover:bg-[#03C75A] active:scale-90"
+      className="fixed bottom-6 left-6 z-[60] flex h-12 w-12 items-center justify-center rounded-full bg-gray-900 text-xl text-white shadow-xl ring-2 ring-[#0064FF]/40 transition-all hover:bg-[#0064FF] active:scale-90"
     >
       👑
     </Link>

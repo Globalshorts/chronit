@@ -9,7 +9,7 @@ export default function BoardEmptyState({ isAdmin = false }) {
       {isAdmin && (
         <Link
           to="/board/write"
-          className="mt-4 inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#03C75A] px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#02b350] active:scale-95"
+          className="mt-4 inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#0052D6] active:scale-95"
         >
           <PenLine size={16} /> 공지 작성
         </Link>

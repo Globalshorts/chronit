@@ -32,10 +32,10 @@ const TermsModal = ({ open, onAgree, onClose }) => {
           </p>
         </div>
 
-        <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-gray-200 bg-[#FAFAF8] p-4 transition-all hover:border-[#03C75A]/40">
+        <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-gray-200 bg-[#FAFAF8] p-4 transition-all hover:border-[#0064FF]/40">
           <div className="mt-0.5 shrink-0">
             {checked ? (
-              <CheckCircle2 size={20} className="text-[#03C75A]" />
+              <CheckCircle2 size={20} className="text-[#0064FF]" />
             ) : (
               <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
             )}
@@ -47,17 +47,17 @@ const TermsModal = ({ open, onAgree, onClose }) => {
             onChange={(e) => setChecked(e.target.checked)}
           />
           <span className="text-sm leading-relaxed text-gray-600">
-            <Link to="/terms" className="font-bold text-[#03C75A] underline underline-offset-2" target="_blank">이용약관</Link>
+            <Link to="/terms" className="font-bold text-[#0064FF] underline underline-offset-2" target="_blank">이용약관</Link>
             {' '}및{' '}
-            <Link to="/privacy" className="font-bold text-[#03C75A] underline underline-offset-2" target="_blank">개인정보처리방침</Link>
+            <Link to="/privacy" className="font-bold text-[#0064FF] underline underline-offset-2" target="_blank">개인정보처리방침</Link>
             에 동의합니다.
           </span>
         </label>
 
-        <label className="mt-3 flex cursor-pointer items-start gap-3 rounded-2xl border border-gray-200 bg-white p-4 transition-all hover:border-[#03C75A]/40">
+        <label className="mt-3 flex cursor-pointer items-start gap-3 rounded-2xl border border-gray-200 bg-white p-4 transition-all hover:border-[#0064FF]/40">
           <div className="mt-0.5 shrink-0">
             {marketing ? (
-              <CheckCircle2 size={20} className="text-[#03C75A]" />
+              <CheckCircle2 size={20} className="text-[#0064FF]" />
             ) : (
               <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
             )}
@@ -79,7 +79,7 @@ const TermsModal = ({ open, onAgree, onClose }) => {
         <button
           onClick={() => checked && onAgree(marketing)}
           disabled={!checked}
-          className="mt-4 w-full rounded-2xl bg-[#03C75A] px-6 py-3.5 text-base font-black text-white shadow-[0_10px_30px_-10px_rgba(3,199,90,0.5)] transition-all hover:bg-[#02b350] disabled:cursor-not-allowed disabled:opacity-40 active:scale-[0.98]"
+          className="mt-4 w-full rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-black text-white shadow-[0_10px_30px_-10px_rgba(3,199,90,0.5)] transition-all hover:bg-[#0052D6] disabled:cursor-not-allowed disabled:opacity-40 active:scale-[0.98]"
         >
           동의하고 계속하기
         </button>

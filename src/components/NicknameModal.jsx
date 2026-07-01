@@ -36,14 +36,14 @@ const NicknameModal = ({ open, onClose, onDone, required = false }) => {
           onKeyDown={e => e.key === 'Enter' && submit()}
           maxLength={10}
           placeholder="예: 숏폼장인"
-          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base text-gray-900 outline-none focus:border-[#03C75A]"
+          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base text-gray-900 outline-none focus:border-[#0064FF]"
           autoFocus
         />
         {err && <p className="mt-2 text-sm font-medium text-red-500">{err}</p>}
         <button
           onClick={submit}
           disabled={saving}
-          className="mt-5 w-full rounded-xl bg-[#03C75A] py-3 text-base font-bold text-white transition-all hover:bg-[#02b350] active:scale-95 disabled:opacity-50"
+          className="mt-5 w-full rounded-xl bg-[#0064FF] py-3 text-base font-bold text-white transition-all hover:bg-[#0052D6] active:scale-95 disabled:opacity-50"
         >
           {saving ? '저장 중…' : '설정하기'}
         </button>

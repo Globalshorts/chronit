@@ -7,7 +7,7 @@ import rehypeRaw from 'rehype-raw'
 import { supabase } from '../lib/supabase'
 
 const statusCfg = {
-  active: { label: '진행중',      cls: 'bg-[#03C75A]/15 text-[#03C75A] border-[#03C75A]/30',  dot: true  },
+  active: { label: '진행중',      cls: 'bg-[#0064FF]/15 text-[#0064FF] border-[#0064FF]/30',  dot: true  },
   ended:  { label: '종료됨',      cls: 'bg-slate-100 text-slate-500 border-slate-200',         dot: false },
   winner: { label: '당첨자 발표', cls: 'bg-amber-100 text-amber-700 border-amber-200',         dot: false },
 }
@@ -16,7 +16,7 @@ const EventBadge = ({ status, label }) => {
   const cfg = statusCfg[status] || statusCfg.active
   return (
     <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold ${cfg.cls}`}>
-      {cfg.dot && <span className="h-1.5 w-1.5 rounded-full bg-[#03C75A] animate-[badge-pulse_1.4s_ease-in-out_infinite]" />}
+      {cfg.dot && <span className="h-1.5 w-1.5 rounded-full bg-[#0064FF] animate-[badge-pulse_1.4s_ease-in-out_infinite]" />}
       {cfg.label}
     </span>
   )
@@ -52,12 +52,12 @@ const EventDetail = () => {
             <h1 className="text-2xl font-black tracking-tighter text-gray-900 md:text-3xl">Chronit</h1>
           </Link>
           <nav className="hidden gap-12 text-base font-bold tracking-wide text-slate-500 md:flex">
-            <Link to="/#faq" className="uppercase transition-colors hover:text-[#03C75A]">자주 묻는 질문</Link>
-            <Link to="/manual"    className="uppercase transition-colors hover:text-[#03C75A]">사용 방법</Link>
-            <Link to="/#pricing"  className="uppercase transition-colors hover:text-[#03C75A]">요금제</Link>
-            <Link to="/events"    className="uppercase text-[#03C75A]">이벤트</Link>
+            <Link to="/#faq" className="uppercase transition-colors hover:text-[#0064FF]">자주 묻는 질문</Link>
+            <Link to="/manual"    className="uppercase transition-colors hover:text-[#0064FF]">사용 방법</Link>
+            <Link to="/#pricing"  className="uppercase transition-colors hover:text-[#0064FF]">요금제</Link>
+            <Link to="/events"    className="uppercase text-[#0064FF]">이벤트</Link>
           </nav>
-          <Link to="/#pricing" className="shrink-0 rounded-full bg-[#03C75A] px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-lg shadow-[#03C75A]/25 transition-all hover:bg-[#02b350] active:scale-95 md:px-7 md:py-2.5 md:text-base">
+          <Link to="/#pricing" className="shrink-0 rounded-full bg-[#0064FF] px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-lg shadow-[#0064FF]/25 transition-all hover:bg-[#0052D6] active:scale-95 md:px-7 md:py-2.5 md:text-base">
             시작하기
           </Link>
         </div>
@@ -65,7 +65,7 @@ const EventDetail = () => {
 
       <article className="mx-auto max-w-3xl px-5 pt-28 pb-28 md:px-8 md:pt-40">
         {/* 목록으로 */}
-        <Link to="/events" className="mb-6 inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 transition-colors hover:text-[#03C75A]">
+        <Link to="/events" className="mb-6 inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 transition-colors hover:text-[#0064FF]">
           <ArrowLeft size={16} /> 이벤트 목록
         </Link>
 
@@ -74,7 +74,7 @@ const EventDetail = () => {
         ) : !event ? (
           <div className="py-20 text-center">
             <p className="text-base font-bold text-gray-700">이벤트를 찾을 수 없어요</p>
-            <Link to="/events" className="mt-4 inline-block rounded-xl bg-[#03C75A] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#02b350]">이벤트 목록으로</Link>
+            <Link to="/events" className="mt-4 inline-block rounded-xl bg-[#0064FF] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#0052D6]">이벤트 목록으로</Link>
           </div>
         ) : (
           <>
@@ -100,14 +100,14 @@ const EventDetail = () => {
             {/* CTA */}
             {event.cta_text && event.cta_url && (
               <a href={event.cta_url} target="_blank" rel="noopener noreferrer"
-                className="mt-10 flex w-full items-center justify-center rounded-2xl bg-[#03C75A] px-6 py-4 text-base font-black text-white shadow-lg shadow-[#03C75A]/25 transition-all hover:bg-[#02b350] active:scale-[0.99]">
+                className="mt-10 flex w-full items-center justify-center rounded-2xl bg-[#0064FF] px-6 py-4 text-base font-black text-white shadow-lg shadow-[#0064FF]/25 transition-all hover:bg-[#0052D6] active:scale-[0.99]">
                 {event.cta_text} →
               </a>
             )}
 
             {/* 하단 목록으로 */}
             <div className="mt-12 border-t border-gray-200 pt-8 text-center">
-              <Link to="/events" className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-700 transition-all hover:border-[#03C75A] hover:text-[#03C75A]">
+              <Link to="/events" className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-700 transition-all hover:border-[#0064FF] hover:text-[#0064FF]">
                 <ArrowLeft size={16} /> 다른 이벤트 보기
               </Link>
             </div>
@@ -127,10 +127,10 @@ const EventDetail = () => {
         .event-post ol { list-style:decimal; }
         .event-post li { margin:.45em 0; }
         .event-post strong { color:#111827; font-weight:800; }
-        .event-post a { color:#03C75A; text-decoration:underline; font-weight:600; }
+        .event-post a { color:#0064FF; text-decoration:underline; font-weight:600; }
         .event-post img { max-width:100%; border-radius:14px; margin:1.3em 0; }
         .event-post hr { border:0; border-top:1px solid #e5e7eb; margin:1.8em 0; }
-        .event-post blockquote { border-left:3px solid #03C75A; background:rgba(3,199,90,.06); padding:.7em 1.1em; border-radius:10px; margin:1.2em 0; }
+        .event-post blockquote { border-left:3px solid #0064FF; background:rgba(3,199,90,.06); padding:.7em 1.1em; border-radius:10px; margin:1.2em 0; }
         .event-post blockquote p { margin:0; }
       `}</style>
     </div>

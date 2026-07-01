@@ -51,7 +51,7 @@ export default function LinkPage() {
   if (state === 'loading')
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#ECEAE3]">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#03C75A] border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#0064FF] border-t-transparent" />
       </div>
     )
 
@@ -60,7 +60,7 @@ export default function LinkPage() {
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[#ECEAE3] px-6 text-center">
         <p className="text-2xl font-black text-gray-900">페이지를 찾을 수 없어요</p>
         <p className="text-gray-500">주소를 다시 확인해 주세요.</p>
-        <a href="https://chronit.kr" className="mt-2 text-sm font-bold text-[#03C75A] hover:underline">크로닛으로 가기 →</a>
+        <a href="https://chronit.kr" className="mt-2 text-sm font-bold text-[#0064FF] hover:underline">크로닛으로 가기 →</a>
       </div>
     )
 
@@ -73,7 +73,7 @@ export default function LinkPage() {
   const textOn = (hex) => (hexLum(hex) > 0.6 ? '#111827' : '#FFFFFF')
 
   const bgColor = page.bg_color || '#ECEAE3'
-  const btnColor = page.accent_color || '#03C75A'
+  const btnColor = page.accent_color || '#0064FF'
   const btnText = textOn(btnColor)
   const dark = hexLum(bgColor) < 0.5
   const cardBg = dark ? '#1E2230' : '#FFFFFF'
