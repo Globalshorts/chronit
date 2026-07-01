@@ -2289,12 +2289,12 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
   };
   // 프리뷰 배경 — 흰/검 선택 (자막 가독성 확인용)
   const [previewBg, setPreviewBg] = useState<"black" | "white">(
-    () => (localStorage.getItem("chronit_preview_bg") as "black" | "white") || "white"
+    () => (localStorage.getItem("chronit_preview_bg_v2") as "black" | "white") || "white"
   );
   const [styleTab, setStyleTab] = useState<"basic" | "effect">("basic");
   const updPreviewBg = (v: "black" | "white") => {
     setPreviewBg(v);
-    localStorage.setItem("chronit_preview_bg", v);
+    localStorage.setItem("chronit_preview_bg_v2", v);
   };
 
   const showToast = (msg: string) => {
