@@ -23,7 +23,7 @@ const SB = "https://oxygqtbdpnxxcgzwdlzi.supabase.co";
 const FN = (n: string) => `${SB}/functions/v1/${n}`;
 
 // ── 상단 바 (홈페이지와 동일 스타일) ───────────────────────────
-function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan, onHistory }: { onMenuClick?: () => void; onInvite?: () => void; session?: any; balance?: number|null; daysLeft?: number|null; userPlan?: string|null; onHistory?: () => void }) {
+function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan, onHistory, activeView, onViewChange, userRole }: { onMenuClick?: () => void; onInvite?: () => void; session?: any; balance?: number|null; daysLeft?: number|null; userPlan?: string|null; onHistory?: () => void; activeView?: string; onViewChange?: (v:string)=>void; userRole?: string }) {
   const ICON = `${SB}/storage/v1/object/public/assets/icon.png`;
   const [menuOpen, setMenuOpen] = useState(false);
   const [nick, setNick] = useState("");
@@ -42,13 +42,20 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
       setCanInstall(!standalone);
     } catch { setCanInstall(true); }
   }, []);
+  const VIEW_TABS = [
+    ...(FEATURES.trendFeed ? [{ v: "trends", label: "트렌드" }] : []),
+    { v: "generator", label: "프로젝트" },
+    { v: "history", label: "생성 내역" },
+    { v: "product-search", label: "내 링크" },
+    { v: "studio", label: "스타일" },
+    { v: "settings", label: "결제" },
+    ...(userRole === "partner" || userRole === "super_admin" ? [{ v: "partner", label: "파트너스" }] : []),
+    ...(userRole === "super_admin" ? [{ v: "admin", label: "관리자" }] : []),
+  ];
   return (
+    <>
     <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-gray-200 bg-white/90 px-4 backdrop-blur-xl md:px-6">
       <div className="flex min-w-0 items-center gap-2 md:gap-3">
-        <button onClick={onMenuClick} aria-label="메뉴"
-          className="md:hidden -ml-1 flex h-9 w-9 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        </button>
         <a href="/" className="flex min-w-0 items-center gap-2 md:gap-3">
           <img src={ICON} alt="Chronit" className="h-9 w-9 shrink-0 md:h-10 md:w-10" />
           <span className="hidden md:inline text-2xl font-black tracking-tight text-gray-900 md:text-3xl">Chronit</span>
@@ -56,16 +63,6 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
       </div>
       <SiteNav />
       <nav className="flex shrink-0 items-center gap-2 text-sm font-bold text-gray-600 md:gap-3">
-        {canInstall && (
-          <button onClick={() => window.dispatchEvent(new Event('chronit:open-install'))} title="홈 화면에 앱으로 추가"
-            className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#03C75A] px-2.5 py-1.5 text-xs font-black text-white shadow-sm active:scale-95">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
-            앱 설치
-          </button>
-        )}
-        {balance !== null && balance !== undefined && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#03C75A]/10 px-3 py-1.5 text-xs font-black text-[#03C75A]">이용권 {balance.toLocaleString()}개 · D-{daysLeft ?? 0}</span>
-        )}
         <div className="relative">
           <button onClick={() => setMenuOpen(o => !o)}
             className="flex items-center gap-1.5 rounded-full bg-gray-900 px-3.5 py-1.5 font-bold text-white transition-colors hover:bg-[#03C75A]">
@@ -76,7 +73,13 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
             <>
               <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
               <div className="absolute right-0 top-full z-50 mt-2 w-48 rounded-2xl border border-gray-200 bg-white p-1.5 shadow-xl shadow-black/5">
+                {balance !== null && balance !== undefined && (
+                  <div className="mb-1 rounded-xl bg-[#03C75A]/10 px-3 py-2.5 text-center text-sm font-black text-[#03C75A]">이용권 {balance.toLocaleString()}개 · D-{daysLeft ?? 0}</div>
+                )}
                 <a href="/me" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">👤 마이페이지</a>
+                {canInstall && (
+                  <button onClick={() => { setMenuOpen(false); window.dispatchEvent(new Event('chronit:open-install')); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">📲 앱 설치</button>
+                )}
                 <button onClick={() => { setMenuOpen(false); onInvite && onInvite(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">🎁 무료 이용권 받기</button>
                 <a href="https://forms.gle/LCDeSEXSM7ALykqv5" target="_blank" rel="noreferrer" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">📝 피드백 보내고 영상 2개</a>
                 <button onClick={() => { setMenuOpen(false); onHistory && onHistory(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#03C75A]">📒 사용 내역</button>
@@ -87,6 +90,15 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
         </div>
       </nav>
     </header>
+    <nav className="sticky top-16 z-30 flex gap-2 overflow-x-auto border-b border-gray-200 bg-white/95 px-3 py-2 backdrop-blur-xl md:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {VIEW_TABS.map((t) => (
+        <button key={t.v} onClick={() => onViewChange && onViewChange(t.v)}
+          className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors ${activeView === t.v ? "bg-[#03C75A] text-white" : "bg-gray-100 text-gray-600"}`}>
+          {t.label}
+        </button>
+      ))}
+    </nav>
+    </>
   );
 }
 
@@ -106,7 +118,7 @@ function AppTabBar({ activeView, onViewChange, userRole }: { activeView: string;
     { v: "generator", label: "프로젝트" },
     { v: "history", label: "생성 내역" },
     { v: "product-search", label: "내 링크" },
-    { v: "studio", label: "콘셉트/스타일" },
+    { v: "studio", label: "스타일" },
     { v: "settings", label: "결제·계정" },
     ...(isPartner ? [{ v: "partner", label: "파트너스", icon: "📊" }] : []),
     ...(isAdmin ? [{ v: "admin", label: "관리자", icon: "👑" }] : []),
@@ -1277,7 +1289,7 @@ export default function VideoGenerator() {
               ) : (!styleProfileId || styleProfileId === "auto") ? (
                 <div className="flex items-start gap-2 rounded-xl bg-red-50 border border-red-200 px-3 py-2">
                   <span className="text-sm">⚠️</span>
-                  <p className="text-xs font-bold text-red-600">스타일 미적용 — 영상이 어색할 수 있어요. <span className="font-normal text-red-500">'콘셉트/스타일'에서 설정하면 훨씬 좋아져요.</span></p>
+                  <p className="text-xs font-bold text-red-600">스타일 미적용 — 영상이 어색할 수 있어요. <span className="font-normal text-red-500">'스타일'에서 설정하면 훨씬 좋아져요.</span></p>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 rounded-xl bg-green-50 border border-green-200 px-3 py-2">
@@ -1443,7 +1455,7 @@ export default function VideoGenerator() {
       )}
 
       {/* ── 상단 바 ── */}
-      <AppTopBar onMenuClick={() => setMobileMenuOpen(true)} onInvite={() => setShowInvite(true)} session={session} balance={balance} daysLeft={daysLeft} userPlan={userPlan} onHistory={() => setShowHistory(true)} />
+      <AppTopBar onMenuClick={() => setMobileMenuOpen(true)} onInvite={() => setShowInvite(true)} session={session} balance={balance} daysLeft={daysLeft} userPlan={userPlan} onHistory={() => setShowHistory(true)} activeView={activeView} onViewChange={setActiveView} userRole={userRole} />
       <PwaInstall />
       <CreditMissionsModal open={showInvite} onClose={() => setShowInvite(false)} session={session} onCredited={loadBalance} />
       {creditWall && (
@@ -1482,7 +1494,7 @@ export default function VideoGenerator() {
       <div className="flex-1 min-w-0 flex flex-col">
         {activeView !== "generator" && (
           <div className="mx-auto w-full max-w-5xl flex-1 overflow-y-auto px-4 md:px-8 py-5 md:py-6">
-            {/* ── 콘셉트/스타일 (스타일 찾기 + 자동화 세팅) ── */}
+            {/* ── 스타일 (스타일 찾기 + 자동화 세팅) ── */}
             {activeView === "studio" && (
               <div>
                 <div className="mb-6 flex gap-2">
@@ -2940,7 +2952,7 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
       { v: "product-search", label: "내 링크" },
     ]},
     { title: "설정", items: [
-      { v: "studio",   label: "콘셉트/스타일" },
+      { v: "studio",   label: "스타일" },
       { v: "settings", label: "결제·계정" },
     ]},
     ...(isPartner || isAdmin ? [{ title: "관리", items: [
