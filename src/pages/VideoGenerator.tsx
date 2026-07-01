@@ -175,9 +175,19 @@ const VOICES_PRO = [
   { id: "JAglhVijAfMW2NotYUoH", label: "피터 (여)", desc: "여성, 친근하고 명랑" },
   { id: "6Vgh4FaCc0SCcWPwcyXa", label: "혜진 (여)", desc: "여성, 따뜻하고 신뢰감" },
   { id: "uyVNoMrnUku1dZyVEXwD", label: "안나 (여)", desc: "여성, 밝고 활발함" },
+  { id: "74i8I1pZi98ZjmmYLdaF", label: "차콜 (여)", desc: "여성, 젊고 내레이션" },
+  { id: "tIXHSlSWOafJawXSV1g4", label: "최미소 (여)", desc: "여성, 차분·긍정, 서울 억양" },
+  { id: "ZRJMGKt2Okf3o9C38eSq", label: "클레어 (여)", desc: "여성, 차분·부드러움, ASMR·내레이션" },
+  { id: "5DWGv3VDkihNUcbvaonB", label: "켈리 (여)", desc: "여성, 또렷한 서울 표준어, 제품·리뷰" },
+  { id: "AW5wrnG1jVizOYY7R1Oo", label: "지영 (여)", desc: "여성, 따뜻·또렷, 친근한 내레이션" },
+  { id: "xi3rF0t7dg7uN2M0WUhr", label: "유나 (여)", desc: "여성, 젊고 부드러움, 스토리텔링" },
+  { id: "4JJwo477JUAx3HV0T7n7", label: "요한 (남)", desc: "남성, 30대 자신감·권위" },
+  { id: "LS3HmRGCXV8wxCAhUbTt", label: "동 (남)", desc: "남성, 40대 따뜻·친근" },
+  { id: "fHzGR8qcnsDR2uaj9r16", label: "임호진 (남)", desc: "남성, 30대 차분·신뢰, 내레이션" },
+  { id: "bciERhbhQhAIWwvnQA7H", label: "승민 (남)", desc: "남성, 밝고 또렷" },
 ];
 // 여성 EL 보이스는 볼륨 150% 기본값
-const EL_FEMALE_IDS = new Set(["zgDzx5jLLCqEp6Fl7Kl7","8jHHF8rMqMlg8if2mOUe","ksaI0TCD9BstzEzlxj4q","5I7B1di44aCL15NkP0jn","JAglhVijAfMW2NotYUoH","6Vgh4FaCc0SCcWPwcyXa","uyVNoMrnUku1dZyVEXwD"]);
+const EL_FEMALE_IDS = new Set(["zgDzx5jLLCqEp6Fl7Kl7","8jHHF8rMqMlg8if2mOUe","ksaI0TCD9BstzEzlxj4q","5I7B1di44aCL15NkP0jn","JAglhVijAfMW2NotYUoH","6Vgh4FaCc0SCcWPwcyXa","uyVNoMrnUku1dZyVEXwD","74i8I1pZi98ZjmmYLdaF","tIXHSlSWOafJawXSV1g4","ZRJMGKt2Okf3o9C38eSq","5DWGv3VDkihNUcbvaonB","AW5wrnG1jVizOYY7R1Oo","xi3rF0t7dg7uN2M0WUhr"]);
 
 const SUBTITLE_PRESETS = [
   { id: "bold_white",  label: "굵은 흰색",  preview: "bg-white text-black" },
@@ -1786,7 +1796,7 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
     if (previewing) { audioRef.current?.pause(); setPreviewing(false); return; }
     try {
       setPreviewing(true);
-      const engine = tab === "pro" ? "elevenlabs" : "openai";
+      const engine = isProVoice(voiceId) ? "elevenlabs" : "openai";
       const resp = await fetch(VOICE_PREVIEW_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1805,6 +1815,8 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
   const handleSetVoiceId = (id: string) => {
     setVoiceId(id);
     localStorage.setItem("chronit_voice_id", id);
+    const vol = EL_FEMALE_IDS.has(id) ? 150 : 100;   // 여성 EL 보이스는 음량이 작아 150% 기본
+    setVoiceVolume(vol); localStorage.setItem("chronit_voice_volume", String(vol));
   };
   const handleSetSpeed = (v: number) => { setVoiceSpeed(v); localStorage.setItem("chronit_voice_speed", String(v)); };
 
@@ -1815,7 +1827,7 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
         {([["basic","일반 음성"],["pro","고급 음성"]] as [string,string][]).map(([v,l]) => {
           const isProLocked = v === "pro" && !canProVoice;
           return (
-            <button key={v} onClick={() => !isProLocked && setTab(v as any)}
+            <button key={v} onClick={() => { if (isProLocked) return; setTab(v as any); const list = (v === "basic" ? VOICES_BASIC : VOICES_PRO); if (!list.some(x => x.id === voiceId)) handleSetVoiceId(list[0].id); }}
               className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition border relative ${
                 tab===v ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" :
                 isProLocked ? "border-gray-200 text-gray-600 cursor-not-allowed" :
@@ -1832,18 +1844,14 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
         </button>
       </div>
 
-      {/* 음성 목록 */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        {(tab === "basic" ? VOICES_BASIC : VOICES_PRO).map(v => (
-          <button key={v.id} onClick={() => {
-            handleSetVoiceId(v.id);
-          }}
-            className={`rounded-xl border px-4 py-3 text-left transition ${voiceId===v.id ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 hover:border-gray-500"}`}>
-            <p className={`text-sm font-bold ${voiceId===v.id ? "text-[#0064FF]" : "text-gray-900"}`}>{v.label}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{v.desc}</p>
-
-          </button>
-        ))}
+      {/* 음성 목록 (드롭다운) */}
+      <div>
+        <select value={voiceId} onChange={(e) => handleSetVoiceId(e.target.value)}
+          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-gray-900 outline-none focus:border-[#0064FF]">
+          {(tab === "basic" ? VOICES_BASIC : VOICES_PRO).map(v => (
+            <option key={v.id} value={v.id}>{v.label}{v.desc ? ` · ${v.desc}` : ""}</option>
+          ))}
+        </select>
       </div>
 
       {/* 속도 + 볼륨 — 권장: 120%~150% */}
