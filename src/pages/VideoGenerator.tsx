@@ -378,6 +378,8 @@ export default function VideoGenerator() {
   const [activePack, setActivePack] = useState<string>(() => { try { return localStorage.getItem("chronit_active_pack") || ""; } catch { return ""; } });
   const [advOpen, setAdvOpen] = useState(false);
   const [packVoiceMsg, setPackVoiceMsg] = useState("");
+  const [manualOpen, setManualOpen] = useState(false);
+  const [ctaOpen, setCtaOpen] = useState(false);
   const [userPacks, setUserPacks] = useState<any[]>([]);
   const [packOnboardOpen, setPackOnboardOpen] = useState(false);
   const applyPack = (p:any, key?:string) => {
@@ -1388,30 +1390,39 @@ export default function VideoGenerator() {
 
             {/* 대본 직접 입력 (영상만이면 숨김) */}
             {!videoOnly && (
-            <div className="space-y-2">
-              <p className="text-xs font-bold text-gray-700 flex items-center gap-1.5">✍️ 대본 직접 입력 <span className="font-normal text-gray-400">· 선택 (비우면 AI가 자동 생성)</span></p>
-              <p className="text-xs text-gray-500">직접 쓰면 그 대본으로 음성·자막이 만들어지고, <b>영상 컷이 대본(문장)에 맞춰</b> 잘려요. 한 줄(또는 한 문장)이 한 컷이에요.</p>
-              <textarea value={manualScript} onChange={e => setManualScript(e.target.value)} rows={4}
-                placeholder={"예:\n이거 진짜 신세계예요\n버튼 하나로 끝나거든요\n주방 좁아도 걱정 없어요"}
-                className="w-full rounded-xl bg-gray-100 border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-[#0064FF] transition resize-none" />
+            <div className="rounded-xl border border-gray-200">
+              <button onClick={() => setManualOpen(o => !o)} className="flex w-full items-center justify-between px-4 py-3 text-left">
+                <span className="text-sm font-bold text-gray-800">✍️ 대본 직접 입력 <span className="font-normal text-gray-400">· 선택</span></span>
+                <span className="text-gray-400">{manualOpen ? "▴" : "▾"}</span>
+              </button>
+              {manualOpen && (
+                <div className="px-4 pb-4 space-y-2">
+                  <p className="text-sm text-gray-500">비우면 AI가 자동 생성 · 한 줄 = 한 컷</p>
+                  <textarea value={manualScript} onChange={e => setManualScript(e.target.value)} rows={4}
+                    placeholder={"예:\n이거 진짜 신세계예요\n버튼 하나로 끝나거든요\n주방 좁아도 걱정 없어요"}
+                    className="w-full rounded-xl bg-gray-100 border border-gray-200 px-4 py-3 text-base text-gray-900 outline-none focus:border-[#0064FF] transition resize-none" />
+                </div>
+              )}
             </div>
             )}
 
             {/* CTA 입력 (영상만이면 숨김) */}
             {!videoOnly && (
-            <div className="space-y-2">
-              <p className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
-                💬 댓글 유도 단어 (CTA)
-              </p>
-              <p className="text-xs text-gray-500">
-                대본 마지막 자막이 "댓글에 OO 남겨주시면 링크 보내드릴게요" 형태로 자동 생성됩니다.<br/>
-                비워두면 "프로필 링크를 확인하세요" 로 마무리됩니다.
-              </p>
-              <input value={modalCtaText} onChange={e => setModalCtaText(e.target.value)}
-                placeholder="예: 관심, 💚, 알려줘 (선택)"
-                className="w-full rounded-xl bg-gray-100 border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-[#0064FF] transition" />
-              {modalCtaText.trim() && (
-                <p className="text-xs text-[#0064FF]">→ "댓글에 {modalCtaText.trim()} 남겨주시면 링크 보내드릴게요"</p>
+            <div className="rounded-xl border border-gray-200">
+              <button onClick={() => setCtaOpen(o => !o)} className="flex w-full items-center justify-between px-4 py-3 text-left">
+                <span className="text-sm font-bold text-gray-800">💬 댓글 유도 단어 <span className="font-normal text-gray-400">· 선택 (CTA)</span></span>
+                <span className="text-gray-400">{ctaOpen ? "▴" : "▾"}</span>
+              </button>
+              {ctaOpen && (
+                <div className="px-4 pb-4 space-y-2">
+                  <p className="text-sm text-gray-500">비우면 '프로필 링크 확인'으로 마무리</p>
+                  <input value={modalCtaText} onChange={e => setModalCtaText(e.target.value)}
+                    placeholder="예: 관심, 알려줘 (선택)"
+                    className="w-full rounded-xl bg-gray-100 border border-gray-200 px-4 py-3 text-base text-gray-900 outline-none focus:border-[#0064FF] transition" />
+                  {modalCtaText.trim() && (
+                    <p className="text-xs text-[#0064FF]">→ "댓글에 {modalCtaText.trim()} 남겨주시면 링크 보내드릴게요"</p>
+                  )}
+                </div>
               )}
             </div>
             )}
@@ -3933,9 +3944,32 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
     finally { setDeleting(null); }
   };
 
+  const bulkDeleteExpired = async () => {
+    if (deleting) return;
+    const exp = jobs.filter((j:any)=>j.expired);
+    if (!exp.length) return;
+    if (!window.confirm(`보관 만료된 영상 ${exp.length}개를 모두 삭제할까요?\n되돌릴 수 없어요.`)) return;
+    setDeleting("__bulk__");
+    for (const j of exp) {
+      try {
+        await fetch(FN("delete-job"), { method:"POST", headers:{ Authorization:`Bearer ${session.access_token}`, "Content-Type":"application/json" }, body: JSON.stringify({ job_id: j.id }) });
+      } catch {}
+    }
+    setJobs(prev => prev.filter((x:any)=>!x.expired));
+    setDeleting(null);
+  };
+
   return (
     <div>
-      <p className="text-xs text-gray-500 mb-4">생성된 영상은 생성 후 3일간 보관됩니다. 기간이 지나면 다운로드할 수 없으니 미리 받아두세요.</p>
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <p className="text-xs text-gray-500">생성된 영상은 생성 후 3일간 보관됩니다. 기간이 지나면 다운로드할 수 없으니 미리 받아두세요.</p>
+        {jobs.some((j:any)=>j.expired) && (
+          <button onClick={bulkDeleteExpired} disabled={deleting==="__bulk__"}
+            className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-bold text-red-600 hover:bg-red-100 disabled:opacity-50">
+            🗑 만료 {jobs.filter((j:any)=>j.expired).length}개 삭제
+          </button>
+        )}
+      </div>
       {shareToast && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-full bg-gray-900 px-5 py-3 text-sm font-bold text-white shadow-xl">
           <span>{shareToast.text}</span>
