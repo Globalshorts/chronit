@@ -3614,13 +3614,15 @@ function StyleFinderView({ session, onImport }: { session: any; onImport: (id:st
 
   const pollStyle = React.useCallback((id: string) => {
     if (pollRef.current) clearInterval(pollRef.current);
+    let misses = 0;
     const tick = async () => {
       try {
         const r = await fetch(`https://oxygqtbdpnxxcgzwdlzi.supabase.co/rest/v1/style_profiles?id=eq.${id}&select=*`,
           { headers: { Authorization: `Bearer ${session.access_token}`, apikey: ANON } });
         const rows = await r.json();
         const row = Array.isArray(rows) ? rows[0] : null;
-        if (!row) return;
+        if (!row) { if (++misses >= 2) { clearInterval(pollRef.current); pollRef.current = null; localStorage.removeItem(PENDING_KEY); setLoading(false); } return; }
+        misses = 0;
         if (row.status === "done") {
           clearInterval(pollRef.current); pollRef.current = null;
           localStorage.removeItem(PENDING_KEY);
@@ -3644,6 +3646,13 @@ function StyleFinderView({ session, onImport }: { session: any; onImport: (id:st
     if (pending && session) { setLoading(true); pollStyle(pending); }
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [session, pollStyle]);
+
+  const cancelAnalysis = () => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    pollRef.current = null;
+    try { localStorage.removeItem(PENDING_KEY); } catch {}
+    setLoading(false); setError("");
+  };
 
   const run = async () => {
     if (!url.trim() || !session) return;
@@ -3699,7 +3708,12 @@ function StyleFinderView({ session, onImport }: { session: any; onImport: (id:st
             {loading ? "분석 중..." : "분석 시작"}
           </button>
         </div>
-        {loading && <p className="text-xs text-[#0064FF] animate-pulse">AI 분석 중 (1~2분)... 다른 탭으로 이동하거나 앱을 닫아도 백그라운드에서 완료됩니다.</p>}
+        {loading && (
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs text-[#0064FF] animate-pulse">AI 분석 중 (1~2분)... 앱을 닫아도 백그라운드에서 완료됩니다.</p>
+            <button onClick={cancelAnalysis} className="shrink-0 rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-bold text-gray-500 hover:bg-gray-50">취소</button>
+          </div>
+        )}
         {error && <p className="text-xs text-red-400">{error}</p>}
       </div>
       {result && (
