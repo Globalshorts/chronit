@@ -3054,7 +3054,7 @@ function AutoSettingsView({
   voiceId, setVoiceId,
   voiceSpeed, setVoiceSpeed,
   voiceVolume, setVoiceVolume,
-  userPlan,
+  userPlan, canProVoice,
   selectedSubtitlePresetId, setSelectedSubtitlePresetId,
   selectedThumbnailPresetId, setSelectedThumbnailPresetId,
   session,
@@ -3068,7 +3068,7 @@ function AutoSettingsView({
   voiceId: string; setVoiceId: (v:string)=>void;
   voiceSpeed: number; setVoiceSpeed: (v:number)=>void;
   voiceVolume: number; setVoiceVolume: (v:number)=>void;
-  userPlan?: string | null;
+  userPlan?: string | null; canProVoice?: boolean;
   selectedSubtitlePresetId: string; setSelectedSubtitlePresetId: (v:string)=>void;
   selectedThumbnailPresetId: string; setSelectedThumbnailPresetId: (v:string)=>void;
   session: any;
