@@ -198,19 +198,19 @@ const SUBTITLE_PRESETS = [
 
 const STYLE_PACKS = [
   { key:"review", name:"감성 리뷰", emoji:"🤍", desc:"차분·신뢰 · 뷰티·리빙",
-    targetSeconds:15, voiceId:"tIXHSlSWOafJawXSV1g4", voiceSpeed:130, voiceVolume:130, styleProfileId:"auto",
+    targetSeconds:15, voiceId:"tIXHSlSWOafJawXSV1g4", voiceIdBasic:"shimmer", voiceSpeed:130, voiceVolume:130, styleProfileId:"auto",
     subtitleStyle:{fontFamily:"'Gowun Dodum', sans-serif",color:"#FFFFFF",fontSize:11,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
     thumbnailStyle:{fontFamily:"'Gowun Dodum', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
   { key:"unboxing", name:"다이나믹 언박싱", emoji:"⚡", desc:"쨍·활기 · 가전·잡화",
-    targetSeconds:15, voiceId:"5DWGv3VDkihNUcbvaonB", voiceSpeed:130, voiceVolume:130, styleProfileId:"auto",
+    targetSeconds:15, voiceId:"5DWGv3VDkihNUcbvaonB", voiceIdBasic:"nova", voiceSpeed:130, voiceVolume:130, styleProfileId:"auto",
     subtitleStyle:{fontFamily:"'Moneygraphy Rounded', sans-serif",color:"#FFE500",fontSize:11,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
     thumbnailStyle:{fontFamily:"'Moneygraphy Rounded', sans-serif",color:"#FFE500",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
   { key:"info", name:"정보형 꿀템", emoji:"📌", desc:"가독성 · 주방·기능성",
-    targetSeconds:15, voiceId:"fHzGR8qcnsDR2uaj9r16", voiceSpeed:130, voiceVolume:130, styleProfileId:"auto",
+    targetSeconds:15, voiceId:"fHzGR8qcnsDR2uaj9r16", voiceIdBasic:"echo", voiceSpeed:130, voiceVolume:130, styleProfileId:"auto",
     subtitleStyle:{fontFamily:"'Kakao Big Sans', sans-serif",color:"#FFFFFF",fontSize:11,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:70,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
     thumbnailStyle:{fontFamily:"'Kakao Big Sans', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:70,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
   { key:"hand", name:"손글씨 감성", emoji:"✍️", desc:"따뜻 · 육아·감성소품",
-    targetSeconds:15, voiceId:"AW5wrnG1jVizOYY7R1Oo", voiceSpeed:130, voiceVolume:130, styleProfileId:"auto",
+    targetSeconds:15, voiceId:"AW5wrnG1jVizOYY7R1Oo", voiceIdBasic:"fable", voiceSpeed:130, voiceVolume:130, styleProfileId:"auto",
     subtitleStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:11,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
     thumbnailStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
 ];
@@ -380,7 +380,9 @@ export default function VideoGenerator() {
   const [userPacks, setUserPacks] = useState<any[]>([]);
   const [packOnboardOpen, setPackOnboardOpen] = useState(false);
   const applyPack = (p:any, key?:string) => {
-    setTargetSeconds(p.targetSeconds); setVoiceId(p.voiceId);
+    setTargetSeconds(p.targetSeconds);
+    const _basicV = new Set(["nova","shimmer","onyx","echo","fable"]);
+    setVoiceId((!canProVoice && !_basicV.has(p.voiceId)) ? (p.voiceIdBasic || "shimmer") : p.voiceId);
     setVoiceSpeed(p.voiceSpeed); setVoiceVolume(p.voiceVolume);
     setSubtitleStyle(p.subtitleStyle); setThumbnailStyle(p.thumbnailStyle);
     setStyleProfileId(p.styleProfileId || "auto");
@@ -1610,11 +1612,6 @@ export default function VideoGenerator() {
 
                 {advOpen && (
                   <div className="mt-4">
-                    <div className="max-w-2xl mx-auto mb-8">
-                      <h3 className="text-base font-black text-gray-900 mb-2">대본 스타일 · 스타일 찾기</h3>
-                      <p className="text-sm text-gray-400 mb-4">숏폼 영상 URL을 분석해서 대본 스타일을 라이브러리에 저장해요.</p>
-                      <StyleFinderView session={session} onImport={(id: string) => { setStyleProfileId(id); }} />
-                    </div>
                     <AutoSettingsView
                       targetSeconds={targetSeconds} setTargetSeconds={setTargetSeconds}
                       styleProfileId={styleProfileId} setStyleProfileId={setStyleProfileId}
@@ -3220,6 +3217,10 @@ function AutoSettingsView({
       <div className="rounded-2xl bg-white border border-gray-200 p-5 space-y-3">
         <p className="text-sm font-black text-gray-900">🎨 대본 스타일</p>
         <StyleSelector selected={styleProfileId} onSelect={setStyleProfileId} session={session} />
+        <div className="border-t border-gray-100 pt-3">
+          <p className="text-xs font-bold text-gray-500 mb-2">＋ URL로 새 대본 스타일 찾기</p>
+          <StyleFinderView session={session} onImport={(id:string) => setStyleProfileId(id)} />
+        </div>
       </div>
 
       {/* 음성 설정 */}
