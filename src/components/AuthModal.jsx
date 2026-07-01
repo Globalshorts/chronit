@@ -1,18 +1,37 @@
-import { X, Gift } from 'lucide-react'
+import { useState } from 'react'
+import { X, Gift, ExternalLink, Copy, Check } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 const AuthModal = ({ open, onClose, referralCode }) => {
+  const [copied, setCopied] = useState(false)
   if (!open) return null
 
   const ua = typeof navigator !== 'undefined' ? navigator.userAgent : ''
-  // Meta(인스타/페북) 인앱 브라우저: 구글 OAuth가 차단됨(disallowed_useragent)
-  const inApp = /Instagram|FBAN|FBAV|FB_IAB/i.test(ua)
+  // 인앱(웹뷰) 브라우저: 구글 OAuth가 'disallowed_useragent'로 차단됨
+  // 인스타·페북·네이버·카카오톡·라인·다음 + 안드로이드 웹뷰(; wv)
+  const inApp = /Instagram|FBAN|FBAV|FB_IAB|NAVER\(inapp|KAKAOTALK|Line\/|Daum|DaumApps|; wv\)/i.test(ua)
+  const isAndroid = /Android/i.test(ua)
 
   const signIn = async (provider) => {
     try { window.gtag?.('event', 'auth_start', { provider, page: window.location.pathname }) } catch {}
     const options = { redirectTo: window.location.origin + window.location.pathname }
     if (provider === 'kakao') options.scopes = 'profile_nickname'
     await supabase.auth.signInWithOAuth({ provider, options })
+  }
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setCopied(true); setTimeout(() => setCopied(false), 2000)
+    } catch {}
+  }
+  const openExternal = () => {
+    if (isAndroid) {
+      const url = window.location.host + window.location.pathname + window.location.search
+      window.location.href = `intent://${url}#Intent;scheme=https;package=com.android.chrome;end`
+    } else {
+      copyLink()
+    }
   }
 
   return (
@@ -41,8 +60,27 @@ const AuthModal = ({ open, onClose, referralCode }) => {
 
         {inApp && (
           <div className="mb-5 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800">
-            인스타 인앱 브라우저에서는 <b>구글 로그인이 제한</b>돼요.<br />
-            아래 <b>카카오로 계속하기</b>를 이용하거나, 우측 상단 <b>⋯ → 다른 브라우저로 열기</b>(Chrome/Safari)를 눌러주세요.
+            인앱 브라우저(네이버·인스타·카톡 등)에서는 <b>구글 로그인이 제한</b>돼요.<br />
+            아래 <b>카카오로 계속하기</b>를 쓰거나, 외부 브라우저에서 열어주세요.
+            <div className="mt-3 flex gap-2">
+              {isAndroid && (
+                <button
+                  onClick={openExternal}
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2 text-xs font-bold text-white active:scale-95"
+                >
+                  <ExternalLink size={13} /> Chrome에서 열기
+                </button>
+              )}
+              <button
+                onClick={copyLink}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-amber-400 bg-white px-3 py-2 text-xs font-bold text-amber-700 active:scale-95"
+              >
+                {copied ? (<><Check size={13} /> 복사됨</>) : (<><Copy size={13} /> 주소 복사</>)}
+              </button>
+            </div>
+            {!isAndroid && (
+              <p className="mt-2 text-xs">복사한 주소를 Safari에 붙여넣거나, 우측 상단 <b>⋯ → 기본 브라우저로 열기</b></p>
+            )}
           </div>
         )}
 
@@ -80,6 +118,9 @@ const AuthModal = ({ open, onClose, referralCode }) => {
             </svg>
             Google로 계속하기
           </button>
+          {inApp && (
+            <p className="text-center text-xs text-gray-400">구글은 인앱에서 막힐 수 있어요 — 카카오를 권장해요</p>
+          )}
         </div>
       </div>
     </div>
