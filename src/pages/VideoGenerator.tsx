@@ -1634,30 +1634,27 @@ export default function VideoGenerator() {
                 <h2 className="text-xl font-black text-gray-900 mb-2">🎨 스타일</h2>
                 <p className="text-sm text-gray-400 mb-5">스타일 팩을 고르면 음성·자막·썸네일·길이가 한 번에 적용돼요.</p>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   {STYLE_PACKS.map((pk) => (
                     <button key={pk.key} onClick={() => applyPack(pk)}
-                      className={`rounded-2xl border-2 p-4 text-left transition ${activePack === pk.key ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 bg-white hover:border-gray-300"}`}>
-                      <div className="text-2xl">{pk.emoji}</div>
-                      <div className="mt-1.5 text-sm font-black text-gray-900">{pk.name}</div>
-                      <div className="mt-0.5 text-xs text-gray-400">{pk.desc}</div>
+                      className={`rounded-xl border p-3 text-left transition ${activePack === pk.key ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 hover:border-gray-400"}`}>
+                      <p className={`text-sm font-black ${activePack === pk.key ? "text-[#0064FF]" : "text-gray-900"}`}>{pk.emoji} {pk.name}</p>
+                      <p className="text-xs text-gray-500 mt-0.5 leading-tight">{pk.desc}</p>
                     </button>
                   ))}
                   {userPacks.map((up) => (
                     <button key={up.id} onClick={() => applyPack(up.config, "user:" + up.id)}
-                      className={`relative rounded-2xl border-2 p-4 text-left transition ${activePack === ("user:" + up.id) ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 bg-white hover:border-gray-300"}`}>
+                      className={`relative rounded-xl border p-3 text-left transition ${activePack === ("user:" + up.id) ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 hover:border-gray-400"}`}>
                       <span onClick={(e) => { e.stopPropagation(); deleteUserPack(up.id); }}
                         className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 text-xs text-gray-400 hover:bg-gray-200 hover:text-gray-600">✕</span>
-                      <div className="text-2xl">💾</div>
-                      <div className="mt-1.5 text-sm font-black text-gray-900">{up.name}</div>
-                      <div className="mt-0.5 text-xs text-gray-400">내 팩</div>
+                      <p className={`text-sm font-black ${activePack === ("user:" + up.id) ? "text-[#0064FF]" : "text-gray-900"}`}>💾 {up.name}</p>
+                      <p className="text-xs text-gray-500 mt-0.5 leading-tight">내 팩</p>
                     </button>
                   ))}
                   <button onClick={saveCurrentPack}
-                    className="rounded-2xl border-2 border-dashed border-gray-300 p-4 text-left text-gray-400 transition hover:border-[#0064FF] hover:text-[#0064FF]">
-                    <div className="text-2xl">＋</div>
-                    <div className="mt-1.5 text-sm font-black">현재 설정 저장</div>
-                    <div className="mt-0.5 text-xs">지금 세팅을 내 팩으로</div>
+                    className="rounded-xl border border-dashed border-gray-300 p-3 text-left text-gray-400 transition hover:border-[#0064FF] hover:text-[#0064FF]">
+                    <p className="text-sm font-black">＋ 현재 설정 저장</p>
+                    <p className="text-xs mt-0.5 leading-tight">지금 세팅을 내 팩으로</p>
                   </button>
                 </div>
 
