@@ -1372,15 +1372,9 @@ export default function VideoGenerator() {
             </div>
 
             {/* 크레딧 내역 */}
-            <div className="rounded-xl bg-gray-100 p-4 space-y-2">
-              <p className="text-xs font-bold text-gray-400 mb-3">다음 작업을 자동 진행합니다:</p>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-700">📄 대본 · 🎙 음성 · 🎬 합성·자막</span>
-                <span className="text-green-500 font-bold">분석·대본·음성 무료</span>
-              </div>
-              <div className="border-t border-gray-200 my-2" />
+            <div className="rounded-xl bg-gray-100 p-4">
               <div className="flex justify-between text-sm font-black">
-                <span className="text-gray-900">이 작업으로 영상 1개 사용</span>
+                <span className="text-gray-900">영상 1개 사용</span>
                 {balance !== null && <span className={balance >= 1 ? "text-[#0064FF]" : "text-red-400"}>남은 {balance.toLocaleString()}개</span>}
               </div>
               {balance !== null && balance < 1 && <p className="text-xs text-red-400 pt-1">⚠ 이용권이 부족해요 — 요금제를 확인해 주세요</p>}
@@ -1415,22 +1409,12 @@ export default function VideoGenerator() {
               </div>
             )}
 
-            {/* ⚠️ 스타일/클립 경고 */}
+            {/* 클립·모드 안내 */}
             <div className="space-y-2">
-              {videoOnly ? (
+              {videoOnly && (
                 <div className="flex items-center gap-2 rounded-xl bg-gray-50 border border-gray-200 px-3 py-2">
                   <span className="text-sm">🎬</span>
                   <p className="text-xs font-bold text-gray-600">영상만 모드 — AI 음성·자막 없이 클립 몽타주만 생성돼요.</p>
-                </div>
-              ) : (!activePack && (!styleProfileId || styleProfileId === "auto")) ? (
-                <div className="flex items-start gap-2 rounded-xl bg-red-50 border border-red-200 px-3 py-2">
-                  <span className="text-sm">⚠️</span>
-                  <p className="text-xs font-bold text-red-600">스타일 미적용 — 영상이 어색할 수 있어요. <span className="font-normal text-red-500">'스타일'에서 설정하면 훨씬 좋아져요.</span></p>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 rounded-xl bg-green-50 border border-green-200 px-3 py-2">
-                  <span className="text-sm">🎨</span>
-                  <p className="text-xs font-bold text-green-700">스타일 적용됨</p>
                 </div>
               )}
               {cart.size < 3 && (
