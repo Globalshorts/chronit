@@ -196,6 +196,25 @@ const SUBTITLE_PRESETS = [
   { id: "dark_bg",     label: "다크 배경",  preview: "bg-black/70 text-gray-900" },
 ];
 
+const STYLE_PACKS = [
+  { key:"review", name:"감성 리뷰", emoji:"🤍", desc:"차분·신뢰 · 뷰티·리빙",
+    targetSeconds:15, voiceId:"tIXHSlSWOafJawXSV1g4", voiceSpeed:130, voiceVolume:130, styleProfileId:"auto",
+    subtitleStyle:{fontFamily:"'Gowun Dodum', sans-serif",color:"#FFFFFF",fontSize:11,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
+    thumbnailStyle:{fontFamily:"'Gowun Dodum', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
+  { key:"unboxing", name:"다이나믹 언박싱", emoji:"⚡", desc:"쨍·활기 · 가전·잡화",
+    targetSeconds:15, voiceId:"5DWGv3VDkihNUcbvaonB", voiceSpeed:130, voiceVolume:130, styleProfileId:"auto",
+    subtitleStyle:{fontFamily:"'Moneygraphy Rounded', sans-serif",color:"#FFE500",fontSize:11,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
+    thumbnailStyle:{fontFamily:"'Moneygraphy Rounded', sans-serif",color:"#FFE500",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
+  { key:"info", name:"정보형 꿀템", emoji:"📌", desc:"가독성 · 주방·기능성",
+    targetSeconds:15, voiceId:"fHzGR8qcnsDR2uaj9r16", voiceSpeed:130, voiceVolume:130, styleProfileId:"auto",
+    subtitleStyle:{fontFamily:"'Kakao Big Sans', sans-serif",color:"#FFFFFF",fontSize:11,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:70,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
+    thumbnailStyle:{fontFamily:"'Kakao Big Sans', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:70,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
+  { key:"hand", name:"손글씨 감성", emoji:"✍️", desc:"따뜻 · 육아·감성소품",
+    targetSeconds:15, voiceId:"AW5wrnG1jVizOYY7R1Oo", voiceSpeed:130, voiceVolume:130, styleProfileId:"auto",
+    subtitleStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:11,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
+    thumbnailStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
+];
+
 // ── 메인 ─────────────────────────────────────────────────────
 export default function VideoGenerator() {
   const [session, setSession]       = useState<Session | null>(null);
@@ -356,6 +375,43 @@ export default function VideoGenerator() {
     catch { return "generator"; }
   });
   const [studioTab, setStudioTab] = useState("style"); // 'style'(스타일 찾기) | 'auto'(자동화 세팅)
+  const [activePack, setActivePack] = useState<string>(() => { try { return localStorage.getItem("chronit_active_pack") || ""; } catch { return ""; } });
+  const [advOpen, setAdvOpen] = useState(false);
+  const [userPacks, setUserPacks] = useState<any[]>([]);
+  const [packOnboardOpen, setPackOnboardOpen] = useState(false);
+  const applyPack = (p:any, key?:string) => {
+    setTargetSeconds(p.targetSeconds); setVoiceId(p.voiceId);
+    setVoiceSpeed(p.voiceSpeed); setVoiceVolume(p.voiceVolume);
+    setSubtitleStyle(p.subtitleStyle); setThumbnailStyle(p.thumbnailStyle);
+    setStyleProfileId(p.styleProfileId || "auto");
+    try { localStorage.setItem("chronit_voice_pref","1"); localStorage.setItem("chronit_active_pack", key ?? p.key ?? ""); } catch {}
+    setActivePack(key ?? p.key ?? "");
+  };
+  const saveCurrentPack = async () => {
+    if (!session) return;
+    const name = window.prompt("이 설정을 저장할 팩 이름을 입력하세요"); if(!name?.trim()) return;
+    const config = { targetSeconds, voiceId, voiceSpeed, voiceVolume, subtitleStyle, thumbnailStyle, styleProfileId };
+    const { data, error } = await supabase.from("user_style_packs").insert({ user_id: session.user.id, name: name.trim(), config }).select("id,name,config").single();
+    if(!error && data){ setUserPacks(prev=>[data,...prev]); }
+  };
+  const deleteUserPack = async (id:string) => { await supabase.from("user_style_packs").delete().eq("id",id); setUserPacks(prev=>prev.filter(x=>x.id!==id)); };
+  // 내 팩 로드
+  useEffect(() => {
+    if (!session) { setUserPacks([]); return; }
+    (async () => {
+      const { data } = await supabase.from("user_style_packs").select("id,name,config").eq("user_id", session.user.id).order("created_at",{ascending:false});
+      if (data) setUserPacks(data);
+    })();
+  }, [session]);
+  // 첫 영상 온보딩
+  useEffect(() => {
+    if (!session) return;
+    try {
+      if (localStorage.getItem("chronit_pack_onboarded")) return;
+      if (localStorage.getItem("chronit_active_pack")) { localStorage.setItem("chronit_pack_onboarded","1"); return; }
+      setPackOnboardOpen(true);
+    } catch {}
+  }, [session]);
   // 현재 탭 저장 → 새로고침해도 그 탭 유지 (프로젝트로 튕기지 않음)
   useEffect(() => {
     try { localStorage.setItem("chronit_active_view", activeView); } catch {}
@@ -1517,42 +1573,64 @@ export default function VideoGenerator() {
             {/* ── 스타일 (스타일 찾기 + 자동화 세팅) ── */}
             {activeView === "studio" && (
               <div>
-                <div className="mb-6 flex gap-2">
-                  {[
-                    { k: "style", label: "🔍 스타일 찾기" },
-                    { k: "auto",  label: "⚙️ 자동화 세팅" },
-                  ].map((t) => (
-                    <button key={t.k} onClick={() => setStudioTab(t.k)}
-                      className={`rounded-xl px-4 py-2 text-sm font-bold transition ${studioTab === t.k ? "bg-[#0064FF] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
-                      {t.label}
+                <h2 className="text-xl font-black text-gray-900 mb-2">🎨 스타일</h2>
+                <p className="text-sm text-gray-400 mb-5">스타일 팩을 고르면 음성·자막·썸네일·길이가 한 번에 적용돼요.</p>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {STYLE_PACKS.map((pk) => (
+                    <button key={pk.key} onClick={() => applyPack(pk)}
+                      className={`rounded-2xl border-2 p-4 text-left transition ${activePack === pk.key ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 bg-white hover:border-gray-300"}`}>
+                      <div className="text-2xl">{pk.emoji}</div>
+                      <div className="mt-1.5 text-sm font-black text-gray-900">{pk.name}</div>
+                      <div className="mt-0.5 text-xs text-gray-400">{pk.desc}</div>
                     </button>
                   ))}
+                  {userPacks.map((up) => (
+                    <button key={up.id} onClick={() => applyPack(up.config, "user:" + up.id)}
+                      className={`relative rounded-2xl border-2 p-4 text-left transition ${activePack === ("user:" + up.id) ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 bg-white hover:border-gray-300"}`}>
+                      <span onClick={(e) => { e.stopPropagation(); deleteUserPack(up.id); }}
+                        className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 text-xs text-gray-400 hover:bg-gray-200 hover:text-gray-600">✕</span>
+                      <div className="text-2xl">💾</div>
+                      <div className="mt-1.5 text-sm font-black text-gray-900">{up.name}</div>
+                      <div className="mt-0.5 text-xs text-gray-400">내 팩</div>
+                    </button>
+                  ))}
+                  <button onClick={saveCurrentPack}
+                    className="rounded-2xl border-2 border-dashed border-gray-300 p-4 text-left text-gray-400 transition hover:border-[#0064FF] hover:text-[#0064FF]">
+                    <div className="text-2xl">＋</div>
+                    <div className="mt-1.5 text-sm font-black">현재 설정 저장</div>
+                    <div className="mt-0.5 text-xs">지금 세팅을 내 팩으로</div>
+                  </button>
                 </div>
 
-                {studioTab === "style" && (
-                  <div className="max-w-2xl mx-auto">
-                    <h2 className="text-xl font-black text-gray-900 mb-2">🔍 스타일 찾기</h2>
-                    <p className="text-sm text-gray-400 mb-6">숏폼 영상 URL을 분석해서 대본 스타일을 라이브러리에 저장해요. 저장한 스타일은 옆 <b>자동화 세팅</b>에서 적용합니다.</p>
-                    <StyleFinderView session={session} onImport={(id: string) => { setStyleProfileId(id); setStudioTab("auto"); }} />
-                  </div>
-                )}
+                <button onClick={() => setAdvOpen(v => !v)}
+                  className="mt-6 flex items-center gap-1 text-sm font-bold text-gray-500 hover:text-gray-900">
+                  고급 설정 {advOpen ? "▴" : "▾"}
+                </button>
 
-                {studioTab === "auto" && (
-                  <AutoSettingsView
-                    targetSeconds={targetSeconds} setTargetSeconds={setTargetSeconds}
-                    styleProfileId={styleProfileId} setStyleProfileId={setStyleProfileId}
-                    ctaText={ctaText} setCtaText={setCtaText}
-                    subtitleStyle={subtitleStyle} setSubtitleStyle={setSubtitleStyle}
-                    thumbnailStyle={thumbnailStyle} setThumbnailStyle={setThumbnailStyle}
-                    showThumbnail={showThumbnail} setShowThumbnail={setShowThumbnail}
-                    voiceId={voiceId} setVoiceId={setVoiceId}
-                    voiceSpeed={voiceSpeed} setVoiceSpeed={setVoiceSpeed}
-                    voiceVolume={voiceVolume} setVoiceVolume={setVoiceVolume}
-                    userPlan={userPlan} canProVoice={canProVoice}
-                    selectedSubtitlePresetId={selectedSubtitlePresetId} setSelectedSubtitlePresetId={setSelectedSubtitlePresetId}
-                    selectedThumbnailPresetId={selectedThumbnailPresetId} setSelectedThumbnailPresetId={setSelectedThumbnailPresetId}
-                    session={session}
-                  />
+                {advOpen && (
+                  <div className="mt-4">
+                    <div className="max-w-2xl mx-auto mb-8">
+                      <h3 className="text-base font-black text-gray-900 mb-2">대본 스타일 · 스타일 찾기</h3>
+                      <p className="text-sm text-gray-400 mb-4">숏폼 영상 URL을 분석해서 대본 스타일을 라이브러리에 저장해요.</p>
+                      <StyleFinderView session={session} onImport={(id: string) => { setStyleProfileId(id); }} />
+                    </div>
+                    <AutoSettingsView
+                      targetSeconds={targetSeconds} setTargetSeconds={setTargetSeconds}
+                      styleProfileId={styleProfileId} setStyleProfileId={setStyleProfileId}
+                      ctaText={ctaText} setCtaText={setCtaText}
+                      subtitleStyle={subtitleStyle} setSubtitleStyle={setSubtitleStyle}
+                      thumbnailStyle={thumbnailStyle} setThumbnailStyle={setThumbnailStyle}
+                      showThumbnail={showThumbnail} setShowThumbnail={setShowThumbnail}
+                      voiceId={voiceId} setVoiceId={setVoiceId}
+                      voiceSpeed={voiceSpeed} setVoiceSpeed={setVoiceSpeed}
+                      voiceVolume={voiceVolume} setVoiceVolume={setVoiceVolume}
+                      userPlan={userPlan} canProVoice={canProVoice}
+                      selectedSubtitlePresetId={selectedSubtitlePresetId} setSelectedSubtitlePresetId={setSelectedSubtitlePresetId}
+                      selectedThumbnailPresetId={selectedThumbnailPresetId} setSelectedThumbnailPresetId={setSelectedThumbnailPresetId}
+                      session={session}
+                    />
+                  </div>
                 )}
               </div>
             )}
@@ -1774,6 +1852,31 @@ export default function VideoGenerator() {
         </div>
         </> /* generator view end */}
       </div>
+
+      {packOnboardOpen && (
+        <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-7 shadow-2xl">
+            <p className="text-center text-lg font-black text-gray-900">스타일 팩을 골라주세요</p>
+            <p className="mt-1 text-center text-sm text-gray-500">고르면 음성·자막·썸네일이 한 번에 세팅돼요.</p>
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              {STYLE_PACKS.map((pk) => (
+                <button key={pk.key}
+                  onClick={() => { applyPack(pk); try { localStorage.setItem("chronit_pack_onboarded","1"); } catch {} setPackOnboardOpen(false); }}
+                  className="rounded-2xl border-2 border-gray-200 bg-white p-4 text-left transition hover:border-[#0064FF]">
+                  <div className="text-2xl">{pk.emoji}</div>
+                  <div className="mt-1.5 text-sm font-black text-gray-900">{pk.name}</div>
+                  <div className="mt-0.5 text-xs text-gray-400">{pk.desc}</div>
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => { applyPack(STYLE_PACKS[0]); try { localStorage.setItem("chronit_pack_onboarded","1"); } catch {} setPackOnboardOpen(false); }}
+              className="mt-4 w-full text-center text-xs text-gray-400 hover:text-gray-600">
+              건너뛰기
+            </button>
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );
