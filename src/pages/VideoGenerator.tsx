@@ -1383,12 +1383,12 @@ export default function VideoGenerator() {
             {/* 🎨 대본 스타일 + 스타일 팩 (자동생성 모달에서 바로 선택) */}
             {!videoOnly && (
               <div className="space-y-2">
-                <div>
-                  <p className="text-[11px] font-bold text-gray-400 mb-1">대본 스타일</p>
+                <div className={manualScript.trim() ? "opacity-40" : ""}>
+                  <p className="text-[11px] font-bold text-gray-400 mb-1">대본 스타일{manualScript.trim() && <span className="font-normal"> · 직접 입력 시 미적용</span>}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {SCRIPT_STYLES.map(ss => (
-                      <button key={ss.key} type="button" onClick={() => setStyleProfileId(ss.key)}
-                        className={`rounded-lg px-2.5 py-1 text-xs font-bold border transition ${styleProfileId===ss.key ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}>
+                      <button key={ss.key} type="button" disabled={!!manualScript.trim()} onClick={() => setStyleProfileId(ss.key)}
+                        className={`rounded-lg px-2.5 py-1 text-xs font-bold border transition ${manualScript.trim() ? "border-gray-200 text-gray-400 cursor-not-allowed" : styleProfileId===ss.key ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}>
                         {ss.emoji} {ss.name}
                       </button>
                     ))}
