@@ -1673,15 +1673,6 @@ export default function VideoGenerator() {
                       </button>
                     ))}
                   </div>
-                  {userRole === "super_admin" && (
-                    <details className="border-t border-gray-100 pt-3 mt-3">
-                      <summary className="text-xs font-bold text-gray-400 cursor-pointer">＋ URL로 대본 스타일 분석 (관리자 전용)</summary>
-                      <div className="mt-3 space-y-3">
-                        <StyleSelector selected={styleProfileId} onSelect={setStyleProfileId} session={session} />
-                        <StyleFinderView session={session} onImport={(id:string) => setStyleProfileId(id)} />
-                      </div>
-                    </details>
-                  )}
                 </div>
 
                 <button onClick={() => setAdvOpen(v => !v)}
@@ -2298,7 +2289,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
   };
   // 프리뷰 배경 — 흰/검 선택 (자막 가독성 확인용)
   const [previewBg, setPreviewBg] = useState<"black" | "white">(
-    () => (localStorage.getItem("chronit_preview_bg") as "black" | "white") || "black"
+    () => (localStorage.getItem("chronit_preview_bg") as "black" | "white") || "white"
   );
   const updPreviewBg = (v: "black" | "white") => {
     setPreviewBg(v);
