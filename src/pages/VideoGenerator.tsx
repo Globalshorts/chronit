@@ -1386,6 +1386,35 @@ export default function VideoGenerator() {
               {balance !== null && balance < 1 && <p className="text-xs text-red-400 pt-1">⚠ 이용권이 부족해요 — 요금제를 확인해 주세요</p>}
             </div>
 
+            {/* 🎨 대본 스타일 + 스타일 팩 (자동생성 모달에서 바로 선택) */}
+            {!videoOnly && (
+              <div className="space-y-2">
+                <div>
+                  <p className="text-[11px] font-bold text-gray-400 mb-1">대본 스타일</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {SCRIPT_STYLES.map(ss => (
+                      <button key={ss.key} type="button" onClick={() => setStyleProfileId(ss.key)}
+                        className={`rounded-lg px-2.5 py-1 text-xs font-bold border transition ${styleProfileId===ss.key ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}>
+                        {ss.emoji} {ss.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[11px] font-bold text-gray-400 mb-1">스타일 팩 <span className="font-normal">· 음성·자막·썸네일</span></p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {STYLE_PACKS.map(pk => (
+                      <button key={pk.key} type="button" onClick={() => applyPack(pk, pk.key)}
+                        className={`rounded-lg px-2.5 py-1 text-xs font-bold border transition ${activePack===pk.key ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}>
+                        {pk.emoji} {pk.name}
+                      </button>
+                    ))}
+                  </div>
+                  {packVoiceMsg && <p className="text-[11px] text-amber-600 mt-1">{packVoiceMsg}</p>}
+                </div>
+              </div>
+            )}
+
             {/* ⚠️ 스타일/클립 경고 */}
             <div className="space-y-2">
               {videoOnly ? (
