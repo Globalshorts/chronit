@@ -42,3 +42,19 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 .tip-fade { animation: tipFade 0.4s ease-out; }
+
+/* 이벤트 배지 — 브랜드 파랑 그라디언트 + 은은한 빛 스윕 (SOOP 느낌의 눈에 띄는 배지, 색은 크로닛 브랜드) */
+@keyframes eventEdge {
+  0%, 92%, 100% { box-shadow: 0 4px 14px -2px rgba(0,100,255,0.45); }
+  46%           { box-shadow: 0 6px 20px -1px rgba(0,100,255,0.7), 0 0 14px 2px rgba(124,107,255,0.5); }
+}
+.event-badge { position: relative; overflow: hidden; animation: eventEdge 4.5s ease-in-out infinite; }
+.event-badge::after {
+  content: "";
+  position: absolute; top: 0; left: -160%;
+  width: 55%; height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.55), transparent);
+  transform: skewX(-20deg);
+  pointer-events: none;
+  animation: creditSweep 4.5s ease-in-out infinite;
+}
