@@ -3998,10 +3998,12 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
     finally { setSharing(null); setTimeout(()=>setShareToast(null), 6000); }
   };
   const cap5Tags = (tags?:string) => {
-    if (!tags) return "";
-    return tags.split(/\s+/).map(t=>t.trim()).filter(Boolean)
+    // 자동 태그 최대 4개 + 마지막에 브랜드 태그 #크로닛 고정(중복 제거). 복사 텍스트라 수정 가능.
+    const base = (tags || "").split(/\s+/).map(t=>t.trim()).filter(Boolean)
       .map(t => t.startsWith("#") ? t : "#"+t.replace(/^#+/,""))
-      .filter(t => t.length>1).slice(0,5).join(" ");
+      .filter(t => t.length>1 && t !== "#크로닛")
+      .slice(0,4);
+    return [...base, "#크로닛"].join(" ");
   };
   const seoFull = (j:any) =>
     `[제목]\n${j.seo_title||""}\n\n[설명]\n${j.seo_description||""}\n\n[해시태그]\n${cap5Tags(j.seo_tags)}`;
