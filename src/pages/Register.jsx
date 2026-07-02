@@ -39,6 +39,20 @@ const Register = () => {
       if (!s) { window.location.href = '/'; return }
       setSession(s)
 
+      // 유입 소스 박제 (first-touch, 가입 직후) — 광고 귀속 정확도용
+      try {
+        const raw = localStorage.getItem('chronit_acq')
+        if (raw) {
+          const a = JSON.parse(raw)
+          await supabase.rpc('set_acquisition_rpc', {
+            p_landing: a.landing || '', p_ref: a.ref || '',
+            p_source: a.source || '', p_medium: a.medium || '',
+            p_campaign: a.campaign || '', p_content: a.content || '',
+          })
+          try { localStorage.setItem('chronit_acq_stamped', '1') } catch {}
+        }
+      } catch { /* noop */ }
+
       const { data: prof } = await supabase
         .from('profiles')
         .select('nickname, signup_source, terms_agreed_at, onboarded')
