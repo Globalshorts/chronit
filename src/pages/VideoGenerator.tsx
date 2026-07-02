@@ -283,15 +283,6 @@ export default function VideoGenerator() {
   const [targetSeconds, setTargetSeconds] = useState(15);
   const [styleProfileId, setStyleProfileId] = useState<string>(() => { try { return localStorage.getItem("chronit_script_style") || "story"; } catch { return "story"; } });
   useEffect(() => { try { localStorage.setItem("chronit_script_style", styleProfileId); } catch {} }, [styleProfileId]);
-  // 이용권 소진/만료 시 초대 팝업 자동 노출 (세션 1회)
-  useEffect(() => {
-    if (balance === null) return;
-    if (balance < 1) {
-      try { if (sessionStorage.getItem("chronit_wall_seen")) return; } catch {}
-      setCreditWall("empty");
-      try { sessionStorage.setItem("chronit_wall_seen", "1"); } catch {}
-    }
-  }, [balance]);
   const [videoOnly, setVideoOnly] = useState<boolean>(() => { try { return localStorage.getItem("chronit_video_only") === "1"; } catch { return false; } });
   const toggleVideoOnly = () => setVideoOnly(v => { const nv = !v; try { localStorage.setItem("chronit_video_only", nv ? "1" : "0"); } catch {} return nv; });
   const [coupangOpen, setCoupangOpen] = useState(false);
@@ -397,6 +388,15 @@ export default function VideoGenerator() {
   const [payOpen, setPayOpen] = useState(false);
   const [creditWall, setCreditWall] = useState<null | "empty" | "expired">(null);
   const [balance, setBalance]       = useState<number | null>(null);
+  // 이용권 소진/만료 시 초대 팝업 자동 노출 (세션 1회)
+  useEffect(() => {
+    if (balance === null) return;
+    if (balance < 1) {
+      try { if (sessionStorage.getItem("chronit_wall_seen")) return; } catch {}
+      setCreditWall("empty");
+      try { sessionStorage.setItem("chronit_wall_seen", "1"); } catch {}
+    }
+  }, [balance]);
   const [daysLeft, setDaysLeft]     = useState<number | null>(null);
   const [canProVoice, setCanProVoice] = useState<boolean>(true);
   const proDefaultRef = useRef(false);
