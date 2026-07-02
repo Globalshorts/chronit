@@ -639,6 +639,21 @@ export default function VideoGenerator() {
     return () => clearInterval(hb);
   }, [session]);
 
+  // ── 유입 소스 박제 (first-touch, 결제 귀속용) ──
+  useEffect(() => {
+    if (!session) return;
+    try {
+      if (localStorage.getItem("chronit_acq_stamped")) return;
+      const raw = localStorage.getItem("chronit_acq");
+      if (!raw) return;
+      const a = JSON.parse(raw);
+      supabase.rpc("set_acquisition_rpc", { p_landing: a.landing || "", p_ref: a.ref || "" }).then(
+        () => { try { localStorage.setItem("chronit_acq_stamped", "1"); } catch {} },
+        () => {}
+      );
+    } catch { /* noop */ }
+  }, [session]);
+
   // ── 가입 경로 조회 effect (응답 전 1회) ──────────────────────────────
   useEffect(() => {
     if (!session) return;
