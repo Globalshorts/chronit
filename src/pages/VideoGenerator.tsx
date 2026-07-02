@@ -1509,7 +1509,11 @@ export default function VideoGenerator() {
             <p className="font-black text-sm">{completionAlert}</p>
             {!completionAlert.startsWith("❌") && (completionAlert.includes("완성") || completionAlert.includes("생성 내역")) && <p className="text-xs text-green-100 mt-0.5">생성 내역 탭에서 다운로드하세요</p>}
           </div>
-          <button onClick={() => setCompletionAlert(null)} className="ml-4 text-gray-900/70 hover:text-gray-900 text-lg">✕</button>
+          {!completionAlert.startsWith("❌") && (completionAlert.includes("완성") || completionAlert.includes("생성 내역")) && (
+            <button onClick={() => { setShowInvite(true); setCompletionAlert(null); }}
+              className="ml-2 shrink-0 rounded-lg bg-white/25 hover:bg-white/40 px-2.5 py-1.5 text-xs font-black text-white transition">🎁 초대 +프로7일</button>
+          )}
+          <button onClick={() => setCompletionAlert(null)} className="ml-2 text-white/80 hover:text-white text-lg">✕</button>
         </div>
       )}
 
@@ -1755,7 +1759,7 @@ export default function VideoGenerator() {
             {activeView === "history" && (
               <>
                 <h2 className="text-xl font-black text-gray-900 mb-6">📹 생성 내역</h2>
-                <HistoryView session={session} onGoToLinks={()=>setActiveView("product-search")} onGacha={(g:any)=>setGacha(g)} />
+                <HistoryView session={session} onGoToLinks={()=>setActiveView("product-search")} onGacha={(g:any)=>setGacha(g)} onInvite={()=>setShowInvite(true)} />
               </>
             )}
             {activeView === "product-search" && (
@@ -3900,7 +3904,7 @@ function GachaModal({ data, onClose }: { data: any; onClose: ()=>void }) {
   );
 }
 
-function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLinks?: ()=>void; onGacha?: (g:any)=>void }) {
+function HistoryView({ session, onGoToLinks, onGacha, onInvite }: { session: any; onGoToLinks?: ()=>void; onGacha?: (g:any)=>void; onInvite?: ()=>void }) {
   const [jobs, setJobs] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [copied, setCopied] = React.useState<string|null>(null);
@@ -4112,6 +4116,12 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
                   <p className="px-1 text-center text-[10px] leading-snug text-gray-400">
                     {isIOS ? "공유 창에서 '동영상 저장' → 사진앱" : isAndroid ? "갤러리 › 앨범 › Download 에서 확인" : "내 컴퓨터에 mp4로 저장돼요"}
                   </p>
+                  {onInvite && (
+                    <button onClick={onInvite}
+                      className="mt-1 block w-full text-center rounded-xl bg-[#FEE500]/90 px-3 py-2 text-xs font-black text-[#3C1E1E] hover:brightness-95 transition">
+                      🎁 친구 초대 → 친구 첫 영상 만들면 둘 다 프로 7일
+                    </button>
+                  )}
                 </div>
               ) : (
                 <span className="mt-auto block text-center rounded-xl bg-gray-100 px-3 py-2.5 text-xs text-gray-500">
