@@ -84,7 +84,7 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
                   <div className="mb-1 rounded-xl bg-[#0064FF]/10 px-3 py-2.5 text-center text-sm font-black text-[#0064FF]">이용권 {balance.toLocaleString()}개 · D-{daysLeft ?? 0}</div>
                 )}
                 <a href="/me" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]">👤 마이페이지</a>
-                <button onClick={() => { setMenuOpen(false); onInvite && onInvite(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]">🎁 무료 이용권 받기</button>
+                <button onClick={() => { setMenuOpen(false); onInvite && onInvite(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]">무료 이용권 받기</button>
                 <a href="https://forms.gle/LCDeSEXSM7ALykqv5" target="_blank" rel="noreferrer" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]">📝 피드백 보내고 영상 2개</a>
                 <button onClick={() => { setMenuOpen(false); onHistory && onHistory(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]">📒 사용 내역</button>
                 <button onClick={logout} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50">↩ 로그아웃</button>
@@ -276,6 +276,15 @@ export default function VideoGenerator() {
   const [targetSeconds, setTargetSeconds] = useState(15);
   const [styleProfileId, setStyleProfileId] = useState<string>(() => { try { return localStorage.getItem("chronit_script_style") || "story"; } catch { return "story"; } });
   useEffect(() => { try { localStorage.setItem("chronit_script_style", styleProfileId); } catch {} }, [styleProfileId]);
+  // 이용권 소진/만료 시 초대 팝업 자동 노출 (세션 1회)
+  useEffect(() => {
+    if (balance === null) return;
+    if (balance < 1) {
+      try { if (sessionStorage.getItem("chronit_wall_seen")) return; } catch {}
+      setCreditWall("empty");
+      try { sessionStorage.setItem("chronit_wall_seen", "1"); } catch {}
+    }
+  }, [balance]);
   const [videoOnly, setVideoOnly] = useState<boolean>(() => { try { return localStorage.getItem("chronit_video_only") === "1"; } catch { return false; } });
   const toggleVideoOnly = () => setVideoOnly(v => { const nv = !v; try { localStorage.setItem("chronit_video_only", nv ? "1" : "0"); } catch {} return nv; });
   const [coupangOpen, setCoupangOpen] = useState(false);
@@ -1509,11 +1518,7 @@ export default function VideoGenerator() {
             <p className="font-black text-sm">{completionAlert}</p>
             {!completionAlert.startsWith("❌") && (completionAlert.includes("완성") || completionAlert.includes("생성 내역")) && <p className="text-xs text-green-100 mt-0.5">생성 내역 탭에서 다운로드하세요</p>}
           </div>
-          {!completionAlert.startsWith("❌") && (completionAlert.includes("완성") || completionAlert.includes("생성 내역")) && (
-            <button onClick={() => { setShowInvite(true); setCompletionAlert(null); }}
-              className="ml-2 shrink-0 rounded-lg bg-white/25 hover:bg-white/40 px-2.5 py-1.5 text-xs font-black text-white transition">🎁 초대 +프로7일</button>
-          )}
-          <button onClick={() => setCompletionAlert(null)} className="ml-2 text-white/80 hover:text-white text-lg">✕</button>
+          <button onClick={() => setCompletionAlert(null)} className="ml-4 text-gray-900/70 hover:text-gray-900 text-lg">✕</button>
         </div>
       )}
 
@@ -1620,7 +1625,7 @@ export default function VideoGenerator() {
             <h3 className="text-xl font-black text-gray-900">{creditWall==="expired" ? "이용권이 만료됐어요" : "이용권을 다 쓰셨어요"}</h3>
             <p className="mt-2 text-sm leading-relaxed text-gray-500">더 많은 영상을 만들려면 정식 패키지를 확인하거나,<br/><strong className="text-gray-700">친구를 초대하고 무료 제작권</strong>을 받아보세요.</p>
             <button onClick={()=>{ setCreditWall(null); setPayOpen(true); }} className="mt-6 w-full rounded-xl bg-[#0064FF] py-3.5 text-sm font-bold text-white transition hover:bg-[#0052D6]">스마트스토어에서 요금제 보기</button>
-            <button onClick={()=>{ setCreditWall(null); setShowInvite(true); }} className="mt-2 w-full rounded-xl bg-gray-100 py-3 text-sm font-bold text-gray-700 transition hover:bg-gray-200">🎁 친구 초대하고 무료로 받기</button>
+            <button onClick={()=>{ setCreditWall(null); setShowInvite(true); }} className="mt-2 w-full rounded-xl border-2 border-[#0064FF] bg-[#0064FF]/5 py-3 text-sm font-black text-[#0064FF] transition hover:bg-[#0064FF]/10">친구 초대하고 프로 7일 무료 받기</button>
           </div>
         </div>
       )}
@@ -1759,7 +1764,7 @@ export default function VideoGenerator() {
             {activeView === "history" && (
               <>
                 <h2 className="text-xl font-black text-gray-900 mb-6">📹 생성 내역</h2>
-                <HistoryView session={session} onGoToLinks={()=>setActiveView("product-search")} onGacha={(g:any)=>setGacha(g)} onInvite={()=>setShowInvite(true)} />
+                <HistoryView session={session} onGoToLinks={()=>setActiveView("product-search")} onGacha={(g:any)=>setGacha(g)} />
               </>
             )}
             {activeView === "product-search" && (
@@ -3072,7 +3077,7 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
       <div className="w-full max-w-md rounded-3xl bg-white border border-gray-200 p-6 max-h-[90vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-xl font-black text-gray-900">🎁 무료 이용권 더 받기</h2>
+          <h2 className="text-xl font-black text-gray-900">무료 이용권 더 받기</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-900 text-xl">✕</button>
         </div>
         <p className="text-xs text-gray-500 mb-5">미션을 완료하면 이용권이 지급됩니다</p>
@@ -3236,7 +3241,7 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
         <a href="https://forms.gle/LCDeSEXSM7ALykqv5" target="_blank" rel="noreferrer"
           className="block text-center rounded-xl bg-[#E8F8EE] border border-[#0064FF]/40 px-3 py-2 leading-tight transition hover:bg-[#dcf3e6]"><span className="block text-[11px] font-bold text-[#222222]">📝 피드백 쓰고</span><span className="block font-black text-[#222222]"><span className="text-lg text-[#0064FF]">영상 2개</span> 받기</span></a>
         <button onClick={()=>setShowMissions(true)}
-          className="credit-glow w-full text-center rounded-xl bg-[#FEE500] hover:bg-[#f5dd00] px-3 py-2.5 text-sm font-bold text-[#222222] transition">🎁 무료 이용권 받기</button>
+          className="credit-glow w-full text-center rounded-xl bg-[#FEE500] hover:bg-[#f5dd00] px-3 py-2.5 text-sm font-bold text-[#222222] transition">무료 이용권 받기</button>
       </div>
       {/* 하단 계정/플랜/크레딧 */}
       <div className="border-t border-gray-200 px-4 py-3 space-y-1.5 mt-2">
@@ -3904,7 +3909,7 @@ function GachaModal({ data, onClose }: { data: any; onClose: ()=>void }) {
   );
 }
 
-function HistoryView({ session, onGoToLinks, onGacha, onInvite }: { session: any; onGoToLinks?: ()=>void; onGacha?: (g:any)=>void; onInvite?: ()=>void }) {
+function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLinks?: ()=>void; onGacha?: (g:any)=>void }) {
   const [jobs, setJobs] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [copied, setCopied] = React.useState<string|null>(null);
@@ -4116,12 +4121,6 @@ function HistoryView({ session, onGoToLinks, onGacha, onInvite }: { session: any
                   <p className="px-1 text-center text-[10px] leading-snug text-gray-400">
                     {isIOS ? "공유 창에서 '동영상 저장' → 사진앱" : isAndroid ? "갤러리 › 앨범 › Download 에서 확인" : "내 컴퓨터에 mp4로 저장돼요"}
                   </p>
-                  {onInvite && (
-                    <button onClick={onInvite}
-                      className="mt-1 block w-full text-center rounded-xl bg-[#FEE500]/90 px-3 py-2 text-xs font-black text-[#3C1E1E] hover:brightness-95 transition">
-                      🎁 친구 초대 → 친구 첫 영상 만들면 둘 다 프로 7일
-                    </button>
-                  )}
                 </div>
               ) : (
                 <span className="mt-auto block text-center rounded-xl bg-gray-100 px-3 py-2.5 text-xs text-gray-500">
