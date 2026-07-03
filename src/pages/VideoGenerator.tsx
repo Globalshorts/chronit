@@ -385,7 +385,7 @@ export default function VideoGenerator() {
   const [completionAlert, setCompletionAlert] = useState<string|null>(null);
   const [gacha, setGacha] = useState<any>(null);
   const [showInvite, setShowInvite] = useState(false);
-  const [openchatX, setOpenchatX] = useState<boolean>(() => { try { return !!localStorage.getItem("chronit_openchat_x"); } catch { return false; } });
+  const [openchatX, setOpenchatX] = useState<boolean>(() => { try { return !!sessionStorage.getItem("chronit_openchat_x"); } catch { return false; } });
   const [showDemo, setShowDemo] = useState(false);
   const [payOpen, setPayOpen] = useState(false);
   const [creditWall, setCreditWall] = useState<null | "empty" | "expired">(null);
@@ -1635,7 +1635,7 @@ export default function VideoGenerator() {
       {session && !openchatX && (
         <div className="fixed bottom-20 left-4 z-40 flex items-center gap-1 rounded-full bg-[#FEE500] pl-3.5 pr-1.5 py-2 shadow-lg shadow-black/10">
           <a href="https://open.kakao.com/o/s7CrKpxi" target="_blank" rel="noreferrer" className="text-xs font-black text-[#3C1E1E] hover:brightness-90">💬 오픈채팅 · 불편한 점 알려주세요</a>
-          <button onClick={() => { try { localStorage.setItem("chronit_openchat_x", "1"); } catch {} setOpenchatX(true); }} title="닫기" className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[#3C1E1E]/60 hover:bg-black/10 hover:text-[#3C1E1E]">✕</button>
+          <button onClick={() => { try { sessionStorage.setItem("chronit_openchat_x", "1"); } catch {} setOpenchatX(true); }} title="닫기" className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[#3C1E1E]/60 hover:bg-black/10 hover:text-[#3C1E1E]">✕</button>
         </div>
       )}
       {session && (
