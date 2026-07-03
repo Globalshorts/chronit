@@ -2853,7 +2853,7 @@ function HistoryPanel({ session }: { session: any }) {
 // ── NavSidebar — 좌측 좁은 탭 네비 ───────────────────────────
 // 카카오톡 공유 (JS SDK) — 도메인 등록 후 동작, 실패 시 복사 폴백
 const KAKAO_JS_KEY = (import.meta as any).env?.VITE_KAKAO_JS_KEY || "84ee352af8ddaf49632d40de964fa9f4";
-const KAKAO_SHARE_IMG = "https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/kakao-share.png";
+const KAKAO_SHARE_IMG = "https://chronit.kr/kakao-share.png";
 
 // ── 30초 데모 체험 (온보딩) — 지정 자산은 아래 DEMO만 교체하면 됨 ──
 const DEMO = {
