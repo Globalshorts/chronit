@@ -101,10 +101,12 @@ const Register = () => {
   }
 
   // ── 각 스텝 핸들러 ──
-  const submitTerms = async () => {
-    if (!agree || saving) return
+  const submitTerms = async (marketingVal) => {
+    if (saving) return
+    const m = marketingVal === true
+    setAgree(true); setMarketing(m)
     setSaving(true)
-    try { await supabase.rpc('set_terms_consent_rpc', { p_marketing: marketing }) } catch { /* noop */ }
+    try { await supabase.rpc('set_terms_consent_rpc', { p_marketing: m }) } catch { /* noop */ }
     setSaving(false)
     setStep(STEP.NICK)
   }
@@ -192,10 +194,16 @@ const Register = () => {
               </span>
             </label>
 
-            <button onClick={submitTerms} disabled={!agree || saving}
-              className="mt-6 w-full rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-black text-white shadow-[0_10px_30px_-10px_rgba(3,199,90,0.5)] transition-all hover:bg-[#0052D6] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40">
-              동의하고 계속하기
-            </button>
+            <div className="mt-6 space-y-2">
+              <button onClick={() => submitTerms(true)} disabled={saving}
+                className="w-full rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-black text-white shadow-[0_10px_30px_-10px_rgba(0,100,255,0.45)] transition-all hover:bg-[#0052D6] active:scale-[0.98] disabled:opacity-40">
+                모두 동의하기
+              </button>
+              <button onClick={() => submitTerms(marketing)} disabled={!agree || saving}
+                className="w-full rounded-2xl bg-gray-100 px-6 py-3 text-sm font-bold text-gray-500 transition hover:bg-gray-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40">
+                동의하고 진행하기
+              </button>
+            </div>
           </div>
         )}
 
