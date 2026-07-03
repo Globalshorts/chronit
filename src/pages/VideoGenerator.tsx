@@ -559,8 +559,16 @@ export default function VideoGenerator() {
         if (data.voice_id) setVoiceId(data.voice_id);
         if (data.voice_speed != null) setVoiceSpeed(Number(data.voice_speed));
         if (data.voice_volume != null) setVoiceVolume(Number(data.voice_volume));
-        if (data.subtitle_style) setSubtitleStyle((p: any) => ({ ...p, ...data.subtitle_style }));
-        if (data.thumbnail_style) setThumbnailStyle((p: any) => ({ ...p, ...data.thumbnail_style }));
+        // ★ 팩을 손 안 대고 쓰는 중(activePack 유효)이면 저장본 대신 최신 팩 스타일 적용 → 팩 업데이트 자동 소급 ★
+        const _ap = (() => { try { return localStorage.getItem("chronit_active_pack") || ""; } catch { return ""; } })();
+        const _pack = STYLE_PACKS.find(pk => pk.key === _ap);
+        if (_pack) {
+          setSubtitleStyle(_pack.subtitleStyle);
+          setThumbnailStyle(_pack.thumbnailStyle);
+        } else {
+          if (data.subtitle_style) setSubtitleStyle((p: any) => ({ ...p, ...data.subtitle_style }));
+          if (data.thumbnail_style) setThumbnailStyle((p: any) => ({ ...p, ...data.thumbnail_style }));
+        }
         if (data.target_seconds != null) setTargetSeconds(Number(data.target_seconds));
         if (data.style_profile_id) setStyleProfileId(data.style_profile_id);
         if (data.subtitle_preset_id) setSelectedSubtitlePresetId(data.subtitle_preset_id);
@@ -2382,7 +2390,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
 
   const s = tab === "subtitle" ? subtitleStyle : thumbnailStyle;
   const setS = tab === "subtitle" ? setSubtitleStyle : setThumbnailStyle;
-  const upd = (k: keyof SubtitleStyle, v: any) => setS({ ...s, [k]: v });
+  const upd = (k: keyof SubtitleStyle, v: any) => { setS({ ...s, [k]: v }); try { localStorage.removeItem("chronit_active_pack"); } catch {} };
 
   const frame = previewFrames[frameIdx] || "";
   // ★ 프리뷰 스케일 — 출력은 1080px 기준 fontSize×6.4, 프리뷰 박스는 300px.
@@ -2477,7 +2485,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
             onChange={e => upd("xPos", Number(e.target.value))} className="w-full accent-[#0064FF]" />
         </div>
       </div>
-      <button onClick={() => setS({ ...s, yPos: 75, xPos: 50 })}
+      <button onClick={() => { setS({ ...s, yPos: 75, xPos: 50 }); try { localStorage.removeItem("chronit_active_pack"); } catch {} }}
         className="text-xs text-gray-500 hover:text-[#0064FF] transition underline">↺ 위치 초기화</button>
       </div>
       )}
@@ -2617,7 +2625,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
                   onChange={e => {
                     setSelectedPresetId(e.target.value);
                     const p = presets.find(p => p.id === e.target.value);
-                    if (p) setS(p.style_json);
+                    if (p) { setS(p.style_json); try { localStorage.removeItem("chronit_active_pack"); } catch {} }
                   }}
                   className="flex-1 rounded-lg bg-gray-100 border border-gray-200 px-2 py-2 text-xs text-gray-900 outline-none focus:border-[#0064FF]"
                 >
