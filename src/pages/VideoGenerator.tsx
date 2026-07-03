@@ -1896,6 +1896,7 @@ export default function VideoGenerator() {
 
               <div>
                 <label className="mb-1 block text-base font-bold text-gray-700">또는 링크로 가져오기 <span className="font-normal text-gray-400">· 인스타 · 틱톡 · 유튜브</span></label>
+                <p className="mb-2 rounded-lg bg-[#0064FF]/8 px-3 py-2 text-xs font-bold text-[#0064FF]">🎯 상품(소품)이 <b>또렷하게 크게</b> 보이는 영상일수록 분석 결과가 좋아요 (말하는 사람 위주 영상은 결과가 아쉬울 수 있어요)</p>
                 <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                   <input type="url" value={sourceUrl}
                     onChange={e => { setSourceUrl(e.target.value); setSearchError(""); setClips([]); setCart(new Set()); }}
@@ -2163,7 +2164,7 @@ function UrlHint({ url }: { url: string }) {
   const u = (typeof url === "string" ? url : "").trim().toLowerCase();
   if (!u) return null;
   if (["instagram.com","youtube.com","youtu.be","tiktok.com"].some(p => u.includes(p)))
-    return <p className="mt-1.5 text-sm font-bold text-[#0064FF]">✅ 분석할 수 있는 영상 링크예요 <span className="font-medium text-gray-500">· 상품(소품)이 또렷하게 보이는 영상일수록 결과가 좋아요</span></p>;
+    return <p className="mt-1.5 text-sm font-bold text-[#0064FF]">✅ 링크 확인됐어요</p>;
   if (["coupang.","link.coupang","naver.","smartstore","11st.","gmarket.","auction.","aliexpress","amazon.","wconcept","kakao","ohou","oliveyoung","ssg.","lotteon"].some(p => u.includes(p)))
     return <p className="mt-1.5 text-sm font-bold text-orange-500">🛍 상품 <b>페이지</b> 링크 같아요 — 그 상품을 소개하는 <b>영상</b>(인스타·틱톡·유튜브) 링크를 넣어주세요</p>;
   return <p className="mt-1.5 text-sm font-bold text-orange-500">⚠️ 인스타·틱톡·유튜브 <b>영상</b> 링크만 분석할 수 있어요</p>;
