@@ -1633,13 +1633,13 @@ export default function VideoGenerator() {
       {/* ── 상단 바 ── */}
       <AppTopBar onMenuClick={() => setMobileMenuOpen(true)} onInvite={() => setShowInvite(true)} session={session} balance={balance} daysLeft={daysLeft} userPlan={userPlan} onHistory={() => setShowHistory(true)} activeView={activeView} onViewChange={setActiveView} userRole={userRole} />
       {session && !openchatX && (
-        <div className="fixed bottom-5 left-4 z-40 flex items-center gap-1 rounded-full bg-[#FEE500] pl-3.5 pr-1.5 py-2 shadow-lg shadow-black/10">
+        <div className="fixed bottom-20 left-4 z-40 flex items-center gap-1 rounded-full bg-[#FEE500] pl-3.5 pr-1.5 py-2 shadow-lg shadow-black/10">
           <a href="https://open.kakao.com/o/s7CrKpxi" target="_blank" rel="noreferrer" className="text-xs font-black text-[#3C1E1E] hover:brightness-90">💬 오픈채팅 · 불편한 점 알려주세요</a>
           <button onClick={() => { try { localStorage.setItem("chronit_openchat_x", "1"); } catch {} setOpenchatX(true); }} title="닫기" className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[#3C1E1E]/60 hover:bg-black/10 hover:text-[#3C1E1E]">✕</button>
         </div>
       )}
       {session && (
-        <button onClick={() => setShowDemo(true)} className="fixed bottom-16 left-4 z-40 flex items-center gap-1 rounded-full bg-[#0064FF] px-3.5 py-2 text-xs font-black text-white shadow-lg hover:bg-[#0052D6] active:scale-95">▶ 30초만에 크로닛 이해하기</button>
+        <button onClick={() => setShowDemo(true)} className="fixed bottom-32 left-4 z-40 flex items-center gap-1 rounded-full bg-[#0064FF] px-3.5 py-2 text-xs font-black text-white shadow-lg hover:bg-[#0052D6] active:scale-95">▶ 30초만에 크로닛 이해하기</button>
       )}
       {showDemo && <QuickDemo onClose={() => setShowDemo(false)} />}
       <PwaInstall />
