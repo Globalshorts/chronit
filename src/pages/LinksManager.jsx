@@ -135,7 +135,8 @@ export function LinkPageManager({ session }) {
 
   const savePage = async (patch) => {
     setPage((p) => ({ ...p, ...patch }))
-    await supabase.from('link_pages').update({ ...patch, updated_at: new Date().toISOString() }).eq('user_id', session.user.id)
+    const { error } = await supabase.from('link_pages').update({ ...patch, updated_at: new Date().toISOString() }).eq('user_id', session.user.id)
+    if (error) { console.error('[link save] page 저장 실패:', error); flash('저장 실패 — 다시 시도해 주세요'); return }
     flash('저장됨')
   }
 
@@ -181,19 +182,21 @@ export function LinkPageManager({ session }) {
     if (existing) {
       const patch = { title, target_url, active, badge: badge ?? null, badge_color: badge_color ?? null }
       if (img) patch.image_url = img
-      const { data } = await supabase.from('link_items')
+      const { data, error } = await supabase.from('link_items')
         .update(patch).eq('id', existing.id).select('*').single()
-      if (data) setItems((p) => p.map((i) => (i.id === data.id ? data : i)))
+      if (error || !data) { console.error('[link save] update 실패:', error); flash('저장 실패 — 다시 시도해 주세요'); return }
+      setItems((p) => p.map((i) => (i.id === data.id ? data : i)))
     } else {
       let videoUrl = job.video_url
       if (!img) {
         try { const { data: kv } = await supabase.functions.invoke('keep-video', { body: { job_id: job.id } }); if (kv?.ok && kv.video_url) videoUrl = kv.video_url } catch (e) {}
       }
       const maxSort = items.reduce((m, i) => Math.max(m, i.sort_order || 0), 0)
-      const { data } = await supabase.from('link_items')
+      const { data, error } = await supabase.from('link_items')
         .insert({ user_id: uid, video_job_id: job.id, title, target_url, active, image_url: img, video_url: videoUrl, sort_order: maxSort + 1, badge: badge ?? null, badge_color: badge_color ?? null })
         .select('*').single()
-      if (data) setItems((p) => [...p, data])
+      if (error || !data) { console.error('[link save] insert 실패:', error); flash('저장 실패 — 다시 시도해 주세요'); return }
+      setItems((p) => [...p, data])
     }
     flash('저장됨')
   }
