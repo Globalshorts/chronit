@@ -3063,8 +3063,8 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
       Kakao.Share.sendDefault({
         objectType: "feed",
         content: {
-          title: "엄마도 하는 쇼핑 영상 부수입, 크로닛 🎬",
-          description: "추천 링크로 가입하면 프로 7일 무료 체험! 편집 몰라도 링크만 넣으면 5분 완성.",
+          title: "편집 몰라도 2분이면 쇼핑 숏폼 완성 🎬 크로닛",
+          description: "쇼핑 영상 링크만 붙이면 자막·AI 목소리·썸네일 자동. 추천 링크로 가입 시 프로 7일 무료!",
           imageUrl: KAKAO_SHARE_IMG,
           link: { mobileWebUrl: link, webUrl: link },
         },
@@ -4366,6 +4366,7 @@ async function _extractPoll(supabase:any, pid:string, source_url:string) {
 async function startExtract(supabase:any, source_url:string) {
   if (_extractMgr.state && (_extractMgr.state.status==="starting"||_extractMgr.state.status==="processing")) return;
   _extractMgr.state = { source_url, status:"starting", startedAt:Date.now() }; _extractEmit();
+  try { supabase.rpc("log_analysis_rpc", { p_url: source_url }); } catch { /* noop */ }
   try {
     const { data:{ session:s } } = await supabase.auth.getSession();
     const post = (b:any)=>fetch(FN("extract-keywords"),{method:"POST",headers:{Authorization:`Bearer ${s?.access_token}`,"Content-Type":"application/json"},body:JSON.stringify(b)}).then((r:any)=>r.json());
