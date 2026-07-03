@@ -2156,7 +2156,7 @@ function UrlHint({ url }: { url: string }) {
   const u = (typeof url === "string" ? url : "").trim().toLowerCase();
   if (!u) return null;
   if (["instagram.com","youtube.com","youtu.be","tiktok.com"].some(p => u.includes(p)))
-    return <p className="mt-1.5 text-sm font-bold text-[#0064FF]">✅ 분석할 수 있는 영상 링크예요</p>;
+    return <p className="mt-1.5 text-sm font-bold text-[#0064FF]">✅ 분석할 수 있는 영상 링크예요 <span className="font-medium text-gray-500">· 상품(소품)이 또렷하게 보이는 영상일수록 결과가 좋아요</span></p>;
   if (["coupang.","link.coupang","naver.","smartstore","11st.","gmarket.","auction.","aliexpress","amazon.","wconcept","kakao","ohou","oliveyoung","ssg.","lotteon"].some(p => u.includes(p)))
     return <p className="mt-1.5 text-sm font-bold text-orange-500">🛍 상품 <b>페이지</b> 링크 같아요 — 그 상품을 소개하는 <b>영상</b>(인스타·틱톡·유튜브) 링크를 넣어주세요</p>;
   return <p className="mt-1.5 text-sm font-bold text-orange-500">⚠️ 인스타·틱톡·유튜브 <b>영상</b> 링크만 분석할 수 있어요</p>;
