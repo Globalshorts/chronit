@@ -386,6 +386,7 @@ export default function VideoGenerator() {
   const [gacha, setGacha] = useState<any>(null);
   const [showInvite, setShowInvite] = useState(false);
   const [openchatX, setOpenchatX] = useState<boolean>(() => { try { return !!localStorage.getItem("chronit_openchat_x"); } catch { return false; } });
+  const [showDemo, setShowDemo] = useState(false);
   const [payOpen, setPayOpen] = useState(false);
   const [creditWall, setCreditWall] = useState<null | "empty" | "expired">(null);
   const [balance, setBalance]       = useState<number | null>(null);
@@ -1637,6 +1638,10 @@ export default function VideoGenerator() {
           <button onClick={() => { try { localStorage.setItem("chronit_openchat_x", "1"); } catch {} setOpenchatX(true); }} title="닫기" className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[#3C1E1E]/60 hover:bg-black/10 hover:text-[#3C1E1E]">✕</button>
         </div>
       )}
+      {session && (
+        <button onClick={() => setShowDemo(true)} className="fixed bottom-16 left-4 z-40 flex items-center gap-1 rounded-full bg-[#0064FF] px-3.5 py-2 text-xs font-black text-white shadow-lg hover:bg-[#0052D6] active:scale-95">▶ 30초만에 크로닛 이해하기</button>
+      )}
+      {showDemo && <QuickDemo onClose={() => setShowDemo(false)} />}
       <PwaInstall />
       <CreditMissionsModal open={showInvite} onClose={() => setShowInvite(false)} session={session} onCredited={loadBalance} />
       {creditWall && (
@@ -2849,6 +2854,89 @@ function HistoryPanel({ session }: { session: any }) {
 // 카카오톡 공유 (JS SDK) — 도메인 등록 후 동작, 실패 시 복사 폴백
 const KAKAO_JS_KEY = (import.meta as any).env?.VITE_KAKAO_JS_KEY || "84ee352af8ddaf49632d40de964fa9f4";
 const KAKAO_SHARE_IMG = "https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png";
+
+// ── 30초 데모 체험 (온보딩) — 지정 자산은 아래 DEMO만 교체하면 됨 ──
+const DEMO = {
+  link: "https://www.instagram.com/reel/여기에지정링크",                // TODO: 지정 링크
+  productImg: "https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/demo-product.jpg",                         // TODO: 상품 사진
+  clips: ["https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/demo-clip1.jpg", "https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/demo-clip2.jpg", "https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/demo-clip3.jpg"], // TODO: 데모 클립 3
+  resultImg: "https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/demo-result.jpg",                           // TODO: 완성 영상 썸네일
+};
+
+function DemoArrow() {
+  return <span className="pointer-events-none absolute -left-8 top-1/2 -translate-y-1/2 animate-bounce text-3xl">👉</span>;
+}
+
+function QuickDemo({ onClose }: { onClose: () => void }) {
+  const [step, setStep] = React.useState(0);
+  React.useEffect(() => {
+    if (step === 2 || step === 4) {
+      const t = setTimeout(() => setStep((x) => x + 1), 1500);
+      return () => clearTimeout(t);
+    }
+  }, [step]);
+  const Loading = ({ label }: { label: string }) => (
+    <div className="flex flex-col items-center gap-3 py-12">
+      <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-[#0064FF]" />
+      <p className="text-sm font-bold text-gray-500">{label}</p>
+    </div>
+  );
+  return (
+    <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm" onClick={onClose}>
+      <div className="relative w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute right-4 top-4 text-xl text-gray-400 hover:text-gray-600">✕</button>
+        <p className="mb-2 text-center text-xs font-black text-[#0064FF]">⏱ 30초만에 크로닛 이해하기</p>
+        {step === 0 && (
+          <div className="text-center">
+            <div className="my-6 text-5xl">🎬</div>
+            <h3 className="text-lg font-black text-gray-900">링크만 넣으면 숏폼이 뚝딱</h3>
+            <p className="mt-2 text-sm text-gray-500">크로닛이 어떻게 동작하는지 30초로 보여드릴게요.</p>
+            <button onClick={() => setStep(1)} className="mt-6 w-full rounded-2xl bg-[#0064FF] py-3.5 text-base font-black text-white hover:bg-[#0052D6]">시작하기</button>
+          </div>
+        )}
+        {step === 1 && (
+          <div>
+            <h3 className="mb-3 text-base font-black text-gray-900">① 쇼핑 영상 링크 붙여넣기</h3>
+            <input readOnly value={DEMO.link} className="mb-3 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-500 outline-none" />
+            <img src={DEMO.productImg} alt="상품" className="mb-5 h-40 w-full rounded-xl bg-gray-100 object-cover" />
+            <div className="relative mx-auto w-fit">
+              <DemoArrow />
+              <button onClick={() => setStep(2)} className="animate-pulse rounded-2xl bg-[#0064FF] px-10 py-3 text-base font-black text-white ring-4 ring-red-400/70 hover:bg-[#0052D6]">분석 시작</button>
+            </div>
+          </div>
+        )}
+        {step === 2 && <Loading label="영상에서 상품·클립을 찾는 중…" />}
+        {step === 3 && (
+          <div>
+            <h3 className="mb-3 text-base font-black text-gray-900">② 클립 담고 → 자동 생성</h3>
+            <div className="mb-5 grid grid-cols-3 gap-2">
+              {DEMO.clips.map((c, i) => (
+                <div key={i} className="relative aspect-[9/16] overflow-hidden rounded-lg bg-gray-100">
+                  <img src={c} alt="" className="h-full w-full object-cover" />
+                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-[#0064FF] px-2 py-0.5 text-[10px] font-black text-white">✓ 담김</span>
+                </div>
+              ))}
+            </div>
+            <div className="relative mx-auto w-fit">
+              <DemoArrow />
+              <button onClick={() => setStep(4)} className="animate-pulse rounded-2xl bg-[#0064FF] px-10 py-3 text-base font-black text-white ring-4 ring-red-400/70 hover:bg-[#0052D6]">자동 생성</button>
+            </div>
+          </div>
+        )}
+        {step === 4 && <Loading label="자막·AI 목소리·썸네일 만드는 중…" />}
+        {step === 5 && (
+          <div className="text-center">
+            <div className="my-2 text-4xl">🎉</div>
+            <h3 className="text-lg font-black text-gray-900">영상 완성!</h3>
+            <img src={DEMO.resultImg} alt="완성" className="mx-auto my-4 h-56 w-auto rounded-xl bg-gray-100 object-cover" />
+            <p className="text-sm text-gray-500">이렇게 링크만 넣으면 끝이에요.</p>
+            <button onClick={onClose} className="mt-5 w-full rounded-2xl bg-[#0064FF] py-3.5 text-base font-black text-white hover:bg-[#0052D6]">직접 만들어보기</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 function ensureKakao(): Promise<any> {
   return new Promise((resolve, reject) => {
     const w = window as any;
