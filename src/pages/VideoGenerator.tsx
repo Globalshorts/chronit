@@ -8,7 +8,7 @@
  * Stage 5: 음성 선택 → 렌더링 시작
  * Stage 6: 제목/해시태그 + 내보내기
  */
-import React, { useState, useRef, useEffect, usehCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabase";
 import type { Session } from "@supabase/supabase-js";
