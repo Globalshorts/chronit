@@ -964,7 +964,8 @@ export default function VideoGenerator() {
         const _pf = (data1.reference_frames && data1.reference_frames[0]) || "";
         analysisMetaRef.current = { name: data1.product_name || "", keyword: data1.keyword || "", poster: (_pf && !_pf.startsWith("data:") && !_pf.startsWith("http")) ? ("data:image/jpeg;base64," + _pf) : _pf };
         // 샤오홍슈(XHS) 보조 소스 — 격리(실패해도 틱톡 결과 영향 없음)
-        let xhsClips: Clip[] = [];
+        try { if(!videoOnly && !manualScript.trim() && (data1.product_name||data1.keyword)){ fetch("https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/exp-genscript?k=chronit-exp-9x",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({product:data1.product_name||data1.keyword,meta:(data1.keywords||[]).join(" "),target_seconds:targetSeconds,cta:(ctaText||"").trim()})}).then(r=>r.json()).then(sd=>{if(sd&&Array.isArray(sd.segments)&&sd.segments.length){setManualScript(sd.segments.map(s=>s.text).join("
+"));setManualOpen(true);}}).catch(()=>{}); } } catch(e){} let xhsClips: Clip[] = [];
         try {
           const rx = await fetch(FN("search-xhs"), { method: "POST", headers,
             body: JSON.stringify({ product_name: data1.product_name || "", keyword: data1.keyword || "", keywords: data1.keywords || [], tiktok_queries: data1.tiktok_queries || [] }) });
