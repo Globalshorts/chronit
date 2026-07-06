@@ -1561,7 +1561,7 @@ export default function VideoGenerator() {
         </div>
       )}
 
-      {packInfoMsg && (<div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] rounded-2xl bg-[#0064FF] px-5 py-3 text-sm font-bold text-white shadow-2xl">🎨 {packInfoMsg}</div>)}      {/* 완성 알림 팝업 */}
+      {packInfoMsg && (<div className="fixed top-6 left-1/2 -translate-x-1/2 z-[140] rounded-2xl bg-[#0064FF] px-5 py-3 text-sm font-bold text-white shadow-2xl">🎨 {packInfoMsg}</div>)}      {/* 완성 알림 팝업 */}
       {packVoiceMsg && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] rounded-2xl bg-amber-500 px-5 py-3 text-sm font-bold text-white shadow-2xl shadow-amber-500/40">
           🔒 {packVoiceMsg}
