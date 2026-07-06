@@ -420,7 +420,7 @@ export default function VideoGenerator() {
   const [studioTab, setStudioTab] = useState("style"); // 'style'(스타일 찾기) | 'auto'(자동화 세팅)
   const [activePack, setActivePack] = useState<string>(() => { try { return localStorage.getItem("chronit_active_pack") || ""; } catch { return ""; } });
   const [advOpen, setAdvOpen] = useState(false);
-  const [packVoiceMsg, setPackVoiceMsg] = useState("");
+  const [packVoiceMsg, setPackVoiceMsg] = useState(""); const [packInfoMsg, setPackInfoMsg] = useState("");
   const [manualOpen, setManualOpen] = useState(false);
   const [ctaOpen, setCtaOpen] = useState(false);
   const [userPacks, setUserPacks] = useState<any[]>([]);
@@ -435,7 +435,7 @@ export default function VideoGenerator() {
     setSubtitleStyle(p.subtitleStyle); setThumbnailStyle(p.thumbnailStyle);
     // 대본 스타일은 별도 선택 — 음성 팩이 덮어쓰지 않음
     try { localStorage.setItem("chronit_voice_pref","1"); localStorage.setItem("chronit_active_pack", key ?? p.key ?? ""); } catch {}
-    setActivePack(key ?? p.key ?? "");
+    setActivePack(key ?? p.key ?? ""); setPackInfoMsg("이 팩은 음성·자막·썸네일 디자인을 함께 바꿔요"); setTimeout(() => setPackInfoMsg(""), 4000);
   };
   const saveCurrentPack = async () => {
     if (!session) return;
@@ -1522,7 +1522,7 @@ export default function VideoGenerator() {
         </div>
       )}
 
-      {/* 완성 알림 팝업 */}
+      {packInfoMsg && (<div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] rounded-2xl bg-[#0064FF] px-5 py-3 text-sm font-bold text-white shadow-2xl">🎨 {packInfoMsg}</div>)}      {/* 완성 알림 팝업 */}
       {packVoiceMsg && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] rounded-2xl bg-amber-500 px-5 py-3 text-sm font-bold text-white shadow-2xl shadow-amber-500/40">
           🔒 {packVoiceMsg}
