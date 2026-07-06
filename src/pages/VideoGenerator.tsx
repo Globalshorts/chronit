@@ -386,7 +386,7 @@ export default function VideoGenerator() {
     setAbcLoading(false);
   };
   useEffect(() => {
-    if (showAutoModal && !videoOnly && (analysisMetaRef.current?.name)) loadAbc(styleProfileId);
+    if (showAutoModal && !videoOnly && (analysisMetaRef.current?.name) && abcVariants.length === 0 && !abcLoading) loadAbc(styleProfileId);
   }, [showAutoModal, styleProfileId, videoOnly]);
   const [selectedSubtitlePresetId, setSelectedSubtitlePresetId] = useState("");
   const [selectedThumbnailPresetId, setSelectedThumbnailPresetId] = useState("");
@@ -985,6 +985,7 @@ export default function VideoGenerator() {
         const urlClip: any = (ov === undefined) ? buildUrlSourceClip(su.trim(), data1) : null;
         const _pf = (data1.reference_frames && data1.reference_frames[0]) || "";
         analysisMetaRef.current = { name: data1.product_name || "", keyword: data1.keyword || "", poster: (_pf && !_pf.startsWith("data:") && !_pf.startsWith("http")) ? ("data:image/jpeg;base64," + _pf) : _pf };
+        try { if (!videoOnly && (data1.product_name || data1.keyword)) loadAbc(styleProfileId); } catch (_e) {}
         // 샤오홍슈(XHS) 보조 소스 — 격리(실패해도 틱톡 결과 영향 없음)
         let xhsClips: Clip[] = [];
         try {
@@ -1455,17 +1456,6 @@ export default function VideoGenerator() {
             {/* 🎨 대본 스타일 + 스타일 팩 (자동생성 모달에서 바로 선택) */}
             {!videoOnly && (
               <div className="space-y-2">
-                <div className={manualScript.trim() ? "opacity-40" : ""}>
-                  <p className="text-[11px] font-bold text-gray-400 mb-1">대본 스타일{manualScript.trim() && <span className="font-normal"> · 직접 입력 시 미적용</span>}</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {SCRIPT_STYLES.map(ss => (
-                      <button key={ss.key} type="button" disabled={!!manualScript.trim()} onClick={() => setStyleProfileId(ss.key)}
-                        className={`rounded-lg px-2.5 py-1 text-xs font-bold border transition ${manualScript.trim() ? "border-gray-200 text-gray-400 cursor-not-allowed" : styleProfileId===ss.key ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}>
-                        {ss.emoji} {ss.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
                 <div>
                   <p className="text-[11px] font-bold text-gray-400 mb-1">스타일 팩 <span className="font-normal">· 음성·자막·썸네일</span></p>
                   <div className="flex flex-wrap gap-1.5">
@@ -1965,6 +1955,17 @@ export default function VideoGenerator() {
                       : "🔍 분석 시작"}
                   </button>
                 </div>
+                {!videoOnly && (
+                  <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                    <span className="text-xs font-bold text-gray-500 mr-1">대본 스타일</span>
+                    {SCRIPT_STYLES.map(ss => (
+                      <button key={ss.key} type="button" onClick={() => setStyleProfileId(ss.key)}
+                        className={`rounded-full px-3 py-1 text-xs font-bold border transition ${styleProfileId===ss.key ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}>
+                        {ss.emoji} {ss.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 {!searchError && <UrlHint url={sourceUrl} />}
                 {searchError && <p className="mt-2 text-sm text-red-400">{searchError}</p>}
                 {searching && <AnalyzeProgress />}
