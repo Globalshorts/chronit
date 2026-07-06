@@ -366,6 +366,28 @@ export default function VideoGenerator() {
   const [refAlready, setRefAlready] = useState(false);  // 추천 코드가 이미 적용됨(링크 유입 등)
   const [modalCtaText, setModalCtaText]   = useState("");   // 자동화 진행 단계 메시지
   const [manualScript, setManualScript] = useState("");   // 대본 직접 입력 (비우면 AI 자동)
+
+  // ── ① A/B/C 대본 (실험, exp-script-abc) ──
+  const [abcVariants, setAbcVariants] = useState<any[]>([]);
+  const [abcIdx, setAbcIdx] = useState(0);
+  const [abcLoading, setAbcLoading] = useState(false);
+  const abcOrigRef = useRef("");
+  const loadAbc = async (styleKey: string) => {
+    const product = analysisMetaRef.current?.name || "";
+    if (!product) return;
+    setAbcLoading(true); setAbcVariants([]);
+    try {
+      const r = await fetch("https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/exp-script-abc?k=chronit-exp-9x", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product, meta: (analysisMetaRef.current?.keyword || ""), style: styleKey, target_seconds: targetSeconds }) });
+      const d = await r.json();
+      if (d && d.ok && Array.isArray(d.variants)) { setAbcVariants(d.variants); setAbcIdx(0); }
+    } catch { /* 무시 */ }
+    setAbcLoading(false);
+  };
+  useEffect(() => {
+    if (showAutoModal && !videoOnly && (analysisMetaRef.current?.name)) loadAbc(styleProfileId);
+  }, [showAutoModal, styleProfileId, videoOnly]);
   const [selectedSubtitlePresetId, setSelectedSubtitlePresetId] = useState("");
   const [selectedThumbnailPresetId, setSelectedThumbnailPresetId] = useState("");
   const [currentJobId, setCurrentJobId] = useState(() => {
@@ -1020,6 +1042,14 @@ export default function VideoGenerator() {
 
   // ── 자동 생성 (Stage 2~6 순서 실행) ─────────────────────────
   const handleAutoRun = async (ctaOverride?: string) => {
+    try {
+      if (!videoOnly && abcVariants.length && manualScript.trim()) {
+        const _v = abcVariants[abcIdx];
+        fetch("https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/exp-script-abc?k=chronit-exp-9x", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "record", source_url: sourceUrl.trim(), product_signature: (analysisMetaRef.current?.name || ""), style: styleProfileId, variant_label: (_v?.label || ""), original_text: abcOrigRef.current, variant_text: manualScript, shown_labels: abcVariants.map((x: any) => x.label) }) }).catch(() => {});
+      }
+    } catch { /* 무시 */ }
     if (cart.size === 0 || autoRunning) return;
     if (ctaOverride !== undefined) setCtaText(ctaOverride);
     setShowAutoModal(false);
@@ -1467,6 +1497,25 @@ export default function VideoGenerator() {
               )}
             </div>
 
+            {/* ① A/B/C 대본 (실험) */}
+            {!videoOnly && (abcLoading || abcVariants.length > 0) && (
+              <div className="rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-3 space-y-2">
+                <p className="text-[11px] font-bold text-[#0064FF]">✨ AI 대본 3개 — 골라서 쓰거나 수정하세요</p>
+                {abcLoading ? (
+                  <p className="text-xs text-gray-500">대본 A·B·C 만드는 중…</p>
+                ) : (
+                  <div className="flex gap-1.5">
+                    {abcVariants.map((v: any, i: number) => (
+                      <button key={i} type="button"
+                        onClick={() => { setAbcIdx(i); const t = (v.lines || []).join(String.fromCharCode(10)); abcOrigRef.current = t; setManualScript(t); setManualOpen(true); }}
+                        className={`flex-1 rounded-lg py-1.5 text-xs font-bold border transition ${abcIdx === i && manualScript.trim() ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}>
+                        {v.label} 대본
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             {/* 대본 직접 입력 (영상만이면 숨김) */}
             {!videoOnly && (
             <div className="rounded-xl border border-gray-200">
