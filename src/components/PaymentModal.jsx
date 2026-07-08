@@ -175,6 +175,8 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
     return () => window.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
+  useEffect(() => { if (open) { try { window.gtag?.('event','payment_view',{ plan: selectedPlan }); } catch {} } }, [open])
+
   if (!open) return null
 
   // ── 네이버 스마트스토어 구매 (네이버페이 결제 → 닉네임 매칭 자동 충전) ──
@@ -191,7 +193,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
         </div>
         <h3 className="text-xl font-black tracking-tight text-gray-900">네이버 스마트스토어에서 구매</h3>
         <p className="mt-2 text-sm leading-relaxed text-gray-500">안전한 네이버페이로 결제하고,<br />결제 후 이용권이 <strong className="text-gray-700">자동으로 충전</strong>돼요.</p>
-        <a href={storeUrl} target="_blank" rel="noopener noreferrer" className="mt-6 flex w-full items-center justify-center rounded-xl bg-[#0064FF] py-3.5 text-sm font-bold text-white transition hover:brightness-95">
+        <a href={storeUrl} target="_blank" rel="noopener noreferrer" onClick={() => { try { window.gtag?.('event','checkout_smartstore',{ plan: selectedPlan, plan_name: storePlanName }); } catch {} }} className="mt-6 flex w-full items-center justify-center rounded-xl bg-[#0064FF] py-3.5 text-sm font-bold text-white transition hover:brightness-95">
           {storePlanName ? storePlanName + ' ' : ''}스마트스토어에서 구매하기
         </a>
         <div className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-left text-xs leading-relaxed text-amber-700">
