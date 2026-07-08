@@ -275,6 +275,7 @@ export default function VideoGenerator() {
   const [searching, setSearching]   = useState(false);
   const [showSrc, setShowSrc] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const [showFoodBlock, setShowFoodBlock] = useState(false);   // 음식·레시피 감지 차단 (test-abc)
   const [clips, setClips]           = useState<Clip[]>([]);
   const analysisMetaRef = React.useRef<{ name: string; keyword: string; poster: string }>({ name: "", keyword: "", poster: "" });
   const [cart, setCart]             = useState<Set<string>>(new Set());
@@ -989,6 +990,12 @@ export default function VideoGenerator() {
         const urlClip: any = (ov === undefined) ? buildUrlSourceClip(su.trim(), data1) : null;
         const _pf = (data1.reference_frames && data1.reference_frames[0]) || "";
         analysisMetaRef.current = { name: data1.product_name || "", keyword: data1.keyword || "", poster: (_pf && !_pf.startsWith("data:") && !_pf.startsWith("http")) ? ("data:image/jpeg;base64," + _pf) : _pf };
+        // ★ 음식·레시피 감지 → 지원 안내 후 중단 (test-abc 실험) ★
+        try {
+          const _fc = await fetch(FN("classify-content") + "?k=chronit-cls-9x", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product_name: data1.product_name || "", keyword: data1.keyword || "" }) });
+          const _fd = await _fc.json();
+          if (_fd?.food === true) { setShowFoodBlock(true); setClips([]); return; }
+        } catch { /* 분류 실패 시 통과 — 오탐으로 막지 않음 */ }
         try { if (!videoOnly && (data1.product_name || data1.keyword)) loadAbc(styleProfileId); } catch (_e) {}
         // 샤오홍슈(XHS) 보조 소스 — 격리(실패해도 틱톡 결과 영향 없음)
         let xhsClips: Clip[] = [];
@@ -1565,7 +1572,17 @@ export default function VideoGenerator() {
         </div>
       )}
 
-      {packInfoMsg && (<div className="fixed top-6 left-1/2 -translate-x-1/2 z-[140] rounded-2xl bg-[#0064FF] px-5 py-3 text-sm font-bold text-white shadow-2xl">🎨 {packInfoMsg}</div>)}      {/* 완성 알림 팝업 */}
+      {packInfoMsg && (<div className="fixed top-6 left-1/2 -translate-x-1/2 z-[140] rounded-2xl bg-[#0064FF] px-5 py-3 text-sm font-bold text-white shadow-2xl">🎨 {packInfoMsg}</div>)}
+      {showFoodBlock && (
+        <div className="fixed inset-0 z-[135] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4" onClick={() => setShowFoodBlock(false)}>
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="text-4xl mb-3">🍽️</div>
+            <p className="text-lg font-black text-gray-900 mb-2">음식·레시피 영상은 아직 지원하지 않아요</p>
+            <p className="text-sm text-gray-500 mb-5">크로닛은 지금 쿠팡 상품 소개 숏폼에 최적화돼 있어요.<br/>상품 링크를 넣어 다시 시도해 주세요.</p>
+            <button onClick={() => setShowFoodBlock(false)} className="w-full rounded-xl bg-[#0064FF] py-3 text-sm font-bold text-white hover:bg-[#0052D6] active:scale-95">상품 링크로 다시 하기</button>
+          </div>
+        </div>
+      )}      {/* 완성 알림 팝업 */}
       {packVoiceMsg && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] rounded-2xl bg-amber-500 px-5 py-3 text-sm font-bold text-white shadow-2xl shadow-amber-500/40">
           🔒 {packVoiceMsg}
