@@ -1577,8 +1577,8 @@ export default function VideoGenerator() {
         <div className="fixed inset-0 z-[135] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4" onClick={() => setShowFoodBlock(false)}>
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="text-4xl mb-3">🍽️</div>
-            <p className="text-lg font-black text-gray-900 mb-2">음식·레시피 영상은 아직 지원하지 않아요</p>
-            <p className="text-sm text-gray-500 mb-5">크로닛은 지금 쿠팡 상품 소개 숏폼에 최적화돼 있어요.<br/>상품 링크를 넣어 다시 시도해 주세요.</p>
+            <p className="text-lg font-black text-gray-900 mb-2 break-keep">음식·레시피 영상은 아직 지원하지 않아요</p>
+            <p className="text-sm text-gray-500 mb-5 break-keep">크로닛은 지금 쿠팡 상품 소개 숏폼에 최적화돼 있어요.<br/>상품 링크를 넣어 다시 시도해 주세요.</p>
             <button onClick={() => setShowFoodBlock(false)} className="w-full rounded-xl bg-[#0064FF] py-3 text-sm font-bold text-white hover:bg-[#0052D6] active:scale-95">상품 링크로 다시 하기</button>
           </div>
         </div>
