@@ -1527,7 +1527,7 @@ export default function VideoGenerator() {
             {titleMode && (
               <div className="rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-3 space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-[11px] font-bold text-[#0064FF]">✍️ 영상 상단 제목 <span className="font-normal text-gray-500">· AI 자동 생성, 수정 가능</span></p>
+                  <p className="text-[11px] font-bold text-[#0064FF]">✍️ 영상 상단 캡션 <span className="font-normal text-gray-500">· AI 자동 생성, 수정 가능</span></p>
                   <button type="button" onClick={() => genHookTitle(true)} disabled={titleLoading}
                     className="shrink-0 text-[11px] font-bold text-[#0064FF] hover:underline disabled:text-gray-400">🔄 다시 생성</button>
                 </div>
@@ -1537,7 +1537,7 @@ export default function VideoGenerator() {
                   <input value={hookTitle} onChange={e => setHookTitle(e.target.value)} placeholder="예: 요즘 이거 없으면 허전해요"
                     className="w-full rounded-xl bg-white border border-gray-200 px-3 py-2 text-base text-gray-900 outline-none focus:border-[#0064FF]" />
                 )}
-                <p className="text-[11px] text-gray-400">AI 음성·줄자막 없이, 이 제목 한 줄만 영상 위에 얹어요.</p>
+                <p className="text-[11px] text-gray-400">AI 음성·줄자막 없이, 이 캡션 한 줄만 영상 위에 얹어요.</p>
               </div>
             )}
             {/* ① A/B/C 대본 (실험) */}
@@ -1957,12 +1957,12 @@ export default function VideoGenerator() {
                   <button type="button" onClick={() => setMode('voice')}
                     className={`flex items-center justify-center gap-1 rounded-xl border py-2.5 text-sm font-bold transition ${genMode==='voice' ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 bg-white text-gray-600 hover:border-[#0064FF]/50"}`}>🎙 AI 더빙</button>
                   <button type="button" onClick={() => setMode('title')}
-                    className={`flex items-center justify-center gap-1 rounded-xl border py-2.5 text-sm font-bold transition ${genMode==='title' ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 bg-white text-gray-600 hover:border-[#0064FF]/50"}`}>✍️ 제목만</button>
+                    className={`flex items-center justify-center gap-1 rounded-xl border py-2.5 text-sm font-bold transition ${genMode==='title' ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 bg-white text-gray-600 hover:border-[#0064FF]/50"}`}>✍️ 캡션만</button>
                   <button type="button" onClick={() => setMode('video')}
                     className={`flex items-center justify-center gap-1 rounded-xl border py-2.5 text-sm font-bold transition ${genMode==='video' ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 bg-white text-gray-600 hover:border-[#0064FF]/50"}`}>🎬 무음</button>
                 </div>
                 {genMode==='voice' && <p className="mt-1.5 text-xs text-gray-400">AI가 대본 읽고 자막까지 · 완전 자동</p>}
-                {genMode==='title' && <p className="mt-1.5 text-xs text-gray-400">상단 제목 한 줄 · 음성·자막 없음</p>}
+                {genMode==='title' && <p className="mt-1.5 text-xs text-gray-400">상단 캡션 한 줄 · 음성·자막 없음</p>}
                 {genMode==='video' && <p className="mt-1.5 text-xs text-gray-400">음성·자막 없이 클립만</p>}
               </div>
 
