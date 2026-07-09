@@ -284,8 +284,12 @@ export default function VideoGenerator() {
   const [targetSeconds, setTargetSeconds] = useState(15);
   const [styleProfileId, setStyleProfileId] = useState<string>(() => { try { return localStorage.getItem("chronit_script_style") || "story"; } catch { return "story"; } });
   useEffect(() => { try { localStorage.setItem("chronit_script_style", styleProfileId); } catch {} }, [styleProfileId]);
-  const [videoOnly, setVideoOnly] = useState<boolean>(() => { try { return localStorage.getItem("chronit_video_only") === "1"; } catch { return false; } });
-  const toggleVideoOnly = () => setVideoOnly(v => { const nv = !v; try { localStorage.setItem("chronit_video_only", nv ? "1" : "0"); } catch {} return nv; });
+  const [genMode, setGenMode] = useState<'voice'|'title'|'video'>(() => { try { const m = localStorage.getItem("chronit_gen_mode"); return (m === 'title' || m === 'video') ? m : 'voice'; } catch { return 'voice'; } });
+  const setMode = (m: 'voice'|'title'|'video') => { setGenMode(m); try { localStorage.setItem("chronit_gen_mode", m); } catch {} };
+  const videoOnly = genMode === 'video';
+  const titleMode = genMode === 'title';
+  const [hookTitle, setHookTitle] = useState("");
+  const [titleLoading, setTitleLoading] = useState(false);
   const [coupangOpen, setCoupangOpen] = useState(false);
   const [coupangQ, setCoupangQ] = useState("");
   const coupangSearch = () => { const q = coupangQ.trim(); if (q) window.open(`https://partners.coupang.com/#affiliate/ws/link/0/${encodeURIComponent(q)}`, "_blank", "noopener"); };
@@ -387,8 +391,17 @@ export default function VideoGenerator() {
     setAbcLoading(false);
   };
   useEffect(() => {
-    if (showAutoModal && !videoOnly && (analysisMetaRef.current?.name) && abcVariants.length === 0 && !abcLoading) loadAbc(styleProfileId);
-  }, [showAutoModal, styleProfileId, videoOnly]);
+    if (showAutoModal && genMode === 'voice' && (analysisMetaRef.current?.name) && abcVariants.length === 0 && !abcLoading) loadAbc(styleProfileId);
+  }, [showAutoModal, styleProfileId, genMode]);
+  // 제목만 모드 — 훅 제목 자동 생성 (수정 가능)
+  useEffect(() => {
+    if (showAutoModal && titleMode && (analysisMetaRef.current?.name) && !hookTitle && !titleLoading) {
+      setTitleLoading(true);
+      fetch("https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/gen-hook-title?k=chronit-hook-9x", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product_name: analysisMetaRef.current?.name || "", keyword: analysisMetaRef.current?.keyword || "" }) })
+        .then(r => r.json()).then((d: any) => { if (d?.title) setHookTitle(d.title); }).catch(() => {}).finally(() => setTitleLoading(false));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showAutoModal, titleMode]);
   const [selectedSubtitlePresetId, setSelectedSubtitlePresetId] = useState("");
   const [selectedThumbnailPresetId, setSelectedThumbnailPresetId] = useState("");
   const [currentJobId, setCurrentJobId] = useState(() => {
@@ -996,7 +1009,7 @@ export default function VideoGenerator() {
           const _fd = await _fc.json();
           if (_fd?.food === true) { setShowFoodBlock(true); setClips([]); return; }
         } catch { /* 분류 실패 시 통과 — 오탐으로 막지 않음 */ }
-        try { if (!videoOnly && (data1.product_name || data1.keyword)) loadAbc(styleProfileId); } catch (_e) {}
+        try { if (genMode === 'voice' && (data1.product_name || data1.keyword)) loadAbc(styleProfileId); } catch (_e) {}
         // 샤오홍슈(XHS) 보조 소스 — 격리(실패해도 틱톡 결과 영향 없음)
         let xhsClips: Clip[] = [];
         try {
@@ -1055,7 +1068,7 @@ export default function VideoGenerator() {
   // ── 자동 생성 (Stage 2~6 순서 실행) ─────────────────────────
   const handleAutoRun = async (ctaOverride?: string) => {
     try {
-      if (!videoOnly && abcVariants.length && manualScript.trim()) {
+      if (genMode === 'voice' && abcVariants.length && manualScript.trim()) {
         const _v = abcVariants[abcIdx];
         fetch("https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/exp-script-abc?k=chronit-exp-9x", {
           method: "POST", headers: { "Content-Type": "application/json" },
@@ -1071,7 +1084,7 @@ export default function VideoGenerator() {
     try {
       // Step 1: 대본 생성 (영상만 모드면 대본/음성 건너뜀)
       let genSegments: any = null;
-      if (!videoOnly) {
+      if (genMode === 'voice') {
       const _manual = manualScript.trim();
       if (_manual) {
         // ── 대본 직접 입력: AI 대본 생성 건너뛰고 그대로 사용 (영상 컷은 음성 길이에 맞춰 잘림) ──
@@ -1336,8 +1349,10 @@ export default function VideoGenerator() {
           subtitle_style: subtitleStyle,   // ★ 원본 camelCase 그대로 — cog _convert_web_style 가 camelCase 를 변환함(이중변환 금지)
           thumbnail_style: thumbnailStyle,
           show_thumbnail: showThumbnail,
-          script_segments: videoOnly ? null : _script,
-          video_only: videoOnly,
+          script_segments: (videoOnly || titleMode) ? null : _script,
+          video_only: videoOnly || titleMode,
+          gen_mode: genMode,
+          title_text: titleMode ? hookTitle.trim() : "",
           cta_text: overrides?.ctaText ?? ctaText,
           product_name: analysisMetaRef.current.name,
           search_keyword: analysisMetaRef.current.keyword,
@@ -1498,8 +1513,21 @@ export default function VideoGenerator() {
               )}
             </div>
 
+            {/* ✍️ 제목만 모드 — 훅 제목 편집 */}
+            {titleMode && (
+              <div className="rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-3 space-y-2">
+                <p className="text-[11px] font-bold text-[#0064FF]">✍️ 영상 상단 제목 <span className="font-normal text-gray-500">· AI 자동 생성, 수정 가능</span></p>
+                {titleLoading ? (
+                  <p className="text-xs text-gray-500">제목 만드는 중…</p>
+                ) : (
+                  <input value={hookTitle} onChange={e => setHookTitle(e.target.value)} placeholder="예: 요즘 이거 없으면 허전해요"
+                    className="w-full rounded-xl bg-white border border-gray-200 px-3 py-2 text-base text-gray-900 outline-none focus:border-[#0064FF]" />
+                )}
+                <p className="text-[11px] text-gray-400">AI 음성·줄자막 없이, 이 제목 한 줄만 영상 위에 얹어요.</p>
+              </div>
+            )}
             {/* ① A/B/C 대본 (실험) */}
-            {!videoOnly && (abcLoading || abcVariants.length > 0) && (
+            {genMode === 'voice' && (abcLoading || abcVariants.length > 0) && (
               <div className="rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-3 space-y-2">
                 <p className="text-[11px] font-bold text-[#0064FF]">✨ AI 대본 3개 — 골라서 쓰거나 수정하세요</p>
                 {abcLoading ? (
@@ -1517,8 +1545,8 @@ export default function VideoGenerator() {
                 )}
               </div>
             )}
-            {/* 대본 직접 입력 (영상만이면 숨김) */}
-            {!videoOnly && (
+            {/* 대본 직접 입력 (음성 모드만) */}
+            {genMode === 'voice' && (
             <div className="rounded-xl border border-gray-200">
               <button onClick={() => setManualOpen(o => !o)} className="flex w-full items-center justify-between px-4 py-3 text-left">
                 <span className="text-sm font-bold text-gray-800">✍️ 대본 직접 입력 <span className="font-normal text-gray-400">· 선택</span></span>
@@ -1535,8 +1563,8 @@ export default function VideoGenerator() {
             </div>
             )}
 
-            {/* CTA 입력 (영상만이면 숨김) */}
-            {!videoOnly && (
+            {/* CTA 입력 (음성 모드만) */}
+            {genMode === 'voice' && (
             <div className="rounded-xl border border-gray-200">
               <button onClick={() => setCtaOpen(o => !o)} className="flex w-full items-center justify-between px-4 py-3 text-left">
                 <span className="text-sm font-bold text-gray-800">💬 댓글 유도 단어 <span className="font-normal text-gray-400">· 선택 (CTA)</span></span>
@@ -1907,12 +1935,21 @@ export default function VideoGenerator() {
                   className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold transition ${coupangOpen ? "border-blue-400 bg-blue-50 text-blue-700" : "border-gray-200 bg-white text-gray-600 hover:border-blue-300"}`}>
                   🛒 쿠팡 상품 확인
                 </button>
-                <button type="button" onClick={toggleVideoOnly}
-                  className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold transition ${videoOnly ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 bg-white text-gray-600 hover:border-[#0064FF]/50"}`}>
-                  🎬 영상만 만들기{videoOnly ? " ✓" : ""}
+                <button type="button" onClick={() => setMode('voice')}
+                  className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold transition ${genMode==='voice' ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 bg-white text-gray-600 hover:border-[#0064FF]/50"}`}>
+                  🎙 AI 음성
+                </button>
+                <button type="button" onClick={() => setMode('title')}
+                  className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold transition ${genMode==='title' ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 bg-white text-gray-600 hover:border-[#0064FF]/50"}`}>
+                  ✍️ 제목만
+                </button>
+                <button type="button" onClick={() => setMode('video')}
+                  className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold transition ${genMode==='video' ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 bg-white text-gray-600 hover:border-[#0064FF]/50"}`}>
+                  🎬 영상만
                 </button>
               </div>
-              {videoOnly && <p className="-mt-2 text-xs text-gray-400">AI 음성·자막 없이 (직접 더빙용)</p>}
+              {genMode==='title' && <p className="-mt-2 text-xs text-gray-400">상단 제목 한 줄 + 영상 (AI 음성·줄자막 없음)</p>}
+              {genMode==='video' && <p className="-mt-2 text-xs text-gray-400">AI 음성·자막 없이 (직접 더빙용)</p>}
 
               {FEATURES.directUpload && uploadOpen && (
                 <div>
@@ -1930,7 +1967,7 @@ export default function VideoGenerator() {
                   {uploadError && <p className="mt-2 text-sm text-red-500">{uploadError}</p>}
                   {clips.some((c: any) => c.source === "upload" && !String(c.video_id || "").startsWith("trend_")) && (
                     <div className="mt-2 space-y-2 rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-3">
-                      <p className="text-xs font-bold text-gray-700">📝 업로드 영상 상품 정보 <span className="font-normal text-red-500">*</span> <span className="font-normal text-gray-400">· 쿠팡 검색어{!videoOnly ? "·대본" : ""}에 사용</span>{nameDetecting && <span className="ml-1 font-normal text-[#0064FF]">· 🔎 AI가 상품명 찾는 중…</span>}</p>
+                      <p className="text-xs font-bold text-gray-700">📝 업로드 영상 상품 정보 <span className="font-normal text-red-500">*</span> <span className="font-normal text-gray-400">· 쿠팡 검색어{genMode === 'voice' ? "·대본" : ""}에 사용</span>{nameDetecting && <span className="ml-1 font-normal text-[#0064FF]">· 🔎 AI가 상품명 찾는 중…</span>}</p>
                       <input type="text" value={uploadName} onChange={e => setUploadName(e.target.value)} placeholder="상품명 (예: 휴대용 미니 가습기)"
                         className="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#0064FF] focus:ring-1 focus:ring-[#0064FF] transition" />
                       {!videoOnly && (
