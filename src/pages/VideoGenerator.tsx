@@ -277,7 +277,7 @@ export default function VideoGenerator() {
   const [searchError, setSearchError] = useState("");
   const [showFoodBlock, setShowFoodBlock] = useState(false);   // 음식·레시피 감지 차단 (test-abc)
   const [clips, setClips]           = useState<Clip[]>([]);
-  const analysisMetaRef = React.useRef<{ name: string; keyword: string; poster: string }>({ name: "", keyword: "", poster: "" });
+  const analysisMetaRef = React.useRef<{ name: string; keyword: string; poster: string; use_case?: string; keywords?: string[] }>({ name: "", keyword: "", poster: "" });
   const [cart, setCart]             = useState<Set<string>>(new Set());
 
   // Stage 2
@@ -397,7 +397,7 @@ export default function VideoGenerator() {
   useEffect(() => {
     if (showAutoModal && titleMode && (analysisMetaRef.current?.name) && !hookTitle && !titleLoading) {
       setTitleLoading(true);
-      fetch("https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/gen-hook-title?k=chronit-hook-9x", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product_name: analysisMetaRef.current?.name || "", keyword: analysisMetaRef.current?.keyword || "" }) })
+      fetch("https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/gen-hook-title?k=chronit-hook-9x", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product_name: analysisMetaRef.current?.name || "", keyword: analysisMetaRef.current?.keyword || "", use_case: analysisMetaRef.current?.use_case || "", keywords: analysisMetaRef.current?.keywords || [] }) })
         .then(r => r.json()).then((d: any) => { if (d?.title) setHookTitle(d.title); }).catch(() => {}).finally(() => setTitleLoading(false));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1004,7 +1004,7 @@ export default function VideoGenerator() {
         const refFrames: string[] = data1.reference_frames ?? [];
         const urlClip: any = (ov === undefined) ? buildUrlSourceClip(su.trim(), data1) : null;
         const _pf = (data1.reference_frames && data1.reference_frames[0]) || "";
-        analysisMetaRef.current = { name: data1.product_name || "", keyword: data1.keyword || "", poster: (_pf && !_pf.startsWith("data:") && !_pf.startsWith("http")) ? ("data:image/jpeg;base64," + _pf) : _pf };
+        analysisMetaRef.current = { name: data1.product_name || "", keyword: data1.keyword || "", poster: (_pf && !_pf.startsWith("data:") && !_pf.startsWith("http")) ? ("data:image/jpeg;base64," + _pf) : _pf, use_case: data1.use_case || "", keywords: Array.isArray(data1.keywords) ? data1.keywords : [] };
         // ★ 음식·레시피 감지 → 지원 안내 후 중단 (test-abc 실험) ★
         try {
           const _fc = await fetch(FN("classify-content") + "?k=chronit-cls-9x", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product_name: data1.product_name || "", keyword: data1.keyword || "" }) });
