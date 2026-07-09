@@ -850,6 +850,7 @@ export default function VideoGenerator() {
       voiceId, voiceSpeed,
       manualScript, abcVariants, abcIdx,
       hookTitle, // ★ 제목만 영상 — AI/수정 제목 영속(새로고침 유지)
+      analysisMeta: { name: analysisMetaRef.current?.name || "", keyword: analysisMetaRef.current?.keyword || "", use_case: analysisMetaRef.current?.use_case || "", keywords: analysisMetaRef.current?.keywords || [] }, // ★ 훅 재생성용 상품맥락 영속
     };
     localStorage.setItem(PROJECT_KEY, JSON.stringify(data));
     // ★ 서버에도 저장 — 기기 간 동기화 (실패 무시) ★
@@ -880,6 +881,7 @@ export default function VideoGenerator() {
     if (Array.isArray(data.abcVariants)) setAbcVariants(data.abcVariants);
     if (typeof data.abcIdx === "number") setAbcIdx(data.abcIdx);
     if (typeof data.hookTitle === "string") setHookTitle(data.hookTitle);
+    if (data.analysisMeta && data.analysisMeta.name) analysisMetaRef.current = { ...analysisMetaRef.current, ...data.analysisMeta };
     if (data.stage) setStage(data.stage);
   };
 
