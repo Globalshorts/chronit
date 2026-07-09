@@ -394,12 +394,17 @@ export default function VideoGenerator() {
     if (showAutoModal && genMode === 'voice' && (analysisMetaRef.current?.name) && abcVariants.length === 0 && !abcLoading) loadAbc(styleProfileId);
   }, [showAutoModal, styleProfileId, genMode]);
   // 제목만 모드 — 훅 제목 자동 생성 (수정 가능)
+  // 훅 제목 생성 — force=true면 기존 값 무시하고 새로 생성(다시 생성 버튼)
+  const genHookTitle = (force = false) => {
+    if (!analysisMetaRef.current?.name || titleLoading) return;
+    if (!force && hookTitle) return;
+    setTitleLoading(true);
+    if (force) setHookTitle("");
+    fetch("https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/gen-hook-title?k=chronit-hook-9x", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product_name: analysisMetaRef.current?.name || "", keyword: analysisMetaRef.current?.keyword || "", use_case: analysisMetaRef.current?.use_case || "", keywords: analysisMetaRef.current?.keywords || [] }) })
+      .then(r => r.json()).then((d: any) => { if (d?.title) setHookTitle(d.title); }).catch(() => {}).finally(() => setTitleLoading(false));
+  };
   useEffect(() => {
-    if (showAutoModal && titleMode && (analysisMetaRef.current?.name) && !hookTitle && !titleLoading) {
-      setTitleLoading(true);
-      fetch("https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/gen-hook-title?k=chronit-hook-9x", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product_name: analysisMetaRef.current?.name || "", keyword: analysisMetaRef.current?.keyword || "", use_case: analysisMetaRef.current?.use_case || "", keywords: analysisMetaRef.current?.keywords || [] }) })
-        .then(r => r.json()).then((d: any) => { if (d?.title) setHookTitle(d.title); }).catch(() => {}).finally(() => setTitleLoading(false));
-    }
+    if (showAutoModal && titleMode) genHookTitle(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showAutoModal, titleMode]);
   const [selectedSubtitlePresetId, setSelectedSubtitlePresetId] = useState("");
@@ -1005,6 +1010,7 @@ export default function VideoGenerator() {
         const urlClip: any = (ov === undefined) ? buildUrlSourceClip(su.trim(), data1) : null;
         const _pf = (data1.reference_frames && data1.reference_frames[0]) || "";
         analysisMetaRef.current = { name: data1.product_name || "", keyword: data1.keyword || "", poster: (_pf && !_pf.startsWith("data:") && !_pf.startsWith("http")) ? ("data:image/jpeg;base64," + _pf) : _pf, use_case: data1.use_case || "", keywords: Array.isArray(data1.keywords) ? data1.keywords : [] };
+        setHookTitle(""); // ★ 새 상품 분석 → 이전 훅 제목 리셋(옛 캐시값 재사용 방지)
         // ★ 음식·레시피 감지 → 지원 안내 후 중단 (test-abc 실험) ★
         try {
           const _fc = await fetch(FN("classify-content") + "?k=chronit-cls-9x", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product_name: data1.product_name || "", keyword: data1.keyword || "" }) });
@@ -1518,7 +1524,11 @@ export default function VideoGenerator() {
             {/* ✍️ 제목만 모드 — 훅 제목 편집 */}
             {titleMode && (
               <div className="rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-3 space-y-2">
-                <p className="text-[11px] font-bold text-[#0064FF]">✍️ 영상 상단 제목 <span className="font-normal text-gray-500">· AI 자동 생성, 수정 가능</span></p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[11px] font-bold text-[#0064FF]">✍️ 영상 상단 제목 <span className="font-normal text-gray-500">· AI 자동 생성, 수정 가능</span></p>
+                  <button type="button" onClick={() => genHookTitle(true)} disabled={titleLoading}
+                    className="shrink-0 text-[11px] font-bold text-[#0064FF] hover:underline disabled:text-gray-400">🔄 다시 생성</button>
+                </div>
                 {titleLoading ? (
                   <p className="text-xs text-gray-500">제목 만드는 중…</p>
                 ) : (
