@@ -844,6 +844,7 @@ export default function VideoGenerator() {
       showThumbnail, // ★ subtitleStyle/thumbnailStyle 는 user_settings 가 단일 출처 — 프로젝트에 저장 안 함(덮어쓰기 버그 방지)
       voiceId, voiceSpeed,
       manualScript, abcVariants, abcIdx,
+      hookTitle, // ★ 제목만 영상 — AI/수정 제목 영속(새로고침 유지)
     };
     localStorage.setItem(PROJECT_KEY, JSON.stringify(data));
     // ★ 서버에도 저장 — 기기 간 동기화 (실패 무시) ★
@@ -873,6 +874,7 @@ export default function VideoGenerator() {
     if (typeof data.manualScript === "string") setManualScript(data.manualScript);
     if (Array.isArray(data.abcVariants)) setAbcVariants(data.abcVariants);
     if (typeof data.abcIdx === "number") setAbcIdx(data.abcIdx);
+    if (typeof data.hookTitle === "string") setHookTitle(data.hookTitle);
     if (data.stage) setStage(data.stage);
   };
 
@@ -936,7 +938,7 @@ export default function VideoGenerator() {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage, sourceUrl, clips, cart, script, scriptPredId, targetSeconds,
-      styleProfileId, showThumbnail, voiceId, voiceSpeed, manualScript, abcVariants, abcIdx]);
+      styleProfileId, showThumbnail, voiceId, voiceSpeed, manualScript, abcVariants, abcIdx, hookTitle]);
 
   // ── Stage 1: 검색 ────────────────────────────────────────
   const handleSearch = async (overrideUrl?: string, keepClips?: any[]) => {
