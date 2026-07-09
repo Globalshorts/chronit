@@ -1937,19 +1937,20 @@ export default function VideoGenerator() {
                 </button>
                 <button type="button" onClick={() => setMode('voice')}
                   className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold transition ${genMode==='voice' ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 bg-white text-gray-600 hover:border-[#0064FF]/50"}`}>
-                  🎙 AI 음성
+                  🎙 AI 더빙 영상
                 </button>
                 <button type="button" onClick={() => setMode('title')}
                   className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold transition ${genMode==='title' ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 bg-white text-gray-600 hover:border-[#0064FF]/50"}`}>
-                  ✍️ 제목만
+                  ✍️ 제목만 영상
                 </button>
                 <button type="button" onClick={() => setMode('video')}
                   className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold transition ${genMode==='video' ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 bg-white text-gray-600 hover:border-[#0064FF]/50"}`}>
-                  🎬 영상만
+                  🎬 무음 영상
                 </button>
               </div>
-              {genMode==='title' && <p className="-mt-2 text-xs text-gray-400">상단 제목 한 줄 + 영상 (AI 음성·줄자막 없음)</p>}
-              {genMode==='video' && <p className="-mt-2 text-xs text-gray-400">AI 음성·자막 없이 (직접 더빙용)</p>}
+              {genMode==='voice' && <p className="-mt-2 text-xs text-gray-400">AI가 대본 읽고 자막까지 · 완전 자동</p>}
+              {genMode==='title' && <p className="-mt-2 text-xs text-gray-400">상단 제목 한 줄 · 음성·자막 없음</p>}
+              {genMode==='video' && <p className="-mt-2 text-xs text-gray-400">음성·자막 없이 클립만</p>}
 
               {FEATURES.directUpload && uploadOpen && (
                 <div>
