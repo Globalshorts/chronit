@@ -2001,6 +2001,39 @@ export default function VideoGenerator() {
               ) : null
             }>
             <div className="space-y-4">
+              <div>
+                <label className="mb-1 block text-base font-bold text-gray-700">상품 영상 링크 붙여넣기 <span className="font-normal text-gray-400">· 인스타 · 틱톡 · 유튜브</span></label>
+                <p className="mb-2 rounded-lg bg-[#0064FF]/10 px-3 py-2.5 text-sm font-bold text-[#0064FF]">🎯 상품이 <b>또렷하게 크게</b> 보이는 영상일수록 결과가 좋아요</p>
+                <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+                  <input type="url" value={sourceUrl}
+                    onChange={e => { setSourceUrl(e.target.value); setSearchError(""); setClips([]); setCart(new Set()); }}
+                    onKeyDown={e => e.key === "Enter" && handleSearch()}
+                    placeholder="인스타·틱톡·유튜브 영상 링크 붙여넣기"
+                    disabled={searching}
+                    className="flex-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-3.5 text-base text-gray-900 placeholder-gray-500 outline-none focus:border-[#0064FF] focus:ring-1 focus:ring-[#0064FF] disabled:opacity-50 transition" />
+                  <button onClick={() => handleSearch()} disabled={searching || !sourceUrl.trim()}
+                    className="w-full sm:w-auto shrink-0 rounded-xl bg-[#0064FF] px-5 py-3.5 text-base font-bold text-white hover:bg-[#0052D6] disabled:opacity-40 transition flex items-center justify-center gap-2">
+                    {searching
+                      ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />분석 중...</>
+                      : "🔍 분석 시작"}
+                  </button>
+                </div>
+                {!videoOnly && (
+                  <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                    <span className="text-xs font-bold text-gray-500 mr-1">대본 스타일</span>
+                    {SCRIPT_STYLES.map(ss => (
+                      <button key={ss.key} type="button" onClick={() => setStyleProfileId(ss.key)}
+                        className={`rounded-full px-3 py-1 text-xs font-bold border transition ${styleProfileId===ss.key ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}>
+                        {ss.emoji} {ss.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {!searchError && <UrlHint url={sourceUrl} />}
+                {searchError && <p className="mt-2 text-sm text-red-400">{searchError}</p>}
+                {searching && <AnalyzeProgress />}
+              </div>
+
               {/* 영상 준비 — 직접 업로드 메인 + 보조 도구 (최상단) */}
               <div className="flex flex-wrap gap-2">
                 {FEATURES.directUpload && (
@@ -2074,39 +2107,6 @@ export default function VideoGenerator() {
                   </div>
                 </div>
               )}
-
-              <div>
-                <label className="mb-1 block text-base font-bold text-gray-700">또는 링크로 가져오기 <span className="font-normal text-gray-400">· 인스타 · 틱톡 · 유튜브</span></label>
-                <p className="mb-2 rounded-lg bg-[#0064FF]/10 px-3 py-2.5 text-sm font-bold text-[#0064FF]">🎯 상품이 <b>또렷하게 크게</b> 보이는 영상일수록 결과가 좋아요</p>
-                <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-                  <input type="url" value={sourceUrl}
-                    onChange={e => { setSourceUrl(e.target.value); setSearchError(""); setClips([]); setCart(new Set()); }}
-                    onKeyDown={e => e.key === "Enter" && handleSearch()}
-                    placeholder="인스타·틱톡·유튜브 영상 링크 붙여넣기"
-                    disabled={searching}
-                    className="flex-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-3.5 text-base text-gray-900 placeholder-gray-500 outline-none focus:border-[#0064FF] focus:ring-1 focus:ring-[#0064FF] disabled:opacity-50 transition" />
-                  <button onClick={() => handleSearch()} disabled={searching || !sourceUrl.trim()}
-                    className="w-full sm:w-auto shrink-0 rounded-xl bg-[#0064FF] px-5 py-3.5 text-base font-bold text-white hover:bg-[#0052D6] disabled:opacity-40 transition flex items-center justify-center gap-2">
-                    {searching
-                      ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />분석 중...</>
-                      : "🔍 분석 시작"}
-                  </button>
-                </div>
-                {!videoOnly && (
-                  <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                    <span className="text-xs font-bold text-gray-500 mr-1">대본 스타일</span>
-                    {SCRIPT_STYLES.map(ss => (
-                      <button key={ss.key} type="button" onClick={() => setStyleProfileId(ss.key)}
-                        className={`rounded-full px-3 py-1 text-xs font-bold border transition ${styleProfileId===ss.key ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}>
-                        {ss.emoji} {ss.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {!searchError && <UrlHint url={sourceUrl} />}
-                {searchError && <p className="mt-2 text-sm text-red-400">{searchError}</p>}
-                {searching && <AnalyzeProgress />}
-              </div>
 
               {clips.length > 0 && (
                 <div>
