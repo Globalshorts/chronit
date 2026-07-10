@@ -453,9 +453,12 @@ export default function VideoGenerator() {
   const [userPlan, setUserPlan]     = useState<string | null>(null);
   const [userRole, setUserRole]     = useState<string>("user");
   const [activeView, setActiveView] = useState(() => {
+    // 유효한 탭 값만 허용 — 옛/이상 값이면 프로젝트(generator)로 폴백(빈 화면 방지)
+    const VALID_VIEWS = ["trends", "generator", "history", "product-search", "studio", "settings", "partner", "admin"];
     try {
-      const v = localStorage.getItem("chronit_active_view") || "generator";
-      return (v === "auto-settings" || v === "style-finder") ? "studio" : v; // 옛 탭 → 통합 탭
+      let v = localStorage.getItem("chronit_active_view") || "generator";
+      if (v === "auto-settings" || v === "style-finder") v = "studio"; // 옛 탭 → 통합 탭
+      return VALID_VIEWS.includes(v) ? v : "generator";
     }
     catch { return "generator"; }
   });
