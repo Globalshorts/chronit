@@ -10,6 +10,7 @@
  */
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+import DOMPurify from "dompurify";
 import { supabase } from "../lib/supabase";
 import type { Session } from "@supabase/supabase-js";
 import PaymentModal from "../components/PaymentModal";
@@ -829,21 +830,30 @@ export default function VideoGenerator() {
     return () => document.removeEventListener("visibilitychange", onVis);
   }, [session, loadJobs, loadBalance]);
 
-  // 📢 공지 팝업 (앱 로그인 후, 하루 1회) — 새 공지 시 NOTICE_ID 버전 올리면 재노출
-  const NOTICE_ID = "chronit_notice_v1";
+  // 📢 공지 팝업 (앱 로그인 후, 하루 1회) — 게시판에서 "팝업 띄우기" 체크한 공지를 읽어 표시
   const [noticeOpen, setNoticeOpen] = useState(false);
   const [noticeHideDay, setNoticeHideDay] = useState(false);
+  const [noticePost, setNoticePost] = useState<{ id: number; title: string; body: string; updated_at: string } | null>(null);
   const noticeShownRef = React.useRef(false);
+  const noticeKey = (post: { id: number; updated_at: string }) => `chronit_notice_${post.id}_${new Date(post.updated_at).getTime()}`;
   useEffect(() => {
     if (!session || noticeShownRef.current) return;
     noticeShownRef.current = true;
-    try {
-      const until = Number(localStorage.getItem(`${NOTICE_ID}_hide_until`) || 0);
-      if (Date.now() >= until) setNoticeOpen(true);
-    } catch { setNoticeOpen(true); }
+    (async () => {
+      try {
+        const { data } = await supabase.from("board_posts")
+          .select("id, title, body, updated_at")
+          .eq("show_popup", true).eq("is_deleted", false).eq("is_hidden", false)
+          .order("updated_at", { ascending: false }).limit(1).maybeSingle();
+        if (!data) return;
+        setNoticePost(data as any);
+        const until = Number(localStorage.getItem(`${noticeKey(data as any)}_hide_until`) || 0);
+        if (Date.now() >= until) setNoticeOpen(true);
+      } catch { /* 조회 실패 시 팝업 없음 */ }
+    })();
   }, [session]);
   const closeNotice = () => {
-    try { if (noticeHideDay) localStorage.setItem(`${NOTICE_ID}_hide_until`, String(Date.now() + 24 * 60 * 60 * 1000)); } catch {}
+    try { if (noticeHideDay && noticePost) localStorage.setItem(`${noticeKey(noticePost)}_hide_until`, String(Date.now() + 24 * 60 * 60 * 1000)); } catch {}
     setNoticeOpen(false);
   };
 
@@ -1635,32 +1645,21 @@ export default function VideoGenerator() {
       )}
 
       {packInfoMsg && (<div className="fixed top-6 left-1/2 -translate-x-1/2 z-[140] rounded-2xl bg-[#0064FF] px-5 py-3 text-sm font-bold text-white shadow-2xl">🎨 {packInfoMsg}</div>)}
-      {noticeOpen && (
+      {noticeOpen && noticePost && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={closeNotice}>
-          <div className="relative w-full max-w-md max-h-[85vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
-            <button onClick={closeNotice} aria-label="닫기" className="absolute right-4 top-4 text-xl leading-none text-gray-400 hover:text-gray-700">✕</button>
-            <p className="mb-4 pr-6 text-base font-black text-gray-900">📢 [공지] 크로닛은 여러분의 성공을 먹고 자랍니다</p>
-            <div className="space-y-3 text-[13px] leading-relaxed text-gray-700">
-              <p>크로닛을 론칭하고 지금까지 서비스를 고도화하며 제 머릿속을 채운 생각은 오직 하나였습니다. "어떻게 해야 우리 셀러분들이 낭비하는 시간 없이, 단 10초 만에 폭발적인 성과를 내는 숏폼을 발굴하고 완벽한 대본까지 손에 쥐게 만들 수 있을까?"</p>
-              <p>그동안 많은 셀러분들이 피드백을 주셨고, 덕분에 크로닛은 조금씩 더 실용적인 툴로 발전해 올 수 있었습니다. 매일 이 서비스를 들여다보며 저는 한 가지 본질적인 확신을 얻었습니다.</p>
-              <p>"크로닛을 이용하시는 셀러 여러분이 시장에서 살아남고 매출을 일으켜 성공하셔야만, 크로닛 또한 비로소 의미 있는 가치를 증명하고 성장할 수 있다"는 사실입니다. 여러분의 성장이 곧 크로닛의 성장이며, 우리는 하나의 팀입니다.</p>
-              <p>하지만 제 고민과 설계만으로는 현장의 치열함을 전부 담아낼 수 없습니다. 매일 트렌드의 최전선에서 움직이시는 여러분의 날카로운 시선과 피드백이 있어야만, 크로닛을 셀러분들에게 진짜 실질적인 도움을 주는 완벽한 무기로 다듬어 나갈 수 있습니다.</p>
-              <ul className="list-disc space-y-1 pl-5">
-                <li>크로닛을 쓰며 아쉬웠거나 불편했던 순간들</li>
-                <li>분석 결과나 대본 스타일에서 보완되었으면 하는 점들</li>
-                <li>"이런 기능까지 추가되면 무조건 쓴다" 하는 아이디어들</li>
-              </ul>
-              <p>그 어떤 작은 의견도 좋습니다. 칭찬보다는 서비스의 발전을 위한 쓴소리와 현실적인 조언을 가감 없이 들려주십시오. 보내주신 소중한 의견들을 바탕으로 서비스를 계속해서 개선하고 채워 나가겠습니다.</p>
-              <p>여러분을 성공시키는 플랫폼이 되기 위해, 책임감을 가지고 끝까지 고민하며 기다리겠습니다. 앱 내 좌측 하단 오픈채팅을 통해 여러분의 진심 어린 목소리를 들려주세요.</p>
-              <p>셀러 여러분의 성공적인 비즈니스를 늘 응원합니다.<br/>감사합니다.</p>
-              <p className="font-bold text-gray-900">크로닛 대표 올림</p>
+          <div className="relative flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3 border-b border-gray-100 px-6 py-4">
+              <p className="text-lg font-black leading-snug text-gray-900">{noticePost.title}</p>
+              <button onClick={closeNotice} aria-label="닫기" className="mt-0.5 shrink-0 text-xl leading-none text-gray-400 hover:text-gray-700">✕</button>
             </div>
-            <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-3">
+            <div className="event-post overflow-y-auto px-6 py-5 text-[14px] leading-[1.8] text-gray-700"
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(noticePost.body || "") }} />
+            <div className="flex items-center justify-between gap-2 border-t border-gray-100 px-6 py-3.5">
               <label className="flex cursor-pointer items-center gap-2 text-xs text-gray-500">
                 <input type="checkbox" checked={noticeHideDay} onChange={e => setNoticeHideDay(e.target.checked)} className="h-4 w-4 rounded" />
                 하루 동안 보지 않기
               </label>
-              <button onClick={closeNotice} className="rounded-xl bg-[#0064FF] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95">닫기</button>
+              <button onClick={closeNotice} className="rounded-xl bg-[#0064FF] px-5 py-2 text-sm font-bold text-white transition hover:brightness-95">닫기</button>
             </div>
           </div>
         </div>

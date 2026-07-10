@@ -21,6 +21,7 @@ const BoardWrite = () => {
   const [imageUrl, setImageUrl] = useState('')
   const [uploading, setUploading] = useState(false)
   const [imgErr, setImgErr] = useState('')
+  const [showPopup, setShowPopup] = useState(false)  // 홈 팝업 띄우기
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -34,10 +35,10 @@ const BoardWrite = () => {
 
   useEffect(() => {
     if (!editId) return
-    supabase.from('board_posts').select('category, title, body, is_deleted, image_url').eq('id', editId).maybeSingle()
+    supabase.from('board_posts').select('category, title, body, is_deleted, image_url, show_popup').eq('id', editId).maybeSingle()
       .then(({ data }) => {
         if (!data || data.is_deleted) { nav('/board'); return }
-        setTitle(data.title || ''); setBody(data.body || ''); setImageUrl(data.image_url || '')
+        setTitle(data.title || ''); setBody(data.body || ''); setImageUrl(data.image_url || ''); setShowPopup(!!data.show_popup)
       })
   }, [editId]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -64,8 +65,15 @@ const BoardWrite = () => {
 
   const submit = async () => {
     setErr(''); setSaving(true)
+    const applyPopup = async (postId) => {
+      try {
+        if (showPopup) await supabase.from('board_posts').update({ show_popup: false }).eq('show_popup', true).neq('id', postId)
+        await supabase.from('board_posts').update({ show_popup: showPopup }).eq('id', postId)
+      } catch { /* 팝업 플래그 실패는 무시 */ }
+    }
     if (editId) {
       const { error } = await supabase.from('board_posts').update({ category: cat, title, body, image_url: imageUrl || null }).eq('id', editId)
+      if (!error) await applyPopup(editId)
       setSaving(false)
       if (error) { setErr(`수정할 수 없어요: ${error.message || '본인 글만 수정할 수 있어요'}`); return }
       nav(`/board/${editId}`); return
@@ -80,6 +88,7 @@ const BoardWrite = () => {
     if (imageUrl && data.id) {
       await supabase.from('board_posts').update({ image_url: imageUrl }).eq('id', data.id)
     }
+    if (data.id) await applyPopup(data.id)
     nav(`/board/${data.id}`)
   }
 
@@ -142,6 +151,14 @@ const BoardWrite = () => {
           )}
           {imgErr && <p className="mt-2 text-sm font-medium text-red-500">{imgErr}</p>}
         </div>
+
+        <label className="mt-4 flex cursor-pointer items-start gap-2.5 rounded-xl border border-[#0064FF]/25 bg-[#0064FF]/5 px-4 py-3">
+          <input type="checkbox" checked={showPopup} onChange={e => setShowPopup(e.target.checked)} className="mt-0.5 h-4 w-4 rounded" />
+          <span className="text-sm">
+            <span className="font-bold text-[#0064FF]">🔔 홈 화면에 팝업으로 띄우기</span>
+            <span className="mt-0.5 block text-xs text-slate-500">체크하면 이 공지가 로그인 화면에 팝업으로 떠요. (팝업은 하나만 — 새로 체크하면 이전 팝업은 자동 해제)</span>
+          </span>
+        </label>
 
         {err && <p className="mt-3 text-sm font-medium text-red-500">{err}</p>}
 
