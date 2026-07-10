@@ -351,6 +351,8 @@ export default function VideoGenerator() {
 
   // Stage 5
   const [voiceId, setVoiceId]       = useState(() => { try { return localStorage.getItem("chronit_voice_id") || "nova"; } catch { return "nova"; } });
+  const [adLabel, setAdLabel] = useState(() => { try { return localStorage.getItem("chronit_ad_label") !== "0"; } catch { return true; } }); // [광고] 표기 기본 ON
+  useEffect(() => { try { localStorage.setItem("chronit_ad_label", adLabel ? "1" : "0"); } catch {} }, [adLabel]);
   const [voiceSpeed, setVoiceSpeed] = useState(() => { try { return Number(localStorage.getItem("chronit_voice_speed")) || 130; } catch { return 130; } });
   const [voiceVolume, setVoiceVolume] = useState(() => { try { return Number(localStorage.getItem("chronit_voice_volume")) || 100; } catch { return 100; } });
   const [rendering, setRendering]   = useState(false);
@@ -1396,6 +1398,7 @@ export default function VideoGenerator() {
           video_only: videoOnly || titleMode,
           gen_mode: genMode,
           title_text: titleMode ? hookTitle.trim() : "",
+          ad_label: adLabel,
           cta_text: overrides?.ctaText ?? ctaText,
           product_name: analysisMetaRef.current.name,
           search_keyword: analysisMetaRef.current.keyword,
@@ -2032,6 +2035,13 @@ export default function VideoGenerator() {
                 {genMode==='title' && <p className="mt-1.5 text-xs text-gray-400">상단 캡션 한 줄 · 음성·자막 없음</p>}
                 {genMode==='video' && <p className="mt-1.5 text-xs text-gray-400">음성·자막 없이 클립만</p>}
               </div>
+
+              {/* 📢 [광고] 표기 — 유료광고·제휴 시 권장 (기본 ON) */}
+              <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5">
+                <input type="checkbox" checked={adLabel} onChange={e => setAdLabel(e.target.checked)} className="h-4 w-4 rounded" />
+                <span className="text-sm font-bold text-gray-700">우측 상단 <b className="text-[#0064FF]">[광고]</b> 표기</span>
+                <span className="ml-auto text-[11px] text-gray-400">유료광고·제휴 시 권장</span>
+              </label>
 
               {FEATURES.directUpload && uploadOpen && (
                 <div>
