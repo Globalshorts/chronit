@@ -44,6 +44,34 @@ export default function Landing() {
     try { window.gtag?.('event', 'cta_click', { page: 'start', logged_in: !!session }) } catch {}
     if (session) window.location.href = '/generate'; else setAuthOpen(true)
   }
+  // ── 가입 전 체험(무료 미리보기) ──
+  const [pvUrl, setPvUrl] = useState('')
+  const [pvLoading, setPvLoading] = useState(false)
+  const [pvResult, setPvResult] = useState(null)
+  const [pvError, setPvError] = useState('')
+  const getFp = () => {
+    try { let f = localStorage.getItem('chronit_fp'); if (!f) { f = 'fp_' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('chronit_fp', f) } return f } catch { return 'anon' }
+  }
+  const runPreview = async () => {
+    const u = pvUrl.trim()
+    if (!u || pvLoading) return
+    setPvError(''); setPvResult(null); setPvLoading(true)
+    try { window.gtag?.('event', 'preview_start', { page: 'start' }) } catch {}
+    try {
+      const r = await fetch('https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/preview-link', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source_url: u, fp: getFp() }),
+      })
+      const d = await r.json()
+      if (d.ok) { setPvResult(d); try { window.gtag?.('event', 'preview_done', { page: 'start', product: !!d.product_name }) } catch {} }
+      else { setPvError(d.error || '미리보기에 실패했어요'); try { window.gtag?.('event', 'preview_fail', { page: 'start', reason: d.limited ? 'limit' : 'err' }) } catch {} }
+    } catch { setPvError('네트워크 오류 — 잠시 후 다시 시도해주세요') }
+    setPvLoading(false)
+  }
+  const startFromPreview = () => {
+    try { window.gtag?.('event', 'cta_click', { page: 'start', from: 'preview' }) } catch {}
+    if (session) window.location.href = '/generate'; else setAuthOpen(true)
+  }
   const pct = spots == null ? 0 : Math.min(100, Math.round((spots / CAP) * 100))
 
   return (
@@ -93,8 +121,53 @@ export default function Landing() {
           </div>
         </div>
 
+        {/* 🎁 가입 전 체험 — 내 상품으로 무료 미리보기 */}
+        <div className="mt-7 rounded-2xl border border-[#0064FF]/25 bg-[#F7FAFF] p-4 text-left">
+          <p className="text-sm font-black text-[#191F28]">🎁 내 상품으로 무료 미리보기</p>
+          <p className="mt-0.5 text-xs text-gray-500">인스타·틱톡·유튜브 영상 링크만 넣으면 — 가입 없이 결과 확인</p>
+          <div className="mt-2.5 flex gap-2">
+            <input value={pvUrl} onChange={e => setPvUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && runPreview()}
+              placeholder="영상 링크 붙여넣기" disabled={pvLoading}
+              className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#0064FF]" />
+            <button onClick={runPreview} disabled={pvLoading || !pvUrl.trim()}
+              className="shrink-0 rounded-xl px-4 py-2.5 text-sm font-black text-white transition active:scale-95 disabled:opacity-40" style={{ background: BLUE }}>
+              {pvLoading ? '분석 중…' : '미리보기'}
+            </button>
+          </div>
+          {pvLoading && <p className="mt-2 text-xs text-gray-400">AI가 영상을 분석하고 있어요 · 약 1분</p>}
+          {pvError && <p className="mt-2 text-xs text-red-500">{pvError}</p>}
+        </div>
+
+        {/* 미리보기 결과 */}
+        {pvResult && (
+          <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4 text-left shadow-sm">
+            <p className="text-xs font-black text-[#0064FF]">✅ 이 상품으로 이렇게 나와요</p>
+            {pvResult.product_name && <p className="mt-1 text-sm text-gray-600"><span className="text-gray-400">감지된 상품 · </span><b className="text-[#191F28]">{pvResult.product_name}</b></p>}
+            {pvResult.frames && pvResult.frames[0] && (
+              <div className="relative mt-3 overflow-hidden rounded-xl bg-black">
+                <img src={pvResult.frames[0]} alt="" className="block w-full object-cover" style={{ maxHeight: 380 }} />
+                {pvResult.hook_title && (
+                  <div className="absolute left-1/2 top-4 w-[90%] -translate-x-1/2 rounded-lg bg-black/55 px-3 py-2 text-center backdrop-blur-[2px]">
+                    <span className="text-[15px] font-black leading-snug text-white [word-break:keep-all]">{pvResult.hook_title}</span>
+                  </div>
+                )}
+              </div>
+            )}
+            {pvResult.frames && pvResult.frames.length > 1 && (
+              <div className="mt-2 flex gap-1.5">
+                {pvResult.frames.slice(1).map((f, i) => <img key={i} src={f} alt="" className="h-16 w-16 rounded-lg object-cover" />)}
+              </div>
+            )}
+            <button onClick={startFromPreview}
+              className="mt-4 w-full rounded-2xl py-3.5 text-base font-black text-white shadow-lg transition active:scale-[0.98]" style={{ background: BLUE }}>
+              완성 영상 만들기 · 카카오로 시작
+            </button>
+            <p className="mt-1.5 text-center text-xs text-gray-400">가입하면 자막·AI 더빙·완성본까지 · 카드 없이 7일 무료</p>
+          </div>
+        )}
+
         <button onClick={start}
-          className="mt-7 w-full rounded-2xl py-4 text-base font-black text-white shadow-lg transition active:scale-[0.98]"
+          className="mt-4 w-full rounded-2xl py-4 text-base font-black text-white shadow-lg transition active:scale-[0.98]"
           style={{ background: BLUE }}>
           카카오로 시작 · 프로 7일 무료
         </button>
