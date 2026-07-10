@@ -49,14 +49,6 @@ export default function Landing() {
   const [pvLoading, setPvLoading] = useState(false)
   const [pvResult, setPvResult] = useState(null)
   const [pvError, setPvError] = useState('')
-  const [pvFrame, setPvFrame] = useState(0)
-  useEffect(() => {
-    const fr = pvResult && pvResult.frames
-    if (!fr || fr.length < 2) return
-    setPvFrame(0)
-    const iv = setInterval(() => setPvFrame(i => (i + 1) % fr.length), 1300)
-    return () => clearInterval(iv)
-  }, [pvResult])
   const getFp = () => {
     try { let f = localStorage.getItem('chronit_fp'); if (!f) { f = 'fp_' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('chronit_fp', f) } return f } catch { return 'anon' }
   }
@@ -146,30 +138,47 @@ export default function Landing() {
           {pvError && <p className="mt-2 text-xs text-red-500">{pvError}</p>}
         </div>
 
-        {/* 미리보기 결과 */}
+        {/* 분석 결과 카드 */}
         {pvResult && (
-          <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4 text-left shadow-sm">
-            <p className="text-xs font-black text-[#0064FF]">🎬 완성 영상 맛보기</p>
-            {pvResult.product_name && <p className="mt-1 text-sm text-gray-600"><span className="text-gray-400">감지된 상품 · </span><b className="text-[#191F28]">{pvResult.product_name}</b></p>}
-            {pvResult.frames && pvResult.frames[0] && (
-              <div className="relative mt-3 overflow-hidden rounded-xl bg-black" style={{ height: 380 }}>
-                {pvResult.frames.map((f, i) => (
-                  <img key={i} src={f} alt="" className="absolute inset-0 h-full w-full object-cover transition-opacity duration-500"
-                    style={{ opacity: i === pvFrame ? 1 : 0 }} />
-                ))}
-                {pvResult.hook_title && (
-                  <div className="absolute left-1/2 top-4 w-[90%] -translate-x-1/2 rounded-lg bg-black/55 px-3 py-2 text-center backdrop-blur-[2px]">
-                    <span className="text-[15px] font-black leading-snug text-white [word-break:keep-all]">{pvResult.hook_title}</span>
-                  </div>
-                )}
-                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/55 px-2.5 py-1 text-[10px] font-bold text-white">🎬 미리보기 · 실제론 컷편집+더빙</div>
-              </div>
-            )}
+          <div className="mt-4 rounded-2xl border border-[#0064FF]/25 bg-white p-4 text-left shadow-sm">
+            <div className="flex items-center gap-2.5">
+              {pvResult.frames && pvResult.frames[0] && (
+                <img src={pvResult.frames[0]} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
+              )}
+              <p className="text-sm font-black text-[#0064FF]">✅ AI가 영상을 분석했어요</p>
+            </div>
+            <div className="mt-3 space-y-3">
+              {pvResult.product_name && (
+                <div>
+                  <span className="text-xs text-gray-400">감지된 상품</span>
+                  <p className="text-[15px] font-black text-[#191F28] [word-break:keep-all]">{pvResult.product_name}</p>
+                </div>
+              )}
+              {pvResult.use_case && (
+                <div>
+                  <span className="text-xs text-gray-400">쓰임새</span>
+                  <p className="text-sm text-gray-700 [word-break:keep-all]">{pvResult.use_case}</p>
+                </div>
+              )}
+              {pvResult.keywords && pvResult.keywords.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {pvResult.keywords.slice(0, 5).map((k, i) => (
+                    <span key={i} className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-600">{k}</span>
+                  ))}
+                </div>
+              )}
+              {pvResult.hook_title && (
+                <div className="rounded-xl bg-[#F7FAFF] p-3">
+                  <span className="text-xs font-bold text-[#0064FF]">✍️ 이 제목(캡션)으로 만들 거예요</span>
+                  <p className="mt-1 text-[15px] font-black text-[#191F28] [word-break:keep-all]">{pvResult.hook_title}</p>
+                </div>
+              )}
+            </div>
             <button onClick={startFromPreview}
               className="mt-4 w-full rounded-2xl py-3.5 text-base font-black text-white shadow-lg transition active:scale-[0.98]" style={{ background: BLUE }}>
-              완성 영상 만들기 · 카카오로 시작
+              👉 이대로 완성 영상 만들기
             </button>
-            <p className="mt-1.5 text-center text-xs text-gray-400">👆 실제 완성본은 컷편집·줄자막·AI 더빙까지 · 가입하면 바로 · 카드 없이 7일 무료</p>
+            <p className="mt-1.5 text-center text-xs text-gray-400">가입하면 컷편집·줄자막·AI 더빙까지 1분 · 카드 없이 7일 무료</p>
           </div>
         )}
 
