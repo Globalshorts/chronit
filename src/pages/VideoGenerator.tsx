@@ -380,19 +380,8 @@ export default function VideoGenerator() {
   const [abcIdx, setAbcIdx] = useState(0);
   const [abcLoading, setAbcLoading] = useState(false);
   const abcOrigRef = useRef("");
-  const loadAbc = async (styleKey: string) => {
-    const product = analysisMetaRef.current?.name || "";
-    if (!product) return;
-    setAbcLoading(true); setAbcVariants([]);
-    try {
-      const r = await fetch("https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/exp-script-abc?k=chronit-exp-9x", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product, meta: (analysisMetaRef.current?.keyword || ""), style: styleKey, target_seconds: targetSeconds }) });
-      const d = await r.json();
-      if (d && d.ok && Array.isArray(d.variants)) { setAbcVariants(d.variants); setAbcIdx(0); }
-    } catch { /* 무시 */ }
-    setAbcLoading(false);
-  };
+  // ★ A/B/C 대본 실험 종료 — 미사용(무효화). 호출/비용 없음. ★
+  const loadAbc = async (_styleKey: string) => { return; };
   useEffect(() => {
     if (showAutoModal && genMode === 'voice' && (analysisMetaRef.current?.name) && abcVariants.length === 0 && !abcLoading) loadAbc(styleProfileId);
   }, [showAutoModal, styleProfileId, genMode]);
@@ -1111,14 +1100,6 @@ export default function VideoGenerator() {
 
   // ── 자동 생성 (Stage 2~6 순서 실행) ─────────────────────────
   const handleAutoRun = async (ctaOverride?: string) => {
-    try {
-      if (genMode === 'voice' && abcVariants.length && manualScript.trim()) {
-        const _v = abcVariants[abcIdx];
-        fetch("https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/exp-script-abc?k=chronit-exp-9x", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "record", source_url: sourceUrl.trim(), product_signature: (analysisMetaRef.current?.name || ""), style: styleProfileId, variant_label: (_v?.label || ""), original_text: abcOrigRef.current, variant_text: manualScript, shown_labels: abcVariants.map((x: any) => x.label) }) }).catch(() => {});
-      }
-    } catch { /* 무시 */ }
     if (cart.size === 0 || autoRunning) return;
     if (ctaOverride !== undefined) setCtaText(ctaOverride);
     setShowAutoModal(false);
@@ -1574,25 +1555,6 @@ export default function VideoGenerator() {
                     className="w-full rounded-xl bg-white border border-gray-200 px-3 py-2 text-base text-gray-900 outline-none focus:border-[#0064FF]" />
                 )}
                 <p className="text-[11px] text-gray-400">AI 음성·줄자막 없이, 이 캡션 한 줄만 영상 위에 얹어요.</p>
-              </div>
-            )}
-            {/* ① A/B/C 대본 (실험) */}
-            {genMode === 'voice' && (abcLoading || abcVariants.length > 0) && (
-              <div className="rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-3 space-y-2">
-                <p className="text-[11px] font-bold text-[#0064FF]">✨ AI 대본 3개 — 골라서 쓰거나 수정하세요</p>
-                {abcLoading ? (
-                  <p className="text-xs text-gray-500">대본 A·B·C 만드는 중…</p>
-                ) : (
-                  <div className="flex gap-1.5">
-                    {abcVariants.map((v: any, i: number) => (
-                      <button key={i} type="button"
-                        onClick={() => { setAbcIdx(i); const t = (v.lines || []).join(String.fromCharCode(10)); abcOrigRef.current = t; setManualScript(t); setManualOpen(true); }}
-                        className={`flex-1 rounded-lg py-1.5 text-xs font-bold border transition ${abcIdx === i && manualScript.trim() ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}>
-                        {v.label} 대본
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
             )}
             {/* 대본 직접 입력 (음성 모드만) */}
