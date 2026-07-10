@@ -1652,7 +1652,22 @@ export default function VideoGenerator() {
               <p className="text-lg font-black leading-snug text-gray-900">{noticePost.title}</p>
               <button onClick={closeNotice} aria-label="닫기" className="mt-0.5 shrink-0 text-xl leading-none text-gray-400 hover:text-gray-700">✕</button>
             </div>
-            <div className="event-post overflow-y-auto px-6 py-5 text-[14px] leading-[1.8] text-gray-700"
+            <style>{`
+              .chronit-notice-body { color:#374151; font-size:15px; line-height:1.85; word-break:keep-all; }
+              .chronit-notice-body > :first-child { margin-top:0; }
+              .chronit-notice-body h1,.chronit-notice-body h2 { font-size:1.2rem; font-weight:800; color:#111827; margin:1.4em 0 .5em; line-height:1.35; }
+              .chronit-notice-body h3 { font-size:1.08rem; font-weight:800; color:#111827; margin:1.25em 0 .45em; }
+              .chronit-notice-body p { margin:0 0 1.05em; }
+              .chronit-notice-body ul,.chronit-notice-body ol { margin:0 0 1.05em; padding-left:1.4em; }
+              .chronit-notice-body ul { list-style:disc; }
+              .chronit-notice-body ol { list-style:decimal; }
+              .chronit-notice-body li { margin:.4em 0; }
+              .chronit-notice-body strong,.chronit-notice-body b { font-weight:700; color:#111827; }
+              .chronit-notice-body a { color:#0064FF; text-decoration:underline; }
+              .chronit-notice-body img { max-width:100%; border-radius:.6rem; margin:.6em 0; }
+              .chronit-notice-body blockquote { border-left:3px solid rgba(0,100,255,.25); padding-left:.9em; color:#4b5563; margin:0 0 1.05em; }
+            `}</style>
+            <div className="chronit-notice-body overflow-y-auto px-6 py-6"
               dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(noticePost.body || "") }} />
             <div className="flex items-center justify-between gap-2 border-t border-gray-100 px-6 py-3.5">
               <label className="flex cursor-pointer items-center gap-2 text-xs text-gray-500">
