@@ -275,14 +275,18 @@ const Home = () => {
     return () => subscription.unsubscribe()
   }, [])
 
-  // 다른 페이지에서 /#faq · /#pricing 등으로 진입 시 해당 섹션으로 스크롤
+  // 해시(#features/#pricing/#faq) 스크롤 — 마운트 진입 + 연속 클릭(hashchange) 모두 대응. scroll-margin 오프셋 반영
   useEffect(() => {
-    const id = (window.location.hash || '').replace('#', '')
-    if (!id || id.includes('access_token')) return
-    const t = setTimeout(() => {
-      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 350)
-    return () => clearTimeout(t)
+    const scrollToHash = () => {
+      const id = (window.location.hash || '').replace('#', '')
+      if (!id || id.includes('access_token')) return
+      setTimeout(() => {
+        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 60)
+    }
+    scrollToHash()
+    window.addEventListener('hashchange', scrollToHash)
+    return () => window.removeEventListener('hashchange', scrollToHash)
   }, [])
 
   useEffect(() => {
