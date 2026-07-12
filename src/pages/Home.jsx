@@ -275,13 +275,18 @@ const Home = () => {
     return () => subscription.unsubscribe()
   }, [])
 
-  // 해시(#features/#pricing/#faq) 스크롤 — 마운트 진입 + 연속 클릭(hashchange) 모두 대응. scroll-margin 오프셋 반영
+  // 해시(#features/#pricing/#faq) 스크롤 — 마운트 + 연속 클릭(hashchange) 대응.
+  // 이 페이지선 scrollIntoView가 안 먹혀 window.scrollTo로 처리, 각 섹션 scroll-margin-top 값을 오프셋으로 반영
   useEffect(() => {
     const scrollToHash = () => {
       const id = (window.location.hash || '').replace('#', '')
       if (!id || id.includes('access_token')) return
       setTimeout(() => {
-        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        const el = document.getElementById(id)
+        if (!el) return
+        const smt = parseFloat(getComputedStyle(el).scrollMarginTop) || 0
+        const y = Math.max(0, el.getBoundingClientRect().top + window.scrollY - smt)
+        window.scrollTo({ top: y, behavior: 'smooth' })
       }, 60)
     }
     scrollToHash()
