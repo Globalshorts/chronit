@@ -116,21 +116,6 @@ export default function Landing() {
           />
         </div>
 
-        {/* 폰 + 로딩바 → 데모 영상 */}
-        <div className="relative mx-auto mt-7 w-[260px]">
-          <div className="overflow-hidden rounded-[2rem] border-[6px] border-[#191F28] bg-black shadow-2xl">
-            {demo
-              ? <video src={demo} autoPlay loop muted playsInline className="block h-[462px] w-full object-cover" />
-              : <div className="h-[462px] w-full bg-gray-100" />}
-            <div className="lp-overlay absolute inset-[6px] flex flex-col items-center justify-center rounded-[1.6rem] bg-white">
-              <p className="mb-3 text-sm font-bold text-gray-700">AI가 영상 만드는 중…</p>
-              <div className="h-2 w-40 overflow-hidden rounded-full bg-gray-200">
-                <div className="lp-bar h-full rounded-full" style={{ background: BLUE }} />
-              </div>
-              <p className="mt-3 text-xs text-gray-400">링크 → 완성 영상</p>
-            </div>
-          </div>
-        </div>
 
         {/* 🎁 가입 전 체험 — 내 상품으로 무료 미리보기 */}
         <div className="mt-7 rounded-2xl border border-[#0064FF]/25 bg-[#F7FAFF] p-4 text-left">
