@@ -88,7 +88,7 @@ const Footer = ({ dark = false, user = null }) => {
           <p>통신판매업신고: 제 2026-대전서구-0996호</p>
           <p>주소: 대전광역시 서구 가장로 107, 205동 101호</p>
           <p>
-            이메일: pv2066pv@gmail.com &middot; 연락처: 010-4915-3066
+            이메일: help@chronit.kr &middot; 연락처: 010-4915-3066
           </p>
         </div>
         <div className="mt-6 flex flex-col items-center justify-between gap-6 md:flex-row">
