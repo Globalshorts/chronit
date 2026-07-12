@@ -105,6 +105,15 @@ export default function Landing() {
           외주·편집 없이, 매일 꾸준히 올리세요.
         </p>
 
+        {/* 실제 앱 데모 GIF (파일 업로드되면 자동 노출, 없으면 숨김) */}
+        <img
+          src="/app-demo.gif"
+          alt="크로닛 사용 화면 — 링크 넣으면 숏폼 완성"
+          loading="lazy"
+          onError={e => { e.currentTarget.style.display = 'none' }}
+          className="mx-auto mt-7 w-full rounded-2xl border border-gray-200 shadow-lg"
+        />
+
         {/* 폰 + 로딩바 → 데모 영상 */}
         <div className="relative mx-auto mt-7 w-[260px]">
           <div className="overflow-hidden rounded-[2rem] border-[6px] border-[#191F28] bg-black shadow-2xl">

@@ -566,6 +566,17 @@ const Home = () => {
         </Link>
       </div>
 
+      {/* 실제 앱 데모 GIF (파일 업로드되면 자동 노출, 없으면 숨김) */}
+      <div className="px-5 md:px-8">
+        <img
+          src="/app-demo.gif"
+          alt="크로닛 사용 화면 — 링크 넣으면 숏폼 완성"
+          loading="lazy"
+          onError={e => { e.currentTarget.style.display = 'none' }}
+          className="mx-auto w-full max-w-md rounded-2xl border border-gray-200 shadow-lg"
+        />
+      </div>
+
       {/* ── 데모 캐러셀 ── */}
       <DemoCarousel />
 
@@ -732,9 +743,9 @@ const Home = () => {
               <p className="mb-5 text-base text-white/80">매일 꾸준히 올리는 분께</p>
               <div className="mb-8">
                 <span className="text-base font-bold text-white/60 line-through">{wonFmt(planPrices.pro.list)}원</span><span className="ml-2 rounded-md bg-white/25 px-1.5 py-0.5 text-xs font-black text-white">{pctOff(planPrices.pro.list, planPrices.pro.sale)}% 할인</span>
-                <div className="flex items-baseline gap-1">
+                <div className="flex items-baseline gap-1 whitespace-nowrap">
                   <span className="text-4xl font-black text-white md:text-5xl">{wonFmt(planPrices.pro.sale)}</span>
-                  <span className="text-lg font-bold text-white/80">원 / 월</span>
+                  <span className="shrink-0 text-lg font-bold text-white/80">원/월</span>
                 </div>
               </div>
               <ul className="space-y-3 text-base font-medium text-white">
