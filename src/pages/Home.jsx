@@ -3,7 +3,7 @@ import {
   Clock, CheckCircle2, MessageCircle, ArrowRight, Users,
   Film, TrendingDown, LogOut, Gift, Menu, X, Play, User,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import AnimatedCounter from '../components/AnimatedCounter'
 import PaymentModal from '../components/PaymentModal'
 import AuthModal from '../components/AuthModal'
@@ -275,8 +275,9 @@ const Home = () => {
     return () => subscription.unsubscribe()
   }, [])
 
-  // 해시(#features/#pricing/#faq) 스크롤 — 마운트 + 연속 클릭(hashchange) 대응.
-  // 이 페이지선 scrollIntoView가 안 먹혀 window.scrollTo로 처리, 각 섹션 scroll-margin-top 값을 오프셋으로 반영
+  const location = useLocation()
+  // 해시(#features/#pricing/#faq) 스크롤 — 상단탭(<a>=hashchange) + 푸터(<Link>=React Router location 변화) + 마운트 모두 대응.
+  // scrollIntoView가 이 페이지선 안 먹혀 window.scrollTo로 처리, 각 섹션 scroll-margin-top 값을 오프셋으로 반영
   useEffect(() => {
     const scrollToHash = () => {
       const id = (window.location.hash || '').replace('#', '')
@@ -289,10 +290,10 @@ const Home = () => {
         window.scrollTo({ top: y, behavior: 'smooth' })
       }, 60)
     }
-    scrollToHash()
-    window.addEventListener('hashchange', scrollToHash)
+    scrollToHash()                                            // 마운트 + Link(location) 변화 시
+    window.addEventListener('hashchange', scrollToHash)       // 상단탭 <a> 해시 클릭 시
     return () => window.removeEventListener('hashchange', scrollToHash)
-  }, [])
+  }, [location.key, location.hash])
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
