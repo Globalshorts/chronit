@@ -7,12 +7,10 @@ import { ChevronDown } from 'lucide-react'
  * 모바일에서는 각 헤더의 햄버거 메뉴를 사용(이 컴포넌트는 md+에서만 표시).
  */
 export const SITE_MENUS = [
-  { key: 'service', label: '서비스', items: [
-    ['/#features', '기능'],
-    ['/#faq', '자주 묻는 질문'],
-    ['/#pricing', '가격 안내'],
-    ['/manual', '사용 방법'],
-  ] },
+  { key: 'features', label: '기능', to: '/#features' },
+  { key: 'pricing', label: '가격 안내', to: '/#pricing' },
+  { key: 'faq', label: '자주 묻는 질문', to: '/#faq' },
+  { key: 'manual', label: '사용 방법', to: '/manual' },
   { key: 'community', label: '커뮤니티', items: [
     ['/board', '공지·이벤트'],
     ['https://cafe.naver.com/chronit', '공식 카페'],
@@ -27,8 +25,17 @@ const NavLink = ({ to, children, className }) =>
     : <Link to={to} className={className}>{children}</Link>
 
 const SiteNav = ({ active = null }) => (
-  <nav className="hidden items-center gap-8 text-base font-bold tracking-wide text-slate-500 md:flex">
+  <nav className="hidden items-center gap-6 text-base font-bold tracking-wide text-slate-500 md:flex">
     {SITE_MENUS.map(menu => {
+      if (menu.to) {
+        const flatActive = menu.to === active || menu.to.replace('/#', '/') === active
+        return (
+          <NavLink key={menu.key} to={menu.to}
+            className={`uppercase transition-colors ${flatActive ? 'text-[#0064FF]' : 'hover:text-[#0064FF]'}`}>
+            {menu.label}
+          </NavLink>
+        )
+      }
       const isActive = menu.items.some(([to]) => to === active || to.replace('/#', '/') === active)
       return (
         <div key={menu.key} className="group relative">

@@ -70,18 +70,28 @@ const CommunityHeader = ({ active = null }) => {
         <div className="border-b border-gray-200 bg-white px-6 py-5 shadow-lg">
           <nav className="flex flex-col gap-3 text-gray-700">
             {SITE_MENUS.map(menu => (
-              <div key={menu.key}>
-                <div className="px-4 pb-1 text-xs font-bold tracking-wide text-slate-400 uppercase">{menu.label}</div>
-                {menu.items.map(([to, label]) => (
-                  to.startsWith('/#') ? (
-                    <a key={to} href={to} onClick={() => setMenuOpen(false)}
-                      className="block rounded-xl px-4 py-2.5 text-base font-bold transition-colors hover:bg-gray-50 hover:text-[#0064FF]">{label}</a>
-                  ) : (
-                    <Link key={to} to={to} onClick={() => setMenuOpen(false)}
-                      className={`block rounded-xl px-4 py-2.5 text-base font-bold transition-colors hover:bg-gray-50 ${to === '/' + (active || '') ? 'text-[#0064FF]' : 'hover:text-[#0064FF]'}`}>{label}</Link>
-                  )
-                ))}
-              </div>
+              menu.to ? (
+                menu.to.startsWith('/#') ? (
+                  <a key={menu.key} href={menu.to} onClick={() => setMenuOpen(false)}
+                    className="block rounded-xl px-4 py-2.5 text-base font-bold transition-colors hover:bg-gray-50 hover:text-[#0064FF]">{menu.label}</a>
+                ) : (
+                  <Link key={menu.key} to={menu.to} onClick={() => setMenuOpen(false)}
+                    className="block rounded-xl px-4 py-2.5 text-base font-bold transition-colors hover:bg-gray-50 hover:text-[#0064FF]">{menu.label}</Link>
+                )
+              ) : (
+                <div key={menu.key}>
+                  <div className="px-4 pb-1 text-xs font-bold tracking-wide text-slate-400 uppercase">{menu.label}</div>
+                  {menu.items.map(([to, label]) => (
+                    to.startsWith('/#') ? (
+                      <a key={to} href={to} onClick={() => setMenuOpen(false)}
+                        className="block rounded-xl px-4 py-2.5 text-base font-bold transition-colors hover:bg-gray-50 hover:text-[#0064FF]">{label}</a>
+                    ) : (
+                      <Link key={to} to={to} onClick={() => setMenuOpen(false)}
+                        className={`block rounded-xl px-4 py-2.5 text-base font-bold transition-colors hover:bg-gray-50 ${to === '/' + (active || '') ? 'text-[#0064FF]' : 'hover:text-[#0064FF]'}`}>{label}</Link>
+                    )
+                  ))}
+                </div>
+              )
             ))}
           </nav>
           <div className="mt-3 border-t border-gray-200 pt-3">

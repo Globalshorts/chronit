@@ -3,7 +3,7 @@ import {
   Clock, CheckCircle2, MessageCircle, ArrowRight, Users,
   Film, TrendingDown, LogOut, Gift, Menu, X, Play, User,
 } from 'lucide-react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import AnimatedCounter from '../components/AnimatedCounter'
 import PaymentModal from '../components/PaymentModal'
 import AuthModal from '../components/AuthModal'
@@ -275,24 +275,15 @@ const Home = () => {
     return () => subscription.unsubscribe()
   }, [])
 
-  const location = useLocation()
-  // /#faq · /#pricing 등: 해시 변화에 반응 + 이미지/레이아웃 정착까지 재보정 + 헤더 오프셋
+  // 다른 페이지에서 /#faq · /#pricing 등으로 진입 시 해당 섹션으로 스크롤
   useEffect(() => {
-    const id = (location.hash || window.location.hash || '').replace('#', '')
+    const id = (window.location.hash || '').replace('#', '')
     if (!id || id.includes('access_token')) return
-    let tries = 0
-    let timer
-    const go = () => {
-      const el = document.getElementById(id)
-      if (el) {
-        const y = Math.max(0, el.getBoundingClientRect().top + window.scrollY - 90)
-        window.scrollTo({ top: y, behavior: 'smooth' })
-      }
-      if (++tries < 5) timer = setTimeout(go, 300)   // 최대 ~1.5s 동안 위치 보정
-    }
-    timer = setTimeout(go, 80)
-    return () => clearTimeout(timer)
-  }, [location.hash, location.key])
+    const t = setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 350)
+    return () => clearTimeout(t)
+  }, [])
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
