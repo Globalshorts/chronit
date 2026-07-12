@@ -612,7 +612,7 @@ const Home = () => {
         </div>
       </section>
       {/* ── 기능 소개 (서비스 구성) ── */}
-      <section id="features" className="px-5 py-16 md:px-8 md:py-24">
+      <section id="features" style={{ scrollMarginTop: '200px' }} className="px-5 py-16 md:px-8 md:py-24">
         <div className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
             <h2 className="text-3xl font-black text-gray-900 md:text-4xl">영상 한 번 넣으면, 이걸 다 해드려요</h2>
@@ -666,7 +666,7 @@ const Home = () => {
       </section>
 
       {/* ── 요금제 ── */}
-      <section id="pricing" className="px-5 py-16 md:px-8 md:py-24">
+      <section id="pricing" style={{ scrollMarginTop: '-220px' }} className="px-5 py-16 md:px-8 md:py-24">
         <div className="mx-auto max-w-6xl">
           <div className="mb-4 text-center">
             <h2 className="text-3xl font-black text-gray-900 md:text-5xl">필요한 만큼만 고르세요</h2>
