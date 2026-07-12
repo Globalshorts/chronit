@@ -3,7 +3,7 @@ import {
   Clock, CheckCircle2, MessageCircle, ArrowRight, Users,
   Film, TrendingDown, LogOut, Gift, Menu, X, Play, User,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import AnimatedCounter from '../components/AnimatedCounter'
 import PaymentModal from '../components/PaymentModal'
 import AuthModal from '../components/AuthModal'
@@ -275,15 +275,16 @@ const Home = () => {
     return () => subscription.unsubscribe()
   }, [])
 
-  // 다른 페이지에서 /#faq · /#pricing 등으로 진입 시 해당 섹션으로 스크롤
+  const location = useLocation()
+  // /#faq · /#pricing 등 클릭 시 해당 섹션으로 스크롤 (홈 안이든 밖이든 해시 변화에 반응)
   useEffect(() => {
-    const id = (window.location.hash || '').replace('#', '')
+    const id = (location.hash || window.location.hash || '').replace('#', '')
     if (!id || id.includes('access_token')) return
     const t = setTimeout(() => {
       document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 350)
+    }, 100)
     return () => clearTimeout(t)
-  }, [])
+  }, [location.hash, location.key])
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
