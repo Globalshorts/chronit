@@ -276,14 +276,22 @@ const Home = () => {
   }, [])
 
   const location = useLocation()
-  // /#faq · /#pricing 등 클릭 시 해당 섹션으로 스크롤 (홈 안이든 밖이든 해시 변화에 반응)
+  // /#faq · /#pricing 등: 해시 변화에 반응 + 이미지/레이아웃 정착까지 재보정 + 헤더 오프셋
   useEffect(() => {
     const id = (location.hash || window.location.hash || '').replace('#', '')
     if (!id || id.includes('access_token')) return
-    const t = setTimeout(() => {
-      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 100)
-    return () => clearTimeout(t)
+    let tries = 0
+    let timer
+    const go = () => {
+      const el = document.getElementById(id)
+      if (el) {
+        const y = Math.max(0, el.getBoundingClientRect().top + window.scrollY - 90)
+        window.scrollTo({ top: y, behavior: 'smooth' })
+      }
+      if (++tries < 5) timer = setTimeout(go, 300)   // 최대 ~1.5s 동안 위치 보정
+    }
+    timer = setTimeout(go, 80)
+    return () => clearTimeout(timer)
   }, [location.hash, location.key])
 
   useEffect(() => {
