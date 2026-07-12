@@ -552,28 +552,28 @@ const Home = () => {
       </div>
 
       {/* 쿠팡 파트너스 안내 진입 */}
-      <div className="px-5 pt-16 md:px-8 md:pt-24">
+      <div className="px-5 pt-10 md:px-8 md:pt-14">
         <Link to="/manual/revenue"
-          className="group mx-auto flex max-w-3xl flex-col items-center gap-4 rounded-3xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-8 text-center transition-all hover:border-[#0064FF] hover:bg-[#0064FF]/10 sm:flex-row sm:text-left md:p-10">
-          <span className="text-5xl md:text-6xl">💰</span>
+          className="group mx-auto flex max-w-3xl flex-col items-center gap-3 rounded-3xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-6 text-center transition-all hover:border-[#0064FF] hover:bg-[#0064FF]/10 sm:flex-row sm:text-left md:p-7">
+          <span className="text-4xl">💰</span>
           <div className="flex-1">
-            <p className="text-xl font-black text-gray-900 md:text-2xl">쿠팡으로 어떻게 돈이 들어오나요?</p>
-            <p className="mt-1.5 text-base text-gray-600 md:text-lg">쇼핑 영상 하나로 수수료가 통장에 들어오기까지 — 1분이면 이해할 수 있어요.</p>
+            <p className="text-lg font-black text-gray-900 md:text-xl">쿠팡으로 어떻게 돈이 들어오나요?</p>
+            <p className="mt-1 text-sm text-gray-600 md:text-base">쇼핑 영상 하나로 수수료가 통장에 들어오기까지 — 1분이면 이해할 수 있어요.</p>
           </div>
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-[#0064FF] px-6 py-3.5 text-base font-extrabold text-white transition-all group-hover:gap-2 md:text-lg">
-            수익 나는 과정 보기 <ArrowRight size={20} />
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-[#0064FF] px-5 py-3 text-sm font-extrabold text-white transition-all group-hover:gap-2 md:text-base">
+            수익 나는 과정 보기 <ArrowRight size={18} />
           </span>
         </Link>
       </div>
 
       {/* 실제 앱 데모 GIF (파일 업로드되면 자동 노출, 없으면 숨김) */}
-      <div className="px-5 md:px-8">
+      <div className="px-5 pt-12 md:px-8 md:pt-16">
         <img
           src="/app-demo.gif"
           alt="크로닛 사용 화면 — 링크 넣으면 숏폼 완성"
           loading="lazy"
           onError={e => { e.currentTarget.style.display = 'none' }}
-          className="mx-auto w-full max-w-md rounded-2xl border border-gray-200 shadow-lg"
+          className="mx-auto w-full max-w-2xl rounded-2xl border border-gray-200 shadow-lg"
         />
       </div>
 
