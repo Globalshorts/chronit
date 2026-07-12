@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { Link, useParams, useLocation } from 'react-router-dom'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { ManualHeader, ManualFooter, Markdown, Lightbox, parseFaq } from '../components/ManualLayout'
+import PwaInstall from '../components/PwaInstall'
 
 import usageMd      from '../content/usage.md?raw'
 import webappMd     from '../content/webapp.md?raw'
@@ -337,6 +338,16 @@ const ManualDetail = () => {
             </div>
           )}
 
+          {section === 'app' && (
+            <div className="mb-6 rounded-3xl border-2 border-[#0064FF]/40 bg-gradient-to-br from-[#0064FF]/10 to-[#0064FF]/5 p-6 text-center md:p-7">
+              <h3 className="text-xl font-black text-gray-900 md:text-2xl">지금 홈 화면에 추가하기</h3>
+              <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">버튼을 누르면 설치 안내가 떠요. 앱스토어 없이 아이콘 하나로 끝.</p>
+              <button onClick={() => window.dispatchEvent(new Event('chronit:open-install'))}
+                className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0064FF] px-7 py-3.5 text-base font-black text-white shadow-md shadow-[#0064FF]/25 transition-all hover:gap-3">
+                📲 앱 설치하기
+              </button>
+            </div>
+          )}
           {data.type === 'markdown' && (
             <Markdown onImageClick={setLightbox}>{data.content}</Markdown>
           )}
@@ -394,6 +405,7 @@ const ManualDetail = () => {
         </div>
       </section>
 
+      <PwaInstall />
       <ManualFooter />
     </div>
   )
