@@ -447,6 +447,9 @@ export default function VideoGenerator() {
     // 유효한 탭 값만 허용 — 옛/이상 값이면 프로젝트(generator)로 폴백(빈 화면 방지)
     const VALID_VIEWS = ["trends", "generator", "history", "product-search", "studio", "settings", "partner", "admin"];
     try {
+      // URL ?view= 딥링크 우선 (예: /generate?view=trends → 트렌드 탭 바로 열기)
+      const urlView = new URLSearchParams(window.location.search).get("view");
+      if (urlView && VALID_VIEWS.includes(urlView)) return urlView;
       let v = localStorage.getItem("chronit_active_view") || "generator";
       if (v === "auto-settings" || v === "style-finder") v = "studio"; // 옛 탭 → 통합 탭
       return VALID_VIEWS.includes(v) ? v : "generator";
