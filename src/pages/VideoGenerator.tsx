@@ -1134,7 +1134,7 @@ export default function VideoGenerator() {
           method: "POST",
           headers: { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" },
           body: JSON.stringify({ source_url: sourceUrl.trim(), selected_clips: selected,
-            target_seconds: targetSeconds, style_profile_id: styleProfileId, style_profile_json: scriptStyleJsonFor(styleProfileId), cta_text: (ctaOverride ?? ctaText).trim() }),
+            target_seconds: targetSeconds, style_profile_id: styleProfileId, style_profile_json: scriptStyleJsonFor(styleProfileId), cta_text: "" }),   // CTA 제외 — 렌더 단계에서 붙음
         });
         const data = await resp.json();
         if (!data.ok) { reject(new Error(data.error ?? "대본 생성 실패")); return; }
@@ -1458,7 +1458,7 @@ export default function VideoGenerator() {
       const { data: { session: s } } = await supabase.auth.getSession();
       if (!s) throw new Error("로그인 필요");
       const mk = (payload: any) => fetch(FN("generate-script"), { method: "POST", headers: { Authorization: `Bearer ${s.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify(payload) }).then(r => r.json());
-      const data = await mk({ source_url: sourceUrl.trim(), selected_clips: selected, target_seconds: targetSeconds, style_profile_id: styleProfileId, style_profile_json: scriptStyleJsonFor(styleProfileId), cta_text: (modalCtaText || ctaText).trim() });
+      const data = await mk({ source_url: sourceUrl.trim(), selected_clips: selected, target_seconds: targetSeconds, style_profile_id: styleProfileId, style_profile_json: scriptStyleJsonFor(styleProfileId), cta_text: "" });   // CTA는 대본에 넣지 않음 — 렌더 시 댓글 유도 단어로 마지막에 붙음
       if (!data.ok) throw new Error(data.error ?? "대본 생성 실패");
       let segs: any[] = data.segments ?? [];
       if (data.status !== "succeeded") {
