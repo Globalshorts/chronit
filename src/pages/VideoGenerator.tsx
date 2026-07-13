@@ -593,7 +593,7 @@ export default function VideoGenerator() {
     if (!uid) return;
     try {
       const { data } = await supabase.from("user_settings")
-        .select("voice_id, voice_speed, voice_volume, subtitle_style, thumbnail_style, target_seconds, style_profile_id, subtitle_preset_id, thumbnail_preset_id")
+        .select("voice_id, voice_speed, voice_volume, subtitle_style, thumbnail_style, target_seconds, style_profile_id, subtitle_preset_id, thumbnail_preset_id, gen_mode")
         .eq("user_id", uid).maybeSingle();
       if (data) {
         if (data.voice_id) setVoiceId(data.voice_id);
@@ -613,6 +613,7 @@ export default function VideoGenerator() {
         if (data.style_profile_id) setStyleProfileId(data.style_profile_id);
         if (data.subtitle_preset_id) setSelectedSubtitlePresetId(data.subtitle_preset_id);
         if (data.thumbnail_preset_id) setSelectedThumbnailPresetId(data.thumbnail_preset_id);
+        if (data.gen_mode === "voice" || data.gen_mode === "title" || data.gen_mode === "video") { setGenMode(data.gen_mode); try { localStorage.setItem("chronit_gen_mode", data.gen_mode); } catch {} }
       }
     } catch { /* 무시 — localStorage 기본값 유지 */ }
     finally { settingsLoaded.current = true; }
@@ -676,11 +677,12 @@ export default function VideoGenerator() {
         style_profile_id: styleProfileId,
         subtitle_preset_id: selectedSubtitlePresetId,
         thumbnail_preset_id: selectedThumbnailPresetId,
+        gen_mode: genMode,
         updated_at: new Date().toISOString(),
       }, { onConflict: "user_id" }).then(() => {});
     }, 800);
     return () => clearTimeout(t);
-  }, [session, voiceId, voiceSpeed, voiceVolume, subtitleStyle, thumbnailStyle, targetSeconds, styleProfileId, selectedSubtitlePresetId, selectedThumbnailPresetId]);
+  }, [session, voiceId, voiceSpeed, voiceVolume, subtitleStyle, thumbnailStyle, targetSeconds, styleProfileId, selectedSubtitlePresetId, selectedThumbnailPresetId, genMode]);
 
   // ── 웹 기기 등록 + 하트비트 (최대 2기기, 생성은 차단 안 함) ──
   useEffect(() => {
@@ -1563,7 +1565,7 @@ export default function VideoGenerator() {
             {genMode === 'voice' && (
             <div className="rounded-xl border border-gray-200">
               <button onClick={() => setManualOpen(o => !o)} className="flex w-full items-center justify-between px-4 py-3 text-left">
-                <span className="text-sm font-bold text-gray-800">✍️ 대본 직접 입력 <span className="font-normal text-gray-400">· 선택</span></span>
+                <span className="text-sm font-bold text-gray-800">✍️ 대본</span>
                 <span className="text-gray-400">{manualOpen ? "▴" : "▾"}</span>
               </button>
               {manualOpen && (
