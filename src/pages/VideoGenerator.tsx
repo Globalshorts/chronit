@@ -509,9 +509,8 @@ export default function VideoGenerator() {
   const [consentAsk, setConsentAsk] = useState<null | (() => void)>(null);
   const [consentSkip, setConsentSkip] = useState(false); // '다시 보지 않기' 체크 상태
   const askConsent = (onAgree: () => void) => {
-    // 이미 '다시 보지 않기'에 동의했으면 모달 생략 (담기 로그는 onAgree 내부에서 그대로 남음)
-    try { if (localStorage.getItem(`chronit_consent_skip_${TERMS_VERSION}`) === "1") { onAgree(); return; } } catch {}
-    setConsentAsk(() => onAgree);
+    // 저작권 확인 팝업 제거 — 가입 시 이용약관 동의로 갈음. 어떤 콘텐츠를 담았는지 서버 로그(add/analyze)는 onAgree 내부에서 그대로 남아 방어선 유지.
+    onAgree();
   };
 
   // auth
