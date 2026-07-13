@@ -299,6 +299,8 @@ export default function VideoGenerator() {
   const [ctaText, setCtaText] = useState("");  // CTA 입력 (비우면 프로필 링크 안내)
   const [scriptLoading, setScriptLoading] = useState(false);
   const [scriptError, setScriptError] = useState("");
+  const [scriptFilling, setScriptFilling] = useState(false);
+  const [scriptFillErr, setScriptFillErr] = useState("");
   const [script, setScript]         = useState<ScriptSegment[] | null>(null);
   const [scriptPredId, setScriptPredId] = useState("");
 
@@ -1446,6 +1448,34 @@ export default function VideoGenerator() {
 
   const currentJob = jobs.find(j => j.id === currentJobId);
 
+  // 담은 클립 + 선택 대본 스타일로 대본 초안 생성 → '대본' 칸 채움 (버튼)
+  const fillScriptDraft = async () => {
+    const selected = collectSelected();
+    if (!selected || selected.length === 0) { setScriptFillErr("먼저 클립을 담아주세요"); return; }
+    setScriptFilling(true); setScriptFillErr("");
+    try {
+      const { data: { session: s } } = await supabase.auth.getSession();
+      if (!s) throw new Error("로그인 필요");
+      const mk = (payload: any) => fetch(FN("generate-script"), { method: "POST", headers: { Authorization: `Bearer ${s.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify(payload) }).then(r => r.json());
+      const data = await mk({ source_url: sourceUrl.trim(), selected_clips: selected, target_seconds: targetSeconds, style_profile_id: styleProfileId, style_profile_json: scriptStyleJsonFor(styleProfileId), cta_text: (modalCtaText || ctaText).trim() });
+      if (!data.ok) throw new Error(data.error ?? "대본 생성 실패");
+      let segs: any[] = data.segments ?? [];
+      if (data.status !== "succeeded") {
+        const predId = data.prediction_id;
+        const start = Date.now();
+        while (Date.now() - start < 120000) {
+          await new Promise(r => setTimeout(r, 2000));
+          const poll = await mk({ poll: true, prediction_id: predId });
+          if (poll.status === "succeeded") { segs = poll.segments ?? []; break; }
+          if (poll.status === "failed") throw new Error(poll.error ?? "대본 실패");
+        }
+      }
+      if (!segs || !segs.length) throw new Error("대본이 비어서 생성됐어요. 담은 클립을 확인해주세요.");
+      setManualScript(segs.map((x: any) => (x?.text ?? "")).filter(Boolean).join("\n"));
+    } catch (e: any) { setScriptFillErr(String(e?.message ?? e)); }
+    finally { setScriptFilling(false); }
+  };
+
   const currentData = { stage, sourceUrl, clips, cart: [...cart], script, ctaText, targetSeconds, styleProfileId, subtitleStyle, thumbnailStyle, showThumbnail, voiceId, voiceSpeed, voiceVolume };
   // 새 프로젝트 생성 시 초기화
   // ★ 프로젝트별 데이터만 리셋 — 자막 스타일, 보이스, 영상 길이 등 전역 설정은 유지
@@ -1570,6 +1600,11 @@ export default function VideoGenerator() {
               </button>
               {manualOpen && (
                 <div className="px-4 pb-4 space-y-2">
+                  <button type="button" onClick={fillScriptDraft} disabled={scriptFilling}
+                    className="w-full rounded-xl border border-[#0064FF] bg-[#0064FF]/5 py-2.5 text-sm font-bold text-[#0064FF] transition hover:bg-[#0064FF]/10 disabled:opacity-50">
+                    {scriptFilling ? "대본 만드는 중… (최대 30초)" : "✨ 담은 클립으로 대본 만들기"}
+                  </button>
+                  {scriptFillErr && <p className="text-xs font-medium text-red-500">{scriptFillErr}</p>}
                   <p className="text-sm text-gray-500">비우면 AI가 자동 생성 · 한 줄 = 한 컷</p>
                   <textarea value={manualScript} onChange={e => setManualScript(e.target.value)} rows={4}
                     placeholder={"예:\n이거 진짜 신세계예요\n버튼 하나로 끝나거든요\n주방 좁아도 걱정 없어요"}
@@ -2059,7 +2094,7 @@ export default function VideoGenerator() {
                 <p className="mb-2 rounded-lg bg-[#0064FF]/10 px-3 py-2.5 text-sm font-bold text-[#0064FF]">🎯 상품이 <b>또렷하게 크게</b> 보이는 영상일수록 결과가 좋아요</p>
                 <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                   <input type="url" value={sourceUrl}
-                    onChange={e => { setSourceUrl(e.target.value); setSearchError(""); setClips([]); setCart(new Set()); }}
+                    onChange={e => { setSourceUrl(e.target.value); setSearchError(""); setClips([]); setCart(new Set()); setManualScript(""); setScript(null); setScriptFillErr(""); }}
                     onKeyDown={e => e.key === "Enter" && handleSearch()}
                     placeholder="인스타·틱톡·유튜브 영상 링크 붙여넣기"
                     disabled={searching}
