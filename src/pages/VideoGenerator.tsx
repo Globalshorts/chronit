@@ -1164,6 +1164,7 @@ export default function VideoGenerator() {
       await handleRender({ voiceId, ctaText: ctaOverride ?? ctaText, script: genSegments });
 
       setAutoRunStep("✅ 완료!");
+      handleReset({ keepJob: true });   // ★ 생성 완료 → 다음 상품 위해 초안 자동 리셋 (대본 carryover 원천 차단)
     } catch (e) {
       const msg = String(e).replace(/^Error:\s*/, "").slice(0, 120);
       setAutoRunStep("❌ 생성 실패");
@@ -1479,16 +1480,21 @@ export default function VideoGenerator() {
   const currentData = { stage, sourceUrl, clips, cart: [...cart], script, ctaText, targetSeconds, styleProfileId, subtitleStyle, thumbnailStyle, showThumbnail, voiceId, voiceSpeed, voiceVolume };
   // 새 프로젝트 생성 시 초기화
   // ★ 프로젝트별 데이터만 리셋 — 자막 스타일, 보이스, 영상 길이 등 전역 설정은 유지
-  const handleReset = () => {
+  const handleReset = (opts?: { keepJob?: boolean }) => {
     setStage(1);
     setSourceUrl("");
     setClips([]);
     setCart(new Set());
     setScript(null);
     setScriptPredId("");
+    setManualScript("");
+    setScriptFillErr("");
+    setHookTitle("");
+    setAbcVariants([]);
     setSearchError("");
-    setCurrentJobId("");
     setCtaText("");
+    setModalCtaText("");
+    if (!opts?.keepJob) setCurrentJobId("");
     try { clearProject(); } catch (_) {}
     // 유지: subtitleStyle, thumbnailStyle, voiceId, voiceSpeed, voiceVolume,
     //       targetSeconds, styleProfileId, showThumbnail
