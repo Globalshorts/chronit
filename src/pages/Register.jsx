@@ -6,9 +6,9 @@ import { supabase } from '../lib/supabase'
 const ICON = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png'
 const SOURCE_OPTIONS = ['유튜브', '인스타그램', '지인 추천', '블로그·카페', '검색(구글·네이버)', '기타']
 
-// 스텝 인덱스
-const STEP = { TERMS: 0, NICK: 1, SOURCE: 2, REFERRAL: 3 }
-const TOTAL = 4
+// 스텝 인덱스 (닉네임 자동생성·추천 MyPage 이동으로 2단계)
+const STEP = { TERMS: 0, SOURCE: 1 }
+const TOTAL = 2
 
 const Register = () => {
   const [loading, setLoading] = useState(true)
@@ -84,12 +84,14 @@ const Register = () => {
       } catch { /* noop */ }
 
       // 시작 스텝: 비어있는 첫 단계부터
+      // 닉네임 없으면 자동 생성 (온보딩 단계에서 제거)
+      if (!prof?.nickname) {
+        const baseName = s.user?.user_metadata?.name || s.user?.user_metadata?.full_name || s.user?.user_metadata?.nickname || ''
+        try { await supabase.rpc('auto_nickname_rpc', { p_base: baseName }) } catch { /* noop */ }
+      }
       if (!prof?.terms_agreed_at) setStep(STEP.TERMS)
-      else if (!prof?.nickname) setStep(STEP.NICK)
       else if (!prof?.signup_source) setStep(STEP.SOURCE)
-      else setStep(STEP.REFERRAL)
-
-      if (prof?.nickname) setNick(prof.nickname)
+      else { try { await supabase.rpc('complete_onboarding_rpc') } catch { /* noop */ } window.location.href = '/generate'; return }
       setLoading(false)
     })()
   }, [])
@@ -107,8 +109,11 @@ const Register = () => {
     setAgree(true); setMarketing(m)
     setSaving(true)
     try { await supabase.rpc('set_terms_consent_rpc', { p_marketing: m }) } catch { /* noop */ }
+    // 닉네임 자동 생성 (OAuth 이름 기반, 나중에 마이페이지에서 변경)
+    const baseName = session?.user?.user_metadata?.name || session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.nickname || ''
+    try { await supabase.rpc('auto_nickname_rpc', { p_base: baseName }) } catch { /* noop */ }
     setSaving(false)
-    setStep(STEP.NICK)
+    setStep(STEP.SOURCE)
   }
 
   const submitNick = async () => {
@@ -126,7 +131,7 @@ const Register = () => {
     setSaving(true)
     try { await supabase.rpc('set_signup_source_rpc', { p_source: src }) } catch { /* noop */ }
     setSaving(false)
-    setStep(STEP.REFERRAL)
+    await finish()   // 추천 단계 제거 → 유입경로 후 바로 완료
   }
 
   const applyReferral = async () => {

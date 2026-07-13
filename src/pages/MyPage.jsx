@@ -18,6 +18,9 @@ const MyPage = () => {
   const [nickOpen, setNickOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [refInfo, setRefInfo] = useState(null)
+  const [redeemCode, setRedeemCode] = useState('')
+  const [redeemMsg, setRedeemMsg] = useState(null)
+  const [redeeming, setRedeeming] = useState(false)
 
   useEffect(() => { supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null)) }, [])
 
@@ -40,6 +43,18 @@ const MyPage = () => {
     if (!code) return
     navigator.clipboard?.writeText(`https://chronit.kr/?ref=${code}`)
     setCopied(true); setTimeout(() => setCopied(false), 1500)
+  }
+
+  const redeem = async () => {
+    const code = redeemCode.trim().toUpperCase()
+    if (!code) { setRedeemMsg({ ok: false, text: '코드를 입력해주세요' }); return }
+    setRedeeming(true); setRedeemMsg(null)
+    try {
+      const { data } = await supabase.rpc('redeem_referral_rpc', { p_referral_code: code })
+      if (data?.ok) { setRedeemMsg({ ok: true, text: '🎉 추천 코드 적용! 프로 7일 체험이 시작됐어요' }); setRedeemCode(''); if (user) load(user.id) }
+      else setRedeemMsg({ ok: false, text: data?.error ?? '적용에 실패했어요' })
+    } catch { setRedeemMsg({ ok: false, text: '적용에 실패했어요' }) }
+    setRedeeming(false)
   }
 
   if (user === null) return (
@@ -100,6 +115,20 @@ const MyPage = () => {
             ) : null}
             </>
           )}
+        </div>
+
+        {/* 받은 추천 코드 입력 */}
+        <div className="mt-4 rounded-3xl border border-gray-200 bg-white p-5">
+          <p className="mb-1 text-sm font-bold text-gray-800">받은 추천 코드가 있나요?</p>
+          <p className="mb-3 text-xs text-slate-500">입력하면 프로 7일 무료 체험이 시작돼요.</p>
+          <div className="flex gap-2">
+            <input value={redeemCode} onChange={(e) => setRedeemCode(e.target.value.toUpperCase())} onKeyDown={(e) => e.key === 'Enter' && redeem()}
+              placeholder="추천 코드"
+              className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-2.5 text-base font-bold tracking-widest text-gray-900 outline-none focus:border-[#0064FF]" />
+            <button onClick={redeem} disabled={redeeming}
+              className="shrink-0 rounded-xl bg-[#0064FF] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#0052D6] disabled:opacity-50">적용</button>
+          </div>
+          {redeemMsg && <p className={`mt-2 text-sm font-medium ${redeemMsg.ok ? 'text-green-600' : 'text-red-500'}`}>{redeemMsg.text}</p>}
         </div>
 
         {/* 요약 stats */}
