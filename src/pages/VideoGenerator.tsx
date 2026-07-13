@@ -462,7 +462,7 @@ export default function VideoGenerator() {
   const [activePack, setActivePack] = useState<string>(() => { try { return localStorage.getItem("chronit_active_pack") || ""; } catch { return ""; } });
   const [advOpen, setAdvOpen] = useState(false);
   const [packVoiceMsg, setPackVoiceMsg] = useState(""); const [packInfoMsg, setPackInfoMsg] = useState("");
-  const [manualOpen, setManualOpen] = useState(false);
+  const [manualOpen, setManualOpen] = useState(true);   // 대본 섹션 기본 펼침 (대본 만들기 버튼 노출)
   const [ctaOpen, setCtaOpen] = useState(false);
   const [userPacks, setUserPacks] = useState<any[]>([]);
   const [packOnboardOpen, setPackOnboardOpen] = useState(false);
