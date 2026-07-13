@@ -1608,7 +1608,7 @@ export default function VideoGenerator() {
                 <div className="px-4 pb-4 space-y-2">
                   <button type="button" onClick={fillScriptDraft} disabled={scriptFilling}
                     className="w-full rounded-xl border border-[#0064FF] bg-[#0064FF]/5 py-2.5 text-sm font-bold text-[#0064FF] transition hover:bg-[#0064FF]/10 disabled:opacity-50">
-                    {scriptFilling ? "대본 만드는 중… (최대 30초)" : "✨ 담은 클립으로 대본 만들기"}
+                    {scriptFilling ? "대본 미리보기 준비 중… (최대 30초)" : "👀 대본 미리보기"}
                   </button>
                   {scriptFillErr && <p className="text-xs font-medium text-red-500">{scriptFillErr}</p>}
                   <p className="text-sm text-gray-500">비우면 AI가 자동 생성 · 한 줄 = 한 컷</p>
