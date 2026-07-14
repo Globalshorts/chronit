@@ -4991,6 +4991,18 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
       setMsg(m); await load();
     } catch(e){ setMsg("실패: "+String(e)); }
   };
+  const grantTrial = async () => {
+    if (!sel) { setMsg("회원을 먼저 선택하세요"); return; }
+    const d = Number(days) || 0;
+    if (d <= 0) { setMsg("기간(일)을 입력하세요"); return; }
+    setMsg("처리 중...");
+    try {
+      const r = await supabase.rpc("admin_grant_trial_rpc", { p_target_user_id: sel, p_days: d });
+      if (r?.error) { setMsg("실패: " + r.error.message); return; }
+      if (r?.data?.ok === false) { setMsg("실패: " + r.data.error); return; }
+      setMsg(`프로 체험 ${d}일 부여 완료 · 이벤트 이용권 ${d}개 (플랜은 그대로)`); await load();
+    } catch (e) { setMsg("실패: " + String(e)); }
+  };
   const cancel  = () => run(()=>supabase.rpc("admin_cancel_subscription_rpc",{p_target_user_id:sel}), "구독 취소 완료");
   const resetDev= () => run(()=>supabase.rpc("admin_reset_user_devices_rpc",{p_target_user_id:sel}), "디바이스 해제 완료");
   const credit  = (action:string) => {
@@ -5191,6 +5203,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
             <input value={days} onChange={e=>setDays(e.target.value)} className="w-28 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none" placeholder="기간(일)" />
             <input value={payAmt} onChange={e=>setPayAmt(e.target.value)} className="w-36 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none" placeholder="결제금액(정산용·선택)" />
             <Btn onClick={grant} color="bg-green-600 hover:bg-green-500">✓ 구독 부여/연장</Btn>
+            <Btn onClick={grantTrial} color="bg-[#0064FF] hover:bg-[#0052D6]">🎁 프로 체험 부여(이벤트)</Btn>
             <Btn onClick={cancel} color="bg-red-600 hover:bg-red-500">✕ 구독 취소</Btn>
             <Btn onClick={resetDev} color="bg-gray-200 hover:bg-gray-300">🖥 디바이스 모두 해제</Btn>
           </div>
