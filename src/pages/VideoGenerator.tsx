@@ -4984,7 +4984,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
       if (r?.error) { setMsg("실패: "+r.error.message); return; }
       if (r?.data?.ok === false) { setMsg("실패: "+r.data.error); return; }
       const acc = r?.data?.accrual;
-      let m = "구독 부여/연장 완료";
+      let m = r?.data?.note ? ("구독 부여 완료 · " + r.data.note) : "구독 부여/연장 완료";
       if (acc?.action === "accrued") m += ` · 파트너 적립 +₩${Number(acc.amount||0).toLocaleString()} (${acc.partner})`;
       else if (payAmt.trim() && acc?.action === "no_partner") m += " · (파트너 매핑 없음 — 적립 안 됨)";
       else if (payAmt.trim() && (acc?.action === "zero_rate" || acc?.action === "zero_fixed")) m += " · (파트너 요율 0 — 적립 안 됨)";
