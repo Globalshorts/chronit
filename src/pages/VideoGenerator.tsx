@@ -873,11 +873,11 @@ export default function VideoGenerator() {
   const saveProject = () => {
     const data = {
       savedAt: Date.now(),
-      stage, sourceUrl, clips, cart: [...cart], script, scriptPredId,
+      stage, sourceUrl, clips, cart: [...cart],
       targetSeconds, styleProfileId,
       showThumbnail, // ★ subtitleStyle/thumbnailStyle 는 user_settings 가 단일 출처 — 프로젝트에 저장 안 함(덮어쓰기 버그 방지)
       voiceId, voiceSpeed,
-      manualScript, abcVariants, abcIdx,
+      abcVariants, abcIdx,
       hookTitle, // ★ 제목만 영상 — AI/수정 제목 영속(새로고침 유지)
       analysisMeta: { name: analysisMetaRef.current?.name || "", keyword: analysisMetaRef.current?.keyword || "", use_case: analysisMetaRef.current?.use_case || "", keywords: analysisMetaRef.current?.keywords || [] }, // ★ 훅 재생성용 상품맥락 영속
     };
@@ -898,15 +898,13 @@ export default function VideoGenerator() {
     if (typeof data.sourceUrl === "string") setSourceUrl(data.sourceUrl);
     if (data.clips?.length) setClips(data.clips);
     if (data.cart?.length) setCart(new Set(data.cart));
-    if (data.script) setScript(data.script);
-    if (data.scriptPredId) setScriptPredId(data.scriptPredId);
+    // ★ 대본류(script/scriptPredId/manualScript)는 복원하지 않음 — 상품 바뀔 때 이전 대본 새어드는 것 방지(항상 새로 생성)
     if (data.targetSeconds) setTargetSeconds(data.targetSeconds);
     if (data.styleProfileId) setStyleProfileId(data.styleProfileId);
     // ★ 스타일은 user_settings 가 단일 출처 — 프로젝트 복원이 user_settings 커스텀을 덮어쓰지 않도록 적용하지 않음
     if (data.showThumbnail !== undefined) setShowThumbnail(data.showThumbnail);
     if (data.voiceId) setVoiceId(data.voiceId);
     if (data.voiceSpeed) setVoiceSpeed(data.voiceSpeed);
-    if (typeof data.manualScript === "string") setManualScript(data.manualScript);
     if (Array.isArray(data.abcVariants)) setAbcVariants(data.abcVariants);
     if (typeof data.abcIdx === "number") setAbcIdx(data.abcIdx);
     if (typeof data.hookTitle === "string") setHookTitle(data.hookTitle);
