@@ -877,6 +877,7 @@ export default function VideoGenerator() {
       targetSeconds, styleProfileId,
       showThumbnail, // ★ subtitleStyle/thumbnailStyle 는 user_settings 가 단일 출처 — 프로젝트에 저장 안 함(덮어쓰기 버그 방지)
       voiceId, voiceSpeed,
+      manualScript, manualScriptSrc: sourceUrl,
       abcVariants, abcIdx,
       hookTitle, // ★ 제목만 영상 — AI/수정 제목 영속(새로고침 유지)
       analysisMeta: { name: analysisMetaRef.current?.name || "", keyword: analysisMetaRef.current?.keyword || "", use_case: analysisMetaRef.current?.use_case || "", keywords: analysisMetaRef.current?.keywords || [] }, // ★ 훅 재생성용 상품맥락 영속
@@ -898,7 +899,8 @@ export default function VideoGenerator() {
     if (typeof data.sourceUrl === "string") setSourceUrl(data.sourceUrl);
     if (data.clips?.length) setClips(data.clips);
     if (data.cart?.length) setCart(new Set(data.cart));
-    // ★ 대본류(script/scriptPredId/manualScript)는 복원하지 않음 — 상품 바뀔 때 이전 대본 새어드는 것 방지(항상 새로 생성)
+    // ★ 대본은 출처(sourceUrl)가 일치할 때만 복원 — 새로고침엔 유지, 다른 상품엔 새어들지 않음
+    if (typeof data.manualScript === "string" && data.manualScript && (data.manualScriptSrc || "") === (data.sourceUrl || "")) setManualScript(data.manualScript);
     if (data.targetSeconds) setTargetSeconds(data.targetSeconds);
     if (data.styleProfileId) setStyleProfileId(data.styleProfileId);
     // ★ 스타일은 user_settings 가 단일 출처 — 프로젝트 복원이 user_settings 커스텀을 덮어쓰지 않도록 적용하지 않음
