@@ -355,6 +355,8 @@ export default function VideoGenerator() {
   const [voiceId, setVoiceId]       = useState(() => { const _OA = new Set(["nova","shimmer","onyx","echo","fable","alloy"]); try { const _v = localStorage.getItem("chronit_voice_id") || ""; return (_v && !_OA.has(_v)) ? _v : "74i8I1pZi98ZjmmYLdaF"; } catch { return "74i8I1pZi98ZjmmYLdaF"; } });
   const [adLabel, setAdLabel] = useState(() => { try { return localStorage.getItem("chronit_ad_label") !== "0"; } catch { return true; } }); // [광고] 표기 기본 ON
   useEffect(() => { try { localStorage.setItem("chronit_ad_label", adLabel ? "1" : "0"); } catch {} }, [adLabel]);
+  // ★ 배속 기본 130→120 1회 마이그레이션 (공지 없이 전원 적용) ★
+  useEffect(() => { try { if (!localStorage.getItem("chronit_speed_v120")) { localStorage.setItem("chronit_speed_v120","1"); if (localStorage.getItem("chronit_voice_speed") === "130") { localStorage.setItem("chronit_voice_speed","120"); setVoiceSpeed(120); } } } catch {} }, []);
   const [voiceSpeed, setVoiceSpeed] = useState(() => { try { return Number(localStorage.getItem("chronit_voice_speed")) || 120; } catch { return 120; } });
   const [voiceVolume, setVoiceVolume] = useState(() => { try { return Number(localStorage.getItem("chronit_voice_volume")) || 100; } catch { return 100; } });
   const [rendering, setRendering]   = useState(false);
