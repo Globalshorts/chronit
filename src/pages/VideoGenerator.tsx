@@ -1709,7 +1709,7 @@ export default function VideoGenerator() {
         </div>
       )}
       {completionAlert && (
-        <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 rounded-2xl shadow-2xl px-6 py-4 flex items-center gap-3 text-white ${completionAlert.startsWith("❌") ? "bg-red-500 shadow-red-500/40" : "bg-green-500 shadow-green-500/40"}`}>
+        <div onClick={() => setCompletionAlert(null)} className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 rounded-2xl shadow-2xl px-6 py-4 flex items-center gap-3 text-white cursor-pointer ${completionAlert.startsWith("❌") ? "bg-red-500 shadow-red-500/40" : "bg-green-500 shadow-green-500/40"}`}>
           <span className="text-2xl">{completionAlert.startsWith("❌") ? "⚠️" : "🎉"}</span>
           <div>
             <p className="font-black text-sm">{completionAlert}</p>
