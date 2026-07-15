@@ -352,7 +352,7 @@ export default function VideoGenerator() {
   });
 
   // Stage 5
-  const [voiceId, setVoiceId]       = useState(() => { try { return localStorage.getItem("chronit_voice_id") || "nova"; } catch { return "nova"; } });
+  const [voiceId, setVoiceId]       = useState(() => { const _OA = new Set(["nova","shimmer","onyx","echo","fable","alloy"]); try { const _v = localStorage.getItem("chronit_voice_id") || ""; return (_v && !_OA.has(_v)) ? _v : "74i8I1pZi98ZjmmYLdaF"; } catch { return "74i8I1pZi98ZjmmYLdaF"; } });
   const [adLabel, setAdLabel] = useState(() => { try { return localStorage.getItem("chronit_ad_label") !== "0"; } catch { return true; } }); // [광고] 표기 기본 ON
   useEffect(() => { try { localStorage.setItem("chronit_ad_label", adLabel ? "1" : "0"); } catch {} }, [adLabel]);
   const [voiceSpeed, setVoiceSpeed] = useState(() => { try { return Number(localStorage.getItem("chronit_voice_speed")) || 130; } catch { return 130; } });
@@ -468,10 +468,7 @@ export default function VideoGenerator() {
   const [packOnboardOpen, setPackOnboardOpen] = useState(false);
   const applyPack = (p:any, key?:string) => {
     setTargetSeconds(p.targetSeconds);
-    const _basicV = new Set(["nova","shimmer","onyx","echo","fable"]);
-    const _needBasic = !canProVoice && !_basicV.has(p.voiceId);
-    setVoiceId(_needBasic ? (p.voiceIdBasic || "shimmer") : p.voiceId);
-    if (_needBasic) { setPackVoiceMsg("고급 음성은 프로 플랜부터예요 — 기본 음성으로 적용됐어요."); setTimeout(() => setPackVoiceMsg(""), 3500); }
+    setVoiceId(p.voiceId);  // ★ 음성 고급 통일 — 모든 티어 고급 음성
     setVoiceSpeed(p.voiceSpeed); setVoiceVolume(p.voiceVolume);
     setSubtitleStyle(p.subtitleStyle); setThumbnailStyle(p.thumbnailStyle);
     // 대본 스타일은 별도 선택 — 음성 팩이 덮어쓰지 않음
@@ -2201,7 +2198,6 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
   canProVoice?: boolean;
 }) {
   const isProVoice = (id: string) => VOICES_PRO.some(v => v.id === id);
-  const [tab, setTab] = useState<"basic"|"pro">(isProVoice(voiceId) ? "pro" : "basic");
   const [previewing, setPreviewing] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -2234,36 +2230,18 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
 
   return (
     <div className="space-y-5">
-      {/* 탭 + 미리듣기 */}
+      {/* 음성 목록 (드롭다운, 고급 통일) + 미리듣기 */}
       <div className="flex gap-2 items-center">
-        {([["basic","일반 음성"],["pro","고급 음성"]] as [string,string][]).map(([v,l]) => {
-          const isProLocked = v === "pro" && !canProVoice;
-          return (
-            <button key={v} onClick={() => { if (isProLocked) return; setTab(v as any); const list = (v === "basic" ? VOICES_BASIC : VOICES_PRO); if (!list.some(x => x.id === voiceId)) handleSetVoiceId(list[0].id); }}
-              className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition border relative ${
-                tab===v ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" :
-                isProLocked ? "border-gray-200 text-gray-600 cursor-not-allowed" :
-                "border-gray-200 text-gray-400 hover:border-gray-500"
-              }`}>
-              {v === "pro" ? "✨ " : ""}{l}
-              {isProLocked && <span className="ml-1 text-xs text-gray-600">🔒 Pro+</span>}
-            </button>
-          );
-        })}
-        <button onClick={handlePreview}
-          className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-bold transition border ${previewing ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF] animate-pulse" : "border-gray-200 text-gray-400 hover:border-gray-500 hover:text-gray-900"}`}>
-          {previewing ? "⏸" : "▶"} 미리듣기
-        </button>
-      </div>
-
-      {/* 음성 목록 (드롭다운) */}
-      <div>
         <select value={voiceId} onChange={(e) => handleSetVoiceId(e.target.value)}
-          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-gray-900 outline-none focus:border-[#0064FF]">
-          {(tab === "basic" ? VOICES_BASIC : VOICES_PRO).map(v => (
+          className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-gray-900 outline-none focus:border-[#0064FF]">
+          {VOICES_PRO.map(v => (
             <option key={v.id} value={v.id}>{v.label}{v.desc ? ` · ${v.desc}` : ""}</option>
           ))}
         </select>
+        <button onClick={handlePreview}
+          className={`shrink-0 rounded-xl px-4 py-3 text-sm font-bold transition border ${previewing ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF] animate-pulse" : "border-gray-200 text-gray-400 hover:border-gray-500 hover:text-gray-900"}`}>
+          {previewing ? "⏸" : "▶"} 미리듣기
+        </button>
       </div>
 
       {/* 속도 + 볼륨 — 권장: 120%~150% */}
