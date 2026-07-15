@@ -1830,10 +1830,10 @@ export default function VideoGenerator() {
           <div className="relative w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-7 text-center shadow-2xl" onClick={e=>e.stopPropagation()}>
             <button onClick={()=>setCreditWall(null)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">✕</button>
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0064FF]/10 text-3xl">🎬</div>
-            <h3 className="text-xl font-black text-gray-900">{creditWall==="expired" ? "이용권이 만료됐어요" : "이용권을 다 쓰셨어요"}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-gray-500">더 많은 영상을 만들려면 정식 패키지를 확인하거나,<br/><strong className="text-gray-700">친구를 초대하고 무료 제작권</strong>을 받아보세요.</p>
-            <button onClick={()=>{ setCreditWall(null); setPayOpen(true); }} className="mt-6 w-full rounded-xl bg-[#0064FF] py-3.5 text-sm font-bold text-white transition hover:bg-[#0052D6]">스마트스토어에서 요금제 보기</button>
-            <button onClick={()=>{ setCreditWall(null); setShowInvite(true); }} className="mt-2 w-full rounded-xl border-2 border-[#0064FF] bg-[#0064FF]/5 py-3 text-sm font-black text-[#0064FF] transition hover:bg-[#0064FF]/10">친구 초대하고 프로 7일 무료 받기</button>
+            <h3 className="text-xl font-black text-gray-900">{creditWall==="expired" ? "이용권이 만료됐어요" : "이번 이용권을 다 쓰셨어요"}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-gray-500">계속 만들려면 두 가지 방법이 있어요.<br/><strong className="text-gray-700">친구를 초대하면 무료로</strong> 이어서 만들 수 있어요.</p>
+            <button onClick={()=>{ setCreditWall(null); setShowInvite(true); }} className="mt-6 w-full rounded-xl bg-[#0064FF] py-3.5 text-sm font-black text-white transition hover:bg-[#0052D6]">🎁 친구 초대하고 무료로 계속</button>
+            <button onClick={()=>{ setCreditWall(null); setPayOpen(true); }} className="mt-2 w-full rounded-xl border-2 border-[#0064FF] bg-[#0064FF]/5 py-3 text-sm font-black text-[#0064FF] transition hover:bg-[#0064FF]/10">Pro로 업그레이드 · 스마트스토어</button>
           </div>
         </div>
       )}
