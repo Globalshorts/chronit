@@ -896,7 +896,7 @@ export default function VideoGenerator() {
   // 프로젝트 데이터 적용(로컬/서버 공용)
   const applyProjectData = (data: any) => {
     if (!data) return;
-    if (typeof data.sourceUrl === "string" && data.sourceUrl) setSourceUrl(data.sourceUrl);  // ★ 빈 값으로 현재 입력 링크를 덮어쓰지 않음(링크 유실 방지)
+    if (typeof data.sourceUrl === "string") setSourceUrl(data.sourceUrl);
     if (data.clips?.length) setClips(data.clips);
     if (data.cart?.length) setCart(new Set(data.cart));
     // ★ 대본은 출처(sourceUrl)가 일치할 때만 복원 — 새로고침엔 유지, 다른 상품엔 새어들지 않음
@@ -945,6 +945,7 @@ export default function VideoGenerator() {
   }, []);
 
   // ★ 서버 프로젝트가 로컬보다 최신이면 적용 — 기기 간 동기화 ★
+  const _userEdited = useRef(false);  // ★ 유저가 이 기기에서 직접 편집했는지 (서버 동기화 보호)
   const _serverSynced = useRef(false);
   useEffect(() => {
     const uid = session?.user?.id;
@@ -957,7 +958,8 @@ export default function VideoGenerator() {
         let localSavedAt = 0;
         try { const raw = localStorage.getItem(PROJECT_KEY); if (raw) localSavedAt = JSON.parse(raw).savedAt || 0; } catch {}
         const serverSavedAt = Number((data as any).saved_at || (data.data as any)?.savedAt || 0);
-        if (serverSavedAt > localSavedAt) {
+        // ★ 유저가 이 기기에서 아직 편집 안 했으면 서버 상태로 동기화 (기기간 연동 · 마이그레이션 타임스탬프에 안 흔들림) ★
+        if (!_userEdited.current && (serverSavedAt >= localSavedAt || serverSavedAt > 0)) {
           applyProjectData(data.data);
           try { localStorage.setItem(PROJECT_KEY, JSON.stringify(data.data)); } catch {}
         }
@@ -2088,7 +2090,7 @@ export default function VideoGenerator() {
                 <p className="mb-2 rounded-lg bg-[#0064FF]/10 px-3 py-2.5 text-sm font-bold text-[#0064FF]">🎯 상품이 <b>또렷하게 크게</b> 보이는 영상일수록 결과가 좋아요</p>
                 <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                   <input type="url" value={sourceUrl}
-                    onChange={e => { setSourceUrl(e.target.value); setSearchError(""); setClips([]); setCart(new Set()); setManualScript(""); setScript(null); setScriptFillErr(""); }}
+                    onChange={e => { _userEdited.current = true; setSourceUrl(e.target.value); setSearchError(""); setClips([]); setCart(new Set()); setManualScript(""); setScript(null); setScriptFillErr(""); }}
                     onKeyDown={e => e.key === "Enter" && handleSearch()}
                     placeholder="인스타·틱톡·유튜브 영상 링크 붙여넣기"
                     disabled={searching}
