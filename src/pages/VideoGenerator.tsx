@@ -1170,6 +1170,8 @@ export default function VideoGenerator() {
       const msg = String(e).replace(/^Error:\s*/, "").slice(0, 120);
       setAutoRunStep("❌ 생성 실패");
       setAutoRunError(msg);
+      // ★ 완료 알림처럼 상단 토스트로도 실패를 띄운다 (화면 이동해도 보이게) ★
+      setCompletionAlert("❌ " + friendlyError(msg));
     } finally {
       setAutoRunning(false);
     }
