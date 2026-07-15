@@ -1551,7 +1551,7 @@ export default function VideoGenerator() {
               {balance !== null && balance < 1 && <p className="text-xs text-red-400 pt-1">⚠ 이용권이 부족해요 — 요금제를 확인해 주세요</p>}
             </div>
 
-            {/* 🎨 대본 스타일 + 스타일 팩 (자동생성 모달에서 바로 선택) */}
+            {/* 스타일 팩 (음성·자막·썸네일) — 자동생성 모달에서 바로 선택 */}
             {!videoOnly && (
               <div className="space-y-2">
                 <div>
@@ -1894,22 +1894,6 @@ export default function VideoGenerator() {
                   </button>
                 </div>
 
-                {/* 🎨 대본 스타일 (스타일 팩 아래) */}
-                <div className="mt-6">
-                  <p className="text-sm font-black text-gray-900 mb-1">🎨 대본 스타일</p>
-                  <p className="text-xs text-gray-400 mb-3">영상 대본의 전개 방식을 골라주세요.</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {SCRIPT_STYLES.map(s => (
-                      <button key={s.key} type="button" onClick={() => setStyleProfileId(s.key)}
-                        className={`rounded-xl border p-3 text-left transition ${
-                          styleProfileId === s.key ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 bg-white hover:border-gray-400"
-                        }`}>
-                        <p className={`text-sm font-black ${styleProfileId === s.key ? "text-[#0064FF]" : "text-gray-900"}`}>{s.emoji} {s.name}</p>
-                        <p className="text-xs text-gray-500 mt-0.5 leading-tight">{s.desc}</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
 
                 <button onClick={() => setAdvOpen(v => !v)}
                   className="mt-6 flex items-center gap-1 text-sm font-bold text-gray-500 hover:text-gray-900">
@@ -2117,17 +2101,6 @@ export default function VideoGenerator() {
                       : "🔍 분석 시작"}
                   </button>
                 </div>
-                {!videoOnly && (
-                  <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                    <span className="text-xs font-bold text-gray-500 mr-1">대본 스타일</span>
-                    {SCRIPT_STYLES.map(ss => (
-                      <button key={ss.key} type="button" onClick={() => setStyleProfileId(ss.key)}
-                        className={`rounded-full px-3 py-1 text-xs font-bold border transition ${styleProfileId===ss.key ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}>
-                        {ss.emoji} {ss.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
                 {!searchError && <UrlHint url={sourceUrl} />}
                 {searchError && <p className="mt-2 text-sm text-red-400">{searchError}</p>}
                 {searching && <AnalyzeProgress />}
