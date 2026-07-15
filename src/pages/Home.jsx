@@ -721,6 +721,7 @@ const Home = () => {
               <ul className="space-y-3 text-base font-medium text-gray-700">
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-gray-400" /><span>월 <strong>2개</strong> 영상 제작</span></li>
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-gray-400" />가입 시 프로 7일 무료 체험</li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-gray-400" /><strong>고급 AI 음성</strong> 사용</li>
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-gray-400" />모든 기본 기능</li>
               </ul>
               <button onClick={(e) => { e.stopPropagation(); handleStart() }} className="mt-8 w-full rounded-2xl bg-gray-200 py-4 text-base font-black text-gray-700 transition-all hover:bg-gray-300">무료로 시작</button>
@@ -761,7 +762,7 @@ const Home = () => {
               <ul className="space-y-3 text-base font-medium text-white">
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-white" /><span>월 <strong>30개</strong> 영상 제작</span></li>
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-white" />스타터의 모든 기능 포함</li>
-                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-white" />고급 AI 음성 사용</li>
+                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-white" />스타터보다 2배 많은 분량</li>
               </ul>
             </div>
 
