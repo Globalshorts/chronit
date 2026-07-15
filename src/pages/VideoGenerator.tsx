@@ -791,6 +791,7 @@ export default function VideoGenerator() {
       try { if (!localStorage.getItem("chronit_install_nudged")) { localStorage.setItem("chronit_install_nudged","1"); setTimeout(() => window.dispatchEvent(new Event("chronit:open-install")), 1800); } } catch {}
       try { new Audio("https://www.soundjay.com/buttons/sounds/button-09a.mp3").play(); } catch {}
       setCurrentJobId("");
+      handleReset({ keepJob: true }); // ★ 렌더 완료 시에만 초안 리셋 (재시도·실패 땐 링크 유지)
       setActiveView("history"); // 완료 시 생성 내역으로 자동 이동
     } else if (job.status === "canceled") {
       // 사용자가 강제 종료 — 환불 없음, 조용히 정리
@@ -896,7 +897,7 @@ export default function VideoGenerator() {
   // 프로젝트 데이터 적용(로컬/서버 공용)
   const applyProjectData = (data: any) => {
     if (!data) return;
-    if (typeof data.sourceUrl === "string") setSourceUrl(data.sourceUrl);
+    if (typeof data.sourceUrl === "string" && data.sourceUrl) setSourceUrl(data.sourceUrl);  // ★ 빈 값으로 현재 입력 링크를 덮어쓰지 않음(링크 유실 방지)
     if (data.clips?.length) setClips(data.clips);
     if (data.cart?.length) setCart(new Set(data.cart));
     // ★ 대본은 출처(sourceUrl)가 일치할 때만 복원 — 새로고침엔 유지, 다른 상품엔 새어들지 않음
@@ -1165,7 +1166,8 @@ export default function VideoGenerator() {
       await handleRender({ voiceId, ctaText: ctaOverride ?? ctaText, script: genSegments });
 
       setAutoRunStep("✅ 완료!");
-      handleReset({ keepJob: true });   // ★ 생성 완료 → 다음 상품 위해 초안 자동 리셋 (대본 carryover 원천 차단)
+      // ★ 폼 리셋은 제출 직후가 아니라 렌더가 실제 완료(done)될 때만 한다.
+      //   제출 직후 리셋하면 재시도·실패 시 입력한 링크가 사라져 다시 입력해야 함. ★
     } catch (e) {
       const msg = String(e).replace(/^Error:\s*/, "").slice(0, 120);
       setAutoRunStep("❌ 생성 실패");
