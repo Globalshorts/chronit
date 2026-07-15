@@ -83,17 +83,6 @@ export default function Landing() {
         .lp-bar { animation: lpFill 3s ease forwards }
       `}</style>
 
-      {/* ── 상단 고정 선착순 바 ── */}
-      <div className="sticky top-0 z-50 bg-[#FF5A5F] px-4 py-3 shadow-md">
-        <div className="mx-auto flex max-w-md items-center gap-3 text-white">
-          <span className="shrink-0 text-sm font-black">🔥 선착순 100명 무료</span>
-          <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-white/30">
-            <div className="h-full rounded-full bg-white transition-all" style={{ width: pct + '%' }} />
-          </div>
-          <span className="shrink-0 text-sm font-black">{spots == null ? '–' : spots}/100</span>
-        </div>
-      </div>
-
       {/* ── HERO ── */}
       <section className="mx-auto max-w-md px-5 pt-12 pb-8 text-center">
         <p className="text-sm font-bold tracking-wide" style={{ color: BLUE }}>이미 영상으로 매출 내는 셀러를 위한</p>
@@ -174,17 +163,16 @@ export default function Landing() {
               className="mt-4 w-full rounded-2xl py-3.5 text-base font-black text-white shadow-lg transition active:scale-[0.98]" style={{ background: BLUE }}>
               👉 이대로 완성 영상 만들기
             </button>
-            <p className="mt-1.5 text-center text-xs text-gray-400">가입하면 컷편집·줄자막·AI 더빙까지 1분 · 카드 없이 7일 무료</p>
+            <p className="mt-1.5 text-center text-xs text-gray-400">가입하면 컷편집·줄자막·AI 더빙까지 1분 · 카드 없이 무료로</p>
           </div>
         )}
 
         <button onClick={start}
           className="mt-4 w-full rounded-2xl py-4 text-base font-black text-white shadow-lg transition active:scale-[0.98]"
           style={{ background: BLUE }}>
-          카카오로 시작 · 프로 7일 무료
+          카카오로 무료 시작
         </button>
         <p className="mt-2 text-xs text-gray-400">카드 등록 없이 바로 시작</p>
-        <Scarcity spots={spots} />
       </section>
 
       {/* ── 공감(은근한 압박) ── */}
@@ -259,17 +247,16 @@ export default function Landing() {
         <div className="mx-auto max-w-md">
           <h2 className="text-2xl font-black leading-snug">고수는 데모로<br/>판단하죠</h2>
           <p className="mt-4 text-[15px] leading-relaxed text-gray-500">
-            프로 기능 7일 무료 — <b className="text-[#191F28]">카드 없이</b>.<br/>
+            <b className="text-[#191F28]">무료로 바로</b> 시작 — 카드 없이.<br/>
             캡컷·Vrew 써본 눈으로 자막싱크·더빙 퀄을 직접 확인하세요.<br/>
-            첫 결제 땐 <b className="text-[#191F28]">1개월 + 1개월</b>. 자동결제 없어요.
+            더 만들려면 <b className="text-[#191F28]">친구 초대(무료)</b> 또는 결제. 자동결제 없어요.
           </p>
           <button onClick={start}
             className="mt-7 w-full rounded-2xl py-4 text-base font-black text-white shadow-lg transition active:scale-[0.98]"
             style={{ background: BLUE }}>
-            카카오로 시작 · 프로 7일 무료
+            카카오로 무료 시작
           </button>
           <p className="mt-2 text-xs text-gray-400">3초면 시작돼요</p>
-          <Scarcity spots={spots} />
         </div>
       </section>
 
@@ -277,9 +264,9 @@ export default function Landing() {
       <section className="bg-[#F7FAFF] px-5 py-12">
         <div className="mx-auto max-w-md space-y-4">
           {[
-            ['퀄리티가 캡컷만큼 나오나요?', '자막싱크·AI 더빙·썸네일까지 7일 직접 돌려보고 판단하세요. 데모로 먼저 확인할 수 있어요.'],
-            ['하루에 몇 개까지 되나요?', '플랜 한도 안에서 계속 뽑아낼 수 있어요. 대량 양산을 전제로 설계됐어요.'],
-            ['무료 7일 끝나면요?', '자동결제 없어요. 마음에 들 때 결제하면 됩니다.'],
+            ['퀄리티가 캡컷만큼 나오나요?', '무료로 직접 만들어 자막싱크·AI 더빙·썸네일 퀄을 판단하세요. 데모로 먼저 확인할 수도 있어요.'],
+            ['하루에 몇 개까지 되나요?', '무료는 매달 2개, Pro는 월 30개까지 뽑아낼 수 있어요. 대량 양산을 전제로 설계됐어요.'],
+            ['더 만들고 싶으면요?', '친구를 초대하면 Pro가 열리고, 결제하면 월 30개까지 만들 수 있어요. 자동결제는 없어요.'],
           ].map(([q, a]) => (
             <div key={q} className="rounded-2xl bg-white p-5 shadow-sm">
               <p className="text-[15px] font-bold">Q. {q}</p>
@@ -295,7 +282,7 @@ export default function Landing() {
         <button onClick={start}
           className="mx-auto mt-5 block w-full max-w-md rounded-2xl py-4 text-base font-black text-white shadow-lg transition active:scale-[0.98]"
           style={{ background: BLUE }}>
-          카카오로 시작 · 프로 7일 무료
+          카카오로 무료 시작
         </button>
         <p className="mt-6 text-xs text-gray-400">* 수익은 상품·콘텐츠·꾸준함에 따라 달라질 수 있어요.</p>
         <p className="mt-1 text-xs text-gray-400">© Chronit · chronit.kr</p>
