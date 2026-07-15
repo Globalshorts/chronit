@@ -206,15 +206,15 @@ const SUBTITLE_PRESETS = [
 
 const STYLE_PACKS = [
   { key:"review", name:"감성 리뷰", emoji:"🤍", desc:"차분·신뢰 · 뷰티·리빙",
-    targetSeconds:15, voiceId:"tIXHSlSWOafJawXSV1g4", voiceIdBasic:"shimmer", voiceSpeed:130, voiceVolume:130, styleProfileId:"auto",
+    targetSeconds:15, voiceId:"tIXHSlSWOafJawXSV1g4", voiceIdBasic:"shimmer", voiceSpeed:120, voiceVolume:130, styleProfileId:"auto",
     subtitleStyle:{fontFamily:"'Gowun Dodum', sans-serif",color:"#FFFFFF",fontSize:13,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
     thumbnailStyle:{fontFamily:"'Gowun Dodum', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
   { key:"unboxing", name:"다이나믹 언박싱", emoji:"⚡", desc:"쨍·활기 · 가전·잡화",
-    targetSeconds:15, voiceId:"5DWGv3VDkihNUcbvaonB", voiceIdBasic:"nova", voiceSpeed:130, voiceVolume:130, styleProfileId:"auto",
+    targetSeconds:15, voiceId:"5DWGv3VDkihNUcbvaonB", voiceIdBasic:"nova", voiceSpeed:120, voiceVolume:130, styleProfileId:"auto",
     subtitleStyle:{fontFamily:"'Moneygraphy Rounded', sans-serif",color:"#FFE500",fontSize:13,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
     thumbnailStyle:{fontFamily:"'Moneygraphy Rounded', sans-serif",color:"#FFE500",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
   { key:"info", name:"정보형 꿀템", emoji:"📌", desc:"가독성 · 주방·기능성",
-    targetSeconds:15, voiceId:"fHzGR8qcnsDR2uaj9r16", voiceIdBasic:"echo", voiceSpeed:130, voiceVolume:130, styleProfileId:"auto",
+    targetSeconds:15, voiceId:"fHzGR8qcnsDR2uaj9r16", voiceIdBasic:"echo", voiceSpeed:120, voiceVolume:130, styleProfileId:"auto",
     subtitleStyle:{fontFamily:"'Kakao Big Sans', sans-serif",color:"#FFFFFF",fontSize:13,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:70,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
     thumbnailStyle:{fontFamily:"'Kakao Big Sans', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
   { key:"hand", name:"손글씨 감성", emoji:"✍️", desc:"따뜻 · 육아·감성소품",
@@ -355,7 +355,7 @@ export default function VideoGenerator() {
   const [voiceId, setVoiceId]       = useState(() => { const _OA = new Set(["nova","shimmer","onyx","echo","fable","alloy"]); try { const _v = localStorage.getItem("chronit_voice_id") || ""; return (_v && !_OA.has(_v)) ? _v : "74i8I1pZi98ZjmmYLdaF"; } catch { return "74i8I1pZi98ZjmmYLdaF"; } });
   const [adLabel, setAdLabel] = useState(() => { try { return localStorage.getItem("chronit_ad_label") !== "0"; } catch { return true; } }); // [광고] 표기 기본 ON
   useEffect(() => { try { localStorage.setItem("chronit_ad_label", adLabel ? "1" : "0"); } catch {} }, [adLabel]);
-  const [voiceSpeed, setVoiceSpeed] = useState(() => { try { return Number(localStorage.getItem("chronit_voice_speed")) || 130; } catch { return 130; } });
+  const [voiceSpeed, setVoiceSpeed] = useState(() => { try { return Number(localStorage.getItem("chronit_voice_speed")) || 120; } catch { return 120; } });
   const [voiceVolume, setVoiceVolume] = useState(() => { try { return Number(localStorage.getItem("chronit_voice_volume")) || 100; } catch { return 100; } });
   const [rendering, setRendering]   = useState(false);
   const [renderError, setRenderError] = useState("");
