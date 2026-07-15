@@ -3356,6 +3356,13 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
         </div>
         <p className="text-xs text-gray-500 mb-5">미션을 완료하면 이용권이 지급됩니다</p>
 
+        {/* ★ 최우선 — 원탭 카카오 초대 ★ */}
+        <button onClick={shareKakao}
+          className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#FEE500] py-4 text-base font-black text-[#3C1E1E] shadow-sm transition hover:brightness-95 active:scale-[0.98]">
+          💬 카카오톡으로 친구 초대하기
+        </button>
+        <p className="mt-2 mb-5 text-center text-xs text-gray-500">친구가 가입하면 서로 무료 이용권을 받아요{invites ? ` · 현재 ${invites}명 초대함` : ""}</p>
+
         {/* 쿠폰 코드 */}
         <div className="rounded-2xl bg-[#0064FF]/5 border border-[#0064FF]/30 p-4 mb-3">
           <p className="text-sm font-bold text-gray-900 mb-2">🎟 쿠폰 코드</p>
