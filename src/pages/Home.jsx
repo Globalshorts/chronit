@@ -354,7 +354,7 @@ const Home = () => {
   const navItems = null
 
   const eventBannerOn = events.filter(e => e.status === 'active').length > 0 && !(typeof sessionStorage !== 'undefined' && sessionStorage.getItem('chronit_event_banner_closed'))
-  const bannerCount = (refFromUrl ? 1 : 0) + (codeFromUrl ? 1 : 0) + (eventBannerOn ? 1 : 0) + 1 /* 선착순 상시 배너 */
+  const bannerCount = (refFromUrl ? 1 : 0) + (codeFromUrl ? 1 : 0) + (eventBannerOn ? 1 : 0)
   const bannerH = bannerCount * 44
 
   return (
@@ -363,7 +363,7 @@ const Home = () => {
       {refFromUrl && (
         <div className="fixed top-0 right-0 left-0 z-[61] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[#0064FF] px-4 py-3 text-sm font-bold text-white shadow-md">
           <Gift size={15} />
-          <span>추천 코드 <strong>{refFromUrl}</strong> 적용됨 — 가입하면 <strong>프로 7일 무료 체험</strong>을 드려요!</span>
+          <span>추천 코드 <strong>{refFromUrl}</strong> 적용됨!</span>
           <button onClick={() => { setRefFromUrl(null); sessionStorage.removeItem('chronit_ref') }} className="ml-2 opacity-80 hover:opacity-100">✕</button>
         </div>
       )}
@@ -388,15 +388,6 @@ const Home = () => {
           <button onClick={e => { e.stopPropagation(); sessionStorage.setItem('chronit_event_banner_closed', '1'); window.location.reload() }} className="ml-2 opacity-80 hover:opacity-100">✕</button>
         </div>
       )}
-
-      {/* 선착순 상시 배너 */}
-      <div
-        className="fixed right-0 left-0 z-[58] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[#FF5A5F] px-4 py-3 text-sm font-bold text-white shadow-md"
-        style={{ top: `${((refFromUrl ? 1 : 0) + (codeFromUrl ? 1 : 0) + (eventBannerOn ? 1 : 0)) * 44}px` }}
-      >
-        <span>🔥</span>
-        <span><strong>선착순 100명</strong> 프로 7일 무료{spots != null ? ` · 현재 ${spots}/100명` : ''}</span>
-      </div>
 
       {/* Header */}
       <header style={{ top: `${bannerH}px` }} className={`fixed right-0 left-0 z-50 transition-all duration-300 ${scrolled ? 'border-b border-gray-200 bg-[#FAFAF8]/90 py-3 backdrop-blur-md' : 'bg-transparent py-4 md:py-5'}`}>
@@ -671,7 +662,6 @@ const Home = () => {
             <p className="mt-3 text-lg text-gray-500 md:text-xl">부담 없이 시작하고, 언제든 바꿀 수 있어요</p>
           </div>
 
-          <HomeScarcity spots={spots} />
 
           <CouponBar codeFromUrl={codeFromUrl} onApply={(code) => { setCodeFromUrl(code); sessionStorage.setItem('chronit_code', code) }} />
 
@@ -708,7 +698,6 @@ const Home = () => {
               </div>
               <ul className="space-y-3 text-base font-medium text-gray-700">
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-gray-400" /><span>월 <strong>2개</strong> 영상 제작</span></li>
-                <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-gray-400" />가입 시 프로 7일 무료 체험</li>
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-gray-400" /><strong>고급 AI 음성</strong> 사용</li>
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-gray-400" />모든 기본 기능</li>
               </ul>
