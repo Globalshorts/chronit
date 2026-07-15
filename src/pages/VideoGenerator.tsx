@@ -4183,6 +4183,61 @@ function GachaModal({ data, onClose }: { data: any; onClose: ()=>void }) {
   );
 }
 
+function FeedbackModal({ job, onClose }: { job:any; onClose:()=>void }) {
+  const [rating, setRating] = React.useState(0);
+  const [reason, setReason] = React.useState("");
+  const [comment, setComment] = React.useState("");
+  const [submitting, setSubmitting] = React.useState(false);
+  const [done, setDone] = React.useState<{rewarded:boolean}|null>(null);
+  const REASONS = ["대본이 어색해요","영상·클립이 안 맞아요","음성이 어색해요","자막 문제","만족해요","기타"];
+  const submit = async () => {
+    if (submitting || !rating) return;
+    setSubmitting(true);
+    try {
+      const { data } = await supabase.functions.invoke("submit-feedback", { body: { rating, reason, comment, job_id: job?.id || null } });
+      try { localStorage.setItem("chronit_feedback_done","1"); } catch {}
+      setDone({ rewarded: !!(data as any)?.rewarded });
+      setTimeout(onClose, 2200);
+    } catch { try { localStorage.setItem("chronit_feedback_done","1"); } catch {} setDone({ rewarded:false }); setTimeout(onClose, 1800); }
+    finally { setSubmitting(false); }
+  };
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={onClose}>
+      <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl" onClick={e=>e.stopPropagation()}>
+        {done ? (
+          <div className="text-center py-4">
+            <p className="text-lg font-black text-gray-900 mb-1">고마워요! 🙏</p>
+            <p className="text-sm text-gray-500">{done.rewarded ? "이용권 2개를 드렸어요." : "소중한 의견 잘 받았어요."}</p>
+          </div>
+        ) : (
+          <>
+            <p className="text-lg font-black text-gray-900">이 영상 어떠셨어요?</p>
+            <p className="text-sm text-gray-500 mt-1 mb-4">의견 주시면 <b className="text-[#0064FF]">이용권 2개</b>를 드려요 · 최초 1회</p>
+            <div className="flex justify-center gap-2 mb-4">
+              {[1,2,3,4,5].map(n => (
+                <button key={n} onClick={()=>setRating(n)} className={`text-3xl transition ${n<=rating ? "" : "grayscale opacity-30"}`}>⭐</button>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {REASONS.map(r => (
+                <button key={r} onClick={()=>setReason(reason===r?"":r)} className={`rounded-full px-3 py-1 text-xs font-bold border transition ${reason===r ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}>{r}</button>
+              ))}
+            </div>
+            <textarea value={comment} onChange={e=>setComment(e.target.value)} placeholder="한 줄 의견 (선택)" rows={2}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#0064FF] mb-4 resize-none" />
+            <div className="flex gap-2">
+              <button onClick={onClose} className="rounded-xl px-4 py-3 text-sm font-bold text-gray-500 hover:bg-gray-100">다음에</button>
+              <button onClick={submit} disabled={submitting || !rating} className="flex-1 rounded-xl bg-[#0064FF] py-3 text-sm font-black text-white hover:bg-[#0052D6] disabled:opacity-40 transition">
+                {submitting ? "보내는 중…" : "제출하고 +2 이용권 받기"}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLinks?: ()=>void; onGacha?: (g:any)=>void }) {
   const [jobs, setJobs] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -4191,6 +4246,7 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
   const [deleting, setDeleting] = React.useState<string|null>(null);
   const [sharing, setSharing] = React.useState<string|null>(null);
   const [shareToast, setShareToast] = React.useState<{text:string; link?:string}|null>(null);
+  const [fbJob, setFbJob] = React.useState<any>(null);
   React.useEffect(()=>{
     if(!session) return;
     (async()=>{
@@ -4212,6 +4268,7 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
   const isAndroid = /Android/i.test(ua);
 
   // 저장: iOS는 공유시트(사진에 저장), 안드로이드·PC는 파일을 직접 다운로드(다운로드 폴더 → 갤러리)
+  const _askFb = (j:any) => { try { if (!localStorage.getItem("chronit_feedback_done")) setTimeout(()=>setFbJob(j), 700); } catch {} };
   const saveVideo = async (j:any) => {
     if (!j.video_url) return;
     const fname = (j.product_name||"chronit")+".mp4";
@@ -4223,6 +4280,7 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
         const file = new File([blob], fname, { type: "video/mp4" });
         if ((navigator as any).canShare && (navigator as any).canShare({ files: [file] })) {
           await (navigator as any).share({ files: [file], title: j.product_name || "크로닛 영상" });
+          _askFb(j);
           return;
         }
       }
@@ -4230,6 +4288,7 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a"); a.href = url; a.download = fname;
       document.body.appendChild(a); a.click(); a.remove();
+      _askFb(j);
       setTimeout(()=>URL.revokeObjectURL(url), 4000);
     } catch (e:any) {
       if (e?.name === "AbortError") return; // 사용자가 공유 취소
@@ -4334,6 +4393,7 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
 
   return (
     <div>
+      {fbJob && <FeedbackModal job={fbJob} onClose={()=>setFbJob(null)} />}
       <div className="mb-4 flex items-center justify-between gap-2">
         <p className="text-xs text-gray-500">생성된 영상은 생성 후 3일간 보관됩니다. 기간이 지나면 다운로드할 수 없으니 미리 받아두세요.</p>
         {jobs.some((j:any)=>j.expired) && (

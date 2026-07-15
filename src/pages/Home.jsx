@@ -545,21 +545,9 @@ const Home = () => {
                 👋 처음이세요? 1분 사용법 →
               </Link>
             </div>
-            <p className="mt-4 text-sm font-medium text-gray-500">
-              <span className="font-black text-[#0064FF]">설치 없이</span> 웹에서 바로 시작 · 구글 로그인이면 끝
-            </p>
           </div>
         </div>
       </section>
-
-      {/* 신뢰 포인트 (한 줄) */}
-      <div className="px-5 md:px-8">
-        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-x-8 gap-y-2 border-b border-gray-100 py-5 text-sm font-bold text-gray-600 md:text-base">
-          {['사업자 등록 불필요', '재고 보유 불필요', '영상 편집 불필요'].map((t) => (
-            <span key={t} className="inline-flex items-center gap-1.5"><CheckCircle2 size={18} className="text-[#0064FF]" /> {t}</span>
-          ))}
-        </div>
-      </div>
 
       {/* 쿠팡 파트너스 안내 진입 */}
       <div className="px-5 pt-10 md:px-8 md:pt-14">
