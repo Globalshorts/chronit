@@ -72,10 +72,10 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
           </button>
         )}
         {onInvite && (
-          <button onClick={onInvite} title="이벤트 · 무료 이용권 받기"
+          <button onClick={onInvite} title="친구 초대하고 무료 이용권 받기"
             className="event-badge inline-flex shrink-0 items-center gap-1 rounded-full bg-gradient-to-r from-[#0064FF] via-[#3B82F6] to-[#7C6BFF] px-3 py-1.5 text-xs font-black text-white active:scale-95">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.4 6.9 6.6.3-5.4 4 2 6.8L12 16.2 6.4 20l2-6.8L3 9.2l6.6-.3L12 2z"/></svg>
-            이벤트
+            <span aria-hidden="true">🎁</span>
+            무료 충전
           </button>
         )}
         <div className="relative">
