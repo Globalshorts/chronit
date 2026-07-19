@@ -25,7 +25,6 @@ export default function Landing() {
   const [authOpen, setAuthOpen] = useState(false)
   const [code, setCode] = useState(null)
   const [session, setSession] = useState(null)
-  const [demo, setDemo] = useState(null)
   const [spots, setSpots] = useState(null)
 
   useEffect(() => {
@@ -35,8 +34,6 @@ export default function Landing() {
     if (c) { setCode(c.toUpperCase()); sessionStorage.setItem('chronit_code', c) }
     else { const st = sessionStorage.getItem('chronit_code'); if (st) setCode(st) }
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
-    supabase.from('demo_videos').select('url').order('sort_order').limit(1)
-      .then(({ data }) => { if (data && data[0]) setDemo(data[0].url) })
     supabase.rpc('public_signup_count').then(({ data }) => { if (typeof data === 'number') setSpots(data) })
   }, [])
 

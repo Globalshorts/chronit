@@ -847,8 +847,10 @@ const Home = () => {
 }
 
 /* ── 데모 영상 캐러셀 ── */
+// 정적 호스팅(Vercel public/)에서 서빙 — Supabase egress 안 씀
+const DEMO_VIDEOS = ['/demo1.mp4', '/demo2.mp4', '/demo3.mp4', '/demo4.mp4', '/demo5.mp4']
 const DemoCarousel = () => {
-  const [videos, setVideos] = useState([])
+  const videos = DEMO_VIDEOS
   const [active, setActive] = useState(0)
   const dragStartX = useRef(0)
   const videoRefs = useRef([])
@@ -865,12 +867,6 @@ const DemoCarousel = () => {
     io.observe(el)
     return () => io.disconnect()
   }, [inView, videos])
-
-  useEffect(() => {
-    supabase.from('demo_videos').select('*').order('sort_order').then(({ data }) => {
-      if (data && data.length) setVideos(data.map(v => v.url))
-    })
-  }, [])
 
   const n = videos.length
   const prev = () => setActive(i => (i - 1 + n) % n)
