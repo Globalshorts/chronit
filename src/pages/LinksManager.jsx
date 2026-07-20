@@ -389,7 +389,7 @@ export default function LinksManager() {
 function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
   const [title, setTitle] = useState(item?.title ?? (job.seo_title || job.product_name || ''))
   const [url, setUrl] = useState(item?.target_url ?? '')
-  const [searchKw, setSearchKw] = useState(item ? '' : (cleanKw(job.product_name) || cleanKw(job.search_keyword) || '').trim())
+  const [searchKw, setSearchKw] = useState('')  // 항상 빈칸 — 상품명은 아래 '추천' 칩으로 원클릭
   const [badge, setBadge] = useState(item?.badge ?? '')
   const [badgeColor, setBadgeColor] = useState(item?.badge_color || '#ff4d4f')
   const [img, setImg] = useState(item?.image_url || job.poster_url || '')
