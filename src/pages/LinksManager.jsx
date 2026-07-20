@@ -3,6 +3,14 @@ import { supabase } from '../lib/supabase'
 import ColorPalette from '../components/ColorPalette'
 
 // 생성 영상에서 한 프레임을 캡처해 작은 JPG Blob으로 반환 (카드용 이미지 = 영상 대신 용량 절감)
+// 쿠팡 검색어 정리: "한글 / english"→한글, [03]·이모지 제거
+const cleanKw = (v) => (v || '')
+  .split(' / ')[0]
+  .replace(/^\s*\[[^\]]*\]\s*/, '')
+  .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\uFE0F\u200D]/gu, '')
+  .replace(/\s+/g, ' ')
+  .trim()
+
 export async function captureVideoFrame(videoUrl, fraction = 0.45) {
   return new Promise((resolve, reject) => {
     const v = document.createElement('video')
@@ -105,9 +113,9 @@ export function LinkPageManager({ session }) {
     .filter((i) => !i.video_job_id || !jobIdSet.has(i.video_job_id))
     .map((i) => ({
       id: i.video_job_id || `saved-${i.id}`,
-      product_name: i.title || '',
+      product_name: i.search_keyword || '',
       seo_title: i.title || '',
-      search_keyword: '',
+      search_keyword: i.search_keyword || '',
       poster_url: i.image_url || '',
       video_url: i.video_url || '',
       created_at: i.created_at,
@@ -153,7 +161,7 @@ export function LinkPageManager({ session }) {
     } finally { setUploading(false) }
   }
 
-  const upsertItem = async (job, { title, target_url, active, image_url, badge, badge_color }, existingArg) => {
+  const upsertItem = async (job, { title, target_url, active, image_url, badge, badge_color, search_keyword }, existingArg) => {
     // ★ 링크 검증: 쓠파 생짜 상품 URL(파트너스 링크 아님)이면 표시 저장 차단 ★
     const _t = (target_url || '').trim()
     if (active && _t && /coupang\.com/i.test(_t) && !/link\.coupang\.com/i.test(_t)) {
@@ -180,7 +188,7 @@ export function LinkPageManager({ session }) {
       }
     }
     if (existing) {
-      const patch = { title, target_url, active, badge: badge ?? null, badge_color: badge_color ?? null }
+      const patch = { title, target_url, active, badge: badge ?? null, badge_color: badge_color ?? null, search_keyword: search_keyword ?? null }
       if (img) patch.image_url = img
       const { data, error } = await supabase.from('link_items')
         .update(patch).eq('id', existing.id).select('*').single()
@@ -193,7 +201,7 @@ export function LinkPageManager({ session }) {
       }
       const maxSort = items.reduce((m, i) => Math.max(m, i.sort_order || 0), 0)
       const { data, error } = await supabase.from('link_items')
-        .insert({ user_id: uid, video_job_id: job.id, title, target_url, active, image_url: img, video_url: videoUrl, sort_order: maxSort + 1, badge: badge ?? null, badge_color: badge_color ?? null })
+        .insert({ user_id: uid, video_job_id: job.id, title, target_url, active, image_url: img, video_url: videoUrl, sort_order: maxSort + 1, badge: badge ?? null, badge_color: badge_color ?? null, search_keyword: search_keyword ?? null })
         .select('*').single()
       if (error || !data) { console.error('[link save] insert 실패:', error); flash('저장 실패 — 다시 시도해 주세요'); return }
       setItems((p) => [...p, data])
@@ -381,7 +389,7 @@ export default function LinksManager() {
 function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
   const [title, setTitle] = useState(item?.title ?? (job.seo_title || job.product_name || ''))
   const [url, setUrl] = useState(item?.target_url ?? '')
-  const [searchKw, setSearchKw] = useState((job.product_name || job.search_keyword || '').trim())
+  const [searchKw, setSearchKw] = useState((cleanKw(job.product_name) || cleanKw(job.search_keyword) || cleanKw(job.seo_title) || '').trim())
   const [badge, setBadge] = useState(item?.badge ?? '')
   const [badgeColor, setBadgeColor] = useState(item?.badge_color || '#ff4d4f')
   const [img, setImg] = useState(item?.image_url || job.poster_url || '')
@@ -450,12 +458,12 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
                 <span className="shrink-0 text-[11px] font-bold text-gray-400">🔍 쿠팡 검색:</span>
                 <input value={searchKw} onChange={(e) => setSearchKw(e.target.value)} placeholder="상품명 입력 (예: 미니 봉지 밀봉기)"
                   className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
-                <a href={`https://partners.coupang.com/#affiliate/ws/link/0/${encodeURIComponent((searchKw || title || '').trim())}`}
+                <a href={`https://partners.coupang.com/#affiliate/ws/link/0/${encodeURIComponent((searchKw || cleanKw(title) || '').trim())}`}
                   target="_blank" rel="noreferrer"
-                  className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold text-white transition ${(searchKw || title || '').trim() ? 'bg-[#0064FF] hover:bg-[#0052D6]' : 'pointer-events-none bg-gray-300'}`}>검색</a>
+                  className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold text-white transition ${(searchKw || cleanKw(title) || '').trim() ? 'bg-[#0064FF] hover:bg-[#0052D6]' : 'pointer-events-none bg-gray-300'}`}>검색</a>
               </div>
               {(() => {
-                const chips = Array.from(new Set([job.product_name, job.search_keyword].map(k => (k || '').trim()).filter(Boolean))).filter(k => k !== searchKw.trim()).slice(0, 2);
+                const chips = Array.from(new Set([job.product_name, job.search_keyword].map(k => cleanKw(k)).filter(Boolean))).filter(k => k !== searchKw.trim()).slice(0, 2);
                 return chips.length > 0 ? (
                   <div className="flex flex-wrap items-center gap-1.5">
                     <span className="text-[10px] text-gray-400">추천:</span>
@@ -469,10 +477,10 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
             </div>
             <div className="flex items-center gap-2">
               {active ? (
-                <button onClick={() => onSave({ title, target_url: url, active: true, image_url: img, badge, badge_color: badgeColor })}
+                <button onClick={() => onSave({ title, target_url: url, active: true, image_url: img, badge, badge_color: badgeColor, search_keyword: searchKw })}
                   className="rounded-lg bg-[#0064FF] px-3 py-1.5 text-xs font-bold text-white">저장</button>
               ) : (
-                <button onClick={() => onSave({ title, target_url: url, active: true, image_url: img, badge, badge_color: badgeColor })} disabled={!canShow}
+                <button onClick={() => onSave({ title, target_url: url, active: true, image_url: img, badge, badge_color: badgeColor, search_keyword: searchKw })} disabled={!canShow}
                   className="rounded-lg bg-[#0064FF] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40">＋ 페이지에 표시</button>
               )}
               {!canShow && !active && <span className="text-[11px] text-gray-400">쿠팡 링크 필요</span>}
@@ -516,7 +524,7 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
             </div>
             <div className="flex items-center gap-2">
               {active && (
-                <button onClick={() => onSave({ title, target_url: url, active: false, image_url: img, badge, badge_color: badgeColor })}
+                <button onClick={() => onSave({ title, target_url: url, active: false, image_url: img, badge, badge_color: badgeColor, search_keyword: searchKw })}
                   className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-bold text-gray-600">숨기기</button>
               )}
               <button onClick={onDelete}
