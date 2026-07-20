@@ -4,7 +4,21 @@ import { supabase } from '../lib/supabase'
 
 const AuthModal = ({ open, onClose, referralCode }) => {
   const [copied, setCopied] = useState(false)
+  const [showEmail, setShowEmail] = useState(false)
+  const [email, setEmail] = useState('')
+  const [pw, setPw] = useState('')
+  const [emailErr, setEmailErr] = useState('')
+  const [emailBusy, setEmailBusy] = useState(false)
   if (!open) return null
+
+  const signInEmail = async () => {
+    if (!email.trim() || !pw) { setEmailErr('이메일과 비밀번호를 입력해 주세요'); return }
+    setEmailBusy(true); setEmailErr('')
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password: pw })
+    setEmailBusy(false)
+    if (error) { setEmailErr('로그인 실패: ' + error.message); return }
+    onClose && onClose()
+  }
 
   const ua = typeof navigator !== 'undefined' ? navigator.userAgent : ''
   // 인앱(웹뷰) 브라우저: 구글 OAuth가 'disallowed_useragent'로 차단됨
@@ -120,6 +134,24 @@ const AuthModal = ({ open, onClose, referralCode }) => {
           </button>
           {inApp && (
             <p className="text-center text-xs text-gray-400">구글은 인앱에서 막힐 수 있어요 — 카카오를 권장해요</p>
+          )}
+        </div>
+
+        <div className="mt-4 border-t border-gray-100 pt-3 text-center">
+          {!showEmail ? (
+            <button onClick={() => setShowEmail(true)} className="text-xs font-bold text-gray-400 hover:text-gray-600">이메일로 로그인</button>
+          ) : (
+            <div className="space-y-2 text-left">
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="이메일" autoComplete="username"
+                className="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-[#0064FF]" />
+              <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && signInEmail()} placeholder="비밀번호" autoComplete="current-password"
+                className="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-[#0064FF]" />
+              {emailErr && <p className="text-xs text-red-500">{emailErr}</p>}
+              <button onClick={signInEmail} disabled={emailBusy}
+                className="w-full rounded-xl bg-gray-900 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#0064FF] disabled:opacity-50">
+                {emailBusy ? '로그인 중…' : '이메일로 로그인'}
+              </button>
+            </div>
           )}
         </div>
       </div>
