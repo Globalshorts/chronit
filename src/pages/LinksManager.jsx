@@ -133,6 +133,34 @@ export function LinkPageManager({ session }) {
     items.forEach((i) => scan(i.title)); jobs.forEach((j) => scan(j.seo_title))
     return mx + 1
   })()
+  const pad2 = (x) => String(x).padStart(2, '0')
+  // 번호 없는 표시 카드에만 최대+1부터 순서대로(오래된 순) 부여·저장. 기존 번호는 절대 안 건드림.
+  const applyNumbering = async () => {
+    const re = /^\s*\[\d+\]/
+    const uid = session.user.id
+    const targets = visibleJobs
+      .map((j) => { const it = theItem(j); const base = (it?.title ?? (cleanKw(j.product_name) || j.seo_title || '')).trim(); return { j, it, base } })
+      .filter((x) => x.base && !re.test(x.base))
+      .sort((a, b) => new Date(a.j.created_at) - new Date(b.j.created_at))
+    if (!targets.length) { flash('번호 붙일 카드가 없어요 (이미 다 있음)'); return }
+    if (!window.confirm(`${targets.length}개 카드에 [${pad2(nextNum)}]번부터 순서대로 번호를 붙일까요?\n이미 번호 있는 카드는 그대로 둡니다.`)) return
+    let n = nextNum
+    let maxSort = items.reduce((m, i) => Math.max(m, i.sort_order || 0), 0)
+    const updated = [...items]
+    for (const { j, it, base } of targets) {
+      const title = `[${pad2(n)}] ${base}`; n++
+      if (it) {
+        const { data } = await supabase.from('link_items').update({ title }).eq('id', it.id).select('*').single()
+        if (data) { const idx = updated.findIndex((x) => x.id === data.id); if (idx >= 0) updated[idx] = data }
+      } else {
+        maxSort++
+        const { data } = await supabase.from('link_items').insert({ user_id: uid, video_job_id: j.id, title, target_url: '', active: false, image_url: j.poster_url || '', video_url: j.video_url || '', sort_order: maxSort }).select('*').single()
+        if (data) updated.push(data)
+      }
+    }
+    setItems(updated)
+    flash(`${targets.length}개 카드에 번호를 붙였어요`)
+  }
   const visibleJobs = allJobs.filter((j) => {
     if (activeOnly && !theItem(j)?.active) return false
     const q = jobQuery.trim().toLowerCase()
@@ -324,6 +352,9 @@ export function LinkPageManager({ session }) {
             <input type="checkbox" checked={activeOnly} onChange={(e) => setActiveOnly(e.target.checked)} />
             표시중만 ({activeCount})
           </label>
+          <button type="button" onClick={applyNumbering}
+            className="shrink-0 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs font-bold text-gray-600 transition hover:border-[#0064FF] hover:text-[#0064FF]"
+            title={`번호 없는 카드에 [${pad2(nextNum)}]번부터 붙이기`}>🔢 번호 매기기</button>
           {allJobs.length >= 2 && (
             <input value={jobQuery} onChange={(e) => setJobQuery(e.target.value)} placeholder="🔍 검색"
               className="w-28 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs sm:w-36" />
@@ -341,7 +372,7 @@ export function LinkPageManager({ session }) {
           {sortedJobs.map((job) => {
             const it = theItem(job)
             return (
-              <JobRow key={job.id} job={job} item={it} uid={session.user.id} nextNum={nextNum}
+              <JobRow key={job.id} job={job} item={it} uid={session.user.id}
                 onSave={(vals) => upsertItem(job, vals, it)}
                 onDelete={() => removeCard(job, it)}
                 onMove={it && it.active ? (dir) => move(it, dir) : null} />
@@ -393,12 +424,10 @@ export default function LinksManager() {
   )
 }
 
-function JobRow({ job, item, uid, onSave, onDelete, onMove, nextNum }) {
-  const [title, setTitle] = useState(item?.title ?? (job.seo_title || job.product_name || ''))
+function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
+  const [title, setTitle] = useState(item?.title ?? (cleanKw(job.product_name) || job.seo_title || '').trim())
   const [url, setUrl] = useState(item?.target_url ?? '')
   const [searchKw, setSearchKw] = useState(item?.active ? '' : (cleanKw(job.product_name) || cleanKw(job.search_keyword) || '').trim())  // 표시(저장)된 카드=빈칸, 미표시(미저장)=분석 검색어 자동채움
-  const numbered = /^\s*\[\d+\]/.test(title)
-  const toggleNum = () => setTitle((t) => /^\s*\[\d+\]/.test(t) ? t.replace(/^\s*\[\d+\]\s*/, '') : `[${String(nextNum).padStart(2, '0')}] ${t}`)
   const [badge, setBadge] = useState(item?.badge ?? '')
   const [badgeColor, setBadgeColor] = useState(item?.badge_color || '#ff4d4f')
   const [img, setImg] = useState(item?.image_url || job.poster_url || '')
@@ -455,13 +484,8 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove, nextNum }) {
               : job.video_url ? <video src={`${job.video_url}#t=0.6`} muted playsInline preload="metadata" className="h-full w-full object-cover" /> : null}
           </button>
           <div className="min-w-0 flex-1 space-y-2">
-            <div className="flex items-center gap-2">
-              <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="카드 제목"
-                className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
-              <label className="flex shrink-0 cursor-pointer items-center gap-1 whitespace-nowrap text-[11px] font-bold text-gray-500" title={`제목 앞에 번호 붙이기 (다음: [${String(nextNum).padStart(2, '0')}])`}>
-                <input type="checkbox" checked={numbered} onChange={toggleNum} /> #번호
-              </label>
-            </div>
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="카드 제목"
+              className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
             <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="쿠팡 파트너스 링크 붙여넣기"
               className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
             {url && /coupang\.com/i.test(url) && !/link\.coupang\.com/i.test(url) && (
