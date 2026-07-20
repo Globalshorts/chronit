@@ -389,7 +389,7 @@ export default function LinksManager() {
 function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
   const [title, setTitle] = useState(item?.title ?? (job.seo_title || job.product_name || ''))
   const [url, setUrl] = useState(item?.target_url ?? '')
-  const [searchKw, setSearchKw] = useState(item ? '' : (cleanKw(job.product_name) || cleanKw(job.search_keyword) || '').trim())  // 저장 전=분석 검색어, 저장 후=빈칸
+  const [searchKw, setSearchKw] = useState(item?.active ? '' : (cleanKw(job.product_name) || cleanKw(job.search_keyword) || '').trim())  // 표시(저장)된 카드=빈칸, 미표시(미저장)=분석 검색어 자동채움
   const [badge, setBadge] = useState(item?.badge ?? '')
   const [badgeColor, setBadgeColor] = useState(item?.badge_color || '#ff4d4f')
   const [img, setImg] = useState(item?.image_url || job.poster_url || '')
