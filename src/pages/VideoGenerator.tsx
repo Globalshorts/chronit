@@ -1403,14 +1403,14 @@ export default function VideoGenerator() {
       if (!data.ok) {
         const _e = String(data.error ?? "");
         if (!data.voice_block && (_e.includes("부족") || _e.includes("구독"))) { setCreditWall(_e.includes("구독") ? "expired" : "empty"); }
-        else { setRenderError(_e || "렌더링 요청 실패"); }
+        else { setRenderError(_e || "렌더링 요청 실패"); try { (window as any).reportChronitError?.({ source:"video_gen", message:"렌더 요청 실패: "+(_e||"") }); } catch(_){} }
         return;
       }
       setCurrentJobId(data.job_id ?? "");
       setBalance(data.balance ?? null);
       // 업로드용 SEO(제목/설명/해시태그)는 generate-video가 서버측에서 자동 생성함 (탭 닫아도 완료됨)
       await loadJobs();
-    } catch (e) { setRenderError(String(e)); }
+    } catch (e) { setRenderError(String(e)); try { (window as any).reportChronitError?.({ source:"video_gen", message:"렌더링 실패: "+String(e), jobId: currentJobId||null }); } catch(_){} }
     finally { setRendering(false); }
   };
   // 합성 실패 시 자동 재시도가 호출할 함수 (최신 handleRender 참조)
@@ -4000,7 +4000,7 @@ function StyleFinderView({ session, onImport }: { session: any; onImport: (id:st
         } else if (row.status === "error") {
           clearInterval(pollRef.current); pollRef.current = null;
           localStorage.removeItem(PENDING_KEY);
-          setError(row.error || "분석 실패"); setLoading(false);
+          setError(row.error || "분석 실패"); setLoading(false); try { (window as any).reportChronitError?.({ source:"video_gen", message:"분석 실패: "+(row.error||""), jobId: row.id||null }); } catch(_){}
         }
       } catch { /* 네트워크 일시 오류는 다음 tick에서 재시도 */ }
     };
