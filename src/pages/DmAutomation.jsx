@@ -11,11 +11,13 @@ export default function DmAutomation() {
   const [conn, setConn] = useState(null)
   const [rules, setRules] = useState([])
   const [logs, setLogs] = useState([])
+  const [media, setMedia] = useState([])
   const [loading, setLoading] = useState(true)
   const [msg, setMsg] = useState('')
   const [kw, setKw] = useState('')
   const [dm, setDm] = useState('')
   const [pub, setPub] = useState(true)
+  const [mediaId, setMediaId] = useState('')
 
   const load = async (uid) => {
     const [{ data: c }, { data: r }, { data: l }] = await Promise.all([
@@ -24,6 +26,14 @@ export default function DmAutomation() {
       supabase.from('dm_logs').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(20),
     ])
     setConn(c || null); setRules(r || []); setLogs(l || [])
+  }
+
+  // 연결된 계정의 게시물 목록 불러오기 (규칙을 특정 게시물에 걸 때 선택용)
+  const loadMedia = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('ig-media')
+      if (!error && Array.isArray(data?.media)) setMedia(data.media)
+    } catch { /* 무시: 전체 게시물 규칙은 그대로 사용 가능 */ }
   }
 
   useEffect(() => {
@@ -42,6 +52,8 @@ export default function DmAutomation() {
     })()
   }, [])
 
+  useEffect(() => { if (conn) loadMedia() }, [conn])
+
   const connect = () => {
     if (!user) return
     const state = encodeURIComponent(`${user.id}::${window.location.origin}`)
@@ -51,7 +63,7 @@ export default function DmAutomation() {
   const disconnect = async () => {
     if (!conn || !window.confirm('인스타 연결을 해제할까요? 자동 DM이 멈춰요.')) return
     await supabase.from('ig_connections').delete().eq('id', conn.id)
-    setConn(null); setMsg('연결을 해제했어요')
+    setConn(null); setMedia([]); setMsg('연결을 해제했어요')
   }
 
   const addRule = async () => {
@@ -59,10 +71,11 @@ export default function DmAutomation() {
     if (!kw.trim() || !dm.trim()) { setMsg('키워드와 DM 문구를 입력해 주세요'); return }
     const { data, error } = await supabase.from('dm_rules').insert({
       user_id: user.id, ig_user_id: conn.ig_user_id, keyword: kw.trim(), dm_text: dm.trim(),
-      public_replies: pub ? ['방금 DM 보냈어요 📩', 'DM 확인해보세요 👀'] : [], active: true,
+      public_replies: pub ? ['방금 DM 보냈어요 📩', 'DM 확인해보세요 👀'] : [],
+      media_id: mediaId || null, active: true,
     }).select('*').single()
     if (error) { setMsg('저장 실패: ' + error.message); return }
-    setRules((p) => [data, ...p]); setKw(''); setDm(''); setMsg('규칙을 추가했어요')
+    setRules((p) => [data, ...p]); setKw(''); setDm(''); setMediaId(''); setMsg('규칙을 추가했어요')
   }
 
   const toggleRule = async (rule) => {
@@ -73,6 +86,18 @@ export default function DmAutomation() {
     if (!window.confirm('이 규칙을 삭제할까요?')) return
     await supabase.from('dm_rules').delete().eq('id', rule.id)
     setRules((p) => p.filter((x) => x.id !== rule.id))
+  }
+
+  // 게시물 라벨 (캡션 앞부분 + 날짜)
+  const mediaOptLabel = (m) => {
+    const cap = (m.caption || '').replace(/\s+/g, ' ').trim()
+    const d = m.ts ? new Date(m.ts).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' }) : ''
+    return `${d ? d + ' · ' : ''}${cap ? cap.slice(0, 30) : '(캡션 없음)'}`
+  }
+  const scopeLabel = (id) => {
+    if (!id) return '📄 전체 게시물'
+    const m = media.find((x) => String(x.id) === String(id))
+    return '🎯 특정 게시물' + (m ? ` · ${mediaOptLabel(m).slice(0, 24)}` : '')
   }
 
   if (loading) return <div style={{ padding: 40, textAlign: 'center', color: '#6B7280' }}>불러오는 중…</div>
@@ -106,6 +131,17 @@ export default function DmAutomation() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
           <input value={kw} onChange={(e) => setKw(e.target.value)} placeholder="트리거 키워드 (예: 크로닛)" disabled={!conn}
             style={{ borderRadius: 10, border: '1px solid #D1D5DB', padding: '10px 12px', fontSize: 14 }} />
+          <div>
+            <label style={{ fontSize: 12, color: '#6B7280', display: 'block', marginBottom: 4 }}>적용 게시물</label>
+            <select value={mediaId} onChange={(e) => setMediaId(e.target.value)} disabled={!conn}
+              style={{ width: '100%', borderRadius: 10, border: '1px solid #D1D5DB', padding: '10px 12px', fontSize: 14, background: '#fff' }}>
+              <option value="">전체 게시물 (모든 게시물에 적용)</option>
+              {media.map((m) => (
+                <option key={m.id} value={m.id}>{mediaOptLabel(m)}</option>
+              ))}
+            </select>
+            {conn && !media.length && <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>게시물을 불러오는 중이거나 없어요. 전체 게시물로도 바로 쓸 수 있어요.</p>}
+          </div>
           <textarea value={dm} onChange={(e) => setDm(e.target.value)} placeholder="보낼 DM 문구 (예: 아래 링크에서 확인하세요! https://…)" rows={3} disabled={!conn}
             style={{ borderRadius: 10, border: '1px solid #D1D5DB', padding: '10px 12px', fontSize: 14, resize: 'none' }} />
           <label style={{ fontSize: 13, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -117,6 +153,7 @@ export default function DmAutomation() {
           <div key={r.id} style={{ borderTop: '1px solid #F3F4F6', padding: '10px 0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
             <div style={{ minWidth: 0 }}>
               <p style={{ fontWeight: 800, fontSize: 14 }}>“{r.keyword}” 댓글 → DM</p>
+              <p style={{ fontSize: 11, color: '#8B5CF6', fontWeight: 700, margin: '2px 0' }}>{scopeLabel(r.media_id)}</p>
               <p style={{ fontSize: 12, color: '#6B7280', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{r.dm_text}</p>
             </div>
             <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
