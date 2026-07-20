@@ -49,6 +49,7 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
     { v: "history", label: "생성 내역" },
     { v: "product-search", label: "내 링크" },
     { v: "studio", label: "스타일" },
+    { v: "dm", label: "자동 DM", locked: userRole !== "super_admin" },
     { v: "settings", label: "결제" },
     ...(userRole === "partner" || userRole === "super_admin" ? [{ v: "partner", label: "파트너스" }] : []),
     ...(userRole === "super_admin" ? [{ v: "admin", label: "관리자" }] : []),
@@ -103,10 +104,11 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
       </nav>
     </header>
     <nav className="sticky top-16 z-30 flex gap-2 overflow-x-auto border-b border-gray-200 bg-white/95 px-3 py-2 backdrop-blur-xl md:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      {VIEW_TABS.map((t) => (
-        <button key={t.v} onClick={() => onViewChange && onViewChange(t.v)}
-          className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors ${activeView === t.v ? "bg-[#0064FF] text-white" : "bg-gray-100 text-gray-600"}`}>
-          {t.label}
+      {VIEW_TABS.map((t: any) => (
+        <button key={t.v} disabled={t.locked}
+          onClick={() => t.v === "dm" ? (window.location.href = "/dm") : (onViewChange && onViewChange(t.v))}
+          className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors ${activeView === t.v ? "bg-[#0064FF] text-white" : "bg-gray-100 text-gray-600"} ${t.locked ? "opacity-50 cursor-not-allowed" : ""}`}>
+          {t.label}{t.locked && <span className="ml-1 text-[9px] text-gray-400">오픈예정</span>}
         </button>
       ))}
     </nav>
@@ -131,6 +133,7 @@ function AppTabBar({ activeView, onViewChange, userRole }: { activeView: string;
     { v: "history", label: "생성 내역" },
     { v: "product-search", label: "내 링크" },
     { v: "studio", label: "스타일" },
+    { v: "dm", label: "자동 DM", locked: !isAdmin },
     { v: "settings", label: "결제·계정" },
     ...(isPartner ? [{ v: "partner", label: "파트너스", icon: "📊" }] : []),
     ...(isAdmin ? [{ v: "admin", label: "관리자", icon: "👑" }] : []),
@@ -138,11 +141,13 @@ function AppTabBar({ activeView, onViewChange, userRole }: { activeView: string;
   return (
     <div className="hidden md:block shrink-0 border-b border-gray-200 bg-[#ECEAE3]">
       <div className="flex items-center gap-1 overflow-x-auto px-4 py-2 md:px-6">
-        {TABS.map(({ v, label, icon }: any) => (
-          <button key={v} onClick={() => onViewChange(v)}
-            className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition ${activeView === v ? "bg-[#0064FF]/15 text-[#0064FF]" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}>
+        {TABS.map(({ v, label, icon, locked }: any) => (
+          <button key={v} disabled={locked}
+            onClick={() => v === "dm" ? (window.location.href = "/dm") : onViewChange(v)}
+            className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition ${activeView === v ? "bg-[#0064FF]/15 text-[#0064FF]" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"} ${locked ? "opacity-50 cursor-not-allowed" : ""}`}>
             {icon && <span>{icon}</span>}
             <span>{label}</span>
+            {locked && <span className="ml-0.5 rounded bg-gray-200 px-1 text-[9px] text-gray-500">오픈예정</span>}
             {v === "product-search" && extractRunning && <span className="ml-0.5 h-2 w-2 rounded-full bg-[#0064FF] animate-pulse" />}
           </button>
         ))}
