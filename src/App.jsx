@@ -18,6 +18,9 @@ import BoardWrite from './pages/BoardWrite'
 import BoardPost from './pages/BoardPost'
 import MyPage from './pages/MyPage'
 import UserProfile from './pages/UserProfile'
+import CheckoutTest from './pages/CheckoutTest'
+import PaySuccess from './pages/PaySuccess'
+import PayFail from './pages/PayFail'
 import AdminFab from './components/AdminFab'
 
 const ScrollToTop = () => {
@@ -49,6 +52,10 @@ const App = () => (
       <Route path="/board/:id" element={<BoardPost />} />
       <Route path="/me" element={<MyPage />} />
       <Route path="/u/:handle" element={<LinkPage />} />
+      {/* 토스페이먼츠 테스트(프론트 연결) — 프로덕션 결제와 별개 */}
+      <Route path="/pay/test" element={<CheckoutTest />} />
+      <Route path="/pay/success" element={<PaySuccess />} />
+      <Route path="/pay/fail" element={<PayFail />} />
     </Routes>
   </BrowserRouter>
 )
