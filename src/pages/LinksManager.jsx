@@ -126,6 +126,13 @@ export function LinkPageManager({ session }) {
   const theItem = (job) => job._item || itemFor(job.id)
   const jobTitle = (job) => (theItem(job)?.title || job.seo_title || job.product_name || '')
   const activeCount = items.filter((i) => i.active).length
+  // 넘버링: 내 모든 제목에서 [NN] 최댓값 +1 (예: [68] 쓰면 다음 [69])
+  const nextNum = (() => {
+    let mx = 0
+    const scan = (t) => { const m = /^\s*\[(\d+)\]/.exec(t || ''); if (m) mx = Math.max(mx, parseInt(m[1], 10)) }
+    items.forEach((i) => scan(i.title)); jobs.forEach((j) => scan(j.seo_title))
+    return mx + 1
+  })()
   const visibleJobs = allJobs.filter((j) => {
     if (activeOnly && !theItem(j)?.active) return false
     const q = jobQuery.trim().toLowerCase()
@@ -334,7 +341,7 @@ export function LinkPageManager({ session }) {
           {sortedJobs.map((job) => {
             const it = theItem(job)
             return (
-              <JobRow key={job.id} job={job} item={it} uid={session.user.id}
+              <JobRow key={job.id} job={job} item={it} uid={session.user.id} nextNum={nextNum}
                 onSave={(vals) => upsertItem(job, vals, it)}
                 onDelete={() => removeCard(job, it)}
                 onMove={it && it.active ? (dir) => move(it, dir) : null} />
@@ -386,10 +393,12 @@ export default function LinksManager() {
   )
 }
 
-function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
+function JobRow({ job, item, uid, onSave, onDelete, onMove, nextNum }) {
   const [title, setTitle] = useState(item?.title ?? (job.seo_title || job.product_name || ''))
   const [url, setUrl] = useState(item?.target_url ?? '')
   const [searchKw, setSearchKw] = useState(item?.active ? '' : (cleanKw(job.product_name) || cleanKw(job.search_keyword) || '').trim())  // 표시(저장)된 카드=빈칸, 미표시(미저장)=분석 검색어 자동채움
+  const numbered = /^\s*\[\d+\]/.test(title)
+  const toggleNum = () => setTitle((t) => /^\s*\[\d+\]/.test(t) ? t.replace(/^\s*\[\d+\]\s*/, '') : `[${String(nextNum).padStart(2, '0')}] ${t}`)
   const [badge, setBadge] = useState(item?.badge ?? '')
   const [badgeColor, setBadgeColor] = useState(item?.badge_color || '#ff4d4f')
   const [img, setImg] = useState(item?.image_url || job.poster_url || '')
@@ -446,8 +455,13 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
               : job.video_url ? <video src={`${job.video_url}#t=0.6`} muted playsInline preload="metadata" className="h-full w-full object-cover" /> : null}
           </button>
           <div className="min-w-0 flex-1 space-y-2">
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="카드 제목"
-              className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
+            <div className="flex items-center gap-2">
+              <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="카드 제목"
+                className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
+              <label className="flex shrink-0 cursor-pointer items-center gap-1 whitespace-nowrap text-[11px] font-bold text-gray-500" title={`제목 앞에 번호 붙이기 (다음: [${String(nextNum).padStart(2, '0')}])`}>
+                <input type="checkbox" checked={numbered} onChange={toggleNum} /> #번호
+              </label>
+            </div>
             <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="쿠팡 파트너스 링크 붙여넣기"
               className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
             {url && /coupang\.com/i.test(url) && !/link\.coupang\.com/i.test(url) && (
