@@ -136,16 +136,21 @@ export function LinkPageManager({ session }) {
   })()
   const [autoNum, setAutoNum] = useState(() => { try { return localStorage.getItem('chronit_auto_number') === '1' } catch { return false } })
   const toggleAutoNum = (v) => { setAutoNum(v); try { localStorage.setItem('chronit_auto_number', v ? '1' : '0') } catch {} }
-  // 자동 번호: 미저장(미표시) 카드 중 번호 없는 것에 최대+1부터 순서대로(오래된 순) 배정. 저장(표시)된 카드는 안 건드림.
-  const assignedNums = (() => {
-    const re = /^\s*\[\d+\]/
-    const map = {}; let n = nextNum
-    allJobs
-      .filter((j) => { const it = theItem(j); const t = it?.title ?? (cleanKw(j.product_name) || j.seo_title || ''); return !it?.active && !re.test(t) })
-      .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-      .forEach((j) => { map[j.id] = n++ })
-    return map
-  })()
+  // 표시 안 된(미게시) 카드 일괄 정리 — 영상 생성 내역엔 남음(card_hidden)
+  const bulkHideUnpublished = async () => {
+    const targets = allJobs.filter((j) => !theItem(j)?.active)
+    if (!targets.length) { flash('표시 안 된 카드가 없어요'); return }
+    if (!window.confirm(`표시 안 된 카드 ${targets.length}개를 목록에서 정리할까요?\n영상 생성 내역엔 그대로 남아요.`)) return
+    const itemIds = targets.map((j) => theItem(j)?.id).filter(Boolean)
+    const jobIds = targets.map((j) => j.id).filter((id) => !String(id).startsWith('saved-'))
+    try {
+      if (itemIds.length) await supabase.from('link_items').delete().in('id', itemIds)
+      if (jobIds.length) await supabase.from('video_jobs').update({ card_hidden: true }).in('id', jobIds)
+      setItems((prev) => prev.filter((i) => !itemIds.includes(i.id)))
+      setJobs((prev) => prev.filter((j) => !jobIds.includes(j.id)))
+      flash(`${targets.length}개 정리 완료`)
+    } catch (e) { flash('정리 실패 — 다시 시도해 주세요') }
+  }
   const visibleJobs = allJobs.filter((j) => {
     if (activeOnly && !theItem(j)?.active) return false
     const q = jobQuery.trim().toLowerCase()
@@ -182,6 +187,7 @@ export function LinkPageManager({ session }) {
   }
 
   const upsertItem = async (job, { title, target_url, active, image_url, badge, badge_color }, existingArg) => {
+    if (autoNum && active && !/^\s*\[\d+\]/.test(title || '')) title = `[${pad2(nextNum)}] ${title || ''}`.trim()
     // ★ 링크 검증: 쓠파 생짜 상품 URL(파트너스 링크 아님)이면 표시 저장 차단 ★
     const _t = (target_url || '').trim()
     if (active && _t && /coupang\.com/i.test(_t) && !/link\.coupang\.com/i.test(_t)) {
@@ -337,9 +343,12 @@ export function LinkPageManager({ session }) {
             <input type="checkbox" checked={activeOnly} onChange={(e) => setActiveOnly(e.target.checked)} />
             표시중만 ({activeCount})
           </label>
-          <label className="flex shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap text-xs font-bold text-gray-600" title="켜두면 새로 만든 영상 카드 제목 앞에 자동으로 다음 번호가 붙어요">
-            <input type="checkbox" checked={autoNum} onChange={(e) => toggleAutoNum(e.target.checked)} /> 🔢 자동 번호
+          <label className="flex shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap text-xs font-bold text-gray-600" title="켜두면 카드를 표시(저장)할 때 제목 앞에 자동으로 다음 번호가 붙어요">
+            <input type="checkbox" checked={autoNum} onChange={(e) => toggleAutoNum(e.target.checked)} /> 🔢 자동 번호{autoNum ? ` (다음 [${pad2(nextNum)}])` : ''}
           </label>
+          <button type="button" onClick={bulkHideUnpublished}
+            className="shrink-0 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs font-bold text-gray-500 transition hover:border-red-400 hover:text-red-500"
+            title="표시 안 된 카드를 목록에서 정리 (영상은 생성 내역에 남음)">🗑 미표시 정리</button>
           {allJobs.length >= 2 && (
             <input value={jobQuery} onChange={(e) => setJobQuery(e.target.value)} placeholder="🔍 검색"
               className="w-28 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs sm:w-36" />
@@ -357,7 +366,7 @@ export function LinkPageManager({ session }) {
           {sortedJobs.map((job) => {
             const it = theItem(job)
             return (
-              <JobRow key={job.id} job={job} item={it} uid={session.user.id} autoNum={autoNum} assignedNum={assignedNums[job.id]}
+              <JobRow key={job.id} job={job} item={it} uid={session.user.id}
                 onSave={(vals) => upsertItem(job, vals, it)}
                 onDelete={() => removeCard(job, it)}
                 onMove={it && it.active ? (dir) => move(it, dir) : null} />
@@ -409,20 +418,8 @@ export default function LinksManager() {
   )
 }
 
-function JobRow({ job, item, uid, onSave, onDelete, onMove, autoNum, assignedNum }) {
-  const [title, setTitle] = useState(() => {
-    const base = item?.title ?? (cleanKw(job.product_name) || job.seo_title || '').trim()
-    return (autoNum && assignedNum && !/^\s*\[\d+\]/.test(base)) ? `[${pad2(assignedNum)}] ${base}` : base
-  })
-  useEffect(() => {
-    if (item?.active) return
-    setTitle((t) => {
-      const has = /^\s*\[\d+\]/.test(t)
-      if (autoNum && assignedNum && !has) return `[${pad2(assignedNum)}] ${t}`
-      if (!autoNum && has) return t.replace(/^\s*\[\d+\]\s*/, '')
-      return t
-    })
-  }, [autoNum, assignedNum])
+function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
+  const [title, setTitle] = useState(item?.title ?? (cleanKw(job.product_name) || job.seo_title || '').trim())
   const [url, setUrl] = useState(item?.target_url ?? '')
   const [searchKw, setSearchKw] = useState(item?.active ? '' : (cleanKw(job.product_name) || cleanKw(job.search_keyword) || '').trim())  // 표시(저장)된 카드=빈칸, 미표시(미저장)=분석 검색어 자동채움
   const [badge, setBadge] = useState(item?.badge ?? '')
