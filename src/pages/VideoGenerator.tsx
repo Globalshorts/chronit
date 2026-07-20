@@ -1081,7 +1081,7 @@ export default function VideoGenerator() {
         } catch { setClips([...(keepUploads as any), ...(urlClip ? [urlClip] : []), ...allCand]); }
         return;
       }
-    } catch (e) { setSearchError("분석 중 일시적인 오류가 있었어요. 잠시 후 다시 시도해 주세요."); }
+    } catch (e) { setSearchError("분석 중 일시적인 오류가 있었어요. 잠시 후 다시 시도해 주세요."); try { (window as any).reportChronitError?.({ source:"video_gen", message:"분석 요청 실패: "+String(e).slice(0,300) }); } catch(_){} }
     finally { setSearching(false); }
   };
   const toggleCart = (id: string) => {
@@ -1173,6 +1173,7 @@ export default function VideoGenerator() {
       const msg = String(e).replace(/^Error:\s*/, "").slice(0, 120);
       setAutoRunStep("❌ 생성 실패");
       setAutoRunError(msg);
+      try { (window as any).reportChronitError?.({ source:"video_gen", message:"생성 실패: "+String(e).slice(0,300), jobId: currentJobId||null }); } catch(_){}
       // ★ 완료 알림처럼 상단 토스트로도 실패를 띄운다 (화면 이동해도 보이게) ★
       setCompletionAlert("❌ " + friendlyError(msg));
     } finally {
@@ -1403,14 +1404,14 @@ export default function VideoGenerator() {
       if (!data.ok) {
         const _e = String(data.error ?? "");
         if (!data.voice_block && (_e.includes("부족") || _e.includes("구독"))) { setCreditWall(_e.includes("구독") ? "expired" : "empty"); }
-        else { setRenderError(_e || "렌더링 요청 실패"); }
+        else { setRenderError(_e || "렌더링 요청 실패"); try { (window as any).reportChronitError?.({ source:"video_gen", message:"렌더 요청 실패: "+(_e||"") }); } catch(_){} }
         return;
       }
       setCurrentJobId(data.job_id ?? "");
       setBalance(data.balance ?? null);
       // 업로드용 SEO(제목/설명/해시태그)는 generate-video가 서버측에서 자동 생성함 (탭 닫아도 완료됨)
       await loadJobs();
-    } catch (e) { setRenderError(String(e)); }
+    } catch (e) { setRenderError(String(e)); try { (window as any).reportChronitError?.({ source:"video_gen", message:"렌더링 실패: "+String(e), jobId: currentJobId||null }); } catch(_){} }
     finally { setRendering(false); }
   };
   // 합성 실패 시 자동 재시도가 호출할 함수 (최신 handleRender 참조)
@@ -1479,7 +1480,7 @@ export default function VideoGenerator() {
       }
       if (!segs || !segs.length) throw new Error("대본이 비어서 생성됐어요. 담은 클립을 확인해주세요.");
       setManualScript(segs.map((x: any) => (x?.text ?? "")).filter(Boolean).join("\n"));
-    } catch (e: any) { setScriptFillErr(String(e?.message ?? e)); }
+    } catch (e: any) { setScriptFillErr(String(e?.message ?? e)); try { (window as any).reportChronitError?.({ source:"video_gen", message:"수동 대본 실패: "+String(e?.message ?? e).slice(0,300) }); } catch(_){} }
     finally { setScriptFilling(false); }
   };
 
@@ -4000,7 +4001,7 @@ function StyleFinderView({ session, onImport }: { session: any; onImport: (id:st
         } else if (row.status === "error") {
           clearInterval(pollRef.current); pollRef.current = null;
           localStorage.removeItem(PENDING_KEY);
-          setError(row.error || "분석 실패"); setLoading(false);
+          setError(row.error || "분석 실패"); setLoading(false); try { (window as any).reportChronitError?.({ source:"video_gen", message:"분석 실패: "+(row.error||""), jobId: row.id||null }); } catch(_){}
         }
       } catch { /* 네트워크 일시 오류는 다음 tick에서 재시도 */ }
     };

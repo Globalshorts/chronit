@@ -19,6 +19,9 @@ import BoardPost from './pages/BoardPost'
 import MyPage from './pages/MyPage'
 import UserProfile from './pages/UserProfile'
 import AdminFab from './components/AdminFab'
+import ErrorBoundary from './components/ErrorBoundary'
+import ErrorReportModal from './components/ErrorReportModal'
+import { installGlobalErrorCapture } from './lib/errorReport'
 
 const ScrollToTop = () => {
   const { pathname } = useLocation()
@@ -26,10 +29,14 @@ const ScrollToTop = () => {
   return null
 }
 
-const App = () => (
+const App = () => {
+  useEffect(() => { installGlobalErrorCapture() }, [])
+  return (
   <BrowserRouter>
     <ScrollToTop />
     <AdminFab />
+    <ErrorReportModal />
+    <ErrorBoundary>
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/start" element={<Landing />} />
@@ -50,7 +57,9 @@ const App = () => (
       <Route path="/me" element={<MyPage />} />
       <Route path="/u/:handle" element={<LinkPage />} />
     </Routes>
+    </ErrorBoundary>
   </BrowserRouter>
-)
+  )
+}
 
 export default App
