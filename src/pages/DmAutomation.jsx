@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 // 인스타 자동 DM 설정 페이지 (멀티테넌트, 검수/테스트용)
 const IG_CLIENT_ID = '1704122604098446'
 const IG_REDIRECT = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/ig-oauth-callback'
-const IG_SCOPE = 'instagram_business_basic,instagram_business_manage_comments,instagram_business_manage_messages,instagram_business_content_publish'
+const IG_SCOPE = 'instagram_business_basic,instagram_business_manage_comments,instagram_business_manage_messages'
 
 export default function DmAutomation() {
   const [user, setUser] = useState(null)
