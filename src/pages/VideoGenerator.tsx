@@ -253,8 +253,34 @@ function scriptStyleJsonFor(id: string): string {
   return s ? JSON.stringify(s.profile) : "";
 }
 
+// ── 계정 전환/최초 접속 정리 ──────────────────────────────────
+// 같은 브라우저에서 다른 계정으로 로그인하면 이전 계정의 로컬 상태(프로젝트·탭·작업)가
+// 남아 빈 화면/남의 프로젝트가 뜨는 문제 방지. useState 초기화 '전에' 동기 실행.
+// (hook 아님 → TDZ/#310 무관)
+function reconcileAccount() {
+  try {
+    let uid: string | null = null;
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.indexOf("sb-") === 0 && k.indexOf("-auth-token") > 0) {
+        const v = JSON.parse(localStorage.getItem(k) || "null");
+        uid = (v && (v.user?.id || v.currentSession?.user?.id)) || null;
+        if (uid) break;
+      }
+    }
+    if (!uid) return;
+    const last = localStorage.getItem("chronit_last_uid");
+    if (last !== uid) {
+      ["chronit_project_v1", "chronit_project_v2", "chronit_current_job", "chronit_active_pack", "chronit_active_view"]
+        .forEach((k) => localStorage.removeItem(k));
+      localStorage.setItem("chronit_last_uid", uid);
+    }
+  } catch { /* noop */ }
+}
+
 // ── 메인 ─────────────────────────────────────────────────────
 export default function VideoGenerator() {
+  reconcileAccount(); // ★ useState 초기화 전에 계정 불일치 시 이전 상태 정리
   const [session, setSession]       = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [stage, setStage]           = useState(1);
