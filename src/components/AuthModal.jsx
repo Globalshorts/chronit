@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Gift, ExternalLink, Copy, Check } from 'lucide-react'
+import { X, Gift, ExternalLink, Copy, Check, Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 const AuthModal = ({ open, onClose, referralCode }) => {
@@ -7,6 +7,7 @@ const AuthModal = ({ open, onClose, referralCode }) => {
   const [showEmail, setShowEmail] = useState(false)
   const [email, setEmail] = useState('')
   const [pw, setPw] = useState('')
+  const [showPw, setShowPw] = useState(false)
   const [emailErr, setEmailErr] = useState('')
   const [emailBusy, setEmailBusy] = useState(false)
   if (!open) return null
@@ -144,8 +145,15 @@ const AuthModal = ({ open, onClose, referralCode }) => {
             <div className="space-y-2 text-left">
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="이메일" autoComplete="username"
                 className="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-[#0064FF]" />
-              <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && signInEmail()} placeholder="비밀번호" autoComplete="current-password"
-                className="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-[#0064FF]" />
+              <div className="relative">
+                <input type={showPw ? 'text' : 'password'} value={pw} onChange={(e) => setPw(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && signInEmail()} placeholder="비밀번호" autoComplete="current-password"
+                  className="w-full rounded-xl border border-gray-300 px-3 py-2.5 pr-10 text-sm outline-none focus:border-[#0064FF]" />
+                <button type="button" onClick={() => setShowPw((v) => !v)} tabIndex={-1}
+                  aria-label={showPw ? '비밀번호 숨기기' : '비밀번호 표시'}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                  {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
               {emailErr && <p className="text-xs text-red-500">{emailErr}</p>}
               <button onClick={signInEmail} disabled={emailBusy}
                 className="w-full rounded-xl bg-gray-900 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#0064FF] disabled:opacity-50">
