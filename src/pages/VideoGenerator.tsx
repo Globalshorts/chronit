@@ -140,7 +140,7 @@ function AppTabBar({ activeView, onViewChange, userRole }: { activeView: string;
     ...(isAdmin ? [{ v: "admin", label: "관리자", icon: "👑" }] : []),
   ];
   return (
-    <div className="hidden md:block shrink-0 border-b border-gray-200 bg-[#ECEAE3]">
+    <div className="hidden md:block shrink-0 border-b border-gray-200 bg-[#FAFAF8]">
       <div className="flex items-center gap-1 overflow-x-auto px-4 py-2 md:px-6">
         {TABS.map(({ v, label, icon, locked }: any) => (
           <button key={v} disabled={locked}
@@ -1493,12 +1493,12 @@ export default function VideoGenerator() {
 
   // ── Auth 화면 ────────────────────────────────────────────
   if (authLoading) return (
-    <div className="flex items-center justify-center min-h-screen bg-[#ECEAE3]">
+    <div className="flex items-center justify-center min-h-screen bg-[#FAFAF8]">
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#0064FF] border-t-transparent" />
     </div>
   );
   if (!session) return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-6 bg-[#ECEAE3]">
+    <div className="flex flex-col items-center justify-center min-h-screen gap-6 bg-[#FAFAF8]">
       <h1 className="text-2xl font-black text-gray-900">로그인이 필요합니다</h1>
       <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin + window.location.pathname } })}
         className="rounded-xl bg-[#0064FF] px-8 py-3 font-bold text-white hover:bg-[#0052D6] transition">
@@ -1561,7 +1561,7 @@ export default function VideoGenerator() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#ECEAE3] text-gray-900">
+    <div className="flex flex-col min-h-screen bg-[#FAFAF8] text-gray-900">
       {/* ── 저작권 동의 모달 (매번) ── */}
       {consentAsk && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
@@ -1902,7 +1902,7 @@ export default function VideoGenerator() {
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-[90] md:hidden" onClick={() => setMobileMenuOpen(false)}>
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-          <div className="absolute left-0 top-0 h-full w-64 max-w-[82%] bg-[#ECEAE3] border-r border-gray-200 flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="absolute left-0 top-0 h-full w-64 max-w-[82%] bg-[#FAFAF8] border-r border-gray-200 flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
             <NavSidebar activeView={activeView}
               onViewChange={(v:string) => { setActiveView(v); setMobileMenuOpen(false); }}
               userRole={userRole} balance={balance} userPlan={userPlan} session={session} onCredited={loadBalance} />
