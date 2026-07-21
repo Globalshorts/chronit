@@ -140,7 +140,7 @@ const Home = () => {
   }, [user])
 
   const handleAfterLogin = (session) => {
-    window.gtag?.('event', 'sign_up', { event_category: 'conversion', event_label: 'google_oauth' })
+    // sign_up 전환은 App 전역 리스너(trackSignupIfNew)에서 신규 계정 1회만 발생
     fetch('http://localhost:17389/ping')
       .then((res) => {
         if (res.ok) {

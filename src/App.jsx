@@ -23,6 +23,8 @@ import AdminFab from './components/AdminFab'
 import ErrorBoundary from './components/ErrorBoundary'
 import ErrorReportModal from './components/ErrorReportModal'
 import { installGlobalErrorCapture } from './lib/errorReport'
+import { supabase } from './lib/supabase'
+import { trackSignupIfNew } from './lib/trackSignup'
 
 const ScrollToTop = () => {
   const { pathname } = useLocation()
@@ -32,6 +34,12 @@ const ScrollToTop = () => {
 
 const App = () => {
   useEffect(() => { installGlobalErrorCapture() }, [])
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) trackSignupIfNew(session)
+    })
+    return () => { try { sub.subscription.unsubscribe() } catch {} }
+  }, [])
   return (
   <BrowserRouter>
     <ScrollToTop />
