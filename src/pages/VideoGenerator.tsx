@@ -5045,7 +5045,6 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
     if (mkFilter==="no" && u.marketing_consent) return false;
     return true;
   });
-  const activeCnt = users.filter(isActive).length;
   const provStats = users.reduce((a: any, u: any) => { const v = (u.provider || "").toLowerCase(); const k = v === "google" ? "google" : v === "kakao" ? "kakao" : "etc"; a[k] = (a[k] || 0) + 1; return a; }, { google: 0, kakao: 0, etc: 0 });
   const mkCnt = users.filter((u:any)=>u.marketing_consent).length;
   const copyMktEmails = async () => {
@@ -5211,7 +5210,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
     <div>
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm font-bold text-gray-900">👑 구독 관리</p>
-        <div className="text-xs text-gray-500">전체 {users.length} · <span className="text-green-400">구독중 {activeCnt}</span> · 만료 {users.length-activeCnt}
+        <div className="text-xs text-gray-500">전체 {users.length} · 무료 {users.filter(u=>!u.plan||u.plan==="free").length} · 스타터 {users.filter(u=>u.plan==="starter").length} · <span className="text-[#0064FF]">프로 {users.filter(u=>u.plan==="pro").length}</span> · <span className="text-purple-500">마스터 {users.filter(u=>u.plan==="master").length}</span>
           <button onClick={load} className="ml-3 rounded-lg border border-gray-200 px-2 py-1 hover:bg-gray-100">새로고침</button>
         </div>
       </div>
@@ -5832,7 +5831,7 @@ function PartnerView({ session, supabase }: { session: any; supabase: any }) {
           <option value="all">플랜 전체</option><option value="starter">스타터</option><option value="pro">프로</option><option value="master">마스터</option><option value="free">무료</option></select>
         <button onClick={load} className="rounded-xl bg-[#0064FF] hover:bg-[#0052D6] px-4 py-2.5 text-sm font-bold text-white transition">🔄 새로고침</button>
       </div>
-      <p className="text-xs text-gray-500 mb-2">멤버 {filtered.length}명</p>
+      <p className="text-xs text-gray-500 mb-2">전체 {members.length} · 무료 {members.filter(m=>!m.plan||m.plan==="free").length} · 스타터 {members.filter(m=>m.plan==="starter").length} · <span className="text-[#0064FF]">프로 {members.filter(m=>m.plan==="pro").length}</span> · <span className="text-purple-500">마스터 {members.filter(m=>m.plan==="master").length}</span> · 검색 {filtered.length}명</p>
 
       {/* 멤버 테이블 */}
       <div className="rounded-2xl bg-white border border-gray-200 overflow-hidden">
