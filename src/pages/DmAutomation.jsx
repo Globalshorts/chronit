@@ -20,8 +20,14 @@ export default function DmAutomation() {
   const [mediaId, setMediaId] = useState('')
 
   const load = async (uid) => {
-    const [{ data: c }, { data: r }, { data: l }] = await Promise.all([
-      supabase.from('ig_connections').select('id, ig_user_id, ig_username, status, token_expires_at, connected_at').eq('user_id', uid).maybeSingle(),
+    const { data: c } = await supabase.from('ig_connections')
+      .select('id, ig_user_id, ig_username, status, token_expires_at, connected_at')
+      .eq('user_id', uid).maybeSingle()
+    // 계정 전환 시: 다른(이전) 계정에 묶인 규칙을 현재 연결 계정으로 자동 이관 → 규칙 유지
+    if (c?.ig_user_id) {
+      try { await supabase.from('dm_rules').update({ ig_user_id: c.ig_user_id }).eq('user_id', uid).neq('ig_user_id', c.ig_user_id) } catch (_) {}
+    }
+    const [{ data: r }, { data: l }] = await Promise.all([
       supabase.from('dm_rules').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
       supabase.from('dm_logs').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(20),
     ])

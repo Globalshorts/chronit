@@ -4,7 +4,7 @@ import RichEditor from '../components/RichEditor'
 import {
   Megaphone, Save, LogOut, ShieldCheck, Loader, Eye, EyeOff,
   Plus, Pencil, Trash2, ChevronLeft,
-  Film, ChevronUp, ChevronDown, Upload, Gift, Flag, Flame, RefreshCw,
+  Film, ChevronUp, ChevronDown, Upload, Gift, Flag, Flame, RefreshCw, AlertTriangle,
 } from 'lucide-react'
 
 
@@ -697,6 +697,7 @@ const Admin = () => {
             { key: 'tips', icon: <Megaphone size={15} />, label: '꿀팁' },
             { key: 'videos', icon: <Film size={15} />, label: 'Demo Videos' },
             { key: 'reports', icon: <Flag size={15} />, label: '신고관리' },
+            { key: 'errors', icon: <AlertTriangle size={15} />, label: '오류 로그' },
             { key: 'pricing', icon: <ShieldCheck size={15} />, label: '요금제' },
             { key: 'trends', icon: <Flame size={15} />, label: '오늘의 트렌드' },
           ].map(t => (
@@ -709,6 +710,7 @@ const Admin = () => {
 
         {tab === 'videos' && <DemoVideosPanel />}
         {tab === 'reports' && <ReportsPanel />}
+        {tab === 'errors' && <ErrorReportsPanel />}
         {tab === 'missions' && <MissionsPanel />}
         {tab === 'tips' && <TipsPanel />}
         {tab === 'pricing' && <PricingPanel />}
@@ -950,6 +952,58 @@ function TrendAccountsPanel() {
         </div>
       )}
       <p className="mt-4 text-xs text-slate-500">자동 스캔: 2시간마다(cron). 켜진 계정만 스캔하고, 최근 3일 내 댓글 300+ 글을 오늘의 트렌드에 올려요.</p>
+    </div>
+  )
+}
+
+
+const ErrorReportsPanel = () => {
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [open, setOpen] = useState(null)
+  const load = () => {
+    setLoading(true)
+    supabase.from('error_reports').select('*').order('created_at', { ascending: false }).limit(100)
+      .then(({ data }) => { setItems(data || []); setLoading(false) })
+  }
+  useEffect(() => { load() }, [])
+  const SRC = { video_gen: 'bg-blue-500/20 text-blue-300', react: 'bg-red-500/20 text-red-300', promise: 'bg-amber-500/20 text-amber-300', runtime: 'bg-slate-500/20 text-slate-300', test: 'bg-emerald-500/20 text-emerald-300' }
+  return (
+    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
+      <div className="mb-6 flex items-center gap-2">
+        <AlertTriangle size={18} className="text-amber-400" />
+        <h2 className="text-base font-bold">오류 로그</h2>
+        <span className="ml-2 text-xs text-slate-500">사용자가 보낸 오류 리포트 (최근 100건)</span>
+        <button onClick={load} className="ml-auto flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white"><RefreshCw size={13} /> 새로고침</button>
+      </div>
+      {loading ? (
+        <p className="py-10 text-center text-sm text-slate-500">불러오는 중…</p>
+      ) : items.length === 0 ? (
+        <p className="py-10 text-center text-sm text-slate-500">접수된 오류가 없습니다</p>
+      ) : (
+        <div className="flex flex-col gap-2.5">
+          {items.map(it => (
+            <div key={it.id} className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+              <div className="mb-1.5 flex flex-wrap items-center gap-2 text-xs">
+                <span className={`rounded-md px-2 py-0.5 font-bold ${SRC[it.source] || SRC.runtime}`}>{it.source}</span>
+                {it.job_id && <span className="rounded-md bg-white/10 px-2 py-0.5 text-slate-300">job {it.job_id}</span>}
+                <span className="ml-auto text-slate-500">{new Date(it.created_at).toLocaleString('ko-KR')}</span>
+              </div>
+              <div className="text-sm font-bold text-white break-all">{it.message}</div>
+              {it.user_memo && <div className="mt-1 text-sm text-amber-300">메모: {it.user_memo}</div>}
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                <span>{it.user_email || '비로그인'}</span>
+                {it.url && <a href={it.url} target="_blank" rel="noreferrer" className="max-w-[240px] truncate text-slate-400 hover:text-white">{it.url}</a>}
+                {it.stack && <button onClick={() => setOpen(open === it.id ? null : it.id)} className="text-slate-400 hover:text-white">{open === it.id ? '스택 숨기기' : '스택 보기'}</button>}
+              </div>
+              {open === it.id && it.stack && (
+                <pre className="mt-2 max-h-52 overflow-auto whitespace-pre-wrap rounded-lg bg-[#0f172a] p-3 text-[11px] leading-relaxed text-slate-400">{it.stack}</pre>
+              )}
+              {it.user_agent && <p className="mt-1 truncate text-[10px] text-slate-600">{it.user_agent}</p>}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
