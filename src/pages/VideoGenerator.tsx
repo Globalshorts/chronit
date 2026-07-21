@@ -1086,7 +1086,7 @@ export default function VideoGenerator() {
         } catch { setClips([...(keepUploads as any), ...(urlClip ? [urlClip] : []), ...allCand]); }
         return;
       }
-    } catch (e) { setSearchError("분석 중 일시적인 오류가 있었어요. 잠시 후 다시 시도해 주세요."); try { (window as any).reportChronitError?.({ source:"video_gen", message:"분석 요청 실패: "+String(e).slice(0,300) }); } catch(_){} }
+    } catch (e) { setSearchError("분석 중 일시적인 오류가 있었어요. 잠시 후 다시 시도해 주세요."); /* 일시적 분석 오류는 재시도로 회복되므로 오류 팝업을 띄우지 않음(오탐 방지) */ }
     finally { setSearching(false); }
   };
   const toggleCart = (id: string) => {

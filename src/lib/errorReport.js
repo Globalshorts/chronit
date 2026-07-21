@@ -1,12 +1,12 @@
 import { supabase } from './supabase'
 
-// 오류를 잡아 팝업(리포트 버튼)으로 띄우고, 동의 시 승호 이메일로 전송하는 모듈.
+// 오류를 잡아 팝업(리포트 버튼)으로 띄우고, 동의 시 이메일로 전송하는 모듈.
 let _open = null          // ErrorReportModal이 등록하는 오프너
 let _isOpen = false
 const _seen = new Set()   // 세션 내 같은 오류 중복 팝업 방지
 
-// 무시할 노이즈성 오류(브라우저 확장/무해한 관측자 등)
-const NOISE = /ResizeObserver loop|Script error\.?$|Non-Error promise rejection/i
+// 무시할 노이즈성 오류(브라우저 확장·중단된 fetch·비디오·청크로드 등 — 대부분 무해)
+const NOISE = /ResizeObserver loop|Script error\.?$|Non-Error promise rejection|Load failed|NetworkError|Failed to fetch|AbortError|aborted|The play\(\) request|play\(\) request was interrupted|Loading chunk \d+ failed|ChunkLoadError|cancell?ed|Network request failed/i
 
 export function registerErrorModal(openFn) { _open = openFn }
 export function setModalOpen(v) { _isOpen = v }
@@ -47,12 +47,15 @@ let _installed = false
 export function installGlobalErrorCapture() {
   if (_installed || typeof window === 'undefined') return
   _installed = true
-  window.reportChronitError = captureError   // 수동 트리거(영상 생성 실패 등)
+  // 명시적 트리거(영상 생성/렌더/대본 등 실제 실패)만 팝업을 띄운다.
+  window.reportChronitError = captureError
+  // 전역 uncaught 에러·rejection은 팝업/전송하지 않는다.
+  // (중단된 fetch·비디오 로드·브라우저 확장 등 무해한 오류가 대부분이라 정상 영상에도 팝업이 뜨던 오탐 원인)
+  // 진짜 렌더 크래시는 ErrorBoundary(source:'react')가 별도로 잡아 팝업한다.
   window.addEventListener('error', (e) => {
-    captureError({ source: 'runtime', message: e?.message, stack: e?.error?.stack, extra: { filename: e?.filename, lineno: e?.lineno, colno: e?.colno } })
+    try { console.warn('[chronit] window error (silent):', e?.message) } catch (_) {}
   })
   window.addEventListener('unhandledrejection', (e) => {
-    const r = e?.reason
-    captureError({ source: 'promise', message: r?.message ?? String(r), stack: r?.stack })
+    try { console.warn('[chronit] unhandledrejection (silent):', e?.reason?.message ?? String(e?.reason)) } catch (_) {}
   })
 }
