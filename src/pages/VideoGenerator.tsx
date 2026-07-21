@@ -259,6 +259,13 @@ function scriptStyleJsonFor(id: string): string {
 // (hook 아님 → TDZ/#310 무관)
 function reconcileAccount() {
   try {
+    // (A) 일회성 리셋 — 계정 누수로 오염된 로컬 프로젝트를 모든 브라우저에서 1회 제거
+    const RESET_VER = "20260721a";
+    if (localStorage.getItem("chronit_reset_ver") !== RESET_VER) {
+      ["chronit_project_v1", "chronit_project_v2", "chronit_current_job"].forEach((k) => localStorage.removeItem(k));
+      localStorage.setItem("chronit_reset_ver", RESET_VER);
+    }
+    // (B) 계정 전환 감지 → 이전 계정 로컬 상태 제거
     let uid: string | null = null;
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
