@@ -872,12 +872,13 @@ export default function VideoGenerator() {
 
 
   // ── 프로젝트 저장/복원 ────────────────────────────────────────
-  const PROJECT_KEY = "chronit_project_v1";
+  const PROJECT_KEY = "chronit_project_v2";
 
   // 저장
   const saveProject = () => {
     const data = {
       savedAt: Date.now(),
+      uid: session?.user?.id || null,
       stage, sourceUrl, clips, cart: [...cart],
       targetSeconds, styleProfileId,
       showThumbnail, // ★ subtitleStyle/thumbnailStyle 는 user_settings 가 단일 출처 — 프로젝트에 저장 안 함(덮어쓰기 버그 방지)
@@ -943,11 +944,34 @@ export default function VideoGenerator() {
     } catch {}
   }, []);
 
-  // ★ 마운트 시 작업 자동 복원 (재접속/새로고침해도 이어짐) ★
+  // ★ 계정별 프로젝트 복원 / 계정 전환·최초접속 시 초기화 (계정 간 상태 누수 방지) ★
+  const _acctInitRef = useRef(false);
   useEffect(() => {
-    loadProject();
+    const uid = session?.user?.id;
+    if (!uid || _acctInitRef.current) return;
+    _acctInitRef.current = true;
+    let last: string | null = null;
+    try { last = localStorage.getItem("chronit_last_uid"); } catch {}
+    if (last !== uid) {
+      // 다른 계정(전환) 또는 최초/배포후 첫 접속 → 이전 상태 안전 초기화 + 기본 탭(프로젝트)
+      try {
+        ["chronit_project_v1", "chronit_project_v2", "chronit_current_job", "chronit_active_pack", "chronit_active_view"]
+          .forEach((k) => localStorage.removeItem(k));
+      } catch {}
+      handleReset();
+      setActiveView("generator");
+      setActivePack("");
+      setCurrentJobId("");
+    } else {
+      // 같은 계정 재방문 → 소유 프로젝트만 복원
+      try {
+        const raw = localStorage.getItem(PROJECT_KEY);
+        if (raw) { const d = JSON.parse(raw); if (d && d.uid === uid) applyProjectData(d); }
+      } catch {}
+    }
+    try { localStorage.setItem("chronit_last_uid", uid); } catch {}
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [session?.user?.id]);
 
   // ★ 서버 프로젝트가 로컬보다 최신이면 적용 — 기기 간 동기화 ★
   const _userEdited = useRef(false);  // ★ 유저가 이 기기에서 직접 편집했는지 (서버 동기화 보호)
