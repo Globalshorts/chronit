@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { CheckCircle2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { getFp } from '../lib/fp'
 
 const ICON = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png'
 const SOURCE_OPTIONS = ['유튜브', '인스타그램', '지인 추천', '블로그·카페', '검색(구글·네이버)', '기타']
@@ -66,7 +67,7 @@ const Register = () => {
         const stored = sessionStorage.getItem('chronit_ref')
         const code = (urlRef || stored || '').toUpperCase()
         if (code) {
-          await supabase.rpc('apply_referral_code_rpc', { p_new_user_id: s.user.id, p_referral_code: code })
+          await supabase.rpc('apply_referral_code_rpc', { p_new_user_id: s.user.id, p_referral_code: code, p_fingerprint: getFp() })
           setRefApplied(true)
           sessionStorage.removeItem('chronit_ref')
         }
@@ -139,7 +140,7 @@ const Register = () => {
     if (!code) { setRefMsg({ ok: false, text: '추천 코드를 입력해주세요' }); return }
     setSaving(true); setRefMsg(null)
     try {
-      const { data } = await supabase.rpc('redeem_referral_rpc', { p_referral_code: code })
+      const { data } = await supabase.rpc('redeem_referral_rpc', { p_referral_code: code, p_fingerprint: getFp() })
       if (data?.ok) { setRefMsg({ ok: true, text: `🎉 추천 코드 적용! 프로 7일 체험이 시작됐어요` }); setRefApplied(true) }
       else setRefMsg({ ok: false, text: data?.error ?? '추천 코드 적용에 실패했어요' })
     } catch { setRefMsg({ ok: false, text: '추천 코드 적용에 실패했어요' }) }

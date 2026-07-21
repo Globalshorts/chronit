@@ -12,6 +12,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import DOMPurify from "dompurify";
 import { supabase } from "../lib/supabase";
+import { getFp } from "../lib/fp";
 import type { Session } from "@supabase/supabase-js";
 import PaymentModal from "../components/PaymentModal";
 import ColorPalette from "../components/ColorPalette";
@@ -766,7 +767,7 @@ export default function VideoGenerator() {
     const code = refCode.trim();
     if (!code) { setRefMsg({ ok: false, text: "추천 코드를 입력해주세요" }); return; }
     setRefLoading(true); setRefMsg(null);
-    supabase.rpc("redeem_referral_rpc", { p_referral_code: code }).then(
+    supabase.rpc("redeem_referral_rpc", { p_referral_code: code, p_fingerprint: getFp() }).then(
       (res: any) => {
         const d = res?.data;
         if (d?.ok) {

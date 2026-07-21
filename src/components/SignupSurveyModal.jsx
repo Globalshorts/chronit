@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { getFp } from '../lib/fp'
 
 const OPTIONS = ['유튜브', '인스타그램', '지인 추천', '블로그·카페', '검색(구글·네이버)', '기타']
 
@@ -41,7 +42,7 @@ const SignupSurveyModal = ({ open, onDone }) => {
     if (!code) { setRefMsg({ ok: false, text: '추천 코드를 입력해주세요' }); return }
     setRefLoading(true); setRefMsg(null)
     try {
-      const { data } = await supabase.rpc('redeem_referral_rpc', { p_referral_code: code })
+      const { data } = await supabase.rpc('redeem_referral_rpc', { p_referral_code: code, p_fingerprint: getFp() })
       if (data?.ok) {
         setRefMsg({ ok: true, text: `🎉 추천 코드 적용! 프로 7일 체험이 시작됐어요` })
         setTimeout(() => onDone?.(), 1400)
