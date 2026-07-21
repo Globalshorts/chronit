@@ -178,21 +178,29 @@ const VOICES_BASIC = [
   { id: "echo",    label: "남성 2", desc: "깊고 안정적" },
   { id: "fable",   label: "여성 3", desc: "부드럽고 감성적" },
 ];
-const FISH_FEMALE = "46939387dd944a45a399bd92b8de52cb";
-const FISH_MALE   = "c4857e9f2c4249ad967916a979e9da36";
-const FISH_VOICE_IDS = new Set([FISH_FEMALE, FISH_MALE]);
+const FISH_FEMALE = "4e118bfbb83e401c84699c09b5f08257";  // 기본 여성 (나긋한 여성)
+const FISH_MALE   = "c4857e9f2c4249ad967916a979e9da36";  // 기본 남성 (나긋한 남성)
+const VOICES_PRO = [
+  { id: "4e118bfbb83e401c84699c09b5f08257", label: "나긋한 여성",     desc: "여성", speed: 110 },
+  { id: "54f52a4d2b994612a30306b4a2a95758", label: "인플루언서 여성", desc: "여성", speed: 100 },
+  { id: "2940e486b6f146fc8968fe49fa2f04dc", label: "활기찬 여성",     desc: "여성", speed: 100 },
+  { id: "c4857e9f2c4249ad967916a979e9da36", label: "나긋한 남성",     desc: "남성", speed: 100 },
+  { id: "cf29a0584a4341259729577595fe96a3", label: "꿀팁 남성",       desc: "남성", speed: 100 },
+  { id: "3fb0982238a342d9b2bac71413a62287", label: "침착한 남성",     desc: "남성", speed: 100 },
+];
+const FISH_VOICE_IDS = new Set(VOICES_PRO.map(v => v.id));
+const FISH_MALE_IDS = new Set(["c4857e9f2c4249ad967916a979e9da36","cf29a0584a4341259729577595fe96a3","3fb0982238a342d9b2bac71413a62287"]);
+const VOICE_SPEED_MAP: Record<string, number> = Object.fromEntries(VOICES_PRO.map(v => [v.id, v.speed]));
+function voiceSpeedFor(id: string): number { return VOICE_SPEED_MAP[id] ?? 100; }
 // 구 ElevenLabs 남성 voice id (성별 유지 마이그레이션용)
 const LEGACY_MALE_IDS = new Set(["Ir7oQcBXWiq4oFGROCfj","sQ3a15DhENXU8pKTHlcc","m3gJBS8OofDJfycyA2Ip","4JJwo477JUAx3HV0T7n7","LS3HmRGCXV8wxCAhUbTt","fHzGR8qcnsDR2uaj9r16","bciERhbhQhAIWwvnQA7H"]);
-// 저장된 구 voice_id(구 EL/OpenAI) → 현재 Fish 2종으로 이관(성별 유지, 나머지 여성 기본)
+// 저장된 구 voice_id → 현재 Fish 음성으로 이관(성별 유지, 나머지 여성 기본)
 function migrateVoiceId(v: string): string {
   if (FISH_VOICE_IDS.has(v)) return v;
+  if (FISH_MALE_IDS.has(v)) return FISH_MALE;
   if (LEGACY_MALE_IDS.has(v)) return FISH_MALE;
   return FISH_FEMALE;
 }
-const VOICES_PRO = [
-  { id: FISH_FEMALE, label: "여성", desc: "여성, 자연스러운 한국어" },
-  { id: FISH_MALE,   label: "남성", desc: "남성, 자연스러운 한국어" },
-];
 // 여성 EL 보이스는 볼륨 150% 기본값
 const EL_FEMALE_IDS = new Set(["zgDzx5jLLCqEp6Fl7Kl7","8jHHF8rMqMlg8if2mOUe","ksaI0TCD9BstzEzlxj4q","5I7B1di44aCL15NkP0jn","JAglhVijAfMW2NotYUoH","6Vgh4FaCc0SCcWPwcyXa","uyVNoMrnUku1dZyVEXwD","74i8I1pZi98ZjmmYLdaF","tIXHSlSWOafJawXSV1g4","ZRJMGKt2Okf3o9C38eSq","5DWGv3VDkihNUcbvaonB","AW5wrnG1jVizOYY7R1Oo","xi3rF0t7dg7uN2M0WUhr"]);
 
@@ -389,7 +397,7 @@ export default function VideoGenerator() {
   useEffect(() => { try { localStorage.setItem("chronit_ad_label", adLabel ? "1" : "0"); } catch {} }, [adLabel]);
   // ★ 배속 기본 130→120 1회 마이그레이션 (공지 없이 전원 적용) ★
   useEffect(() => { try { if (!localStorage.getItem("chronit_speed_v120")) { localStorage.setItem("chronit_speed_v120","1"); if (localStorage.getItem("chronit_voice_speed") === "130") { localStorage.setItem("chronit_voice_speed","120"); setVoiceSpeed(120); } } } catch {} }, []);
-  const [voiceSpeed, setVoiceSpeed] = useState(() => { try { return Number(localStorage.getItem("chronit_voice_speed")) || 100; } catch { return 100; } });
+  const [voiceSpeed, setVoiceSpeed] = useState(() => { try { return Number(localStorage.getItem("chronit_voice_speed")) || voiceSpeedFor(FISH_FEMALE); } catch { return voiceSpeedFor(FISH_FEMALE); } });
   const [voiceVolume, setVoiceVolume] = useState(() => { try { return Number(localStorage.getItem("chronit_voice_volume")) || 100; } catch { return 100; } });
   const [rendering, setRendering]   = useState(false);
   const [renderError, setRenderError] = useState("");
@@ -503,7 +511,7 @@ export default function VideoGenerator() {
   const applyPack = (p:any, key?:string) => {
     setTargetSeconds(p.targetSeconds);
     setVoiceId(p.voiceId);  // ★ 음성 고급 통일 — 모든 티어 고급 음성
-    setVoiceSpeed(p.voiceSpeed); setVoiceVolume(p.voiceVolume);
+    setVoiceSpeed(voiceSpeedFor(p.voiceId)); setVoiceVolume(p.voiceVolume);
     setSubtitleStyle(p.subtitleStyle); setThumbnailStyle(p.thumbnailStyle);
     // 대본 스타일은 별도 선택 — 음성 팩이 덮어쓰지 않음
     try { localStorage.setItem("chronit_voice_pref","1"); localStorage.setItem("chronit_active_pack", key ?? p.key ?? ""); } catch {}
@@ -1606,7 +1614,7 @@ export default function VideoGenerator() {
                     {STYLE_PACKS.map(pk => (
                       <button key={pk.key} type="button" onClick={() => applyPack(pk, pk.key)}
                         className={`rounded-lg px-2.5 py-1 text-xs font-bold border transition ${activePack===pk.key ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}>
-                        {pk.emoji} {pk.name}{pk.voiceId === FISH_MALE ? " (남)" : " (여)"}
+                        {pk.emoji} {pk.name}{FISH_MALE_IDS.has(pk.voiceId) ? " (남)" : " (여)"}
                       </button>
                     ))}
                   </div>
@@ -1920,7 +1928,7 @@ export default function VideoGenerator() {
                   {STYLE_PACKS.map((pk) => (
                     <button key={pk.key} onClick={() => applyPack(pk)}
                       className={`rounded-xl border p-3 text-left transition ${activePack === pk.key ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 bg-white hover:border-gray-400"}`}>
-                      <p className={`text-sm font-black ${activePack === pk.key ? "text-[#0064FF]" : "text-gray-900"}`}>{pk.emoji} {pk.name}{pk.voiceId === FISH_MALE ? " (남)" : " (여)"}</p>
+                      <p className={`text-sm font-black ${activePack === pk.key ? "text-[#0064FF]" : "text-gray-900"}`}>{pk.emoji} {pk.name}{FISH_MALE_IDS.has(pk.voiceId) ? " (남)" : " (여)"}</p>
                       <p className="text-xs text-gray-500 mt-0.5 leading-tight">{pk.desc}</p>
                     </button>
                   ))}
@@ -2274,6 +2282,10 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
     setVoiceId(id);
     localStorage.setItem("chronit_voice_id", id);
     localStorage.setItem("chronit_voice_pref", "1"); // 직접 선택 → 기본값 자동적용 중단(볼륨 유지)
+    // ★ 음성별 권장 배속 자동 적용 ★
+    const _sp = voiceSpeedFor(id);
+    setVoiceSpeed(_sp);
+    try { localStorage.setItem("chronit_voice_speed", String(_sp)); } catch {}
   };
   const handleSetSpeed = (v: number) => { setVoiceSpeed(v); localStorage.setItem("chronit_voice_speed", String(v)); };
 
@@ -2287,7 +2299,7 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
             <option key={v.id} value={v.id}>{v.label}{v.desc ? ` · ${v.desc}` : ""}</option>
           ))}
         </select>
-        <button onClick={handlePreview} style={{display:"none"}}
+        <button onClick={handlePreview}
           className={`shrink-0 rounded-xl px-4 py-3 text-sm font-bold transition border ${previewing ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF] animate-pulse" : "border-gray-200 text-gray-400 hover:border-gray-500 hover:text-gray-900"}`}>
           {previewing ? "⏸" : "▶"} 미리듣기
         </button>
