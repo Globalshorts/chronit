@@ -181,10 +181,11 @@ const VOICES_BASIC = [
 const FISH_FEMALE = "4e118bfbb83e401c84699c09b5f08257";  // 기본 여성 (나긋한 여성)
 const FISH_MALE   = "c4857e9f2c4249ad967916a979e9da36";  // 기본 남성 (나긋한 남성)
 const VOICES_PRO = [
+  { id: "46939387dd944a45a399bd92b8de52cb", label: "20대 여성",       desc: "여성", speed: 100 },
   { id: "4e118bfbb83e401c84699c09b5f08257", label: "나긋한 여성",     desc: "여성", speed: 110 },
   { id: "54f52a4d2b994612a30306b4a2a95758", label: "인플루언서 여성", desc: "여성", speed: 100 },
   { id: "2940e486b6f146fc8968fe49fa2f04dc", label: "활기찬 여성",     desc: "여성", speed: 100 },
-  { id: "c4857e9f2c4249ad967916a979e9da36", label: "나긋한 남성",     desc: "남성", speed: 100 },
+  { id: "c4857e9f2c4249ad967916a979e9da36", label: "30대 남성",       desc: "남성", speed: 100 },
   { id: "cf29a0584a4341259729577595fe96a3", label: "꿀팁 남성",       desc: "남성", speed: 100 },
   { id: "3fb0982238a342d9b2bac71413a62287", label: "침착한 남성",     desc: "남성", speed: 100 },
 ];
