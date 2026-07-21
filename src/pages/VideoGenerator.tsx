@@ -178,27 +178,20 @@ const VOICES_BASIC = [
   { id: "echo",    label: "남성 2", desc: "깊고 안정적" },
   { id: "fable",   label: "여성 3", desc: "부드럽고 감성적" },
 ];
+const FISH_FEMALE = "46939387dd944a45a399bd92b8de52cb";
+const FISH_MALE   = "c4857e9f2c4249ad967916a979e9da36";
+const FISH_VOICE_IDS = new Set([FISH_FEMALE, FISH_MALE]);
+// 구 ElevenLabs 남성 voice id (성별 유지 마이그레이션용)
+const LEGACY_MALE_IDS = new Set(["Ir7oQcBXWiq4oFGROCfj","sQ3a15DhENXU8pKTHlcc","m3gJBS8OofDJfycyA2Ip","4JJwo477JUAx3HV0T7n7","LS3HmRGCXV8wxCAhUbTt","fHzGR8qcnsDR2uaj9r16","bciERhbhQhAIWwvnQA7H"]);
+// 저장된 구 voice_id(구 EL/OpenAI) → 현재 Fish 2종으로 이관(성별 유지, 나머지 여성 기본)
+function migrateVoiceId(v: string): string {
+  if (FISH_VOICE_IDS.has(v)) return v;
+  if (LEGACY_MALE_IDS.has(v)) return FISH_MALE;
+  return FISH_FEMALE;
+}
 const VOICES_PRO = [
-  { id: "Ir7oQcBXWiq4oFGROCfj", label: "태민 (남)", desc: "남성, 자연스러운 한국어" },
-  { id: "sQ3a15DhENXU8pKTHlcc", label: "Mr. K (남)", desc: "남성, 차분하고 전문적" },
-  { id: "m3gJBS8OofDJfycyA2Ip", label: "태형 (남)", desc: "남성, 활기차고 친근함" },
-  { id: "zgDzx5jLLCqEp6Fl7Kl7", label: "한나 (여)", desc: "여성, 밝고 자연스러움" },
-  { id: "8jHHF8rMqMlg8if2mOUe", label: "한 (여)",   desc: "여성, 차분하고 안정적" },
-  { id: "ksaI0TCD9BstzEzlxj4q", label: "슬기 (여)", desc: "여성, 부드럽고 감성적" },
-  { id: "5I7B1di44aCL15NkP0jn", label: "칸나 (여)", desc: "여성, 에너지 넘침" },
-  { id: "JAglhVijAfMW2NotYUoH", label: "피터 (여)", desc: "여성, 친근하고 명랑" },
-  { id: "6Vgh4FaCc0SCcWPwcyXa", label: "혜진 (여)", desc: "여성, 따뜻하고 신뢰감" },
-  { id: "uyVNoMrnUku1dZyVEXwD", label: "안나 (여)", desc: "여성, 밝고 활발함" },
-  { id: "74i8I1pZi98ZjmmYLdaF", label: "차콜 (여)", desc: "여성, 젊고 내레이션" },
-  { id: "tIXHSlSWOafJawXSV1g4", label: "최미소 (여)", desc: "여성, 차분·긍정, 서울 억양" },
-  { id: "ZRJMGKt2Okf3o9C38eSq", label: "클레어 (여)", desc: "여성, 차분·부드러움, ASMR·내레이션" },
-  { id: "5DWGv3VDkihNUcbvaonB", label: "켈리 (여)", desc: "여성, 또렷한 서울 표준어, 제품·리뷰" },
-  { id: "AW5wrnG1jVizOYY7R1Oo", label: "지영 (여)", desc: "여성, 따뜻·또렷, 친근한 내레이션" },
-  { id: "xi3rF0t7dg7uN2M0WUhr", label: "유나 (여)", desc: "여성, 젊고 부드러움, 스토리텔링" },
-  { id: "4JJwo477JUAx3HV0T7n7", label: "요한 (남)", desc: "남성, 30대 자신감·권위" },
-  { id: "LS3HmRGCXV8wxCAhUbTt", label: "동 (남)", desc: "남성, 40대 따뜻·친근" },
-  { id: "fHzGR8qcnsDR2uaj9r16", label: "임호진 (남)", desc: "남성, 30대 차분·신뢰, 내레이션" },
-  { id: "bciERhbhQhAIWwvnQA7H", label: "승민 (남)", desc: "남성, 밝고 또렷" },
+  { id: FISH_FEMALE, label: "여성", desc: "여성, 자연스러운 한국어" },
+  { id: FISH_MALE,   label: "남성", desc: "남성, 자연스러운 한국어" },
 ];
 // 여성 EL 보이스는 볼륨 150% 기본값
 const EL_FEMALE_IDS = new Set(["zgDzx5jLLCqEp6Fl7Kl7","8jHHF8rMqMlg8if2mOUe","ksaI0TCD9BstzEzlxj4q","5I7B1di44aCL15NkP0jn","JAglhVijAfMW2NotYUoH","6Vgh4FaCc0SCcWPwcyXa","uyVNoMrnUku1dZyVEXwD","74i8I1pZi98ZjmmYLdaF","tIXHSlSWOafJawXSV1g4","ZRJMGKt2Okf3o9C38eSq","5DWGv3VDkihNUcbvaonB","AW5wrnG1jVizOYY7R1Oo","xi3rF0t7dg7uN2M0WUhr"]);
@@ -212,19 +205,19 @@ const SUBTITLE_PRESETS = [
 
 const STYLE_PACKS = [
   { key:"review", name:"감성 리뷰", emoji:"🤍", desc:"차분·신뢰 · 뷰티·리빙",
-    targetSeconds:15, voiceId:"tIXHSlSWOafJawXSV1g4", voiceIdBasic:"shimmer", voiceSpeed:120, voiceVolume:130, styleProfileId:"auto",
+    targetSeconds:15, voiceId:FISH_FEMALE, voiceIdBasic:"shimmer", voiceSpeed:120, voiceVolume:130, styleProfileId:"auto",
     subtitleStyle:{fontFamily:"'Gowun Dodum', sans-serif",color:"#FFFFFF",fontSize:13,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
     thumbnailStyle:{fontFamily:"'Gowun Dodum', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
   { key:"unboxing", name:"다이나믹 언박싱", emoji:"⚡", desc:"쨍·활기 · 가전·잡화",
-    targetSeconds:15, voiceId:"5DWGv3VDkihNUcbvaonB", voiceIdBasic:"nova", voiceSpeed:120, voiceVolume:130, styleProfileId:"auto",
+    targetSeconds:15, voiceId:FISH_FEMALE, voiceIdBasic:"nova", voiceSpeed:120, voiceVolume:130, styleProfileId:"auto",
     subtitleStyle:{fontFamily:"'Moneygraphy Rounded', sans-serif",color:"#FFE500",fontSize:13,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
     thumbnailStyle:{fontFamily:"'Moneygraphy Rounded', sans-serif",color:"#FFE500",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
   { key:"info", name:"정보형 꿀템", emoji:"📌", desc:"가독성 · 주방·기능성",
-    targetSeconds:15, voiceId:"fHzGR8qcnsDR2uaj9r16", voiceIdBasic:"echo", voiceSpeed:120, voiceVolume:130, styleProfileId:"auto",
+    targetSeconds:15, voiceId:FISH_MALE, voiceIdBasic:"echo", voiceSpeed:120, voiceVolume:130, styleProfileId:"auto",
     subtitleStyle:{fontFamily:"'Kakao Big Sans', sans-serif",color:"#FFFFFF",fontSize:13,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:70,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
     thumbnailStyle:{fontFamily:"'Kakao Big Sans', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
   { key:"hand", name:"손글씨 감성", emoji:"✍️", desc:"따뜻 · 육아·감성소품",
-    targetSeconds:15, voiceId:"AW5wrnG1jVizOYY7R1Oo", voiceIdBasic:"fable", voiceSpeed:120, voiceVolume:130, styleProfileId:"auto",
+    targetSeconds:15, voiceId:FISH_FEMALE, voiceIdBasic:"fable", voiceSpeed:120, voiceVolume:130, styleProfileId:"auto",
     subtitleStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:13,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
     thumbnailStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
 ];
@@ -391,7 +384,7 @@ export default function VideoGenerator() {
   });
 
   // Stage 5
-  const [voiceId, setVoiceId]       = useState(() => { const _OA = new Set(["nova","shimmer","onyx","echo","fable","alloy"]); try { const _v = localStorage.getItem("chronit_voice_id") || ""; return (_v && !_OA.has(_v)) ? _v : "74i8I1pZi98ZjmmYLdaF"; } catch { return "74i8I1pZi98ZjmmYLdaF"; } });
+  const [voiceId, setVoiceId]       = useState(() => { try { const _v = localStorage.getItem("chronit_voice_id") || ""; return migrateVoiceId(_v); } catch { return FISH_FEMALE; } });
   const [adLabel, setAdLabel] = useState(() => { try { return localStorage.getItem("chronit_ad_label") !== "0"; } catch { return true; } }); // [광고] 표기 기본 ON
   useEffect(() => { try { localStorage.setItem("chronit_ad_label", adLabel ? "1" : "0"); } catch {} }, [adLabel]);
   // ★ 배속 기본 130→120 1회 마이그레이션 (공지 없이 전원 적용) ★
@@ -579,7 +572,7 @@ export default function VideoGenerator() {
     if (data && (data as any).can_pro_voice !== undefined) setCanProVoice(!!(data as any).can_pro_voice);
     if (!proDefaultRef.current && data && (data as any).can_pro_voice && !localStorage.getItem("chronit_voice_pref")) {
       proDefaultRef.current = true;
-      setVoiceId("74i8I1pZi98ZjmmYLdaF");   // 프로/체험 기본 = 고급 음성 '차콜' (여성 볼륨은 모델이 자동 부스트)
+      setVoiceId(FISH_FEMALE);   // 프로/체험 기본 = 고급 음성 '차콜' (여성 볼륨은 모델이 자동 부스트)
     }
     if (data?.plan) setUserPlan(data.plan);
     if (data?.role) setUserRole(data.role);
@@ -636,7 +629,7 @@ export default function VideoGenerator() {
         .select("voice_id, voice_speed, voice_volume, subtitle_style, thumbnail_style, target_seconds, style_profile_id, subtitle_preset_id, thumbnail_preset_id, gen_mode")
         .eq("user_id", uid).maybeSingle();
       if (data) {
-        if (data.voice_id) setVoiceId(data.voice_id);
+        if (data.voice_id) setVoiceId(migrateVoiceId(data.voice_id));
         if (data.voice_speed != null) setVoiceSpeed(Number(data.voice_speed));
         if (data.voice_volume != null) setVoiceVolume(Number(data.voice_volume));
         // ★ 팩을 손 안 대고 쓰는 중(activePack 유효)이면 저장본 대신 최신 팩 스타일 적용 → 팩 업데이트 자동 소급 ★
@@ -944,7 +937,7 @@ export default function VideoGenerator() {
     if (data.styleProfileId) setStyleProfileId(data.styleProfileId);
     // ★ 스타일은 user_settings 가 단일 출처 — 프로젝트 복원이 user_settings 커스텀을 덮어쓰지 않도록 적용하지 않음
     if (data.showThumbnail !== undefined) setShowThumbnail(data.showThumbnail);
-    if (data.voiceId) setVoiceId(data.voiceId);
+    if (data.voiceId) setVoiceId(migrateVoiceId(data.voiceId));
     if (data.voiceSpeed) setVoiceSpeed(data.voiceSpeed);
     if (Array.isArray(data.abcVariants)) setAbcVariants(data.abcVariants);
     if (typeof data.abcIdx === "number") setAbcIdx(data.abcIdx);
@@ -2249,7 +2242,7 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
     if (previewing) { audioRef.current?.pause(); setPreviewing(false); return; }
     try {
       setPreviewing(true);
-      const engine = isProVoice(voiceId) ? "elevenlabs" : "openai";
+      const engine = isProVoice(voiceId) ? "fish" : "openai";
       const resp = await fetch(VOICE_PREVIEW_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -2282,7 +2275,7 @@ function VoicePanel({ voiceId, setVoiceId, voiceSpeed, setVoiceSpeed, voiceVolum
             <option key={v.id} value={v.id}>{v.label}{v.desc ? ` · ${v.desc}` : ""}</option>
           ))}
         </select>
-        <button onClick={handlePreview}
+        <button onClick={handlePreview} style={{display:"none"}}
           className={`shrink-0 rounded-xl px-4 py-3 text-sm font-bold transition border ${previewing ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF] animate-pulse" : "border-gray-200 text-gray-400 hover:border-gray-500 hover:text-gray-900"}`}>
           {previewing ? "⏸" : "▶"} 미리듣기
         </button>
