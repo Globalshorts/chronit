@@ -205,19 +205,19 @@ const SUBTITLE_PRESETS = [
 
 const STYLE_PACKS = [
   { key:"review", name:"감성 리뷰", emoji:"🤍", desc:"차분·신뢰 · 뷰티·리빙",
-    targetSeconds:15, voiceId:FISH_FEMALE, voiceIdBasic:"shimmer", voiceSpeed:120, voiceVolume:130, styleProfileId:"auto",
+    targetSeconds:15, voiceId:FISH_FEMALE, voiceIdBasic:"shimmer", voiceSpeed:100, voiceVolume:130, styleProfileId:"auto",
     subtitleStyle:{fontFamily:"'Gowun Dodum', sans-serif",color:"#FFFFFF",fontSize:13,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
     thumbnailStyle:{fontFamily:"'Gowun Dodum', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
   { key:"unboxing", name:"다이나믹 언박싱", emoji:"⚡", desc:"쨍·활기 · 가전·잡화",
-    targetSeconds:15, voiceId:FISH_FEMALE, voiceIdBasic:"nova", voiceSpeed:120, voiceVolume:130, styleProfileId:"auto",
+    targetSeconds:15, voiceId:FISH_FEMALE, voiceIdBasic:"nova", voiceSpeed:100, voiceVolume:130, styleProfileId:"auto",
     subtitleStyle:{fontFamily:"'Moneygraphy Rounded', sans-serif",color:"#FFE500",fontSize:13,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
     thumbnailStyle:{fontFamily:"'Moneygraphy Rounded', sans-serif",color:"#FFE500",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
   { key:"info", name:"정보형 꿀템", emoji:"📌", desc:"가독성 · 주방·기능성",
-    targetSeconds:15, voiceId:FISH_MALE, voiceIdBasic:"echo", voiceSpeed:120, voiceVolume:130, styleProfileId:"auto",
+    targetSeconds:15, voiceId:FISH_MALE, voiceIdBasic:"echo", voiceSpeed:100, voiceVolume:130, styleProfileId:"auto",
     subtitleStyle:{fontFamily:"'Kakao Big Sans', sans-serif",color:"#FFFFFF",fontSize:13,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:70,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
     thumbnailStyle:{fontFamily:"'Kakao Big Sans', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
   { key:"hand", name:"손글씨 감성", emoji:"✍️", desc:"따뜻 · 육아·감성소품",
-    targetSeconds:15, voiceId:FISH_FEMALE, voiceIdBasic:"fable", voiceSpeed:120, voiceVolume:130, styleProfileId:"auto",
+    targetSeconds:15, voiceId:FISH_FEMALE, voiceIdBasic:"fable", voiceSpeed:100, voiceVolume:130, styleProfileId:"auto",
     subtitleStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:13,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
     thumbnailStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
 ];
@@ -389,7 +389,7 @@ export default function VideoGenerator() {
   useEffect(() => { try { localStorage.setItem("chronit_ad_label", adLabel ? "1" : "0"); } catch {} }, [adLabel]);
   // ★ 배속 기본 130→120 1회 마이그레이션 (공지 없이 전원 적용) ★
   useEffect(() => { try { if (!localStorage.getItem("chronit_speed_v120")) { localStorage.setItem("chronit_speed_v120","1"); if (localStorage.getItem("chronit_voice_speed") === "130") { localStorage.setItem("chronit_voice_speed","120"); setVoiceSpeed(120); } } } catch {} }, []);
-  const [voiceSpeed, setVoiceSpeed] = useState(() => { try { return Number(localStorage.getItem("chronit_voice_speed")) || 120; } catch { return 120; } });
+  const [voiceSpeed, setVoiceSpeed] = useState(() => { try { return Number(localStorage.getItem("chronit_voice_speed")) || 100; } catch { return 100; } });
   const [voiceVolume, setVoiceVolume] = useState(() => { try { return Number(localStorage.getItem("chronit_voice_volume")) || 100; } catch { return 100; } });
   const [rendering, setRendering]   = useState(false);
   const [renderError, setRenderError] = useState("");
@@ -493,7 +493,7 @@ export default function VideoGenerator() {
     catch { return "generator"; }
   });
   const [studioTab, setStudioTab] = useState("style"); // 'style'(스타일 찾기) | 'auto'(자동화 세팅)
-  const [activePack, setActivePack] = useState<string>(() => { try { return localStorage.getItem("chronit_active_pack") || ""; } catch { return ""; } });
+  const [activePack, setActivePack] = useState<string>(() => { try { return localStorage.getItem("chronit_active_pack") || "review"; } catch { return "review"; } });
   const [advOpen, setAdvOpen] = useState(false);
   const [packVoiceMsg, setPackVoiceMsg] = useState(""); const [packInfoMsg, setPackInfoMsg] = useState("");
   const [manualOpen, setManualOpen] = useState(true);   // 대본 섹션 기본 펼침 (대본 만들기 버튼 노출)
@@ -630,14 +630,26 @@ export default function VideoGenerator() {
         .eq("user_id", uid).maybeSingle();
       if (data) {
         if (data.voice_id) setVoiceId(migrateVoiceId(data.voice_id));
-        if (data.voice_speed != null) setVoiceSpeed(Number(data.voice_speed));
+        // ★ 배속 기본 1.0 전환 — 1회 전원 리셋(구 120/130 → 100) ★
+        let _spd = data.voice_speed != null ? Number(data.voice_speed) : 100;
+        try {
+          if (!localStorage.getItem("chronit_speed_v100")) {
+            localStorage.setItem("chronit_speed_v100", "1");
+            _spd = 100;
+            supabase.from("user_settings").update({ voice_speed: 100 }).eq("user_id", uid).then(() => {}, () => {});
+          }
+        } catch {}
+        setVoiceSpeed(_spd);
+        try { localStorage.setItem("chronit_voice_speed", String(_spd)); } catch {}
         if (data.voice_volume != null) setVoiceVolume(Number(data.voice_volume));
-        // ★ 팩을 손 안 대고 쓰는 중(activePack 유효)이면 저장본 대신 최신 팩 스타일 적용 → 팩 업데이트 자동 소급 ★
-        const _ap = (() => { try { return localStorage.getItem("chronit_active_pack") || ""; } catch { return ""; } })();
+        // ★ 기본 팩 = 감성리뷰: 저장 팩도 커스텀 자막도 없으면 review 기본 적용 ★
+        const _apStored = (() => { try { return localStorage.getItem("chronit_active_pack") || ""; } catch { return ""; } })();
+        const _ap = _apStored || (data.subtitle_style ? "" : "review");
         const _pack = STYLE_PACKS.find(pk => pk.key === _ap);
         if (_pack) {
           setSubtitleStyle(_pack.subtitleStyle);
           setThumbnailStyle(_pack.thumbnailStyle);
+          if (_ap !== _apStored) { setActivePack(_ap); try { localStorage.setItem("chronit_active_pack", _ap); } catch {} }
         } else {
           if (data.subtitle_style) setSubtitleStyle((p: any) => ({ ...p, ...data.subtitle_style }));
           if (data.thumbnail_style) setThumbnailStyle((p: any) => ({ ...p, ...data.thumbnail_style }));
@@ -1594,7 +1606,7 @@ export default function VideoGenerator() {
                     {STYLE_PACKS.map(pk => (
                       <button key={pk.key} type="button" onClick={() => applyPack(pk, pk.key)}
                         className={`rounded-lg px-2.5 py-1 text-xs font-bold border transition ${activePack===pk.key ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}>
-                        {pk.emoji} {pk.name}
+                        {pk.emoji} {pk.name}{pk.voiceId === FISH_MALE ? " (남)" : " (여)"}
                       </button>
                     ))}
                   </div>
@@ -1908,7 +1920,7 @@ export default function VideoGenerator() {
                   {STYLE_PACKS.map((pk) => (
                     <button key={pk.key} onClick={() => applyPack(pk)}
                       className={`rounded-xl border p-3 text-left transition ${activePack === pk.key ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 bg-white hover:border-gray-400"}`}>
-                      <p className={`text-sm font-black ${activePack === pk.key ? "text-[#0064FF]" : "text-gray-900"}`}>{pk.emoji} {pk.name}</p>
+                      <p className={`text-sm font-black ${activePack === pk.key ? "text-[#0064FF]" : "text-gray-900"}`}>{pk.emoji} {pk.name}{pk.voiceId === FISH_MALE ? " (남)" : " (여)"}</p>
                       <p className="text-xs text-gray-500 mt-0.5 leading-tight">{pk.desc}</p>
                     </button>
                   ))}
