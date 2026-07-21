@@ -35,8 +35,16 @@ const ScrollToTop = () => {
 const App = () => {
   useEffect(() => { installGlobalErrorCapture() }, [])
   useEffect(() => {
+    const GA = 'G-Y46H5BMZ2X'
+    const setUid = (session) => {
+      try {
+        const uid = session && session.user && session.user.id
+        if (window.gtag && uid) window.gtag('config', GA, { user_id: uid, send_page_view: false })
+      } catch {}
+    }
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) trackSignupIfNew(session)
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) { setUid(session); trackSignupIfNew(session) }
+      if (event === 'SIGNED_OUT') { try { window.gtag && window.gtag('config', GA, { user_id: undefined, send_page_view: false }) } catch {} }
     })
     return () => { try { sub.subscription.unsubscribe() } catch {} }
   }, [])
