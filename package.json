@@ -22,7 +22,8 @@
     "react-router-dom": "^7.14.2",
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1",
-    "tailwindcss": "^4.2.4"
+    "tailwindcss": "^4.2.4",
+    "posthog-js": "^1.160.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

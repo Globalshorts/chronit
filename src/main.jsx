@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
+import { initPosthog } from './lib/posthog'
 
 // ── 첫 방문 유입 캡처 (first-touch) — 광고/유입 귀속용 ──
 try {
@@ -18,6 +19,8 @@ try {
     }));
   }
 } catch { /* noop */ }
+
+initPosthog()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

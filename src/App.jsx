@@ -25,6 +25,7 @@ import ErrorReportModal from './components/ErrorReportModal'
 import { installGlobalErrorCapture } from './lib/errorReport'
 import { supabase } from './lib/supabase'
 import { trackSignupIfNew } from './lib/trackSignup'
+import { phIdentify, phReset } from './lib/posthog'
 
 const ScrollToTop = () => {
   const { pathname } = useLocation()
@@ -43,8 +44,8 @@ const App = () => {
       } catch {}
     }
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) { setUid(session); trackSignupIfNew(session) }
-      if (event === 'SIGNED_OUT') { try { window.gtag && window.gtag('config', GA, { user_id: undefined, send_page_view: false }) } catch {} }
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) { setUid(session); trackSignupIfNew(session); phIdentify(session.user && session.user.id) }
+      if (event === 'SIGNED_OUT') { try { window.gtag && window.gtag('config', GA, { user_id: undefined, send_page_view: false }) } catch {}; phReset() }
     })
     return () => { try { sub.subscription.unsubscribe() } catch {} }
   }, [])
