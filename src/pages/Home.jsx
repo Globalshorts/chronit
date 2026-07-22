@@ -117,6 +117,19 @@ const Home = () => {
   const [eventTab, setEventTab] = useState('active')
   const [planPrices, setPlanPrices] = useState(PLAN_FALLBACK)
   const [spots, setSpots] = useState(null)
+  const [stats, setStats] = useState(null)
+  const [badgeIdx, setBadgeIdx] = useState(0)
+  useEffect(() => { supabase.rpc('public_stats_rpc').then(({ data }) => { if (data) setStats(data) }) }, [])
+  const heroBadges = [
+    { icon: <Sparkles size={14} fill="currentColor" />, text: '쇼핑 숏폼 특화 AI' },
+    ...(stats ? [{ icon: <Users size={14} />, text: `${Number(stats.users).toLocaleString('ko-KR')}명이 ${Number(stats.videos).toLocaleString('ko-KR')}개의 영상을 만들었어요` }] : []),
+  ]
+  useEffect(() => {
+    if (heroBadges.length < 2) return
+    const t = setInterval(() => setBadgeIdx((i) => (i + 1) % heroBadges.length), 2000)
+    return () => clearInterval(t)
+  }, [heroBadges.length])
+  const curBadge = heroBadges[badgeIdx % heroBadges.length]
   useEffect(() => {
     supabase.rpc('public_signup_count').then(({ data }) => { if (typeof data === 'number') setSpots(data) })
     supabase.from('plans').select('id, list_price, monthly_price').in('id', ['starter', 'pro', 'master'])
@@ -489,8 +502,8 @@ const Home = () => {
       <section className="relative bg-gradient-to-b from-[#E4EFE7] via-[#EDF3EE] to-[#FAFAF8] px-5 pt-32 pb-16 md:px-8 md:pt-40 md:pb-24">
         <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
           <div className="flex w-full flex-col items-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#0064FF]/30 bg-[#0064FF]/10 px-4 py-2 text-sm font-bold text-[#0064FF] md:text-base">
-              <Sparkles size={14} fill="currentColor" /> 쇼핑 숏폼 특화 AI
+            <div key={badgeIdx} className="tip-fade mb-6 inline-flex items-center gap-2 rounded-full border border-[#0064FF]/30 bg-[#0064FF]/10 px-4 py-2 text-sm font-bold text-[#0064FF] md:text-base">
+              {curBadge.icon} {curBadge.text}
             </div>
             <h1 className="mb-5 text-4xl font-black leading-[1.15] tracking-tight text-gray-900 break-keep md:text-6xl">
               촬영도 편집도 없이<br /><span className="bg-gradient-to-r from-[#10b981] to-[#0064FF] bg-clip-text text-transparent">매일 올리는 쇼핑 숏폼</span>
