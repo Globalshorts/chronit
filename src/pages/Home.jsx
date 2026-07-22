@@ -126,7 +126,7 @@ const Home = () => {
   ]
   useEffect(() => {
     if (heroBadges.length < 2) return
-    const t = setInterval(() => setBadgeIdx((i) => (i + 1) % heroBadges.length), 2000)
+    const t = setInterval(() => setBadgeIdx((i) => (i + 1) % heroBadges.length), 3000)
     return () => clearInterval(t)
   }, [heroBadges.length])
   const curBadge = heroBadges[badgeIdx % heroBadges.length]
