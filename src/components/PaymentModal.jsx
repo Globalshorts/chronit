@@ -25,6 +25,8 @@ const PLAN_META = {
 
 // 토스페이먼츠 (카드 결제 / 정기결제) — 클라이언트 키는 환경변수
 const TOSS_CLIENT_KEY = import.meta.env.VITE_TOSS_CLIENT_KEY || ''
+// 정기결제(빌링)는 전용 MID라 별도 클라이언트 키
+const TOSS_BILLING_CLIENT_KEY = import.meta.env.VITE_TOSS_BILLING_CLIENT_KEY || ''
 // 토스 송금 QR (고정 금액, public/ 에 위치)
 const QR_IMAGES = {
   starter: '/qr_starter.png',
@@ -171,13 +173,13 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
   // 정기결제(카드 자동결제 등록 — 빌링 인증창)
   const registerBillingToss = async () => {
     setPayMsg(null)
-    if (!TOSS_CLIENT_KEY) { setPayMsg('결제 모듈 설정 준비 중이에요.'); return }
+    if (!TOSS_BILLING_CLIENT_KEY) { setPayMsg('정기결제 설정 준비 중이에요.'); return }
     const { data: ses } = await supabase.auth.getSession()
     const user = ses?.session?.user
     if (!user) { setPayMsg('로그인 후 이용할 수 있어요.'); return }
     if (!window.TossPayments) { setPayMsg('결제 모듈 로딩 중이에요.'); return }
     try {
-      const toss = window.TossPayments(TOSS_CLIENT_KEY)
+      const toss = window.TossPayments(TOSS_BILLING_CLIENT_KEY)
       const payment = toss.payment({ customerKey: user.id })
       await payment.requestBillingAuth({
         method: 'CARD',
@@ -410,6 +412,12 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
                   className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(0,100,255,0.5)] transition-all hover:bg-[#0052D6] active:scale-[0.98]">
                   <CreditCard size={18} /> 토스로 결제하기 ({plan.price.toLocaleString('ko-KR')}원)
                 </button>
+                {selectedPlan !== 'pkg6' && TOSS_BILLING_CLIENT_KEY && (
+                  <button onClick={registerBillingToss}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#0064FF]/40 bg-white px-6 py-3 text-sm font-bold text-[#0064FF] transition-all hover:bg-[#0064FF]/5 active:scale-[0.98]">
+                    카드 자동결제(정기결제) 등록
+                  </button>
+                )}
                 {payMsg && <p className="text-center text-sm font-bold text-red-500">{payMsg}</p>}
                 {/* 네이버 스마트스토어 — 현재 결제수단 */}
                 <a
