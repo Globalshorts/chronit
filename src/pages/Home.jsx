@@ -493,10 +493,10 @@ const Home = () => {
               <Sparkles size={14} fill="currentColor" /> 쇼핑 숏폼 특화 AI
             </div>
             <h1 className="mb-5 text-4xl font-black leading-[1.15] tracking-tight text-gray-900 break-keep md:text-6xl">
-              편집도 외주도 없이<br /><span className="bg-gradient-to-r from-[#10b981] to-[#0064FF] bg-clip-text text-transparent">매일 올리는 쇼핑 숏폼</span>
+              촬영도 편집도 없이<br /><span className="bg-gradient-to-r from-[#10b981] to-[#0064FF] bg-clip-text text-transparent">매일 올리는 쇼핑 숏폼</span>
             </h1>
             <p className="mb-9 text-xl font-bold text-gray-500 break-keep md:text-2xl">
-              영상만 넣으면 상품 분석·자막·AI 음성·컷 편집까지<br />완성된 쇼핑 숏폼으로 돌려드려요.
+              링크만 넣으면 상품 분석·자막·AI 음성·컷 편집까지<br />완성된 쇼핑 숏폼으로 돌려드려요.
             </p>
 
             <div className="flex w-full max-w-2xl flex-col gap-3">
