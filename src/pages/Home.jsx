@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import {
   Clock, CheckCircle2, MessageCircle, ArrowRight, Users,
   Film, TrendingDown, LogOut, Gift, Menu, X, Play, User,
-  Search, Captions, Mic, Scissors, Palette, Zap,
+  Search, Captions, Mic, Scissors, Palette, Zap, Sparkles,
 } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import AnimatedCounter from '../components/AnimatedCounter'
@@ -490,7 +490,7 @@ const Home = () => {
         <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
           <div className="flex w-full flex-col items-center">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#0064FF]/30 bg-[#0064FF]/10 px-4 py-2 text-sm font-bold text-[#0064FF] md:text-base">
-              🛍️ 쇼핑 숏폼 특화 AI
+              <Sparkles size={14} fill="currentColor" /> 쇼핑 숏폼 특화 AI
             </div>
             <h1 className="mb-5 text-4xl font-black leading-[1.15] tracking-tight text-gray-900 break-keep md:text-6xl">
               편집도 외주도 없이<br /><span className="bg-gradient-to-r from-[#10b981] to-[#0064FF] bg-clip-text text-transparent">매일 올리는 쇼핑 숏폼</span>
@@ -632,12 +632,12 @@ const Home = () => {
               <div className="mb-1 flex items-center gap-2">
                 <span className="rounded-full bg-[#FFB800] px-3 py-1 text-xs font-black text-white">안심 패키지</span>
                 <h4 className="text-xl font-black text-gray-900">프로 6개월</h4>
-                <span className="rounded-full bg-[#3182F6]/10 px-2.5 py-1 text-xs font-black text-[#3182F6]">🎁 첫 구매 +1개월</span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#3182F6]/10 px-2.5 py-1 text-xs font-bold text-[#3182F6]"><Gift size={12} />첫 구매 +1개월</span>
               </div>
               <p className="text-base text-gray-600">프로 요금제를 <strong className="text-gray-900">6개월 동안</strong> · 매월 영상 30개 지급 · 가장 알뜰한 장기 플랜</p>
             </div>
             <div className="shrink-0 text-left sm:text-right">
-              <span className="text-base font-bold text-gray-400 line-through">{wonFmt(planPrices.pkg6.list)}원</span><span className="ml-2 rounded-md bg-[#FFB800]/20 px-1.5 py-0.5 text-xs font-black text-[#b07d00]">{pctOff(planPrices.pkg6.list, planPrices.pkg6.sale)}% 할인</span>
+              <span className="text-base font-bold text-gray-400 line-through">{wonFmt(planPrices.pkg6.list)}원</span><span className="ml-2 text-xs font-bold text-[#b07d00]/70">{pctOff(planPrices.pkg6.list, planPrices.pkg6.sale)}% 할인</span>
               <div className="flex items-baseline gap-1 sm:justify-end">
                 <span className="text-4xl font-black text-[#b07d00]">{wonFmt(planPrices.pkg6.sale)}</span>
                 <span className="text-lg font-bold text-gray-500">원</span>
@@ -667,11 +667,11 @@ const Home = () => {
 
             {/* 스타터 */}
             <div onClick={() => openPayment('starter')} className="flex cursor-pointer flex-col rounded-[2rem] border border-gray-200 bg-white p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all hover:border-[#0064FF]/50 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:p-10">
-              <span className="mb-2 inline-flex w-fit items-center gap-1 rounded-full bg-[#3182F6]/10 px-2.5 py-1 text-xs font-black text-[#3182F6]">🎁 첫 구매 1개월 추가</span>
+              <span className="mb-2 inline-flex w-fit items-center gap-1 rounded-full bg-[#3182F6]/10 px-2.5 py-1 text-xs font-bold text-[#3182F6]"><Gift size={12} />첫 구매 1개월 추가</span>
               <h4 className="mb-2 text-xl font-black text-gray-900">스타터</h4>
               <p className="mb-5 text-base text-gray-500">처음 시작하는 분께</p>
               <div className="mb-8">
-                <span className="text-base font-bold text-gray-400 line-through">{wonFmt(planPrices.starter.list)}원</span><span className="ml-2 rounded-md bg-[#0064FF]/15 px-1.5 py-0.5 text-xs font-black text-[#0064FF]">{pctOff(planPrices.starter.list, planPrices.starter.sale)}% 할인</span>
+                <span className="text-base font-bold text-gray-400 line-through">{wonFmt(planPrices.starter.list)}원</span><span className="ml-2 text-xs font-bold text-gray-400">{pctOff(planPrices.starter.list, planPrices.starter.sale)}% 할인</span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-black text-gray-900">{wonFmt(planPrices.starter.sale)}</span>
                   <span className="text-lg font-bold text-gray-500">원 / 월</span>
@@ -688,11 +688,11 @@ const Home = () => {
             {/* 프로 (추천) */}
             <div onClick={() => openPayment('pro')} className="relative flex cursor-pointer flex-col rounded-[2rem] border-2 border-[#0064FF] bg-[#0064FF] p-8 shadow-[0_12px_40px_-8px_rgba(3,199,90,0.5)] transition-all hover:-translate-y-1 md:p-10">
               <div className="absolute -top-3 right-6 rounded-full bg-[#FFB800] px-4 py-1 text-sm font-black text-white shadow-md">가장 인기</div>
-              <span className="mb-2 inline-flex w-fit items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-black text-[#0064FF]">🎁 첫 구매 1개월 추가</span>
+              <span className="mb-2 inline-flex w-fit items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-bold text-[#0064FF]"><Gift size={12} />첫 구매 1개월 추가</span>
               <h4 className="mb-2 text-xl font-black text-white">프로</h4>
               <p className="mb-5 text-base text-white/80">매일 꾸준히 올리는 분께</p>
               <div className="mb-8">
-                <span className="text-base font-bold text-white/60 line-through">{wonFmt(planPrices.pro.list)}원</span><span className="ml-2 rounded-md bg-white/25 px-1.5 py-0.5 text-xs font-black text-white">{pctOff(planPrices.pro.list, planPrices.pro.sale)}% 할인</span>
+                <span className="text-base font-bold text-white/60 line-through">{wonFmt(planPrices.pro.list)}원</span><span className="ml-2 text-xs font-bold text-white/60">{pctOff(planPrices.pro.list, planPrices.pro.sale)}% 할인</span>
                 <div className="flex items-baseline gap-1 whitespace-nowrap">
                   <span className="text-4xl font-black text-white md:text-5xl">{wonFmt(planPrices.pro.sale)}</span>
                   <span className="shrink-0 text-lg font-bold text-white/80">원/월</span>
@@ -708,11 +708,11 @@ const Home = () => {
 
             {/* 마스터 */}
             <div onClick={() => openPayment('master')} className="flex cursor-pointer flex-col rounded-[2rem] border border-gray-200 bg-white p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all hover:border-[#0064FF]/50 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:p-10">
-              <span className="mb-2 inline-flex w-fit items-center gap-1 rounded-full bg-[#3182F6]/10 px-2.5 py-1 text-xs font-black text-[#3182F6]">🎁 첫 구매 1개월 추가</span>
+              <span className="mb-2 inline-flex w-fit items-center gap-1 rounded-full bg-[#3182F6]/10 px-2.5 py-1 text-xs font-bold text-[#3182F6]"><Gift size={12} />첫 구매 1개월 추가</span>
               <h4 className="mb-2 text-xl font-black text-gray-900">마스터</h4>
               <p className="mb-5 text-base text-gray-500">여러 채널을 운영하는 분께</p>
               <div className="mb-8">
-                <span className="text-base font-bold text-gray-400 line-through">{wonFmt(planPrices.master.list)}원</span><span className="ml-2 rounded-md bg-[#0064FF]/15 px-1.5 py-0.5 text-xs font-black text-[#0064FF]">{pctOff(planPrices.master.list, planPrices.master.sale)}% 할인</span>
+                <span className="text-base font-bold text-gray-400 line-through">{wonFmt(planPrices.master.list)}원</span><span className="ml-2 text-xs font-bold text-gray-400">{pctOff(planPrices.master.list, planPrices.master.sale)}% 할인</span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-black text-gray-900">{wonFmt(planPrices.master.sale)}</span>
                   <span className="text-lg font-bold text-gray-500">원 / 월</span>
