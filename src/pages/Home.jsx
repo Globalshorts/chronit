@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import {
   Clock, CheckCircle2, MessageCircle, ArrowRight, Users,
   Film, TrendingDown, LogOut, Gift, Menu, X, Play, User,
+  Search, Captions, Mic, Scissors, Palette, Zap,
 } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import AnimatedCounter from '../components/AnimatedCounter'
@@ -10,6 +11,7 @@ import AuthModal from '../components/AuthModal'
 import TermsModal from '../components/TermsModal'
 import Footer from '../components/Footer'
 import SiteNav from '../components/SiteNav'
+import Reveal from '../components/Reveal'
 import NicknameModal from '../components/NicknameModal'
 import SignupSurveyModal from '../components/SignupSurveyModal'
 import { supabase } from '../lib/supabase'
@@ -561,32 +563,32 @@ const Home = () => {
 
       {/* ── 기능 소개 (서비스 구성) ── */}
       <section id="features" style={{ scrollMarginTop: '200px' }} className="px-5 py-16 md:px-8 md:py-24">
-        <div className="mx-auto max-w-5xl">
+        <Reveal className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
             <h2 className="text-3xl font-black text-gray-900 md:text-4xl">영상 한 번 넣으면, 이걸 다 해드려요</h2>
             <p className="mt-3 text-lg text-gray-500 md:text-xl">제작에 필요한 과정을 크로닛이 자동으로 처리해요</p>
           </div>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              { icon: '\u{1F50E}', title: '상품 자동 분석', desc: '영상 속 상품을 인식해 관련 클립을 찾아줘요.' },
-              { icon: '\u{1F4AC}', title: 'AI 자동 자막', desc: '음성을 인식해 자막을 자동으로 만들어 넣어드려요.' },
-              { icon: '\u{1F399}\uFE0F', title: 'AI 음성 (TTS)', desc: '자연스러운 한국어 나레이션을 자동으로 생성해요.' },
-              { icon: '\u2702\uFE0F', title: '자동 컷편집', desc: '숏폼 길이에 맞춰 영상을 자동으로 잘라 구성해요.' },
-              { icon: '\u{1F3A8}', title: '스타일·썸네일 프리셋', desc: '자막·썸네일 스타일을 골라 일관된 톤으로 완성해요.' },
-              { icon: '\u26A1', title: '편집 없이 빠르게', desc: '영상만 넣으면 몇 분 뒤 완성 — 매일 여러 개도 거뜬해요.' },
-            ].map(({ icon, title, desc }) => (
-              <div key={title} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-0.5 hover:border-[#0064FF]/40">
-                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0064FF]/10 text-2xl">{icon}</div>
+              { Icon: Search, title: '상품 자동 분석', desc: '영상 속 상품을 인식해 관련 클립을 찾아줘요.' },
+              { Icon: Captions, title: 'AI 자동 자막', desc: '음성을 인식해 자막을 자동으로 만들어 넣어드려요.' },
+              { Icon: Mic, title: 'AI 음성', desc: '자연스러운 한국어 나레이션을 자동으로 생성해요.' },
+              { Icon: Scissors, title: '자동 컷편집', desc: '숏폼 길이에 맞춰 영상을 자동으로 잘라 구성해요.' },
+              { Icon: Palette, title: '스타일·썸네일 프리셋', desc: '자막·썸네일 스타일을 골라 일관된 톤으로 완성해요.' },
+              { Icon: Zap, title: '편집 없이 빠르게', desc: '영상만 넣으면 몇 분 뒤 완성 — 매일 여러 개도 거뜬해요.' },
+            ].map(({ Icon, title, desc }) => (
+              <div key={title} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-0.5 hover:border-[#0064FF]/40 hover:shadow-[0_12px_32px_rgba(0,100,255,0.10)]">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0064FF]/10 text-[#0064FF]"><Icon size={22} strokeWidth={2.2} /></div>
                 <h3 className="mb-1.5 text-lg font-black text-gray-900">{title}</h3>
                 <p className="text-sm leading-relaxed text-gray-500">{desc}</p>
               </div>
             ))}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       <section id="faq" className="px-5 py-16 md:px-8 md:py-20">
-        <div className="mx-auto max-w-2xl">
+        <Reveal className="mx-auto max-w-2xl">
           <div className="mb-12 text-center">
             <h2 className="text-3xl font-black text-gray-900 md:text-4xl">많이 물어보시는 것들</h2>
           </div>
@@ -609,12 +611,12 @@ const Home = () => {
               </div>
             ))}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── 요금제 ── */}
       <section id="pricing" style={{ scrollMarginTop: '-220px' }} className="px-5 py-16 md:px-8 md:py-24">
-        <div className="mx-auto max-w-6xl">
+        <Reveal className="mx-auto max-w-6xl">
           <div className="mb-4 text-center">
             <h2 className="text-3xl font-black text-gray-900 md:text-5xl">필요한 만큼만 고르세요</h2>
             <p className="mt-3 text-lg text-gray-500 md:text-xl">부담 없이 시작하고, 언제든 바꿀 수 있어요</p>
@@ -732,7 +734,7 @@ const Home = () => {
               무료로 영상 만들기
             </button>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* 이벤트 게시판 */}
