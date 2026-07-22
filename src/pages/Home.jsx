@@ -568,7 +568,7 @@ const Home = () => {
           </div>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              { icon: '\u{1F50E}', title: '상품 자동 분석', desc: '영상 속 상품을 인식해 상품명·키워드를 잡아줘요.' },
+              { icon: '\u{1F50E}', title: '상품 자동 분석', desc: '영상 속 상품을 인식해 관련 클립을 찾아줘요.' },
               { icon: '\u{1F4AC}', title: 'AI 자동 자막', desc: '음성을 인식해 자막을 자동으로 만들어 넣어드려요.' },
               { icon: '\u{1F399}\uFE0F', title: 'AI 음성 (TTS)', desc: '자연스러운 한국어 나레이션을 자동으로 생성해요.' },
               { icon: '\u2702\uFE0F', title: '자동 컷편집', desc: '숏폼 길이에 맞춰 영상을 자동으로 잘라 구성해요.' },
