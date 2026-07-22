@@ -538,8 +538,11 @@ const Home = () => {
                 </div>
               )}
 
+              <p className="flex items-center justify-center gap-1.5 text-sm font-bold text-gray-500">
+                <Gift size={15} className="text-[#0064FF]" /> 카카오 3초 로그인 · 무료 영상 2개
+              </p>
               <Link to="/manual"
-                className="text-base font-bold text-gray-500 transition-colors hover:text-[#0064FF]">
+                className="text-sm font-medium text-gray-400 transition-colors hover:text-[#0064FF]">
                 1분 사용법 보기 →
               </Link>
             </div>
