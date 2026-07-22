@@ -182,35 +182,6 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
   // ── 네이버 스마트스토어 구매 (네이버페이 결제 → 닉네임 매칭 자동 충전) ──
   const storeUrl = STORE_URLS[selectedPlan] || 'https://smartstore.naver.com/chronit'
   const storePlanName = PLAN_META[selectedPlan]?.name || ''
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm" onClick={onClose}>
-      <div className="relative w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-8 text-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <button className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-full text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600" onClick={onClose}>
-          <X size={20} />
-        </button>
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0064FF]/10 text-[#0064FF]">
-          <CreditCard size={26} />
-        </div>
-        <h3 className="text-xl font-black tracking-tight text-gray-900">네이버 스마트스토어에서 구매</h3>
-        <p className="mt-2 text-sm leading-relaxed text-gray-500">안전한 네이버페이로 결제하고,<br />결제 후 이용권이 <strong className="text-gray-700">자동으로 충전</strong>돼요.</p>
-        <a href={storeUrl} target="_blank" rel="noopener noreferrer" onClick={() => { try { window.gtag?.('event','checkout_smartstore',{ plan: selectedPlan, plan_name: storePlanName }); } catch {} }} className="mt-6 flex w-full items-center justify-center rounded-xl bg-[#0064FF] py-3.5 text-sm font-bold text-white transition hover:brightness-95">
-          {storePlanName ? storePlanName + ' ' : ''}스마트스토어에서 구매하기
-        </a>
-        <div className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-left text-xs leading-relaxed text-amber-700">
-          구매 시 <strong>크로닛 가입 닉네임</strong>을 옵션에 정확히 입력해 주세요. 해당 닉네임으로 이용권이 자동 충전됩니다.
-        </div>
-        <div className="mt-4 flex items-center justify-center gap-3 text-xs font-bold text-gray-400">
-          <a href={STORE_URLS.starter} target="_blank" rel="noopener noreferrer" className="hover:text-[#0064FF]">스타터</a>
-          <span>·</span>
-          <a href={STORE_URLS.pro} target="_blank" rel="noopener noreferrer" className="hover:text-[#0064FF]">프로</a>
-          <span>·</span>
-          <a href={STORE_URLS.master} target="_blank" rel="noopener noreferrer" className="hover:text-[#0064FF]">마스터</a>
-        </div>
-        <button onClick={onClose} className="mt-6 w-full rounded-xl bg-gray-100 py-3 text-sm font-bold text-gray-600 transition hover:bg-gray-200">닫기</button>
-      </div>
-    </div>
-  )
-
   const buildPlan = (key) => ({
     name: PLAN_META[key].name,
     badge: PLAN_META[key].badge,
@@ -274,7 +245,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
               {isFreedays ? '무료 체험 신청' : '결제 신청'}
             </h3>
             <p className="text-sm font-medium text-gray-500 md:text-base">
-              {isFreedays ? `${discount.value}일 무료 체험이 적용됩니다` : '계좌이체로 결제 후 활성화됩니다'}
+              {isFreedays ? `${discount.value}일 무료 체험이 적용됩니다` : '스마트스토어 결제 후 자동 충전됩니다'}
             </p>
           </div>
         </div>
@@ -370,6 +341,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
               <div className="text-right leading-tight">
                 <div className="text-[11px] font-medium text-gray-400 line-through">{plans.pkg6.list.toLocaleString('ko-KR')}</div>
                 <div className="text-base font-black text-amber-600">{plans.pkg6.price.toLocaleString('ko-KR')}원</div>
+                <div className="text-[11px] font-bold text-amber-600">월 {Math.round(plans.pkg6.price / 6).toLocaleString('ko-KR')}원꼴</div>
               </div>
             </button>
           )}
@@ -403,18 +375,25 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
               )}
             </div>
             {(!hasDiscount && QR_IMAGES[selectedPlan]) ? (
-              <div className="flex flex-col items-center gap-3 rounded-xl bg-white p-4">
+              <div className="flex flex-col gap-3 rounded-xl bg-white p-4">
+                {/* 네이버 스마트스토어 — 현재 결제수단 */}
                 <a
-                  href={`supertoss://send?amount=${plan.price}&bank=${encodeURIComponent('토스뱅크')}&accountNo=100147568390&origin=qr`}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(0,100,255,0.55)] transition-all hover:brightness-110 active:scale-[0.98]"
+                  href={storeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => { try { window.gtag?.('event','checkout_smartstore',{ plan: selectedPlan, plan_name: plan.name }); } catch {} }}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#03C75A] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(3,199,90,0.55)] transition-all hover:brightness-95 active:scale-[0.98]"
                 >
-                  토스로 결제하기 ({plan.price.toLocaleString('ko-KR')}원)
+                  네이버페이로 결제 ({plan.price.toLocaleString('ko-KR')}원)
                 </a>
-                <p className="text-center text-xs text-gray-500">버튼을 누르면 토스 앱이 열리고 금액이 자동 입력돼요 (휴대폰)</p>
-                <div className="mt-1 flex w-full flex-col items-center gap-1 border-t border-gray-100 pt-3">
-                  <p className="text-[11px] font-bold text-gray-400">PC에서는 QR 스캔</p>
-                  <img src={QR_IMAGES[selectedPlan]} alt="토스 송금 QR" className="h-36 w-36" />
-                  <p className="text-xs text-gray-500">{account.bank} {account.number} · {account.holder}</p>
+                <div className="rounded-xl bg-amber-50 px-4 py-3 text-left text-xs leading-relaxed text-amber-700">
+                  결제 시 <strong>크로닛 가입 닉네임</strong>을 옵션에 정확히 입력해 주세요. 해당 닉네임으로 이용권이 자동 충전됩니다.
+                </div>
+                {/* 토스 결제 — 준비중 */}
+                <div className="relative mt-1 rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-4 text-center">
+                  <span className="absolute right-3 top-3 rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-black text-gray-500">준비중</span>
+                  <div className="text-sm font-bold text-gray-500">토스로 결제하기</div>
+                  <div className="mt-0.5 text-xs text-gray-400">토스페이먼츠 연동 후 오픈됩니다</div>
                 </div>
               </div>
             ) : (
@@ -428,8 +407,8 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
         {/* 안내사항 */}
         {!isFreedays && (
           <div className="mb-6 space-y-2 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm leading-relaxed text-gray-600 md:text-base">
-            <p>• <strong className="text-gray-800">토스로 결제하기</strong> 버튼(휴대폰) 또는 QR(PC)로 <strong className="text-gray-800">표시된 금액 그대로</strong> 송금해 주세요.</p>
-            <p>• 송금 후 <strong className="rounded bg-amber-100 px-1.5 py-0.5 font-black text-amber-700 ring-1 ring-amber-300">우측 하단 채널톡으로 가입 이메일</strong>을 보내주세요.</p>
+            <p>• <strong className="text-gray-800">네이버페이로 결제</strong> 버튼을 눌러 스마트스토어에서 결제해 주세요.</p>
+            <p>• 결제 시 <strong className="rounded bg-amber-100 px-1.5 py-0.5 font-black text-amber-700 ring-1 ring-amber-300">가입 닉네임</strong>을 옵션에 입력하면 이용권이 자동 충전됩니다.</p>
             <p>• 확인 후 영업일 기준 <strong className="text-gray-800">1일 이내</strong> 활성화됩니다. (카드 결제는 즉시 활성화)</p>
             <p>• <strong className="text-gray-800">환불 규정:</strong> 본 상품은 디지털 콘텐츠로, 결제 후 영상을 1회라도 생성하면 환불이 불가합니다. 이용 이력이 전혀 없는 경우에 한해 결제일로부터 <strong className="text-gray-800">7일 이내</strong> 전액 환불이 가능합니다.</p>
           </div>
@@ -452,7 +431,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
                 <CreditCard size={18} /> 카드·간편결제로 결제 ({plan.price.toLocaleString('ko-KR')}원)
               </button>
             )}
-            <p className="text-center text-xs text-gray-500">위 토스 결제 후, 우측 하단 채널톡으로 가입 이메일을 보내주세요.</p>
+            <p className="text-center text-xs text-gray-500">스마트스토어 결제 시 가입 닉네임을 옵션에 꼭 입력해 주세요.</p>
             {payMsg && <p className="text-center text-sm font-bold text-red-500">{payMsg}</p>}
           </div>
         )}
