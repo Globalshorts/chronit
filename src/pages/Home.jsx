@@ -550,15 +550,21 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 실제 앱 데모 GIF (파일 업로드되면 자동 노출, 없으면 숨김) */}
+      {/* 실행 → 완성 데모 (앱 실행 3:4 → 완성 릴스 9:16) */}
       <div className="px-5 pt-12 md:px-8 md:pt-16">
-        <img
-          src="/app-demo.gif"
-          alt="크로닛 사용 화면 — 링크 넣으면 숏폼 완성"
-          loading="lazy"
-          onError={e => { e.currentTarget.style.display = 'none' }}
-          className="mx-auto w-full max-w-2xl rounded-2xl border border-gray-200 shadow-lg"
-        />
+        <div className="mx-auto flex max-w-2xl items-center justify-center gap-2 sm:gap-4 md:gap-6">
+          <div className="flex flex-col items-center gap-2">
+            <video src="/phone-demo.mp4" muted loop playsInline autoPlay preload="metadata"
+              className="h-[190px] w-auto rounded-2xl border border-gray-200 shadow-[0_12px_30px_-12px_rgba(0,0,0,0.25)] sm:h-[320px] md:h-[440px]" />
+            <span className="text-xs font-bold text-gray-500 sm:text-sm">링크만 넣으면</span>
+          </div>
+          <ArrowRight className="shrink-0 text-[#0064FF]" size={26} strokeWidth={2.6} />
+          <div className="flex flex-col items-center gap-2">
+            <video src="/demo6.mp4" muted loop playsInline autoPlay preload="metadata"
+              className="h-[190px] w-auto rounded-2xl border border-gray-200 shadow-[0_12px_30px_-12px_rgba(0,0,0,0.25)] sm:h-[320px] md:h-[440px]" />
+            <span className="text-xs font-bold text-gray-500 sm:text-sm">완성</span>
+          </div>
+        </div>
       </div>
 
       {/* ── 데모 캐러셀 ── */}
