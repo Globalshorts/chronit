@@ -414,8 +414,9 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
                 </button>
                 {selectedPlan !== 'pkg6' && TOSS_BILLING_CLIENT_KEY && (
                   <button onClick={registerBillingToss}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#0064FF]/40 bg-white px-6 py-3 text-sm font-bold text-[#0064FF] transition-all hover:bg-[#0064FF]/5 active:scale-[0.98]">
+                    className="relative flex w-full items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 px-6 py-3 text-sm font-bold text-gray-500 transition-all hover:bg-gray-100 active:scale-[0.98]">
                     카드 자동결제(정기결제) 등록
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-black text-gray-500">준비 중</span>
                   </button>
                 )}
                 {payMsg && <p className="text-center text-sm font-bold text-red-500">{payMsg}</p>}
