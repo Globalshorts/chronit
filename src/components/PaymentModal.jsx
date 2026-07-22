@@ -405,6 +405,12 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
             </div>
             {(!hasDiscount && QR_IMAGES[selectedPlan]) ? (
               <div className="flex flex-col gap-3 rounded-xl bg-white p-4">
+                {/* 토스로 결제하기 — 최상단 */}
+                <button onClick={payWithToss}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(0,100,255,0.5)] transition-all hover:bg-[#0052D6] active:scale-[0.98]">
+                  <CreditCard size={18} /> 토스로 결제하기 ({plan.price.toLocaleString('ko-KR')}원)
+                </button>
+                {payMsg && <p className="text-center text-sm font-bold text-red-500">{payMsg}</p>}
                 {/* 네이버 스마트스토어 — 현재 결제수단 */}
                 <a
                   href={storeUrl}
@@ -418,18 +424,6 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
                 <div className="rounded-xl bg-amber-50 px-4 py-3 text-left text-xs leading-relaxed text-amber-700">
                   결제 시 <strong>크로닛 가입 닉네임</strong>을 옵션에 정확히 입력해 주세요. 해당 닉네임으로 이용권이 자동 충전됩니다.
                 </div>
-                {/* 토스 카드 결제 */}
-                <button onClick={payWithToss}
-                  className="mt-1 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(0,100,255,0.5)] transition-all hover:bg-[#0052D6] active:scale-[0.98]">
-                  <CreditCard size={18} /> 카드로 결제 ({plan.price.toLocaleString('ko-KR')}원)
-                </button>
-                {selectedPlan !== 'pkg6' && (
-                  <button onClick={registerBillingToss}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#0064FF]/40 bg-white px-6 py-3 text-sm font-bold text-[#0064FF] transition-all hover:bg-[#0064FF]/5 active:scale-[0.98]">
-                    카드 자동결제(정기결제) 등록
-                  </button>
-                )}
-                {payMsg && <p className="text-center text-sm font-bold text-red-500">{payMsg}</p>}
               </div>
             ) : (
               <div className="rounded-xl bg-amber-50 p-4 text-center text-sm font-bold text-amber-700">
