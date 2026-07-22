@@ -314,6 +314,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
                     <div className="mt-1 leading-tight">
                       <div className="text-[11px] font-medium text-gray-400 line-through">{p.list.toLocaleString('ko-KR')}</div>
                       <div className="text-sm font-bold text-[#0064FF]">{p.price.toLocaleString('ko-KR')}원</div>
+                      <div className="text-[10px] font-bold text-gray-400">하루 약 {(Math.round(p.price / 30 / 10) * 10).toLocaleString('ko-KR')}원</div>
                     </div>
                   )}
                 </button>
@@ -341,7 +342,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
               <div className="text-right leading-tight">
                 <div className="text-[11px] font-medium text-gray-400 line-through">{plans.pkg6.list.toLocaleString('ko-KR')}</div>
                 <div className="text-base font-black text-amber-600">{plans.pkg6.price.toLocaleString('ko-KR')}원</div>
-                <div className="text-[11px] font-bold text-amber-600">월 {Math.round(plans.pkg6.price / 6).toLocaleString('ko-KR')}원꼴</div>
+                <div className="text-[11px] font-bold text-amber-600">월 {Math.round(plans.pkg6.price / 6).toLocaleString('ko-KR')}원 수준</div>
               </div>
             </button>
           )}
