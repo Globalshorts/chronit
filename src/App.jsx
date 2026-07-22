@@ -19,6 +19,7 @@ import BoardPost from './pages/BoardPost'
 import MyPage from './pages/MyPage'
 import UserProfile from './pages/UserProfile'
 import DmAutomation from './pages/DmAutomation'
+import PaymentResult from './pages/PaymentResult'
 import AdminFab from './components/AdminFab'
 
 const ScrollToTop = () => {
@@ -51,6 +52,8 @@ const App = () => (
       <Route path="/me" element={<MyPage />} />
       <Route path="/u/:handle" element={<LinkPage />} />
       <Route path="/dm" element={<DmAutomation />} />
+      <Route path="/payments/success" element={<PaymentResult />} />
+      <Route path="/payments/fail" element={<PaymentResult fail />} />
     </Routes>
   </BrowserRouter>
 )
