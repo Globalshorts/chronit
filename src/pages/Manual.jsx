@@ -5,9 +5,9 @@ import { ManualHeader, ManualFooter } from '../components/ManualLayout'
 const CARDS = [
   {
     to: '/manual/start',
-    emoji: '👋',
-    title: '이렇게 쓰면 돼요',
-    desc: '링크 붙여넣고 버튼 한 번,\n3단계면 영상 완성',
+    emoji: '⚡',
+    title: '3단계 빠른 시작',
+    desc: '링크 넣고 버튼 한 번,\n3단계로 완성본까지',
     color: 'from-[#0064FF]/10 to-[#0064FF]/10 border-[#0064FF]/30 hover:border-[#0064FF] bg-white',
     badge: '필수',
     badgeColor: 'bg-[#0064FF]/15 text-[#0064FF]',
@@ -16,16 +16,16 @@ const CARDS = [
     to: '/manual/revenue',
     emoji: '💰',
     title: '쿠팡 파트너스 & 수익 구조',
-    desc: '뭔지, 어떻게 쓰는지,\n돈이 통장에 어떻게 들어오는지',
+    desc: '제휴 수익이 정산까지\n이어지는 구조 한눈에',
     color: 'from-[#0064FF]/10 to-[#0064FF]/10 border-[#0064FF]/30 hover:border-[#0064FF] bg-white',
-    badge: '꼭 읽기',
+    badge: '핵심',
     badgeColor: 'bg-[#FFB800]/15 text-[#9a6b00]',
   },
   {
     to: '/manual/features',
-    emoji: '📸',
-    title: '사진 보고 따라하기 (전체 흐름)',
-    desc: '세팅(처음 한 번만)부터 영상 만들기·내 링크 공유까지\n다음 ▶ 으로 한 단계씩',
+    emoji: '🧭',
+    title: '전체 제작 흐름',
+    desc: '세팅·제작·공유까지\n단계별로 한눈에',
     color: 'from-[#0064FF]/10 to-[#0064FF]/10 border-[#0064FF]/30 hover:border-[#0064FF] bg-white',
     badge: '추천',
     badgeColor: 'bg-[#0064FF]/15 text-[#0064FF]',
@@ -33,7 +33,7 @@ const CARDS = [
   {
     to: '/manual/app',
     emoji: '📱',
-    title: '앱으로 사용하는 방법',
+    title: '앱으로 설치해 쓰기',
     desc: '휴대폰 홈 화면에 추가해\n앱처럼 사용하기',
     color: 'from-[#0064FF]/10 to-[#0064FF]/10 border-[#0064FF]/30 hover:border-[#0064FF] bg-white',
     badge: null,
@@ -42,7 +42,7 @@ const CARDS = [
   {
     to: '/manual/credits',
     emoji: '🪙',
-    title: '서비스 이용 안내',
+    title: '요금제 · 이용 안내',
     desc: '영상 1개 = 이용권 1개\n플랜·환불 안내',
     color: 'from-yellow-50 to-yellow-50 border-yellow-300 hover:border-yellow-400 bg-white',
     badge: null,
@@ -51,8 +51,8 @@ const CARDS = [
   {
     to: '/manual/tips',
     emoji: '💡',
-    title: '꿀팁',
-    desc: '더 빠르고 스마트하게\n사용하는 방법',
+    title: '고급 활용 팁',
+    desc: '더 빠르고 완성도 높게\n만드는 법',
     color: 'from-yellow-50 to-orange-50 border-yellow-200 hover:border-yellow-400 bg-white',
     badge: null,
     badgeColor: '',
@@ -61,7 +61,7 @@ const CARDS = [
     to: '/manual/faq',
     emoji: '❓',
     title: '자주 묻는 질문',
-    desc: '사용 중 막힐 때\n바로 찾는 FAQ',
+    desc: '막힐 때 바로 찾는\n답변 모음',
     color: 'from-slate-50 to-gray-50 border-slate-200 hover:border-slate-400 bg-white',
     badge: null,
     badgeColor: '',
@@ -82,7 +82,7 @@ const Manual = () => {
             <Sparkles size={14} fill="currentColor" /> <span>크로닛 사용 방법</span>
           </div>
           <h1 className="mb-4 text-4xl font-black tracking-tight text-gray-900 md:text-6xl">사용 방법</h1>
-          <p className="text-lg leading-[1.8] text-slate-500 md:text-xl">로그인부터 첫 영상 제작까지, 5분 안에 익히는 크로닛 사용법.</p>
+          <p className="text-lg leading-[1.8] text-slate-500 md:text-xl">세팅부터 제작·공유까지, 크로닛을 제대로 쓰는 법.</p>
         </div>
       </section>
 
