@@ -567,8 +567,6 @@ const Home = () => {
         </div>
       </div>
 
-      {/* ── 데모 캐러셀 ── */}
-      <DemoCarousel />
 
       {/* ── 기능 소개 (서비스 구성) ── */}
       <section id="features" style={{ scrollMarginTop: '200px' }} className="px-5 py-16 md:px-8 md:py-24">
