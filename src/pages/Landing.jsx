@@ -103,66 +103,10 @@ export default function Landing() {
         </div>
 
 
-        {/* 🎁 가입 전 체험 — 내 상품으로 무료 미리보기 */}
-        <div className="mt-7 rounded-2xl border border-[#0064FF]/25 bg-[#F7FAFF] p-4 text-left">
-          <p className="text-sm font-black text-[#191F28]">🎁 내 상품으로 무료 미리보기</p>
-          <p className="mt-0.5 text-xs text-gray-500">인스타·틱톡·유튜브 영상 링크만 넣으면 — 가입 없이 결과 확인</p>
-          <div className="mt-2.5 flex gap-2">
-            <input value={pvUrl} onChange={e => setPvUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && runPreview()}
-              placeholder="영상 링크 붙여넣기" disabled={pvLoading}
-              className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#0064FF]" />
-            <button onClick={runPreview} disabled={pvLoading || !pvUrl.trim()}
-              className="shrink-0 rounded-xl px-4 py-2.5 text-sm font-black text-white transition active:scale-95 disabled:opacity-40" style={{ background: BLUE }}>
-              {pvLoading ? '분석 중…' : '미리보기'}
-            </button>
-          </div>
-          {pvLoading && <p className="mt-2 text-xs text-gray-400">AI가 영상을 분석하고 있어요 · 약 1분</p>}
-          {pvError && <p className="mt-2 text-xs text-red-500">{pvError}</p>}
+        <div className="mt-7 rounded-2xl border border-[#0064FF]/25 bg-[#F7FAFF] px-4 py-3">
+          <p className="text-[15px] font-black text-[#191F28]">🎁 로그인만 하면 <span style={{ color: BLUE }}>무료 영상 2개</span></p>
+          <p className="mt-0.5 text-xs text-gray-500">카드 없이 · 카카오 3초 · 바로 만들기</p>
         </div>
-
-        {/* 분석 결과 카드 */}
-        {pvResult && (
-          <div className="mt-4 rounded-2xl border border-[#0064FF]/25 bg-white p-4 text-left shadow-sm">
-            <div className="flex items-center gap-2.5">
-              {pvResult.frames && pvResult.frames[0] && (
-                <img src={pvResult.frames[0]} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
-              )}
-              <p className="text-sm font-black text-[#0064FF]">✅ AI가 영상을 분석했어요</p>
-            </div>
-            <div className="mt-3 space-y-3">
-              {pvResult.product_name && (
-                <div>
-                  <span className="text-xs text-gray-400">감지된 상품</span>
-                  <p className="text-[15px] font-black text-[#191F28] [word-break:keep-all]">{pvResult.product_name}</p>
-                </div>
-              )}
-              {pvResult.use_case && (
-                <div>
-                  <span className="text-xs text-gray-400">쓰임새</span>
-                  <p className="text-sm text-gray-700 [word-break:keep-all]">{pvResult.use_case}</p>
-                </div>
-              )}
-              {pvResult.keywords && pvResult.keywords.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {pvResult.keywords.slice(0, 5).map((k, i) => (
-                    <span key={i} className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-600">{k}</span>
-                  ))}
-                </div>
-              )}
-              {pvResult.hook_title && (
-                <div className="rounded-xl bg-[#F7FAFF] p-3">
-                  <span className="text-xs font-bold text-[#0064FF]">✍️ 이 제목(캡션)으로 만들 거예요</span>
-                  <p className="mt-1 text-[15px] font-black text-[#191F28] [word-break:keep-all]">{pvResult.hook_title}</p>
-                </div>
-              )}
-            </div>
-            <button onClick={startFromPreview}
-              className="mt-4 w-full rounded-2xl py-3.5 text-base font-black text-white shadow-lg transition active:scale-[0.98]" style={{ background: BLUE }}>
-              👉 이대로 완성 영상 만들기
-            </button>
-            <p className="mt-1.5 text-center text-xs text-gray-400">가입하면 컷편집·줄자막·AI 더빙까지 1분 · 카드 없이 무료로</p>
-          </div>
-        )}
 
         <button onClick={start}
           className="mt-4 w-full rounded-2xl py-4 text-base font-black text-white shadow-lg transition active:scale-[0.98]"
@@ -261,7 +205,7 @@ export default function Landing() {
       <section className="bg-[#F7FAFF] px-5 py-12">
         <div className="mx-auto max-w-md space-y-4">
           {[
-            ['퀄리티가 캡컷만큼 나오나요?', '무료로 직접 만들어 자막싱크·AI 더빙·썸네일 퀄을 판단하세요. 데모로 먼저 확인할 수도 있어요.'],
+            ['퀄리티가 캡컷만큼 나오나요?', '무료 2개로 직접 만들어 자막싱크·AI 더빙·썸네일 퀄을 판단하세요.'],
             ['하루에 몇 개까지 되나요?', '무료는 매달 2개, Pro는 월 30개까지 뽑아낼 수 있어요. 대량 양산을 전제로 설계됐어요.'],
             ['더 만들고 싶으면요?', '친구를 초대하면 Pro가 열리고, 결제하면 월 30개까지 만들 수 있어요. 자동결제는 없어요.'],
           ].map(([q, a]) => (
