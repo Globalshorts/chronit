@@ -426,6 +426,11 @@ const Home = () => {
                 시작하기
               </button>
             </div>
+            {/* 모바일 상단 시작하기 CTA (햄버거에 가려지지 않게 상시 노출) */}
+            <button onClick={handleStart}
+              className="rounded-full bg-[#0064FF] px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-md shadow-[#0064FF]/25 transition-all active:scale-95 md:hidden">
+              시작하기
+            </button>
             <button onClick={() => setMenuOpen((v) => !v)} aria-label="메뉴"
               className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 text-gray-700 transition-all hover:border-gray-400 md:hidden">
               {menuOpen ? <X size={22} /> : <Menu size={22} />}
@@ -486,10 +491,10 @@ const Home = () => {
               🛍️ 쇼핑 숏폼 특화 AI
             </div>
             <h1 className="mb-5 text-4xl font-black leading-[1.15] tracking-tight text-gray-900 break-keep md:text-6xl">
-              하루 한 편도 벅찼던 <span className="whitespace-nowrap">쇼핑 숏폼</span><br /><span className="bg-gradient-to-r from-[#10b981] to-[#0064FF] bg-clip-text text-transparent">제작 시간 95% 단축</span>
+              편집도 외주도 없이<br /><span className="bg-gradient-to-r from-[#10b981] to-[#0064FF] bg-clip-text text-transparent">매일 올리는 쇼핑 숏폼</span>
             </h1>
             <p className="mb-9 text-xl font-bold text-gray-500 break-keep md:text-2xl">
-              크로닛은 영상만 넣으면 상품 분석·자막·TTS·편집까지 끝낸<br />쇼핑 숏폼을 만들어드립니다.
+              영상만 넣으면 상품 분석·자막·AI 음성·컷 편집까지<br />완성된 쇼핑 숏폼으로 돌려드려요.
             </p>
 
             <div className="flex w-full max-w-2xl flex-col gap-3">
@@ -533,27 +538,12 @@ const Home = () => {
 
               <Link to="/manual"
                 className="text-base font-bold text-gray-500 transition-colors hover:text-[#0064FF]">
-                👋 처음이세요? 1분 사용법 →
+                1분 사용법 보기 →
               </Link>
             </div>
           </div>
         </div>
       </section>
-
-      {/* 쿠팡 파트너스 안내 진입 */}
-      <div className="px-5 pt-10 md:px-8 md:pt-14">
-        <Link to="/manual/revenue"
-          className="group mx-auto flex max-w-3xl flex-col items-center gap-3 rounded-3xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-6 text-center transition-all hover:border-[#0064FF] hover:bg-[#0064FF]/10 sm:flex-row sm:text-left md:p-7">
-          <span className="text-4xl">💰</span>
-          <div className="flex-1">
-            <p className="text-lg font-black text-gray-900 md:text-xl">쿠팡으로 어떻게 돈이 들어오나요?</p>
-            <p className="mt-1 text-sm text-gray-600 md:text-base">쇼핑 영상 하나로 수수료가 통장에 들어오기까지 — 1분이면 이해할 수 있어요.</p>
-          </div>
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-[#0064FF] px-5 py-3 text-sm font-extrabold text-white transition-all group-hover:gap-2 md:text-base">
-            수익 나는 과정 보기 <ArrowRight size={18} />
-          </span>
-        </Link>
-      </div>
 
       {/* 실제 앱 데모 GIF (파일 업로드되면 자동 노출, 없으면 숨김) */}
       <div className="px-5 pt-12 md:px-8 md:pt-16">
@@ -569,37 +559,6 @@ const Home = () => {
       {/* ── 데모 캐러셀 ── */}
       <DemoCarousel />
 
-      {/* ── 왜 크로닛 (시간 절약) ── */}
-      <section className="px-5 py-16 md:px-8 md:py-20">
-        <div className="mx-auto max-w-4xl">
-          <div className="mb-14 text-center">
-            <h2 className="text-3xl font-black text-gray-900 md:text-4xl">시간을 아껴드릴게요</h2>
-            <p className="mt-3 text-lg text-gray-500 md:text-xl">어려운 건 크로닛이 대신할게요</p>
-          </div>
-          <div className="space-y-5">
-            {[
-              { emoji: '🖱️', title: '편집 기술이 없어도 됩니다', desc: '마우스 클릭 몇 번이면 끝. 자르고 붙이는 작업은 전부 자동으로 처리돼요.' },
-              { emoji: '⏰', title: '하루 5분이면 충분해요', desc: '영상 하나 만드는 데 보통 몇 분. 만들어지는 동안 다른 일을 하셔도 됩니다.' },
-              { emoji: '🔁', title: '반복 작업은 전부 자동', desc: '자막 달기, 길이 맞추기, 제목 추천까지 — 손이 많이 가던 일을 대신해 드려요.' },
-              { emoji: '💻', title: '어디서나 웹에서 바로', desc: '설치 없이 컴퓨터·휴대폰 어디서든 접속해서 멈춤 없이 사용할 수 있어요.' },
-            ].map(({ emoji, title, desc }) => (
-              <div key={title} className="flex items-center gap-5 rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] md:gap-8 md:p-8">
-                <div className="shrink-0 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FAFAF8] text-4xl md:h-20 md:w-20 md:text-5xl">{emoji}</div>
-                <div>
-                  <h3 className="mb-1 text-xl font-black text-gray-900 md:text-2xl">{title}</h3>
-                  <p className="text-base leading-relaxed text-gray-500 md:text-lg">{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-8 text-center">
-            <Link to="/manual/app"
-              className="inline-flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-bold text-gray-600 transition-all hover:border-[#0064FF] hover:text-[#0064FF]">
-              📱 앱으로 사용하는 방법 <ArrowRight size={14} />
-            </Link>
-          </div>
-        </div>
-      </section>
       {/* ── 기능 소개 (서비스 구성) ── */}
       <section id="features" style={{ scrollMarginTop: '200px' }} className="px-5 py-16 md:px-8 md:py-24">
         <div className="mx-auto max-w-5xl">
@@ -633,11 +592,11 @@ const Home = () => {
           </div>
           <div className="space-y-4">
             {[
-              { q: '영상 편집을 한 번도 안 해봤는데 괜찮을까요?', a: '네, 괜찮습니다. 영상만 넣고 버튼을 누르면 돼요. 자르기·자막·합성은 전부 자동으로 처리됩니다.' },
-              { q: '꼭 물건을 팔거나 사업자여야 하나요?', a: '아니요. 재고나 사업자가 없어도 괜찮아요. 상품 소개 영상을 만들어 올리고, 누군가 내 추천 링크로 구매하면 수수료(쿠팡 파트너스 등)를 받는 방식이에요.' },
-              { q: '복잡한 설정을 해야 하나요?', a: '아니요. 영상만 넣고 버튼을 누르면 AI가 알아서 만들어요. 음성·자막 같은 건 기본값 그대로 두셔도 되고, 더 알고 싶으면 상단 "사용 방법"에서 확인할 수 있어요.' },
-              { q: '시간이 얼마나 걸리나요?', a: '영상 하나에 보통 1~5분이면 충분합니다. 만드는 동안 창을 닫거나 다른 일을 하셔도 계속 만들어지고, 완성되면 "생성 내역"에서 받을 수 있어요.' },
-              { q: '컴퓨터를 잘 못 다뤄도 되나요?', a: '클릭만 하실 수 있으면 됩니다. 영상만 넣고 버튼을 누르면 나머지는 자동이에요. 처음이라면 상단 "사용 방법"에 그림과 함께 안내가 있어요.' },
+              { q: '만든 영상은 어디에 올리나요?', a: '완성본은 파일로 저장돼요. 인스타그램 릴스·틱톡·유튜브 쇼츠 등 원하는 채널에 자유롭게 업로드하시면 됩니다.' },
+              { q: '요금제는 중간에 바꾸거나 멈출 수 있나요?', a: '네. 결제·계정 탭에서 언제든 요금제를 변경할 수 있어요. 자동 정기결제가 아니라, 원치 않으면 다음에 재구매하지 않으면 됩니다.' },
+              { q: '영상은 얼마나 빨리 만들어지나요?', a: '보통 영상 하나에 1~5분. 만드는 동안 창을 닫거나 다른 일을 하셔도 계속 생성되고, 완성되면 생성 내역에서 받을 수 있어요.' },
+              { q: '저작권 문제는 없나요?', a: '본인이 준비한 상품 영상에 자동으로 편집·자막·음성을 입히는 도구예요. 업로드하는 소재의 권리는 이용자에게 있으니, 사용 권한이 있는 영상으로 만들어 주세요.' },
+              { q: '환불 규정은 어떻게 되나요?', a: '디지털 콘텐츠 특성상 영상을 1회라도 생성하면 환불이 어렵습니다. 이용 이력이 전혀 없는 경우 결제일로부터 7일 이내 전액 환불이 가능합니다.' },
             ].map(({ q, a }) => (
               <div key={q} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] md:p-7">
                 <div className="mb-3 flex items-start gap-3">
