@@ -796,7 +796,7 @@ const Home = () => {
 
 /* ── 데모 영상 캐러셀 ── */
 // 정적 호스팅(Vercel public/)에서 서빙 — Supabase egress 안 씀
-const DEMO_VIDEOS = ['/demo1.mp4', '/demo2.mp4', '/demo3.mp4', '/demo4.mp4', '/demo5.mp4']
+const DEMO_VIDEOS = ['/demo6.mp4', '/demo1.mp4', '/demo2.mp4', '/demo3.mp4', '/demo4.mp4', '/demo5.mp4']
 const DemoCarousel = () => {
   const videos = DEMO_VIDEOS
   const [active, setActive] = useState(0)
