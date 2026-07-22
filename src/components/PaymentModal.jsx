@@ -23,13 +23,8 @@ const PLAN_META = {
   pkg6:    { name: '프로 6개월', badge: '안심 패키지' },
 }
 
-// Paddle (카드·간편결제 자동결제)
-const PADDLE_TOKEN = 'live_629b836f204361e374fe079907d'
-const PADDLE_PRICE_IDS = {
-  starter: 'pri_01kvabnryqdwkh6chvfydwhx9y',
-  pro:     'pri_01kvabmdv33vdh4mb079gmjw8c',
-  master:  'pri_01kvabjps0wbgh98qy7xpte2na',
-}
+// 토스페이먼츠 (카드 결제 / 정기결제) — 클라이언트 키는 환경변수
+const TOSS_CLIENT_KEY = import.meta.env.VITE_TOSS_CLIENT_KEY || ''
 // 토스 송금 QR (고정 금액, public/ 에 위치)
 const QR_IMAGES = {
   starter: '/qr_starter.png',
@@ -134,33 +129,66 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
     setTimeout(() => window.location.reload(), 1300)
   }
 
-  // Paddle.js 로드 + 초기화 (모달 열릴 때 1회)
+  // 토스페이먼츠 SDK 로드 (모달 열릴 때 1회)
   useEffect(() => {
     if (!open) return
-    if (window.Paddle) return
+    if (window.TossPayments || document.getElementById('toss-sdk')) return
     const sc = document.createElement('script')
-    sc.src = 'https://cdn.paddle.com/paddle/v2/paddle.js'
+    sc.id = 'toss-sdk'
+    sc.src = 'https://js.tosspayments.com/v2/standard'
     sc.async = true
-    sc.onload = () => { try { window.Paddle.Initialize({ token: PADDLE_TOKEN }) } catch (e) { console.error('Paddle init', e) } }
     document.body.appendChild(sc)
   }, [open])
 
-  const payWithPaddle = async () => {
+  const genOrderId = (p) => `chronit_${p}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+
+  // 일반결제(카드 인증결제창)
+  const payWithToss = async () => {
     setPayMsg(null)
-    const priceId = PADDLE_PRICE_IDS[selectedPlan]
-    if (!priceId) { setPayMsg('이 플랜은 카드결제 준비 중이에요. 계좌이체로 진행해주세요.'); return }
+    if (!TOSS_CLIENT_KEY) { setPayMsg('결제 모듈 설정 준비 중이에요. 잠시 후 다시 시도해주세요.'); return }
     const { data: ses } = await supabase.auth.getSession()
     const user = ses?.session?.user
     if (!user) { setPayMsg('로그인 후 결제할 수 있어요.'); return }
-    if (!window.Paddle) { setPayMsg('결제 모듈 로딩 중이에요. 잠시 후 다시 눌러주세요.'); return }
+    if (!window.TossPayments) { setPayMsg('결제 모듈 로딩 중이에요. 잠시 후 다시 눌러주세요.'); return }
     try {
-      window.Paddle.Checkout.open({
-        items: [{ priceId, quantity: 1 }],
-        customer: { email: user.email },
-        customData: { user_id: user.id, user_email: user.email },
-        settings: { displayMode: 'overlay', theme: 'light', successUrl: 'https://chronit.kr/?paid=1' },
+      const toss = window.TossPayments(TOSS_CLIENT_KEY)
+      const payment = toss.payment({ customerKey: user.id })
+      await payment.requestPayment({
+        method: 'CARD',
+        amount: { currency: 'KRW', value: plan.price },
+        orderId: genOrderId(selectedPlan),
+        orderName: `크로닛 ${plan.name}`,
+        customerEmail: user.email,
+        successUrl: `${window.location.origin}/payments/success`,
+        failUrl: `${window.location.origin}/payments/fail`,
       })
-    } catch (e) { setPayMsg('결제창을 여는 중 오류가 났어요: ' + (e?.message || e)) }
+    } catch (e) {
+      if (e?.code === 'USER_CANCEL') return
+      setPayMsg('결제창 오류: ' + (e?.message || e))
+    }
+  }
+
+  // 정기결제(카드 자동결제 등록 — 빌링 인증창)
+  const registerBillingToss = async () => {
+    setPayMsg(null)
+    if (!TOSS_CLIENT_KEY) { setPayMsg('결제 모듈 설정 준비 중이에요.'); return }
+    const { data: ses } = await supabase.auth.getSession()
+    const user = ses?.session?.user
+    if (!user) { setPayMsg('로그인 후 이용할 수 있어요.'); return }
+    if (!window.TossPayments) { setPayMsg('결제 모듈 로딩 중이에요.'); return }
+    try {
+      const toss = window.TossPayments(TOSS_CLIENT_KEY)
+      const payment = toss.payment({ customerKey: user.id })
+      await payment.requestBillingAuth({
+        method: 'CARD',
+        customerEmail: user.email,
+        successUrl: `${window.location.origin}/payments/success?type=billing&plan=${selectedPlan}`,
+        failUrl: `${window.location.origin}/payments/fail`,
+      })
+    } catch (e) {
+      if (e?.code === 'USER_CANCEL') return
+      setPayMsg('정기결제 등록 오류: ' + (e?.message || e))
+    }
   }
 
   useEffect(() => {
@@ -390,12 +418,18 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
                 <div className="rounded-xl bg-amber-50 px-4 py-3 text-left text-xs leading-relaxed text-amber-700">
                   결제 시 <strong>크로닛 가입 닉네임</strong>을 옵션에 정확히 입력해 주세요. 해당 닉네임으로 이용권이 자동 충전됩니다.
                 </div>
-                {/* 토스 결제 — 준비중 */}
-                <div className="relative mt-1 rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-4 text-center">
-                  <span className="absolute right-3 top-3 rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-black text-gray-500">준비중</span>
-                  <div className="text-sm font-bold text-gray-500">토스로 결제하기</div>
-                  <div className="mt-0.5 text-xs text-gray-400">토스페이먼츠 연동 후 오픈됩니다</div>
-                </div>
+                {/* 토스 카드 결제 */}
+                <button onClick={payWithToss}
+                  className="mt-1 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(0,100,255,0.5)] transition-all hover:bg-[#0052D6] active:scale-[0.98]">
+                  <CreditCard size={18} /> 카드로 결제 ({plan.price.toLocaleString('ko-KR')}원)
+                </button>
+                {selectedPlan !== 'pkg6' && (
+                  <button onClick={registerBillingToss}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#0064FF]/40 bg-white px-6 py-3 text-sm font-bold text-[#0064FF] transition-all hover:bg-[#0064FF]/5 active:scale-[0.98]">
+                    카드 자동결제(정기결제) 등록
+                  </button>
+                )}
+                {payMsg && <p className="text-center text-sm font-bold text-red-500">{payMsg}</p>}
               </div>
             ) : (
               <div className="rounded-xl bg-amber-50 p-4 text-center text-sm font-bold text-amber-700">
@@ -424,14 +458,6 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
           </div>
         ) : (
           <div className="space-y-3">
-            {!hasDiscount && PADDLE_PRICE_IDS[selectedPlan] && (
-              <button
-                onClick={payWithPaddle}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(3,199,90,0.6)] transition-all hover:bg-[#0052D6] active:scale-[0.98]"
-              >
-                <CreditCard size={18} /> 카드·간편결제로 결제 ({plan.price.toLocaleString('ko-KR')}원)
-              </button>
-            )}
             <p className="text-center text-xs text-gray-500">스마트스토어 결제 시 가입 닉네임을 옵션에 꼭 입력해 주세요.</p>
             {payMsg && <p className="text-center text-sm font-bold text-red-500">{payMsg}</p>}
           </div>
