@@ -569,7 +569,7 @@ const Home = () => {
       <section id="features" style={{ scrollMarginTop: '200px' }} className="px-5 py-16 md:px-8 md:py-24">
         <Reveal className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
-            <h2 className="text-3xl font-black text-gray-900 md:text-4xl">영상 한 번 넣으면, 이걸 다 해드려요</h2>
+            <h2 className="text-3xl font-black text-gray-900 md:text-4xl">링크 한 번 넣으면, 이걸 다 해드려요</h2>
             <p className="mt-3 text-lg text-gray-500 md:text-xl">제작에 필요한 과정을 크로닛이 자동으로 처리해요</p>
           </div>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
