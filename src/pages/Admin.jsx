@@ -390,173 +390,6 @@ const TipsPanel = () => {
   )
 }
 
-const ReportsPanel = () => {
-  const [items, setItems] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [busy, setBusy] = useState(null)
-
-  const load = () => {
-    setLoading(true)
-    supabase.rpc('admin_reports_rpc').then(({ data }) => { setItems(data?.items || []); setLoading(false) })
-  }
-  useEffect(() => { load() }, [])
-
-  const REASON = { ad: '광고', abuse: '욕설', flood: '도배', etc: '기타' }
-  const act = async (it, action) => {
-    setBusy(`${it.target_type}-${it.target_id}`)
-    await supabase.rpc('admin_moderate_content_rpc', { p_target_type: it.target_type, p_target_id: it.target_id, p_action: action })
-    setBusy(null); load()
-  }
-
-  return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
-      <div className="mb-6 flex items-center gap-2">
-        <Flag size={18} className="text-red-400" />
-        <h2 className="text-base font-bold">신고 관리</h2>
-        <span className="ml-2 text-xs text-slate-500">3명 이상 신고 시 자동 숨김됩니다</span>
-      </div>
-      {loading ? (
-        <p className="py-10 text-center text-sm text-slate-500">불러오는 중…</p>
-      ) : items.length === 0 ? (
-        <p className="py-10 text-center text-sm text-slate-500">신고된 게시물이 없습니다</p>
-      ) : (
-        <div className="flex flex-col gap-3">
-          {items.map(it => {
-            const c = it.content || {}
-            const key = `${it.target_type}-${it.target_id}`
-            const link = it.target_type === 'post' ? `/board/${it.target_id}` : `/board/${c.post_id}`
-            return (
-              <div key={key} className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-                <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
-                  <span className={`rounded-md px-2 py-0.5 font-bold ${it.target_type === 'post' ? 'bg-blue-500/20 text-blue-300' : 'bg-slate-500/20 text-slate-300'}`}>{it.target_type === 'post' ? '게시글' : '댓글'}</span>
-                  <span className="rounded-md bg-red-500/20 px-2 py-0.5 font-bold text-red-300">신고 {it.report_count}</span>
-                  {(it.reasons || []).map(r => <span key={r} className="rounded-md bg-white/10 px-2 py-0.5 text-slate-300">{REASON[r] || r}</span>)}
-                  {c.is_hidden && <span className="rounded-md bg-amber-500/20 px-2 py-0.5 font-bold text-amber-300">숨김됨</span>}
-                  {c.is_deleted && <span className="rounded-md bg-gray-500/20 px-2 py-0.5 font-bold text-gray-400">삭제됨</span>}
-                  <span className="ml-auto text-slate-500">{c.nickname}</span>
-                </div>
-                {c.title && <div className="text-sm font-bold text-white">{c.title}</div>}
-                <div className="text-sm text-slate-300">{c.body}</div>
-                <div className="mt-3 flex items-center gap-2">
-                  <a href={link} target="_blank" rel="noreferrer" className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white">원문 보기</a>
-                  <button disabled={busy === key} onClick={() => act(it, 'restore')} className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs font-bold text-emerald-300 hover:bg-emerald-500/10 disabled:opacity-50">복구</button>
-                  {!c.is_hidden && !c.is_deleted && (
-                    <button disabled={busy === key} onClick={() => act(it, 'hide')} className="rounded-lg border border-amber-500/30 px-3 py-1.5 text-xs font-bold text-amber-300 hover:bg-amber-500/10 disabled:opacity-50">숨김</button>
-                  )}
-                  <button disabled={busy === key} onClick={() => { if (confirm('영구 삭제할까요?')) act(it, 'delete') }} className="rounded-lg border border-red-500/30 px-3 py-1.5 text-xs font-bold text-red-300 hover:bg-red-500/10 disabled:opacity-50">삭제</button>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
-}
-
-
-const PRICE_PLANS = [['starter', '스타터'], ['pro', '프로'], ['master', '마스터']]
-const PricingPanel = () => {
-  const [rows, setRows] = useState({})
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(null)
-  const [msg, setMsg] = useState(null)
-  const inputCls = 'w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-blue-500'
-  const optStyle = { backgroundColor: '#0f172a', color: '#fff' }
-  useEffect(() => {
-    Promise.all([
-      supabase.from('plans').select('id, list_price, monthly_price').in('id', PRICE_PLANS.map(x => x[0])),
-      supabase.from('site_settings').select('key, value').in('key', ['pkg6_list_price', 'pkg6_sale_price']),
-    ]).then(([pr, ss]) => {
-      const m = {}
-      ;(pr.data || []).forEach(r => { m[r.id] = { list: r.list_price, mode: 'price', val: r.monthly_price } })
-      const o = {}; (ss.data || []).forEach(r => { o[r.key] = Number(r.value) || 0 })
-      m['pkg6'] = { list: o.pkg6_list_price || 594000, mode: 'price', val: o.pkg6_sale_price || 249000 }
-      setRows(m); setLoading(false)
-    })
-  }, [])
-  const calcSale = (r) => {
-    const list = Number(r?.list) || 0, v = Number(r?.val) || 0
-    if (r?.mode === 'percent') return Math.max(0, Math.round(list * (1 - v / 100)))
-    if (r?.mode === 'fixed') return Math.max(0, list - v)
-    return Math.max(0, v)
-  }
-  const set = (id, k, v) => setRows(rs => ({ ...rs, [id]: { ...rs[id], [k]: v } }))
-  const save = async (id) => {
-    const r = rows[id]; if (!r) return
-    const sale = calcSale(r)
-    setSaving(id); setMsg(null)
-    let error
-    if (id === 'pkg6') {
-      const res = await supabase.from('site_settings').upsert([
-        { key: 'pkg6_list_price', value: String(Number(r.list) || 0), updated_at: new Date().toISOString() },
-        { key: 'pkg6_sale_price', value: String(sale), updated_at: new Date().toISOString() },
-      ])
-      error = res.error
-    } else {
-      const res = await supabase.from('plans')
-        .update({ list_price: Number(r.list) || 0, monthly_price: sale, updated_at: new Date().toISOString() })
-        .eq('id', id)
-      error = res.error
-    }
-    setSaving(null)
-    setMsg(error ? ('Error: ' + error.message) : '저장됐어요')
-    setTimeout(() => setMsg(null), 2500)
-  }
-  return (
-    <div className="max-w-2xl rounded-2xl border border-white/8 bg-white/[0.03] p-8">
-      <div className="mb-2 flex items-center gap-2">
-        <ShieldCheck size={18} className="text-[#0064FF]" />
-        <h2 className="text-lg font-black text-white">요금제 가격</h2>
-      </div>
-      <p className="mb-5 text-xs leading-relaxed text-slate-500">정가와 할인(할인율 % / 정액 원 / 판매가 직접)을 설정하면 판매가가 계산돼 홈 요금제·결제 금액에 반영돼요.</p>
-      {loading ? (
-        <p className="text-sm text-slate-500">불러오는 중…</p>
-      ) : (
-        <div className="space-y-4">
-          {[...PRICE_PLANS, ['pkg6', '프로 6개월']].map(([id, label]) => {
-            const r = rows[id] || { list: 0, mode: 'price', val: 0 }
-            const sale = calcSale(r)
-            const list = Number(r.list) || 0
-            const pct = list > 0 ? Math.round((list - sale) / list * 100) : 0
-            return (
-              <div key={id} className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-                <div className="mb-3 text-sm font-black text-white">{label}</div>
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <label className="mb-1 block text-xs font-bold text-slate-400">정가 (원)</label>
-                    <input type="number" min="0" step="1000" className={inputCls} value={r.list} onChange={e => set(id, 'list', e.target.value)} />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-bold text-slate-400">할인 방식</label>
-                    <select className={inputCls} value={r.mode} onChange={e => set(id, 'mode', e.target.value)}>
-                      <option value="price" style={optStyle}>판매가 직접</option>
-                      <option value="percent" style={optStyle}>할인율(%)</option>
-                      <option value="fixed" style={optStyle}>정액 할인(원)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-bold text-slate-400">{r.mode === 'percent' ? '할인율 %' : r.mode === 'fixed' ? '할인액 원' : '판매가 원'}</label>
-                    <input type="number" min="0" className={inputCls} value={r.val} onChange={e => set(id, 'val', e.target.value)} />
-                  </div>
-                </div>
-                <div className="mt-3 flex items-center justify-between">
-                  <span className="text-sm text-slate-300">→ 판매가 <b className="text-[#0064FF]">{sale.toLocaleString('ko-KR')}원</b> <span className="text-slate-500">({pct}% 할인)</span></span>
-                  <button onClick={() => save(id)} disabled={saving === id}
-                    className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">
-                    {saving === id ? <Loader size={14} className="animate-spin" /> : <Save size={14} />} 저장
-                  </button>
-                </div>
-              </div>
-            )
-          })}
-          {msg && <p className="text-sm text-slate-300">{msg}</p>}
-        </div>
-      )}
-    </div>
-  )
-}
-
 const Admin = () => {
   const [user, setUser] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -696,9 +529,7 @@ const Admin = () => {
             { key: 'missions', icon: <Gift size={15} />, label: '이벤트(이용권)' },
             { key: 'tips', icon: <Megaphone size={15} />, label: '꿀팁' },
             { key: 'videos', icon: <Film size={15} />, label: 'Demo Videos' },
-            { key: 'reports', icon: <Flag size={15} />, label: '신고관리' },
             { key: 'errors', icon: <AlertTriangle size={15} />, label: '오류 로그' },
-            { key: 'pricing', icon: <ShieldCheck size={15} />, label: '요금제' },
             { key: 'trends', icon: <Flame size={15} />, label: '오늘의 트렌드' },
           ].map(t => (
             <button key={t.key} onClick={() => { setTab(t.key); setView('list') }}
@@ -709,11 +540,9 @@ const Admin = () => {
         </div>
 
         {tab === 'videos' && <DemoVideosPanel />}
-        {tab === 'reports' && <ReportsPanel />}
         {tab === 'errors' && <ErrorReportsPanel />}
         {tab === 'missions' && <MissionsPanel />}
         {tab === 'tips' && <TipsPanel />}
-        {tab === 'pricing' && <PricingPanel />}
         {tab === 'trends' && <TrendAccountsPanel />}
 
         {tab === 'events' && view === 'list' && (
@@ -951,7 +780,7 @@ function TrendAccountsPanel() {
           ))}
         </div>
       )}
-      <p className="mt-4 text-xs text-slate-500">자동 스캔: 2시간마다(cron). 켜진 계정만 스캔하고, 최근 3일 내 댓글 300+ 글을 오늘의 트렌드에 올려요.</p>
+      <p className="mt-4 text-xs text-slate-500">자동 스캔: 2시간마다(cron). 켜진 계정만 스캔하고, 최근 7일 내 댓글 100+ 글을 오늘의 트렌드에 올려요.</p>
     </div>
   )
 }
