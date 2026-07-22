@@ -682,6 +682,7 @@ const Home = () => {
                 <span className="text-4xl font-black text-[#b07d00]">{wonFmt(planPrices.pkg6.sale)}</span>
                 <span className="text-lg font-bold text-gray-500">원</span>
               </div>
+              <div className="mt-1 text-sm font-bold text-[#b07d00] sm:text-right">월 {wonFmt(Math.round(planPrices.pkg6.sale / 6))}원꼴</div>
             </div>
           </div>
 

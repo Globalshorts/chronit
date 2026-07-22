@@ -370,6 +370,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
               <div className="text-right leading-tight">
                 <div className="text-[11px] font-medium text-gray-400 line-through">{plans.pkg6.list.toLocaleString('ko-KR')}</div>
                 <div className="text-base font-black text-amber-600">{plans.pkg6.price.toLocaleString('ko-KR')}원</div>
+                <div className="text-[11px] font-bold text-amber-600">월 {Math.round(plans.pkg6.price / 6).toLocaleString('ko-KR')}원꼴</div>
               </div>
             </button>
           )}
