@@ -33,8 +33,17 @@ export default function Landing() {
     const c = p.get('code')
     if (c) { setCode(c.toUpperCase()); sessionStorage.setItem('chronit_code', c) }
     else { const st = sessionStorage.getItem('chronit_code'); if (st) setCode(st) }
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
+    // 로그인 유저는 랜딩에 가두지 않고 바로 앱(신규는 /register 온보딩)으로 — '이중 랜딩' 이탈 방지
+    const forward = (session) => {
+      if (!session) { setSession(null); return }
+      supabase.from('profiles').select('onboarded').eq('id', session.user.id).maybeSingle()
+        .then(({ data: prof }) => { window.location.href = (prof && prof.onboarded === false) ? '/register' : '/generate' })
+        .catch(() => { window.location.href = '/generate' })
+    }
+    supabase.auth.getSession().then(({ data: { session } }) => forward(session))
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => { if (event === 'SIGNED_IN' && session) forward(session) })
     supabase.rpc('public_signup_count').then(({ data }) => { if (typeof data === 'number') setSpots(data) })
+    return () => { try { sub.subscription.unsubscribe() } catch {} }
   }, [])
 
   const start = () => {
