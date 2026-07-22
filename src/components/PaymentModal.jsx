@@ -423,12 +423,6 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
                   className="mt-1 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(0,100,255,0.5)] transition-all hover:bg-[#0052D6] active:scale-[0.98]">
                   <CreditCard size={18} /> 카드로 결제 ({plan.price.toLocaleString('ko-KR')}원)
                 </button>
-                {selectedPlan !== 'pkg6' && (
-                  <button onClick={registerBillingToss}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#0064FF]/40 bg-white px-6 py-3 text-sm font-bold text-[#0064FF] transition-all hover:bg-[#0064FF]/5 active:scale-[0.98]">
-                    카드 자동결제(정기결제) 등록
-                  </button>
-                )}
                 {payMsg && <p className="text-center text-sm font-bold text-red-500">{payMsg}</p>}
               </div>
             ) : (
