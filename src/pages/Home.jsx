@@ -640,6 +640,7 @@ const Home = () => {
                 <span className="text-4xl font-black text-[#b07d00]">{wonFmt(planPrices.pkg6.sale)}</span>
                 <span className="text-lg font-bold text-gray-500">원</span>
               </div>
+              <div className="mt-1 text-sm font-bold text-[#b07d00] sm:text-right">월 {wonFmt(Math.round(planPrices.pkg6.sale / 6))}원 수준</div>
             </div>
           </div>
 
@@ -673,6 +674,7 @@ const Home = () => {
                   <span className="text-4xl font-black text-gray-900">{wonFmt(planPrices.starter.sale)}</span>
                   <span className="text-lg font-bold text-gray-500">원 / 월</span>
                 </div>
+                <div className="mt-1.5 text-sm font-bold text-gray-400">하루 약 {wonFmt(Math.round(planPrices.starter.sale / 30 / 10) * 10)}원</div>
               </div>
               <ul className="space-y-3 text-base font-medium text-gray-700">
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#0064FF]" /><span>월 <strong>15개</strong> 영상 제작</span></li>
@@ -693,6 +695,7 @@ const Home = () => {
                   <span className="text-4xl font-black text-white md:text-5xl">{wonFmt(planPrices.pro.sale)}</span>
                   <span className="shrink-0 text-lg font-bold text-white/80">원/월</span>
                 </div>
+                <div className="mt-1.5 text-sm font-bold text-white/70">하루 약 {wonFmt(Math.round(planPrices.pro.sale / 30 / 10) * 10)}원</div>
               </div>
               <ul className="space-y-3 text-base font-medium text-white">
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-white" /><span>월 <strong>30개</strong> 영상 제작</span></li>
@@ -712,6 +715,7 @@ const Home = () => {
                   <span className="text-4xl font-black text-gray-900">{wonFmt(planPrices.master.sale)}</span>
                   <span className="text-lg font-bold text-gray-500">원 / 월</span>
                 </div>
+                <div className="mt-1.5 text-sm font-bold text-gray-400">하루 약 {wonFmt(Math.round(planPrices.master.sale / 30 / 10) * 10)}원</div>
               </div>
               <ul className="space-y-3 text-base font-medium text-gray-700">
                 <li className="flex items-start gap-2"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-[#0064FF]" /><span>월 <strong>50개</strong> 영상 제작</span></li>
