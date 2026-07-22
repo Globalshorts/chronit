@@ -4628,7 +4628,7 @@ function SettingsView({ session, supabase, balance, userPlan }:
           <div><p className="text-xs text-gray-500">현재 요금제</p>
             <p className="text-sm font-bold text-gray-900 mt-0.5">{planLabel(plan)} 요금제{plan!=="free" && " (구독 중)"}</p></div>
           <button onClick={()=>setShowPay(true)}
-            className="rounded-xl border border-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition">요금제 변경</button>
+            className="rounded-xl border border-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition">구독 변경</button>
         </div>
       </Section>
 
