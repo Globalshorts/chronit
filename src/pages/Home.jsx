@@ -438,13 +438,13 @@ const Home = () => {
               )}
               <button onClick={handleStart}
                 className="rounded-full bg-[#0064FF] px-7 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-md shadow-[#0064FF]/25 transition-all hover:bg-[#0052D6] active:scale-95">
-                시작하기
+                무료 체험
               </button>
             </div>
             {/* 모바일 상단 시작하기 CTA (햄버거에 가려지지 않게 상시 노출) */}
             <button onClick={handleStart}
               className="rounded-full bg-[#0064FF] px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-md shadow-[#0064FF]/25 transition-all active:scale-95 md:hidden">
-              시작하기
+              무료 체험
             </button>
             <button onClick={() => setMenuOpen((v) => !v)} aria-label="메뉴"
               className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 text-gray-700 transition-all hover:border-gray-400 md:hidden">
@@ -492,7 +492,7 @@ const Home = () => {
             )}
             <button onClick={() => { setMenuOpen(false); handleStart() }}
               className="w-full rounded-xl bg-[#0064FF] px-4 py-4 text-lg font-extrabold text-white shadow-md transition-all hover:bg-[#0052D6] active:scale-95">
-              시작하기
+              무료 체험
             </button>
           </div>
         </div>

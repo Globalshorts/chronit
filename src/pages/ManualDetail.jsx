@@ -391,7 +391,7 @@ const ManualDetail = () => {
                 상품 영상만 준비하면 돼요. <b className="text-[#0064FF]">가입은 무료</b>, 구글 로그인이면 바로 시작할 수 있어요.
               </p>
               <Link to="/generate" className="group mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0064FF] px-8 py-4 text-lg font-black text-white shadow-md shadow-[#0064FF]/25 transition-all hover:bg-[#0052D6]">
-                무료로 시작하기 <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
+                무료 체험 <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
           )}

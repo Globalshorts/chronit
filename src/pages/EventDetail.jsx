@@ -58,7 +58,7 @@ const EventDetail = () => {
             <Link to="/events"    className="uppercase text-[#0064FF]">이벤트</Link>
           </nav>
           <Link to="/#pricing" className="shrink-0 rounded-full bg-[#0064FF] px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-lg shadow-[#0064FF]/25 transition-all hover:bg-[#0052D6] active:scale-95 md:px-7 md:py-2.5 md:text-base">
-            시작하기
+            무료 체험
           </Link>
         </div>
       </header>
