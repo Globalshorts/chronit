@@ -367,7 +367,8 @@ export default function VideoGenerator() {
   const [autoRunning, setAutoRunning]   = useState(false);
   const [autoRunStep, setAutoRunStep]   = useState("");
   const [autoRunError, setAutoRunError] = useState("");
-  const genRetryRef = useRef(0);              // 합성 실패 자동 재시도 횟수
+  const genRetryRef = useRef(0);
+  const sourceNeededRef = useRef(false);              // 합성 실패 자동 재시도 횟수
   const lastRenderArgsRef = useRef<any>(null);// 재시도용 렌더 파라미터
   const doRetryRef = useRef<() => void>(() => {});
   const [showAutoModal, setShowAutoModal] = useState(false);
@@ -738,7 +739,7 @@ export default function VideoGenerator() {
     try { if (localStorage.getItem("chronit_source_asked")) return; } catch {}
     supabase.rpc("get_signup_source_rpc").then((res: any) => {
       if (!res?.data) {
-        setShowSourceSurvey(true);
+        sourceNeededRef.current = true;  // 첫 영상 완료 후에 물어봄 (진입 시 막지 않음)
         // 추천 링크로 들어와 이미 적용됐는지 확인
         supabase.rpc("has_referrer_rpc").then((r: any) => {
           if (r?.data?.referred) setRefAlready(true);
@@ -795,7 +796,7 @@ export default function VideoGenerator() {
     if (!job) return;
     if (job.status === "done") {
       genRetryRef.current = 0;
-      try { window.gtag?.('event','video_complete',{ job_id: job.id }); if (!localStorage.getItem('chronit_first_video')) { localStorage.setItem('chronit_first_video','1'); window.gtag?.('event','first_video',{ event_category:'activation' }); } } catch {}
+      try { window.gtag?.('event','video_complete',{ job_id: job.id }); if (!localStorage.getItem('chronit_first_video')) { localStorage.setItem('chronit_first_video','1'); window.gtag?.('event','first_video',{ event_category:'activation' }); if (sourceNeededRef.current) { try { if (!localStorage.getItem('chronit_source_asked')) setTimeout(() => setShowSourceSurvey(true), 1400); } catch {} } } } catch {}
       if (stage === 5) setStage(1); // 자동 생성 흐름이면 1단계로 복귀
       setCompletionAlert("✅ 영상 생성 완료! 생성 내역으로 이동합니다.");
       try { if (!localStorage.getItem("chronit_install_nudged")) { localStorage.setItem("chronit_install_nudged","1"); setTimeout(() => window.dispatchEvent(new Event("chronit:open-install")), 1800); } } catch {}
