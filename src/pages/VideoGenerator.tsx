@@ -23,6 +23,8 @@ import { FEATURES } from "../config/features";
 
 const SB = "https://oxygqtbdpnxxcgzwdlzi.supabase.co";
 const FN = (n: string) => `${SB}/functions/v1/${n}`;
+// 신규 유저 첫 진입 시 입력창에 미리 채워줄 예시 링크 (직접 지우고 다른 링크 넣을 수 있음)
+const SAMPLE_URL = "https://www.instagram.com/p/DNQhKP9NFYa/";
 
 // ── 상단 바 (홈페이지와 동일 스타일) ───────────────────────────
 function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan, onHistory, activeView, onViewChange, userRole }: { onMenuClick?: () => void; onInvite?: () => void; session?: any; balance?: number|null; daysLeft?: number|null; userPlan?: string|null; onHistory?: () => void; activeView?: string; onViewChange?: (v:string)=>void; userRole?: string }) {
@@ -296,6 +298,7 @@ export default function VideoGenerator() {
 
   // Stage 1
   const [sourceUrl, setSourceUrl]   = useState("");
+  const samplePrefilledRef = useRef(false);  // 예시 링크 1회만 자동 채움
   // ── 내 영상 직접 업로드 (FEATURES.directUpload) ──
   const [inputMode, setInputMode]   = useState<"url"|"upload">("url");
   const [uploadFile, setUploadFile] = useState<File|null>(null);
@@ -573,7 +576,15 @@ export default function VideoGenerator() {
   const loadJobs = useCallback(async () => {
     const { data } = await supabase.from("video_jobs").select("*")
       .order("created_at", { ascending: false }).limit(20);
-    if (data) setJobs(data as Job[]);
+    if (data) {
+      setJobs(data as Job[]);
+      // 신규 유저(영상 0개) 첫 진입 시 예시 링크를 입력창에 미리 채움 — 좋은 첫 결과물 경험용.
+      // 이미 입력/복원된 값이 있으면 덮지 않고, 1회만 채워 사용자가 자유롭게 지울 수 있게.
+      if (data.length === 0 && !samplePrefilledRef.current) {
+        samplePrefilledRef.current = true;
+        setSourceUrl(prev => prev.trim() ? prev : SAMPLE_URL);
+      }
+    }
   }, []);
   const loadBalance = useCallback(async () => {
     const { data } = await supabase.rpc("get_my_balance_rpc").single();
