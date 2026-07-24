@@ -307,7 +307,7 @@ export default function VideoGenerator() {
   const [uploadDesc, setUploadDesc] = useState("");
   const [uploading, setUploading]   = useState(false);
   const [uploadError, setUploadError] = useState("");
-  const [uploadOpen, setUploadOpen]   = useState(true);
+  const [uploadOpen, setUploadOpen]   = useState(false);
   // ── 트렌드 소스 피드 (FEATURES.trendFeed) ──
   const [trendOpen, setTrendOpen]     = useState(false);
   const [trendItems, setTrendItems]   = useState<any[]>([]);
