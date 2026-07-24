@@ -91,7 +91,6 @@ const Register = () => {
         try { await supabase.rpc('auto_nickname_rpc', { p_base: baseName }) } catch { /* noop */ }
       }
       if (!prof?.terms_agreed_at) setStep(STEP.TERMS)
-      else if (!prof?.signup_source) setStep(STEP.SOURCE)
       else { try { await supabase.rpc('complete_onboarding_rpc') } catch { /* noop */ } window.location.href = '/generate'; return }
       setLoading(false)
     })()
@@ -110,11 +109,13 @@ const Register = () => {
     setAgree(true); setMarketing(m)
     setSaving(true)
     try { await supabase.rpc('set_terms_consent_rpc', { p_marketing: m }) } catch { /* noop */ }
-    // 닉네임 자동 생성 (OAuth 이름 기반, 나중에 마이페이지에서 변경)
-    const baseName = session?.user?.user_metadata?.name || session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.nickname || ''
+    // 닉네임 자동 생성 (이메일 아이디 우선, 없으면 OAuth 이름 — 마이페이지에서 변경 가능)
+    const em = session?.user?.email || ''
+    const baseName = em ? em.split('@')[0] : (session?.user?.user_metadata?.name || session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.nickname || '')
     try { await supabase.rpc('auto_nickname_rpc', { p_base: baseName }) } catch { /* noop */ }
-    setSaving(false)
-    setStep(STEP.SOURCE)
+    // 유입경로 설문은 첫 영상 완료 후 앱에서 물어봄 — 여기서 막지 않고 바로 앱으로.
+    try { await supabase.rpc('complete_onboarding_rpc') } catch { /* noop */ }
+    window.location.href = '/generate'
   }
 
   const submitNick = async () => {

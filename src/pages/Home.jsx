@@ -212,18 +212,14 @@ const Home = () => {
   // 가입 온보딩: 닉네임(필수) → 유입경로(필수) → 후처리
   const proceedOnboarding = async (session) => {
     const { data: prof } = await supabase
-      .from('profiles').select('nickname, signup_source').eq('id', session.user.id).maybeSingle()
+      .from('profiles').select('nickname').eq('id', session.user.id).maybeSingle()
+    // 닉네임 자동 생성(이메일 아이디 기반, 없으면 OAuth 이름) — 입력 모달로 막지 않음. 마이페이지에서 변경 가능.
     if (!prof?.nickname) {
-      pendingAfterLoginRef.current = session
-      setNickRequired(true)
-      setNickOpen(true)
-      return
+      const em = session.user?.email || ''
+      const base = em ? em.split('@')[0] : (session.user?.user_metadata?.name || session.user?.user_metadata?.nickname || '')
+      try { await supabase.rpc('auto_nickname_rpc', { p_base: base }) } catch {}
     }
-    if (!prof?.signup_source) {
-      pendingAfterLoginRef.current = session
-      setSourceOpen(true)
-      return
-    }
+    // 유입경로 설문은 첫 영상 완료 후 앱에서 물어봄 — 가입을 막지 않음.
     pendingAfterLoginRef.current = null
     handleAfterLogin(session)
   }
