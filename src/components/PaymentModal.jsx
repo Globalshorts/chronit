@@ -405,13 +405,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
             </div>
             {(!hasDiscount && QR_IMAGES[selectedPlan]) ? (
               <div className="flex flex-col gap-3 rounded-xl bg-white p-4">
-                {/* 토스로 결제하기 — 최상단 */}
-                <button onClick={payWithToss}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(0,100,255,0.5)] transition-all hover:bg-[#0052D6] active:scale-[0.98]">
-                  <CreditCard size={18} /> 토스로 결제하기 ({plan.price.toLocaleString('ko-KR')}원)
-                </button>
-                {payMsg && <p className="text-center text-sm font-bold text-red-500">{payMsg}</p>}
-                {/* 네이버 스마트스토어 — 현재 결제수단 */}
+                {/* 네이버 스마트스토어 — 현재 결제수단 (기본) */}
                 <a
                   href={storeUrl}
                   target="_blank"
@@ -421,6 +415,13 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
                 >
                   네이버페이로 결제 ({plan.price.toLocaleString('ko-KR')}원)
                 </a>
+                {/* 토스 일반결제 — 카드사 심사 중(모듈은 연결 유지, 준비 중 표기) */}
+                <button onClick={payWithToss}
+                  className="relative flex w-full items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 px-6 py-3 text-sm font-bold text-gray-500 transition-all hover:bg-gray-100 active:scale-[0.98]">
+                  <CreditCard size={16} /> 토스로 결제하기
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-black text-gray-500">준비 중</span>
+                </button>
+                {payMsg && <p className="text-center text-sm font-bold text-red-500">{payMsg}</p>}
                 <div className="rounded-xl bg-amber-50 px-4 py-3 text-left text-xs leading-relaxed text-amber-700">
                   결제 시 <strong>크로닛 가입 닉네임</strong>을 옵션에 정확히 입력해 주세요. 해당 닉네임으로 이용권이 자동 충전됩니다.
                 </div>
