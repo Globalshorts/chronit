@@ -291,6 +291,7 @@ export default function VideoGenerator() {
   const [segEditorOpen, setSegEditorOpen] = useState(false);
   const [sbScript, setSbScript] = useState<any[] | null>(null);
   const [sbLoading, setSbLoading] = useState(false);
+  const [sbSlots, setSbSlots] = useState<any[]>([]);
 
   // Stage 2
   const [targetSeconds, setTargetSeconds] = useState(20);
@@ -1439,7 +1440,15 @@ export default function VideoGenerator() {
     try {
       const { data: { session: s } } = await supabase.auth.getSession();
       if (!s) { setRenderError("로그인이 필요합니다"); return; }
-      const selected = collectSelected();
+      let selected = collectSelected();
+      if (sbSlots && sbSlots.length) {
+        const _cmap = new Map((clips as any[]).map((c: any) => [c.video_id, c]));
+        const _sl = sbSlots.filter((sl: any) => sl && sl.seg).map((sl: any) => {
+          const c: any = _cmap.get(sl.seg.video_id) || {};
+          return { video_id: sl.seg.video_id, page_url: c.page_url || "", download_url: c.download_url || "", source: sl.seg.source || c.source || "tiktok", start: sl.seg.start, end: sl.seg.end };
+        });
+        if (_sl.length) selected = _sl as any;
+      }
       const resp = await fetch(FN("generate-video"), {
         method: "POST",
         headers: { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" },
@@ -2230,7 +2239,7 @@ export default function VideoGenerator() {
 
       {segEditorOpen && (
         <StoryboardModal script={sbScript} segsByVideo={segsByVideo} clips={clips}
-          loading={sbLoading} onClose={() => setSegEditorOpen(false)} />
+          loading={sbLoading} slots={sbSlots} setSlots={setSbSlots} onClose={() => setSegEditorOpen(false)} />
       )}
       {packOnboardOpen && (
         <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
@@ -3884,9 +3893,8 @@ function PoolPicker({ pool, onPick, onClose }: any) {
   );
 }
 
-function StoryboardModal({ script, segsByVideo, clips, loading, onClose }: any) {
+function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots, onClose }: any) {
   const pool = React.useMemo(() => Object.values(segsByVideo || {}).flat() as any[], [segsByVideo]);
-  const [slots, setSlots] = useState<any[]>([]);
   const [pickSlot, setPickSlot] = useState<number | null>(null);
   useEffect(() => {
     if (!script || !script.length || !pool.length) return;
