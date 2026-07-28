@@ -3911,19 +3911,17 @@ function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots,
         {loading || !slots.length ? (
           <div className="py-24 text-center text-sm text-gray-500">대본 만들고 구간 나누는 중… (최대 1~2분)</div>
         ) : (
-          <div className="mx-auto max-w-2xl space-y-3">
+          <div className="flex gap-3 overflow-x-auto px-1 pb-4">
             {slots.map((slot: any, i: number) => (
-              <div key={i} className="flex gap-3 rounded-xl border border-gray-200 bg-white p-2">
-                <div className="relative aspect-[9/16] w-20 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+              <div key={i} className="flex w-32 shrink-0 flex-col rounded-xl border border-gray-200 bg-white p-1.5">
+                <div className="relative aspect-[9/16] overflow-hidden rounded-lg bg-gray-100">
                   {slot.seg ? <SegPlayer clip={clipOf(slot.seg)} seg={slot.seg} />
                     : <div className="flex h-full w-full items-center justify-center text-xl">🎬</div>}
                   {slot.seg && <span className="absolute bottom-1 right-1 z-10 rounded bg-black/70 px-1 py-0.5 text-[10px] font-bold text-white">{slot.seg.duration}s</span>}
                 </div>
-                <div className="flex flex-1 flex-col justify-between py-0.5">
-                  <div className="text-sm leading-snug text-gray-800"><span className="font-bold text-[#0064FF]">{i + 1}.</span> {slot.text}</div>
-                  <button onClick={() => setPickSlot(i)}
-                    className="mt-2 self-start rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-200">🔄 클립 바꾸기</button>
-                </div>
+                <div className="mt-1.5 min-h-[2.75rem] text-xs leading-snug text-gray-800"><span className="font-bold text-[#0064FF]">{i + 1}.</span> {slot.text}</div>
+                <button onClick={() => setPickSlot(i)}
+                  className="mt-1 w-full rounded-lg bg-gray-100 py-1.5 text-[11px] font-bold text-gray-700 hover:bg-gray-200">🔄 바꾸기</button>
               </div>
             ))}
           </div>
