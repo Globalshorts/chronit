@@ -1449,7 +1449,7 @@ export default function VideoGenerator() {
         });
         if (_sl.length) selected = _sl as any;
       }
-      const resp = await fetch(FN("generate-video"), {
+      const resp = await fetch(FN("generate-video-test"), {
         method: "POST",
         headers: { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" },
         body: JSON.stringify({
