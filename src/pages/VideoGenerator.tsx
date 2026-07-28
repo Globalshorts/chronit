@@ -289,6 +289,8 @@ export default function VideoGenerator() {
   const [segLoading, setSegLoading] = useState(false);
   const [segMode, setSegMode] = useState(false);
   const [segEditorOpen, setSegEditorOpen] = useState(false);
+  const [sbScript, setSbScript] = useState<any[] | null>(null);
+  const [sbLoading, setSbLoading] = useState(false);
 
   // Stage 2
   const [targetSeconds, setTargetSeconds] = useState(20);
@@ -1124,7 +1126,30 @@ export default function VideoGenerator() {
     const key = vid + "#" + seg;
     setSegSel(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; });
   };
-  const openSegEditor = () => { setSegEditorOpen(true); if (!Object.keys(segsByVideo).length && !segLoading) loadSegments(); };
+  const genScriptForSb = async () => {
+    try {
+      const { data: { session: s2 } } = await supabase.auth.getSession();
+      if (!s2) { setSbScript([]); return; }
+      const selected = collectSelected();
+      const mk = (payload: any) => fetch(FN("generate-script"), { method: "POST", headers: { Authorization: "Bearer " + s2.access_token, "Content-Type": "application/json" }, body: JSON.stringify(payload) }).then(r => r.json());
+      const data = await mk({ source_url: sourceUrl.trim(), selected_clips: selected, product_name: analysisMetaRef.current?.name || "", use_case: analysisMetaRef.current?.use_case || "", target_seconds: targetSeconds, style_profile_id: "", style_profile_json: "", cta_text: "" });
+      let segs: any[] = data.segments ?? [];
+      if (data.status !== "succeeded" && data.prediction_id) {
+        const start = Date.now();
+        while (Date.now() - start < 120000) {
+          await new Promise(r => setTimeout(r, 2000));
+          const poll = await mk({ poll: true, prediction_id: data.prediction_id });
+          if (poll.status === "succeeded") { segs = poll.segments ?? []; break; }
+          if (poll.status === "failed") break;
+        }
+      }
+      setSbScript(segs);
+    } catch { setSbScript([]); }
+  };
+  const openStoryboard = async () => {
+    setSegEditorOpen(true); setSbLoading(true); setSbScript(null);
+    try { await Promise.all([genScriptForSb(), loadSegments()]); } finally { setSbLoading(false); }
+  };
   const toggleCart = (id: string) => {
     const adding = !cart.has(id);
     const clip = (clips as any[]).find((c: any) => c.video_id === id);
@@ -2157,7 +2182,7 @@ export default function VideoGenerator() {
                     <span className="text-sm font-bold text-[#0064FF]">{cart.size}개 담음</span>
                   </div>
                   {cart.size > 0 && (
-                    <SegmentSection clips={clips} cart={cart} onOpen={openSegEditor} />
+                    <SegmentSection clips={clips} cart={cart} onOpen={openStoryboard} />
                   )}
                   <div className="mb-3 rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/5 px-3 py-2 text-center">
                     <div className="text-sm font-bold text-gray-700">
@@ -2204,9 +2229,8 @@ export default function VideoGenerator() {
       </div>
 
       {segEditorOpen && (
-        <SegmentEditorModal clips={clips} cart={cart} segsByVideo={segsByVideo}
-          segSel={segSel} segLoading={segLoading} onToggleSeg={toggleSeg}
-          onClose={() => setSegEditorOpen(false)} />
+        <StoryboardModal script={sbScript} segsByVideo={segsByVideo} clips={clips}
+          loading={sbLoading} onClose={() => setSegEditorOpen(false)} />
       )}
       {packOnboardOpen && (
         <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
@@ -3836,55 +3860,72 @@ function SegmentSection({ clips, cart, onOpen }: any) {
   );
 }
 
-function SegmentEditorModal({ clips, cart, segsByVideo, segSel, segLoading, onToggleSeg, onClose }: any) {
-  const selClips = (clips as any[]).filter((c: any) => cart.has(c.video_id) && c.source !== "upload");
+function PoolPicker({ pool, onPick, onClose }: any) {
+  return (
+    <div className="absolute inset-0 z-20 flex flex-col bg-black/70" onClick={onClose}>
+      <div className="mt-auto max-h-[72vh] overflow-y-auto rounded-t-2xl bg-white p-3" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-sm font-bold text-gray-900">클립 바꾸기 <span className="font-normal text-gray-400">풀에서 고르기</span></span>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700">✕</button>
+        </div>
+        <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+          {(pool as any[]).map((seg: any, i: number) => (
+            <button key={i} onClick={() => onPick(seg)}
+              className="relative aspect-[9/16] overflow-hidden rounded-lg border-2 border-gray-200 hover:border-[#0064FF]">
+              {seg.thumbnail
+                ? <img src={"data:image/jpeg;base64," + seg.thumbnail} className="w-full h-full object-cover" />
+                : <div className="w-full h-full bg-gray-200 flex items-center justify-center text-lg">🎬</div>}
+              <span className="absolute bottom-0.5 right-0.5 rounded bg-black/70 px-1 text-[10px] font-bold text-white">{seg.duration}s</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StoryboardModal({ script, segsByVideo, clips, loading, onClose }: any) {
+  const pool = React.useMemo(() => Object.values(segsByVideo || {}).flat() as any[], [segsByVideo]);
+  const [slots, setSlots] = useState<any[]>([]);
+  const [pickSlot, setPickSlot] = useState<number | null>(null);
+  useEffect(() => {
+    if (!script || !script.length || !pool.length) return;
+    setSlots(script.map((line: any, i: number) => ({ text: (line && line.text) ? line.text : String(line || ""), seg: pool[i % pool.length] })));
+  }, [script, pool.length]);
+  const clipOf = (seg: any) => (clips as any[]).find((c: any) => c.video_id === seg?.video_id);
   return (
     <div className="fixed inset-0 z-[140] flex flex-col bg-black/80 backdrop-blur-sm">
       <div className="flex items-center justify-between border-b bg-white px-4 py-3">
-        <span className="font-bold text-gray-900">🎬 구간 선택 <span className="text-sm font-normal text-gray-400">쓸 부분만 고르기 · MVP</span></span>
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-bold text-[#0064FF]">{segSel.size}구간</span>
-          <button onClick={onClose} className="rounded-lg bg-[#0064FF] px-4 py-2 text-sm font-bold text-white hover:bg-[#0052D6]">완료</button>
-        </div>
+        <span className="font-bold text-gray-900">🎬 스토리보드 <span className="text-sm font-normal text-gray-400">대본 줄마다 클립 고르기 · MVP</span></span>
+        <button onClick={onClose} className="rounded-lg bg-[#0064FF] px-4 py-2 text-sm font-bold text-white hover:bg-[#0052D6]">완료</button>
       </div>
       <div className="flex-1 overflow-y-auto bg-gray-50 p-4">
-        {segLoading ? (
-          <div className="py-24 text-center text-sm text-gray-500">구간 나누는 중… (30~90초)</div>
+        {loading || !slots.length ? (
+          <div className="py-24 text-center text-sm text-gray-500">대본 만들고 구간 나누는 중… (최대 1~2분)</div>
         ) : (
-          <div className="mx-auto max-w-4xl space-y-6">
-            {selClips.map((c: any) => {
-              const segs = segsByVideo[c.video_id] || [];
-              return (
-                <div key={c.video_id}>
-                  <div className="mb-2 line-clamp-1 text-sm font-bold text-gray-800">{c.title || c.video_id}</div>
-                  {segs.length ? (
-                    <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
-                      {segs.map((sg: any) => {
-                        const key = sg.video_id + "#" + sg.seg;
-                        const on = segSel.has(key);
-                        return (
-                          <div key={key} className={"overflow-hidden rounded-xl border-2 bg-white " + (on ? "border-[#0064FF]" : "border-gray-200")}>
-                            <div className="relative aspect-[9/16] bg-gray-100">
-                              <SegPlayer clip={c} seg={sg} />
-                              <span className="absolute bottom-1 right-1 z-10 rounded bg-black/70 px-1.5 py-0.5 text-xs font-bold text-white">{sg.duration}s</span>
-                              {on && <span className="absolute top-1 left-1 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-[#0064FF] text-xs font-black text-white">✓</span>}
-                            </div>
-                            <button onClick={() => onToggleSeg(sg.video_id, sg.seg)}
-                              className={"w-full py-2 text-xs font-black " + (on ? "bg-[#0064FF] text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200")}>
-                              {on ? "✓ 선택됨" : "선택"}
-                            </button>
-                            <div className="border-t px-2 py-1.5 text-[11px] text-gray-400">대본 자리 (다음 단계)</div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : <div className="text-xs text-gray-400">구간 없음</div>}
+          <div className="mx-auto max-w-2xl space-y-3">
+            {slots.map((slot: any, i: number) => (
+              <div key={i} className="flex gap-3 rounded-xl border border-gray-200 bg-white p-2">
+                <div className="relative aspect-[9/16] w-20 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                  {slot.seg ? <SegPlayer clip={clipOf(slot.seg)} seg={slot.seg} />
+                    : <div className="flex h-full w-full items-center justify-center text-xl">🎬</div>}
+                  {slot.seg && <span className="absolute bottom-1 right-1 z-10 rounded bg-black/70 px-1 py-0.5 text-[10px] font-bold text-white">{slot.seg.duration}s</span>}
                 </div>
-              );
-            })}
+                <div className="flex flex-1 flex-col justify-between py-0.5">
+                  <div className="text-sm leading-snug text-gray-800"><span className="font-bold text-[#0064FF]">{i + 1}.</span> {slot.text}</div>
+                  <button onClick={() => setPickSlot(i)}
+                    className="mt-2 self-start rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-200">🔄 클립 바꾸기</button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
+      {pickSlot !== null && (
+        <PoolPicker pool={pool}
+          onPick={(seg: any) => { setSlots((prev) => prev.map((s: any, idx: number) => idx === pickSlot ? { ...s, seg } : s)); setPickSlot(null); }}
+          onClose={() => setPickSlot(null)} />
+      )}
     </div>
   );
 }
