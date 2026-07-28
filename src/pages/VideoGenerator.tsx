@@ -283,6 +283,11 @@ export default function VideoGenerator() {
   const [clips, setClips]           = useState<Clip[]>([]);
   const analysisMetaRef = React.useRef<{ name: string; keyword: string; poster: string; use_case?: string; keywords?: string[] }>({ name: "", keyword: "", poster: "" });
   const [cart, setCart]             = useState<Set<string>>(new Set());
+  // ── 구간 선택(스토리보드) MVP ──
+  const [segsByVideo, setSegsByVideo] = useState<Record<string, any[]>>({});
+  const [segSel, setSegSel] = useState<Set<string>>(new Set());
+  const [segLoading, setSegLoading] = useState(false);
+  const [segMode, setSegMode] = useState(false);
 
   // Stage 2
   const [targetSeconds, setTargetSeconds] = useState(20);
@@ -1095,6 +1100,28 @@ export default function VideoGenerator() {
       }
     } catch (e) { setSearchError("분석 중 일시적인 오류가 있었어요. 잠시 후 다시 시도해 주세요."); }
     finally { setSearching(false); }
+  };
+  const loadSegments = async () => {
+    const sel = (clips as any[]).filter(c => cart.has(c.video_id) && c.source !== "upload");
+    if (!sel.length) return;
+    setSegLoading(true); setSegMode(true);
+    try {
+      const r = await fetch(FN("segment-preview-test") + "?k=chronit-seg-9x", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ selected_clips: sel.map((c: any) => ({ video_id: c.video_id, page_url: c.page_url, download_url: c.download_url, source: c.source, title: c.title })) }),
+      });
+      const d = await r.json();
+      const by: Record<string, any[]> = {};
+      (d.segments || []).forEach((sg: any) => { (by[sg.video_id] = by[sg.video_id] || []).push(sg); });
+      setSegsByVideo(by);
+      const init = new Set<string>();
+      Object.entries(by).forEach(([vid, arr]) => { if ((arr as any[])[0]) init.add(vid + "#" + (arr as any[])[0].seg); });
+      setSegSel(init);
+    } catch { /* noop */ } finally { setSegLoading(false); }
+  };
+  const toggleSeg = (vid: string, seg: number) => {
+    const key = vid + "#" + seg;
+    setSegSel(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; });
   };
   const toggleCart = (id: string) => {
     const adding = !cart.has(id);
@@ -2140,6 +2167,11 @@ export default function VideoGenerator() {
                         onRemove={((clip as any).source === "upload" || (clip as any).source === "trend" || (clip as any).source === "url") ? () => handleRemoveUpload(clip) : undefined} />
                     ))}
                   </div>
+                  {cart.size > 0 && (
+                    <SegmentSection clips={clips} cart={cart} segsByVideo={segsByVideo}
+                      segSel={segSel} segLoading={segLoading} segMode={segMode}
+                      onLoad={loadSegments} onToggleSeg={toggleSeg} />
+                  )}
                   {(() => {
                     const needUploadName = clips.some((c: any) => c.source === "upload" && !String(c.video_id || "").startsWith("trend_")) && !uploadName.trim();
                     return (
@@ -3750,6 +3782,56 @@ function TrendCard({ item, onAdd, onAnalyze }: { item: any; onAdd: () => void; o
             className="flex-1 rounded-lg bg-[#0064FF] py-2 text-xs font-bold text-white hover:bg-[#0052D6] transition">🔍 분석</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function SegmentSection({ clips, cart, segsByVideo, segSel, segLoading, segMode, onLoad, onToggleSeg }: any) {
+  const selClips = (clips as any[]).filter((c: any) => cart.has(c.video_id) && c.source !== "upload");
+  if (!selClips.length) return null;
+  return (
+    <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-sm font-bold text-gray-900">🎬 구간 선택 <span className="text-gray-400 font-normal">(쓸 부분만 고르기 • MVP)</span></span>
+        {segMode && !segLoading && <span className="text-sm font-bold text-[#0064FF]">{segSel.size}구간</span>}
+      </div>
+      {!segMode ? (
+        <button onClick={onLoad} disabled={segLoading}
+          className="w-full rounded-lg bg-[#0064FF] py-2.5 text-sm font-bold text-white hover:bg-[#0052D6] disabled:opacity-40">
+          담은 클립을 구간으로 나누기
+        </button>
+      ) : segLoading ? (
+        <div className="py-6 text-center text-sm text-gray-500">구간 나누는 중… (30~90초)</div>
+      ) : (
+        <div className="space-y-3">
+          {selClips.map((c: any) => {
+            const segs = segsByVideo[c.video_id] || [];
+            return (
+              <div key={c.video_id}>
+                <div className="mb-1 text-xs font-semibold text-gray-600 line-clamp-1">{c.title || c.video_id}</div>
+                {segs.length ? (
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {segs.map((sg: any) => {
+                      const key = sg.video_id + "#" + sg.seg;
+                      const on = segSel.has(key);
+                      return (
+                        <button key={key} onClick={() => onToggleSeg(sg.video_id, sg.seg)}
+                          className={"relative shrink-0 rounded-lg overflow-hidden border-2 " + (on ? "border-[#0064FF]" : "border-gray-200")}>
+                          {sg.thumbnail
+                            ? <img src={"data:image/jpeg;base64," + sg.thumbnail} className="w-20 h-32 object-cover" />
+                            : <div className="w-20 h-32 bg-gray-200 flex items-center justify-center text-xl">🎬</div>}
+                          <span className="absolute bottom-0.5 right-0.5 rounded bg-black/70 px-1 text-[10px] text-white font-bold">{sg.duration}s</span>
+                          {on && <span className="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-[#0064FF] flex items-center justify-center text-white text-[10px] font-black">✓</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : <div className="text-xs text-gray-400">구간 없음</div>}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
