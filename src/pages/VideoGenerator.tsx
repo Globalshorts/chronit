@@ -2154,6 +2154,11 @@ export default function VideoGenerator() {
                     </span>
                     <span className="text-sm font-bold text-[#0064FF]">{cart.size}개 담음</span>
                   </div>
+                  {cart.size > 0 && (
+                    <SegmentSection clips={clips} cart={cart} segsByVideo={segsByVideo}
+                      segSel={segSel} segLoading={segLoading} segMode={segMode}
+                      onLoad={loadSegments} onToggleSeg={toggleSeg} />
+                  )}
                   <div className="mb-3 rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/5 px-3 py-2 text-center">
                     <div className="text-sm font-bold text-gray-700">
                       클립 <span className="text-[#0064FF]">3개 이상</span> 담고 <span className="text-[#0064FF]">🚀 자동 생성</span>
@@ -2167,11 +2172,6 @@ export default function VideoGenerator() {
                         onRemove={((clip as any).source === "upload" || (clip as any).source === "trend" || (clip as any).source === "url") ? () => handleRemoveUpload(clip) : undefined} />
                     ))}
                   </div>
-                  {cart.size > 0 && (
-                    <SegmentSection clips={clips} cart={cart} segsByVideo={segsByVideo}
-                      segSel={segSel} segLoading={segLoading} segMode={segMode}
-                      onLoad={loadSegments} onToggleSeg={toggleSeg} />
-                  )}
                   {(() => {
                     const needUploadName = clips.some((c: any) => c.source === "upload" && !String(c.video_id || "").startsWith("trend_")) && !uploadName.trim();
                     return (
