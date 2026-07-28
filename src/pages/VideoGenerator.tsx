@@ -288,6 +288,7 @@ export default function VideoGenerator() {
   const [segSel, setSegSel] = useState<Set<string>>(new Set());
   const [segLoading, setSegLoading] = useState(false);
   const [segMode, setSegMode] = useState(false);
+  const [segEditorOpen, setSegEditorOpen] = useState(false);
 
   // Stage 2
   const [targetSeconds, setTargetSeconds] = useState(20);
@@ -1123,6 +1124,7 @@ export default function VideoGenerator() {
     const key = vid + "#" + seg;
     setSegSel(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; });
   };
+  const openSegEditor = () => { setSegEditorOpen(true); if (!Object.keys(segsByVideo).length && !segLoading) loadSegments(); };
   const toggleCart = (id: string) => {
     const adding = !cart.has(id);
     const clip = (clips as any[]).find((c: any) => c.video_id === id);
@@ -2155,9 +2157,7 @@ export default function VideoGenerator() {
                     <span className="text-sm font-bold text-[#0064FF]">{cart.size}개 담음</span>
                   </div>
                   {cart.size > 0 && (
-                    <SegmentSection clips={clips} cart={cart} segsByVideo={segsByVideo}
-                      segSel={segSel} segLoading={segLoading} segMode={segMode}
-                      onLoad={loadSegments} onToggleSeg={toggleSeg} />
+                    <SegmentSection clips={clips} cart={cart} onOpen={openSegEditor} />
                   )}
                   <div className="mb-3 rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/5 px-3 py-2 text-center">
                     <div className="text-sm font-bold text-gray-700">
@@ -2203,6 +2203,11 @@ export default function VideoGenerator() {
         </> /* generator view end */}
       </div>
 
+      {segEditorOpen && (
+        <SegmentEditorModal clips={clips} cart={cart} segsByVideo={segsByVideo}
+          segSel={segSel} segLoading={segLoading} onToggleSeg={toggleSeg}
+          onClose={() => setSegEditorOpen(false)} />
+      )}
       {packOnboardOpen && (
         <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-7 shadow-2xl">
@@ -3786,52 +3791,100 @@ function TrendCard({ item, onAdd, onAnalyze }: { item: any; onAdd: () => void; o
   );
 }
 
-function SegmentSection({ clips, cart, segsByVideo, segSel, segLoading, segMode, onLoad, onToggleSeg }: any) {
+function SegPlayer({ clip, seg }: any) {
+  const [playing, setPlaying] = useState(false);
+  const ref = useRef<HTMLVideoElement>(null);
+  const raw = (clip?.download_url || clip?.video_url || "") as string;
+  const isOwn = raw.includes("supabase.co/storage/v1/object/public/");
+  const url = raw ? (isOwn ? raw : (SB + "/functions/v1/video-proxy?url=" + encodeURIComponent(raw))) : "";
+  useEffect(() => {
+    const v = ref.current; if (!v || !playing) return;
+    const onLoaded = () => { try { v.currentTime = seg.start; v.play().catch(() => {}); } catch {} };
+    const onTime = () => { if (v.currentTime >= seg.end || v.currentTime < seg.start - 0.15) v.currentTime = seg.start; };
+    v.addEventListener("loadedmetadata", onLoaded);
+    v.addEventListener("timeupdate", onTime);
+    if (v.readyState >= 1) onLoaded();
+    return () => { v.removeEventListener("loadedmetadata", onLoaded); v.removeEventListener("timeupdate", onTime); };
+  }, [playing]);
+  if (playing && url) {
+    return <video ref={ref} src={url} autoPlay muted playsInline
+      className="absolute inset-0 w-full h-full object-cover"
+      onClick={(e) => { e.stopPropagation(); setPlaying(false); }} onError={() => setPlaying(false)} />;
+  }
+  return (
+    <div className="absolute inset-0 cursor-pointer" onClick={(e) => { e.stopPropagation(); if (url) setPlaying(true); }}>
+      {seg.thumbnail
+        ? <img src={"data:image/jpeg;base64," + seg.thumbnail} className="w-full h-full object-cover" />
+        : <div className="w-full h-full bg-gray-200 flex items-center justify-center text-2xl">🎬</div>}
+      {url && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/25">
+          <div className="rounded-full bg-white/90 h-9 w-9 flex items-center justify-center"><span className="text-black text-base ml-0.5">▶</span></div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SegmentSection({ clips, cart, onOpen }: any) {
   const selClips = (clips as any[]).filter((c: any) => cart.has(c.video_id) && c.source !== "upload");
   if (!selClips.length) return null;
   return (
-    <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-3">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-sm font-bold text-gray-900">🎬 구간 선택 <span className="text-gray-400 font-normal">(쓸 부분만 고르기 • MVP)</span></span>
-        {segMode && !segLoading && <span className="text-sm font-bold text-[#0064FF]">{segSel.size}구간</span>}
-      </div>
-      {!segMode ? (
-        <button onClick={onLoad} disabled={segLoading}
-          className="w-full rounded-lg bg-[#0064FF] py-2.5 text-sm font-bold text-white hover:bg-[#0052D6] disabled:opacity-40">
-          담은 클립을 구간으로 나누기
-        </button>
-      ) : segLoading ? (
-        <div className="py-6 text-center text-sm text-gray-500">구간 나누는 중… (30~90초)</div>
-      ) : (
-        <div className="space-y-3">
-          {selClips.map((c: any) => {
-            const segs = segsByVideo[c.video_id] || [];
-            return (
-              <div key={c.video_id}>
-                <div className="mb-1 text-xs font-semibold text-gray-600 line-clamp-1">{c.title || c.video_id}</div>
-                {segs.length ? (
-                  <div className="flex gap-2 overflow-x-auto pb-1">
-                    {segs.map((sg: any) => {
-                      const key = sg.video_id + "#" + sg.seg;
-                      const on = segSel.has(key);
-                      return (
-                        <button key={key} onClick={() => onToggleSeg(sg.video_id, sg.seg)}
-                          className={"relative shrink-0 rounded-lg overflow-hidden border-2 " + (on ? "border-[#0064FF]" : "border-gray-200")}>
-                          {sg.thumbnail
-                            ? <img src={"data:image/jpeg;base64," + sg.thumbnail} className="w-20 h-32 object-cover" />
-                            : <div className="w-20 h-32 bg-gray-200 flex items-center justify-center text-xl">🎬</div>}
-                          <span className="absolute bottom-0.5 right-0.5 rounded bg-black/70 px-1 text-[10px] text-white font-bold">{sg.duration}s</span>
-                          {on && <span className="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-[#0064FF] flex items-center justify-center text-white text-[10px] font-black">✓</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : <div className="text-xs text-gray-400">구간 없음</div>}
-              </div>
-            );
-          })}
+    <button onClick={onOpen}
+      className="mb-3 w-full rounded-xl border-2 border-[#0064FF] bg-[#0064FF]/5 py-2.5 text-sm font-bold text-[#0064FF] hover:bg-[#0064FF]/10 transition">
+      🎬 구간 선택 편집 <span className="font-normal text-gray-400">(쓸 부분만 크게 보고 고르기)</span>
+    </button>
+  );
+}
+
+function SegmentEditorModal({ clips, cart, segsByVideo, segSel, segLoading, onToggleSeg, onClose }: any) {
+  const selClips = (clips as any[]).filter((c: any) => cart.has(c.video_id) && c.source !== "upload");
+  return (
+    <div className="fixed inset-0 z-[140] flex flex-col bg-black/80 backdrop-blur-sm">
+      <div className="flex items-center justify-between border-b bg-white px-4 py-3">
+        <span className="font-bold text-gray-900">🎬 구간 선택 <span className="text-sm font-normal text-gray-400">쓸 부분만 고르기 · MVP</span></span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-bold text-[#0064FF]">{segSel.size}구간</span>
+          <button onClick={onClose} className="rounded-lg bg-[#0064FF] px-4 py-2 text-sm font-bold text-white hover:bg-[#0052D6]">완료</button>
         </div>
-      )}
+      </div>
+      <div className="flex-1 overflow-y-auto bg-gray-50 p-4">
+        {segLoading ? (
+          <div className="py-24 text-center text-sm text-gray-500">구간 나누는 중… (30~90초)</div>
+        ) : (
+          <div className="mx-auto max-w-4xl space-y-6">
+            {selClips.map((c: any) => {
+              const segs = segsByVideo[c.video_id] || [];
+              return (
+                <div key={c.video_id}>
+                  <div className="mb-2 line-clamp-1 text-sm font-bold text-gray-800">{c.title || c.video_id}</div>
+                  {segs.length ? (
+                    <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
+                      {segs.map((sg: any) => {
+                        const key = sg.video_id + "#" + sg.seg;
+                        const on = segSel.has(key);
+                        return (
+                          <div key={key} className={"overflow-hidden rounded-xl border-2 bg-white " + (on ? "border-[#0064FF]" : "border-gray-200")}>
+                            <div className="relative aspect-[9/16] bg-gray-100">
+                              <SegPlayer clip={c} seg={sg} />
+                              <span className="absolute bottom-1 right-1 z-10 rounded bg-black/70 px-1.5 py-0.5 text-xs font-bold text-white">{sg.duration}s</span>
+                              {on && <span className="absolute top-1 left-1 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-[#0064FF] text-xs font-black text-white">✓</span>}
+                            </div>
+                            <button onClick={() => onToggleSeg(sg.video_id, sg.seg)}
+                              className={"w-full py-2 text-xs font-black " + (on ? "bg-[#0064FF] text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200")}>
+                              {on ? "✓ 선택됨" : "선택"}
+                            </button>
+                            <div className="border-t px-2 py-1.5 text-[11px] text-gray-400">대본 자리 (다음 단계)</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : <div className="text-xs text-gray-400">구간 없음</div>}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
