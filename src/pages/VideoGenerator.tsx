@@ -1014,7 +1014,7 @@ export default function VideoGenerator() {
         let data1: any = null;
         let subResp: Response, sub: any;
         try {
-          subResp = await fetch(FN("search-clips"), {
+          subResp = await fetch(FN("search-clips-test"), {
             method: "POST", headers,
             body: JSON.stringify({ action: "submit", source_url: su.trim() }),
           });
@@ -1037,7 +1037,7 @@ export default function VideoGenerator() {
             await new Promise(r => setTimeout(r, 2500));
             let pr: any;
             try {
-              const presp = await fetch(FN("search-clips"), { method: "POST", headers,
+              const presp = await fetch(FN("search-clips-test"), { method: "POST", headers,
                 body: JSON.stringify({ action: "poll", prediction_id: _pid }) });
               pr = await presp.json();
             } catch { continue; } // 일시 네트워크 → 다음 폴링
@@ -1079,7 +1079,7 @@ export default function VideoGenerator() {
 
         // Step 2: CLIP filter (틱톡+XHS 통합, 실패해도 폴백 — 재시도 안 함)
         try {
-          const resp2 = await fetch(FN("clip-filter"), {
+          const resp2 = await fetch(FN("clip-filter-test"), {
             method: "POST", headers,
             body: JSON.stringify({ reference_frames: refFrames, candidates: allCand, clip_count: 80 }),
           });
