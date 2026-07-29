@@ -3903,6 +3903,12 @@ function PoolPicker({ pool, clips, onPick, onClose }: any) {
   );
 }
 
+// 한국어 나레이션 예상 길이(초): 공백 제외 글자수 기준 추정 (~5.5자/초). 실제 TTS 실측은 다음 단계.
+function estNarrSec(text: string): number {
+  const chars = (text || "").replace(/\s/g, "").length;
+  if (!chars) return 0;
+  return Math.max(0.6, Math.round((chars / 5.5) * 10) / 10);
+}
 function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots, onClose, onRetry }: any) {
   const pool = React.useMemo(() => Object.values(segsByVideo || {}).flat() as any[], [segsByVideo]);
   const [pickSlot, setPickSlot] = useState<number | null>(null);
@@ -3940,19 +3946,31 @@ function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots,
                 {onRetry && <button onClick={onRetry} className="ml-2 shrink-0 rounded bg-amber-500 px-2 py-1 font-bold text-white hover:bg-amber-600">대본 다시</button>}
               </div>
             )}
+          <div className="mb-1.5 px-1 text-[11px] text-gray-400">🎙️ 예상 나레이션 · 🎬 클립 길이 — 나레이션이 더 길면 빨간 경고 <span className="text-gray-300">(예상치)</span></div>
           <div className="flex gap-3 overflow-x-auto px-1 pb-4">
-            {slots.map((slot: any, i: number) => (
+            {slots.map((slot: any, i: number) => {
+              const narr = estNarrSec(slot.text);
+              const clip = Number(slot.seg?.duration) || 0;
+              const over = narr > 0 && clip > 0 && narr > clip + 0.15;
+              return (
               <div key={i} className="flex w-32 shrink-0 flex-col rounded-xl border border-gray-200 bg-white p-1.5">
                 <div className="relative aspect-[9/16] overflow-hidden rounded-lg bg-gray-100">
                   {slot.seg ? <SegPlayer clip={clipOf(slot.seg)} seg={slot.seg} />
                     : <div className="flex h-full w-full items-center justify-center text-xl">🎬</div>}
-                  {slot.seg && <span className="absolute bottom-1 right-1 z-10 rounded bg-black/70 px-1 py-0.5 text-[10px] font-bold text-white">{slot.seg.duration}s</span>}
+                  {slot.seg && <span className={`absolute bottom-1 right-1 z-10 rounded px-1 py-0.5 text-[10px] font-bold text-white ${over ? "bg-red-500/90" : "bg-black/70"}`}>{clip}s</span>}
                 </div>
                 <div className="mt-1.5 min-h-[2.75rem] text-xs leading-snug text-gray-800"><span className="font-bold text-[#0064FF]">{i + 1}.</span> {slot.text ? slot.text : <span className="text-gray-400">대본 대기 중</span>}</div>
+                <div className="mt-1 flex items-center justify-center gap-1 text-[10px] font-bold">
+                  <span className="text-gray-500">🎙️ {slot.text ? "~" + narr + "s" : "-"}</span>
+                  <span className="text-gray-300">·</span>
+                  <span className={over ? "text-red-500" : "text-gray-500"}>🎬 {clip}s</span>
+                </div>
+                {over && <div className="mt-0.5 rounded bg-red-50 px-1 py-0.5 text-center text-[9px] font-bold text-red-600">⚠️ 나레이션이 클립보다 길어요</div>}
                 <button onClick={() => setPickSlot(i)}
                   className="mt-1 w-full rounded-lg bg-gray-100 py-1.5 text-[11px] font-bold text-gray-700 hover:bg-gray-200">🔄 바꾸기</button>
               </div>
-            ))}
+              );
+            })}
           </div>
           </div>
         )}
