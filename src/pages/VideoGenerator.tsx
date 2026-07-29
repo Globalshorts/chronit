@@ -10,6 +10,7 @@
  */
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw } from "lucide-react";
 import DOMPurify from "dompurify";
 import { supabase } from "../lib/supabase";
 import type { Session } from "@supabase/supabase-js";
@@ -2201,12 +2202,9 @@ export default function VideoGenerator() {
                     </span>
                     <span className="text-sm font-bold text-[#0064FF]">{cart.size}개 담음</span>
                   </div>
-                  {cart.size > 0 && (
-                    <SegmentSection clips={clips} cart={cart} onOpen={openStoryboard} />
-                  )}
                   <div className="mb-3 rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/5 px-3 py-2 text-center">
                     <div className="text-sm font-bold text-gray-700">
-                      클립 <span className="text-[#0064FF]">3개 이상</span> 담고 <span className="text-[#0064FF]">🚀 자동 생성</span>
+                      클립 <span className="text-[#0064FF]">3개 이상</span> 담고 <span className="text-[#0064FF]">자동 생성</span>
                     </div>
                     <div className="mt-0.5 text-xs font-medium text-gray-400">많이 담을수록 영상이 더 좋아져요</div>
                   </div>
@@ -2220,10 +2218,12 @@ export default function VideoGenerator() {
                   {(() => {
                     const needUploadName = clips.some((c: any) => c.source === "upload" && !String(c.video_id || "").startsWith("trend_")) && !uploadName.trim();
                     return (
-                  <FloatingNext
-                    label={autoRunning ? (autoRunStep || "처리 중...") : cart.size === 0 ? "👇 클립을 담아주세요" : needUploadName ? "✏️ 상품명을 입력해주세요" : `🚀 자동 생성 (${cart.size}개)`}
-                    onClick={() => { if (!autoRunning && cart.size > 0 && !needUploadName) { setModalCtaText(ctaText); setShowAutoModal(true); } }}
-                    disabled={autoRunning || cart.size === 0 || needUploadName} />
+                  <BottomActionBar
+                    showSeg={cart.size > 0 && (clips as any[]).some((c: any) => cart.has(c.video_id) && c.source !== "upload")}
+                    onSeg={openStoryboard}
+                    genLabel={autoRunning ? (autoRunStep || "처리 중...") : cart.size === 0 ? "클립을 담아주세요" : needUploadName ? "상품명을 입력해주세요" : `자동 생성 (${cart.size}개)`}
+                    onGen={() => { if (!autoRunning && cart.size > 0 && !needUploadName) { setModalCtaText(ctaText); setShowAutoModal(true); } }}
+                    genDisabled={autoRunning || cart.size === 0 || needUploadName} />
                     );
                   })()}
                   {!autoRunning && autoRunError && (
@@ -2380,6 +2380,28 @@ function FloatingPrev({ onClick }: { onClick: () => void }) {
                  cursor:"pointer", boxShadow:"0 4px 6px rgba(0,0,0,0.4)" }}>
         <span>←</span><span>이전</span>
       </button>
+    </div>,
+    document.body
+  );
+}
+
+function BottomActionBar({ showSeg, onSeg, genLabel, onGen, genDisabled }: any) {
+  return createPortal(
+    <div style={{ position:"fixed", bottom:"24px", left:"50%", transform:"translateX(-50%)", zIndex:50, width:"calc(100vw - 24px)", maxWidth:"460px" }}>
+      <div style={{ display:"flex", gap:"10px", background:"rgba(255,255,255,0.9)", backdropFilter:"blur(10px)", padding:"8px", borderRadius:"20px", border:"0.5px solid rgba(0,0,0,0.06)", boxShadow:"0 10px 34px -10px rgba(0,0,0,0.22)" }}>
+        {showSeg && (
+          <button onClick={onSeg} style={{ flex:1, height:"52px", borderRadius:"14px", border:"none", background:"#EAF1FF", color:"#0064FF", fontSize:"15px", fontWeight:700, display:"inline-flex", alignItems:"center", justifyContent:"center", gap:"6px", cursor:"pointer" }}>
+            <Scissors size={18} strokeWidth={2.2} /> 구간 편집
+          </button>
+        )}
+        <button onClick={onGen} disabled={genDisabled}
+          style={{ flex: showSeg ? 1.3 : 1, height:"52px", borderRadius:"14px", border:"none",
+                   background: genDisabled ? "#E5E7EB" : "#0064FF", color: genDisabled ? "#6B7280" : "#fff",
+                   fontSize:"15px", fontWeight:700, display:"inline-flex", alignItems:"center", justifyContent:"center", gap:"6px",
+                   cursor: genDisabled ? "not-allowed" : "pointer" }}>
+          <Sparkles size={18} strokeWidth={2.2} /> {genLabel}
+        </button>
+      </div>
     </div>,
     document.body
   );
@@ -3952,7 +3974,7 @@ function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots,
   return (
     <div className="fixed inset-0 z-[140] flex flex-col bg-black/80 backdrop-blur-sm">
       <div className="flex items-center justify-between border-b bg-white px-4 py-3">
-        <span className="font-bold text-gray-900">🎬 스토리보드 <span className="text-sm font-normal text-gray-400">대본 줄마다 클립 고르기 · MVP</span></span>
+        <span className="font-bold text-gray-900 inline-flex items-center gap-1.5"><Film size={18} strokeWidth={2.2} />스토리보드 <span className="text-sm font-normal text-gray-400">대본 줄마다 클립 고르기</span></span>
         <button onClick={onClose} className="rounded-lg bg-[#0064FF] px-4 py-2 text-sm font-bold text-white hover:bg-[#0052D6]">완료</button>
       </div>
       <div className="flex-1 overflow-y-auto bg-gray-50 p-4">
@@ -3971,7 +3993,7 @@ function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots,
                 {onRetry && <button onClick={onRetry} className="ml-2 shrink-0 rounded bg-amber-500 px-2 py-1 font-bold text-white hover:bg-amber-600">대본 다시</button>}
               </div>
             )}
-          <div className="mb-1.5 px-1 text-[11px] text-gray-400">🎙️ 예상 나레이션 · 🎬 클립 길이 — 나레이션이 더 길면 빨간 경고 <span className="text-gray-300">(예상치)</span></div>
+          <div className="mb-1.5 px-1 text-[11px] text-gray-400"><Mic size={12} style={{display:"inline",verticalAlign:"-2px"}} /> 예상 나레이션 · <Film size={12} style={{display:"inline",verticalAlign:"-2px"}} /> 클립 길이 — 나레이션이 더 길면 빨간 경고 <span className="text-gray-300">(예상치)</span></div>
           <div className="flex gap-3 overflow-x-auto px-1 pb-4">
             {slots.map((slot: any, i: number) => {
               const narr = estNarrSec(slot.text);
@@ -3981,18 +4003,18 @@ function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots,
               <div key={i} className="flex w-32 shrink-0 flex-col rounded-xl border border-gray-200 bg-white p-1.5">
                 <div className="relative aspect-[9/16] overflow-hidden rounded-lg bg-gray-100">
                   {slot.seg ? <SegPlayer clip={clipOf(slot.seg)} seg={slot.seg} />
-                    : <div className="flex h-full w-full items-center justify-center text-xl">🎬</div>}
+                    : <div className="flex h-full w-full items-center justify-center text-gray-300"><Film size={26} /></div>}
                   {slot.seg && <span className={`absolute bottom-1 right-1 z-10 rounded px-1 py-0.5 text-[10px] font-bold text-white ${over ? "bg-red-500/90" : "bg-black/70"}`}>{clip}s</span>}
                 </div>
                 <div className="mt-1.5 min-h-[2.75rem] text-xs leading-snug text-gray-800"><span className="font-bold text-[#0064FF]">{i + 1}.</span> {slot.text ? slot.text : <span className="text-gray-400">대본 대기 중</span>}</div>
                 <div className="mt-1 flex items-center justify-center gap-1 text-[10px] font-bold">
-                  <span className="text-gray-500">🎙️ {slot.text ? "~" + narr + "s" : "-"}</span>
+                  <span className="text-gray-500 inline-flex items-center gap-0.5"><Mic size={11} />{slot.text ? "~" + narr + "s" : "-"}</span>
                   <span className="text-gray-300">·</span>
-                  <span className={over ? "text-red-500" : "text-gray-500"}>🎬 {clip}s</span>
+                  <span className={(over ? "text-red-500" : "text-gray-500") + " inline-flex items-center gap-0.5"}><Film size={11} />{clip}s</span>
                 </div>
-                {over && <div className="mt-0.5 rounded bg-red-50 px-1 py-0.5 text-center text-[9px] font-bold text-red-600">⚠️ 나레이션이 클립보다 길어요</div>}
+                {over && <div className="mt-0.5 flex items-center justify-center gap-0.5 rounded bg-red-50 px-1 py-0.5 text-[9px] font-bold text-red-600"><AlertTriangle size={10} /> 나레이션이 길어요</div>}
                 <button onClick={() => setPickSlot(i)}
-                  className="mt-1 w-full rounded-lg bg-gray-100 py-1.5 text-[11px] font-bold text-gray-700 hover:bg-gray-200">🔄 바꾸기</button>
+                  className="mt-1 flex w-full items-center justify-center gap-1 rounded-lg bg-gray-100 py-1.5 text-[11px] font-bold text-gray-700 hover:bg-gray-200"><RefreshCw size={12} /> 바꾸기</button>
               </div>
               );
             })}
