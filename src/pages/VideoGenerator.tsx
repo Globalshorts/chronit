@@ -1137,7 +1137,7 @@ export default function VideoGenerator() {
       let segs: any[] = data.segments ?? [];
       if (data.status !== "succeeded" && data.prediction_id) {
         const start = Date.now();
-        while (Date.now() - start < 180000) {
+        while (Date.now() - start < 360000) {   // ★ 모델 대본 ~224초 — 시간초과로 슬롯이 "대본 대기 중" 되던 것 방지 ★
           await new Promise(r => setTimeout(r, 2000));
           const poll = await mk({ poll: true, prediction_id: data.prediction_id });
           if (poll.status === "succeeded") { segs = poll.segments ?? []; break; }
@@ -3918,9 +3918,26 @@ function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots,
     // 대본 있으면 대본 줄 수만큼, 없으면(대본 지연) 구간 전부로 슬롯 구성 → 재생 테스트 가능
     const hasScript = !!(script && script.length);
     const lines: any[] = hasScript ? script : pool;
+    // ★ 길이 인식 배정: 각 대사 예상 길이에 맞는 구간 우선(긴 대사엔 긴 구간).
+    //   기존 위치 기반(pool[i%len])이 나레이션>클립 초과를 유발했음. 부족하면 가장 긴 구간으로. ★
+    const used = new Set<number>();
+    const pick = (needSec: number) => {
+      if (used.size >= pool.length) used.clear();
+      let best = -1, bestScore = Infinity;
+      pool.forEach((sg: any, idx: number) => {
+        if (used.has(idx)) return;
+        const d = Number(sg?.duration) || 0;
+        const score = d >= needSec ? (d - needSec) : (needSec - d) + 100; // 충분한 구간 우선
+        if (score < bestScore) { bestScore = score; best = idx; }
+      });
+      if (best < 0) best = 0;
+      used.add(best);
+      return pool[best];
+    };
     setSlots(lines.map((line: any, i: number) => {
       const txt = hasScript ? ((line && typeof line === "object") ? (line.text || "") : String(line || "")) : "";
-      return { text: txt, seg: pool[i % pool.length] };
+      const seg = hasScript ? pick(estNarrSec(txt) || 1.5) : pool[i % pool.length];
+      return { text: txt, seg };
     }));
   }, [script, pool.length]);
   const clipOf = (seg: any) => (clips as any[]).find((c: any) => c.video_id === seg?.video_id);
