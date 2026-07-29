@@ -10,7 +10,7 @@
  */
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw } from "lucide-react";
+import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft } from "lucide-react";
 import DOMPurify from "dompurify";
 import { supabase } from "../lib/supabase";
 import type { Session } from "@supabase/supabase-js";
@@ -3973,9 +3973,10 @@ function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots,
   const clipOf = (seg: any) => (clips as any[]).find((c: any) => c.video_id === seg?.video_id);
   return (
     <div className="fixed inset-0 z-[140] flex flex-col bg-black/80 backdrop-blur-sm">
-      <div className="flex items-center justify-between border-b bg-white px-4 py-3">
-        <span className="font-bold text-gray-900 inline-flex items-center gap-1.5"><Film size={18} strokeWidth={2.2} />스토리보드 <span className="text-sm font-normal text-gray-400">대본 줄마다 클립 고르기</span></span>
-        <button onClick={onClose} className="rounded-lg bg-[#0064FF] px-4 py-2 text-sm font-bold text-white hover:bg-[#0052D6]">완료</button>
+      <div className="flex items-center gap-2 border-b bg-white px-3 py-3">
+        <button onClick={onClose} aria-label="뒤로" className="flex items-center justify-center rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-800"><ChevronLeft size={22} /></button>
+        <span className="flex-1 min-w-0 truncate font-bold text-gray-900 inline-flex items-center gap-1.5"><Film size={18} strokeWidth={2.2} />스토리보드 <span className="text-sm font-normal text-gray-400">대본 줄마다 클립 고르기</span></span>
+        <button onClick={onClose} className="shrink-0 rounded-lg bg-[#0064FF] px-4 py-2 text-sm font-bold text-white hover:bg-[#0052D6]">완료</button>
       </div>
       <div className="flex-1 overflow-y-auto bg-gray-50 p-4">
         {loading ? (
