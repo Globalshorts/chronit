@@ -3837,12 +3837,16 @@ function SegPlayer({ clip, seg }: any) {
   const url = !raw ? "" : (isOwn ? raw : (useProxy ? (SB + "/functions/v1/video-proxy?url=" + encodeURIComponent(raw)) : raw));
   useEffect(() => {
     const v = ref.current; if (!v || !playing) return;
-    const onLoaded = () => { try { v.currentTime = seg.start; v.play().catch(() => {}); } catch {} };
-    const onTime = () => { if (v.currentTime >= seg.end || v.currentTime < seg.start - 0.15) v.currentTime = seg.start; };
+    const S = () => Number(seg?.start) || 0;
+    const E = () => { const e = Number(seg?.end); return (e && e > S()) ? e : (v.duration || S() + 3); };
+    const toStart = () => { try { v.currentTime = S(); if (v.paused) v.play().catch(() => {}); } catch {} };
+    const onLoaded = () => { toStart(); v.play().catch(() => {}); };
+    const onTime = () => { if (v.currentTime >= E() || v.currentTime < S() - 0.2) toStart(); };
     v.addEventListener("loadedmetadata", onLoaded);
     v.addEventListener("timeupdate", onTime);
+    v.addEventListener("ended", toStart);      // 구간=영상끝이면 자연 정지 → 되감아 반복
     if (v.readyState >= 1) onLoaded();
-    return () => { v.removeEventListener("loadedmetadata", onLoaded); v.removeEventListener("timeupdate", onTime); };
+    return () => { v.removeEventListener("loadedmetadata", onLoaded); v.removeEventListener("timeupdate", onTime); v.removeEventListener("ended", toStart); };
   }, [playing, useProxy]);
   if (playing && url) {
     return <video ref={ref} src={url} autoPlay muted playsInline
@@ -3906,8 +3910,12 @@ function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots,
   useEffect(() => {
     if (!pool.length) return;
     // 대본 있으면 대본 줄 수만큼, 없으면(대본 지연) 구간 전부로 슬롯 구성 → 재생 테스트 가능
-    const lines: any[] = (script && script.length) ? script : pool.map(() => ({ text: "" }));
-    setSlots(lines.map((line: any, i: number) => ({ text: (line && line.text) ? line.text : String(line || ""), seg: pool[i % pool.length] })));
+    const hasScript = !!(script && script.length);
+    const lines: any[] = hasScript ? script : pool;
+    setSlots(lines.map((line: any, i: number) => {
+      const txt = hasScript ? ((line && typeof line === "object") ? (line.text || "") : String(line || "")) : "";
+      return { text: txt, seg: pool[i % pool.length] };
+    }));
   }, [script, pool.length]);
   const clipOf = (seg: any) => (clips as any[]).find((c: any) => c.video_id === seg?.video_id);
   return (
@@ -3940,7 +3948,7 @@ function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots,
                     : <div className="flex h-full w-full items-center justify-center text-xl">🎬</div>}
                   {slot.seg && <span className="absolute bottom-1 right-1 z-10 rounded bg-black/70 px-1 py-0.5 text-[10px] font-bold text-white">{slot.seg.duration}s</span>}
                 </div>
-                <div className="mt-1.5 min-h-[2.75rem] text-xs leading-snug text-gray-800"><span className="font-bold text-[#0064FF]">{i + 1}.</span> {slot.text}</div>
+                <div className="mt-1.5 min-h-[2.75rem] text-xs leading-snug text-gray-800"><span className="font-bold text-[#0064FF]">{i + 1}.</span> {slot.text ? slot.text : <span className="text-gray-400">대본 대기 중</span>}</div>
                 <button onClick={() => setPickSlot(i)}
                   className="mt-1 w-full rounded-lg bg-gray-100 py-1.5 text-[11px] font-bold text-gray-700 hover:bg-gray-200">🔄 바꾸기</button>
               </div>
