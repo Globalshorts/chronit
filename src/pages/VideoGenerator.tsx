@@ -1543,9 +1543,16 @@ export default function VideoGenerator() {
           if (poll.status === "failed") throw new Error(poll.error ?? "대본 실패");
         }
       }
-      if (!segs || !segs.length) throw new Error("대본이 비어서 생성됐어요. 담은 클립을 확인해주세요.");
+      if (!segs || !segs.length) {
+        // ★ 모델이 비었거나 시간 초과 → 영상 다운로드 없이 상품명·용도로 즉석 대본(폴백) ★
+        try {
+          const fb = await mk({ fast_fallback: true, product_name: analysisMetaRef.current?.name || "", use_case: analysisMetaRef.current?.use_case || "", selected_clips: selected, target_seconds: targetSeconds });
+          if (fb && Array.isArray(fb.segments) && fb.segments.length) segs = fb.segments;
+        } catch (_) { /* 폴백 실패해도 아래에서 안내 */ }
+      }
+      if (!segs || !segs.length) throw new Error("대본을 만들지 못했어요. 잠시 후 다시 시도하거나 대본을 직접 입력해 주세요.");
       setManualScript(segs.map((x: any) => (x?.text ?? "")).filter(Boolean).join("\n"));
-    } catch (e: any) { setScriptFillErr(String(e?.message ?? e)); try { (window as any).reportChronitError?.({ source:"video_gen", message:"수동 대본 실패: "+String(e?.message ?? e).slice(0,300) }); } catch(_){} }
+    } catch (e: any) { setScriptFillErr(String(e?.message ?? e)); try { (window as any).reportChronitError?.({ source:"video_gen", message:"AI 대본(미리보기) 실패: "+String(e?.message ?? e).slice(0,300) }); } catch(_){} }
     finally { setScriptFilling(false); }
   };
 
