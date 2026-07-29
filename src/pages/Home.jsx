@@ -641,32 +641,6 @@ const Home = () => {
 
           <CouponBar codeFromUrl={codeFromUrl} onApply={(code) => { setCodeFromUrl(code); sessionStorage.setItem('chronit_code', code) }} />
 
-          {/* 6개월 안심 패키지 */}
-          <div onClick={() => openPayment('pkg6')}
-            className="mb-6 flex cursor-pointer flex-col items-start justify-between gap-5 rounded-2xl border border-[#FFB800]/50 bg-gradient-to-br from-[#FFFBEB] to-white p-7 transition-all hover:border-[#FFB800] hover:shadow-[0_14px_40px_-16px_rgba(255,184,0,0.45)] sm:flex-row sm:items-center md:p-8">
-            <div>
-              <div className="mb-1.5 flex items-center gap-2">
-                <span className="rounded-full bg-[#FFB800] px-2.5 py-0.5 text-[11px] font-bold text-white">안심 패키지</span>
-                <h4 className="text-xl font-black text-gray-900">프로 6개월</h4>
-              </div>
-              <p className="text-sm text-gray-600 md:text-base">프로 요금제를 <strong className="text-gray-900">6개월 동안</strong> · 매월 영상 30개 · 가장 알뜰한 장기 플랜</p>
-              <p className="mt-2 flex items-center gap-1 text-xs text-[#9a6b00]"><Gift size={12} /> 첫 구매 시 1개월 추가</p>
-            </div>
-            <div className="flex w-full shrink-0 flex-col items-start gap-3 sm:w-auto sm:items-end">
-              <div className="text-left sm:text-right">
-                <span className="text-sm font-bold text-gray-400 line-through">{wonFmt(planPrices.pkg6.list)}원</span>
-                <div className="flex items-baseline gap-1 sm:justify-end">
-                  <span className="text-4xl font-black text-[#b07d00]">₩{wonFmt(planPrices.pkg6.sale)}</span>
-                </div>
-                <div className="mt-0.5 text-sm font-bold text-[#b07d00]/80">월 {wonFmt(Math.round(planPrices.pkg6.sale / 6))}원 수준</div>
-              </div>
-              <button onClick={(e) => { e.stopPropagation(); openPayment('pkg6') }}
-                className="w-full rounded-xl bg-[#FFB800] px-6 py-3 text-sm font-bold text-white transition-all hover:brightness-95 active:scale-[0.98] sm:w-auto">
-                6개월 패키지 시작
-              </button>
-            </div>
-          </div>
-
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
             {/* Free */}
             <div onClick={handleStart}
@@ -726,6 +700,33 @@ const Home = () => {
               )
             })}
           </div>
+
+          {/* 6개월 안심 패키지 */}
+          <div onClick={() => openPayment('pkg6')}
+            className="mt-8 flex cursor-pointer flex-col items-start justify-between gap-5 rounded-2xl border border-[#FFB800]/50 bg-gradient-to-br from-[#FFFBEB] to-white p-7 transition-all hover:border-[#FFB800] hover:shadow-[0_14px_40px_-16px_rgba(255,184,0,0.45)] sm:flex-row sm:items-center md:p-8">
+            <div>
+              <div className="mb-1.5 flex items-center gap-2">
+                <span className="rounded-full bg-[#FFB800] px-2.5 py-0.5 text-[11px] font-bold text-white">안심 패키지</span>
+                <h4 className="text-xl font-black text-gray-900">프로 6개월</h4>
+              </div>
+              <p className="text-sm text-gray-600 md:text-base">프로 요금제를 <strong className="text-gray-900">6개월 동안</strong> · 매월 영상 30개 · 가장 알뜰한 장기 플랜</p>
+              <p className="mt-2 flex items-center gap-1 text-xs text-[#9a6b00]"><Gift size={12} /> 첫 구매 시 1개월 추가</p>
+            </div>
+            <div className="flex w-full shrink-0 flex-col items-start gap-3 sm:w-auto sm:items-end">
+              <div className="text-left sm:text-right">
+                <span className="text-sm font-bold text-gray-400 line-through">{wonFmt(planPrices.pkg6.list)}원</span>
+                <div className="flex items-baseline gap-1 sm:justify-end">
+                  <span className="text-4xl font-black text-[#b07d00]">₩{wonFmt(planPrices.pkg6.sale)}</span>
+                </div>
+                <div className="mt-0.5 text-sm font-bold text-[#b07d00]/80">월 {wonFmt(Math.round(planPrices.pkg6.sale / 6))}원 수준</div>
+              </div>
+              <button onClick={(e) => { e.stopPropagation(); openPayment('pkg6') }}
+                className="w-full rounded-xl bg-[#FFB800] px-6 py-3 text-sm font-bold text-white transition-all hover:brightness-95 active:scale-[0.98] sm:w-auto">
+                6개월 패키지 시작
+              </button>
+            </div>
+          </div>
+
 
 
           <div className="mt-12 text-center">
