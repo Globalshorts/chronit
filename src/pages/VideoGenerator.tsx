@@ -3831,7 +3831,7 @@ function SegPlayer({ clip, seg }: any) {
   const [playing, setPlaying] = useState(false);
   const [useProxy, setUseProxy] = useState(false);
   const ref = useRef<HTMLVideoElement>(null);
-  const raw = (clip?.download_url || clip?.video_url || "") as string;
+  const raw = ((clip?.download_url || clip?.video_url || "") as string).replace(/^http:\/\//, "https://"); // ★ mixed content 방지: 외부 CDN http->https (egress 0 유지)
   const isOwn = raw.includes("supabase.co/storage/v1/object/public/");
   // ★ 직접재생 우선(egress 0) — 실패 시 video-proxy 폴백 ★
   const url = !raw ? "" : (isOwn ? raw : (useProxy ? (SB + "/functions/v1/video-proxy?url=" + encodeURIComponent(raw)) : raw));
@@ -3969,7 +3969,7 @@ function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots,
 function ClipCard({ clip, selected, onToggle, onRemove }: { clip: Clip; selected: boolean; onToggle: () => void; onRemove?: () => void }) {
   const [imgError, setImgError] = useState(false);
   const [playing, setPlaying] = useState(false);
-  const rawUrl = clip.download_url || clip.video_url || "";
+  const rawUrl = (clip.download_url || clip.video_url || "").replace(/^http:\/\//, "https://"); // mixed content 방지
   const proxyUrl = rawUrl
     ? `https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/video-proxy?url=${encodeURIComponent(rawUrl)}`
     : "";
