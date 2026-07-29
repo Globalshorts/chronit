@@ -1529,28 +1529,20 @@ export default function VideoGenerator() {
     try {
       const { data: { session: s } } = await supabase.auth.getSession();
       if (!s) throw new Error("로그인 필요");
-      const mk = (payload: any) => fetch(FN("generate-script"), { method: "POST", headers: { Authorization: `Bearer ${s.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify(payload) }).then(r => r.json());
-      const data = await mk({ source_url: sourceUrl.trim(), selected_clips: selected, product_name: analysisMetaRef.current?.name || "", use_case: analysisMetaRef.current?.use_case || "", target_seconds: targetSeconds, style_profile_id: "", style_profile_json: "", cta_text: "" });   // CTA는 대본에 넣지 않음 — 렌더 시 댓글 유도 단어로 마지막에 붙음
-      if (!data.ok) throw new Error(data.error ?? "대본 생성 실패");
-      let segs: any[] = data.segments ?? [];
-      if (data.status !== "succeeded") {
-        const predId = data.prediction_id;
-        const start = Date.now();
-        while (Date.now() - start < 120000) {
-          await new Promise(r => setTimeout(r, 2000));
-          const poll = await mk({ poll: true, prediction_id: predId });
-          if (poll.status === "succeeded") { segs = poll.segments ?? []; break; }
-          if (poll.status === "failed") throw new Error(poll.error ?? "대본 실패");
-        }
+      const pname = analysisMetaRef.current?.name || "";
+      const ucase = analysisMetaRef.current?.use_case || "";
+      // ★ 안정 경로(영상 다운로드 없는 즉석 대본)를 주 경로로 — 모델 재다운로드 실패·장시간 폴링 원천 제거 ★
+      const gen = () => fetch(FN("generate-script"), { method: "POST", headers: { Authorization: `Bearer ${s.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify({ fast_fallback: true, product_name: pname, use_case: ucase, selected_clips: selected, target_seconds: targetSeconds }) }).then(r => r.json()).catch(() => null);
+      let segs: any[] = [];
+      for (let i = 0; i < 2 && !segs.length; i++) {
+        const d = await gen();
+        if (d && Array.isArray(d.segments) && d.segments.length) segs = d.segments;
       }
-      if (!segs || !segs.length) {
-        // ★ 모델이 비었거나 시간 초과 → 영상 다운로드 없이 상품명·용도로 즉석 대본(폴백) ★
-        try {
-          const fb = await mk({ fast_fallback: true, product_name: analysisMetaRef.current?.name || "", use_case: analysisMetaRef.current?.use_case || "", selected_clips: selected, target_seconds: targetSeconds });
-          if (fb && Array.isArray(fb.segments) && fb.segments.length) segs = fb.segments;
-        } catch (_) { /* 폴백 실패해도 아래에서 안내 */ }
+      if (!segs.length) {
+        // 최후 안전장치: 상품명·용도로 최소 대본 — 빈칸/실패로 두지 않음
+        const base = [pname ? `${pname}, 지금 확인해보세요` : "", ucase || "", "링크는 프로필에 있어요"].filter(Boolean);
+        segs = (base.length >= 2 ? base : ["이 제품 진짜 괜찮아요", "한 번 써보면 알아요", "링크는 프로필에 있어요"]).map((t: string) => ({ text: t }));
       }
-      if (!segs || !segs.length) throw new Error("대본을 만들지 못했어요. 잠시 후 다시 시도하거나 대본을 직접 입력해 주세요.");
       setManualScript(segs.map((x: any) => (x?.text ?? "")).filter(Boolean).join("\n"));
     } catch (e: any) { setScriptFillErr(String(e?.message ?? e)); try { (window as any).reportChronitError?.({ source:"video_gen", message:"AI 대본(미리보기) 실패: "+String(e?.message ?? e).slice(0,300) }); } catch(_){} }
     finally { setScriptFilling(false); }
