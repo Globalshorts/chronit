@@ -1137,7 +1137,7 @@ export default function VideoGenerator() {
       let segs: any[] = data.segments ?? [];
       if (data.status !== "succeeded" && data.prediction_id) {
         const start = Date.now();
-        while (Date.now() - start < 120000) {
+        while (Date.now() - start < 180000) {
           await new Promise(r => setTimeout(r, 2000));
           const poll = await mk({ poll: true, prediction_id: data.prediction_id });
           if (poll.status === "succeeded") { segs = poll.segments ?? []; break; }
@@ -1149,7 +1149,9 @@ export default function VideoGenerator() {
   };
   const openStoryboard = async () => {
     setSegEditorOpen(true); setSbLoading(true); setSbScript(null);
-    try { await Promise.all([genScriptForSb(), loadSegments()]); } finally { setSbLoading(false); }
+    // ★ 순차: 대본 먼저(모델 여유), 그 다음 구간(무거움) — 단일 CPU 모델 큐 경합 방지 ★
+    try { await genScriptForSb(); } catch {}
+    try { await loadSegments(); } finally { setSbLoading(false); }
   };
   const toggleCart = (id: string) => {
     const adding = !cart.has(id);
@@ -2238,7 +2240,7 @@ export default function VideoGenerator() {
       </div>
 
       {segEditorOpen && (
-        <StoryboardModal script={sbScript} segsByVideo={segsByVideo} clips={clips}
+        <StoryboardModal script={sbScript} segsByVideo={segsByVideo} clips={clips} onRetry={openStoryboard}
           loading={sbLoading} slots={sbSlots} setSlots={setSbSlots} onClose={() => setSegEditorOpen(false)} />
       )}
       {packOnboardOpen && (
@@ -3896,12 +3898,15 @@ function PoolPicker({ pool, clips, onPick, onClose }: any) {
   );
 }
 
-function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots, onClose }: any) {
+function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots, onClose, onRetry }: any) {
   const pool = React.useMemo(() => Object.values(segsByVideo || {}).flat() as any[], [segsByVideo]);
   const [pickSlot, setPickSlot] = useState<number | null>(null);
+  const scriptEmpty = !script || !script.length;
   useEffect(() => {
-    if (!script || !script.length || !pool.length) return;
-    setSlots(script.map((line: any, i: number) => ({ text: (line && line.text) ? line.text : String(line || ""), seg: pool[i % pool.length] })));
+    if (!pool.length) return;
+    // 대본 있으면 대본 줄 수만큼, 없으면(대본 지연) 구간 전부로 슬롯 구성 → 재생 테스트 가능
+    const lines: any[] = (script && script.length) ? script : pool.map(() => ({ text: "" }));
+    setSlots(lines.map((line: any, i: number) => ({ text: (line && line.text) ? line.text : String(line || ""), seg: pool[i % pool.length] })));
   }, [script, pool.length]);
   const clipOf = (seg: any) => (clips as any[]).find((c: any) => c.video_id === seg?.video_id);
   return (
@@ -3911,9 +3916,21 @@ function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots,
         <button onClick={onClose} className="rounded-lg bg-[#0064FF] px-4 py-2 text-sm font-bold text-white hover:bg-[#0052D6]">완료</button>
       </div>
       <div className="flex-1 overflow-y-auto bg-gray-50 p-4">
-        {loading || !slots.length ? (
+        {loading ? (
           <div className="py-24 text-center text-sm text-gray-500">대본 만들고 구간 나누는 중… (최대 1~2분)</div>
+        ) : !slots.length ? (
+          <div className="py-24 text-center text-sm text-gray-500">
+            구간을 불러오지 못했어요.
+            {onRetry && <button onClick={onRetry} className="ml-2 rounded-lg bg-[#0064FF] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#0052D6]">다시 시도</button>}
+          </div>
         ) : (
+          <div className="flex flex-col">
+            {scriptEmpty && (
+              <div className="mb-2 flex items-center justify-between rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                <span>대본 생성이 지연돼 임시 순서로 표시 중 — 재생은 확인할 수 있어요.</span>
+                {onRetry && <button onClick={onRetry} className="ml-2 shrink-0 rounded bg-amber-500 px-2 py-1 font-bold text-white hover:bg-amber-600">대본 다시</button>}
+              </div>
+            )}
           <div className="flex gap-3 overflow-x-auto px-1 pb-4">
             {slots.map((slot: any, i: number) => (
               <div key={i} className="flex w-32 shrink-0 flex-col rounded-xl border border-gray-200 bg-white p-1.5">
@@ -3927,6 +3944,7 @@ function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots,
                   className="mt-1 w-full rounded-lg bg-gray-100 py-1.5 text-[11px] font-bold text-gray-700 hover:bg-gray-200">🔄 바꾸기</button>
               </div>
             ))}
+          </div>
           </div>
         )}
       </div>
