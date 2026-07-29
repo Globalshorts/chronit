@@ -1545,7 +1545,7 @@ export default function VideoGenerator() {
       }
       if (!segs || !segs.length) throw new Error("대본이 비어서 생성됐어요. 담은 클립을 확인해주세요.");
       setManualScript(segs.map((x: any) => (x?.text ?? "")).filter(Boolean).join("\n"));
-    } catch (e: any) { setScriptFillErr(String(e?.message ?? e)); try { (window as any).reportChronitError?.({ source:"video_gen", message:"AI 대본(미리보기) 실패: "+String(e?.message ?? e).slice(0,300) }); } catch(_){} }
+    } catch (e: any) { setScriptFillErr("미리보기를 못 만들었어요 — 그냥 자동 생성하면 대본이 자동으로 채워져요."); }  // 미리보기 실패는 최종 영상과 무관(자동 생성이 대본을 따로 만듦) → 팝업/리포트 제거
     finally { setScriptFilling(false); }
   };
 
