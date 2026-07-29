@@ -1110,13 +1110,21 @@ export default function VideoGenerator() {
     if (!sel.length) return;
     setSegLoading(true); setSegMode(true);
     try {
-      const r = await fetch(FN("segment-preview-test") + "?k=chronit-seg-9x", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ selected_clips: sel.map((c: any) => ({ video_id: c.video_id, page_url: c.page_url, download_url: c.download_url, download_url_hevc: c.download_url_hevc, source: c.source, title: c.title })) }),
-      });
-      const d = await r.json();
-      const by: Record<string, any[]> = {};
-      (d.segments || []).forEach((sg: any) => { (by[sg.video_id] = by[sg.video_id] || []).push(sg); });
+      const _payload = { selected_clips: sel.map((c: any) => ({ video_id: c.video_id, page_url: c.page_url, download_url: c.download_url, download_url_hevc: c.download_url_hevc, source: c.source, title: c.title })) };
+      let by: Record<string, any[]> = {};
+      // ★ Replicate 일시중단(code PA) 등 간헐적 실패 → 자동 재시도(최대 2회) ★
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const r = await fetch(FN("segment-preview-test") + "?k=chronit-seg-9x", {
+            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(_payload),
+          });
+          const d = await r.json();
+          const _by: Record<string, any[]> = {};
+          (d.segments || []).forEach((sg: any) => { (_by[sg.video_id] = _by[sg.video_id] || []).push(sg); });
+          if (Object.keys(_by).length) { by = _by; break; }
+        } catch { /* 재시도 */ }
+        if (attempt < 1) await new Promise(r => setTimeout(r, 1500));
+      }
       setSegsByVideo(by);
       const init = new Set<string>();
       Object.entries(by).forEach(([vid, arr]) => { if ((arr as any[])[0]) init.add(vid + "#" + (arr as any[])[0].seg); });
