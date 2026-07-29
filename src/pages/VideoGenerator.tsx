@@ -1536,7 +1536,7 @@ export default function VideoGenerator() {
       if (data.status !== "succeeded") {
         const predId = data.prediction_id;
         const start = Date.now();
-        while (Date.now() - start < 120000) {
+        while (Date.now() - start < 360000) {   // ★ 모델 대본 생성이 URL 재해석 포함 200초+ 걸릴 수 있어 넉넉히 대기 (실패 원인=과거 120초 조기포기) ★
           await new Promise(r => setTimeout(r, 2000));
           const poll = await mk({ poll: true, prediction_id: predId });
           if (poll.status === "succeeded") { segs = poll.segments ?? []; break; }
@@ -1680,7 +1680,7 @@ export default function VideoGenerator() {
                 <div className="px-4 pb-4 space-y-2">
                   <button type="button" onClick={fillScriptDraft} disabled={scriptFilling}
                     className="w-full rounded-xl border border-[#0064FF] bg-[#0064FF]/5 py-2.5 text-sm font-bold text-[#0064FF] transition hover:bg-[#0064FF]/10 disabled:opacity-50">
-                    {scriptFilling ? "대본 미리보기 준비 중… (최대 30초)" : "👀 대본 미리보기"}
+                    {scriptFilling ? "대본 만드는 중… 최대 5분 (클립 분석 후 생성)" : "👀 대본 미리보기"}
                   </button>
                   {scriptFillErr && <p className="text-xs font-medium text-red-500">{scriptFillErr}</p>}
                   <p className="text-sm text-gray-500">비우면 AI가 자동 생성 · 한 줄 = 한 컷</p>
