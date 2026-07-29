@@ -1112,7 +1112,7 @@ export default function VideoGenerator() {
     try {
       const r = await fetch(FN("segment-preview-test") + "?k=chronit-seg-9x", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ selected_clips: sel.map((c: any) => ({ video_id: c.video_id, page_url: c.page_url, download_url: c.download_url, source: c.source, title: c.title })) }),
+        body: JSON.stringify({ selected_clips: sel.map((c: any) => ({ video_id: c.video_id, page_url: c.page_url, download_url: c.download_url, download_url_hevc: c.download_url_hevc, source: c.source, title: c.title })) }),
       });
       const d = await r.json();
       const by: Record<string, any[]> = {};
