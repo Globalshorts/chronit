@@ -3826,10 +3826,12 @@ function TrendCard({ item, onAdd, onAnalyze }: { item: any; onAdd: () => void; o
 
 function SegPlayer({ clip, seg }: any) {
   const [playing, setPlaying] = useState(false);
+  const [useProxy, setUseProxy] = useState(false);
   const ref = useRef<HTMLVideoElement>(null);
   const raw = (clip?.download_url || clip?.video_url || "") as string;
   const isOwn = raw.includes("supabase.co/storage/v1/object/public/");
-  const url = raw ? (isOwn ? raw : (SB + "/functions/v1/video-proxy?url=" + encodeURIComponent(raw))) : "";
+  // ★ 직접재생 우선(egress 0) — 실패 시 video-proxy 폴백 ★
+  const url = !raw ? "" : (isOwn ? raw : (useProxy ? (SB + "/functions/v1/video-proxy?url=" + encodeURIComponent(raw)) : raw));
   useEffect(() => {
     const v = ref.current; if (!v || !playing) return;
     const onLoaded = () => { try { v.currentTime = seg.start; v.play().catch(() => {}); } catch {} };
@@ -3838,11 +3840,11 @@ function SegPlayer({ clip, seg }: any) {
     v.addEventListener("timeupdate", onTime);
     if (v.readyState >= 1) onLoaded();
     return () => { v.removeEventListener("loadedmetadata", onLoaded); v.removeEventListener("timeupdate", onTime); };
-  }, [playing]);
+  }, [playing, useProxy]);
   if (playing && url) {
     return <video ref={ref} src={url} autoPlay muted playsInline
       className="absolute inset-0 w-full h-full object-cover"
-      onClick={(e) => { e.stopPropagation(); setPlaying(false); }} onError={() => setPlaying(false)} />;
+      onClick={(e) => { e.stopPropagation(); setPlaying(false); }} onError={() => { if (!isOwn && !useProxy) setUseProxy(true); else setPlaying(false); }} />;
   }
   return (
     <div className="absolute inset-0 cursor-pointer" onClick={(e) => { e.stopPropagation(); if (url) setPlaying(true); }}>
@@ -3869,23 +3871,24 @@ function SegmentSection({ clips, cart, onOpen }: any) {
   );
 }
 
-function PoolPicker({ pool, onPick, onClose }: any) {
+function PoolPicker({ pool, clips, onPick, onClose }: any) {
+  const clipOf = (seg: any) => (clips as any[]).find((c: any) => c.video_id === seg?.video_id);
   return (
     <div className="absolute inset-0 z-20 flex flex-col bg-black/70" onClick={onClose}>
-      <div className="mt-auto max-h-[72vh] overflow-y-auto rounded-t-2xl bg-white p-3" onClick={(e) => e.stopPropagation()}>
+      <div className="mt-auto max-h-[75vh] overflow-y-auto rounded-t-2xl bg-white p-3" onClick={(e) => e.stopPropagation()}>
         <div className="mb-2 flex items-center justify-between">
-          <span className="text-sm font-bold text-gray-900">클립 바꾸기 <span className="font-normal text-gray-400">풀에서 고르기</span></span>
+          <span className="text-sm font-bold text-gray-900">클립 바꾸기 <span className="font-normal text-gray-400">탭하면 재생 · 선택으로 교체</span></span>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700">✕</button>
         </div>
-        <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
           {(pool as any[]).map((seg: any, i: number) => (
-            <button key={i} onClick={() => onPick(seg)}
-              className="relative aspect-[9/16] overflow-hidden rounded-lg border-2 border-gray-200 hover:border-[#0064FF]">
-              {seg.thumbnail
-                ? <img src={"data:image/jpeg;base64," + seg.thumbnail} className="w-full h-full object-cover" />
-                : <div className="w-full h-full bg-gray-200 flex items-center justify-center text-lg">🎬</div>}
-              <span className="absolute bottom-0.5 right-0.5 rounded bg-black/70 px-1 text-[10px] font-bold text-white">{seg.duration}s</span>
-            </button>
+            <div key={i} className="overflow-hidden rounded-lg border-2 border-gray-200">
+              <div className="relative aspect-[9/16] bg-gray-100">
+                <SegPlayer clip={clipOf(seg)} seg={seg} />
+                <span className="absolute bottom-0.5 right-0.5 z-10 rounded bg-black/70 px-1 text-[10px] font-bold text-white">{seg.duration}s</span>
+              </div>
+              <button onClick={() => onPick(seg)} className="w-full bg-[#0064FF] py-1 text-[11px] font-black text-white hover:bg-[#0052D6]">선택</button>
+            </div>
           ))}
         </div>
       </div>
@@ -3928,7 +3931,7 @@ function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots,
         )}
       </div>
       {pickSlot !== null && (
-        <PoolPicker pool={pool}
+        <PoolPicker pool={pool} clips={clips}
           onPick={(seg: any) => { setSlots((prev) => prev.map((s: any, idx: number) => idx === pickSlot ? { ...s, seg } : s)); setPickSlot(null); }}
           onClose={() => setPickSlot(null)} />
       )}
