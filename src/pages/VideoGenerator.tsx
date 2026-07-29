@@ -1149,8 +1149,9 @@ export default function VideoGenerator() {
   };
   const openStoryboard = async () => {
     setSegEditorOpen(true); setSbLoading(true); setSbScript(null);
-    // ★ 순차: 대본 먼저(모델 여유), 그 다음 구간(무거움) — 단일 CPU 모델 큐 경합 방지 ★
-    try { await genScriptForSb(); } catch {}
+    // ★ 대본은 백그라운드(느리고 자주 실패) → 구간만 기다려 스피너 해제. 구간=재생 테스트 토대.
+    //   대본은 되는 대로 sbScript에 채워져 슬롯 텍스트를 갱신(없으면 임시 순서로 재생 가능).
+    genScriptForSb().catch(() => {});
     try { await loadSegments(); } finally { setSbLoading(false); }
   };
   const toggleCart = (id: string) => {
