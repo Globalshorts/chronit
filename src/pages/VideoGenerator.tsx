@@ -293,6 +293,8 @@ export default function VideoGenerator() {
   const [sbScript, setSbScript] = useState<any[] | null>(null);
   const [sbLoading, setSbLoading] = useState(false);
   const [sbSlots, setSbSlots] = useState<any[]>([]);
+  const sbSigRef = React.useRef("");   // 현재 스토리보드가 로드한 클립 시그니처
+  const sbBusyRef = React.useRef(false); // 로딩 진행 중 여부(뒤로갔다 와도 재실행 방지)
 
   // Stage 2
   const [targetSeconds, setTargetSeconds] = useState(20);
@@ -1141,27 +1143,36 @@ export default function VideoGenerator() {
       const { data: { session: s2 } } = await supabase.auth.getSession();
       if (!s2) { setSbScript([]); return; }
       const selected = collectSelected();
-      const mk = (payload: any) => fetch(FN("generate-script"), { method: "POST", headers: { Authorization: "Bearer " + s2.access_token, "Content-Type": "application/json" }, body: JSON.stringify(payload) }).then(r => r.json());
-      const data = await mk({ source_url: sourceUrl.trim(), selected_clips: selected, product_name: analysisMetaRef.current?.name || "", use_case: analysisMetaRef.current?.use_case || "", target_seconds: targetSeconds, style_profile_id: "", style_profile_json: "", cta_text: "" });
-      let segs: any[] = data.segments ?? [];
-      if (data.status !== "succeeded" && data.prediction_id) {
-        const start = Date.now();
-        while (Date.now() - start < 360000) {   // ★ 모델 대본 ~224초 — 시간초과로 슬롯이 "대본 대기 중" 되던 것 방지 ★
-          await new Promise(r => setTimeout(r, 2000));
-          const poll = await mk({ poll: true, prediction_id: data.prediction_id });
-          if (poll.status === "succeeded") { segs = poll.segments ?? []; break; }
-          if (poll.status === "failed") break;
-        }
-      }
-      setSbScript(segs);
+      // ★ 스토리보드 대본: 무거운 모델(캡션 뽑겠다고 영상 재다운로드 ~224초) 대신 텍스트 생성(~5초).
+      //   generate_script도 원래 메타데이터(캡션) 기반 텍스트라 품질 동급 — 클립 제목이 곧 캡션. ★
+      const r = await fetch(FN("gen-script-fast"), {
+        method: "POST",
+        headers: { Authorization: "Bearer " + s2.access_token, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product_name: analysisMetaRef.current?.name || "",
+          use_case: analysisMetaRef.current?.use_case || "",
+          keywords: analysisMetaRef.current?.keywords || [],
+          poster: analysisMetaRef.current?.poster || "",
+          selected_clips: selected,
+          target_seconds: targetSeconds,
+        }),
+      });
+      const d = await r.json();
+      setSbScript(Array.isArray(d.segments) ? d.segments : []);
     } catch { setSbScript([]); }
   };
   const openStoryboard = async () => {
-    setSegEditorOpen(true); setSbLoading(true); setSbScript(null);
-    // ★ 대본은 백그라운드(느리고 자주 실패) → 구간만 기다려 스피너 해제. 구간=재생 테스트 토대.
-    //   대본은 되는 대로 sbScript에 채워져 슬롯 텍스트를 갱신(없으면 임시 순서로 재생 가능).
+    const sig = collectSelected().map((c: any) => c.video_id).sort().join(",");
+    setSegEditorOpen(true);
+    // ★ 이미 같은 클립으로 로딩 중이거나 완료했으면 재실행하지 않음 → 뒤로갔다 와도 백그라운드 진행 유지 ★
+    if (sbSigRef.current === sig && (sbBusyRef.current || Object.keys(segsByVideo || {}).length)) {
+      if (!sbBusyRef.current) setSbLoading(false);
+      return;
+    }
+    sbSigRef.current = sig; sbBusyRef.current = true;
+    setSbLoading(true); setSbScript(null); setSegsByVideo({}); setSbSlots([]);
     genScriptForSb().catch(() => {});
-    try { await loadSegments(); } finally { setSbLoading(false); }
+    try { await loadSegments(); } finally { setSbLoading(false); sbBusyRef.current = false; }
   };
   const toggleCart = (id: string) => {
     const adding = !cart.has(id);
