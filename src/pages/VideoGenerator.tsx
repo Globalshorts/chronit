@@ -1143,22 +1143,20 @@ export default function VideoGenerator() {
       const { data: { session: s2 } } = await supabase.auth.getSession();
       if (!s2) { setSbScript([]); return; }
       const selected = collectSelected();
-      // ★ 스토리보드 대본: 무거운 모델(캡션 뽑겠다고 영상 재다운로드 ~224초) 대신 텍스트 생성(~5초).
-      //   generate_script도 원래 메타데이터(캡션) 기반 텍스트라 품질 동급 — 클립 제목이 곧 캡션. ★
-      const r = await fetch(FN("gen-script-fast"), {
-        method: "POST",
-        headers: { Authorization: "Bearer " + s2.access_token, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          product_name: analysisMetaRef.current?.name || "",
-          use_case: analysisMetaRef.current?.use_case || "",
-          keywords: analysisMetaRef.current?.keywords || [],
-          poster: analysisMetaRef.current?.poster || "",
-          selected_clips: selected,
-          target_seconds: targetSeconds,
-        }),
-      });
-      const d = await r.json();
-      setSbScript(Array.isArray(d.segments) ? d.segments : []);
+      // 자동생성과 동일한 대본 경로(generate-script 모델). 스토리보드=자동생성 단계화.
+      const mk = (payload: any) => fetch(FN("generate-script"), { method: "POST", headers: { Authorization: "Bearer " + s2.access_token, "Content-Type": "application/json" }, body: JSON.stringify(payload) }).then(r => r.json());
+      const data = await mk({ source_url: sourceUrl.trim(), selected_clips: selected, product_name: analysisMetaRef.current?.name || "", use_case: analysisMetaRef.current?.use_case || "", target_seconds: targetSeconds, style_profile_id: "", style_profile_json: "", cta_text: "" });
+      let segs: any[] = data.segments ?? [];
+      if (data.status !== "succeeded" && data.prediction_id) {
+        const start = Date.now();
+        while (Date.now() - start < 360000) {
+          await new Promise(r => setTimeout(r, 2000));
+          const poll = await mk({ poll: true, prediction_id: data.prediction_id });
+          if (poll.status === "succeeded") { segs = poll.segments ?? []; break; }
+          if (poll.status === "failed") break;
+        }
+      }
+      setSbScript(segs);
     } catch { setSbScript([]); }
   };
   const openStoryboard = async () => {
