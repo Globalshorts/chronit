@@ -292,6 +292,7 @@ export default function VideoGenerator() {
   const [segEditorOpen, setSegEditorOpen] = useState(false);
   const [sbScript, setSbScript] = useState<any[] | null>(null);
   const [sbCuts, setSbCuts] = useState<any[]>([]);
+  const [sbCta, setSbCta] = useState("프로필 링크에서 확인하세요");
   const sbTtsRef = useRef<string>("");
   const prefetchRef = useRef<Record<string, string>>({});
   const firePrefetch = (clip: any) => {
@@ -1178,7 +1179,7 @@ export default function VideoGenerator() {
     const base = {
       selected_clips: sel.map((c: any) => ({ video_id: c.video_id, page_url: c.page_url, download_url: c.download_url, download_url_hevc: c.download_url_hevc, source: c.source, title: c.title })),
       source_url: sourceUrl.trim(), target_seconds: targetSeconds,
-      voice_id: "nova", voice_speed: 1.3, voice_volume: 1.0,
+      voice_id: "nova", voice_speed: voiceSpeed / 100, voice_volume: 1.0,
       style_profile_id: "", style_profile_json: "", cta_text: "",
     };
     const call = (payload: any) => fetch(FN("storyboard-plan-test") + "?k=chronit-plan-9x", {
@@ -2314,7 +2315,9 @@ export default function VideoGenerator() {
 
       {segEditorOpen && (
         <StoryboardModal script={sbScript} cuts={sbCuts} stage={sbStage} segsByVideo={segsByVideo} clips={clips} onRetry={openStoryboard}
-          loading={sbLoading} slots={sbSlots} setSlots={setSbSlots} onClose={() => setSegEditorOpen(false)} />
+          loading={sbLoading} slots={sbSlots} setSlots={setSbSlots} onClose={() => setSegEditorOpen(false)}
+          cta={sbCta} setCta={setSbCta} speed={voiceSpeed / 100} generating={rendering}
+          onGenerate={() => { setSegEditorOpen(false); handleRender({ ctaText: sbCta }); }} />
       )}
       {packOnboardOpen && (
         <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
@@ -4007,12 +4010,14 @@ function PoolPicker({ pool, clips, onPick, onClose }: any) {
 }
 
 // 한국어 나레이션 예상 길이(초): 공백 제외 글자수 기준 추정 (~5.5자/초). 실제 TTS 실측은 다음 단계.
-function estNarrSec(text: string): number {
+function estNarrSec(text: string, speed: number = 1.2): number {
   const chars = (text || "").replace(/\s/g, "").length;
   if (!chars) return 0;
-  return Math.max(0.6, Math.round((chars / 5.5) * 10) / 10);
+  const s = Math.max(0.5, speed || 1.2);
+  // 실측 보정: 호흡 쉼 ~0.2s + 글자당 0.13s, 음성 속도로 나눔
+  return Math.max(0.5, Math.round((0.2 + chars * 0.13 / s) * 10) / 10);
 }
-function StoryboardModal({ script, cuts, stage, segsByVideo, clips, loading, slots, setSlots, onClose, onRetry }: any) {
+function StoryboardModal({ script, cuts, stage, segsByVideo, clips, loading, slots, setSlots, onClose, onRetry, cta, setCta, speed, onGenerate, generating }: any) {
   const pool = React.useMemo(() => Object.values(segsByVideo || {}).flat() as any[], [segsByVideo]);
   const [pickSlot, setPickSlot] = useState<number | null>(null);
   const scriptEmpty = !script || !script.length;
@@ -4056,7 +4061,7 @@ function StoryboardModal({ script, cuts, stage, segsByVideo, clips, loading, slo
     const MIN_CUT = 0.9;
     const _he = (l: any) => {
       const t = (l && typeof l === "object") ? (l.text || "") : String(l || "");
-      const d = (l && typeof l === "object" && Number(l.duration_sec) > 0.05) ? Number(l.duration_sec) : estNarrSec(t);
+      const d = (l && typeof l === "object" && Number(l.duration_sec) > 0.05) ? Number(l.duration_sec) : estNarrSec(t, speed);
       return { t, d };
     };
     const grpCuts: { text: string; narrSec: number }[] = [];
@@ -4104,7 +4109,7 @@ function StoryboardModal({ script, cuts, stage, segsByVideo, clips, loading, slo
           <div className="mb-1.5 px-1 text-[11px] text-gray-400"><Mic size={12} style={{display:"inline",verticalAlign:"-2px"}} /> 예상 나레이션 · <Film size={12} style={{display:"inline",verticalAlign:"-2px"}} /> 클립 길이 — 나레이션이 더 길면 빨간 경고 <span className="text-gray-300">(예상치)</span></div>
           <div className="flex gap-3 overflow-x-auto px-1 pb-4">
             {slots.map((slot: any, i: number) => {
-              const narr = (slot.narrSec != null && slot.narrSec > 0) ? slot.narrSec : estNarrSec(slot.text);
+              const narr = (slot.narrSec != null && slot.narrSec > 0) ? slot.narrSec : estNarrSec(slot.text, speed);
               const clip = Number(slot.seg?.duration) || 0;
               const over = narr > 0 && clip > 0 && narr > clip + 0.15;
               return (
@@ -4130,6 +4135,20 @@ function StoryboardModal({ script, cuts, stage, segsByVideo, clips, loading, slo
           </div>
         )}
       </div>
+      {!loading && slots.length > 0 && (
+        <div className="border-t bg-white px-4 py-3">
+          <label className="mb-1.5 block text-[11px] font-bold text-gray-500">CTA · 영상 끝 문구 (수정 가능)</label>
+          <div className="flex items-center gap-2">
+            <input value={cta ?? ""} onChange={(e) => setCta && setCta(e.target.value)}
+              placeholder="프로필 링크에서 확인하세요"
+              className="min-w-0 flex-1 rounded-xl border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-[#0064FF]" />
+            <button onClick={onGenerate} disabled={generating}
+              className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-[#0064FF] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#0052D6] disabled:opacity-60">
+              {generating ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />생성 중</> : <><Sparkles size={16} />자동 생성</>}
+            </button>
+          </div>
+        </div>
+      )}
       {pickSlot !== null && (
         <PoolPicker pool={pool} clips={clips}
           onPick={(seg: any) => { setSlots((prev) => prev.map((s: any, idx: number) => idx === pickSlot ? { ...s, seg } : s)); setPickSlot(null); }}
