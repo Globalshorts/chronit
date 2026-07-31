@@ -4030,7 +4030,13 @@ function StoryboardModal({ script, cuts, stage, segsByVideo, clips, loading, slo
     };
     // ★ 정확 컷(plan): whisper 실측 duration으로 묶인 컷을 그대로 슬롯화 → 렌더와 100% 일치 ★
     if (cuts && cuts.length) {
-      setSlots(cuts.map((cut: any) => ({ text: cut.text, narrSec: Number(cut.dur) || 0, cutIdx: cut.cut, segIndices: cut.seg_indices, seg: pick(Number(cut.dur) || 1.5) })));
+      // ★ plan의 의미매칭 제안(suggest_vid/seg) 우선 → 사람처럼 맞춘 기본 배치. 없으면 길이 기준. ★
+      const findSeg = (vid: string, seg: any) => pool.find((sp: any) => sp.video_id === vid && sp.seg === seg);
+      setSlots(cuts.map((cut: any) => {
+        const sug = (cut.suggest_vid != null && cut.suggest_vid !== "") ? findSeg(cut.suggest_vid, cut.suggest_seg) : null;
+        if (sug) { const u = pool.indexOf(sug); if (u >= 0) used.add(u); }
+        return { text: cut.text, narrSec: Number(cut.dur) || 0, cutIdx: cut.cut, segIndices: cut.seg_indices, seg: sug || pick(Number(cut.dur) || 1.5) };
+      }));
       return;
     }
     if (!hasScript) {
