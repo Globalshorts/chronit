@@ -291,6 +291,8 @@ export default function VideoGenerator() {
   const [segMode, setSegMode] = useState(false);
   const [segEditorOpen, setSegEditorOpen] = useState(false);
   const [sbScript, setSbScript] = useState<any[] | null>(null);
+  const [sbCuts, setSbCuts] = useState<any[]>([]);
+  const sbTtsRef = useRef<string>("");
   const [sbLoading, setSbLoading] = useState(false);
   const [sbSlots, setSbSlots] = useState<any[]>([]);
   const sbSigRef = React.useRef("");   // 현재 스토리보드가 로드한 클립 시그니처
@@ -1159,6 +1161,39 @@ export default function VideoGenerator() {
       setSbScript(segs);
     } catch { setSbScript([]); }
   };
+  // ★ 정확-일치 플랜: 단일 호출로 대본+TTS+whisper 컷+클립풀을 자동생성 파이프라인 그대로 받아옴 ★
+  const loadPlan = async () => {
+    const { data: { session: s2 } } = await supabase.auth.getSession();
+    const sel = collectSelected();
+    if (!s2 || !sel.length) { setSbScript([]); return; }
+    const payload = {
+      selected_clips: sel.map((c: any) => ({ video_id: c.video_id, page_url: c.page_url, download_url: c.download_url, download_url_hevc: c.download_url_hevc, source: c.source, title: c.title })),
+      source_url: sourceUrl.trim(), target_seconds: targetSeconds,
+      voice_id: "nova", voice_speed: 1.3, voice_volume: 1.0,
+      style_profile_id: "", style_profile_json: "", cta_text: "",
+    };
+    let plan: any = null;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const r = await fetch(FN("storyboard-plan-test") + "?k=chronit-plan-9x", {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
+        });
+        const d = await r.json();
+        if (d && d.ok && ((d.cuts && d.cuts.length) || (d.pool && d.pool.length))) { plan = d; break; }
+      } catch { /* 재시도 */ }
+      if (attempt < 1) await new Promise(r => setTimeout(r, 1500));
+    }
+    if (!plan) { setSbScript([]); return; }
+    const by: Record<string, any[]> = {};
+    (plan.pool || []).forEach((sg: any) => { (by[sg.video_id] = by[sg.video_id] || []).push(sg); });
+    setSegsByVideo(by);
+    const init = new Set<string>();
+    Object.entries(by).forEach(([vid, arr]) => { if ((arr as any[])[0]) init.add(vid + "#" + (arr as any[])[0].seg); });
+    setSegSel(init);
+    setSbCuts(plan.cuts || []);
+    sbTtsRef.current = plan.tts_b64 || "";
+    setSbScript((plan.script && plan.script.segments) || []);
+  };
   const openStoryboard = async () => {
     const sig = collectSelected().map((c: any) => c.video_id).sort().join(",");
     setSegEditorOpen(true);
@@ -1168,9 +1203,8 @@ export default function VideoGenerator() {
       return;
     }
     sbSigRef.current = sig; sbBusyRef.current = true;
-    setSbLoading(true); setSbScript(null); setSegsByVideo({}); setSbSlots([]);
-    genScriptForSb().catch(() => {});
-    try { await loadSegments(); } finally { setSbLoading(false); sbBusyRef.current = false; }
+    setSbLoading(true); setSbScript(null); setSbCuts([]); sbTtsRef.current = ""; setSegsByVideo({}); setSbSlots([]);
+    try { await loadPlan(); } finally { setSbLoading(false); sbBusyRef.current = false; }
   };
   const toggleCart = (id: string) => {
     const adding = !cart.has(id);
@@ -2258,7 +2292,7 @@ export default function VideoGenerator() {
       </div>
 
       {segEditorOpen && (
-        <StoryboardModal script={sbScript} segsByVideo={segsByVideo} clips={clips} onRetry={openStoryboard}
+        <StoryboardModal script={sbScript} cuts={sbCuts} segsByVideo={segsByVideo} clips={clips} onRetry={openStoryboard}
           loading={sbLoading} slots={sbSlots} setSlots={setSbSlots} onClose={() => setSegEditorOpen(false)} />
       )}
       {packOnboardOpen && (
@@ -3948,7 +3982,7 @@ function estNarrSec(text: string): number {
   if (!chars) return 0;
   return Math.max(0.6, Math.round((chars / 5.5) * 10) / 10);
 }
-function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots, onClose, onRetry }: any) {
+function StoryboardModal({ script, cuts, segsByVideo, clips, loading, slots, setSlots, onClose, onRetry }: any) {
   const pool = React.useMemo(() => Object.values(segsByVideo || {}).flat() as any[], [segsByVideo]);
   const [pickSlot, setPickSlot] = useState<number | null>(null);
   const scriptEmpty = !script || !script.length;
@@ -3973,6 +4007,11 @@ function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots,
       used.add(best);
       return pool[best];
     };
+    // ★ 정확 컷(plan): whisper 실측 duration으로 묶인 컷을 그대로 슬롯화 → 렌더와 100% 일치 ★
+    if (cuts && cuts.length) {
+      setSlots(cuts.map((cut: any) => ({ text: cut.text, narrSec: Number(cut.dur) || 0, cutIdx: cut.cut, segIndices: cut.seg_indices, seg: pick(Number(cut.dur) || 1.5) })));
+      return;
+    }
     if (!hasScript) {
       setSlots(lines.map((_l: any, i: number) => ({ text: "", narrSec: 0, seg: pool[i % pool.length] })));
       return;
@@ -3984,20 +4023,20 @@ function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots,
       const d = (l && typeof l === "object" && Number(l.duration_sec) > 0.05) ? Number(l.duration_sec) : estNarrSec(t);
       return { t, d };
     };
-    const cuts: { text: string; narrSec: number }[] = [];
+    const grpCuts: { text: string; narrSec: number }[] = [];
     let curT: string[] = [], curD = 0;
     for (const l of lines) {
       const { t, d } = _he(l);
       if (t) curT.push(t);
       curD += d;
-      if (curD >= MIN_CUT) { cuts.push({ text: curT.join(" "), narrSec: Math.round(curD * 10) / 10 }); curT = []; curD = 0; }
+      if (curD >= MIN_CUT) { grpCuts.push({ text: curT.join(" "), narrSec: Math.round(curD * 10) / 10 }); curT = []; curD = 0; }
     }
     if (curT.length || curD > 0.05) { // 마지막 자투리 → 이전 컷에 이월(렌더와 동일)
-      if (cuts.length) { const last = cuts[cuts.length - 1]; last.text += (curT.length ? " " + curT.join(" ") : ""); last.narrSec = Math.round((last.narrSec + curD) * 10) / 10; }
-      else cuts.push({ text: curT.join(" "), narrSec: Math.round(curD * 10) / 10 });
+      if (grpCuts.length) { const last = grpCuts[grpCuts.length - 1]; last.text += (curT.length ? " " + curT.join(" ") : ""); last.narrSec = Math.round((last.narrSec + curD) * 10) / 10; }
+      else grpCuts.push({ text: curT.join(" "), narrSec: Math.round(curD * 10) / 10 });
     }
-    setSlots(cuts.map((cut) => ({ text: cut.text, narrSec: cut.narrSec, seg: pick(cut.narrSec || 1.5) })));
-  }, [script, pool.length]);
+    setSlots(grpCuts.map((cut) => ({ text: cut.text, narrSec: cut.narrSec, seg: pick(cut.narrSec || 1.5) })));
+  }, [script, pool.length, cuts]);
   const clipOf = (seg: any) => (clips as any[]).find((c: any) => c.video_id === seg?.video_id);
   return (
     <div className="fixed inset-0 z-[140] flex flex-col bg-black/80 backdrop-blur-sm">
