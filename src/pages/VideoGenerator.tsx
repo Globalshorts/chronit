@@ -293,6 +293,13 @@ export default function VideoGenerator() {
   const [sbScript, setSbScript] = useState<any[] | null>(null);
   const [sbCuts, setSbCuts] = useState<any[]>([]);
   const sbTtsRef = useRef<string>("");
+  const prefetchRef = useRef<Record<string, string>>({});
+  const firePrefetch = (clip: any) => {
+    if (!clip || clip.source === "upload" || !clip.download_url || prefetchRef.current[clip.video_id]) return;
+    fetch(FN("prefetch-clip-test") + "?k=chronit-pf-9x", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ video_id: clip.video_id, download_url: clip.download_url, download_url_hevc: clip.download_url_hevc, page_url: clip.page_url, source: clip.source }) })
+      .then(r => r.json()).then(d => { if (d?.ok && d.cached_url) prefetchRef.current[clip.video_id] = d.cached_url; }).catch(() => {});
+  };
   const [sbLoading, setSbLoading] = useState(false);
   const [sbStage, setSbStage] = useState("");
   const [sbSlots, setSbSlots] = useState<any[]>([]);
@@ -1169,7 +1176,7 @@ export default function VideoGenerator() {
     const sel = collectSelected();
     if (!s2 || !sel.length) { setSbScript([]); return; }
     const base = {
-      selected_clips: sel.map((c: any) => ({ video_id: c.video_id, page_url: c.page_url, download_url: c.download_url, download_url_hevc: c.download_url_hevc, source: c.source, title: c.title })),
+      selected_clips: sel.map((c: any) => { const cached = prefetchRef.current[c.video_id]; return { video_id: c.video_id, page_url: c.page_url || cached || c.download_url, download_url: cached || c.download_url, download_url_hevc: cached ? "" : c.download_url_hevc, source: c.source, title: c.title }; }),
       source_url: sourceUrl.trim(), target_seconds: targetSeconds,
       voice_id: "nova", voice_speed: 1.3, voice_volume: 1.0,
       style_profile_id: "", style_profile_json: "", cta_text: "",
@@ -1225,6 +1232,7 @@ export default function VideoGenerator() {
       // 타인 콘텐츠(원본 링크·유사 클립·트렌드) 담기 → 매번 저작권 확인
       askConsent(() => {
         logConsent("add", { url: clip.page_url || clip.download_url, shortcode: clip.video_id });
+        firePrefetch(clip); // ★ 담기 순간 XHS→Storage 캐시 시작(백그라운드) → 스토리보드 다운로드 단축
         setCart(prev => { const n = new Set(prev); n.add(id); return n; });
       });
       return;
