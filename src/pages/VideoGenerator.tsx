@@ -1516,13 +1516,15 @@ export default function VideoGenerator() {
       const { data: { session: s } } = await supabase.auth.getSession();
       if (!s) { setRenderError("로그인이 필요합니다"); return; }
       let selected = collectSelected();
+      let _sbTts = "";  // 스토리보드 렌더면 plan TTS 재사용 → 컷 정확 일치
       if (sbSlots && sbSlots.length) {
         const _cmap = new Map((clips as any[]).map((c: any) => [c.video_id, c]));
         const _sl = sbSlots.filter((sl: any) => sl && sl.seg).map((sl: any) => {
           const c: any = _cmap.get(sl.seg.video_id) || {};
-          return { video_id: sl.seg.video_id, page_url: c.page_url || "", download_url: c.download_url || "", source: sl.seg.source || c.source || "tiktok", start: sl.seg.start, end: sl.seg.end };
+          const cached = prefetchRef.current[sl.seg.video_id];  // 프리페치 캐시 URL 우선(다운로드 단축)
+          return { video_id: sl.seg.video_id, page_url: c.page_url || cached || "", download_url: cached || c.download_url || "", source: sl.seg.source || c.source || "tiktok", start: sl.seg.start, end: sl.seg.end };
         });
-        if (_sl.length) selected = _sl as any;
+        if (_sl.length) { selected = _sl as any; _sbTts = sbTtsRef.current || ""; }
       }
       const resp = await fetch(FN("generate-video-test"), {
         method: "POST",
@@ -1538,7 +1540,8 @@ export default function VideoGenerator() {
           subtitle_style: subtitleStyle,   // ★ 원본 camelCase 그대로 — cog _convert_web_style 가 camelCase 를 변환함(이중변환 금지)
           thumbnail_style: thumbnailStyle,
           show_thumbnail: showThumbnail,
-          script_segments: (videoOnly || titleMode) ? null : _script,
+          script_segments: (videoOnly || titleMode) ? null : ((_sbTts && sbScript && sbScript.length) ? sbScript : _script),
+          tts_b64: _sbTts,
           video_only: videoOnly || titleMode,
           gen_mode: genMode,
           title_text: titleMode ? hookTitle.trim() : "",
