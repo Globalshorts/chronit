@@ -1162,28 +1162,37 @@ export default function VideoGenerator() {
     } catch { setSbScript([]); }
   };
   // ★ 정확-일치 플랜: 단일 호출로 대본+TTS+whisper 컷+클립풀을 자동생성 파이프라인 그대로 받아옴 ★
+  // ★ 정확-일치 플랜(비동기): start→폴링. 다운로드/TTS/whisper로 오래 걸려 엣지 타임아웃 회피 ★
   const loadPlan = async () => {
     const { data: { session: s2 } } = await supabase.auth.getSession();
     const sel = collectSelected();
     if (!s2 || !sel.length) { setSbScript([]); return; }
-    const payload = {
+    const base = {
       selected_clips: sel.map((c: any) => ({ video_id: c.video_id, page_url: c.page_url, download_url: c.download_url, download_url_hevc: c.download_url_hevc, source: c.source, title: c.title })),
       source_url: sourceUrl.trim(), target_seconds: targetSeconds,
       voice_id: "nova", voice_speed: 1.3, voice_volume: 1.0,
       style_profile_id: "", style_profile_json: "", cta_text: "",
     };
+    const call = (payload: any) => fetch(FN("storyboard-plan-test") + "?k=chronit-plan-9x", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
+    }).then(r => r.json());
     let plan: any = null;
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const r = await fetch(FN("storyboard-plan-test") + "?k=chronit-plan-9x", {
-          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
-        });
-        const d = await r.json();
-        if (d && d.ok && ((d.cuts && d.cuts.length) || (d.pool && d.pool.length))) { plan = d; break; }
-      } catch { /* 재시도 */ }
-      if (attempt < 1) await new Promise(r => setTimeout(r, 1500));
+    // PA 일시중단 등 → 최대 2회 재시작. 각 시도는 시작 후 최대 6분 폴링.
+    for (let attempt = 0; attempt < 2 && !plan; attempt++) {
+      let start: any = null;
+      try { start = await call({ start: true, ...base }); } catch { continue; }
+      const pid = start?.prediction_id;
+      if (!pid) { continue; }
+      const t0 = Date.now();
+      while (Date.now() - t0 < 360000) {
+        await new Promise(r => setTimeout(r, 2500));
+        let pl: any = null;
+        try { pl = await call({ poll: true, prediction_id: pid }); } catch { continue; }
+        if (pl?.status === "succeeded") { plan = pl; break; }
+        if (pl?.ok === false || pl?.status === "failed" || pl?.status === "canceled") break; // 재시작
+      }
     }
-    if (!plan) { setSbScript([]); return; }
+    if (!plan || (!(plan.cuts && plan.cuts.length) && !(plan.pool && plan.pool.length))) { setSbScript([]); return; }
     const by: Record<string, any[]> = {};
     (plan.pool || []).forEach((sg: any) => { (by[sg.video_id] = by[sg.video_id] || []).push(sg); });
     setSegsByVideo(by);
