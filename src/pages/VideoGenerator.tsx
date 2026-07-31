@@ -3921,14 +3921,23 @@ function SegPlayer({ clip, seg }: any) {
     const v = ref.current; if (!v || !playing) return;
     const S = () => Number(seg?.start) || 0;
     const E = () => { const e = Number(seg?.end); return (e && e > S()) ? e : (v.duration || S() + 3); };
+    // ★ 컷 끝 여유 마진: timeupdate(~250ms)로는 컷을 지나쳐 다음 장면 몇 프레임이 보였음.
+    //   rAF(~60fps)로 정밀 감시 + 전환프레임 직전(end-MARGIN)에 되감아 다음 장면 유입 차단 ★
+    const MARGIN = 0.09;
     const toStart = () => { try { v.currentTime = S(); if (v.paused) v.play().catch(() => {}); } catch {} };
     const onLoaded = () => { toStart(); v.play().catch(() => {}); };
-    const onTime = () => { if (v.currentTime >= E() || v.currentTime < S() - 0.2) toStart(); };
+    let raf = 0;
+    const tick = () => {
+      if (!ref.current) return;
+      const s = S(); const lim = Math.max(s + 0.05, E() - MARGIN);
+      if (v.currentTime >= lim || v.currentTime < s - 0.2) toStart();
+      raf = requestAnimationFrame(tick);
+    };
     v.addEventListener("loadedmetadata", onLoaded);
-    v.addEventListener("timeupdate", onTime);
     v.addEventListener("ended", toStart);      // 구간=영상끝이면 자연 정지 → 되감아 반복
     if (v.readyState >= 1) onLoaded();
-    return () => { v.removeEventListener("loadedmetadata", onLoaded); v.removeEventListener("timeupdate", onTime); v.removeEventListener("ended", toStart); };
+    raf = requestAnimationFrame(tick);
+    return () => { cancelAnimationFrame(raf); v.removeEventListener("loadedmetadata", onLoaded); v.removeEventListener("ended", toStart); };
   }, [playing, useProxy]);
   if (playing && url) {
     return <video ref={ref} src={url} autoPlay muted playsInline
