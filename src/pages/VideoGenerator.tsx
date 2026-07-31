@@ -1175,8 +1175,21 @@ export default function VideoGenerator() {
     const { data: { session: s2 } } = await supabase.auth.getSession();
     const sel = collectSelected();
     if (!s2 || !sel.length) { setSbScript([]); return; }
+    // ★ 프리페치 보장: plan 시작 전 선택 클립을 Storage 캐시로(병렬) → Replicate가 XHS 대신 Storage에서 받음(~16배) ★
+    setSbStage("클립 준비 중");
+    const ensured = await Promise.all(sel.map(async (c: any) => {
+      let cached = prefetchRef.current[c.video_id];
+      if (!cached && c.source !== "upload" && c.download_url) {
+        try {
+          const d = await fetch(FN("prefetch-clip-test") + "?k=chronit-pf-9x", { method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ video_id: c.video_id, download_url: c.download_url, download_url_hevc: c.download_url_hevc, page_url: c.page_url, source: c.source }) }).then(r => r.json());
+          if (d?.ok && d.cached_url) { cached = d.cached_url; prefetchRef.current[c.video_id] = cached; }
+        } catch { /* 실패 시 원본 URL 폴백 */ }
+      }
+      return { video_id: c.video_id, page_url: c.page_url || cached || c.download_url, download_url: cached || c.download_url, download_url_hevc: cached ? "" : c.download_url_hevc, source: c.source, title: c.title };
+    }));
     const base = {
-      selected_clips: sel.map((c: any) => { const cached = prefetchRef.current[c.video_id]; return { video_id: c.video_id, page_url: c.page_url || cached || c.download_url, download_url: cached || c.download_url, download_url_hevc: cached ? "" : c.download_url_hevc, source: c.source, title: c.title }; }),
+      selected_clips: ensured,
       source_url: sourceUrl.trim(), target_seconds: targetSeconds,
       voice_id: "nova", voice_speed: 1.3, voice_volume: 1.0,
       style_profile_id: "", style_profile_json: "", cta_text: "",
