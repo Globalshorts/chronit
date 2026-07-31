@@ -294,6 +294,7 @@ export default function VideoGenerator() {
   const [sbCuts, setSbCuts] = useState<any[]>([]);
   const sbTtsRef = useRef<string>("");
   const [sbLoading, setSbLoading] = useState(false);
+  const [sbStage, setSbStage] = useState("");
   const [sbSlots, setSbSlots] = useState<any[]>([]);
   const sbSigRef = React.useRef("");   // 현재 스토리보드가 로드한 클립 시그니처
   const sbBusyRef = React.useRef(false); // 로딩 진행 중 여부(뒤로갔다 와도 재실행 방지)
@@ -1178,8 +1179,9 @@ export default function VideoGenerator() {
     }).then(r => r.json());
     let plan: any = null;
     // PA 일시중단 등 → 최대 2회 재시작. 각 시도는 시작 후 최대 6분 폴링.
-    for (let attempt = 0; attempt < 2 && !plan; attempt++) {
+    for (let attempt = 0; attempt < 3 && !plan; attempt++) {
       let start: any = null;
+      setSbStage(attempt === 0 ? "시작하는 중" : "다시 시도하는 중 (일시 중단 감지)");
       try { start = await call({ start: true, ...base }); } catch { continue; }
       const pid = start?.prediction_id;
       if (!pid) { continue; }
@@ -1188,8 +1190,9 @@ export default function VideoGenerator() {
         await new Promise(r => setTimeout(r, 2500));
         let pl: any = null;
         try { pl = await call({ poll: true, prediction_id: pid }); } catch { continue; }
+        if (pl?.stage) setSbStage(pl.stage);
         if (pl?.status === "succeeded") { plan = pl; break; }
-        if (pl?.ok === false || pl?.status === "failed" || pl?.status === "canceled") break; // 재시작
+        if (pl?.ok === false || pl?.status === "failed" || pl?.status === "canceled") break; // 재시작(PA 등)
       }
     }
     if (!plan || (!(plan.cuts && plan.cuts.length) && !(plan.pool && plan.pool.length))) { setSbScript([]); return; }
@@ -2301,7 +2304,7 @@ export default function VideoGenerator() {
       </div>
 
       {segEditorOpen && (
-        <StoryboardModal script={sbScript} cuts={sbCuts} segsByVideo={segsByVideo} clips={clips} onRetry={openStoryboard}
+        <StoryboardModal script={sbScript} cuts={sbCuts} stage={sbStage} segsByVideo={segsByVideo} clips={clips} onRetry={openStoryboard}
           loading={sbLoading} slots={sbSlots} setSlots={setSbSlots} onClose={() => setSegEditorOpen(false)} />
       )}
       {packOnboardOpen && (
@@ -4000,7 +4003,7 @@ function estNarrSec(text: string): number {
   if (!chars) return 0;
   return Math.max(0.6, Math.round((chars / 5.5) * 10) / 10);
 }
-function StoryboardModal({ script, cuts, segsByVideo, clips, loading, slots, setSlots, onClose, onRetry }: any) {
+function StoryboardModal({ script, cuts, stage, segsByVideo, clips, loading, slots, setSlots, onClose, onRetry }: any) {
   const pool = React.useMemo(() => Object.values(segsByVideo || {}).flat() as any[], [segsByVideo]);
   const [pickSlot, setPickSlot] = useState<number | null>(null);
   const scriptEmpty = !script || !script.length;
@@ -4065,7 +4068,11 @@ function StoryboardModal({ script, cuts, segsByVideo, clips, loading, slots, set
       </div>
       <div className="flex-1 overflow-y-auto bg-gray-50 p-4">
         {loading ? (
-          <div className="py-24 text-center text-sm text-gray-500">대본 만들고 구간 나누는 중… (최대 1~2분)</div>
+          <div className="py-24 text-center">
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-[#0064FF]" />
+            <p className="text-sm font-semibold text-gray-700">{stage || "준비 중"}</p>
+            <p className="mt-1 text-xs text-gray-400">자동생성과 동일한 컷을 만드는 중 · 클립 다운로드가 대부분이라 1~2분 걸려요</p>
+          </div>
         ) : !slots.length ? (
           <div className="py-24 text-center text-sm text-gray-500">
             구간을 불러오지 못했어요.
