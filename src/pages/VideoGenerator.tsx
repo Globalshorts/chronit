@@ -3973,11 +3973,30 @@ function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots,
       used.add(best);
       return pool[best];
     };
-    setSlots(lines.map((line: any, i: number) => {
-      const txt = hasScript ? ((line && typeof line === "object") ? (line.text || "") : String(line || "")) : "";
-      const seg = hasScript ? pick(estNarrSec(txt) || 1.5) : pool[i % pool.length];
-      return { text: txt, seg };
-    }));
+    if (!hasScript) {
+      setSlots(lines.map((_l: any, i: number) => ({ text: "", narrSec: 0, seg: pool[i % pool.length] })));
+      return;
+    }
+    // ★ 호흡 → 컷 그룹핑 (렌더 _match_clips_rotate와 동일: MIN_CUT 0.9초). 슬롯 = 컷 하나. ★
+    const MIN_CUT = 0.9;
+    const _he = (l: any) => {
+      const t = (l && typeof l === "object") ? (l.text || "") : String(l || "");
+      const d = (l && typeof l === "object" && Number(l.duration_sec) > 0.05) ? Number(l.duration_sec) : estNarrSec(t);
+      return { t, d };
+    };
+    const cuts: { text: string; narrSec: number }[] = [];
+    let curT: string[] = [], curD = 0;
+    for (const l of lines) {
+      const { t, d } = _he(l);
+      if (t) curT.push(t);
+      curD += d;
+      if (curD >= MIN_CUT) { cuts.push({ text: curT.join(" "), narrSec: Math.round(curD * 10) / 10 }); curT = []; curD = 0; }
+    }
+    if (curT.length || curD > 0.05) { // 마지막 자투리 → 이전 컷에 이월(렌더와 동일)
+      if (cuts.length) { const last = cuts[cuts.length - 1]; last.text += (curT.length ? " " + curT.join(" ") : ""); last.narrSec = Math.round((last.narrSec + curD) * 10) / 10; }
+      else cuts.push({ text: curT.join(" "), narrSec: Math.round(curD * 10) / 10 });
+    }
+    setSlots(cuts.map((cut) => ({ text: cut.text, narrSec: cut.narrSec, seg: pick(cut.narrSec || 1.5) })));
   }, [script, pool.length]);
   const clipOf = (seg: any) => (clips as any[]).find((c: any) => c.video_id === seg?.video_id);
   return (
@@ -4006,7 +4025,7 @@ function StoryboardModal({ script, segsByVideo, clips, loading, slots, setSlots,
           <div className="mb-1.5 px-1 text-[11px] text-gray-400"><Mic size={12} style={{display:"inline",verticalAlign:"-2px"}} /> 예상 나레이션 · <Film size={12} style={{display:"inline",verticalAlign:"-2px"}} /> 클립 길이 — 나레이션이 더 길면 빨간 경고 <span className="text-gray-300">(예상치)</span></div>
           <div className="flex gap-3 overflow-x-auto px-1 pb-4">
             {slots.map((slot: any, i: number) => {
-              const narr = estNarrSec(slot.text);
+              const narr = (slot.narrSec != null && slot.narrSec > 0) ? slot.narrSec : estNarrSec(slot.text);
               const clip = Number(slot.seg?.duration) || 0;
               const over = narr > 0 && clip > 0 && narr > clip + 0.15;
               return (
