@@ -1543,7 +1543,7 @@ export default function VideoGenerator() {
           subtitle_style: subtitleStyle,   // ★ 원본 camelCase 그대로 — cog _convert_web_style 가 camelCase 를 변환함(이중변환 금지)
           thumbnail_style: thumbnailStyle,
           show_thumbnail: showThumbnail,
-          script_segments: (videoOnly || titleMode) ? null : ((_sbTts && sbScript && sbScript.length) ? sbScript : _script),
+          script_segments: (videoOnly || titleMode) ? null : ((sbSlots && sbSlots.length) ? sbSlots.filter((s: any) => s && s.text).map((s: any) => ({ text: s.text })) : _script),
           tts_b64: _sbTts,
           video_only: videoOnly || titleMode,
           gen_mode: genMode,
@@ -4123,7 +4123,12 @@ function StoryboardModal({ script, cuts, stage, segsByVideo, clips, loading, slo
                     : <div className="flex h-full w-full items-center justify-center text-gray-300"><Film size={26} /></div>}
                   {slot.seg && <span className={`absolute bottom-1 right-1 z-10 rounded px-1 py-0.5 text-[10px] font-bold text-white ${over ? "bg-red-500/90" : "bg-black/70"}`}>{clip}s</span>}
                 </div>
-                <div className="mt-1.5 min-h-[2.75rem] text-xs leading-snug text-gray-800"><span className="font-bold text-[#0064FF]">{i + 1}.</span> {slot.text ? slot.text : <span className="text-gray-400">대본 대기 중</span>}</div>
+                <div className="mt-1.5">
+                  <span className="mb-0.5 block text-[11px] font-bold text-[#0064FF]">{i + 1}. 대본 <span className="font-normal text-gray-400">(수정 가능)</span></span>
+                  <textarea value={slot.text || ""} rows={2} placeholder="대본을 입력하세요"
+                    onChange={(e) => setSlots((prev: any[]) => prev.map((s: any, idx: number) => idx === i ? { ...s, text: e.target.value } : s))}
+                    className="w-full resize-none rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs leading-snug text-gray-800 outline-none focus:border-[#0064FF]" />
+                </div>
                 <div className="mt-1 flex items-center justify-center gap-1 text-[10px] font-bold">
                   <span className="text-gray-500 inline-flex items-center gap-0.5"><Mic size={11} />{slot.text ? "~" + narr + "s" : "-"}</span>
                   <span className="text-gray-300">·</span>
