@@ -293,6 +293,10 @@ export default function VideoGenerator() {
   const [sbScript, setSbScript] = useState<any[] | null>(null);
   const [sbCuts, setSbCuts] = useState<any[]>([]);
   const [sbCta, setSbCta] = useState("프로필 링크에서 확인하세요");
+  // ★ 스토리보드(하단 자동생성 바)와 채널톡 런처가 겹침 → 열릴 때 채널톡 버튼 숨기고 닫으면 복구 ★
+  useEffect(() => {
+    try { (window as any).ChannelIO?.(segEditorOpen ? "hideChannelButton" : "showChannelButton"); } catch {}
+  }, [segEditorOpen]);
   const sbTtsRef = useRef<string>("");
   const prefetchRef = useRef<Record<string, string>>({});
   const firePrefetch = (clip: any) => {
