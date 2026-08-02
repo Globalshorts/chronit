@@ -4106,10 +4106,10 @@ function StoryboardModal({ script, cuts, stage, segsByVideo, clips, loading, slo
                 {onRetry && <button onClick={onRetry} className="ml-2 shrink-0 rounded bg-amber-500 px-2 py-1 font-bold text-white hover:bg-amber-600">대본 다시</button>}
               </div>
             )}
-          <div className="mb-1.5 px-1 text-[11px] text-gray-400"><Mic size={12} style={{display:"inline",verticalAlign:"-2px"}} /> 예상 나레이션 · <Film size={12} style={{display:"inline",verticalAlign:"-2px"}} /> 클립 길이 — 나레이션이 더 길면 빨간 경고 <span className="text-gray-300">(예상치)</span></div>
+          <div className="mb-1.5 px-1 text-[11px] text-gray-400"><Mic size={12} style={{display:"inline",verticalAlign:"-2px"}} /> 예상 나레이션 · <Film size={12} style={{display:"inline",verticalAlign:"-2px"}} /> 클립 길이 — 나레이션이 더 길면 빨간 경고 <span className="text-gray-300">(예상치 · 음성 {(Number(speed)||1.2).toFixed(1)}배)</span></div>
           <div className="flex gap-3 overflow-x-auto px-1 pb-4">
             {slots.map((slot: any, i: number) => {
-              const narr = (slot.narrSec != null && slot.narrSec > 0) ? slot.narrSec : estNarrSec(slot.text, speed);
+              const narr = estNarrSec(slot.text, speed); // ★ 현재 음성 배속 반영해 실시간 재계산
               const clip = Number(slot.seg?.duration) || 0;
               const over = narr > 0 && clip > 0 && narr > clip + 0.15;
               return (
