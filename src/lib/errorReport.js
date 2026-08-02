@@ -7,6 +7,8 @@ const _seen = new Set()   // 세션 내 같은 오류 중복 팝업 방지
 
 // 무시할 노이즈성 오류(브라우저 확장·중단된 fetch·비디오·청크로드 등 — 대부분 무해)
 const NOISE = /ResizeObserver loop|Script error\.?$|Non-Error promise rejection|Load failed|NetworkError|Failed to fetch|AbortError|aborted|The play\(\) request|play\(\) request was interrupted|Loading chunk \d+ failed|ChunkLoadError|cancell?ed|Network request failed/i
+// 일시적 인프라 오류(Replicate 순간 오류·용량·재시도) — 유저·창업자에게 노출/리포트하지 않음(재시도로 해결됨)
+const TRANSIENT = /E8765|unexpected error handling prediction|Director:\s*unexpected|please retry|prediction interrupted|\binterrupted\b|code:\s*PA\b|temporarily|overloaded|rate.?limit|\b(429|500|502|503|504|529)\b|일시적|서버 혼잡|capacity/i
 
 export function registerErrorModal(openFn) { _open = openFn }
 export function setModalOpen(v) { _isOpen = v }
@@ -14,7 +16,7 @@ export function setModalOpen(v) { _isOpen = v }
 export function captureError(info = {}) {
   try {
     const message = String(info.message ?? info?.error?.message ?? info ?? 'Unknown error').slice(0, 2000)
-    if (!message || NOISE.test(message)) return
+    if (!message || NOISE.test(message) || TRANSIENT.test(message)) return
     const key = (info.source || 'runtime') + '|' + message.slice(0, 120)
     if (_seen.has(key)) return       // 같은 오류는 세션당 1회만
     _seen.add(key)

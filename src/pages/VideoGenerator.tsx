@@ -1172,7 +1172,7 @@ export default function VideoGenerator() {
 
 
   // ── 자동 생성 (Stage 2~6 순서 실행) ─────────────────────────
-  const handleAutoRun = async (ctaOverride?: string) => {
+  const handleAutoRun = async (ctaOverride?: string, _retry: number = 0) => {
     if (cart.size === 0 || autoRunning) return;
     if (ctaOverride !== undefined) setCtaText(ctaOverride);
     setShowAutoModal(false);
@@ -1235,11 +1235,20 @@ export default function VideoGenerator() {
       // ★ 폼 리셋은 제출 직후가 아니라 렌더가 실제 완료(done)될 때만 한다.
       //   제출 직후 리셋하면 재시도·실패 시 입력한 링크가 사라져 다시 입력해야 함. ★
     } catch (e) {
-      const msg = String(e).replace(/^Error:\s*/, "").slice(0, 120);
+      const raw = String(e);
+      // ★ 일시적 인프라 오류(Replicate 순간 실패 등)는 유저에게 실패를 노출하지 않고 조용히 자동 재시도 ★
+      const isTransient = /E8765|unexpected error handling prediction|Director:\s*unexpected|please retry|prediction interrupted|\binterrupted\b|code:\s*PA\b|temporarily|overloaded|rate.?limit|\b(429|500|502|503|504|529)\b|일시적|서버 혼잡|capacity/i.test(raw);
+      if (isTransient && _retry < 2) {
+        setAutoRunStep(`일시 오류 — 자동으로 다시 시도 중… (${_retry + 1}/2)`);
+        setAutoRunning(false);
+        setTimeout(() => { handleAutoRun(ctaOverride, _retry + 1); }, 1500);
+        return;
+      }
+      const msg = raw.replace(/^Error:\s*/, "").slice(0, 120);
       setAutoRunStep("❌ 생성 실패");
       setAutoRunError(msg);
-      try { (window as any).reportChronitError?.({ source:"video_gen", message:"생성 실패: "+String(e).slice(0,300), jobId: currentJobId||null }); } catch(_){}
-      // ★ 완료 알림처럼 상단 토스트로도 실패를 띄운다 (화면 이동해도 보이게) ★
+      // 진짜(비일시) 오류만 리포트 — 일시 오류는 창업자도 손쓸 수 없어 노이즈만 됨
+      if (!isTransient) { try { (window as any).reportChronitError?.({ source:"video_gen", message:"생성 실패: "+raw.slice(0,300), jobId: currentJobId||null }); } catch(_){} }
       setCompletionAlert("❌ " + friendlyError(msg));
     } finally {
       setAutoRunning(false);
