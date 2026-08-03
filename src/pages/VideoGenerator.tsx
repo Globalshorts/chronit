@@ -292,7 +292,7 @@ export default function VideoGenerator() {
   const [segEditorOpen, setSegEditorOpen] = useState(false);
   const [sbScript, setSbScript] = useState<any[] | null>(null);
   const [sbCuts, setSbCuts] = useState<any[]>([]);
-  const [sbCta, setSbCta] = useState("프로필 링크에서 확인하세요");
+  const [sbCta, setSbCta] = useState("");  // 기본 빈칸 — placeholder가 힌트, 비우면 백엔드가 '프로필 링크에서 확인하세요'로 마무리
   // ★ 스토리보드(하단 자동생성 바)와 채널톡 런처가 겹침 → 열릴 때 채널톡 버튼 숨기고 닫으면 복구 ★
   useEffect(() => {
     try { (window as any).ChannelIO?.(segEditorOpen ? "hideChannelButton" : "showChannelButton"); } catch {}
