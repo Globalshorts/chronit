@@ -10,7 +10,7 @@
  */
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus } from "lucide-react";
+import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus, Gift, ChevronDown } from "lucide-react";
 import DOMPurify from "dompurify";
 import { supabase } from "../lib/supabase";
 import type { Session } from "@supabase/supabase-js";
@@ -77,7 +77,7 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
         {onInvite && (
           <button onClick={onInvite} title="친구 초대하고 무료 이용권 받기"
             className="event-badge inline-flex shrink-0 items-center gap-1 rounded-full bg-gradient-to-r from-[#0064FF] via-[#3B82F6] to-[#7C6BFF] px-3 py-1.5 text-xs font-black text-white active:scale-95">
-            <span aria-hidden="true">🎁</span>
+            <Gift size={13} aria-hidden="true" />
             무료 충전
           </button>
         )}
@@ -85,7 +85,7 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
           <button onClick={() => setMenuOpen(o => !o)}
             className="flex items-center gap-1.5 rounded-full bg-gray-900 px-3.5 py-1.5 font-bold text-white transition-colors hover:bg-[#0064FF]">
             <span className="max-w-[110px] truncate">{name}</span>
-            <span className="text-[10px] opacity-80">▾</span>
+            <ChevronDown size={13} className="opacity-80" />
           </button>
           {menuOpen && (
             <>
@@ -2278,12 +2278,6 @@ export default function VideoGenerator() {
                     </span>
                     <span className="text-sm font-bold text-[#0064FF]">{cart.size}개 담음</span>
                   </div>
-                  <div className="mb-3 rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/5 px-3 py-2 text-center">
-                    <div className="text-sm font-bold text-gray-700">
-                      클립 <span className="text-[#0064FF]">3개 이상</span> 담고 <span className="text-[#0064FF]">자동 생성</span>
-                    </div>
-                    <div className="mt-0.5 text-xs font-medium text-gray-400">많이 담을수록 영상이 더 좋아져요</div>
-                  </div>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {clips.map(clip => (
                       <ClipCard key={clip.video_id} clip={clip}
@@ -2293,13 +2287,15 @@ export default function VideoGenerator() {
                   </div>
                   {(() => {
                     const needUploadName = clips.some((c: any) => c.source === "upload" && !String(c.video_id || "").startsWith("trend_")) && !uploadName.trim();
+                    const _minClips = Math.min(3, clips.length || 3);
+                    const _tooFew = cart.size < _minClips;
                     return (
                   <BottomActionBar
                     showSeg={cart.size > 0 && (clips as any[]).some((c: any) => cart.has(c.video_id) && c.source !== "upload")}
                     onSeg={openStoryboard}
-                    genLabel={autoRunning ? (autoRunStep || "처리 중...") : cart.size === 0 ? "클립을 담아주세요" : needUploadName ? "상품명을 입력해주세요" : `자동 생성 (${cart.size}개)`}
-                    onGen={() => { if (!autoRunning && cart.size > 0 && !needUploadName) { setModalCtaText(ctaText); setShowAutoModal(true); } }}
-                    genDisabled={autoRunning || cart.size === 0 || needUploadName} />
+                    genLabel={autoRunning ? (autoRunStep || "처리 중...") : needUploadName ? "상품명을 입력해주세요" : _tooFew ? `클립 ${_minClips}개 이상 담아주세요 (현재 ${cart.size}개)` : `자동 생성 (${cart.size}개)`}
+                    onGen={() => { if (!autoRunning && !_tooFew && !needUploadName) { setModalCtaText(ctaText); setShowAutoModal(true); } }}
+                    genDisabled={autoRunning || _tooFew || needUploadName} />
                     );
                   })()}
                   {!autoRunning && autoRunError && (
