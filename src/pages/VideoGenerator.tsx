@@ -10,7 +10,7 @@
  */
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus, Gift, ChevronDown, Pencil, Eye, MessageCircle } from "lucide-react";
+import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus, Gift, ChevronDown, Pencil, Eye, MessageCircle, User, MessageSquare, Receipt, LogOut, Heart, Zap, Lightbulb, PenTool } from "lucide-react";
 import DOMPurify from "dompurify";
 import { supabase } from "../lib/supabase";
 import type { Session } from "@supabase/supabase-js";
@@ -94,11 +94,11 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
                 {balance !== null && balance !== undefined && (
                   <div className="mb-1 rounded-xl bg-[#0064FF]/10 px-3 py-2.5 text-center text-sm font-black text-[#0064FF]">이용권 {balance.toLocaleString()}개 · D-{daysLeft ?? 0}</div>
                 )}
-                <a href="/me" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]">👤 마이페이지</a>
+                <a href="/me" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]"><User size={14} className="inline align-[-2px] mr-1.5" />마이페이지</a>
                 <button onClick={() => { setMenuOpen(false); onInvite && onInvite(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]">무료 이용권 받기</button>
-                <a href="https://forms.gle/LCDeSEXSM7ALykqv5" target="_blank" rel="noreferrer" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]">📝 피드백 보내고 영상 2개</a>
-                <button onClick={() => { setMenuOpen(false); onHistory && onHistory(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]">📒 사용 내역</button>
-                <button onClick={logout} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50">↩ 로그아웃</button>
+                <a href="https://forms.gle/LCDeSEXSM7ALykqv5" target="_blank" rel="noreferrer" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]"><MessageSquare size={14} className="inline align-[-2px] mr-1.5" />피드백 보내고 영상 2개</a>
+                <button onClick={() => { setMenuOpen(false); onHistory && onHistory(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]"><Receipt size={14} className="inline align-[-2px] mr-1.5" />사용 내역</button>
+                <button onClick={logout} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50"><LogOut size={14} className="inline align-[-2px] mr-1.5" />로그아웃</button>
               </div>
             </>
           )}
@@ -225,6 +225,11 @@ const STYLE_PACKS = [
     subtitleStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:13,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
     thumbnailStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
 ];
+const PACK_ICON: Record<string, any> = { review: Heart, unboxing: Zap, info: Lightbulb, hand: PenTool };
+function PackIcon({ k, size = 14, className = "" }: { k: string; size?: number; className?: string }) {
+  const I = PACK_ICON[k] || Sparkles;
+  return <I size={size} className={className} />;
+}
 
 // ── 대본 스타일 4팩 (전 유저 공통, profile_json 인라인 전달) ──
 const SCRIPT_STYLES = [
@@ -495,7 +500,7 @@ export default function VideoGenerator() {
   const [activePack, setActivePack] = useState<string>(() => { try { return localStorage.getItem("chronit_active_pack") || ""; } catch { return ""; } });
   const [advOpen, setAdvOpen] = useState(false);
   const [packVoiceMsg, setPackVoiceMsg] = useState(""); const [packInfoMsg, setPackInfoMsg] = useState("");
-  const [manualOpen, setManualOpen] = useState(true);   // 대본 섹션 기본 펼침 (대본 만들기 버튼 노출)
+  const [manualOpen, setManualOpen] = useState(false);  // 대본 섹션 기본 접힘(해피패스 — 비우면 AI 자동)
   const [ctaOpen, setCtaOpen] = useState(false);
   const [optOpen, setOptOpen] = useState(false);   // 첫 화면 옵션 기본 접힘(해피패스)
   const [userPacks, setUserPacks] = useState<any[]>([]);
@@ -1718,7 +1723,7 @@ export default function VideoGenerator() {
                     {STYLE_PACKS.map(pk => (
                       <button key={pk.key} type="button" onClick={() => applyPack(pk, pk.key)}
                         className={`rounded-lg px-2.5 py-1 text-xs font-bold border transition ${activePack===pk.key ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}>
-                        {pk.emoji} {pk.name}
+                        <PackIcon k={pk.key} size={14} className="inline align-[-2px]" /> {pk.name}
                       </button>
                     ))}
                   </div>
@@ -2026,7 +2031,7 @@ export default function VideoGenerator() {
                   {STYLE_PACKS.map((pk) => (
                     <button key={pk.key} onClick={() => applyPack(pk)}
                       className={`rounded-xl border p-3 text-left transition ${activePack === pk.key ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 bg-white hover:border-gray-400"}`}>
-                      <p className={`text-sm font-black ${activePack === pk.key ? "text-[#0064FF]" : "text-gray-900"}`}>{pk.emoji} {pk.name}</p>
+                      <p className={`text-sm font-black ${activePack === pk.key ? "text-[#0064FF]" : "text-gray-900"}`}><PackIcon k={pk.key} size={14} className="inline align-[-2px]" /> {pk.name}</p>
                       <p className="text-xs text-gray-500 mt-0.5 leading-tight">{pk.desc}</p>
                     </button>
                   ))}
@@ -2335,7 +2340,7 @@ export default function VideoGenerator() {
                 <button key={pk.key}
                   onClick={() => { applyPack(pk); try { localStorage.setItem("chronit_pack_onboarded","1"); } catch {} setPackOnboardOpen(false); }}
                   className="rounded-2xl border-2 border-gray-200 bg-white p-4 text-left transition hover:border-[#0064FF]">
-                  <div className="text-2xl">{pk.emoji}</div>
+                  <div className="flex text-[#0064FF]"><PackIcon k={pk.key} size={26} /></div>
                   <div className="mt-1.5 text-sm font-black text-gray-900">{pk.name}</div>
                   <div className="mt-0.5 text-xs text-gray-400">{pk.desc}</div>
                 </button>
