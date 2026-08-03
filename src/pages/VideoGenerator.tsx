@@ -790,8 +790,8 @@ export default function VideoGenerator() {
   useEffect(() => {
     if (!session) return;
     try { if (localStorage.getItem("chronit_source_asked")) return; } catch {}
-    supabase.rpc("get_signup_source_rpc").then((res: any) => {
-      if (!res?.data) {
+    supabase.rpc("source_survey_needed_rpc").then((res: any) => {
+      if (res?.data === true) {
         sourceNeededRef.current = true;  // 첫 영상 완료 후에 물어봄 (진입 시 막지 않음)
         // 추천 링크로 들어와 이미 적용됐는지 확인
         supabase.rpc("has_referrer_rpc").then((r: any) => {
@@ -810,6 +810,7 @@ export default function VideoGenerator() {
 
   const closeSurvey = () => {
     try { localStorage.setItem("chronit_source_asked", "1"); } catch {}
+    supabase.rpc("mark_source_asked_rpc").then(()=>{},()=>{});  // 서버 기록 → 다른 기기 재등장 방지
     setShowSourceSurvey(false);
     setSurveyPage(1);
   };
@@ -4337,8 +4338,10 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
   const [sharing, setSharing] = React.useState<string|null>(null);
   const [shareToast, setShareToast] = React.useState<{text:string; link?:string}|null>(null);
   const [fbJob, setFbJob] = React.useState<any>(null);
+  const feedbackDoneRef = React.useRef(false);   // 서버: 이미 피드백 남긴 유저 → 팝업 안 띄움
   React.useEffect(()=>{
     if(!session) return;
+    supabase.rpc("has_feedback_rpc").then((r:any)=>{ if(r?.data===true) feedbackDoneRef.current=true; },()=>{});
     (async()=>{
       try {
         const r = await fetch("https://oxygqtbdpnxxcgzwdlzi.supabase.co/rest/v1/video_jobs?select=*&order=created_at.desc&limit=50",
@@ -4358,7 +4361,7 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
   const isAndroid = /Android/i.test(ua);
 
   // 저장: iOS는 공유시트(사진에 저장), 안드로이드·PC는 파일을 직접 다운로드(다운로드 폴더 → 갤러리)
-  const _askFb = (j:any) => { try { if (!localStorage.getItem("chronit_feedback_done")) setTimeout(()=>setFbJob(j), 700); } catch {} };
+  const _askFb = (j:any) => { try { if (feedbackDoneRef.current) return; if (!localStorage.getItem("chronit_feedback_done")) setTimeout(()=>setFbJob(j), 700); } catch {} };
   const saveVideo = async (j:any) => {
     if (!j.video_url) return;
     const fname = (j.product_name||"chronit")+".mp4";
