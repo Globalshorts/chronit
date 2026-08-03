@@ -2287,13 +2287,20 @@ export default function VideoGenerator() {
                   </div>
                   {(() => {
                     const needUploadName = clips.some((c: any) => c.source === "upload" && !String(c.video_id || "").startsWith("trend_")) && !uploadName.trim();
+                    // ★ 푸티지 부족 반려: 담은 클립 길이 합 < 목표 길이면 막음(프리즈·반복 방지).
+                    //   길이 미상(업로드 등 duration=0) 클립이 섞이면 측정 불가 → 검사 건너뜀(오탐 방지). ★
+                    const _sel = (clips as any[]).filter((c: any) => cart.has(c.video_id));
+                    const _durs = _sel.map((c: any) => Number(c.duration) || 0);
+                    const _allKnown = _sel.length > 0 && _durs.every((d: number) => d > 0);
+                    const _sumDur = _durs.reduce((a: number, b: number) => a + b, 0);
+                    const _tooShort = _allKnown && _sumDur < targetSeconds;
                     return (
                   <BottomActionBar
                     showSeg={cart.size > 0 && (clips as any[]).some((c: any) => cart.has(c.video_id) && c.source !== "upload")}
                     onSeg={openStoryboard}
-                    genLabel={autoRunning ? (autoRunStep || "처리 중...") : cart.size === 0 ? "클립을 담아주세요" : needUploadName ? "상품명을 입력해주세요" : `자동 생성 (${cart.size}개)`}
-                    onGen={() => { if (!autoRunning && cart.size > 0 && !needUploadName) { setModalCtaText(ctaText); setShowAutoModal(true); } }}
-                    genDisabled={autoRunning || cart.size === 0 || needUploadName} />
+                    genLabel={autoRunning ? (autoRunStep || "처리 중...") : cart.size === 0 ? "클립을 담아주세요" : needUploadName ? "상품명을 입력해주세요" : _tooShort ? `영상 길이 부족 · 담은 ${Math.round(_sumDur)}초 / 목표 ${targetSeconds}초` : `자동 생성 (${cart.size}개)`}
+                    onGen={() => { if (!autoRunning && cart.size > 0 && !needUploadName && !_tooShort) { setModalCtaText(ctaText); setShowAutoModal(true); } }}
+                    genDisabled={autoRunning || cart.size === 0 || needUploadName || _tooShort} />
                     );
                   })()}
                   {!autoRunning && autoRunError && (
