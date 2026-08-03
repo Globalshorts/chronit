@@ -2287,15 +2287,13 @@ export default function VideoGenerator() {
                   </div>
                   {(() => {
                     const needUploadName = clips.some((c: any) => c.source === "upload" && !String(c.video_id || "").startsWith("trend_")) && !uploadName.trim();
-                    const _minClips = Math.min(3, clips.length || 3);
-                    const _tooFew = cart.size < _minClips;
                     return (
                   <BottomActionBar
                     showSeg={cart.size > 0 && (clips as any[]).some((c: any) => cart.has(c.video_id) && c.source !== "upload")}
                     onSeg={openStoryboard}
-                    genLabel={autoRunning ? (autoRunStep || "처리 중...") : needUploadName ? "상품명을 입력해주세요" : _tooFew ? `클립 ${_minClips}개 이상 담아주세요 (현재 ${cart.size}개)` : `자동 생성 (${cart.size}개)`}
-                    onGen={() => { if (!autoRunning && !_tooFew && !needUploadName) { setModalCtaText(ctaText); setShowAutoModal(true); } }}
-                    genDisabled={autoRunning || _tooFew || needUploadName} />
+                    genLabel={autoRunning ? (autoRunStep || "처리 중...") : cart.size === 0 ? "클립을 담아주세요" : needUploadName ? "상품명을 입력해주세요" : `자동 생성 (${cart.size}개)`}
+                    onGen={() => { if (!autoRunning && cart.size > 0 && !needUploadName) { setModalCtaText(ctaText); setShowAutoModal(true); } }}
+                    genDisabled={autoRunning || cart.size === 0 || needUploadName} />
                     );
                   })()}
                   {!autoRunning && autoRunError && (
