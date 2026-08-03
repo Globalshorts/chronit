@@ -10,7 +10,7 @@
  */
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus, Gift, ChevronDown } from "lucide-react";
+import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus, Gift, ChevronDown, Pencil, Eye, MessageCircle } from "lucide-react";
 import DOMPurify from "dompurify";
 import { supabase } from "../lib/supabase";
 import type { Session } from "@supabase/supabase-js";
@@ -1731,14 +1731,8 @@ export default function VideoGenerator() {
             <div className="space-y-2">
               {videoOnly && (
                 <div className="flex items-center gap-2 rounded-xl bg-gray-50 border border-gray-200 px-3 py-2">
-                  <span className="text-sm">🎬</span>
+                  <Film size={14} className="shrink-0 text-gray-500" />
                   <p className="text-xs font-bold text-gray-600">영상만 모드 — AI 음성·자막 없이 클립 몽타주만 생성돼요.</p>
-                </div>
-              )}
-              {cart.size < 3 && (
-                <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2">
-                  <span className="text-sm">⚠️</span>
-                  <p className="text-xs font-bold text-amber-700">클립 {cart.size}개 — 3개 이상 담아야 영상이 자연스러워요.</p>
                 </div>
               )}
             </div>
@@ -1747,9 +1741,9 @@ export default function VideoGenerator() {
             {titleMode && (
               <div className="rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-3 space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-[11px] font-bold text-[#0064FF]">✍️ 영상 상단 캡션 <span className="font-normal text-gray-500">· AI 자동 생성, 수정 가능</span></p>
+                  <p className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0064FF]"><Pencil size={12} /> 영상 상단 캡션 <span className="font-normal text-gray-500">· AI 자동 생성, 수정 가능</span></p>
                   <button type="button" onClick={() => genHookTitle(true)} disabled={titleLoading}
-                    className="shrink-0 text-[11px] font-bold text-[#0064FF] hover:underline disabled:text-gray-400">🔄 다시 생성</button>
+                    className="shrink-0 inline-flex items-center gap-1 text-[11px] font-bold text-[#0064FF] hover:underline disabled:text-gray-400"><RefreshCw size={11} /> 다시 생성</button>
                 </div>
                 {titleLoading ? (
                   <p className="text-xs text-gray-500">제목 만드는 중…</p>
@@ -1764,14 +1758,14 @@ export default function VideoGenerator() {
             {genMode === 'voice' && (
             <div className="rounded-xl border border-gray-200">
               <button onClick={() => setManualOpen(o => !o)} className="flex w-full items-center justify-between px-4 py-3 text-left">
-                <span className="text-sm font-bold text-gray-800">✍️ 대본</span>
+                <span className="inline-flex items-center gap-1.5 text-sm font-bold text-gray-800"><Pencil size={14} /> 대본</span>
                 <span className="text-gray-400">{manualOpen ? "▴" : "▾"}</span>
               </button>
               {manualOpen && (
                 <div className="px-4 pb-4 space-y-2">
                   <button type="button" onClick={fillScriptDraft} disabled={scriptFilling}
                     className="w-full rounded-xl border border-[#0064FF] bg-[#0064FF]/5 py-2.5 text-sm font-bold text-[#0064FF] transition hover:bg-[#0064FF]/10 disabled:opacity-50">
-                    {scriptFilling ? "대본 미리보기 준비 중… (최대 30초)" : "👀 대본 미리보기"}
+                    {scriptFilling ? "대본 미리보기 준비 중… (최대 30초)" : <span className="inline-flex items-center justify-center gap-1.5"><Eye size={15} /> 대본 미리보기</span>}
                   </button>
                   {scriptFillErr && <p className="text-xs font-medium text-red-500">{scriptFillErr}</p>}
                   <p className="text-sm text-gray-500">비우면 AI가 자동 생성 · 한 줄 = 한 컷</p>
@@ -1787,7 +1781,7 @@ export default function VideoGenerator() {
             {genMode === 'voice' && (
             <div className="rounded-xl border border-gray-200">
               <button onClick={() => setCtaOpen(o => !o)} className="flex w-full items-center justify-between px-4 py-3 text-left">
-                <span className="text-sm font-bold text-gray-800">💬 댓글 유도 단어 <span className="font-normal text-gray-400">· 선택 (CTA)</span></span>
+                <span className="inline-flex items-center gap-1.5 text-sm font-bold text-gray-800"><MessageCircle size={14} /> 댓글 유도 단어 <span className="font-normal text-gray-400">· 선택 (CTA)</span></span>
                 <span className="text-gray-400">{ctaOpen ? "▴" : "▾"}</span>
               </button>
               {ctaOpen && (
@@ -2641,7 +2635,7 @@ function FontDropdown({ value, onChange }: { value: string; onChange: (v: string
         className="w-full flex items-center justify-between rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-[#0064FF]"
         style={{ fontFamily: cur.value }}>
         <span className="truncate">{cur.label}</span>
-        <span className="ml-2 shrink-0 text-gray-400">▾</span>
+        <ChevronDown size={14} className="ml-2 shrink-0 text-gray-400" />
       </button>
       {open && (
         <div className="absolute left-0 right-0 z-30 mt-1 max-h-60 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
