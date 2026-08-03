@@ -10,7 +10,7 @@
  */
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft } from "lucide-react";
+import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus } from "lucide-react";
 import DOMPurify from "dompurify";
 import { supabase } from "../lib/supabase";
 import type { Session } from "@supabase/supabase-js";
@@ -295,8 +295,8 @@ export default function VideoGenerator() {
   const [sbCta, setSbCta] = useState("");  // 기본 빈칸 — placeholder가 힌트, 비우면 백엔드가 '프로필 링크에서 확인하세요'로 마무리
   // ★ 스토리보드(하단 자동생성 바)와 채널톡 런처가 겹침 → 열릴 때 채널톡 버튼 숨기고 닫으면 복구 ★
   useEffect(() => {
-    try { (window as any).ChannelIO?.(segEditorOpen ? "hideChannelButton" : "showChannelButton"); } catch {}
-  }, [segEditorOpen]);
+    try { (window as any).ChannelIO?.((segEditorOpen || clips.length > 0) ? "hideChannelButton" : "showChannelButton"); } catch {}
+  }, [segEditorOpen, clips.length]);
   const sbTtsRef = useRef<string>("");
   const prefetchRef = useRef<Record<string, string>>({});
   const firePrefetch = (clip: any) => {
@@ -1974,13 +1974,13 @@ export default function VideoGenerator() {
 
       {/* ── 상단 바 ── */}
       <AppTopBar onMenuClick={() => setMobileMenuOpen(true)} onInvite={() => setShowInvite(true)} session={session} balance={balance} daysLeft={daysLeft} userPlan={userPlan} onHistory={() => setShowHistory(true)} activeView={activeView} onViewChange={setActiveView} userRole={userRole} />
-      {session && !openchatX && (
+      {session && !openchatX && clips.length === 0 && (
         <div className="fixed bottom-20 left-4 z-40 flex items-center gap-1 rounded-full bg-[#FEE500] pl-3.5 pr-1.5 py-2 shadow-lg shadow-black/10">
           <a href="https://open.kakao.com/o/s7CrKpxi" target="_blank" rel="noreferrer" className="text-xs font-black text-[#3C1E1E] hover:brightness-90">💬 오픈채팅 · 불편한 점 알려주세요</a>
           <button onClick={() => { try { sessionStorage.setItem("chronit_openchat_x", "1"); } catch {} setOpenchatX(true); }} title="닫기" className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[#3C1E1E]/60 hover:bg-black/10 hover:text-[#3C1E1E]">✕</button>
         </div>
       )}
-      {session && (
+      {session && clips.length === 0 && (
         <button onClick={() => setShowDemo(true)} className="fixed bottom-32 left-4 z-40 flex items-center gap-1 rounded-full bg-[#0064FF] px-3.5 py-2 text-xs font-black text-white shadow-lg hover:bg-[#0052D6] active:scale-95">▶ 30초만에 크로닛 이해하기</button>
       )}
       {showDemo && <QuickDemo onClose={() => setShowDemo(false)} />}
@@ -2143,10 +2143,10 @@ export default function VideoGenerator() {
           {/* 새로 시작 (작업 초기화) */}
           <div className="mb-3 flex justify-end">
             <button onClick={() => { if (window.confirm("현재 작업을 비우고 새로 시작할까요?\n(완성된 영상은 생성 내역에 그대로 있어요)")) handleReset(); }}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-500 transition hover:border-[#0064FF]/50 hover:text-[#0064FF]">🆕 새로 시작</button>
+              className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-500 transition hover:border-[#0064FF]/50 hover:text-[#0064FF]"><Plus size={12} strokeWidth={2.5} /> 새로 시작</button>
           </div>
 
-          <StagePanel n={1} title="영상 분석" current={stage} hideNum
+          <StagePanel n={1} title="링크 붙여넣기" current={stage} hideNum
             headerRight={
               (refInfo && !refInfo.ref_is_paid && refInfo.ref_remaining_days > 0) ? (
               <div className="shrink-0 w-36 sm:w-44">
@@ -2250,8 +2250,7 @@ export default function VideoGenerator() {
               )}
 
               <div>
-                <label className="mb-1 block text-base font-bold text-gray-700">① 링크 붙여넣기 <span className="font-normal text-gray-400">· 인스타 · 틱톡 · 유튜브</span></label>
-                <p className="mb-2 rounded-lg bg-[#0064FF]/10 px-3 py-2.5 text-sm font-bold text-[#0064FF]">🎯 상품이 <b>또렷하게 크게</b> 보이는 영상일수록 결과가 좋아요</p>
+                <p className="mb-2 flex items-center gap-1.5 rounded-lg bg-[#0064FF]/10 px-3 py-2.5 text-sm font-bold text-[#0064FF]"><Target size={16} className="shrink-0" /><span>상품이 <b>또렷하게 크게</b> 보이는 영상일수록 결과가 좋아요</span></p>
                 <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                   <input type="url" value={sourceUrl}
                     onChange={e => { _userEdited.current = true; setSourceUrl(e.target.value); setSearchError(""); setClips([]); setCart(new Set()); setManualScript(""); setScript(null); setScriptFillErr(""); }}
@@ -2263,7 +2262,7 @@ export default function VideoGenerator() {
                     className="w-full sm:w-auto shrink-0 rounded-xl bg-[#0064FF] px-5 py-3.5 text-base font-bold text-white hover:bg-[#0052D6] disabled:opacity-40 transition flex items-center justify-center gap-2">
                     {searching
                       ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />분석 중...</>
-                      : "🔍 분석 시작"}
+                      : <><Search size={16} /> 분석 시작</>}
                   </button>
                 </div>
                 {!searchError && <UrlHint url={sourceUrl} />}
