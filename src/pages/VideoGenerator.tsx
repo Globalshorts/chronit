@@ -4147,9 +4147,10 @@ function StoryboardModal({ script, cuts, stage, segsByVideo, clips, loading, slo
       {!loading && slots.length > 0 && (
         <div className="border-t bg-white px-4 py-3">
           <label className="mb-1.5 block text-[11px] font-bold text-gray-500">CTA · 영상 끝 문구 (수정 가능)</label>
+          <p className="mb-1.5 text-[11px] text-gray-400">비우면 '프로필 링크 확인'으로 마무리</p>
           <div className="flex items-center gap-2">
             <input value={cta ?? ""} onChange={(e) => setCta && setCta(e.target.value)}
-              placeholder="프로필 링크에서 확인하세요"
+              placeholder="예: 관심, 알려줘 (선택)"
               className="min-w-0 flex-1 rounded-xl border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-[#0064FF]" />
             <button onClick={onGenerate} disabled={generating}
               className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-[#0064FF] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#0052D6] disabled:opacity-60">
