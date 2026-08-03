@@ -497,6 +497,7 @@ export default function VideoGenerator() {
   const [packVoiceMsg, setPackVoiceMsg] = useState(""); const [packInfoMsg, setPackInfoMsg] = useState("");
   const [manualOpen, setManualOpen] = useState(true);   // 대본 섹션 기본 펼침 (대본 만들기 버튼 노출)
   const [ctaOpen, setCtaOpen] = useState(false);
+  const [optOpen, setOptOpen] = useState(false);   // 첫 화면 옵션 기본 접힘(해피패스)
   const [userPacks, setUserPacks] = useState<any[]>([]);
   const [packOnboardOpen, setPackOnboardOpen] = useState(false);
   const applyPack = (p:any, key?:string) => {
@@ -2160,6 +2161,12 @@ export default function VideoGenerator() {
               ) : null
             }>
             <div className="space-y-4">
+              {/* ── 옵션(형식·광고·직접업로드) 기본 접힘 — 해피패스: 링크만 붙이면 됨 ── */}
+              <button type="button" onClick={() => setOptOpen(o=>!o)}
+                className="flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-[#0064FF]">
+                {optOpen ? "▴" : "▾"} 옵션 · 영상 형식 · 광고 · 직접 업로드
+              </button>
+              {optOpen && (<>
               {/* 영상 준비 — 직접 업로드 메인 + 보조 도구 (최상단) */}
               <div className="flex flex-wrap gap-2">
                 {FEATURES.directUpload && (
@@ -2195,6 +2202,7 @@ export default function VideoGenerator() {
                 <span className="text-sm font-bold text-gray-700">우측 상단 <b className="text-[#0064FF]">[광고]</b> 표기</span>
                 <span className="ml-auto text-[11px] text-gray-400">유료광고·제휴 시 권장</span>
               </label>
+              </>)}
 
               {FEATURES.directUpload && uploadOpen && (
                 <div>
@@ -2242,7 +2250,7 @@ export default function VideoGenerator() {
               )}
 
               <div>
-                <label className="mb-1 block text-base font-bold text-gray-700">또는 링크로 가져오기 <span className="font-normal text-gray-400">· 인스타 · 틱톡 · 유튜브</span></label>
+                <label className="mb-1 block text-base font-bold text-gray-700">① 링크 붙여넣기 <span className="font-normal text-gray-400">· 인스타 · 틱톡 · 유튜브</span></label>
                 <p className="mb-2 rounded-lg bg-[#0064FF]/10 px-3 py-2.5 text-sm font-bold text-[#0064FF]">🎯 상품이 <b>또렷하게 크게</b> 보이는 영상일수록 결과가 좋아요</p>
                 <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                   <input type="url" value={sourceUrl}
