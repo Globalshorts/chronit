@@ -3532,17 +3532,30 @@ function LoadingTips({ intervalMs = 30000 }: { intervalMs?: number }) {
 // 렌더 중 진행 카드 (넷플릭스 봐도 OK + 진행 바 + 꿀팁)
 function RenderProgressCard({ job, tick, onMinimize, onCancel }: { job:any; tick:number; onMinimize:()=>void; onCancel?:()=>void }) {
   void tick; // 1초 틱으로 경과시간/진행률 갱신
-  const TYPICAL = 240; // 실제 평균(중앙값 ~238초)으로 보정
+  const [real, setReal] = React.useState<{pct:number;label:string}|null>(null);
+  React.useEffect(() => {
+    if (!job?.id) return;
+    let alive = true;
+    const poll = async () => {
+      try {
+        const r = await (await fetch(FN("job-progress") + "?k=chronit-prog-9x", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ job_id: job.id }) })).json();
+        if (alive && r?.ok && typeof r.pct === "number") setReal({ pct: r.pct, label: r.label || "생성 중" });
+      } catch { /* 폴링 실패 → 시간 기반 유지 */ }
+    };
+    poll(); const t = setInterval(poll, 3500);
+    return () => { alive = false; clearInterval(t); };
+  }, [job?.id]);
   const started = job?.created_at ? new Date(job.created_at).getTime() : Date.now();
   const elapsed = Math.max(0, (Date.now() - started) / 1000);
-  const pct = Math.min(0.97, 1 - Math.exp(-elapsed / 110)); // 빠르게 차고 끝에서 천천히, 완료 전엔 97% 상한
+  const timePct = Math.min(0.9, 1 - Math.exp(-elapsed / 110));
+  const pct = Math.min(0.98, Math.max(real ? real.pct / 100 : 0, timePct)); // 실제 단계 우선 · 시간 기반이 부드러운 하한
   const mm = Math.floor(elapsed/60), ss = Math.floor(elapsed%60);
   return createPortal(
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onMinimize}>
       <div className="w-full max-w-md rounded-3xl bg-white border border-gray-200 p-7 text-center shadow-2xl" onClick={e=>e.stopPropagation()}>
         <div className="text-5xl mb-3">🍿</div>
         <h2 className="text-xl font-black text-gray-900">이제 넷플릭스 보셔도 괜찮아요</h2>
-        <p className="text-sm text-gray-500 mt-1">AI가 열심히 영상을 만들고 있어요.<br/>다 되면 알려드릴게요!</p>
+        <p className="text-sm text-gray-500 mt-1">{real?.label ? <><b className="text-[#0064FF]">{real.label}</b><br/>다 되면 알려드릴게요!</> : <>AI가 열심히 영상을 만들고 있어요.<br/>다 되면 알려드릴게요!</>}</p>
         <div className="mt-5 h-3 w-full rounded-full bg-gray-100 overflow-hidden">
           <div className="h-full rounded-full bg-gradient-to-r from-[#0064FF] to-[#0052D6] transition-[width] duration-1000 ease-linear" style={{ width: `${Math.round(pct*100)}%` }} />
         </div>
