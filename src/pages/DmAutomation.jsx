@@ -6,9 +6,9 @@ import { AtSign, Plus, Trash2, Check, MessageCircle, FileText, Target, Send } fr
 const IG_CLIENT_ID = '1704122604098446'
 const IG_REDIRECT = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/ig-oauth-callback'
 const IG_SCOPE = 'instagram_business_basic,instagram_business_manage_comments,instagram_business_manage_messages'
-const MAX_ACCOUNTS = 5  // 유저당 연결 계정 상한 (IG 앱 단위 사용량 보호)
+const DM_CAPS = { starter: 1, pro: 3, master: 5, pkg6: 3 }  // 요금제별 연결 계정 상한 (IG 앱 사용량 보호)
 
-export default function DmAutomation() {
+export default function DmAutomation({ userPlan, userRole }) {
   const [user, setUser] = useState(null)
   const [conns, setConns] = useState([])         // 연결된 계정들 (다계정)
   const [activeIg, setActiveIg] = useState(null) // 현재 선택된 ig_user_id
@@ -23,6 +23,8 @@ export default function DmAutomation() {
   const [mediaId, setMediaId] = useState('')
 
   const conn = conns.find((c) => c.ig_user_id === activeIg) || null
+  const isStaff = userRole === 'partner' || userRole === 'super_admin'
+  const maxAccounts = isStaff ? 5 : (DM_CAPS[userPlan] || 0)
 
   const loadConns = async (uid) => {
     const { data } = await supabase.from('ig_connections')
@@ -78,7 +80,7 @@ export default function DmAutomation() {
 
   const connect = () => {
     if (!user) return
-    if (conns.length >= MAX_ACCOUNTS) { setMsg(`계정은 최대 ${MAX_ACCOUNTS}개까지 연결할 수 있어요.`); return }
+    if (conns.length >= maxAccounts) { setMsg(maxAccounts === 0 ? '자동 DM은 유료 회원 전용이에요.' : `현재 요금제에서는 계정 ${maxAccounts}개까지 연결할 수 있어요. (상위 요금제로 더 연결)`); return }
     const state = encodeURIComponent(`${user.id}::${window.location.origin}`)
     window.location.href = `https://www.instagram.com/oauth/authorize?client_id=${IG_CLIENT_ID}&redirect_uri=${encodeURIComponent(IG_REDIRECT)}&response_type=code&scope=${encodeURIComponent(IG_SCOPE)}&state=${state}`
   }
@@ -136,7 +138,7 @@ export default function DmAutomation() {
 
       {/* 1. 계정 연결 (다계정) */}
       <div className="mb-5 rounded-2xl border border-gray-200 p-4">
-        <p className="mb-3 text-sm font-black text-gray-700">1. 인스타 계정 연결</p>
+        <p className="mb-3 flex items-center justify-between text-sm font-black text-gray-700"><span>1. 인스타 계정 연결</span><span className="text-xs font-bold text-gray-400">{conns.length}/{maxAccounts} 계정</span></p>
         {conns.length > 0 ? (
           <div className="flex flex-col gap-2">
             {conns.map((c) => {
@@ -158,10 +160,14 @@ export default function DmAutomation() {
                 </div>
               )
             })}
-            <button onClick={connect}
-              className="mt-1 flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-gray-300 px-3 py-2.5 text-sm font-bold text-gray-500 hover:border-[#0064FF] hover:text-[#0064FF] transition">
-              <Plus size={15} strokeWidth={2.5} /> 계정 추가 연결
-            </button>
+            {conns.length < maxAccounts ? (
+              <button onClick={connect}
+                className="mt-1 flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-gray-300 px-3 py-2.5 text-sm font-bold text-gray-500 hover:border-[#0064FF] hover:text-[#0064FF] transition">
+                <Plus size={15} strokeWidth={2.5} /> 계정 추가 연결
+              </button>
+            ) : (
+              <p className="mt-1 rounded-xl bg-gray-50 px-3 py-2.5 text-center text-xs text-gray-400">현재 요금제 최대 {maxAccounts}개 연결됨 · 더 필요하면 상위 요금제로 업그레이드</p>
+            )}
           </div>
         ) : (
           <button onClick={connect}

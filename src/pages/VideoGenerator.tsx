@@ -29,6 +29,9 @@ const FN = (n: string) => `${SB}/functions/v1/${n}`;
 const SAMPLE_URL = "https://www.instagram.com/p/DNQhKP9NFYa/";
 
 // ── 상단 바 (홈페이지와 동일 스타일) ───────────────────────────
+const PAID_PLANS = new Set(["starter", "pro", "master", "pkg6"]);
+const DM_CAPS: Record<string, number> = { starter: 1, pro: 3, master: 5, pkg6: 3 };
+
 function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan, onHistory, activeView, onViewChange, userRole }: { onMenuClick?: () => void; onInvite?: () => void; session?: any; balance?: number|null; daysLeft?: number|null; userPlan?: string|null; onHistory?: () => void; activeView?: string; onViewChange?: (v:string)=>void; userRole?: string }) {
   const ICON = `${SB}/storage/v1/object/public/assets/icon.png`;
   const [menuOpen, setMenuOpen] = useState(false);
@@ -53,7 +56,7 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
     { v: "generator", label: "프로젝트" },
     { v: "history", label: "생성 내역" },
     { v: "product-search", label: "내 링크" },
-    { v: "dm", label: "자동 DM", locked: !(userRole === "partner" || userRole === "super_admin") },
+    { v: "dm", label: "자동 DM", locked: !(userRole === "partner" || userRole === "super_admin" || PAID_PLANS.has(userPlan||"")) },
     { v: "settings", label: "결제" },
     ...(userRole === "partner" || userRole === "super_admin" ? [{ v: "partner", label: "파트너스" }] : []),
     ...(userRole === "super_admin" ? [{ v: "admin", label: "관리자" }] : []),
@@ -124,14 +127,14 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
 }
 
 // ── 모바일 하단 탭바 (네이티브 앱 스타일) — 프로토타입 ───────────
-function MobileBottomNav({ activeView, onViewChange, userRole }: { activeView: string; onViewChange: (v:string)=>void; userRole: string }) {
+function MobileBottomNav({ activeView, onViewChange, userRole, userPlan }: { activeView: string; onViewChange: (v:string)=>void; userRole: string; userPlan?: string|null }) {
   const isPartner = userRole === "partner" || userRole === "super_admin";
   const items: any[] = [
     { v: "generator", label: "홈", Icon: Home },
     { v: "trends", label: "트렌드", Icon: Flame },
     { v: "history", label: "내역", Icon: History },
     { v: "product-search", label: "링크", Icon: Link2 },
-    { v: "dm", label: "DM", Icon: MessageCircle, locked: !isPartner },
+    { v: "dm", label: "DM", Icon: MessageCircle, locked: !(isPartner || PAID_PLANS.has(userPlan||"")) },
     { v: "settings", label: "내정보", Icon: User },
   ];
   return (
@@ -151,7 +154,7 @@ function MobileBottomNav({ activeView, onViewChange, userRole }: { activeView: s
 }
 
 // ── 상단 탭 바 (사이드바를 위로) ───────────────────────────────
-function AppTabBar({ activeView, onViewChange, userRole }: { activeView: string; onViewChange: (v:string)=>void; userRole: string }) {
+function AppTabBar({ activeView, onViewChange, userRole, userPlan }: { activeView: string; onViewChange: (v:string)=>void; userRole: string; userPlan?: string|null }) {
   const [extractRunning, setExtractRunning] = useState(
     _extractMgr.state?.status === "starting" || _extractMgr.state?.status === "processing");
   useEffect(() => {
@@ -166,7 +169,7 @@ function AppTabBar({ activeView, onViewChange, userRole }: { activeView: string;
     { v: "generator", label: "프로젝트" },
     { v: "history", label: "생성 내역" },
     { v: "product-search", label: "내 링크" },
-    { v: "dm", label: "자동 DM", locked: !isPartner },
+    { v: "dm", label: "자동 DM", locked: !(isPartner || PAID_PLANS.has(userPlan||"")) },
     { v: "settings", label: "결제·계정" },
     ...(isPartner ? [{ v: "partner", label: "파트너스", icon: "📊" }] : []),
     ...(isAdmin ? [{ v: "admin", label: "관리자", icon: "👑" }] : []),
@@ -2113,8 +2116,8 @@ export default function VideoGenerator() {
       )}
 
       {/* ── 상단 탭 바 (데스크탑) ── */}
-      <AppTabBar activeView={activeView} onViewChange={setActiveView} userRole={userRole} />
-      <MobileBottomNav activeView={activeView} onViewChange={setActiveView} userRole={userRole} />
+      <AppTabBar activeView={activeView} onViewChange={setActiveView} userRole={userRole} userPlan={userPlan} />
+      <MobileBottomNav activeView={activeView} onViewChange={setActiveView} userRole={userRole} userPlan={userPlan} />
 
       {/* ── 본문 행 ── */}
       <div className="flex flex-1">
@@ -2175,8 +2178,8 @@ export default function VideoGenerator() {
             {activeView === "partner" && (userRole === "partner" || userRole === "super_admin") && (
               <PartnerView session={session} supabase={supabase} />
             )}
-            {activeView === "dm" && (userRole === "partner" || userRole === "super_admin") && (
-              <DmAutomation />
+            {activeView === "dm" && (userRole === "partner" || userRole === "super_admin" || PAID_PLANS.has(userPlan||"")) && (
+              <DmAutomation userPlan={userPlan} userRole={userRole} />
             )}
           </div>
         )}
