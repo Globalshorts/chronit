@@ -666,11 +666,11 @@ const Home = () => {
             {/* 스타터 · 프로 · 마스터 */}
             {[
               { key: 'starter', name: '스타터', sub: '처음 시작하는 분께', popular: false,
-                feats: [<span key="0">월 <strong>15개</strong> 영상 제작</span>, <span key="1">모든 자동화 기능 사용</span>, <span key="2">자동 자막·제목 추천</span>] },
+                feats: [<span key="0">월 <strong>15개</strong> 영상 제작</span>, <span key="1">모든 자동화 기능 사용</span>, <span key="2">자동 자막·제목 추천</span>, <span key="3"><strong>인스타 DM 자동화</strong> · 1계정</span>] },
               { key: 'pro', name: '프로', sub: '매일 꾸준히 올리는 분께', popular: true,
-                feats: [<span key="0">월 <strong>30개</strong> 영상 제작</span>, <span key="1">스타터의 모든 기능 포함</span>, <span key="2">스타터보다 2배 많은 분량</span>] },
+                feats: [<span key="0">월 <strong>30개</strong> 영상 제작</span>, <span key="1">스타터의 모든 기능 포함</span>, <span key="2">스타터보다 2배 많은 분량</span>, <span key="3"><strong>인스타 DM 자동화</strong> · 3계정</span>] },
               { key: 'master', name: '마스터', sub: '여러 채널을 운영하는 분께', popular: false,
-                feats: [<span key="0">월 <strong>50개</strong> 영상 제작</span>, <span key="1">프로의 모든 기능 포함</span>, <span key="2">새 기능 우선 체험</span>] },
+                feats: [<span key="0">월 <strong>50개</strong> 영상 제작</span>, <span key="1">프로의 모든 기능 포함</span>, <span key="2">새 기능 우선 체험</span>, <span key="3"><strong>인스타 DM 자동화</strong> · 5계정</span>] },
             ].map((p) => {
               const price = planPrices[p.key].sale
               return (
