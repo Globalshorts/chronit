@@ -2093,7 +2093,61 @@ export default function VideoGenerator() {
       <div className="flex-1 min-w-0 flex flex-col">
         {activeView !== "generator" && (
           <div className="mx-auto w-full max-w-5xl flex-1 overflow-y-auto px-4 md:px-8 py-5 md:py-6">
-            {/* ── 스타일 (스타일 찾기 + 자동화 세팅) ── */}
+            {activeView === "trends" && (
+              <div className="max-w-5xl mx-auto">
+                <h2 className="mb-1 text-xl font-black text-gray-900">🔥 오늘의 트렌드</h2>
+                <p className="mb-4 text-sm text-gray-500">댓글 많은 쇼핑 릴스를 매일 서버에서 자동 수집해 댓글수 순으로 보여줘요. 카드를 누르면 그 영상으로 바로 제작 흐름으로 넘어가요.</p>
+                {trendNote && <p className="mb-3 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">{trendNote}</p>}
+                {trendNeedsSetup && (session?.user?.email || "").toLowerCase() === "pv2066pv@gmail.com" && (
+                  <div className="mb-4 max-w-md space-y-2 rounded-xl border border-amber-300 bg-amber-50 p-3">
+                    <p className="text-xs font-bold text-amber-700">🔑 Apify 토큰 연결 <span className="font-normal text-amber-500">· 주인 전용 · 한 번만</span></p>
+                    <input type="password" value={apifyTok} onChange={e => setApifyTok(e.target.value)} placeholder="apify_api_..."
+                      className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm outline-none focus:border-amber-500" />
+                    <button onClick={saveApifyToken} disabled={savingTok || !apifyTok.trim()}
+                      className="w-full rounded-lg bg-amber-500 py-2 text-sm font-bold text-white hover:bg-amber-600 disabled:opacity-40 transition">{savingTok ? "저장 중…" : "토큰 저장"}</button>
+                  </div>
+                )}
+                {trendLoading && !trendItems.length && (
+                  <div className="flex flex-col items-center gap-2 py-12">
+                    <span className="h-7 w-7 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
+                    <span className="text-xs text-gray-400">처음 불러올 땐 1~2분 걸려요…</span>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                  {(() => {
+                    const cutoff = Date.now() - 7 * 86400000; // 최근 7일
+                    const isComp = (c: string) => /top ?\d|베스트|순위|랭킹|모음|총정리|\d+ ?가지|\d+ ?위/i.test(c || ""); // TOP5·모음 등 컴필레이션
+                    const within = trendItems.filter((it: any) => it.taken_at && new Date(it.taken_at).getTime() >= cutoff);
+                    const single = within;
+                    const base = single.length >= 5 ? single : within; // 단일상품이 너무 적으면 전체(최근)
+                    const shown = (base.length ? base : trendItems)
+                      .slice()
+                      .sort((a: any, b: any) => (b.comment_count || 0) - (a.comment_count || 0)); // 댓글 많은 순
+                    return shown.map((it: any) => (<TrendCard key={it.shortcode} item={it} onAdd={() => trendAdd(it)} onAnalyze={() => trendAnalyze(it)} />));
+                  })()}
+                </div>
+              </div>
+            )}
+            {activeView === "history" && (
+              <>
+                <h2 className="text-xl font-black text-gray-900 mb-6">📹 생성 내역</h2>
+                <HistoryView session={session} onGoToLinks={()=>setActiveView("product-search")} onGacha={(g:any)=>setGacha(g)} />
+              </>
+            )}
+            {activeView === "product-search" && (
+              <ProductSearchView session={session} />
+            )}
+            {activeView === "settings" && (
+              <SettingsView session={session} supabase={supabase} balance={balance} userPlan={userPlan} />
+            )}
+            {activeView === "admin" && userRole === "super_admin" && (
+              <AdminView session={session} supabase={supabase} />
+            )}
+            {activeView === "partner" && (userRole === "partner" || userRole === "super_admin") && (
+              <PartnerView session={session} supabase={supabase} />
+            )}
+          </div>
+        )}
             {showStyleModal && (
               <div className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto p-4 sm:p-6">
                 <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowStyleModal(false)} />
@@ -2154,61 +2208,7 @@ export default function VideoGenerator() {
                 </div>
               </div>
             )}
-            {activeView === "trends" && (
-              <div className="max-w-5xl mx-auto">
-                <h2 className="mb-1 text-xl font-black text-gray-900">🔥 오늘의 트렌드</h2>
-                <p className="mb-4 text-sm text-gray-500">댓글 많은 쇼핑 릴스를 매일 서버에서 자동 수집해 댓글수 순으로 보여줘요. 카드를 누르면 그 영상으로 바로 제작 흐름으로 넘어가요.</p>
-                {trendNote && <p className="mb-3 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">{trendNote}</p>}
-                {trendNeedsSetup && (session?.user?.email || "").toLowerCase() === "pv2066pv@gmail.com" && (
-                  <div className="mb-4 max-w-md space-y-2 rounded-xl border border-amber-300 bg-amber-50 p-3">
-                    <p className="text-xs font-bold text-amber-700">🔑 Apify 토큰 연결 <span className="font-normal text-amber-500">· 주인 전용 · 한 번만</span></p>
-                    <input type="password" value={apifyTok} onChange={e => setApifyTok(e.target.value)} placeholder="apify_api_..."
-                      className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm outline-none focus:border-amber-500" />
-                    <button onClick={saveApifyToken} disabled={savingTok || !apifyTok.trim()}
-                      className="w-full rounded-lg bg-amber-500 py-2 text-sm font-bold text-white hover:bg-amber-600 disabled:opacity-40 transition">{savingTok ? "저장 중…" : "토큰 저장"}</button>
-                  </div>
-                )}
-                {trendLoading && !trendItems.length && (
-                  <div className="flex flex-col items-center gap-2 py-12">
-                    <span className="h-7 w-7 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
-                    <span className="text-xs text-gray-400">처음 불러올 땐 1~2분 걸려요…</span>
-                  </div>
-                )}
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                  {(() => {
-                    const cutoff = Date.now() - 7 * 86400000; // 최근 7일
-                    const isComp = (c: string) => /top ?\d|베스트|순위|랭킹|모음|총정리|\d+ ?가지|\d+ ?위/i.test(c || ""); // TOP5·모음 등 컴필레이션
-                    const within = trendItems.filter((it: any) => it.taken_at && new Date(it.taken_at).getTime() >= cutoff);
-                    const single = within;
-                    const base = single.length >= 5 ? single : within; // 단일상품이 너무 적으면 전체(최근)
-                    const shown = (base.length ? base : trendItems)
-                      .slice()
-                      .sort((a: any, b: any) => (b.comment_count || 0) - (a.comment_count || 0)); // 댓글 많은 순
-                    return shown.map((it: any) => (<TrendCard key={it.shortcode} item={it} onAdd={() => trendAdd(it)} onAnalyze={() => trendAnalyze(it)} />));
-                  })()}
-                </div>
-              </div>
-            )}
-            {activeView === "history" && (
-              <>
-                <h2 className="text-xl font-black text-gray-900 mb-6">📹 생성 내역</h2>
-                <HistoryView session={session} onGoToLinks={()=>setActiveView("product-search")} onGacha={(g:any)=>setGacha(g)} />
-              </>
-            )}
-            {activeView === "product-search" && (
-              <ProductSearchView session={session} />
-            )}
-            {activeView === "settings" && (
-              <SettingsView session={session} supabase={supabase} balance={balance} userPlan={userPlan} />
-            )}
-            {activeView === "admin" && userRole === "super_admin" && (
-              <AdminView session={session} supabase={supabase} />
-            )}
-            {activeView === "partner" && (userRole === "partner" || userRole === "super_admin") && (
-              <PartnerView session={session} supabase={supabase} />
-            )}
-          </div>
-        )}
+
         {/* 영상 생성 뷰 — generator일 때만 표시 */}
         {activeView === "generator" && <>
         <div className="mx-auto w-full max-w-5xl flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-5">
@@ -2245,7 +2245,7 @@ export default function VideoGenerator() {
               <div className="flex flex-wrap gap-2">
                 {FEATURES.directUpload && (
                   <button type="button" onClick={() => setUploadOpen(o => !o)}
-                    className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-sm font-bold transition ${uploadOpen ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-[#0064FF]/40 bg-[#0064FF]/5 text-[#0064FF] hover:border-[#0064FF]"}`}>
+                    className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-sm font-bold transition ${uploadOpen ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 bg-white text-gray-600 hover:border-[#0064FF]/50"}`}>
                     <Upload size={15} strokeWidth={2.4} /> 직접 업로드
                   </button>
                 )}
