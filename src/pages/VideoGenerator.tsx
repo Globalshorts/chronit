@@ -347,7 +347,7 @@ export default function VideoGenerator() {
   const prefetchRef = useRef<Record<string, string>>({});
   const firePrefetch = (clip: any) => {
     if (!clip || clip.source === "upload" || !clip.download_url || prefetchRef.current[clip.video_id]) return;
-    fetch(FN("prefetch-clip-test") + "?k=chronit-pf-9x", { method: "POST", headers: { "Content-Type": "application/json" },
+    fetch(FN("prefetch-clip") + "?k=chronit-pf-9x", { method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ video_id: clip.video_id, download_url: clip.download_url, download_url_hevc: clip.download_url_hevc, page_url: clip.page_url, source: clip.source }) })
       .then(r => r.json()).then(d => { if (d?.ok && d.cached_url) { prefetchRef.current[clip.video_id] = d.cached_url; setClips(prev => (prev as any[]).map((c: any) => c.video_id === clip.video_id ? { ...c, download_url: d.cached_url } : c)); } }).catch(() => {});
   };
@@ -1106,7 +1106,7 @@ export default function VideoGenerator() {
         let data1: any = null;
         let subResp: Response, sub: any;
         try {
-          subResp = await fetch(FN("search-clips-test"), {
+          subResp = await fetch(FN("search-clips"), {
             method: "POST", headers,
             body: JSON.stringify({ action: "submit", source_url: su.trim() }),
           });
@@ -1129,7 +1129,7 @@ export default function VideoGenerator() {
             await new Promise(r => setTimeout(r, 2500));
             let pr: any;
             try {
-              const presp = await fetch(FN("search-clips-test"), { method: "POST", headers,
+              const presp = await fetch(FN("search-clips"), { method: "POST", headers,
                 body: JSON.stringify({ action: "poll", prediction_id: _pid }) });
               pr = await presp.json();
             } catch { continue; } // 일시 네트워크 → 다음 폴링
@@ -1171,7 +1171,7 @@ export default function VideoGenerator() {
 
         // Step 2: CLIP filter (틱톡+XHS 통합, 실패해도 폴백 — 재시도 안 함)
         try {
-          const resp2 = await fetch(FN("clip-filter-test"), {
+          const resp2 = await fetch(FN("clip-filter"), {
             method: "POST", headers,
             body: JSON.stringify({ reference_frames: refFrames, candidates: allCand, clip_count: 80 }),
           });
@@ -1198,7 +1198,7 @@ export default function VideoGenerator() {
       // ★ Replicate 일시중단(code PA) 등 간헐적 실패 → 자동 재시도(최대 2회) ★
       for (let attempt = 0; attempt < 2; attempt++) {
         try {
-          const r = await fetch(FN("segment-preview-test") + "?k=chronit-seg-9x", {
+          const r = await fetch(FN("segment-preview") + "?k=chronit-seg-9x", {
             method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(_payload),
           });
           const d = await r.json();
@@ -1251,7 +1251,7 @@ export default function VideoGenerator() {
       voice_id: "nova", voice_speed: voiceSpeed / 100, voice_volume: 1.0,
       style_profile_id: "", style_profile_json: "", cta_text: "",
     };
-    const call = (payload: any) => fetch(FN("storyboard-plan-test") + "?k=chronit-plan-9x", {
+    const call = (payload: any) => fetch(FN("storyboard-plan") + "?k=chronit-plan-9x", {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
     }).then(r => r.json());
     let plan: any = null;
@@ -1604,7 +1604,7 @@ export default function VideoGenerator() {
         });
         if (_sl.length) { selected = _sl as any; _sbTts = sbTtsRef.current || ""; }
       }
-      const resp = await fetch(FN("generate-video-test"), {
+      const resp = await fetch(FN("generate-video"), {
         method: "POST",
         headers: { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" },
         body: JSON.stringify({
