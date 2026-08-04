@@ -64,7 +64,7 @@ const calcPrice = (original, coupon, planKey) => {
   return original
 }
 
-const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }) => {
+const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null, autoBilling = false }) => {
   const [selectedPlan, setSelectedPlan] = useState(defaultPlan)
   const [copied, setCopied] = useState(null)
 
@@ -199,7 +199,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
   // 시작하기(모달 오픈) 시 정기결제(구독) 창 자동 오픈 — 일반 플랜·쿠폰 없음 한정
   useEffect(() => {
     if (!open) { setAutoTried(false); setAutoFailed(false); return }
-    if (autoTried || discount || selectedPlan === 'pkg6' || !TOSS_BILLING_CLIENT_KEY) return
+    if (autoTried || !autoBilling || discount || selectedPlan === 'pkg6' || !TOSS_BILLING_CLIENT_KEY) return
     let cancelled = false
     const tryOpen = (n = 0) => {
       if (cancelled || autoTried) return
@@ -228,7 +228,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
   if (!open) return null
 
   // 시작하기 → 구독 자동결제 모드: 결제신청 창을 띄우지 않고 최소 로딩만 (토스 창이 위에 뜸)
-  const autoBillingMode = !discount && selectedPlan !== 'pkg6' && !!TOSS_BILLING_CLIENT_KEY
+  const autoBillingMode = autoBilling && !discount && selectedPlan !== 'pkg6' && !!TOSS_BILLING_CLIENT_KEY
   if (autoBillingMode && !autoFailed) {
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30" onClick={() => onClose?.()}>

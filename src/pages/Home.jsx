@@ -806,6 +806,7 @@ const Home = () => {
         onClose={() => setPaymentOpen(false)}
         defaultPlan={selectedPlan}
         initialCode={codeFromUrl}
+        autoBilling
       />
     </div>
   )

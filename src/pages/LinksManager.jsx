@@ -11,6 +11,9 @@ const cleanKw = (v) => (v || '')
   .replace(/\s+/g, ' ')
   .trim()
 const pad2 = (x) => String(x).padStart(2, '0')
+const IG_CLIENT_ID = '1704122604098446'
+const IG_REDIRECT = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/ig-oauth-callback'
+const IG_SCOPE = 'instagram_business_basic,instagram_business_manage_comments,instagram_business_manage_messages'
 
 export async function captureVideoFrame(videoUrl, fraction = 0.45) {
   return new Promise((resolve, reject) => {
@@ -65,20 +68,6 @@ export function LinkPageManager({ session }) {
       try {
         let list = (await supabase.from('link_pages').select('*').eq('user_id', uid).order('created_at', { ascending: true })).data || []
         let pg = list[0] || null
-        if (!pg) {
-          const base = sanitize(session.user.email?.split('@')[0])
-          let handle = base
-          for (let i = 0; i < 5 && !pg; i++) {
-            const ins = await supabase.from('link_pages')
-              .insert({ user_id: uid, handle, title: '', bio: '', theme: 'light' })
-              .select('*').single()
-            if (ins.data) { pg = ins.data; break }
-            const re = ((await supabase.from('link_pages').select('*').eq('user_id', uid).order('created_at', { ascending: true }).limit(1)).data || [])[0]
-            if (re) { pg = re; break }
-            handle = base + Math.floor(100 + Math.random() * 900)
-          }
-        }
-        if (pg && !list.length) list = [pg]
         if (pg?.id) { try { await supabase.from('link_items').update({ page_id: pg.id }).eq('user_id', uid).is('page_id', null) } catch {} }
         const [jb, it, at] = await Promise.all([
           supabase.from('video_jobs').select('id, product_name, seo_title, search_keyword, poster_url, video_url, created_at').eq('card_hidden', false)
@@ -172,6 +161,18 @@ export function LinkPageManager({ session }) {
     return 0
   })
   const flash = (m) => { setSavedMsg(m); setTimeout(() => setSavedMsg(''), 1800) }
+  const connectInstagram = () => {
+    const uid = session?.user?.id; if (!uid) return
+    const state = encodeURIComponent(`${uid}::${window.location.origin}::product-search`)
+    window.location.href = `https://www.instagram.com/oauth/authorize?client_id=${IG_CLIENT_ID}&redirect_uri=${encodeURIComponent(IG_REDIRECT)}&response_type=code&scope=${encodeURIComponent(IG_SCOPE)}&state=${state}`
+  }
+  useEffect(() => {
+    try {
+      const p = new URLSearchParams(window.location.search)
+      if (p.get('ig') === 'connected') { flash('인스타 연결됨 · 페이지가 생성됐어요'); window.history.replaceState({}, '', window.location.pathname + '?view=product-search') }
+      else if (p.get('ig') === 'denied') flash('연결이 취소됐어요')
+    } catch {}
+  }, [])
 
   const savePage = async (patch) => {
     if (!page?.id) return
@@ -304,9 +305,14 @@ export function LinkPageManager({ session }) {
     return <div className="py-20 text-center"><div className="mx-auto h-7 w-7 animate-spin rounded-full border-2 border-[#0064FF] border-t-transparent" /></div>
   if (!page)
     return (
-      <div className="py-20 text-center">
-        <p className="text-gray-500">페이지를 불러오지 못했어요.</p>
-        <button onClick={() => window.location.reload()} className="mt-3 rounded-xl bg-[#0064FF] px-5 py-2 text-sm font-bold text-white">다시 시도</button>
+      <div className="py-16 text-center">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0064FF]/10 text-2xl">🔗</div>
+        <p className="text-base font-black text-gray-900">아직 링크 페이지가 없어요</p>
+        <p className="mt-1 text-sm leading-relaxed text-gray-500">인스타를 연결하면 그 계정 이름으로 페이지가 자동 생성돼요.<br />자동 DM 연결도 한 번에 됩니다.</p>
+        <div className="mt-5 flex flex-col items-center gap-2">
+          <button onClick={connectInstagram} className="flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-black text-white" style={{ background: 'linear-gradient(90deg,#833AB4,#FD1D1D,#FCB045)' }}>인스타 연결하고 페이지 만들기</button>
+          <button onClick={newPage} className="text-sm font-bold text-gray-500 hover:text-[#0064FF]">직접 주소 정해서 새 페이지 만들기</button>
+        </div>
       </div>
     )
 
@@ -322,6 +328,8 @@ export function LinkPageManager({ session }) {
         ))}
         <button onClick={newPage}
           className="rounded-full border border-dashed border-gray-300 px-3.5 py-1.5 text-sm font-bold text-gray-500 hover:border-[#0064FF] hover:text-[#0064FF]">+ 새 페이지</button>
+        <button onClick={connectInstagram}
+          className="rounded-full border border-[#0064FF]/30 bg-[#0064FF]/5 px-3.5 py-1.5 text-sm font-bold text-[#0064FF] hover:bg-[#0064FF]/10">+ 인스타 연결</button>
       </div>
       {/* 내 주소 */}
       <div className="mb-5 rounded-3xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-5">
