@@ -74,6 +74,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
   const [trialMsg, setTrialMsg] = useState(null)
   const [dbPrices, setDbPrices] = useState(null)
   const [payMsg, setPayMsg] = useState(null)
+  const [autoTried, setAutoTried] = useState(false)
 
   useEffect(() => {
     if (initialCode) {
@@ -192,6 +193,21 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
       setPayMsg('정기결제 등록 오류: ' + (e?.message || e))
     }
   }
+
+  // 시작하기(모달 오픈) 시 정기결제(구독) 창 자동 오픈 — 일반 플랜·쿠폰 없음 한정
+  useEffect(() => {
+    if (!open) { setAutoTried(false); return }
+    if (autoTried || discount || selectedPlan === 'pkg6' || !TOSS_BILLING_CLIENT_KEY) return
+    let cancelled = false
+    const tryOpen = (n = 0) => {
+      if (cancelled || autoTried) return
+      if (!window.TossPayments) { if (n < 24) setTimeout(() => tryOpen(n + 1), 250); return }
+      setAutoTried(true)
+      registerBillingToss()
+    }
+    const t = setTimeout(() => tryOpen(0), 200)
+    return () => { cancelled = true; clearTimeout(t) }
+  }, [open, autoTried, discount, selectedPlan])
 
   useEffect(() => {
     if (open) document.body.style.overflow = 'hidden'
@@ -407,32 +423,19 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
             </div>
             {(!hasDiscount && QR_IMAGES[selectedPlan]) ? (
               <div className="flex flex-col gap-3 rounded-xl bg-white p-4">
-                {/* 네이버 스마트스토어 — 현재 결제수단 (기본) */}
-                <a
-                  href={storeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => { try { window.gtag?.('event','checkout_smartstore',{ plan: selectedPlan, plan_name: plan.name }); } catch {} }}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#03C75A] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(3,199,90,0.55)] transition-all hover:brightness-95 active:scale-[0.98]"
-                >
-                  네이버페이로 결제 ({plan.price.toLocaleString('ko-KR')}원)
-                </a>
-                {/* 토스 일반결제 — 심사 완료, 활성 (카드 즉시 활성화) */}
-                <button onClick={payWithToss}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#3182F6] px-6 py-4 text-base font-black text-white shadow-[0_15px_40px_-12px_rgba(49,130,246,0.55)] transition-all hover:brightness-95 active:scale-[0.98]">
-                  <CreditCard size={16} /> 토스로 결제하기 (카드 · 즉시 충전)
-                </button>
+                {/* 정기결제(구독) — 기본·우선. 시작하기 시 이 창이 자동으로 뜸 */}
                 {selectedPlan !== 'pkg6' && TOSS_BILLING_CLIENT_KEY && (
                   <button onClick={registerBillingToss}
-                    className="relative flex w-full items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 px-6 py-3 text-sm font-bold text-gray-500 transition-all hover:bg-gray-100 active:scale-[0.98]">
-                    카드 자동결제(정기결제) 등록
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-black text-gray-500">준비 중</span>
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#3182F6] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(49,130,246,0.55)] transition-all hover:brightness-95 active:scale-[0.98]">
+                    <CreditCard size={18} /> 구독 결제 시작 (월 {plan.price.toLocaleString('ko-KR')}원)
                   </button>
                 )}
+                {/* 1회 카드결제 — 보조 */}
+                <button onClick={payWithToss}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#3182F6]/40 bg-white px-6 py-3 text-sm font-bold text-[#3182F6] transition-all hover:bg-[#3182F6]/5 active:scale-[0.98]">
+                  <CreditCard size={15} /> 1회만 카드결제 ({plan.price.toLocaleString('ko-KR')}원)
+                </button>
                 {payMsg && <p className="text-center text-sm font-bold text-red-500">{payMsg}</p>}
-                <div className="rounded-xl bg-amber-50 px-4 py-3 text-left text-xs leading-relaxed text-amber-700">
-                  결제 시 <strong>크로닛 가입 닉네임</strong>을 옵션에 정확히 입력해 주세요. 해당 닉네임으로 이용권이 자동 충전됩니다.
-                </div>
               </div>
             ) : (
               <div className="rounded-xl bg-amber-50 p-4 text-center text-sm font-bold text-amber-700">
@@ -445,8 +448,8 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
         {/* 안내사항 */}
         {!isFreedays && (
           <div className="mb-6 space-y-2 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm leading-relaxed text-gray-600 md:text-base">
-            <p>• <strong className="text-gray-800">네이버페이로 결제</strong> 버튼을 눌러 스마트스토어에서 결제해 주세요.</p>
-            <p>• 결제 시 <strong className="rounded bg-amber-100 px-1.5 py-0.5 font-black text-amber-700 ring-1 ring-amber-300">가입 닉네임</strong>을 옵션에 입력하면 이용권이 자동 충전됩니다.</p>
+            <p>• <strong className="text-gray-800">구독 결제</strong> 시 토스 카드 등록 창이 바로 떠요. 등록 즉시 이용권이 충전됩니다.</p>
+            <p>• 매월 자동으로 결제·충전되며, 언제든 <strong className="text-gray-800">마이페이지</strong>에서 해지할 수 있어요.</p>
             <p>• 확인 후 영업일 기준 <strong className="text-gray-800">1일 이내</strong> 활성화됩니다. (카드 결제는 즉시 활성화)</p>
             <p>• <strong className="text-gray-800">환불 규정:</strong> 본 상품은 디지털 콘텐츠로, 결제 후 영상을 1회라도 생성하면 환불이 불가합니다. 이용 이력이 전혀 없는 경우에 한해 결제일로부터 <strong className="text-gray-800">7일 이내</strong> 전액 환불이 가능합니다.</p>
           </div>
