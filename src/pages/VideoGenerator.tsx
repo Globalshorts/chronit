@@ -4183,6 +4183,7 @@ function StoryboardModal({ script, cuts, stage, segsByVideo, clips, loading, slo
 function ClipCard({ clip, selected, onToggle, onRemove }: { clip: Clip; selected: boolean; onToggle: () => void; onRemove?: () => void }) {
   const [imgError, setImgError] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [vidDur, setVidDur] = useState(0);
   const rawUrl = (clip.download_url || clip.video_url || "").replace(/^http:\/\//, "https://"); // mixed content 방지
   const proxyUrl = rawUrl
     ? `https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/video-proxy?url=${encodeURIComponent(rawUrl)}`
@@ -4224,8 +4225,13 @@ function ClipCard({ clip, selected, onToggle, onRemove }: { clip: Clip; selected
             </div>
           </>
         )}
-        {clip.duration > 0 && !playing && (
-          <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1 py-0.5 text-xs text-white font-bold">{clip.duration}s</div>
+        {!clip.duration && isOwnStorage && playUrl && (
+          <video src={playUrl} preload="metadata" muted playsInline
+            onLoadedMetadata={e => { const d = Math.round((e.currentTarget as HTMLVideoElement).duration || 0); if (d > 0) setVidDur(d); }}
+            style={{ display: "none" }} />
+        )}
+        {(clip.duration || vidDur) > 0 && !playing && (
+          <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1 py-0.5 text-xs text-white font-bold">{clip.duration || vidDur}s</div>
         )}
         {selected && (
           <div className="absolute top-1.5 left-1.5 h-5 w-5 rounded-full bg-[#0064FF] flex items-center justify-center">
