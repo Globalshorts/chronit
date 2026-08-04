@@ -194,6 +194,19 @@ export function LinkPageManager({ session }) {
     if (ins.error || !ins.data) { flash(String(ins.error?.message || '').includes('duplicate') ? '이미 쓰이는 주소예요' : '생성 실패'); return }
     setPages((ps) => [...ps, ins.data]); setPage(ins.data); setItems([]); flash('새 페이지 생성됨')
   }
+  const deletePage = async (p) => {
+    if (!p) return
+    if (pages.length <= 1) { flash('마지막 페이지는 삭제할 수 없어요') ; return }
+    if (!window.confirm(`@${p.handle} 페이지를 삭제할까요?\n이 페이지의 링크 카드도 함께 삭제됩니다. 되돌릴 수 없어요.`)) return
+    const { error } = await supabase.from('link_pages').delete().eq('id', p.id)
+    if (error) { flash('삭제 실패 — 다시 시도해 주세요'); return }
+    const rest = pages.filter((x) => x.id !== p.id)
+    setPages(rest)
+    const next = rest[0] || null
+    setPage(next)
+    if (next) { const { data } = await supabase.from('link_items').select('*').eq('page_id', next.id); setItems(data || []) } else { setItems([]) }
+    flash('페이지를 삭제했어요')
+  }
 
   const uploadAvatar = async (file) => {
     if (!file) return
@@ -362,6 +375,11 @@ export function LinkPageManager({ session }) {
           <span className="w-20 text-sm font-bold text-gray-600">카드 색상</span>
           <ColorPalette value={page.accent_color || '#0064FF'} onChange={(c) => savePage({ accent_color: c })} />
         </div>
+        {pages.length > 1 && (
+          <div className="border-t border-gray-100 pt-3">
+            <button onClick={() => deletePage(page)} className="text-sm font-bold text-red-500 hover:text-red-600">이 페이지 삭제</button>
+          </div>
+        )}
         </div>
         )}
       </div>
