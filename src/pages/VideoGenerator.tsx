@@ -5304,7 +5304,7 @@ function clearExtract() { _extractMgr.state = null; _extractEmit(); }
 function ProductSearchView({ session }: { session:any }) {
   return (
     <div className="max-w-3xl">
-      <h2 className="text-xl font-black text-gray-900 mb-2">🔗 내 링크</h2>
+      <h2 className="mb-2 flex items-center gap-2 text-xl font-black text-gray-900"><Link2 size={22} className="text-[#0064FF]" /> 내 링크</h2>
       <p className="text-sm text-gray-400 mb-6">완성한 영상에 <b>쿠팡 파트너스 링크</b>를 붙여 카드로 모으고, <b>내 링크 페이지</b> 하나로 공유하세요. 인스타 프로필에 그 주소만 넣으면 끝! 영상마다 <b>🔍 쿠팡에서 찾기</b>로 바로 상품을 검색할 수 있어요.</p>
       <LinkPageManager session={session} />
     </div>
