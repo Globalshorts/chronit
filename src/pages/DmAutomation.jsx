@@ -61,7 +61,7 @@ export default function DmAutomation() {
       if (ig === 'connected') setMsg('인스타 계정이 연결됐어요' + (p.get('u') ? ` (@${p.get('u')})` : ''))
       else if (ig === 'denied') setMsg('연결이 취소됐어요')
       else if (ig === 'fail' || ig === 'error') setMsg('연결 실패: ' + (p.get('msg') || '다시 시도해 주세요'))
-      if (ig) window.history.replaceState({}, '', '/dm')
+      if (ig) window.history.replaceState({}, '', window.location.pathname + '?view=dm')
       await loadConns(user.id)
       setLoading(false)
     })()

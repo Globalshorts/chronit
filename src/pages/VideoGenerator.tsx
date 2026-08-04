@@ -16,6 +16,7 @@ import { supabase } from "../lib/supabase";
 import { getFp } from "../lib/fp";
 import type { Session } from "@supabase/supabase-js";
 import PaymentModal from "../components/PaymentModal";
+import DmAutomation from "./DmAutomation";
 import ColorPalette from "../components/ColorPalette";
 import SiteNav from "../components/SiteNav";
 import PwaInstall from "../components/PwaInstall";
@@ -112,7 +113,7 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
     <nav className="sticky top-16 z-30 flex gap-2 overflow-x-auto border-b border-gray-200 bg-white/95 px-3 py-2 backdrop-blur-xl md:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {VIEW_TABS.map((t: any) => (
         <button key={t.v} disabled={t.locked}
-          onClick={() => t.v === "dm" ? (window.location.href = "/dm") : (onViewChange && onViewChange(t.v))}
+          onClick={() => onViewChange && onViewChange(t.v)}
           className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors ${activeView === t.v ? "bg-[#0064FF] text-white" : "bg-gray-100 text-gray-600"} ${t.locked ? "opacity-50 cursor-not-allowed" : ""}`}>
           {t.label}{t.locked && <span className="ml-1 text-[9px] text-gray-400">오픈예정</span>}
         </button>
@@ -148,7 +149,7 @@ function AppTabBar({ activeView, onViewChange, userRole }: { activeView: string;
       <div className="flex items-center gap-1 overflow-x-auto px-4 py-2 md:px-6">
         {TABS.map(({ v, label, icon, locked }: any) => (
           <button key={v} disabled={locked}
-            onClick={() => v === "dm" ? (window.location.href = "/dm") : onViewChange(v)}
+            onClick={() => onViewChange(v)}
             className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition ${activeView === v ? "bg-[#0064FF]/15 text-[#0064FF]" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"} ${locked ? "opacity-50 cursor-not-allowed" : ""}`}>
             {icon && <span>{icon}</span>}
             <span>{label}</span>
@@ -533,7 +534,7 @@ export default function VideoGenerator() {
   const [userRole, setUserRole]     = useState<string>("user");
   const [activeView, setActiveView] = useState(() => {
     // 유효한 탭 값만 허용 — 옛/이상 값이면 프로젝트(generator)로 폴백(빈 화면 방지)
-    const VALID_VIEWS = ["trends", "generator", "history", "product-search", "settings", "partner", "admin"];
+    const VALID_VIEWS = ["trends", "generator", "history", "product-search", "settings", "partner", "admin", "dm"];
     try {
       // URL ?view= 딥링크 우선 (예: /generate?view=trends → 트렌드 탭 바로 열기)
       const urlView = new URLSearchParams(window.location.search).get("view");
@@ -2145,6 +2146,9 @@ export default function VideoGenerator() {
             )}
             {activeView === "partner" && (userRole === "partner" || userRole === "super_admin") && (
               <PartnerView session={session} supabase={supabase} />
+            )}
+            {activeView === "dm" && (userRole === "partner" || userRole === "super_admin") && (
+              <DmAutomation />
             )}
           </div>
         )}
