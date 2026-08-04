@@ -6,6 +6,7 @@ import { AtSign, Plus, Trash2, Check, MessageCircle, FileText, Target, Send } fr
 const IG_CLIENT_ID = '1704122604098446'
 const IG_REDIRECT = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/ig-oauth-callback'
 const IG_SCOPE = 'instagram_business_basic,instagram_business_manage_comments,instagram_business_manage_messages'
+const MAX_ACCOUNTS = 5  // 유저당 연결 계정 상한 (IG 앱 단위 사용량 보호)
 
 export default function DmAutomation() {
   const [user, setUser] = useState(null)
@@ -77,6 +78,7 @@ export default function DmAutomation() {
 
   const connect = () => {
     if (!user) return
+    if (conns.length >= MAX_ACCOUNTS) { setMsg(`계정은 최대 ${MAX_ACCOUNTS}개까지 연결할 수 있어요.`); return }
     const state = encodeURIComponent(`${user.id}::${window.location.origin}`)
     window.location.href = `https://www.instagram.com/oauth/authorize?client_id=${IG_CLIENT_ID}&redirect_uri=${encodeURIComponent(IG_REDIRECT)}&response_type=code&scope=${encodeURIComponent(IG_SCOPE)}&state=${state}`
   }
