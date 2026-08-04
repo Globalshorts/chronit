@@ -42,6 +42,7 @@ const sanitize = (s) =>
 // ── 재사용 가능한 관리 UI (로그인된 session 필요) ──
 export function LinkPageManager({ session }) {
   const [page, setPage] = useState(null)
+  const [pages, setPages] = useState([])
   const [jobs, setJobs] = useState([])
   const [items, setItems] = useState([]) // link_items
   const [loading, setLoading] = useState(true)
@@ -61,7 +62,8 @@ export function LinkPageManager({ session }) {
     ;(async () => {
       setLoading(true)
       try {
-        let pg = (await supabase.from('link_pages').select('*').eq('user_id', uid).maybeSingle()).data
+        let list = (await supabase.from('link_pages').select('*').eq('user_id', uid).order('created_at', { ascending: true })).data || []
+        let pg = list[0] || null
         if (!pg) {
           const base = sanitize(session.user.email?.split('@')[0])
           let handle = base
@@ -70,11 +72,12 @@ export function LinkPageManager({ session }) {
               .insert({ user_id: uid, handle, title: '', bio: '', theme: 'light' })
               .select('*').single()
             if (ins.data) { pg = ins.data; break }
-            const re = (await supabase.from('link_pages').select('*').eq('user_id', uid).maybeSingle()).data
+            const re = ((await supabase.from('link_pages').select('*').eq('user_id', uid).order('created_at', { ascending: true }).limit(1)).data || [])[0]
             if (re) { pg = re; break }
             handle = base + Math.floor(100 + Math.random() * 900)
           }
         }
+        if (pg && !list.length) list = [pg]
         if (pg?.id) { try { await supabase.from('link_items').update({ page_id: pg.id }).eq('user_id', uid).is('page_id', null) } catch {} }
         const [jb, it] = await Promise.all([
           supabase.from('video_jobs').select('id, product_name, seo_title, search_keyword, poster_url, video_url, created_at').eq('card_hidden', false)
@@ -82,7 +85,7 @@ export function LinkPageManager({ session }) {
           supabase.from('link_items').select('*').eq('page_id', pg?.id),
         ])
         if (!alive) return
-        setPage(pg || null); setJobs(jb.data || []); setItems(it.data || [])
+        setPages(list); setPage(pg || null); setJobs(jb.data || []); setItems(it.data || [])
         // ★ 깨끗한 포스터 연결: cog가 자막 굽기 전 프레임을 card-images/{uid}/{job}.jpg 에 올려둠.
         //   이미지 없는 카드 → 그 깨끗한 포스터가 있으면 연결. (자막 달린 프레임 캡처는 더이상 하지 않음) ★
         ;(async () => {
@@ -172,7 +175,24 @@ export function LinkPageManager({ session }) {
     setPage((p) => ({ ...p, ...patch }))
     const { error } = await supabase.from('link_pages').update({ ...patch, updated_at: new Date().toISOString() }).eq('id', page.id)
     if (error) { console.error('[link save] page 저장 실패:', error); flash('저장 실패 — 다시 시도해 주세요'); return }
+    setPages((ps) => ps.map((p) => (p.id === page.id ? { ...p, ...patch } : p)))
     flash('저장됨')
+  }
+
+  const selectPage = async (p) => {
+    if (!p || p.id === page?.id) return
+    setPage(p)
+    const { data } = await supabase.from('link_items').select('*').eq('page_id', p.id)
+    setItems(data || [])
+  }
+  const newPage = async () => {
+    const raw = window.prompt('새 링크 페이지 주소(핸들)를 정하세요 — 영문/숫자/_ (예: myshop2)')
+    if (raw === null) return
+    const handle = sanitize(raw)
+    if (!handle) { flash('사용할 수 없는 주소예요'); return }
+    const ins = await supabase.from('link_pages').insert({ user_id: session.user.id, handle, title: '', bio: '', theme: 'light' }).select('*').single()
+    if (ins.error || !ins.data) { flash(String(ins.error?.message || '').includes('duplicate') ? '이미 쓰이는 주소예요' : '생성 실패'); return }
+    setPages((ps) => [...ps, ins.data]); setPage(ins.data); setItems([]); flash('새 페이지 생성됨')
   }
 
   const uploadAvatar = async (file) => {
@@ -278,6 +298,15 @@ export function LinkPageManager({ session }) {
 
   return (
     <div>
+      {/* 페이지 선택 (다중 페이지) */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        {pages.map((p) => (
+          <button key={p.id} onClick={() => selectPage(p)}
+            className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition ${p.id === page?.id ? 'bg-[#0064FF] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>@{p.handle}</button>
+        ))}
+        <button onClick={newPage}
+          className="rounded-full border border-dashed border-gray-300 px-3.5 py-1.5 text-sm font-bold text-gray-500 hover:border-[#0064FF] hover:text-[#0064FF]">+ 새 페이지</button>
+      </div>
       {/* 내 주소 */}
       <div className="mb-5 rounded-3xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-5">
         <p className="text-xs font-bold text-gray-500">내 페이지 주소 (인스타 프로필에 이걸 넣으세요)</p>

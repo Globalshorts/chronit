@@ -26,6 +26,20 @@ export default function DmAutomation({ userPlan, userRole }) {
   const isStaff = userRole === 'partner' || userRole === 'super_admin'
   const maxAccounts = isStaff ? 5 : (DM_CAPS[userPlan] || 0)
 
+  // IG 연결 시: 그 계정 username으로 링크 페이지 자동 생성(없을 때만·핸들 충돌은 무시)
+  const ensureLinkPages = async (uid, list) => {
+    for (const c of (list || [])) {
+      if (!c.ig_username) continue
+      const h = String(c.ig_username).toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 24)
+      if (!h) continue
+      try {
+        const { data: mine } = await supabase.from('link_pages').select('id').eq('user_id', uid).eq('handle', h).maybeSingle()
+        if (mine) continue
+        await supabase.from('link_pages').insert({ user_id: uid, handle: h, title: '@' + c.ig_username, bio: '', theme: 'light' })
+      } catch (_) { /* 핸들 충돌 등 무시 */ }
+    }
+  }
+
   const loadConns = async (uid) => {
     const { data } = await supabase.from('ig_connections')
       .select('id, ig_user_id, ig_username, status, token_expires_at, connected_at')
@@ -65,7 +79,8 @@ export default function DmAutomation({ userPlan, userRole }) {
       else if (ig === 'denied') setMsg('연결이 취소됐어요')
       else if (ig === 'fail' || ig === 'error') setMsg('연결 실패: ' + (p.get('msg') || '다시 시도해 주세요'))
       if (ig) window.history.replaceState({}, '', window.location.pathname + '?view=dm')
-      await loadConns(user.id)
+      const list0 = await loadConns(user.id)
+      ensureLinkPages(user.id, list0)
       setLoading(false)
     })()
   }, [])
