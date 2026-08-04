@@ -56,7 +56,7 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
     { v: "generator", label: "프로젝트" },
     { v: "history", label: "생성 내역" },
     { v: "product-search", label: "내 링크" },
-    { v: "dm", label: "자동 DM", locked: !(userRole === "partner" || userRole === "super_admin" || PAID_PLANS.has(userPlan||"")) },
+    { v: "dm", label: "자동 DM", locked: !(userRole === "partner" || userRole === "super_admin") },
     { v: "settings", label: "결제" },
     ...(userRole === "partner" || userRole === "super_admin" ? [{ v: "partner", label: "파트너스" }] : []),
     ...(userRole === "super_admin" ? [{ v: "admin", label: "관리자" }] : []),
@@ -134,7 +134,7 @@ function MobileBottomNav({ activeView, onViewChange, userRole, userPlan }: { act
     { v: "trends", label: "트렌드", Icon: Flame },
     { v: "history", label: "내역", Icon: History },
     { v: "product-search", label: "링크", Icon: Link2 },
-    { v: "dm", label: "DM", Icon: MessageCircle, locked: !(isPartner || PAID_PLANS.has(userPlan||"")) },
+    { v: "dm", label: "DM", Icon: MessageCircle, locked: !isPartner },
     { v: "settings", label: "내정보", Icon: User },
   ];
   return (
@@ -169,7 +169,7 @@ function AppTabBar({ activeView, onViewChange, userRole, userPlan }: { activeVie
     { v: "generator", label: "프로젝트" },
     { v: "history", label: "생성 내역" },
     { v: "product-search", label: "내 링크" },
-    { v: "dm", label: "자동 DM", locked: !(isPartner || PAID_PLANS.has(userPlan||"")) },
+    { v: "dm", label: "자동 DM", locked: !isPartner },
     { v: "settings", label: "결제·계정" },
     ...(isPartner ? [{ v: "partner", label: "파트너스", icon: "📊" }] : []),
     ...(isAdmin ? [{ v: "admin", label: "관리자", icon: "👑" }] : []),
@@ -2180,7 +2180,7 @@ export default function VideoGenerator() {
             {activeView === "partner" && (userRole === "partner" || userRole === "super_admin") && (
               <PartnerView session={session} supabase={supabase} />
             )}
-            {activeView === "dm" && (userRole === "partner" || userRole === "super_admin" || PAID_PLANS.has(userPlan||"")) && (
+            {activeView === "dm" && (userRole === "partner" || userRole === "super_admin") && (
               <DmAutomation userPlan={userPlan} userRole={userRole} />
             )}
           </div>
