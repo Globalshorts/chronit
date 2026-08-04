@@ -2150,7 +2150,7 @@ export default function VideoGenerator() {
         )}
             {showStyleModal && (
               <div className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto p-4 sm:p-6">
-                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowStyleModal(false)} />
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowStyleModal(false)} />
                 <div className="relative z-10 my-6 w-full max-w-xl rounded-2xl bg-white p-6 shadow-2xl">
                 <button onClick={() => setShowStyleModal(false)} aria-label="닫기" className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-700"><X size={16} /></button>
                 <h2 className="text-xl font-black text-gray-900 mb-2 flex items-center gap-1.5"><Palette size={20} className="text-[#0064FF]" /> 스타일</h2>
