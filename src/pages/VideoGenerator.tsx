@@ -312,7 +312,7 @@ export default function VideoGenerator() {
   };
   // ★ 담긴(cart) 클립을 백그라운드로 clip-cache에 캐시 → 프리뷰가 CORS 없이 재생(인스타 포함) ★
   useEffect(() => {
-    try { (clips as any[]).forEach((c: any) => { if (cart.has(c.video_id) && c.source !== "upload") firePrefetch(c); }); } catch {}
+    try { (clips as any[]).forEach((c: any) => { if (c.source !== "upload" && (cart.has(c.video_id) || c.source === "url" || c.source === "trend")) firePrefetch(c); }); } catch {}
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cart, clips.length]);
   const [sbLoading, setSbLoading] = useState(false);
