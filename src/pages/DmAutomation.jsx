@@ -90,7 +90,7 @@ export default function DmAutomation() {
 
   const addRule = async () => {
     if (!conn) { setMsg('먼저 인스타를 연결해 주세요'); return }
-    if (!kw.trim() || !dm.trim()) { setMsg('키워드와 DM 문구를 입력해 주세요'); return }
+    if (!dm.trim()) { setMsg('DM 문구를 입력해 주세요'); return }
     const { data, error } = await supabase.from('dm_rules').insert({
       user_id: user.id, ig_user_id: conn.ig_user_id, keyword: kw.trim(), dm_text: dm.trim(),
       public_replies: pub ? ['방금 DM 보냈어요 📩', 'DM 확인해보세요 👀'] : [],
@@ -174,7 +174,7 @@ export default function DmAutomation() {
       <div className={`mb-5 rounded-2xl border border-gray-200 p-4 ${conn ? '' : 'opacity-50'}`}>
         <p className="mb-3 text-sm font-black text-gray-700">2. 자동 DM 규칙{conn ? ` · @${conn.ig_username || conn.ig_user_id}` : ''}</p>
         <div className="mb-3 flex flex-col gap-2">
-          <input value={kw} onChange={(e) => setKw(e.target.value)} placeholder="트리거 키워드 (예: 크로닛)" disabled={!conn} className={inputCls} />
+          <input value={kw} onChange={(e) => setKw(e.target.value)} placeholder="트리거 키워드 (비우면 모든 댓글에 DM)" disabled={!conn} className={inputCls} />
           <div>
             <label className="mb-1 block text-xs font-medium text-gray-500">적용 게시물</label>
             <select value={mediaId} onChange={(e) => setMediaId(e.target.value)} disabled={!conn} className={inputCls}>
@@ -197,7 +197,7 @@ export default function DmAutomation() {
         {rules.map((r) => (
           <div key={r.id} className="flex items-start justify-between gap-3 border-t border-gray-100 py-2.5">
             <div className="min-w-0">
-              <p className="text-sm font-black text-gray-900">"{r.keyword}" 댓글 → DM</p>
+              <p className="text-sm font-black text-gray-900">{r.keyword ? `"${r.keyword}" 댓글` : '모든 댓글'} → DM</p>
               <p className="my-0.5 flex items-center gap-1 text-xs font-bold text-[#8B5CF6]">
                 {r.media_id ? <Target size={11} /> : <FileText size={11} />} {scopeLabel(r.media_id)}
               </p>

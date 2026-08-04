@@ -417,11 +417,10 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
                 >
                   네이버페이로 결제 ({plan.price.toLocaleString('ko-KR')}원)
                 </a>
-                {/* 토스 일반결제 — 카드사 심사 중(모듈은 연결 유지, 준비 중 표기) */}
+                {/* 토스 일반결제 — 심사 완료, 활성 (카드 즉시 활성화) */}
                 <button onClick={payWithToss}
-                  className="relative flex w-full items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 px-6 py-3 text-sm font-bold text-gray-500 transition-all hover:bg-gray-100 active:scale-[0.98]">
-                  <CreditCard size={16} /> 토스로 결제하기
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-black text-gray-500">준비 중</span>
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#3182F6] px-6 py-4 text-base font-black text-white shadow-[0_15px_40px_-12px_rgba(49,130,246,0.55)] transition-all hover:brightness-95 active:scale-[0.98]">
+                  <CreditCard size={16} /> 토스로 결제하기 (카드 · 즉시 충전)
                 </button>
                 {selectedPlan !== 'pkg6' && TOSS_BILLING_CLIENT_KEY && (
                   <button onClick={registerBillingToss}
