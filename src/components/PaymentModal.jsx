@@ -75,6 +75,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
   const [dbPrices, setDbPrices] = useState(null)
   const [payMsg, setPayMsg] = useState(null)
   const [autoTried, setAutoTried] = useState(false)
+  const [autoFailed, setAutoFailed] = useState(false)
 
   useEffect(() => {
     if (initialCode) {
@@ -189,19 +190,20 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
         failUrl: `${window.location.origin}/payments/fail`,
       })
     } catch (e) {
-      if (e?.code === 'USER_CANCEL') return
+      if (e?.code === 'USER_CANCEL') { onClose?.(); return }
+      setAutoFailed(true)
       setPayMsg('정기결제 등록 오류: ' + (e?.message || e))
     }
   }
 
   // 시작하기(모달 오픈) 시 정기결제(구독) 창 자동 오픈 — 일반 플랜·쿠폰 없음 한정
   useEffect(() => {
-    if (!open) { setAutoTried(false); return }
+    if (!open) { setAutoTried(false); setAutoFailed(false); return }
     if (autoTried || discount || selectedPlan === 'pkg6' || !TOSS_BILLING_CLIENT_KEY) return
     let cancelled = false
     const tryOpen = (n = 0) => {
       if (cancelled || autoTried) return
-      if (!window.TossPayments) { if (n < 24) setTimeout(() => tryOpen(n + 1), 250); return }
+      if (!window.TossPayments) { if (n < 24) { setTimeout(() => tryOpen(n + 1), 250) } else { setAutoFailed(true) }; return }
       setAutoTried(true)
       registerBillingToss()
     }
@@ -224,6 +226,18 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null }
   useEffect(() => { if (open) { try { window.gtag?.('event','payment_view',{ plan: selectedPlan }); } catch {} } }, [open])
 
   if (!open) return null
+
+  // 시작하기 → 구독 자동결제 모드: 결제신청 창을 띄우지 않고 최소 로딩만 (토스 창이 위에 뜸)
+  const autoBillingMode = !discount && selectedPlan !== 'pkg6' && !!TOSS_BILLING_CLIENT_KEY
+  if (autoBillingMode && !autoFailed) {
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30" onClick={() => onClose?.()}>
+        <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-bold text-gray-600 shadow-xl">
+          <Loader2 size={16} className="animate-spin" /> 구독 결제창을 여는 중…
+        </div>
+      </div>
+    )
+  }
 
   // ── 네이버 스마트스토어 구매 (네이버페이 결제 → 닉네임 매칭 자동 충전) ──
   const storeUrl = STORE_URLS[selectedPlan] || 'https://smartstore.naver.com/chronit'
