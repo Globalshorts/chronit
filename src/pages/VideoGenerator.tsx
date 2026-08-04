@@ -10,7 +10,7 @@
  */
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus, Gift, ChevronDown, Pencil, Eye, MessageCircle, User, MessageSquare, Receipt, LogOut, Heart, Zap, Lightbulb, PenTool, Shield } from "lucide-react";
+import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus, Gift, ChevronDown, Pencil, Eye, MessageCircle, User, MessageSquare, Receipt, LogOut, Heart, Zap, Lightbulb, PenTool, Shield, Palette, Upload, ShoppingCart, ChevronUp, Save, X } from "lucide-react";
 import DOMPurify from "dompurify";
 import { supabase } from "../lib/supabase";
 import { getFp } from "../lib/fp";
@@ -52,7 +52,6 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
     { v: "generator", label: "프로젝트" },
     { v: "history", label: "생성 내역" },
     { v: "product-search", label: "내 링크" },
-    { v: "studio", label: "스타일" },
     { v: "dm", label: "자동 DM", locked: !(userRole === "partner" || userRole === "super_admin") },
     { v: "settings", label: "결제" },
     ...(userRole === "partner" || userRole === "super_admin" ? [{ v: "partner", label: "파트너스" }] : []),
@@ -139,7 +138,6 @@ function AppTabBar({ activeView, onViewChange, userRole }: { activeView: string;
     { v: "generator", label: "프로젝트" },
     { v: "history", label: "생성 내역" },
     { v: "product-search", label: "내 링크" },
-    { v: "studio", label: "스타일" },
     { v: "dm", label: "자동 DM", locked: !isPartner },
     { v: "settings", label: "결제·계정" },
     ...(isPartner ? [{ v: "partner", label: "파트너스", icon: "📊" }] : []),
@@ -535,13 +533,13 @@ export default function VideoGenerator() {
   const [userRole, setUserRole]     = useState<string>("user");
   const [activeView, setActiveView] = useState(() => {
     // 유효한 탭 값만 허용 — 옛/이상 값이면 프로젝트(generator)로 폴백(빈 화면 방지)
-    const VALID_VIEWS = ["trends", "generator", "history", "product-search", "studio", "settings", "partner", "admin"];
+    const VALID_VIEWS = ["trends", "generator", "history", "product-search", "settings", "partner", "admin"];
     try {
       // URL ?view= 딥링크 우선 (예: /generate?view=trends → 트렌드 탭 바로 열기)
       const urlView = new URLSearchParams(window.location.search).get("view");
       if (urlView && VALID_VIEWS.includes(urlView)) return urlView;
       let v = localStorage.getItem("chronit_active_view") || "generator";
-      if (v === "auto-settings" || v === "style-finder") v = "studio"; // 옛 탭 → 통합 탭
+      if (v === "auto-settings" || v === "style-finder" || v === "studio") v = "generator"; // 옛 스타일 탭 → 프로젝트(스타일은 팝업)
       return VALID_VIEWS.includes(v) ? v : "generator";
     }
     catch { return "generator"; }
@@ -553,6 +551,7 @@ export default function VideoGenerator() {
   const [manualOpen, setManualOpen] = useState(false);  // 대본 섹션 기본 접힘(해피패스 — 비우면 AI 자동)
   const [ctaOpen, setCtaOpen] = useState(false);
   const [optOpen, setOptOpen] = useState(false);   // 첫 화면 옵션 기본 접힘(해피패스)
+  const [showStyleModal, setShowStyleModal] = useState(false);   // 스타일 팝업(모달)
   const [userPacks, setUserPacks] = useState<any[]>([]);
   const [packOnboardOpen, setPackOnboardOpen] = useState(false);
   const applyPack = (p:any, key?:string) => {
@@ -2095,9 +2094,12 @@ export default function VideoGenerator() {
         {activeView !== "generator" && (
           <div className="mx-auto w-full max-w-5xl flex-1 overflow-y-auto px-4 md:px-8 py-5 md:py-6">
             {/* ── 스타일 (스타일 찾기 + 자동화 세팅) ── */}
-            {activeView === "studio" && (
-              <div>
-                <h2 className="text-xl font-black text-gray-900 mb-2">🎨 스타일</h2>
+            {showStyleModal && (
+              <div className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto p-4 sm:p-6">
+                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowStyleModal(false)} />
+                <div className="relative z-10 my-6 w-full max-w-xl rounded-2xl bg-white p-6 shadow-2xl">
+                <button onClick={() => setShowStyleModal(false)} aria-label="닫기" className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-700"><X size={16} /></button>
+                <h2 className="text-xl font-black text-gray-900 mb-2 flex items-center gap-1.5"><Palette size={20} className="text-[#0064FF]" /> 스타일</h2>
                 <p className="text-sm text-gray-400 mb-5">스타일 팩을 고르면 음성·자막·썸네일·길이가 한 번에 적용돼요.</p>
 
                 <div className="grid grid-cols-2 gap-2">
@@ -2112,14 +2114,14 @@ export default function VideoGenerator() {
                     <button key={up.id} onClick={() => applyPack(up.config, "user:" + up.id)}
                       className={`relative rounded-xl border p-3 text-left transition ${activePack === ("user:" + up.id) ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 bg-white hover:border-gray-400"}`}>
                       <span onClick={(e) => { e.stopPropagation(); deleteUserPack(up.id); }}
-                        className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 text-xs text-gray-400 hover:bg-gray-200 hover:text-gray-600">✕</span>
-                      <p className={`text-sm font-black ${activePack === ("user:" + up.id) ? "text-[#0064FF]" : "text-gray-900"}`}>💾 {up.name}</p>
+                        className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 text-xs text-gray-400 hover:bg-gray-200 hover:text-gray-600"><X size={12} /></span>
+                      <p className={`text-sm font-black ${activePack === ("user:" + up.id) ? "text-[#0064FF]" : "text-gray-900"}`}><Save size={13} className="inline align-[-2px] mr-0.5" />{up.name}</p>
                       <p className="text-xs text-gray-500 mt-0.5 leading-tight">내 팩</p>
                     </button>
                   ))}
                   <button onClick={saveCurrentPack}
                     className="rounded-xl border border-dashed border-gray-300 bg-white p-3 text-left text-gray-400 transition hover:border-[#0064FF] hover:text-[#0064FF]">
-                    <p className="text-sm font-black">＋ 현재 설정 저장</p>
+                    <p className="text-sm font-black flex items-center gap-1"><Plus size={14} strokeWidth={2.5} /> 현재 설정 저장</p>
                     <p className="text-xs mt-0.5 leading-tight">지금 세팅을 내 팩으로</p>
                   </button>
                 </div>
@@ -2127,7 +2129,7 @@ export default function VideoGenerator() {
 
                 <button onClick={() => setAdvOpen(v => !v)}
                   className="mt-6 flex items-center gap-1 text-sm font-bold text-gray-500 hover:text-gray-900">
-                  고급 설정 {advOpen ? "▴" : "▾"}
+                  고급 설정 {advOpen ? <ChevronUp size={14} className="inline align-[-2px]" /> : <ChevronDown size={14} className="inline align-[-2px]" />}
                 </button>
 
                 {advOpen && (
@@ -2149,6 +2151,7 @@ export default function VideoGenerator() {
                     />
                   </div>
                 )}
+                </div>
               </div>
             )}
             {activeView === "trends" && (
@@ -2215,23 +2218,27 @@ export default function VideoGenerator() {
 
           <StagePanel n={1} title="링크 붙여넣기" current={stage} hideNum
             headerRight={
-              (refInfo && !refInfo.ref_is_paid && refInfo.ref_remaining_days > 0) ? (
-              <div className="shrink-0 w-36 sm:w-44">
+              <div className="flex items-center gap-2 shrink-0">
+              {(refInfo && !refInfo.ref_is_paid && refInfo.ref_remaining_days > 0) && (
+              <div className="w-32 sm:w-40">
                 <div className="mb-1 flex items-center justify-between text-[11px]">
-                  <span className="font-bold text-[#0064FF]">🎁 프로 잔여</span>
+                  <span className="font-bold text-[#0064FF] inline-flex items-center gap-1"><Gift size={11} /> 프로 잔여</span>
                   <span className={refInfo.ref_remaining_days <= 3 ? "font-bold text-red-500" : "text-gray-400"}>{refInfo.ref_remaining_days}일</span>
                 </div>
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
                   <div className={`h-full rounded-full transition-all ${refInfo.ref_remaining_days <= 3 ? "bg-red-500" : "bg-[#0064FF]"}`} style={{ width: `${Math.min(100, Math.round((refInfo.ref_remaining_days / Math.max(1, refInfo.ref_cap_days)) * 100))}%` }} />
                 </div>
               </div>
-              ) : null
+              )}
+              <button type="button" onClick={() => setShowStyleModal(true)}
+                className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-600 hover:border-[#0064FF]/50 hover:text-[#0064FF]"><Palette size={13} /> 스타일</button>
+              </div>
             }>
             <div className="space-y-4">
               {/* ── 옵션(형식·광고·직접업로드) 기본 접힘 — 해피패스: 링크만 붙이면 됨 ── */}
               <button type="button" onClick={() => setOptOpen(o=>!o)}
                 className="flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-[#0064FF]">
-                {optOpen ? "▴" : "▾"} 옵션 · 영상 형식 · 광고 · 직접 업로드
+                {optOpen ? <ChevronUp size={13} className="inline align-[-2px]" /> : <ChevronDown size={13} className="inline align-[-2px]" />} 옵션 · 영상 형식 · 광고 · 직접 업로드
               </button>
               {optOpen && (<>
               {/* 영상 준비 — 직접 업로드 메인 + 보조 도구 (최상단) */}
@@ -2239,24 +2246,24 @@ export default function VideoGenerator() {
                 {FEATURES.directUpload && (
                   <button type="button" onClick={() => setUploadOpen(o => !o)}
                     className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-sm font-bold transition ${uploadOpen ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-[#0064FF]/40 bg-[#0064FF]/5 text-[#0064FF] hover:border-[#0064FF]"}`}>
-                    ⬆️ 직접 업로드
+                    <Upload size={15} strokeWidth={2.4} /> 직접 업로드
                   </button>
                 )}
                 <button type="button" onClick={() => setCoupangOpen(o => !o)}
                   className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold transition ${coupangOpen ? "border-blue-400 bg-blue-50 text-blue-700" : "border-gray-200 bg-white text-gray-600 hover:border-blue-300"}`}>
-                  🛒 쿠팡 상품 확인
+                  <ShoppingCart size={15} strokeWidth={2.4} /> 쿠팡 상품 확인
                 </button>
               </div>
               {/* 🎬 영상 형식 (생성 모드) — 하나 선택 */}
               <div>
-                <p className="text-[11px] font-bold text-gray-400 mb-1.5">🎬 영상 형식 <span className="font-normal">· 하나 선택</span></p>
+                <p className="text-[11px] font-bold text-gray-400 mb-1.5"><Film size={12} className="inline align-[-2px] mr-0.5" />영상 형식 <span className="font-normal">· 하나 선택</span></p>
                 <div className="grid grid-cols-3 gap-1.5">
                   <button type="button" onClick={() => setMode('voice')}
-                    className={`flex items-center justify-center gap-1 rounded-xl border py-2.5 text-sm font-bold transition ${genMode==='voice' ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 bg-white text-gray-600 hover:border-[#0064FF]/50"}`}>🎙 AI 더빙</button>
+                    className={`flex items-center justify-center gap-1 rounded-xl border py-2.5 text-sm font-bold transition ${genMode==='voice' ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 bg-white text-gray-600 hover:border-[#0064FF]/50"}`}><Mic size={14} strokeWidth={2.4} /> AI 더빙</button>
                   <button type="button" onClick={() => setMode('title')}
-                    className={`flex items-center justify-center gap-1 rounded-xl border py-2.5 text-sm font-bold transition ${genMode==='title' ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 bg-white text-gray-600 hover:border-[#0064FF]/50"}`}>✍️ 캡션만</button>
+                    className={`flex items-center justify-center gap-1 rounded-xl border py-2.5 text-sm font-bold transition ${genMode==='title' ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 bg-white text-gray-600 hover:border-[#0064FF]/50"}`}><Pencil size={14} strokeWidth={2.4} /> 캡션만</button>
                   <button type="button" onClick={() => setMode('video')}
-                    className={`flex items-center justify-center gap-1 rounded-xl border py-2.5 text-sm font-bold transition ${genMode==='video' ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 bg-white text-gray-600 hover:border-[#0064FF]/50"}`}>🎬 무음</button>
+                    className={`flex items-center justify-center gap-1 rounded-xl border py-2.5 text-sm font-bold transition ${genMode==='video' ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 bg-white text-gray-600 hover:border-[#0064FF]/50"}`}><Film size={14} strokeWidth={2.4} /> 무음</button>
                 </div>
                 {genMode==='voice' && <p className="mt-1.5 text-xs text-gray-400">AI가 대본 읽고 자막까지 · 완전 자동</p>}
                 {genMode==='title' && <p className="mt-1.5 text-xs text-gray-400">상단 캡션 한 줄 · 음성·자막 없음</p>}
@@ -2281,13 +2288,13 @@ export default function VideoGenerator() {
                     <div className={`pointer-events-none flex items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-5 text-center transition ${uploading ? "border-gray-200 opacity-60" : "border-gray-300"}`}>
                       {uploading
                         ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-[#0064FF] border-t-transparent" /><span className="text-sm font-bold text-gray-600">업로드 중...</span></>
-                        : <><span className="text-xl">⬆️</span><span className="text-sm font-bold text-gray-800">영상 파일 선택 (여러 개 가능)</span></>}
+                        : <><Upload size={22} className="text-gray-500" strokeWidth={2.2} /><span className="text-sm font-bold text-gray-800">영상 파일 선택 (여러 개 가능)</span></>}
                     </div>
                   </div>
                   {uploadError && <p className="mt-2 text-sm text-red-500">{uploadError}</p>}
                   {clips.some((c: any) => c.source === "upload" && !String(c.video_id || "").startsWith("trend_")) && (
                     <div className="mt-2 space-y-2 rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-3">
-                      <p className="text-xs font-bold text-gray-700">📝 업로드 영상 상품 정보 <span className="font-normal text-red-500">*</span> <span className="font-normal text-gray-400">· 쿠팡 검색어{genMode === 'voice' ? "·대본" : ""}에 사용</span>{nameDetecting && <span className="ml-1 font-normal text-[#0064FF]">· 🔎 AI가 상품명 찾는 중…</span>}</p>
+                      <p className="text-xs font-bold text-gray-700"><Pencil size={12} className="inline align-[-2px] mr-0.5" />업로드 영상 상품 정보 <span className="font-normal text-red-500">*</span> <span className="font-normal text-gray-400">· 쿠팡 검색어{genMode === 'voice' ? "·대본" : ""}에 사용</span>{nameDetecting && <span className="ml-1 font-normal text-[#0064FF]">· <Search size={11} className="inline align-[-2px]" /> AI가 상품명 찾는 중…</span>}</p>
                       <input type="text" value={uploadName} onChange={e => setUploadName(e.target.value)} placeholder="상품명 (예: 휴대용 미니 가습기)"
                         className="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#0064FF] focus:ring-1 focus:ring-[#0064FF] transition" />
                       {!videoOnly && (
@@ -3754,7 +3761,6 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
       { v: "product-search", label: "내 링크" },
     ]},
     { title: "설정", items: [
-      { v: "studio",   label: "스타일" },
       { v: "settings", label: "결제·계정" },
     ]},
     ...(isPartner || isAdmin ? [{ title: "관리", items: [
