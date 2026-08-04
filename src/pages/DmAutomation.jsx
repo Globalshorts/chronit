@@ -25,6 +25,7 @@ export default function DmAutomation({ userPlan, userRole }) {
   const conn = conns.find((c) => c.ig_user_id === activeIg) || null
   const isStaff = userRole === 'partner' || userRole === 'super_admin'
   const maxAccounts = isStaff ? 5 : (DM_CAPS[userPlan] || 0)
+  const igAuthUrl = user ? `https://www.instagram.com/oauth/authorize?client_id=${IG_CLIENT_ID}&redirect_uri=${encodeURIComponent(IG_REDIRECT)}&response_type=code&scope=${encodeURIComponent(IG_SCOPE)}&state=${encodeURIComponent(`${user.id}::${window.location.origin}`)}` : '#'
 
   // IG 연결 시: 그 계정 username으로 링크 페이지 자동 생성(없을 때만·핸들 충돌은 무시)
   const ensureLinkPages = async (uid, list) => {
@@ -176,20 +177,20 @@ export default function DmAutomation({ userPlan, userRole }) {
               )
             })}
             {conns.length < maxAccounts ? (
-              <button onClick={connect}
+              <a href={igAuthUrl}
                 className="mt-1 flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-gray-300 px-3 py-2.5 text-sm font-bold text-gray-500 hover:border-[#0064FF] hover:text-[#0064FF] transition">
                 <Plus size={15} strokeWidth={2.5} /> 계정 추가 연결
-              </button>
+              </a>
             ) : (
               <p className="mt-1 rounded-xl bg-gray-50 px-3 py-2.5 text-center text-xs text-gray-400">현재 요금제 최대 {maxAccounts}개 연결됨 · 더 필요하면 상위 요금제로 업그레이드</p>
             )}
           </div>
         ) : (
-          <button onClick={connect}
+          <a href={igAuthUrl}
             className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-sm font-black text-white transition active:scale-[0.99]"
             style={{ background: 'linear-gradient(90deg,#833AB4,#FD1D1D,#FCB045)' }}>
             <AtSign size={18} /> 인스타그램 연결하기
-          </button>
+          </a>
         )}
       </div>
 
