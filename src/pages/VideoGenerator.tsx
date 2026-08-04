@@ -10,7 +10,7 @@
  */
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus, Gift, ChevronDown, Pencil, Eye, MessageCircle, User, MessageSquare, Receipt, LogOut, Heart, Zap, Lightbulb, PenTool } from "lucide-react";
+import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus, Gift, ChevronDown, Pencil, Eye, MessageCircle, User, MessageSquare, Receipt, LogOut, Heart, Zap, Lightbulb, PenTool, Shield } from "lucide-react";
 import DOMPurify from "dompurify";
 import { supabase } from "../lib/supabase";
 import { getFp } from "../lib/fp";
@@ -97,6 +97,9 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
                   <div className="mb-1 rounded-xl bg-[#0064FF]/10 px-3 py-2.5 text-center text-sm font-black text-[#0064FF]">이용권 {balance.toLocaleString()}개 · D-{daysLeft ?? 0}</div>
                 )}
                 <a href="/me" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]"><User size={14} className="inline align-[-2px] mr-1.5" />마이페이지</a>
+                {userRole === "super_admin" && (
+                  <a href="/admin" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]"><Shield size={14} className="inline align-[-2px] mr-1.5" />관리자 페이지</a>
+                )}
                 <button onClick={() => { setMenuOpen(false); onInvite && onInvite(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]">무료 이용권 받기</button>
                 <a href="https://forms.gle/LCDeSEXSM7ALykqv5" target="_blank" rel="noreferrer" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]"><MessageSquare size={14} className="inline align-[-2px] mr-1.5" />피드백 보내고 영상 2개</a>
                 <button onClick={() => { setMenuOpen(false); onHistory && onHistory(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]"><Receipt size={14} className="inline align-[-2px] mr-1.5" />사용 내역</button>
@@ -330,6 +333,7 @@ export default function VideoGenerator() {
   const [clips, setClips]           = useState<Clip[]>([]);
   const analysisMetaRef = React.useRef<{ name: string; keyword: string; poster: string; use_case?: string; keywords?: string[] }>({ name: "", keyword: "", poster: "" });
   const [cart, setCart]             = useState<Set<string>>(new Set());
+  const [measuredDurs, setMeasuredDurs] = useState<Record<string, number>>({});  // ClipCard가 메타데이터로 잰 실제 길이(초)
   // ── 구간 선택(스토리보드) MVP ──
   const [segsByVideo, setSegsByVideo] = useState<Record<string, any[]>>({});
   const [segSel, setSegSel] = useState<Set<string>>(new Set());
@@ -2350,6 +2354,7 @@ export default function VideoGenerator() {
                     {clips.map(clip => (
                       <ClipCard key={clip.video_id} clip={clip}
                         selected={cart.has(clip.video_id)} onToggle={() => toggleCart(clip.video_id)}
+                        onMeasured={(d: number) => setMeasuredDurs(m => m[clip.video_id] === d ? m : ({ ...m, [clip.video_id]: d }))}
                         onRemove={((clip as any).source === "upload" || (clip as any).source === "trend" || (clip as any).source === "url") ? () => handleRemoveUpload(clip) : undefined} />
                     ))}
                   </div>
@@ -2358,10 +2363,10 @@ export default function VideoGenerator() {
                     // ★ 푸티지 부족 반려: 담은 클립 길이 합 < 목표 길이면 막음(프리즈·반복 방지).
                     //   길이 미상(업로드 등 duration=0) 클립이 섞이면 측정 불가 → 검사 건너뜀(오탐 방지). ★
                     const _sel = (clips as any[]).filter((c: any) => cart.has(c.video_id));
-                    const _durs = _sel.map((c: any) => Number(c.duration) || 0);
+                    const _durs = _sel.map((c: any) => Number(c.duration) || measuredDurs[c.video_id] || 0);
                     const _allKnown = _sel.length > 0 && _durs.every((d: number) => d > 0);
                     const _sumDur = _durs.reduce((a: number, b: number) => a + b, 0);
-                    const _tooShort = _allKnown && _sumDur < targetSeconds;
+                    const _tooShort = _allKnown && _sumDur < targetSeconds - 1.5;  // 1.5초 이내 부족은 슬로우로 채움 → 통과
                     return (
                   <BottomActionBar
                     showSeg={cart.size > 0 && (clips as any[]).some((c: any) => cart.has(c.video_id) && c.source !== "upload")}
@@ -4248,7 +4253,7 @@ function StoryboardModal({ script, cuts, stage, segsByVideo, clips, loading, slo
   );
 }
 
-function ClipCard({ clip, selected, onToggle, onRemove }: { clip: Clip; selected: boolean; onToggle: () => void; onRemove?: () => void }) {
+function ClipCard({ clip, selected, onToggle, onRemove, onMeasured }: { clip: Clip; selected: boolean; onToggle: () => void; onRemove?: () => void; onMeasured?: (d: number) => void }) {
   const [imgError, setImgError] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [vidDur, setVidDur] = useState(0);
@@ -4295,7 +4300,7 @@ function ClipCard({ clip, selected, onToggle, onRemove }: { clip: Clip; selected
         )}
         {!clip.duration && isOwnStorage && playUrl && (
           <video src={playUrl} preload="metadata" muted playsInline
-            onLoadedMetadata={e => { const d = Math.round((e.currentTarget as HTMLVideoElement).duration || 0); if (d > 0) setVidDur(d); }}
+            onLoadedMetadata={e => { const d = Math.round((e.currentTarget as HTMLVideoElement).duration || 0); if (d > 0) { setVidDur(d); onMeasured?.(d); } }}
             style={{ display: "none" }} />
         )}
         {(clip.duration || vidDur) > 0 && !playing && (

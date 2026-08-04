@@ -20,7 +20,6 @@ import MyPage from './pages/MyPage'
 import UserProfile from './pages/UserProfile'
 import DmAutomation from './pages/DmAutomation'
 import PaymentResult from './pages/PaymentResult'
-import AdminFab from './components/AdminFab'
 import ErrorBoundary from './components/ErrorBoundary'
 import ErrorReportModal from './components/ErrorReportModal'
 import { installGlobalErrorCapture } from './lib/errorReport'
@@ -53,7 +52,6 @@ const App = () => {
   return (
   <BrowserRouter>
     <ScrollToTop />
-    <AdminFab />
     <ErrorReportModal />
     <ErrorBoundary>
     <Routes>
