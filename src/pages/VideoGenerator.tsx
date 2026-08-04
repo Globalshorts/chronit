@@ -4804,6 +4804,8 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
   const [loading, setLoading] = React.useState(true);
   const [copied, setCopied] = React.useState<string|null>(null);
   const [saving, setSaving] = React.useState<string|null>(null);
+  const blobCache = React.useRef<Record<string, Blob>>({});
+  const [readyToSave, setReadyToSave] = React.useState<string|null>(null);
   const [deleting, setDeleting] = React.useState<string|null>(null);
   const [sharing, setSharing] = React.useState<string|null>(null);
   const [shareToast, setShareToast] = React.useState<{text:string; link?:string}|null>(null);
@@ -4832,20 +4834,33 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
 
   // 저장: iOS는 공유시트(사진에 저장), 안드로이드·PC는 파일을 직접 다운로드(다운로드 폴더 → 갤러리)
   const _askFb = (j:any) => { try { if (feedbackDoneRef.current) return; if (!localStorage.getItem("chronit_feedback_done")) setTimeout(()=>setFbJob(j), 700); } catch {} };
+  const _shareFile = async (j:any, blob:Blob) => {
+    const file = new File([blob], (j.product_name||"chronit")+".mp4", { type: "video/mp4" });
+    await (navigator as any).share({ files: [file], title: j.product_name || "크로닛 영상" });
+  };
   const saveVideo = async (j:any) => {
     if (!j.video_url) return;
     const fname = (j.product_name||"chronit")+".mp4";
+    // iOS: 이미 받아둔 blob이 있으면 이 탭(제스처)에서 즉시 공유창 → '동영상 저장'
+    if (isIOS && blobCache.current[j.id] && (navigator as any).share) {
+      try { await _shareFile(j, blobCache.current[j.id]); _askFb(j); setReadyToSave(null); return; }
+      catch (e:any) { if (e?.name === "AbortError") return; }
+    }
     setSaving(j.id);
     try {
       const resp = await fetch(j.video_url);
       const blob = await resp.blob();
       if (isIOS) {
+        blobCache.current[j.id] = blob;   // 캐시 → 다음 탭에서 즉시 공유(제스처 유지)
         const file = new File([blob], fname, { type: "video/mp4" });
         if ((navigator as any).canShare && (navigator as any).canShare({ files: [file] })) {
-          await (navigator as any).share({ files: [file], title: j.product_name || "크로닛 영상" });
-          _askFb(j);
-          return;
+          try { await (navigator as any).share({ files: [file], title: j.product_name || "크로닛 영상" }); _askFb(j); setReadyToSave(null); return; }
+          catch (e:any) {
+            if (e?.name === "AbortError") return;
+            setReadyToSave(j.id); return;   // 제스처 만료 → 파일 미리보기 대신 '한 번 더 탭' 유도
+          }
         }
+        setReadyToSave(j.id); return;       // 파일 공유 미지원 브라우저(인앱 등)
       }
       // 안드로이드·PC: blob 직접 다운로드
       const url = URL.createObjectURL(blob);
@@ -4854,9 +4869,9 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
       _askFb(j);
       setTimeout(()=>URL.revokeObjectURL(url), 4000);
     } catch (e:any) {
-      if (e?.name === "AbortError") return; // 사용자가 공유 취소
-      const a = document.createElement("a"); a.href = dlUrl(j); a.download = fname;
-      document.body.appendChild(a); a.click(); a.remove();
+      if (e?.name === "AbortError") return;
+      if (!isIOS) { const a = document.createElement("a"); a.href = dlUrl(j); a.download = fname; document.body.appendChild(a); a.click(); a.remove(); }
+      else setReadyToSave(j.id);
     } finally { setSaving(null); }
   };
 
@@ -5004,7 +5019,7 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
                 <div className="mt-auto flex flex-col gap-1.5">
                   <button onClick={()=>saveVideo(j)} disabled={saving===j.id}
                     className="flex items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] px-3 py-2.5 text-sm font-bold text-white hover:bg-[#0052D6] active:bg-[#0052D6] disabled:opacity-50 transition">
-                    {saving===j.id ? <><Loader2 size={15} className="animate-spin" /> 저장 중…</> : isIOS ? <><Smartphone size={15} /> 갤러리에 저장</> : <><Download size={15} /> 동영상 저장</>}
+                    {saving===j.id ? <><Loader2 size={15} className="animate-spin" /> 준비 중…</> : (readyToSave===j.id && isIOS) ? <><Download size={15} /> 한 번 더 눌러 저장</> : isIOS ? <><Smartphone size={15} /> 갤러리에 저장</> : <><Download size={15} /> 동영상 저장</>}
                   </button>
                   {(j.seo_description || j.seo_tags) ? (
                     <button onClick={()=>copyText([j.seo_description, cap5Tags(j.seo_tags)].filter(Boolean).join("\n\n"), j.id+"-all")}
@@ -5016,7 +5031,7 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
                     <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-center text-[11px] text-gray-400">업로드 정보 생성 중…</div>
                   )}
                   <p className="px-1 text-center text-[10px] leading-snug text-gray-400">
-                    {isIOS ? "공유 창에서 '동영상 저장' → 사진앱" : isAndroid ? "갤러리 › 앨범 › Download 에서 확인" : "내 컴퓨터에 mp4로 저장돼요"}
+                    {isIOS ? (readyToSave===j.id ? "위 버튼을 한 번 더 누르면 공유 창이 떠요 → '동영상 저장'" : "공유 창에서 '동영상 저장'을 누르면 사진앱에 저장돼요") : isAndroid ? "갤러리 › 앨범 › Download 에서 확인" : "내 컴퓨터에 mp4로 저장돼요"}
                   </p>
                 </div>
               ) : (
