@@ -356,6 +356,7 @@ export default function VideoGenerator() {
   const [savingTok, setSavingTok]     = useState(false);
   const [trendShowComp, setTrendShowComp] = useState(false);  // TOP·모음 컴필레이션 표시 여부
   const [searching, setSearching]   = useState(false);
+  const [analyzePid, setAnalyzePid]  = useState<string|null>(null);
   const [showSrc, setShowSrc] = useState(false);
   const [searchError, setSearchError] = useState("");
   const [showFoodBlock, setShowFoodBlock] = useState(false);   // 음식·레시피 감지 차단 (test-abc)
@@ -1128,7 +1129,7 @@ export default function VideoGenerator() {
     if (!["youtube.com","youtu.be","tiktok.com","instagram.com"].some(p => lu.includes(p))) {
       setSearchError("틱톡·유튜브·인스타 링크를 입력하거나, 영상을 직접 업로드해 주세요."); return;
     }
-    setSearching(true); setClips(keepUploads as any); setCart(new Set(keepUploads.map((c: any) => c.video_id)));
+    setSearching(true); setAnalyzePid(null); setClips(keepUploads as any); setCart(new Set(keepUploads.map((c: any) => c.video_id)));
     const MAX = 2; // 일시적 분석 실패 시 추가 재시도 횟수 (실패 화면 노출 방지)
     try {
       const { data: { session: s } } = await supabase.auth.getSession();
@@ -1158,6 +1159,7 @@ export default function VideoGenerator() {
         // Step 1b: 폴링 — 콜드부팅 포함 최대 수분까지 끊김 없이 완료 대기 (로딩 화면 유지)
         {
           const _pid = sub.prediction_id;
+          setAnalyzePid(_pid);
           const _t0 = Date.now();
           while (Date.now() - _t0 < 600_000) {
             await new Promise(r => setTimeout(r, 2500));
@@ -2376,7 +2378,7 @@ export default function VideoGenerator() {
                 </div>
                 {!searchError && <UrlHint url={sourceUrl} />}
                 {searchError && <p className="mt-2 text-sm text-red-400">{searchError}</p>}
-                {searching && <AnalyzeProgress />}
+                {searching && <AnalyzeProgress pid={analyzePid} />}
               </div>
 
               {clips.length > 0 && (
@@ -2651,17 +2653,32 @@ function UrlHint({ url }: { url: string }) {
 }
 
 // ── 분석 진행률 바 (예상 시간 기반 — 백엔드 단일 호출이라 추정치) ──────────
-function AnalyzeProgress() {
+function AnalyzeProgress({ pid }: { pid?: string|null }) {
   const [pct, setPct] = React.useState(6);
   const [label, setLabel] = React.useState("영상 분석 중...");
+  const realRef = React.useRef<{pct:number;label:string}|null>(null);
+  React.useEffect(() => {
+    if (!pid) { realRef.current = null; return; }
+    let alive = true;
+    const poll = async () => {
+      try {
+        const r = await (await fetch(FN("job-progress") + "?k=chronit-prog-9x", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prediction_id: pid }) })).json();
+        if (alive && r?.ok && typeof r.pct === "number") realRef.current = { pct: r.pct, label: r.label || "분석 중" };
+      } catch { /* 폴백: 시간 기반 유지 */ }
+    };
+    poll(); const t = setInterval(poll, 3000);
+    return () => { alive = false; clearInterval(t); };
+  }, [pid]);
   React.useEffect(() => {
     const t0 = Date.now();
     const id = setInterval(() => {
       const e = (Date.now() - t0) / 1000;
-      const p = 95 * (1 - Math.exp(-e / 35)); // ~95%로 점근(끝에서 천천히), 완료 시 언마운트
-      setPct(Math.max(6, Math.round(p)));
-      setLabel(e < 12 ? "영상 분석 중..." : e < 45 ? "관련 클립 검색 중..." : "클립 정리 중... 거의 다 됐어요 ✨");
-    }, 200);
+      const timeP = 92 * (1 - Math.exp(-e / 35));
+      const real = realRef.current;
+      const p = real ? Math.max(real.pct, timeP * 0.6) : timeP; // 실제 단계 우선 · 시간 기반 하한
+      setPct(Math.max(6, Math.min(96, Math.round(p))));
+      setLabel(real ? real.label : (e < 12 ? "영상 분석 중..." : e < 45 ? "관련 클립 검색 중..." : "클립 정리 중... 거의 다 됐어요 ✨"));
+    }, 300);
     return () => clearInterval(id);
   }, []);
   return (
