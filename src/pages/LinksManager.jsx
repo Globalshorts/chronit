@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import ColorPalette from '../components/ColorPalette'
+import { Link2, Palette, ShoppingBag, Hash, Trash2, ChevronUp, ChevronDown, AlertTriangle, Search, Settings, RefreshCw, Camera } from 'lucide-react'
 
 // 생성 영상에서 한 프레임을 캡처해 작은 JPG Blob으로 반환 (카드용 이미지 = 영상 대신 용량 절감)
 // 쿠팡 검색어 정리: "한글 / english"→한글, [03]·이모지 제거
@@ -306,7 +307,7 @@ export function LinkPageManager({ session }) {
   if (!page)
     return (
       <div className="py-16 text-center">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0064FF]/10 text-2xl">🔗</div>
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0064FF]/10 text-[#0064FF]"><Link2 size={26} /></div>
         <p className="text-base font-black text-gray-900">아직 링크 페이지가 없어요</p>
         <p className="mt-1 text-sm leading-relaxed text-gray-500">인스타를 연결하면 그 계정 이름으로 페이지가 자동 생성돼요.<br />자동 DM 연결도 한 번에 됩니다.</p>
         <div className="mt-5 flex flex-col items-center gap-2">
@@ -346,15 +347,15 @@ export function LinkPageManager({ session }) {
       {/* 페이지 커스텀 (접기) */}
       <div className="mb-5 overflow-hidden rounded-3xl border border-gray-200 bg-white">
         <button onClick={() => setCustomOpen((o) => !o)} className="flex w-full items-center justify-between px-5 py-4 text-left">
-          <span className="text-sm font-black text-gray-900">🎨 페이지 커스텀</span>
-          <span className="rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-500">{customOpen ? '접기 ▲' : '펼치기 ▼'}</span>
+          <span className="flex items-center gap-1.5 text-sm font-black text-gray-900"><Palette size={15} className="text-[#0064FF]" /> 페이지 커스텀</span>
+          <span className="inline-flex items-center gap-0.5 rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-500">{customOpen ? '접기' : '펼치기'}{customOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}</span>
         </button>
         {customOpen && (
         <div className="space-y-3 px-5 pb-5">
         <div className="flex items-center gap-3">
           {page.avatar_url
             ? <img src={page.avatar_url} alt="" className="h-14 w-14 rounded-full object-cover ring-1 ring-gray-200" />
-            : <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#0064FF]/10 text-2xl">🛍️</div>}
+            : <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#0064FF]/10 text-[#0064FF]"><ShoppingBag size={24} /></div>}
           <div className="flex flex-col items-start gap-1">
             <label className="cursor-pointer rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-200">
               {uploading ? '업로드 중…' : '프로필 이미지 변경'}
@@ -404,13 +405,13 @@ export function LinkPageManager({ session }) {
             표시중만 ({activeCount})
           </label>
           <label className="flex shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap text-xs font-bold text-gray-600" title="켜두면 카드를 표시(저장)할 때 제목 앞에 자동으로 다음 번호가 붙어요">
-            <input type="checkbox" checked={autoNum} onChange={(e) => toggleAutoNum(e.target.checked)} /> 🔢 자동 번호{autoNum ? ` (다음 [${pad2(nextNum)}])` : ''}
+            <input type="checkbox" checked={autoNum} onChange={(e) => toggleAutoNum(e.target.checked)} /> <Hash size={13} className="inline align-[-2px]" /> 자동 번호{autoNum ? ` (다음 [${pad2(nextNum)}])` : ''}
           </label>
           <button type="button" onClick={bulkHideUnpublished}
             className="shrink-0 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs font-bold text-gray-500 transition hover:border-red-400 hover:text-red-500"
-            title="표시 안 된 카드를 목록에서 정리 (영상은 생성 내역에 남음)">🗑 미표시 정리</button>
+            title="표시 안 된 카드를 목록에서 정리 (영상은 생성 내역에 남음)"><Trash2 size={12} className="inline align-[-2px] mr-0.5" />미표시 정리</button>
           {allJobs.length >= 2 && (
-            <input value={jobQuery} onChange={(e) => setJobQuery(e.target.value)} placeholder="🔍 검색"
+            <input value={jobQuery} onChange={(e) => setJobQuery(e.target.value)} placeholder="검색"
               className="w-28 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs sm:w-36" />
           )}
         </div>
@@ -524,8 +525,8 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
       {/* 좌측 정렬 레일 (표시중 카드만) */}
       {active && onMove && (
         <div className="flex shrink-0 flex-col items-center justify-center gap-3 border-r border-gray-100 bg-gray-50 px-2 text-gray-400">
-          <button onClick={() => onMove(-1)} title="위로" className="leading-none transition hover:text-[#0064FF]">▲</button>
-          <button onClick={() => onMove(1)} title="아래로" className="leading-none transition hover:text-[#0064FF]">▼</button>
+          <button onClick={() => onMove(-1)} title="위로" className="leading-none transition hover:text-[#0064FF]"><ChevronUp size={16} /></button>
+          <button onClick={() => onMove(1)} title="아래로" className="leading-none transition hover:text-[#0064FF]"><ChevronDown size={16} /></button>
         </div>
       )}
 
@@ -543,11 +544,11 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
             <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="쿠팡 파트너스 링크 붙여넣기"
               className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
             {url && /coupang\.com/i.test(url) && !/link\.coupang\.com/i.test(url) && (
-              <p className="text-[11px] font-bold text-red-500">⚠️ 파트너스 링크(link.coupang.com)가 아니에요 — 수수료가 안 잡혀요</p>
+              <p className="text-[11px] font-bold text-red-500"><AlertTriangle size={12} className="inline align-[-2px] mr-0.5" />파트너스 링크(link.coupang.com)가 아니에요 — 수수료가 안 잡혀요</p>
             )}
             <div className="space-y-1.5">
               <div className="flex items-center gap-1.5">
-                <span className="shrink-0 text-[11px] font-bold text-gray-400">🔍 쿠팡 검색:</span>
+                <span className="shrink-0 text-[11px] font-bold text-gray-400"><Search size={11} className="inline align-[-2px] mr-0.5" />쿠팡 검색:</span>
                 <input value={searchKw} onChange={(e) => setSearchKw(e.target.value)} placeholder="상품명 입력 (예: 미니 봉지 밀봉기)"
                   className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
                 <a href={`https://partners.coupang.com/#affiliate/ws/link/0/${encodeURIComponent((searchKw || '').trim())}`}
@@ -577,7 +578,7 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
               )}
               {!canShow && !active && <span className="text-[11px] text-gray-400">쿠팡 링크 필요</span>}
               <button type="button" onClick={() => setOpen((o) => !o)}
-                className="ml-auto rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-bold text-gray-500 hover:bg-gray-50">⚙ 설정 {open ? '▲' : '▾'}</button>
+                className="ml-auto rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-bold text-gray-500 hover:bg-gray-50"><Settings size={12} className="inline align-[-2px]" /> 설정 {open ? <ChevronUp size={11} className="inline" /> : <ChevronDown size={11} className="inline" />}</button>
             </div>
           </div>
         </div>
@@ -588,8 +589,8 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="w-10 text-xs font-bold text-gray-500">이미지</span>
               <button onClick={pickFrame} disabled={imgBusy || !job.video_url} title={job.video_url ? "다른 장면으로 바꾸기" : "영상이 만료돼 사용할 수 없어요 — 업로드로 넣어주세요"}
-                className="rounded-md bg-gray-100 px-2 py-1 text-[11px] font-bold text-gray-600 hover:bg-gray-200 disabled:opacity-40">{imgBusy ? '…' : '🔄 다른 컷'}</button>
-              <label className="cursor-pointer rounded-md bg-gray-100 px-2 py-1 text-[11px] font-bold text-gray-600 hover:bg-gray-200" title="직접 업로드">📷 업로드
+                className="rounded-md bg-gray-100 px-2 py-1 text-[11px] font-bold text-gray-600 hover:bg-gray-200 disabled:opacity-40">{imgBusy ? '…' : <><RefreshCw size={11} className="inline align-[-2px] mr-0.5" />다른 컷</>}</button>
+              <label className="cursor-pointer rounded-md bg-gray-100 px-2 py-1 text-[11px] font-bold text-gray-600 hover:bg-gray-200" title="직접 업로드"><Camera size={11} className="inline align-[-2px] mr-0.5" />업로드
                 <input type="file" accept="image/*" className="hidden" disabled={imgBusy} onChange={(e) => uploadImg(e.target.files?.[0])} />
               </label>
             </div>

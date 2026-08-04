@@ -435,20 +435,23 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null, 
                 <span className="rounded-full bg-[#0064FF]/15 px-2 py-0.5 text-[10px] font-bold text-[#0064FF]">+ {discountLabel()}</span>
               )}
             </div>
-            {(!hasDiscount && QR_IMAGES[selectedPlan]) ? (
+            {QR_IMAGES[selectedPlan] ? (
               <div className="flex flex-col gap-3 rounded-xl bg-white p-4">
-                {/* 정기결제(구독) — 기본·우선. 시작하기 시 이 창이 자동으로 뜸 */}
-                {selectedPlan !== 'pkg6' && TOSS_BILLING_CLIENT_KEY && (
+                {/* 정기결제(구독) — 할인 없을 때만(할인은 1회 결제에만 적용) */}
+                {!hasDiscount && selectedPlan !== 'pkg6' && TOSS_BILLING_CLIENT_KEY && (
                   <button onClick={registerBillingToss}
                     className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#3182F6] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(49,130,246,0.55)] transition-all hover:brightness-95 active:scale-[0.98]">
                     <CreditCard size={18} /> 구독 결제 시작 (월 {plan.price.toLocaleString('ko-KR')}원)
                   </button>
                 )}
-                {/* 1회 카드결제 — 보조 */}
+                {/* 1회 카드결제 — 금액은 할인 반영(plan.price). 할인 시 이게 메인 */}
                 <button onClick={payWithToss}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#3182F6]/40 bg-white px-6 py-3 text-sm font-bold text-[#3182F6] transition-all hover:bg-[#3182F6]/5 active:scale-[0.98]">
-                  <CreditCard size={15} /> 1회만 카드결제 ({plan.price.toLocaleString('ko-KR')}원)
+                  className={hasDiscount
+                    ? "flex w-full items-center justify-center gap-2 rounded-2xl bg-[#3182F6] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(49,130,246,0.55)] transition-all hover:brightness-95 active:scale-[0.98]"
+                    : "flex w-full items-center justify-center gap-2 rounded-2xl border border-[#3182F6]/40 bg-white px-6 py-3 text-sm font-bold text-[#3182F6] transition-all hover:bg-[#3182F6]/5 active:scale-[0.98]"}>
+                  <CreditCard size={hasDiscount ? 18 : 15} /> {hasDiscount ? '할인가로 카드결제' : '1회만 카드결제'} ({plan.price.toLocaleString('ko-KR')}원)
                 </button>
+                {hasDiscount && <p className="text-center text-[11px] text-gray-400">할인코드는 1회 카드결제에 적용돼요 · 정기결제는 정가로 갱신됩니다</p>}
                 {payMsg && <p className="text-center text-sm font-bold text-red-500">{payMsg}</p>}
               </div>
             ) : (

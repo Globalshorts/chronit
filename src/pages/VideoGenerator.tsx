@@ -10,7 +10,7 @@
  */
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus, Gift, ChevronDown, Pencil, Eye, MessageCircle, User, MessageSquare, Receipt, LogOut, Heart, Zap, Lightbulb, PenTool, Shield, Palette, Upload, ShoppingCart, ChevronUp, Save, X, Home, Flame, History, Link2, Download, Copy, Check, Trash2, Clock, Loader2, Smartphone } from "lucide-react";
+import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus, Gift, ChevronDown, Pencil, Eye, MessageCircle, User, MessageSquare, Receipt, LogOut, Heart, Zap, Lightbulb, PenTool, Shield, Palette, Upload, ShoppingCart, ChevronUp, Save, X, Home, Flame, History, Link2, Download, Copy, Check, Trash2, Clock, Loader2, Smartphone, Settings, Ticket, Monitor } from "lucide-react";
 import DOMPurify from "dompurify";
 import { supabase } from "../lib/supabase";
 import { getFp } from "../lib/fp";
@@ -5133,7 +5133,7 @@ function SettingsView({ session, supabase, balance, userPlan }:
     finally { setReg(false); }
   };
 
-  const Section = ({ title, children }:{ title:string; children:any }) => (
+  const Section = ({ title, children }:{ title:any; children:any }) => (
     <div className="mb-5">
       <p className="text-xs font-bold text-gray-500 mb-2">{title}</p>
       <div className="rounded-2xl bg-white border border-gray-200 p-5">{children}</div>
@@ -5142,7 +5142,7 @@ function SettingsView({ session, supabase, balance, userPlan }:
 
   return (
     <div className="max-w-2xl">
-      <h2 className="text-xl font-black text-gray-900 mb-6">⚙️ 설정</h2>
+      <h2 className="mb-6 flex items-center gap-2 text-xl font-black text-gray-900"><Settings size={22} className="text-[#0064FF]" /> 설정</h2>
 
       <Section title="계정 정보">
         <div className="flex items-center justify-between mb-4">
@@ -5169,7 +5169,7 @@ function SettingsView({ session, supabase, balance, userPlan }:
         <div className="flex justify-between text-sm"><span className="text-gray-500">다음 결제일</span><span className="text-gray-900">{nextBilling}</span></div>
       </Section>
 
-      <Section title="🎟 파트너 코드 등록">
+      <Section title={<span className="inline-flex items-center gap-1"><Ticket size={13} /> 파트너 코드 등록</span>}>
         <p className="text-xs text-gray-400 mb-3">파트너로부터 받은 코드를 입력하면 파트너가 회원님의 사용 현황(이메일·플랜·이용권)을 조회할 수 있게 됩니다.</p>
         <div className="flex gap-2">
           <input value={code} onChange={e=>setCode(e.target.value)} placeholder="예: TEACHER_KIM"
@@ -5181,7 +5181,7 @@ function SettingsView({ session, supabase, balance, userPlan }:
         {codeMsg && <p className={`text-xs mt-2 ${codeMsg.ok?"text-green-400":"text-red-400"}`}>{codeMsg.text}</p>}
       </Section>
 
-      <Section title="💻 등록된 디바이스">
+      <Section title={<span className="inline-flex items-center gap-1"><Monitor size={13} /> 등록된 디바이스</span>}>
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs text-gray-500">기기 {devices.length}대</span>
           <button onClick={loadDevices} className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 transition">새로고침</button>
@@ -5193,7 +5193,7 @@ function SettingsView({ session, supabase, balance, userPlan }:
             {devices.map(d=>(
               <div key={d.device_id} className="flex items-center justify-between rounded-xl bg-gray-100 border border-gray-200 px-4 py-3">
                 <div className="min-w-0">
-                  <p className="text-sm text-green-400 font-semibold truncate">✓ {d.device_name || d.device_id}</p>
+                  <p className="text-sm text-green-500 font-semibold truncate"><Check size={13} className="inline align-[-2px] mr-0.5" />{d.device_name || d.device_id}</p>
                   <p className="text-xs text-gray-500 mt-0.5">{relTime(d.last_seen_at)}{d.registered_at && ` · 등록 ${new Date(d.registered_at).toLocaleDateString("ko-KR")}`}</p>
                 </div>
                 <button onClick={()=>removeDevice(d.device_id)} className="shrink-0 rounded-lg border border-red-500/30 text-red-400 px-3 py-1.5 text-xs hover:bg-red-500/10 transition">해제</button>
