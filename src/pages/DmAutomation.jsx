@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { AtSign, Plus, Trash2, Check, MessageCircle, FileText, Target, Send } from 'lucide-react'
 
-// 인스타 자동 DM 설정 페이지 (멀티테넌트, 검수/테스트용)
+// 인스타 자동 DM 설정 페이지 (멀티테넌트 · 다계정 지원)
 const IG_CLIENT_ID = '1704122604098446'
 const IG_REDIRECT = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/ig-oauth-callback'
 const IG_SCOPE = 'instagram_business_basic,instagram_business_manage_comments,instagram_business_manage_messages'
 
 export default function DmAutomation() {
   const [user, setUser] = useState(null)
-  const [conn, setConn] = useState(null)
+  const [conns, setConns] = useState([])         // 연결된 계정들 (다계정)
+  const [activeIg, setActiveIg] = useState(null) // 현재 선택된 ig_user_id
   const [rules, setRules] = useState([])
   const [logs, setLogs] = useState([])
   const [media, setMedia] = useState([])
@@ -19,27 +21,34 @@ export default function DmAutomation() {
   const [pub, setPub] = useState(true)
   const [mediaId, setMediaId] = useState('')
 
-  const load = async (uid) => {
-    const { data: c } = await supabase.from('ig_connections')
+  const conn = conns.find((c) => c.ig_user_id === activeIg) || null
+
+  const loadConns = async (uid) => {
+    const { data } = await supabase.from('ig_connections')
       .select('id, ig_user_id, ig_username, status, token_expires_at, connected_at')
-      .eq('user_id', uid).maybeSingle()
-    // 계정 전환 시: 다른(이전) 계정에 묶인 규칙을 현재 연결 계정으로 자동 이관 → 규칙 유지
-    if (c?.ig_user_id) {
-      try { await supabase.from('dm_rules').update({ ig_user_id: c.ig_user_id }).eq('user_id', uid).neq('ig_user_id', c.ig_user_id) } catch (_) {}
-    }
-    const [{ data: r }, { data: l }] = await Promise.all([
-      supabase.from('dm_rules').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
-      supabase.from('dm_logs').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(20),
-    ])
-    setConn(c || null); setRules(r || []); setLogs(l || [])
+      .eq('user_id', uid).order('connected_at', { ascending: true })
+    const list = data || []
+    setConns(list)
+    setActiveIg((prev) => (prev && list.some((c) => c.ig_user_id === prev)) ? prev : (list[0]?.ig_user_id ?? null))
+    return list
   }
 
-  // 연결된 계정의 게시물 목록 불러오기 (규칙을 특정 게시물에 걸 때 선택용)
-  const loadMedia = async () => {
+  const loadRulesLogs = async (uid, ig) => {
+    if (!ig) { setRules([]); setLogs([]); return }
+    const [{ data: r }, { data: l }] = await Promise.all([
+      supabase.from('dm_rules').select('*').eq('user_id', uid).eq('ig_user_id', ig).order('created_at', { ascending: false }),
+      supabase.from('dm_logs').select('*').eq('user_id', uid).eq('ig_user_id', ig).order('created_at', { ascending: false }).limit(20),
+    ])
+    setRules(r || []); setLogs(l || [])
+  }
+
+  // 선택 계정의 게시물 목록 (규칙을 특정 게시물에 걸 때 선택용)
+  const loadMedia = async (ig) => {
+    if (!ig) { setMedia([]); return }
     try {
-      const { data, error } = await supabase.functions.invoke('ig-media')
-      if (!error && Array.isArray(data?.media)) setMedia(data.media)
-    } catch { /* 무시: 전체 게시물 규칙은 그대로 사용 가능 */ }
+      const { data, error } = await supabase.functions.invoke('ig-media', { body: { ig_user_id: ig } })
+      if (!error && Array.isArray(data?.media)) setMedia(data.media); else setMedia([])
+    } catch { setMedia([]) }
   }
 
   useEffect(() => {
@@ -49,16 +58,22 @@ export default function DmAutomation() {
       setUser(user)
       const p = new URLSearchParams(window.location.search)
       const ig = p.get('ig')
-      if (ig === 'connected') setMsg('✅ 인스타 계정이 연결됐어요' + (p.get('u') ? ` (@${p.get('u')})` : ''))
+      if (ig === 'connected') setMsg('인스타 계정이 연결됐어요' + (p.get('u') ? ` (@${p.get('u')})` : ''))
       else if (ig === 'denied') setMsg('연결이 취소됐어요')
       else if (ig === 'fail' || ig === 'error') setMsg('연결 실패: ' + (p.get('msg') || '다시 시도해 주세요'))
       if (ig) window.history.replaceState({}, '', '/dm')
-      await load(user.id)
+      await loadConns(user.id)
       setLoading(false)
     })()
   }, [])
 
-  useEffect(() => { if (conn) loadMedia() }, [conn])
+  // 계정 전환/최초 로드 시 그 계정 기준으로 규칙·로그·게시물 로드
+  useEffect(() => {
+    if (!user || !activeIg) { setRules([]); setLogs([]); setMedia([]); return }
+    loadRulesLogs(user.id, activeIg)
+    loadMedia(activeIg)
+    setMediaId('')
+  }, [activeIg, user])
 
   const connect = () => {
     if (!user) return
@@ -66,10 +81,11 @@ export default function DmAutomation() {
     window.location.href = `https://www.instagram.com/oauth/authorize?client_id=${IG_CLIENT_ID}&redirect_uri=${encodeURIComponent(IG_REDIRECT)}&response_type=code&scope=${encodeURIComponent(IG_SCOPE)}&state=${state}`
   }
 
-  const disconnect = async () => {
-    if (!conn || !window.confirm('인스타 연결을 해제할까요? 자동 DM이 멈춰요.')) return
-    await supabase.from('ig_connections').delete().eq('id', conn.id)
-    setConn(null); setMedia([]); setMsg('연결을 해제했어요')
+  const disconnect = async (c) => {
+    if (!c || !window.confirm(`@${c.ig_username || c.ig_user_id} 연결을 해제할까요?\n이 계정의 자동 DM이 멈춰요.`)) return
+    await supabase.from('ig_connections').delete().eq('id', c.id)
+    setMsg('연결을 해제했어요')
+    await loadConns(user.id)
   }
 
   const addRule = async () => {
@@ -94,92 +110,119 @@ export default function DmAutomation() {
     setRules((p) => p.filter((x) => x.id !== rule.id))
   }
 
-  // 게시물 라벨 (캡션 앞부분 + 날짜)
   const mediaOptLabel = (m) => {
     const cap = (m.caption || '').replace(/\s+/g, ' ').trim()
     const d = m.ts ? new Date(m.ts).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' }) : ''
     return `${d ? d + ' · ' : ''}${cap ? cap.slice(0, 30) : '(캡션 없음)'}`
   }
   const scopeLabel = (id) => {
-    if (!id) return '📄 전체 게시물'
+    if (!id) return '전체 게시물'
     const m = media.find((x) => String(x.id) === String(id))
-    return '🎯 특정 게시물' + (m ? ` · ${mediaOptLabel(m).slice(0, 24)}` : '')
+    return '특정 게시물' + (m ? ` · ${mediaOptLabel(m).slice(0, 24)}` : '')
   }
 
-  if (loading) return <div style={{ padding: 40, textAlign: 'center', color: '#6B7280' }}>불러오는 중…</div>
-  if (!user) return <div style={{ padding: 40, textAlign: 'center' }}>로그인이 필요해요.</div>
+  if (loading) return <div className="py-16 text-center text-gray-500">불러오는 중…</div>
+  if (!user) return <div className="py-16 text-center text-gray-500">로그인이 필요해요.</div>
+
+  const inputCls = "w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0064FF] focus:ring-1 focus:ring-[#0064FF] transition"
 
   return (
-    <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 16px', fontFamily: "'Apple SD Gothic Neo','Malgun Gothic',sans-serif" }}>
-      <h1 style={{ fontSize: 22, fontWeight: 900, marginBottom: 4 }}>💬 인스타 댓글 자동 DM</h1>
-      <p style={{ color: '#6B7280', fontSize: 14, marginBottom: 20 }}>내 인스타를 연결하고, 특정 키워드 댓글에 자동으로 DM(링크)을 보내세요.</p>
-      {msg && <div style={{ background: '#F0F7FF', border: '1px solid #cfe3ff', color: '#0052D6', borderRadius: 12, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>{msg}</div>}
+    <div className="mx-auto w-full max-w-2xl px-4 py-6">
+      <h1 className="mb-1 flex items-center gap-2 text-xl font-black text-gray-900"><MessageCircle size={22} className="text-[#0064FF]" /> 인스타 댓글 자동 DM</h1>
+      <p className="mb-5 text-sm text-gray-500">내 인스타를 연결하고, 특정 키워드 댓글에 자동으로 DM(링크)을 보내세요. 계정은 여러 개 연결할 수 있어요.</p>
+      {msg && <div className="mb-4 rounded-xl border border-[#0064FF]/20 bg-[#0064FF]/5 px-4 py-2.5 text-sm font-medium text-[#0052D6]">{msg}</div>}
 
-      {/* 연결 상태 */}
-      <div style={{ border: '1px solid #E5E7EB', borderRadius: 16, padding: 16, marginBottom: 20 }}>
-        <p style={{ fontSize: 13, fontWeight: 800, color: '#374151', marginBottom: 10 }}>1. 인스타 계정 연결</p>
-        {conn ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-            <div>
-              <p style={{ fontWeight: 800 }}>@{conn.ig_username || conn.ig_user_id}</p>
-              <p style={{ fontSize: 12, color: '#10B981' }}>연결됨 · {conn.status}</p>
-            </div>
-            <button onClick={disconnect} style={{ borderRadius: 10, border: '1px solid #E5E7EB', background: '#fff', color: '#6B7280', fontWeight: 700, fontSize: 13, padding: '8px 14px', cursor: 'pointer' }}>연결 해제</button>
+      {/* 1. 계정 연결 (다계정) */}
+      <div className="mb-5 rounded-2xl border border-gray-200 p-4">
+        <p className="mb-3 text-sm font-black text-gray-700">1. 인스타 계정 연결</p>
+        {conns.length > 0 ? (
+          <div className="flex flex-col gap-2">
+            {conns.map((c) => {
+              const on = c.ig_user_id === activeIg
+              return (
+                <div key={c.id}
+                  className={`flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 transition ${on ? 'border-[#0064FF] bg-[#0064FF]/5' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
+                  <button onClick={() => setActiveIg(c.ig_user_id)} className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
+                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${on ? 'bg-[#0064FF] text-white' : 'bg-gray-100 text-gray-400'}`}>
+                      {on ? <Check size={16} strokeWidth={3} /> : <AtSign size={16} />}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-black text-gray-900">@{c.ig_username || c.ig_user_id}</span>
+                      <span className={`block text-xs ${c.status === 'active' ? 'text-emerald-500' : 'text-gray-400'}`}>{c.status === 'active' ? '연결됨' : c.status}{on ? ' · 선택됨' : ''}</span>
+                    </span>
+                  </button>
+                  <button onClick={() => disconnect(c)} title="연결 해제"
+                    className="shrink-0 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-bold text-gray-400 hover:border-red-200 hover:text-red-500 transition"><Trash2 size={13} /></button>
+                </div>
+              )
+            })}
+            <button onClick={connect}
+              className="mt-1 flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-gray-300 px-3 py-2.5 text-sm font-bold text-gray-500 hover:border-[#0064FF] hover:text-[#0064FF] transition">
+              <Plus size={15} strokeWidth={2.5} /> 계정 추가 연결
+            </button>
           </div>
         ) : (
-          <button onClick={connect} style={{ width: '100%', borderRadius: 12, border: 'none', background: 'linear-gradient(90deg,#833AB4,#FD1D1D,#FCB045)', color: '#fff', fontWeight: 800, fontSize: 15, padding: '13px', cursor: 'pointer' }}>📷 인스타그램 연결하기</button>
+          <button onClick={connect}
+            className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-sm font-black text-white transition active:scale-[0.99]"
+            style={{ background: 'linear-gradient(90deg,#833AB4,#FD1D1D,#FCB045)' }}>
+            <AtSign size={18} /> 인스타그램 연결하기
+          </button>
         )}
       </div>
 
-      {/* 규칙 */}
-      <div style={{ border: '1px solid #E5E7EB', borderRadius: 16, padding: 16, marginBottom: 20, opacity: conn ? 1 : 0.5 }}>
-        <p style={{ fontSize: 13, fontWeight: 800, color: '#374151', marginBottom: 10 }}>2. 자동 DM 규칙</p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
-          <input value={kw} onChange={(e) => setKw(e.target.value)} placeholder="트리거 키워드 (예: 크로닛)" disabled={!conn}
-            style={{ borderRadius: 10, border: '1px solid #D1D5DB', padding: '10px 12px', fontSize: 14 }} />
+      {/* 2. 규칙 (선택 계정 기준) */}
+      <div className={`mb-5 rounded-2xl border border-gray-200 p-4 ${conn ? '' : 'opacity-50'}`}>
+        <p className="mb-3 text-sm font-black text-gray-700">2. 자동 DM 규칙{conn ? ` · @${conn.ig_username || conn.ig_user_id}` : ''}</p>
+        <div className="mb-3 flex flex-col gap-2">
+          <input value={kw} onChange={(e) => setKw(e.target.value)} placeholder="트리거 키워드 (예: 크로닛)" disabled={!conn} className={inputCls} />
           <div>
-            <label style={{ fontSize: 12, color: '#6B7280', display: 'block', marginBottom: 4 }}>적용 게시물</label>
-            <select value={mediaId} onChange={(e) => setMediaId(e.target.value)} disabled={!conn}
-              style={{ width: '100%', borderRadius: 10, border: '1px solid #D1D5DB', padding: '10px 12px', fontSize: 14, background: '#fff' }}>
+            <label className="mb-1 block text-xs font-medium text-gray-500">적용 게시물</label>
+            <select value={mediaId} onChange={(e) => setMediaId(e.target.value)} disabled={!conn} className={inputCls}>
               <option value="">전체 게시물 (모든 게시물에 적용)</option>
-              {media.map((m) => (
-                <option key={m.id} value={m.id}>{mediaOptLabel(m)}</option>
-              ))}
+              {media.map((m) => (<option key={m.id} value={m.id}>{mediaOptLabel(m)}</option>))}
             </select>
-            {conn && !media.length && <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>게시물을 불러오는 중이거나 없어요. 전체 게시물로도 바로 쓸 수 있어요.</p>}
+            {conn && !media.length && <p className="mt-1 text-[11px] text-gray-400">게시물을 불러오는 중이거나 없어요. 전체 게시물로도 바로 쓸 수 있어요.</p>}
           </div>
-          <textarea value={dm} onChange={(e) => setDm(e.target.value)} placeholder="보낼 DM 문구 (예: 아래 링크에서 확인하세요! https://…)" rows={3} disabled={!conn}
-            style={{ borderRadius: 10, border: '1px solid #D1D5DB', padding: '10px 12px', fontSize: 14, resize: 'none' }} />
-          <label style={{ fontSize: 13, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <input type="checkbox" checked={pub} onChange={(e) => setPub(e.target.checked)} disabled={!conn} /> 공개 답글도 남기기 ("방금 DM 보냈어요")
+          <textarea value={dm} onChange={(e) => setDm(e.target.value)} rows={3} disabled={!conn}
+            placeholder="보낼 DM 문구 (예: 아래 링크에서 확인하세요! https://…)" className={`${inputCls} resize-none`} />
+          <label className="flex items-center gap-2 text-sm text-gray-600">
+            <input type="checkbox" checked={pub} onChange={(e) => setPub(e.target.checked)} disabled={!conn} className="h-4 w-4 rounded" />
+            공개 답글도 남기기 ("방금 DM 보냈어요")
           </label>
-          <button onClick={addRule} disabled={!conn} style={{ borderRadius: 10, border: 'none', background: '#0064FF', color: '#fff', fontWeight: 800, fontSize: 14, padding: '11px', cursor: conn ? 'pointer' : 'default' }}>규칙 추가</button>
+          <button onClick={addRule} disabled={!conn}
+            className="flex items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] px-4 py-2.5 text-sm font-black text-white hover:bg-[#0052D6] disabled:opacity-40 transition">
+            <Plus size={15} strokeWidth={2.5} /> 규칙 추가
+          </button>
         </div>
         {rules.map((r) => (
-          <div key={r.id} style={{ borderTop: '1px solid #F3F4F6', padding: '10px 0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
-            <div style={{ minWidth: 0 }}>
-              <p style={{ fontWeight: 800, fontSize: 14 }}>“{r.keyword}” 댓글 → DM</p>
-              <p style={{ fontSize: 11, color: '#8B5CF6', fontWeight: 700, margin: '2px 0' }}>{scopeLabel(r.media_id)}</p>
-              <p style={{ fontSize: 12, color: '#6B7280', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{r.dm_text}</p>
+          <div key={r.id} className="flex items-start justify-between gap-3 border-t border-gray-100 py-2.5">
+            <div className="min-w-0">
+              <p className="text-sm font-black text-gray-900">"{r.keyword}" 댓글 → DM</p>
+              <p className="my-0.5 flex items-center gap-1 text-xs font-bold text-[#8B5CF6]">
+                {r.media_id ? <Target size={11} /> : <FileText size={11} />} {scopeLabel(r.media_id)}
+              </p>
+              <p className="whitespace-pre-wrap break-all text-xs text-gray-500">{r.dm_text}</p>
             </div>
-            <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-              <button onClick={() => toggleRule(r)} style={{ borderRadius: 8, border: '1px solid #E5E7EB', background: r.active ? '#ECFDF5' : '#fff', color: r.active ? '#059669' : '#9CA3AF', fontWeight: 700, fontSize: 12, padding: '5px 9px', cursor: 'pointer' }}>{r.active ? 'ON' : 'OFF'}</button>
-              <button onClick={() => delRule(r)} style={{ borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', color: '#EF4444', fontWeight: 700, fontSize: 12, padding: '5px 9px', cursor: 'pointer' }}>삭제</button>
+            <div className="flex shrink-0 gap-1.5">
+              <button onClick={() => toggleRule(r)}
+                className={`rounded-lg border px-2.5 py-1.5 text-xs font-bold transition ${r.active ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-gray-200 bg-white text-gray-400'}`}>{r.active ? 'ON' : 'OFF'}</button>
+              <button onClick={() => delRule(r)}
+                className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-bold text-red-500 hover:border-red-200 transition"><Trash2 size={13} /></button>
             </div>
           </div>
         ))}
-        {conn && !rules.length && <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: '8px 0' }}>아직 규칙이 없어요. 위에서 추가해 주세요.</p>}
+        {conn && !rules.length && <p className="py-2 text-center text-sm text-gray-400">아직 규칙이 없어요. 위에서 추가해 주세요.</p>}
       </div>
 
-      {/* 로그 */}
-      <div style={{ border: '1px solid #E5E7EB', borderRadius: 16, padding: 16 }}>
-        <p style={{ fontSize: 13, fontWeight: 800, color: '#374151', marginBottom: 10 }}>3. 최근 자동 DM 발송</p>
+      {/* 3. 로그 (선택 계정 기준) */}
+      <div className="rounded-2xl border border-gray-200 p-4">
+        <p className="mb-3 flex items-center gap-1.5 text-sm font-black text-gray-700"><Send size={14} className="text-[#0064FF]" /> 최근 자동 DM 발송{conn ? ` · @${conn.ig_username || conn.ig_user_id}` : ''}</p>
         {logs.length ? logs.map((l) => (
-          <div key={l.id} style={{ borderTop: '1px solid #F3F4F6', padding: '8px 0', fontSize: 13, display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-            <span>@{l.commenter_username || '?'} · "{l.matched_keyword}"</span>
-            <span style={{ color: l.dm_status >= 200 && l.dm_status < 300 ? '#10B981' : '#EF4444' }}>{l.dm_status >= 200 && l.dm_status < 300 ? 'DM 전송됨' : '실패'}</span>
+          <div key={l.id} className="flex items-center justify-between gap-2 border-t border-gray-100 py-2 text-sm">
+            <span className="min-w-0 truncate text-gray-700">@{l.commenter_username || '?'} · "{l.matched_keyword}"</span>
+            <span className={`shrink-0 font-bold ${l.dm_status >= 200 && l.dm_status < 300 ? 'text-emerald-500' : 'text-red-500'}`}>{l.dm_status >= 200 && l.dm_status < 300 ? 'DM 전송됨' : '실패'}</span>
           </div>
-        )) : <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: '8px 0' }}>아직 발송 내역이 없어요.</p>}
+        )) : <p className="py-2 text-center text-sm text-gray-400">아직 발송 내역이 없어요.</p>}
       </div>
     </div>
   )
