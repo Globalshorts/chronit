@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/u/:handle", "destination": "/api/og?handle=:handle" },
     { "source": "/(.*)", "destination": "/" }
   ]
 }
