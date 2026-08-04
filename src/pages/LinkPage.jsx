@@ -18,7 +18,7 @@ export default function LinkPage() {
       try {
         const { data: pg } = await supabase
           .from('link_pages')
-          .select('user_id, handle, title, bio, theme, active, avatar_url, card_size, accent_color, bg_color')
+          .select('id, user_id, handle, title, bio, theme, active, avatar_url, card_size, accent_color, bg_color')
           .eq('handle', handle)
           .eq('active', true)
           .maybeSingle()
@@ -26,7 +26,7 @@ export default function LinkPage() {
         const { data: its } = await supabase
           .from('link_items')
           .select('id, title, image_url, video_url, target_url, sort_order, badge, badge_color')
-          .eq('user_id', pg.user_id)
+          .eq('page_id', pg.id)
           .eq('active', true)
           .order('sort_order', { ascending: false })
         if (!alive) return

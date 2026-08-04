@@ -75,10 +75,11 @@ export function LinkPageManager({ session }) {
             handle = base + Math.floor(100 + Math.random() * 900)
           }
         }
+        if (pg?.id) { try { await supabase.from('link_items').update({ page_id: pg.id }).eq('user_id', uid).is('page_id', null) } catch {} }
         const [jb, it] = await Promise.all([
           supabase.from('video_jobs').select('id, product_name, seo_title, search_keyword, poster_url, video_url, created_at').eq('card_hidden', false)
             .eq('user_id', uid).eq('status', 'done').neq('video_url', '').order('created_at', { ascending: false }),
-          supabase.from('link_items').select('*').eq('user_id', uid),
+          supabase.from('link_items').select('*').eq('page_id', pg?.id),
         ])
         if (!alive) return
         setPage(pg || null); setJobs(jb.data || []); setItems(it.data || [])
@@ -167,8 +168,9 @@ export function LinkPageManager({ session }) {
   const flash = (m) => { setSavedMsg(m); setTimeout(() => setSavedMsg(''), 1800) }
 
   const savePage = async (patch) => {
+    if (!page?.id) return
     setPage((p) => ({ ...p, ...patch }))
-    const { error } = await supabase.from('link_pages').update({ ...patch, updated_at: new Date().toISOString() }).eq('user_id', session.user.id)
+    const { error } = await supabase.from('link_pages').update({ ...patch, updated_at: new Date().toISOString() }).eq('id', page.id)
     if (error) { console.error('[link save] page 저장 실패:', error); flash('저장 실패 — 다시 시도해 주세요'); return }
     flash('저장됨')
   }
@@ -227,7 +229,7 @@ export function LinkPageManager({ session }) {
       }
       const maxSort = items.reduce((m, i) => Math.max(m, i.sort_order || 0), 0)
       const { data, error } = await supabase.from('link_items')
-        .insert({ user_id: uid, video_job_id: job.id, title, target_url, active, image_url: img, video_url: videoUrl, sort_order: maxSort + 1, badge: badge ?? null, badge_color: badge_color ?? null })
+        .insert({ user_id: uid, page_id: page?.id, video_job_id: job.id, title, target_url, active, image_url: img, video_url: videoUrl, sort_order: maxSort + 1, badge: badge ?? null, badge_color: badge_color ?? null })
         .select('*').single()
       if (error || !data) { console.error('[link save] insert 실패:', error); flash('저장 실패 — 다시 시도해 주세요'); return }
       setItems((p) => [...p, data])
