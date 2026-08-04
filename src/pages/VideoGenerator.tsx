@@ -4822,15 +4822,29 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
       } catch {} finally { setLoading(false); }
     })();
   },[session]);
+  const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+  const isIOS = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && typeof document !== "undefined" && "ontouchend" in document);
+  const isAndroid = /Android/i.test(ua);
+  // iOS: 화면에 보이는 영상은 미리 받아 캐시 → 저장 탭 한 번에 공유창이 뜨게(제스처 유지)
+  const fetchingRef = React.useRef<Set<string>>(new Set());
+  const prefetchBlob = React.useCallback(async (j:any) => {
+    if (!isIOS || !j?.video_url || blobCache.current[j.id] || fetchingRef.current.has(j.id)) return;
+    fetchingRef.current.add(j.id);
+    try { const r = await fetch(j.video_url); blobCache.current[j.id] = await r.blob(); } catch {} finally { fetchingRef.current.delete(j.id); }
+  }, [isIOS]);
+  const ioRef = React.useRef<IntersectionObserver|null>(null);
+  const elJob = React.useRef<WeakMap<Element, any>>(new WeakMap());
+  React.useEffect(() => {
+    if (!isIOS || typeof IntersectionObserver === "undefined") return;
+    ioRef.current = new IntersectionObserver((ents)=>{ for (const e of ents) if (e.isIntersecting) { const j = elJob.current.get(e.target); if (j) prefetchBlob(j); } }, { rootMargin: "150px" });
+    return () => ioRef.current?.disconnect();
+  }, [isIOS, prefetchBlob]);
+  const cardRef = (j:any) => (el:Element|null) => { if (!el || !isIOS || !ioRef.current) return; elJob.current.set(el, j); ioRef.current.observe(el); };
   if(loading) return <div className="flex flex-col items-center gap-2 py-16 text-gray-400"><Loader2 size={22} className="animate-spin" /><span className="text-sm">불러오는 중…</span></div>;
   if(!jobs.length) return <div className="flex flex-col items-center gap-3 py-16 text-center"><div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 text-gray-300"><Film size={26} /></div><p className="text-sm font-bold text-gray-500">아직 만든 영상이 없어요</p><p className="text-xs text-gray-400">작업실에서 첫 영상을 만들어보세요</p></div>;
   const dlUrl = (j:any) => j.video_url
     ? j.video_url + (j.video_url.includes("?")?"&":"?") + "download=" + encodeURIComponent((j.product_name||"chronit")+".mp4")
     : "";
-
-  const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
-  const isIOS = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && typeof document !== "undefined" && "ontouchend" in document);
-  const isAndroid = /Android/i.test(ua);
 
   // 저장: iOS는 공유시트(사진에 저장), 안드로이드·PC는 파일을 직접 다운로드(다운로드 폴더 → 갤러리)
   const _askFb = (j:any) => { try { if (feedbackDoneRef.current) return; if (!localStorage.getItem("chronit_feedback_done")) setTimeout(()=>setFbJob(j), 700); } catch {} };
@@ -4991,7 +5005,7 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
       {jobs.map(j=>{
         const done = j.status==="done" && j.video_url && !j.expired;
         return (
-          <div key={j.id} className="rounded-2xl bg-white border border-gray-200 overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
+          <div key={j.id} ref={cardRef(j)} className="rounded-2xl bg-white border border-gray-200 overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
             <div className="relative aspect-[9/16] bg-black">
               {done ? (
                 <video src={j.video_url + "#t=0.0"} preload="metadata" playsInline controls
