@@ -10,7 +10,7 @@
  */
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus, Gift, ChevronDown, Pencil, Eye, MessageCircle, User, MessageSquare, Receipt, LogOut, Heart, Zap, Lightbulb, PenTool, Shield, Palette, Upload, ShoppingCart, ChevronUp, Save, X, Home, Clapperboard, History, Link2 } from "lucide-react";
+import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus, Gift, ChevronDown, Pencil, Eye, MessageCircle, User, MessageSquare, Receipt, LogOut, Heart, Zap, Lightbulb, PenTool, Shield, Palette, Upload, ShoppingCart, ChevronUp, Save, X, Home, Flame, History, Link2 } from "lucide-react";
 import DOMPurify from "dompurify";
 import { supabase } from "../lib/supabase";
 import { getFp } from "../lib/fp";
@@ -127,8 +127,8 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
 function MobileBottomNav({ activeView, onViewChange, userRole }: { activeView: string; onViewChange: (v:string)=>void; userRole: string }) {
   const isPartner = userRole === "partner" || userRole === "super_admin";
   const items: any[] = [
-    { v: "trends", label: "홈", Icon: Home },
-    { v: "generator", label: "작업실", Icon: Clapperboard },
+    { v: "generator", label: "홈", Icon: Home },
+    { v: "trends", label: "트렌드", Icon: Flame },
     { v: "history", label: "내역", Icon: History },
     { v: "product-search", label: "링크", Icon: Link2 },
     { v: "dm", label: "DM", Icon: MessageCircle, locked: !isPartner },
