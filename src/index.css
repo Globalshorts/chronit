@@ -78,3 +78,7 @@ html, body {
   pointer-events: none;
   animation: creditSweep 4.5s ease-in-out infinite;
 }
+
+/* 모바일 하단탭바 위로 생성바 띄우기 (프로토타입) */
+.chronit-genbar{bottom:calc(84px + env(safe-area-inset-bottom))}
+@media(min-width:768px){.chronit-genbar{bottom:24px}}

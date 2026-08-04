@@ -10,7 +10,7 @@
  */
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus, Gift, ChevronDown, Pencil, Eye, MessageCircle, User, MessageSquare, Receipt, LogOut, Heart, Zap, Lightbulb, PenTool, Shield, Palette, Upload, ShoppingCart, ChevronUp, Save, X } from "lucide-react";
+import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus, Gift, ChevronDown, Pencil, Eye, MessageCircle, User, MessageSquare, Receipt, LogOut, Heart, Zap, Lightbulb, PenTool, Shield, Palette, Upload, ShoppingCart, ChevronUp, Save, X, Home, Clapperboard, History, Link2 } from "lucide-react";
 import DOMPurify from "dompurify";
 import { supabase } from "../lib/supabase";
 import { getFp } from "../lib/fp";
@@ -110,7 +110,7 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
         </div>
       </nav>
     </header>
-    <nav className="sticky top-16 z-30 flex gap-2 overflow-x-auto border-b border-gray-200 bg-white/95 px-3 py-2 backdrop-blur-xl md:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <nav className="sticky top-16 z-30 hidden gap-2 overflow-x-auto border-b border-gray-200 bg-white/95 px-3 py-2 backdrop-blur-xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {VIEW_TABS.map((t: any) => (
         <button key={t.v} disabled={t.locked}
           onClick={() => onViewChange && onViewChange(t.v)}
@@ -120,6 +120,33 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
       ))}
     </nav>
     </>
+  );
+}
+
+// ── 모바일 하단 탭바 (네이티브 앱 스타일) — 프로토타입 ───────────
+function MobileBottomNav({ activeView, onViewChange, userRole }: { activeView: string; onViewChange: (v:string)=>void; userRole: string }) {
+  const isPartner = userRole === "partner" || userRole === "super_admin";
+  const items: any[] = [
+    { v: "trends", label: "홈", Icon: Home },
+    { v: "generator", label: "작업실", Icon: Clapperboard },
+    { v: "history", label: "내역", Icon: History },
+    { v: "product-search", label: "링크", Icon: Link2 },
+    { v: "dm", label: "DM", Icon: MessageCircle, locked: !isPartner },
+    { v: "settings", label: "내정보", Icon: User },
+  ];
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-gray-200 bg-white/95 backdrop-blur-xl md:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+      {items.map(({ v, label, Icon, locked }: any) => {
+        const on = activeView === v;
+        return (
+          <button key={v} disabled={locked} onClick={() => { if (!locked) onViewChange(v); }}
+            className={`flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-bold transition-colors ${on ? "text-[#0064FF]" : "text-gray-400"} ${locked ? "opacity-40" : ""}`}>
+            <Icon size={20} strokeWidth={on ? 2.6 : 2} />
+            <span>{label}</span>
+          </button>
+        );
+      })}
+    </nav>
   );
 }
 
@@ -2087,13 +2114,14 @@ export default function VideoGenerator() {
 
       {/* ── 상단 탭 바 (데스크탑) ── */}
       <AppTabBar activeView={activeView} onViewChange={setActiveView} userRole={userRole} />
+      <MobileBottomNav activeView={activeView} onViewChange={setActiveView} userRole={userRole} />
 
       {/* ── 본문 행 ── */}
       <div className="flex flex-1">
       {/* ── 메인 콘텐츠 ── */}
       <div className="flex-1 min-w-0 flex flex-col">
         {activeView !== "generator" && (
-          <div className="mx-auto w-full max-w-5xl flex-1 overflow-y-auto px-4 md:px-8 py-5 md:py-6">
+          <div className="mx-auto w-full max-w-5xl flex-1 overflow-y-auto px-4 md:px-8 py-5 md:py-6 pb-20 md:pb-6">
             {activeView === "trends" && (
               <div className="max-w-5xl mx-auto">
                 <h2 className="mb-1 text-xl font-black text-gray-900">🔥 오늘의 트렌드</h2>
@@ -2215,7 +2243,7 @@ export default function VideoGenerator() {
 
         {/* 영상 생성 뷰 — generator일 때만 표시 */}
         {activeView === "generator" && <>
-        <div className="mx-auto w-full max-w-5xl flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-5">
+        <div className="mx-auto w-full max-w-5xl flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-5 pb-20 md:pb-5">
           <div className="space-y-0">
 
 
@@ -2549,7 +2577,7 @@ function FloatingPrev({ onClick }: { onClick: () => void }) {
 
 function BottomActionBar({ showSeg, onSeg, genLabel, onGen, genDisabled }: any) {
   return createPortal(
-    <div style={{ position:"fixed", bottom:"24px", left:"50%", transform:"translateX(-50%)", zIndex:50, width:"calc(100vw - 24px)", maxWidth:"460px" }}>
+    <div className="chronit-genbar" style={{ position:"fixed", left:"50%", transform:"translateX(-50%)", zIndex:50, width:"calc(100vw - 24px)", maxWidth:"460px" }}>
       <div style={{ display:"flex", gap:"10px", background:"rgba(255,255,255,0.9)", backdropFilter:"blur(10px)", padding:"8px", borderRadius:"20px", border:"0.5px solid rgba(0,0,0,0.06)", boxShadow:"0 10px 34px -10px rgba(0,0,0,0.22)" }}>
         {showSeg && (
           <button onClick={onSeg} style={{ flex:1, height:"52px", borderRadius:"14px", border:"none", background:"#EAF1FF", color:"#0064FF", fontSize:"15px", fontWeight:700, display:"inline-flex", alignItems:"center", justifyContent:"center", gap:"6px", cursor:"pointer" }}>
