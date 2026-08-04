@@ -10,6 +10,7 @@
  */
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus, Gift, ChevronDown, Pencil, Eye, MessageCircle, User, MessageSquare, Receipt, LogOut, Heart, Zap, Lightbulb, PenTool } from "lucide-react";
 import DOMPurify from "dompurify";
 import { supabase } from "../lib/supabase";
 import { getFp } from "../lib/fp";
@@ -78,7 +79,7 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
         {onInvite && (
           <button onClick={onInvite} title="친구 초대하고 무료 이용권 받기"
             className="event-badge inline-flex shrink-0 items-center gap-1 rounded-full bg-gradient-to-r from-[#0064FF] via-[#3B82F6] to-[#7C6BFF] px-3 py-1.5 text-xs font-black text-white active:scale-95">
-            <span aria-hidden="true">🎁</span>
+            <Gift size={13} aria-hidden="true" />
             무료 충전
           </button>
         )}
@@ -86,7 +87,7 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
           <button onClick={() => setMenuOpen(o => !o)}
             className="flex items-center gap-1.5 rounded-full bg-gray-900 px-3.5 py-1.5 font-bold text-white transition-colors hover:bg-[#0064FF]">
             <span className="max-w-[110px] truncate">{name}</span>
-            <span className="text-[10px] opacity-80">▾</span>
+            <ChevronDown size={13} className="opacity-80" />
           </button>
           {menuOpen && (
             <>
@@ -95,11 +96,11 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
                 {balance !== null && balance !== undefined && (
                   <div className="mb-1 rounded-xl bg-[#0064FF]/10 px-3 py-2.5 text-center text-sm font-black text-[#0064FF]">이용권 {balance.toLocaleString()}개 · D-{daysLeft ?? 0}</div>
                 )}
-                <a href="/me" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]">👤 마이페이지</a>
+                <a href="/me" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]"><User size={14} className="inline align-[-2px] mr-1.5" />마이페이지</a>
                 <button onClick={() => { setMenuOpen(false); onInvite && onInvite(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]">무료 이용권 받기</button>
-                <a href="https://forms.gle/LCDeSEXSM7ALykqv5" target="_blank" rel="noreferrer" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]">📝 피드백 보내고 영상 2개</a>
-                <button onClick={() => { setMenuOpen(false); onHistory && onHistory(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]">📒 사용 내역</button>
-                <button onClick={logout} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50">↩ 로그아웃</button>
+                <a href="https://forms.gle/LCDeSEXSM7ALykqv5" target="_blank" rel="noreferrer" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]"><MessageSquare size={14} className="inline align-[-2px] mr-1.5" />피드백 보내고 영상 2개</a>
+                <button onClick={() => { setMenuOpen(false); onHistory && onHistory(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]"><Receipt size={14} className="inline align-[-2px] mr-1.5" />사용 내역</button>
+                <button onClick={logout} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50"><LogOut size={14} className="inline align-[-2px] mr-1.5" />로그아웃</button>
               </div>
             </>
           )}
@@ -232,6 +233,11 @@ const STYLE_PACKS = [
     subtitleStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:13,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
     thumbnailStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
 ];
+const PACK_ICON: Record<string, any> = { review: Heart, unboxing: Zap, info: Lightbulb, hand: PenTool };
+function PackIcon({ k, size = 14, className = "" }: { k: string; size?: number; className?: string }) {
+  const I = PACK_ICON[k] || Sparkles;
+  return <I size={size} className={className} />;
+}
 
 // ── 대본 스타일 4팩 (전 유저 공통, profile_json 인라인 전달) ──
 const SCRIPT_STYLES = [
@@ -324,6 +330,37 @@ export default function VideoGenerator() {
   const [clips, setClips]           = useState<Clip[]>([]);
   const analysisMetaRef = React.useRef<{ name: string; keyword: string; poster: string; use_case?: string; keywords?: string[] }>({ name: "", keyword: "", poster: "" });
   const [cart, setCart]             = useState<Set<string>>(new Set());
+  // ── 구간 선택(스토리보드) MVP ──
+  const [segsByVideo, setSegsByVideo] = useState<Record<string, any[]>>({});
+  const [segSel, setSegSel] = useState<Set<string>>(new Set());
+  const [segLoading, setSegLoading] = useState(false);
+  const [segMode, setSegMode] = useState(false);
+  const [segEditorOpen, setSegEditorOpen] = useState(false);
+  const [sbScript, setSbScript] = useState<any[] | null>(null);
+  const [sbCuts, setSbCuts] = useState<any[]>([]);
+  const [sbCta, setSbCta] = useState("");  // 기본 빈칸 — placeholder가 힌트, 비우면 백엔드가 '프로필 링크에서 확인하세요'로 마무리
+  // ★ 스토리보드(하단 자동생성 바)와 채널톡 런처가 겹침 → 열릴 때 채널톡 버튼 숨기고 닫으면 복구 ★
+  useEffect(() => {
+    try { (window as any).ChannelIO?.((segEditorOpen || clips.length > 0) ? "hideChannelButton" : "showChannelButton"); } catch {}
+  }, [segEditorOpen, clips.length]);
+  const sbTtsRef = useRef<string>("");
+  const prefetchRef = useRef<Record<string, string>>({});
+  const firePrefetch = (clip: any) => {
+    if (!clip || clip.source === "upload" || !clip.download_url || prefetchRef.current[clip.video_id]) return;
+    fetch(FN("prefetch-clip-test") + "?k=chronit-pf-9x", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ video_id: clip.video_id, download_url: clip.download_url, download_url_hevc: clip.download_url_hevc, page_url: clip.page_url, source: clip.source }) })
+      .then(r => r.json()).then(d => { if (d?.ok && d.cached_url) { prefetchRef.current[clip.video_id] = d.cached_url; setClips(prev => (prev as any[]).map((c: any) => c.video_id === clip.video_id ? { ...c, download_url: d.cached_url } : c)); } }).catch(() => {});
+  };
+  // ★ 담긴(cart) 클립을 백그라운드로 clip-cache에 캐시 → 프리뷰가 CORS 없이 재생(인스타 포함) ★
+  useEffect(() => {
+    try { (clips as any[]).forEach((c: any) => { if (c.source !== "upload" && (cart.has(c.video_id) || c.source === "url" || c.source === "trend")) firePrefetch(c); }); } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cart, clips.length]);
+  const [sbLoading, setSbLoading] = useState(false);
+  const [sbStage, setSbStage] = useState("");
+  const [sbSlots, setSbSlots] = useState<any[]>([]);
+  const sbSigRef = React.useRef("");   // 현재 스토리보드가 로드한 클립 시그니처
+  const sbBusyRef = React.useRef(false); // 로딩 진행 중 여부(뒤로갔다 와도 재실행 방지)
 
   // Stage 2
   const [targetSeconds, setTargetSeconds] = useState(20);
@@ -509,8 +546,9 @@ export default function VideoGenerator() {
   const [activePack, setActivePack] = useState<string>(() => { try { return localStorage.getItem("chronit_active_pack") || "review"; } catch { return "review"; } });
   const [advOpen, setAdvOpen] = useState(false);
   const [packVoiceMsg, setPackVoiceMsg] = useState(""); const [packInfoMsg, setPackInfoMsg] = useState("");
-  const [manualOpen, setManualOpen] = useState(true);   // 대본 섹션 기본 펼침 (대본 만들기 버튼 노출)
+  const [manualOpen, setManualOpen] = useState(false);  // 대본 섹션 기본 접힘(해피패스 — 비우면 AI 자동)
   const [ctaOpen, setCtaOpen] = useState(false);
+  const [optOpen, setOptOpen] = useState(false);   // 첫 화면 옵션 기본 접힘(해피패스)
   const [userPacks, setUserPacks] = useState<any[]>([]);
   const [packOnboardOpen, setPackOnboardOpen] = useState(false);
   const applyPack = (p:any, key?:string) => {
@@ -1068,7 +1106,7 @@ export default function VideoGenerator() {
         let data1: any = null;
         let subResp: Response, sub: any;
         try {
-          subResp = await fetch(FN("search-clips"), {
+          subResp = await fetch(FN("search-clips-test"), {
             method: "POST", headers,
             body: JSON.stringify({ action: "submit", source_url: su.trim() }),
           });
@@ -1091,7 +1129,7 @@ export default function VideoGenerator() {
             await new Promise(r => setTimeout(r, 2500));
             let pr: any;
             try {
-              const presp = await fetch(FN("search-clips"), { method: "POST", headers,
+              const presp = await fetch(FN("search-clips-test"), { method: "POST", headers,
                 body: JSON.stringify({ action: "poll", prediction_id: _pid }) });
               pr = await presp.json();
             } catch { continue; } // 일시 네트워크 → 다음 폴링
@@ -1133,7 +1171,7 @@ export default function VideoGenerator() {
 
         // Step 2: CLIP filter (틱톡+XHS 통합, 실패해도 폴백 — 재시도 안 함)
         try {
-          const resp2 = await fetch(FN("clip-filter"), {
+          const resp2 = await fetch(FN("clip-filter-test"), {
             method: "POST", headers,
             body: JSON.stringify({ reference_frames: refFrames, candidates: allCand, clip_count: 80 }),
           });
@@ -1149,6 +1187,113 @@ export default function VideoGenerator() {
       }
     } catch (e) { setSearchError("분석 중 일시적인 오류가 있었어요. 잠시 후 다시 시도해 주세요."); /* 일시적 분석 오류는 재시도로 회복되므로 오류 팝업을 띄우지 않음(오탐 방지) */ }
     finally { setSearching(false); }
+  };
+  const loadSegments = async () => {
+    const sel = (clips as any[]).filter(c => cart.has(c.video_id) && c.source !== "upload");
+    if (!sel.length) return;
+    setSegLoading(true); setSegMode(true);
+    try {
+      const _payload = { selected_clips: sel.map((c: any) => ({ video_id: c.video_id, page_url: c.page_url, download_url: c.download_url, download_url_hevc: c.download_url_hevc, source: c.source, title: c.title })) };
+      let by: Record<string, any[]> = {};
+      // ★ Replicate 일시중단(code PA) 등 간헐적 실패 → 자동 재시도(최대 2회) ★
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const r = await fetch(FN("segment-preview-test") + "?k=chronit-seg-9x", {
+            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(_payload),
+          });
+          const d = await r.json();
+          const _by: Record<string, any[]> = {};
+          (d.segments || []).forEach((sg: any) => { (_by[sg.video_id] = _by[sg.video_id] || []).push(sg); });
+          if (Object.keys(_by).length) { by = _by; break; }
+        } catch { /* 재시도 */ }
+        if (attempt < 1) await new Promise(r => setTimeout(r, 1500));
+      }
+      setSegsByVideo(by);
+      const init = new Set<string>();
+      Object.entries(by).forEach(([vid, arr]) => { if ((arr as any[])[0]) init.add(vid + "#" + (arr as any[])[0].seg); });
+      setSegSel(init);
+    } catch { /* noop */ } finally { setSegLoading(false); }
+  };
+  const toggleSeg = (vid: string, seg: number) => {
+    const key = vid + "#" + seg;
+    setSegSel(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; });
+  };
+  const genScriptForSb = async () => {
+    try {
+      const { data: { session: s2 } } = await supabase.auth.getSession();
+      if (!s2) { setSbScript([]); return; }
+      const selected = collectSelected();
+      // 자동생성과 동일한 대본 경로(generate-script 모델). 스토리보드=자동생성 단계화.
+      const mk = (payload: any) => fetch(FN("generate-script"), { method: "POST", headers: { Authorization: "Bearer " + s2.access_token, "Content-Type": "application/json" }, body: JSON.stringify(payload) }).then(r => r.json());
+      const data = await mk({ source_url: sourceUrl.trim(), selected_clips: selected, product_name: analysisMetaRef.current?.name || "", use_case: analysisMetaRef.current?.use_case || "", target_seconds: targetSeconds, style_profile_id: "", style_profile_json: "", cta_text: "" });
+      let segs: any[] = data.segments ?? [];
+      if (data.status !== "succeeded" && data.prediction_id) {
+        const start = Date.now();
+        while (Date.now() - start < 360000) {
+          await new Promise(r => setTimeout(r, 2000));
+          const poll = await mk({ poll: true, prediction_id: data.prediction_id });
+          if (poll.status === "succeeded") { segs = poll.segments ?? []; break; }
+          if (poll.status === "failed") break;
+        }
+      }
+      setSbScript(segs);
+    } catch { setSbScript([]); }
+  };
+  // ★ 정확-일치 플랜: 단일 호출로 대본+TTS+whisper 컷+클립풀을 자동생성 파이프라인 그대로 받아옴 ★
+  // ★ 정확-일치 플랜(비동기): start→폴링. 다운로드/TTS/whisper로 오래 걸려 엣지 타임아웃 회피 ★
+  const loadPlan = async () => {
+    const { data: { session: s2 } } = await supabase.auth.getSession();
+    const sel = collectSelected();
+    if (!s2 || !sel.length) { setSbScript([]); return; }
+    const base = {
+      selected_clips: sel.map((c: any) => ({ video_id: c.video_id, page_url: c.page_url, download_url: c.download_url, download_url_hevc: c.download_url_hevc, source: c.source, title: c.title })),
+      source_url: sourceUrl.trim(), target_seconds: targetSeconds,
+      voice_id: "nova", voice_speed: voiceSpeed / 100, voice_volume: 1.0,
+      style_profile_id: "", style_profile_json: "", cta_text: "",
+    };
+    const call = (payload: any) => fetch(FN("storyboard-plan-test") + "?k=chronit-plan-9x", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
+    }).then(r => r.json());
+    let plan: any = null;
+    // PA 일시중단 등 → 최대 2회 재시작. 각 시도는 시작 후 최대 6분 폴링.
+    for (let attempt = 0; attempt < 3 && !plan; attempt++) {
+      let start: any = null;
+      setSbStage(attempt === 0 ? "시작하는 중" : "다시 시도하는 중 (일시 중단 감지)");
+      try { start = await call({ start: true, ...base }); } catch { continue; }
+      const pid = start?.prediction_id;
+      if (!pid) { continue; }
+      const t0 = Date.now();
+      while (Date.now() - t0 < 360000) {
+        await new Promise(r => setTimeout(r, 2500));
+        let pl: any = null;
+        try { pl = await call({ poll: true, prediction_id: pid }); } catch { continue; }
+        if (pl?.stage) setSbStage(pl.stage);
+        if (pl?.status === "succeeded") { plan = pl; break; }
+        if (pl?.ok === false || pl?.status === "failed" || pl?.status === "canceled") break; // 재시작(PA 등)
+      }
+    }
+    if (!plan || (!(plan.cuts && plan.cuts.length) && !(plan.pool && plan.pool.length))) { setSbScript([]); return; }
+    const by: Record<string, any[]> = {};
+    (plan.pool || []).forEach((sg: any) => { (by[sg.video_id] = by[sg.video_id] || []).push(sg); });
+    setSegsByVideo(by);
+    const init = new Set<string>();
+    Object.entries(by).forEach(([vid, arr]) => { if ((arr as any[])[0]) init.add(vid + "#" + (arr as any[])[0].seg); });
+    setSegSel(init);
+    setSbCuts(plan.cuts || []);
+    sbTtsRef.current = plan.tts_b64 || "";
+    setSbScript((plan.script && plan.script.segments) || []);
+  };
+  const openStoryboard = async () => {
+    const sig = collectSelected().map((c: any) => c.video_id).sort().join(",");
+    setSegEditorOpen(true);
+    // ★ 이미 같은 클립으로 로딩 중이거나 완료했으면 재실행하지 않음 → 뒤로갔다 와도 백그라운드 진행 유지 ★
+    if (sbSigRef.current === sig && (sbBusyRef.current || Object.keys(segsByVideo || {}).length)) {
+      if (!sbBusyRef.current) setSbLoading(false);
+      return;
+    }
+    sbSigRef.current = sig; sbBusyRef.current = true;
+    setSbLoading(true); setSbScript(null); setSbCuts([]); sbTtsRef.current = ""; setSegsByVideo({}); setSbSlots([]);
+    try { await loadPlan(); } finally { setSbLoading(false); sbBusyRef.current = false; }
   };
   const toggleCart = (id: string) => {
     const adding = !cart.has(id);
@@ -1449,8 +1594,17 @@ export default function VideoGenerator() {
     try {
       const { data: { session: s } } = await supabase.auth.getSession();
       if (!s) { setRenderError("로그인이 필요합니다"); return; }
-      const selected = collectSelected();
-      const resp = await fetch(FN("generate-video"), {
+      let selected = collectSelected();
+      let _sbTts = "";  // 스토리보드 렌더면 plan TTS 재사용 → 컷 정확 일치
+      if (sbSlots && sbSlots.length) {
+        const _cmap = new Map((clips as any[]).map((c: any) => [c.video_id, c]));
+        const _sl = sbSlots.filter((sl: any) => sl && sl.seg).map((sl: any) => {
+          const c: any = _cmap.get(sl.seg.video_id) || {};
+          return { video_id: sl.seg.video_id, page_url: c.page_url || "", download_url: c.download_url || "", source: sl.seg.source || c.source || "tiktok", start: sl.seg.start, end: sl.seg.end };
+        });
+        if (_sl.length) { selected = _sl as any; _sbTts = sbTtsRef.current || ""; }
+      }
+      const resp = await fetch(FN("generate-video-test"), {
         method: "POST",
         headers: { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1464,7 +1618,8 @@ export default function VideoGenerator() {
           subtitle_style: subtitleStyle,   // ★ 원본 camelCase 그대로 — cog _convert_web_style 가 camelCase 를 변환함(이중변환 금지)
           thumbnail_style: thumbnailStyle,
           show_thumbnail: showThumbnail,
-          script_segments: (videoOnly || titleMode) ? null : _script,
+          script_segments: (videoOnly || titleMode) ? null : ((sbSlots && sbSlots.length) ? sbSlots.filter((s: any) => s && s.text).map((s: any) => ({ text: s.text })) : _script),
+          tts_b64: _sbTts,
           video_only: videoOnly || titleMode,
           gen_mode: genMode,
           title_text: titleMode ? hookTitle.trim() : "",
@@ -1637,7 +1792,7 @@ export default function VideoGenerator() {
                     {STYLE_PACKS.map(pk => (
                       <button key={pk.key} type="button" onClick={() => applyPack(pk, pk.key)}
                         className={`rounded-lg px-2.5 py-1 text-xs font-bold border transition ${activePack===pk.key ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 text-gray-600 hover:border-gray-400"}`}>
-                        {pk.emoji} {pk.name}{FISH_MALE_IDS.has(pk.voiceId) ? " (남)" : " (여)"}
+                        <PackIcon k={pk.key} size={14} className="inline align-[-2px]" /> {pk.name}{FISH_MALE_IDS.has(pk.voiceId) ? " (남)" : " (여)"}
                       </button>
                     ))}
                   </div>
@@ -1650,14 +1805,8 @@ export default function VideoGenerator() {
             <div className="space-y-2">
               {videoOnly && (
                 <div className="flex items-center gap-2 rounded-xl bg-gray-50 border border-gray-200 px-3 py-2">
-                  <span className="text-sm">🎬</span>
+                  <Film size={14} className="shrink-0 text-gray-500" />
                   <p className="text-xs font-bold text-gray-600">영상만 모드 — AI 음성·자막 없이 클립 몽타주만 생성돼요.</p>
-                </div>
-              )}
-              {cart.size < 3 && (
-                <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2">
-                  <span className="text-sm">⚠️</span>
-                  <p className="text-xs font-bold text-amber-700">클립 {cart.size}개 — 3개 이상 담아야 영상이 자연스러워요.</p>
                 </div>
               )}
             </div>
@@ -1666,9 +1815,9 @@ export default function VideoGenerator() {
             {titleMode && (
               <div className="rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-3 space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-[11px] font-bold text-[#0064FF]">✍️ 영상 상단 캡션 <span className="font-normal text-gray-500">· AI 자동 생성, 수정 가능</span></p>
+                  <p className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0064FF]"><Pencil size={12} /> 영상 상단 캡션 <span className="font-normal text-gray-500">· AI 자동 생성, 수정 가능</span></p>
                   <button type="button" onClick={() => genHookTitle(true)} disabled={titleLoading}
-                    className="shrink-0 text-[11px] font-bold text-[#0064FF] hover:underline disabled:text-gray-400">🔄 다시 생성</button>
+                    className="shrink-0 inline-flex items-center gap-1 text-[11px] font-bold text-[#0064FF] hover:underline disabled:text-gray-400"><RefreshCw size={11} /> 다시 생성</button>
                 </div>
                 {titleLoading ? (
                   <p className="text-xs text-gray-500">제목 만드는 중…</p>
@@ -1683,14 +1832,14 @@ export default function VideoGenerator() {
             {genMode === 'voice' && (
             <div className="rounded-xl border border-gray-200">
               <button onClick={() => setManualOpen(o => !o)} className="flex w-full items-center justify-between px-4 py-3 text-left">
-                <span className="text-sm font-bold text-gray-800">✍️ 대본</span>
+                <span className="inline-flex items-center gap-1.5 text-sm font-bold text-gray-800"><Pencil size={14} /> 대본</span>
                 <span className="text-gray-400">{manualOpen ? "▴" : "▾"}</span>
               </button>
               {manualOpen && (
                 <div className="px-4 pb-4 space-y-2">
                   <button type="button" onClick={fillScriptDraft} disabled={scriptFilling}
                     className="w-full rounded-xl border border-[#0064FF] bg-[#0064FF]/5 py-2.5 text-sm font-bold text-[#0064FF] transition hover:bg-[#0064FF]/10 disabled:opacity-50">
-                    {scriptFilling ? "대본 만드는 중… 최대 5분 (클립 분석 후 생성)" : "👀 대본 미리보기"}
+                    {scriptFilling ? "대본 만드는 중… 최대 5분 (클립 분석 후 생성)" : <span className="inline-flex items-center justify-center gap-1.5"><Eye size={15} /> 대본 미리보기</span>}
                   </button>
                   {scriptFillErr && <p className="text-xs font-medium text-red-500">{scriptFillErr}</p>}
                   <p className="text-sm text-gray-500">비우면 AI가 자동 생성 · 한 줄 = 한 컷</p>
@@ -1706,7 +1855,7 @@ export default function VideoGenerator() {
             {genMode === 'voice' && (
             <div className="rounded-xl border border-gray-200">
               <button onClick={() => setCtaOpen(o => !o)} className="flex w-full items-center justify-between px-4 py-3 text-left">
-                <span className="text-sm font-bold text-gray-800">💬 댓글 유도 단어 <span className="font-normal text-gray-400">· 선택 (CTA)</span></span>
+                <span className="inline-flex items-center gap-1.5 text-sm font-bold text-gray-800"><MessageCircle size={14} /> 댓글 유도 단어 <span className="font-normal text-gray-400">· 선택 (CTA)</span></span>
                 <span className="text-gray-400">{ctaOpen ? "▴" : "▾"}</span>
               </button>
               {ctaOpen && (
@@ -1893,13 +2042,13 @@ export default function VideoGenerator() {
 
       {/* ── 상단 바 ── */}
       <AppTopBar onMenuClick={() => setMobileMenuOpen(true)} onInvite={() => setShowInvite(true)} session={session} balance={balance} daysLeft={daysLeft} userPlan={userPlan} onHistory={() => setShowHistory(true)} activeView={activeView} onViewChange={setActiveView} userRole={userRole} />
-      {session && !openchatX && (
+      {session && !openchatX && clips.length === 0 && (
         <div className="fixed bottom-20 left-4 z-40 flex items-center gap-1 rounded-full bg-[#FEE500] pl-3.5 pr-1.5 py-2 shadow-lg shadow-black/10">
           <a href="https://open.kakao.com/o/s7CrKpxi" target="_blank" rel="noreferrer" className="text-xs font-black text-[#3C1E1E] hover:brightness-90">💬 오픈채팅 · 불편한 점 알려주세요</a>
           <button onClick={() => { try { sessionStorage.setItem("chronit_openchat_x", "1"); } catch {} setOpenchatX(true); }} title="닫기" className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[#3C1E1E]/60 hover:bg-black/10 hover:text-[#3C1E1E]">✕</button>
         </div>
       )}
-      {session && (
+      {session && clips.length === 0 && (
         <button onClick={() => setShowDemo(true)} className="fixed bottom-32 left-4 z-40 flex items-center gap-1 rounded-full bg-[#0064FF] px-3.5 py-2 text-xs font-black text-white shadow-lg hover:bg-[#0052D6] active:scale-95">▶ 30초만에 크로닛 이해하기</button>
       )}
       {showDemo && <QuickDemo onClose={() => setShowDemo(false)} />}
@@ -1951,7 +2100,7 @@ export default function VideoGenerator() {
                   {STYLE_PACKS.map((pk) => (
                     <button key={pk.key} onClick={() => applyPack(pk)}
                       className={`rounded-xl border p-3 text-left transition ${activePack === pk.key ? "border-[#0064FF] bg-[#0064FF]/10" : "border-gray-200 bg-white hover:border-gray-400"}`}>
-                      <p className={`text-sm font-black ${activePack === pk.key ? "text-[#0064FF]" : "text-gray-900"}`}>{pk.emoji} {pk.name}{FISH_MALE_IDS.has(pk.voiceId) ? " (남)" : " (여)"}</p>
+                      <p className={`text-sm font-black ${activePack === pk.key ? "text-[#0064FF]" : "text-gray-900"}`}><PackIcon k={pk.key} size={14} className="inline align-[-2px]" /> {pk.name}{FISH_MALE_IDS.has(pk.voiceId) ? " (남)" : " (여)"}</p>
                       <p className="text-xs text-gray-500 mt-0.5 leading-tight">{pk.desc}</p>
                     </button>
                   ))}
@@ -2062,10 +2211,10 @@ export default function VideoGenerator() {
           {/* 새로 시작 (작업 초기화) */}
           <div className="mb-3 flex justify-end">
             <button onClick={() => { if (window.confirm("현재 작업을 비우고 새로 시작할까요?\n(완성된 영상은 생성 내역에 그대로 있어요)")) handleReset(); }}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-500 transition hover:border-[#0064FF]/50 hover:text-[#0064FF]">🆕 새로 시작</button>
+              className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-500 transition hover:border-[#0064FF]/50 hover:text-[#0064FF]"><Plus size={12} strokeWidth={2.5} /> 새로 시작</button>
           </div>
 
-          <StagePanel n={1} title="영상 분석" current={stage} hideNum
+          <StagePanel n={1} title="링크 붙여넣기" current={stage} hideNum
             headerRight={
               (refInfo && !refInfo.ref_is_paid && refInfo.ref_remaining_days > 0) ? (
               <div className="shrink-0 w-36 sm:w-44">
@@ -2080,6 +2229,12 @@ export default function VideoGenerator() {
               ) : null
             }>
             <div className="space-y-4">
+              {/* ── 옵션(형식·광고·직접업로드) 기본 접힘 — 해피패스: 링크만 붙이면 됨 ── */}
+              <button type="button" onClick={() => setOptOpen(o=>!o)}
+                className="flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-[#0064FF]">
+                {optOpen ? "▴" : "▾"} 옵션 · 영상 형식 · 광고 · 직접 업로드
+              </button>
+              {optOpen && (<>
               {/* 영상 준비 — 직접 업로드 메인 + 보조 도구 (최상단) */}
               <div className="flex flex-wrap gap-2">
                 {FEATURES.directUpload && (
@@ -2115,6 +2270,7 @@ export default function VideoGenerator() {
                 <span className="text-sm font-bold text-gray-700">우측 상단 <b className="text-[#0064FF]">[광고]</b> 표기</span>
                 <span className="ml-auto text-[11px] text-gray-400">유료광고·제휴 시 권장</span>
               </label>
+              </>)}
 
               {FEATURES.directUpload && uploadOpen && (
                 <div>
@@ -2162,8 +2318,7 @@ export default function VideoGenerator() {
               )}
 
               <div>
-                <label className="mb-1 block text-base font-bold text-gray-700">또는 링크로 가져오기 <span className="font-normal text-gray-400">· 인스타 · 틱톡 · 유튜브</span></label>
-                <p className="mb-2 rounded-lg bg-[#0064FF]/10 px-3 py-2.5 text-sm font-bold text-[#0064FF]">🎯 상품이 <b>또렷하게 크게</b> 보이는 영상일수록 결과가 좋아요</p>
+                <p className="mb-2 flex items-center gap-1.5 rounded-lg bg-[#0064FF]/10 px-3 py-2.5 text-sm font-bold text-[#0064FF]"><Target size={16} className="shrink-0" /><span>상품이 <b>또렷하게 크게</b> 보이는 영상일수록 결과가 좋아요</span></p>
                 <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                   <input type="url" value={sourceUrl}
                     onChange={e => { _userEdited.current = true; setSourceUrl(e.target.value); setSearchError(""); setClips([]); setCart(new Set()); setManualScript(""); setScript(null); setScriptFillErr(""); }}
@@ -2175,7 +2330,7 @@ export default function VideoGenerator() {
                     className="w-full sm:w-auto shrink-0 rounded-xl bg-[#0064FF] px-5 py-3.5 text-base font-bold text-white hover:bg-[#0052D6] disabled:opacity-40 transition flex items-center justify-center gap-2">
                     {searching
                       ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />분석 중...</>
-                      : "🔍 분석 시작"}
+                      : <><Search size={16} /> 분석 시작</>}
                   </button>
                 </div>
                 {!searchError && <UrlHint url={sourceUrl} />}
@@ -2191,12 +2346,6 @@ export default function VideoGenerator() {
                     </span>
                     <span className="text-sm font-bold text-[#0064FF]">{cart.size}개 담음</span>
                   </div>
-                  <div className="mb-3 rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/5 px-3 py-2 text-center">
-                    <div className="text-sm font-bold text-gray-700">
-                      클립 <span className="text-[#0064FF]">3개 이상</span> 담고 <span className="text-[#0064FF]">🚀 자동 생성</span>
-                    </div>
-                    <div className="mt-0.5 text-xs font-medium text-gray-400">많이 담을수록 영상이 더 좋아져요</div>
-                  </div>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {clips.map(clip => (
                       <ClipCard key={clip.video_id} clip={clip}
@@ -2206,11 +2355,20 @@ export default function VideoGenerator() {
                   </div>
                   {(() => {
                     const needUploadName = clips.some((c: any) => c.source === "upload" && !String(c.video_id || "").startsWith("trend_")) && !uploadName.trim();
+                    // ★ 푸티지 부족 반려: 담은 클립 길이 합 < 목표 길이면 막음(프리즈·반복 방지).
+                    //   길이 미상(업로드 등 duration=0) 클립이 섞이면 측정 불가 → 검사 건너뜀(오탐 방지). ★
+                    const _sel = (clips as any[]).filter((c: any) => cart.has(c.video_id));
+                    const _durs = _sel.map((c: any) => Number(c.duration) || 0);
+                    const _allKnown = _sel.length > 0 && _durs.every((d: number) => d > 0);
+                    const _sumDur = _durs.reduce((a: number, b: number) => a + b, 0);
+                    const _tooShort = _allKnown && _sumDur < targetSeconds;
                     return (
-                  <FloatingNext
-                    label={autoRunning ? (autoRunStep || "처리 중...") : cart.size === 0 ? "👇 클립을 담아주세요" : needUploadName ? "✏️ 상품명을 입력해주세요" : `🚀 자동 생성 (${cart.size}개)`}
-                    onClick={() => { if (!autoRunning && cart.size > 0 && !needUploadName) { setModalCtaText(ctaText); setShowAutoModal(true); } }}
-                    disabled={autoRunning || cart.size === 0 || needUploadName} />
+                  <BottomActionBar
+                    showSeg={cart.size > 0 && (clips as any[]).some((c: any) => cart.has(c.video_id) && c.source !== "upload")}
+                    onSeg={openStoryboard}
+                    genLabel={autoRunning ? (autoRunStep || "처리 중...") : cart.size === 0 ? "클립을 담아주세요" : needUploadName ? "상품명을 입력해주세요" : _tooShort ? `영상 길이 부족 · 담은 ${Math.round(_sumDur)}초 / 목표 ${targetSeconds}초` : `자동 생성 (${cart.size}개)`}
+                    onGen={() => { if (!autoRunning && cart.size > 0 && !needUploadName && !_tooShort) { setModalCtaText(ctaText); setShowAutoModal(true); } }}
+                    genDisabled={autoRunning || cart.size === 0 || needUploadName || _tooShort} />
                     );
                   })()}
                   {!autoRunning && autoRunError && (
@@ -2235,6 +2393,12 @@ export default function VideoGenerator() {
         </> /* generator view end */}
       </div>
 
+      {segEditorOpen && (
+        <StoryboardModal script={sbScript} cuts={sbCuts} stage={sbStage} segsByVideo={segsByVideo} clips={clips} onRetry={openStoryboard}
+          loading={sbLoading} slots={sbSlots} setSlots={setSbSlots} onClose={() => setSegEditorOpen(false)}
+          cta={sbCta} setCta={setSbCta} speed={voiceSpeed / 100} generating={rendering}
+          onGenerate={() => { setSegEditorOpen(false); handleRender({ ctaText: sbCta }); }} />
+      )}
       {packOnboardOpen && (
         <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-7 shadow-2xl">
@@ -2245,7 +2409,7 @@ export default function VideoGenerator() {
                 <button key={pk.key}
                   onClick={() => { applyPack(pk); try { localStorage.setItem("chronit_pack_onboarded","1"); } catch {} setPackOnboardOpen(false); }}
                   className="rounded-2xl border-2 border-gray-200 bg-white p-4 text-left transition hover:border-[#0064FF]">
-                  <div className="text-2xl">{pk.emoji}</div>
+                  <div className="flex text-[#0064FF]"><PackIcon k={pk.key} size={26} /></div>
                   <div className="mt-1.5 text-sm font-black text-gray-900">{pk.name}</div>
                   <div className="mt-0.5 text-xs text-gray-400">{pk.desc}</div>
                 </button>
@@ -2367,6 +2531,28 @@ function FloatingPrev({ onClick }: { onClick: () => void }) {
                  cursor:"pointer", boxShadow:"0 4px 6px rgba(0,0,0,0.4)" }}>
         <span>←</span><span>이전</span>
       </button>
+    </div>,
+    document.body
+  );
+}
+
+function BottomActionBar({ showSeg, onSeg, genLabel, onGen, genDisabled }: any) {
+  return createPortal(
+    <div style={{ position:"fixed", bottom:"24px", left:"50%", transform:"translateX(-50%)", zIndex:50, width:"calc(100vw - 24px)", maxWidth:"460px" }}>
+      <div style={{ display:"flex", gap:"10px", background:"rgba(255,255,255,0.9)", backdropFilter:"blur(10px)", padding:"8px", borderRadius:"20px", border:"0.5px solid rgba(0,0,0,0.06)", boxShadow:"0 10px 34px -10px rgba(0,0,0,0.22)" }}>
+        {showSeg && (
+          <button onClick={onSeg} style={{ flex:1, height:"52px", borderRadius:"14px", border:"none", background:"#EAF1FF", color:"#0064FF", fontSize:"15px", fontWeight:700, display:"inline-flex", alignItems:"center", justifyContent:"center", gap:"6px", cursor:"pointer" }}>
+            <Scissors size={18} strokeWidth={2.2} /> 구간 편집
+          </button>
+        )}
+        <button onClick={onGen} disabled={genDisabled}
+          style={{ flex: showSeg ? 1.3 : 1, height:"52px", borderRadius:"14px", border:"none",
+                   background: genDisabled ? "#E5E7EB" : "#0064FF", color: genDisabled ? "#6B7280" : "#fff",
+                   fontSize:"15px", fontWeight:700, display:"inline-flex", alignItems:"center", justifyContent:"center", gap:"6px",
+                   cursor: genDisabled ? "not-allowed" : "pointer" }}>
+          <Sparkles size={18} strokeWidth={2.2} /> {genLabel}
+        </button>
+      </div>
     </div>,
     document.body
   );
@@ -2527,7 +2713,7 @@ function FontDropdown({ value, onChange }: { value: string; onChange: (v: string
         className="w-full flex items-center justify-between rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-[#0064FF]"
         style={{ fontFamily: cur.value }}>
         <span className="truncate">{cur.label}</span>
-        <span className="ml-2 shrink-0 text-gray-400">▾</span>
+        <ChevronDown size={14} className="ml-2 shrink-0 text-gray-400" />
       </button>
       {open && (
         <div className="absolute left-0 right-0 z-30 mt-1 max-h-60 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
@@ -3822,10 +4008,251 @@ function TrendCard({ item, onAdd, onAnalyze }: { item: any; onAdd: () => void; o
   );
 }
 
+function SegPlayer({ clip, seg }: any) {
+  const [playing, setPlaying] = useState(false);
+  const [useProxy, setUseProxy] = useState(false);
+  const ref = useRef<HTMLVideoElement>(null);
+  const raw = ((clip?.download_url || clip?.video_url || "") as string).replace(/^http:\/\//, "https://"); // ★ mixed content 방지: 외부 CDN http->https (egress 0 유지)
+  const isOwn = raw.includes("supabase.co/storage/v1/object/public/");
+  // ★ 직접재생 우선(egress 0) — 실패 시 video-proxy 폴백 ★
+  const url = !raw ? "" : (isOwn ? raw : (useProxy ? (SB + "/functions/v1/video-proxy?url=" + encodeURIComponent(raw)) : raw));
+  useEffect(() => {
+    const v = ref.current; if (!v || !playing) return;
+    const S = () => Number(seg?.start) || 0;
+    const E = () => { const e = Number(seg?.end); return (e && e > S()) ? e : (v.duration || S() + 3); };
+    // ★ 컷 끝 여유 마진: timeupdate(~250ms)로는 컷을 지나쳐 다음 장면 몇 프레임이 보였음.
+    //   rAF(~60fps)로 정밀 감시 + 전환프레임 직전(end-MARGIN)에 되감아 다음 장면 유입 차단 ★
+    const MARGIN = 0.09;
+    const toStart = () => { try { v.currentTime = S(); if (v.paused) v.play().catch(() => {}); } catch {} };
+    const onLoaded = () => { toStart(); v.play().catch(() => {}); };
+    let raf = 0;
+    const tick = () => {
+      if (!ref.current) return;
+      const s = S(); const lim = Math.max(s + 0.05, E() - MARGIN);
+      if (v.currentTime >= lim || v.currentTime < s - 0.2) toStart();
+      raf = requestAnimationFrame(tick);
+    };
+    v.addEventListener("loadedmetadata", onLoaded);
+    v.addEventListener("ended", toStart);      // 구간=영상끝이면 자연 정지 → 되감아 반복
+    if (v.readyState >= 1) onLoaded();
+    raf = requestAnimationFrame(tick);
+    return () => { cancelAnimationFrame(raf); v.removeEventListener("loadedmetadata", onLoaded); v.removeEventListener("ended", toStart); };
+  }, [playing, useProxy]);
+  if (playing && url) {
+    return <video ref={ref} src={url} autoPlay muted playsInline
+      className="absolute inset-0 w-full h-full object-cover"
+      onClick={(e) => { e.stopPropagation(); setPlaying(false); }} onError={() => { if (!isOwn && !useProxy) setUseProxy(true); else setPlaying(false); }} />;
+  }
+  return (
+    <div className="absolute inset-0 cursor-pointer" onClick={(e) => { e.stopPropagation(); if (url) setPlaying(true); }}>
+      {seg.thumbnail
+        ? <img src={"data:image/jpeg;base64," + seg.thumbnail} className="w-full h-full object-cover" />
+        : <div className="w-full h-full bg-gray-200 flex items-center justify-center text-2xl">🎬</div>}
+      {url && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/25">
+          <div className="rounded-full bg-white/90 h-9 w-9 flex items-center justify-center"><span className="text-black text-base ml-0.5">▶</span></div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SegmentSection({ clips, cart, onOpen }: any) {
+  const selClips = (clips as any[]).filter((c: any) => cart.has(c.video_id) && c.source !== "upload");
+  if (!selClips.length) return null;
+  return (
+    <button onClick={onOpen}
+      className="mb-3 w-full rounded-xl border-2 border-[#0064FF] bg-[#0064FF]/5 py-2.5 text-sm font-bold text-[#0064FF] hover:bg-[#0064FF]/10 transition">
+      🎬 구간 선택 편집 <span className="font-normal text-gray-400">(쓸 부분만 크게 보고 고르기)</span>
+    </button>
+  );
+}
+
+function PoolPicker({ pool, clips, onPick, onClose }: any) {
+  const clipOf = (seg: any) => (clips as any[]).find((c: any) => c.video_id === seg?.video_id);
+  return (
+    <div className="absolute inset-0 z-20 flex flex-col bg-black/70" onClick={onClose}>
+      <div className="mt-auto max-h-[75vh] overflow-y-auto rounded-t-2xl bg-white p-3" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-sm font-bold text-gray-900">클립 바꾸기 <span className="font-normal text-gray-400">탭하면 재생 · 선택으로 교체</span></span>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700">✕</button>
+        </div>
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+          {(pool as any[]).map((seg: any, i: number) => (
+            <div key={i} className="overflow-hidden rounded-lg border-2 border-gray-200">
+              <div className="relative aspect-[9/16] bg-gray-100">
+                <SegPlayer clip={clipOf(seg)} seg={seg} />
+                <span className="absolute bottom-0.5 right-0.5 z-10 rounded bg-black/70 px-1 text-[10px] font-bold text-white">{seg.duration}s</span>
+              </div>
+              <button onClick={() => onPick(seg)} className="w-full bg-[#0064FF] py-1 text-[11px] font-black text-white hover:bg-[#0052D6]">선택</button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 한국어 나레이션 예상 길이(초): 공백 제외 글자수 기준 추정 (~5.5자/초). 실제 TTS 실측은 다음 단계.
+function estNarrSec(text: string, speed: number = 1.2): number {
+  const chars = (text || "").replace(/\s/g, "").length;
+  if (!chars) return 0;
+  const s = Math.max(0.5, speed || 1.2);
+  // 실측 보정: 호흡 쉼 ~0.2s + 글자당 0.13s, 음성 속도로 나눔
+  return Math.max(0.5, Math.round((0.2 + chars * 0.13 / s) * 10) / 10);
+}
+function StoryboardModal({ script, cuts, stage, segsByVideo, clips, loading, slots, setSlots, onClose, onRetry, cta, setCta, speed, onGenerate, generating }: any) {
+  const pool = React.useMemo(() => Object.values(segsByVideo || {}).flat() as any[], [segsByVideo]);
+  const [pickSlot, setPickSlot] = useState<number | null>(null);
+  const scriptEmpty = !script || !script.length;
+  useEffect(() => {
+    if (!pool.length) return;
+    // 대본 있으면 대본 줄 수만큼, 없으면(대본 지연) 구간 전부로 슬롯 구성 → 재생 테스트 가능
+    const hasScript = !!(script && script.length);
+    const lines: any[] = hasScript ? script : pool;
+    // ★ 길이 인식 배정: 각 대사 예상 길이에 맞는 구간 우선(긴 대사엔 긴 구간).
+    //   기존 위치 기반(pool[i%len])이 나레이션>클립 초과를 유발했음. 부족하면 가장 긴 구간으로. ★
+    const used = new Set<number>();
+    const pick = (needSec: number) => {
+      if (used.size >= pool.length) used.clear();
+      let best = -1, bestScore = Infinity;
+      pool.forEach((sg: any, idx: number) => {
+        if (used.has(idx)) return;
+        const d = Number(sg?.duration) || 0;
+        const score = d >= needSec ? (d - needSec) : (needSec - d) + 100; // 충분한 구간 우선
+        if (score < bestScore) { bestScore = score; best = idx; }
+      });
+      if (best < 0) best = 0;
+      used.add(best);
+      return pool[best];
+    };
+    // ★ 정확 컷(plan): whisper 실측 duration으로 묶인 컷을 그대로 슬롯화 → 렌더와 100% 일치 ★
+    if (cuts && cuts.length) {
+      // ★ plan의 의미매칭 제안(suggest_vid/seg) 우선 → 사람처럼 맞춘 기본 배치. 없으면 길이 기준. ★
+      const findSeg = (vid: string, seg: any) => pool.find((sp: any) => sp.video_id === vid && sp.seg === seg);
+      setSlots(cuts.map((cut: any) => {
+        const sug = (cut.suggest_vid != null && cut.suggest_vid !== "") ? findSeg(cut.suggest_vid, cut.suggest_seg) : null;
+        if (sug) { const u = pool.indexOf(sug); if (u >= 0) used.add(u); }
+        return { text: cut.text, narrSec: Number(cut.dur) || 0, cutIdx: cut.cut, segIndices: cut.seg_indices, seg: sug || pick(Number(cut.dur) || 1.5) };
+      }));
+      return;
+    }
+    if (!hasScript) {
+      setSlots(lines.map((_l: any, i: number) => ({ text: "", narrSec: 0, seg: pool[i % pool.length] })));
+      return;
+    }
+    // ★ 호흡 → 컷 그룹핑 (렌더 _match_clips_rotate와 동일: MIN_CUT 0.9초). 슬롯 = 컷 하나. ★
+    const MIN_CUT = 0.9;
+    const _he = (l: any) => {
+      const t = (l && typeof l === "object") ? (l.text || "") : String(l || "");
+      const d = (l && typeof l === "object" && Number(l.duration_sec) > 0.05) ? Number(l.duration_sec) : estNarrSec(t, speed);
+      return { t, d };
+    };
+    const grpCuts: { text: string; narrSec: number }[] = [];
+    let curT: string[] = [], curD = 0;
+    for (const l of lines) {
+      const { t, d } = _he(l);
+      if (t) curT.push(t);
+      curD += d;
+      if (curD >= MIN_CUT) { grpCuts.push({ text: curT.join(" "), narrSec: Math.round(curD * 10) / 10 }); curT = []; curD = 0; }
+    }
+    if (curT.length || curD > 0.05) { // 마지막 자투리 → 이전 컷에 이월(렌더와 동일)
+      if (grpCuts.length) { const last = grpCuts[grpCuts.length - 1]; last.text += (curT.length ? " " + curT.join(" ") : ""); last.narrSec = Math.round((last.narrSec + curD) * 10) / 10; }
+      else grpCuts.push({ text: curT.join(" "), narrSec: Math.round(curD * 10) / 10 });
+    }
+    setSlots(grpCuts.map((cut) => ({ text: cut.text, narrSec: cut.narrSec, seg: pick(cut.narrSec || 1.5) })));
+  }, [script, pool.length, cuts]);
+  const clipOf = (seg: any) => (clips as any[]).find((c: any) => c.video_id === seg?.video_id);
+  return (
+    <div className="fixed inset-0 z-[140] flex flex-col bg-black/80 backdrop-blur-sm">
+      <div className="flex items-center gap-2 border-b bg-white px-3 py-3">
+        <button onClick={onClose} aria-label="뒤로" className="flex items-center justify-center rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-800"><ChevronLeft size={22} /></button>
+        <span className="flex-1 min-w-0 truncate font-bold text-gray-900 inline-flex items-center gap-1.5"><Film size={18} strokeWidth={2.2} />스토리보드 <span className="text-sm font-normal text-gray-400">대본 줄마다 클립 고르기</span></span>
+        <button onClick={onClose} className="shrink-0 rounded-lg bg-[#0064FF] px-4 py-2 text-sm font-bold text-white hover:bg-[#0052D6]">완료</button>
+      </div>
+      <div className="flex-1 overflow-y-auto bg-gray-50 p-4">
+        {loading ? (
+          <div className="py-24 text-center">
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-[#0064FF]" />
+            <p className="text-sm font-semibold text-gray-700">{stage || "준비 중"}</p>
+            <p className="mt-1 text-xs text-gray-400">자동생성과 동일한 컷을 만드는 중 · 클립 다운로드가 대부분이라 1~2분 걸려요</p>
+          </div>
+        ) : !slots.length ? (
+          <div className="py-24 text-center text-sm text-gray-500">
+            구간을 불러오지 못했어요.
+            {onRetry && <button onClick={onRetry} className="ml-2 rounded-lg bg-[#0064FF] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#0052D6]">다시 시도</button>}
+          </div>
+        ) : (
+          <div className="flex flex-col">
+            {scriptEmpty && (
+              <div className="mb-2 flex items-center justify-between rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                <span>대본 생성이 지연돼 임시 순서로 표시 중 — 재생은 확인할 수 있어요.</span>
+                {onRetry && <button onClick={onRetry} className="ml-2 shrink-0 rounded bg-amber-500 px-2 py-1 font-bold text-white hover:bg-amber-600">대본 다시</button>}
+              </div>
+            )}
+          <div className="mb-1.5 px-1 text-[11px] text-gray-400"><Mic size={12} style={{display:"inline",verticalAlign:"-2px"}} /> 예상 나레이션 · <Film size={12} style={{display:"inline",verticalAlign:"-2px"}} /> 클립 길이 — 나레이션이 더 길면 빨간 경고 <span className="text-gray-300">(예상치 · 음성 {(Number(speed)||1.2).toFixed(1)}배)</span></div>
+          <div className="flex gap-3 overflow-x-auto px-1 pb-4">
+            {slots.map((slot: any, i: number) => {
+              const narr = estNarrSec(slot.text, speed); // ★ 현재 음성 배속 반영해 실시간 재계산
+              const clip = Number(slot.seg?.duration) || 0;
+              const over = narr > 0 && clip > 0 && narr > clip + 0.15;
+              return (
+              <div key={i} className="flex w-32 shrink-0 flex-col rounded-xl border border-gray-200 bg-white p-1.5">
+                <div className="relative aspect-[9/16] overflow-hidden rounded-lg bg-gray-100">
+                  {slot.seg ? <SegPlayer clip={clipOf(slot.seg)} seg={slot.seg} />
+                    : <div className="flex h-full w-full items-center justify-center text-gray-300"><Film size={26} /></div>}
+                  {slot.seg && <span className={`absolute bottom-1 right-1 z-10 rounded px-1 py-0.5 text-[10px] font-bold text-white ${over ? "bg-red-500/90" : "bg-black/70"}`}>{clip}s</span>}
+                </div>
+                <div className="mt-1.5">
+                  <span className="mb-0.5 block text-[11px] font-bold text-[#0064FF]">{i + 1}. 대본 <span className="font-normal text-gray-400">(수정 가능)</span></span>
+                  <textarea value={slot.text || ""} rows={2} placeholder="대본을 입력하세요"
+                    onChange={(e) => setSlots((prev: any[]) => prev.map((s: any, idx: number) => idx === i ? { ...s, text: e.target.value } : s))}
+                    className="w-full resize-none rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs leading-snug text-gray-800 outline-none focus:border-[#0064FF]" />
+                </div>
+                <div className="mt-1 flex items-center justify-center gap-1 text-[10px] font-bold">
+                  <span className="text-gray-500 inline-flex items-center gap-0.5"><Mic size={11} />{slot.text ? "~" + narr + "s" : "-"}</span>
+                  <span className="text-gray-300">·</span>
+                  <span className={(over ? "text-red-500" : "text-gray-500") + " inline-flex items-center gap-0.5"}><Film size={11} />{clip}s</span>
+                </div>
+                {over && <div className="mt-0.5 flex items-center justify-center gap-0.5 rounded bg-red-50 px-1 py-0.5 text-[9px] font-bold text-red-600"><AlertTriangle size={10} /> 나레이션이 길어요</div>}
+                <button onClick={() => setPickSlot(i)}
+                  className="mt-1 flex w-full items-center justify-center gap-1 rounded-lg bg-gray-100 py-1.5 text-[11px] font-bold text-gray-700 hover:bg-gray-200"><RefreshCw size={12} /> 바꾸기</button>
+              </div>
+              );
+            })}
+          </div>
+          </div>
+        )}
+      </div>
+      {!loading && slots.length > 0 && (
+        <div className="border-t bg-white px-4 py-3">
+          <label className="mb-1.5 block text-[11px] font-bold text-gray-500">CTA · 영상 끝 문구 (수정 가능)</label>
+          <p className="mb-1.5 text-[11px] text-gray-400">비우면 '프로필 링크 확인'으로 마무리</p>
+          <div className="flex items-center gap-2">
+            <input value={cta ?? ""} onChange={(e) => setCta && setCta(e.target.value)}
+              placeholder="예: 관심, 알려줘 (선택)"
+              className="min-w-0 flex-1 rounded-xl border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-[#0064FF]" />
+            <button onClick={onGenerate} disabled={generating}
+              className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-[#0064FF] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#0052D6] disabled:opacity-60">
+              {generating ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />생성 중</> : <><Sparkles size={16} />자동 생성</>}
+            </button>
+          </div>
+        </div>
+      )}
+      {pickSlot !== null && (
+        <PoolPicker pool={pool} clips={clips}
+          onPick={(seg: any) => { setSlots((prev) => prev.map((s: any, idx: number) => idx === pickSlot ? { ...s, seg } : s)); setPickSlot(null); }}
+          onClose={() => setPickSlot(null)} />
+      )}
+    </div>
+  );
+}
+
 function ClipCard({ clip, selected, onToggle, onRemove }: { clip: Clip; selected: boolean; onToggle: () => void; onRemove?: () => void }) {
   const [imgError, setImgError] = useState(false);
   const [playing, setPlaying] = useState(false);
-  const rawUrl = clip.download_url || clip.video_url || "";
+  const [vidDur, setVidDur] = useState(0);
+  const rawUrl = (clip.download_url || clip.video_url || "").replace(/^http:\/\//, "https://"); // mixed content 방지
   const proxyUrl = rawUrl
     ? `https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/video-proxy?url=${encodeURIComponent(rawUrl)}`
     : "";
@@ -3866,8 +4293,13 @@ function ClipCard({ clip, selected, onToggle, onRemove }: { clip: Clip; selected
             </div>
           </>
         )}
-        {clip.duration > 0 && !playing && (
-          <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1 py-0.5 text-xs text-white font-bold">{clip.duration}s</div>
+        {!clip.duration && isOwnStorage && playUrl && (
+          <video src={playUrl} preload="metadata" muted playsInline
+            onLoadedMetadata={e => { const d = Math.round((e.currentTarget as HTMLVideoElement).duration || 0); if (d > 0) setVidDur(d); }}
+            style={{ display: "none" }} />
+        )}
+        {(clip.duration || vidDur) > 0 && !playing && (
+          <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1 py-0.5 text-xs text-white font-bold">{clip.duration || vidDur}s</div>
         )}
         {selected && (
           <div className="absolute top-1.5 left-1.5 h-5 w-5 rounded-full bg-[#0064FF] flex items-center justify-center">

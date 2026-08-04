@@ -101,7 +101,13 @@
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" rel="stylesheet">
     <!-- 번들 한글 폰트 (자막/썸네일 프리뷰용, 출력 폰트와 family명 일치) -->
     <link href="/fonts/_bundled.css" rel="stylesheet">
-  </head>
+    <style id="chronit-ch-nudge">
+    /* 하단 자동생성 바와 채널톡 런처 겹침 방지 — 모바일에서 런처를 위로 */
+    @media (max-width: 700px) {
+      #ch-plugin-launcher, #ch-plugin .launcher, div[class*="launcher"][class*="ch-"] { bottom: 96px !important; }
+    }
+  </style>
+</head>
   <body>
     <noscript>
       <h1>크로닛(Chronit) — 쇼핑 릴스 영상 편집 자동화</h1>
