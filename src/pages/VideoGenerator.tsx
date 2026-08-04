@@ -2657,6 +2657,7 @@ function AnalyzeProgress({ pid }: { pid?: string|null }) {
   const [pct, setPct] = React.useState(6);
   const [label, setLabel] = React.useState("영상 분석 중...");
   const realRef = React.useRef<{pct:number;label:string}|null>(null);
+  const shownRef = React.useRef(0);
   React.useEffect(() => {
     if (!pid) { realRef.current = null; return; }
     let alive = true;
@@ -2675,8 +2676,9 @@ function AnalyzeProgress({ pid }: { pid?: string|null }) {
       const e = (Date.now() - t0) / 1000;
       const timeP = 92 * (1 - Math.exp(-e / 35));
       const real = realRef.current;
-      const p = real ? Math.max(real.pct, timeP * 0.6) : timeP; // 실제 단계 우선 · 시간 기반 하한
-      setPct(Math.max(6, Math.min(96, Math.round(p))));
+      const target = real ? real.pct : timeP; // 실제 단계 우선
+      shownRef.current = Math.min(Math.min(96, target + 12), Math.max(shownRef.current, target) + 0.3);
+      setPct(Math.max(6, Math.round(shownRef.current)));
       setLabel(real ? real.label : (e < 12 ? "영상 분석 중..." : e < 45 ? "관련 클립 검색 중..." : "클립 정리 중... 거의 다 됐어요 ✨"));
     }, 300);
     return () => clearInterval(id);
@@ -3562,10 +3564,13 @@ function RenderProgressCard({ job, tick, onMinimize, onCancel }: { job:any; tick
     poll(); const t = setInterval(poll, 3500);
     return () => { alive = false; clearInterval(t); };
   }, [job?.id]);
+  const shownRef = React.useRef(0);
   const started = job?.created_at ? new Date(job.created_at).getTime() : Date.now();
   const elapsed = Math.max(0, (Date.now() - started) / 1000);
-  const timePct = Math.min(0.9, 1 - Math.exp(-elapsed / 110));
-  const pct = Math.min(0.98, Math.max(real ? real.pct / 100 : 0, timePct)); // 실제 단계 우선 · 시간 기반이 부드러운 하한
+  const timeP = Math.min(90, (1 - Math.exp(-elapsed / 110)) * 100);
+  const target = real ? real.pct : timeP; // 실제 단계 우선(시간은 real 없을 때만)
+  shownRef.current = Math.min(Math.min(97, target + 12), Math.max(shownRef.current, target) + 0.4); // 단계 점프 + 스톨 시 완만 크립(다음 단계 안 넘게)
+  const pct = shownRef.current / 100;
   const mm = Math.floor(elapsed/60), ss = Math.floor(elapsed%60);
   return createPortal(
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onMinimize}>
