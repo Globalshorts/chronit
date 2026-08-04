@@ -43,6 +43,7 @@ const sanitize = (s) =>
 export function LinkPageManager({ session }) {
   const [page, setPage] = useState(null)
   const [pages, setPages] = useState([])
+  const [allTitles, setAllTitles] = useState([]) // 모든 페이지 아이템 제목(자동번호 전역)
   const [jobs, setJobs] = useState([])
   const [items, setItems] = useState([]) // link_items
   const [loading, setLoading] = useState(true)
@@ -79,12 +80,14 @@ export function LinkPageManager({ session }) {
         }
         if (pg && !list.length) list = [pg]
         if (pg?.id) { try { await supabase.from('link_items').update({ page_id: pg.id }).eq('user_id', uid).is('page_id', null) } catch {} }
-        const [jb, it] = await Promise.all([
+        const [jb, it, at] = await Promise.all([
           supabase.from('video_jobs').select('id, product_name, seo_title, search_keyword, poster_url, video_url, created_at').eq('card_hidden', false)
             .eq('user_id', uid).eq('status', 'done').neq('video_url', '').order('created_at', { ascending: false }),
           supabase.from('link_items').select('*').eq('page_id', pg?.id),
+          supabase.from('link_items').select('title').eq('user_id', uid),
         ])
         if (!alive) return
+        setAllTitles((at.data || []).map((x) => x.title))
         setPages(list); setPage(pg || null); setJobs(jb.data || []); setItems(it.data || [])
         // ★ 깨끗한 포스터 연결: cog가 자막 굽기 전 프레임을 card-images/{uid}/{job}.jpg 에 올려둠.
         //   이미지 없는 카드 → 그 깨끗한 포스터가 있으면 연결. (자막 달린 프레임 캡처는 더이상 하지 않음) ★
@@ -135,7 +138,7 @@ export function LinkPageManager({ session }) {
   const nextNum = (() => {
     let mx = 0
     const scan = (t) => { const m = /^\s*\[(\d+)\]/.exec(t || ''); if (m) mx = Math.max(mx, parseInt(m[1], 10)) }
-    items.forEach((i) => scan(i.title)); jobs.forEach((j) => scan(j.seo_title))
+    allTitles.forEach((t) => scan(t)); jobs.forEach((j) => scan(j.seo_title))
     return mx + 1
   })()
   const [autoNum, setAutoNum] = useState(() => { try { return localStorage.getItem('chronit_auto_number') === '1' } catch { return false } })
@@ -254,7 +257,7 @@ export function LinkPageManager({ session }) {
       const { data, error } = await supabase.from('link_items')
         .update(patch).eq('id', existing.id).select('*').single()
       if (error || !data) { console.error('[link save] update 실패:', error); flash('저장 실패 — 다시 시도해 주세요'); return }
-      setItems((p) => p.map((i) => (i.id === data.id ? data : i)))
+      setItems((p) => p.map((i) => (i.id === data.id ? data : i))); setAllTitles((t) => [...t, data.title])
     } else {
       let videoUrl = job.video_url
       if (!img) {
@@ -265,7 +268,7 @@ export function LinkPageManager({ session }) {
         .insert({ user_id: uid, page_id: page?.id, video_job_id: job.id, title, target_url, active, image_url: img, video_url: videoUrl, sort_order: maxSort + 1, badge: badge ?? null, badge_color: badge_color ?? null })
         .select('*').single()
       if (error || !data) { console.error('[link save] insert 실패:', error); flash('저장 실패 — 다시 시도해 주세요'); return }
-      setItems((p) => [...p, data])
+      setItems((p) => [...p, data]); setAllTitles((t) => [...t, data.title])
     }
     flash('저장됨')
   }
