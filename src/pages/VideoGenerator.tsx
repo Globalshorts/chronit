@@ -2212,11 +2212,6 @@ export default function VideoGenerator() {
           <div className="space-y-0">
 
 
-          {/* 새로 시작 (작업 초기화) */}
-          <div className="mb-3 flex justify-end">
-            <button onClick={() => { if (window.confirm("현재 작업을 비우고 새로 시작할까요?\n(완성된 영상은 생성 내역에 그대로 있어요)")) handleReset(); }}
-              className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-500 transition hover:border-[#0064FF]/50 hover:text-[#0064FF]"><Plus size={12} strokeWidth={2.5} /> 새로 시작</button>
-          </div>
 
           <StagePanel n={1} title="링크 붙여넣기" current={stage} hideNum
             headerRight={
