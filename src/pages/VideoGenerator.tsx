@@ -10,7 +10,7 @@
  */
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus, Gift, ChevronDown, Pencil, Eye, MessageCircle, User, MessageSquare, Receipt, LogOut, Heart, Zap, Lightbulb, PenTool, Shield, Palette, Upload, ShoppingCart, ChevronUp, Save, X, Home, Flame, History, Link2 } from "lucide-react";
+import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus, Gift, ChevronDown, Pencil, Eye, MessageCircle, User, MessageSquare, Receipt, LogOut, Heart, Zap, Lightbulb, PenTool, Shield, Palette, Upload, ShoppingCart, ChevronUp, Save, X, Home, Flame, History, Link2, Download, Copy, Check, Trash2, Clock, Loader2, Smartphone } from "lucide-react";
 import DOMPurify from "dompurify";
 import { supabase } from "../lib/supabase";
 import { getFp } from "../lib/fp";
@@ -2159,7 +2159,7 @@ export default function VideoGenerator() {
             )}
             {activeView === "history" && (
               <>
-                <h2 className="text-xl font-black text-gray-900 mb-6">📹 생성 내역</h2>
+                <h2 className="mb-6 flex items-center gap-2 text-xl font-black text-gray-900"><Film size={22} className="text-[#0064FF]" /> 생성 내역</h2>
                 <HistoryView session={session} onGoToLinks={()=>setActiveView("product-search")} onGacha={(g:any)=>setGacha(g)} />
               </>
             )}
@@ -4820,8 +4820,8 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
       } catch {} finally { setLoading(false); }
     })();
   },[session]);
-  if(loading) return <div className="text-gray-500 text-center py-10">불러오는 중...</div>;
-  if(!jobs.length) return <div className="text-gray-500 text-center py-10">생성 내역이 없습니다</div>;
+  if(loading) return <div className="flex flex-col items-center gap-2 py-16 text-gray-400"><Loader2 size={22} className="animate-spin" /><span className="text-sm">불러오는 중…</span></div>;
+  if(!jobs.length) return <div className="flex flex-col items-center gap-3 py-16 text-center"><div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 text-gray-300"><Film size={26} /></div><p className="text-sm font-bold text-gray-500">아직 만든 영상이 없어요</p><p className="text-xs text-gray-400">작업실에서 첫 영상을 만들어보세요</p></div>;
   const dlUrl = (j:any) => j.video_url
     ? j.video_url + (j.video_url.includes("?")?"&":"?") + "download=" + encodeURIComponent((j.product_name||"chronit")+".mp4")
     : "";
@@ -4962,7 +4962,7 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
         {jobs.some((j:any)=>j.expired) && (
           <button onClick={bulkDeleteExpired} disabled={deleting==="__bulk__"}
             className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-bold text-red-600 hover:bg-red-100 disabled:opacity-50">
-            🗑 만료 {jobs.filter((j:any)=>j.expired).length}개 삭제
+            <Trash2 size={13} /> 만료 {jobs.filter((j:any)=>j.expired).length}개 삭제
           </button>
         )}
       </div>
@@ -4976,15 +4976,15 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
       {jobs.map(j=>{
         const done = j.status==="done" && j.video_url && !j.expired;
         return (
-          <div key={j.id} className="rounded-2xl bg-white border border-gray-200 overflow-hidden flex flex-col">
+          <div key={j.id} className="rounded-2xl bg-white border border-gray-200 overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
             <div className="relative aspect-[9/16] bg-black">
               {done ? (
                 <video src={j.video_url + "#t=0.0"} preload="metadata" playsInline controls
                   className="w-full h-full object-contain bg-black" />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center px-2 text-center">
-                  <span className={`text-sm font-bold ${j.status==="processing"?"text-[#0064FF] animate-pulse":j.status==="error"?"text-red-400":"text-gray-500"}`}>
-                    {j.status==="processing"?"⏳ 생성 중":j.status==="error"?"❌ 실패":j.expired?"⌛ 보관 만료":"⏳ 대기"}
+                  <span className={`inline-flex items-center gap-1.5 text-sm font-bold ${j.status==="processing"?"text-[#0064FF]":j.status==="error"?"text-red-400":"text-gray-500"}`}>
+                    {j.status==="processing"?<><Loader2 size={15} className="animate-spin" /> 생성 중</>:j.status==="error"?<><AlertTriangle size={15} /> 실패</>:j.expired?<><Clock size={15} /> 보관 만료</>:<><Clock size={15} /> 대기</>}
                   </span>
                 </div>
               )}
@@ -4997,19 +4997,19 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
                 </div>
                 <button onClick={()=>deleteJob(j)} disabled={deleting===j.id} title="삭제"
                   className="shrink-0 rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500 disabled:opacity-40 transition">
-                  {deleting===j.id ? <span className="block h-4 w-4 animate-spin rounded-full border-2 border-red-300 border-t-transparent" /> : "🗑️"}
+                  {deleting===j.id ? <span className="block h-4 w-4 animate-spin rounded-full border-2 border-red-300 border-t-transparent" /> : <Trash2 size={16} />}
                 </button>
               </div>
               {done ? (
                 <div className="mt-auto flex flex-col gap-1.5">
                   <button onClick={()=>saveVideo(j)} disabled={saving===j.id}
-                    className="block text-center rounded-xl bg-[#0064FF] px-3 py-2.5 text-sm font-bold text-white hover:bg-[#0052D6] active:bg-[#0052D6] disabled:opacity-50 transition">
-                    {saving===j.id ? "저장 중…" : (isIOS ? "📱 갤러리에 저장" : "📥 동영상 저장")}
+                    className="flex items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] px-3 py-2.5 text-sm font-bold text-white hover:bg-[#0052D6] active:bg-[#0052D6] disabled:opacity-50 transition">
+                    {saving===j.id ? <><Loader2 size={15} className="animate-spin" /> 저장 중…</> : isIOS ? <><Smartphone size={15} /> 갤러리에 저장</> : <><Download size={15} /> 동영상 저장</>}
                   </button>
                   {(j.seo_description || j.seo_tags) ? (
                     <button onClick={()=>copyText([j.seo_description, cap5Tags(j.seo_tags)].filter(Boolean).join("\n\n"), j.id+"-all")}
                       className="block text-center rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-gray-700 hover:border-[#0064FF]/50 hover:text-[#0064FF] transition">
-                      {copied===j.id+"-all" ? "✓ 복사됨" : "📋 캡션 복사"}
+                      <span className="flex items-center justify-center gap-1.5">{copied===j.id+"-all" ? <><Check size={14} /> 복사됨</> : <><Copy size={14} /> 캡션 복사</>}</span>
                       <span className="block text-[10px] font-normal text-gray-400">설명·해시태그 바로 붙여넣기</span>
                     </button>
                   ) : (
