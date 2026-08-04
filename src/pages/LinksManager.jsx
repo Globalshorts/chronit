@@ -167,6 +167,7 @@ export function LinkPageManager({ session }) {
     const state = encodeURIComponent(`${uid}::${window.location.origin}::product-search`)
     window.location.href = `https://www.instagram.com/oauth/authorize?client_id=${IG_CLIENT_ID}&redirect_uri=${encodeURIComponent(IG_REDIRECT)}&response_type=code&scope=${encodeURIComponent(IG_SCOPE)}&state=${state}`
   }
+  const igAuthUrl = session?.user?.id ? `https://www.instagram.com/oauth/authorize?client_id=${IG_CLIENT_ID}&redirect_uri=${encodeURIComponent(IG_REDIRECT)}&response_type=code&scope=${encodeURIComponent(IG_SCOPE)}&state=${encodeURIComponent(`${session.user.id}::${window.location.origin}::product-search`)}` : '#'
   useEffect(() => {
     try {
       const p = new URLSearchParams(window.location.search)
@@ -311,7 +312,7 @@ export function LinkPageManager({ session }) {
         <p className="text-base font-black text-gray-900">아직 링크 페이지가 없어요</p>
         <p className="mt-1 text-sm leading-relaxed text-gray-500">인스타를 연결하면 그 계정 이름으로 페이지가 자동 생성돼요.<br />자동 DM 연결도 한 번에 됩니다.</p>
         <div className="mt-5 flex flex-col items-center gap-2">
-          <button onClick={connectInstagram} className="flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-black text-white" style={{ background: 'linear-gradient(90deg,#833AB4,#FD1D1D,#FCB045)' }}>인스타 연결하고 페이지 만들기</button>
+          <a href={igAuthUrl} className="flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-black text-white" style={{ background: 'linear-gradient(90deg,#833AB4,#FD1D1D,#FCB045)' }}>인스타 연결하고 페이지 만들기</a>
           <button onClick={newPage} className="text-sm font-bold text-gray-500 hover:text-[#0064FF]">직접 주소 정해서 새 페이지 만들기</button>
         </div>
       </div>
@@ -329,8 +330,8 @@ export function LinkPageManager({ session }) {
         ))}
         <button onClick={newPage}
           className="rounded-full border border-dashed border-gray-300 px-3.5 py-1.5 text-sm font-bold text-gray-500 hover:border-[#0064FF] hover:text-[#0064FF]">+ 새 페이지</button>
-        <button onClick={connectInstagram}
-          className="rounded-full border border-[#0064FF]/30 bg-[#0064FF]/5 px-3.5 py-1.5 text-sm font-bold text-[#0064FF] hover:bg-[#0064FF]/10">+ 인스타 연결</button>
+        <a href={igAuthUrl}
+          className="rounded-full border border-[#0064FF]/30 bg-[#0064FF]/5 px-3.5 py-1.5 text-sm font-bold text-[#0064FF] hover:bg-[#0064FF]/10">+ 인스타 연결</a>
       </div>
       {/* 내 주소 */}
       <div className="mb-5 rounded-3xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-5">
