@@ -308,8 +308,13 @@ export default function VideoGenerator() {
     if (!clip || clip.source === "upload" || !clip.download_url || prefetchRef.current[clip.video_id]) return;
     fetch(FN("prefetch-clip-test") + "?k=chronit-pf-9x", { method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ video_id: clip.video_id, download_url: clip.download_url, download_url_hevc: clip.download_url_hevc, page_url: clip.page_url, source: clip.source }) })
-      .then(r => r.json()).then(d => { if (d?.ok && d.cached_url) prefetchRef.current[clip.video_id] = d.cached_url; }).catch(() => {});
+      .then(r => r.json()).then(d => { if (d?.ok && d.cached_url) { prefetchRef.current[clip.video_id] = d.cached_url; setClips(prev => (prev as any[]).map((c: any) => c.video_id === clip.video_id ? { ...c, download_url: d.cached_url } : c)); } }).catch(() => {});
   };
+  // ★ 담긴(cart) 클립을 백그라운드로 clip-cache에 캐시 → 프리뷰가 CORS 없이 재생(인스타 포함) ★
+  useEffect(() => {
+    try { (clips as any[]).forEach((c: any) => { if (cart.has(c.video_id) && c.source !== "upload") firePrefetch(c); }); } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cart, clips.length]);
   const [sbLoading, setSbLoading] = useState(false);
   const [sbStage, setSbStage] = useState("");
   const [sbSlots, setSbSlots] = useState<any[]>([]);
