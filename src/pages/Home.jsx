@@ -690,7 +690,6 @@ const Home = () => {
                     className={`mt-6 w-full rounded-xl py-3.5 text-base font-bold transition-all active:scale-[0.98] ${p.popular ? 'bg-[#0064FF] text-white hover:bg-[#0052D6]' : 'border border-gray-200 bg-white text-gray-900 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>
                     {p.name} 시작하기
                   </button>
-                  <p className="mt-2 flex items-center justify-center gap-1 text-xs text-gray-400"><Gift size={12} /> 첫 구매 시 1개월 추가</p>
                   <ul className="mt-6 space-y-3 border-t border-gray-100 pt-6 text-sm text-gray-700">
                     {p.feats.map((ft, i) => (
                       <li key={i} className="flex items-start gap-2.5"><Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-[#0064FF]" />{ft}</li>
@@ -710,7 +709,6 @@ const Home = () => {
                 <h4 className="text-xl font-black text-gray-900">프로 6개월</h4>
               </div>
               <p className="text-sm text-gray-600 md:text-base">프로 요금제를 <strong className="text-gray-900">6개월 동안</strong> · 매월 영상 30개 · 가장 알뜰한 장기 플랜</p>
-              <p className="mt-2 flex items-center gap-1 text-xs text-[#9a6b00]"><Gift size={12} /> 첫 구매 시 1개월 추가</p>
             </div>
             <div className="flex w-full shrink-0 flex-col items-start gap-3 sm:w-auto sm:items-end">
               <div className="text-left sm:text-right">
