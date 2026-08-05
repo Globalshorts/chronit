@@ -13,5 +13,6 @@ export function trackSignupIfNew(session) {
     localStorage.setItem(k, '1')
     const method = (u.app_metadata && u.app_metadata.provider) || 'unknown'
     if (window.gtag) window.gtag('event', 'sign_up', { method, event_category: 'conversion' })
+    if (window.fbq) window.fbq('track', 'CompleteRegistration', { registration_method: method })
   } catch { /* noop */ }
 }
