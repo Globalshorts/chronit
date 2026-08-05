@@ -1563,7 +1563,7 @@ export default function VideoGenerator() {
     return {
       video_id: "url_" + String(url).replace(/[^a-zA-Z0-9]/g, "").slice(-24),
       source: "url",                 // 직접 링크 원본 — 캡션제거 적용(업로드 아님), page_url로 yt-dlp 다운로드
-      page_url: url, download_url: url,
+      page_url: url, download_url: d.source_video_url || url,  // ★ 분석이 해석한 CDN URL 있으면 그걸로(재생·prefetch 안정)
       title: String(d.product_name || "원본 영상").slice(0, 40),
       description: "", thumbnail_url: thumb, duration: 0, author: "원본",
     };
@@ -4306,12 +4306,19 @@ function StoryboardModal({ script, cuts, debug, stage, segsByVideo, clips, loadi
               const narr = estNarrSec(slot.text, speed); // ★ 현재 음성 배속 반영해 실시간 재계산
               const clip = Number(slot.seg?.duration) || 0;
               const over = narr > 0 && clip > 0 && narr > clip + 0.15;
+              const _segKey = (sl: any) => sl?.seg ? `${sl.seg.video_id || ""}:${sl.seg.seg}` : "";
+              const sameAsPrev = !!_segKey(slot) && _segKey(slot) === _segKey(slots[i - 1]);
               return (
-              <div key={i} className="flex w-32 shrink-0 flex-col rounded-xl border border-gray-200 bg-white p-1.5">
+              <div key={i} className={`flex w-32 shrink-0 flex-col rounded-xl border bg-white p-1.5 ${sameAsPrev ? "border-[#0064FF]/30 -ml-2" : "border-gray-200"}`}>
                 <div className="relative aspect-[9/16] overflow-hidden rounded-lg bg-gray-100">
-                  {slot.seg ? <SegPlayer clip={clipOf(slot.seg)} seg={slot.seg} />
+                  {sameAsPrev ? (
+                    <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-[#0064FF]/5 text-[#0064FF]/70">
+                      <span className="text-lg">⟵</span>
+                      <span className="text-center text-[9px] font-bold leading-tight">같은 클립<br/>이어짐</span>
+                    </div>
+                  ) : slot.seg ? <SegPlayer clip={clipOf(slot.seg)} seg={slot.seg} />
                     : <div className="flex h-full w-full items-center justify-center text-gray-300"><Film size={26} /></div>}
-                  {slot.seg && <span className={`absolute bottom-1 right-1 z-10 rounded px-1 py-0.5 text-[10px] font-bold text-white ${over ? "bg-red-500/90" : "bg-black/70"}`}>{clip}s</span>}
+                  {slot.seg && !sameAsPrev && <span className={`absolute bottom-1 right-1 z-10 rounded px-1 py-0.5 text-[10px] font-bold text-white ${over ? "bg-red-500/90" : "bg-black/70"}`}>{clip}s</span>}
                 </div>
                 <div className="mt-1.5">
                   <span className="mb-0.5 block text-[11px] font-bold text-[#0064FF]">{i + 1}. 대본 <span className="font-normal text-gray-400">(수정 가능)</span></span>
