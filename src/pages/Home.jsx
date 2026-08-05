@@ -631,7 +631,7 @@ const Home = () => {
       </section>
 
       {/* ── 요금제 ── */}
-      <section id="pricing" style={{ scrollMarginTop: '-220px' }} className="px-5 py-16 md:px-8 md:py-24">
+      <section id="pricing" style={{ scrollMarginTop: '120px' }} className="px-5 py-16 md:px-8 md:py-24">
         <Reveal className="mx-auto max-w-6xl">
           <div className="mb-4 text-center">
             <h2 className="text-3xl font-black text-gray-900 md:text-5xl">필요한 만큼만 고르세요</h2>
