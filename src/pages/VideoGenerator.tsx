@@ -3132,7 +3132,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
                     const p = presets.find(p => p.id === e.target.value);
                     if (p) { setS(p.style_json); try { localStorage.removeItem("chronit_active_pack"); } catch {} }
                   }}
-                  className="flex-1 rounded-lg bg-gray-100 border border-gray-200 px-2 py-2 text-xs text-gray-900 outline-none focus:border-[#0064FF]"
+                  className="flex-1 min-w-0 rounded-lg bg-gray-100 border border-gray-200 px-2 py-2 text-xs text-gray-900 outline-none focus:border-[#0064FF]"
                 >
                   <option value="">✕  없음 (기본)</option>
                   {presets.map(p => (
@@ -3180,7 +3180,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
             <div className="flex gap-2">
               {[true, false].map(v => (
                 <button key={String(v)} onClick={() => setShowThumbnail(v)}
-                  className={`flex-1 rounded-xl border py-2.5 text-sm font-bold transition ${showThumbnail===v ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 text-gray-400"}`}>
+                  className={`flex-1 whitespace-nowrap rounded-xl border py-2.5 text-sm font-bold transition ${showThumbnail===v ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 text-gray-400"}`}>
                   {v ? "✓ 썸네일 추가" : "✗ 없음"}
                 </button>
               ))}
