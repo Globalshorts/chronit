@@ -310,46 +310,6 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null, 
           </div>
         </div>
 
-        {/* 할인 코드 입력 */}
-        <div className="mb-6">
-          <p className="mb-2 text-sm font-bold tracking-widest text-gray-500 uppercase">할인 코드</p>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={codeInput}
-              onChange={(e) => { setCodeInput(e.target.value.toUpperCase()); setCodeStatus(null); setDiscount(null) }}
-              onKeyDown={(e) => e.key === 'Enter' && applyCode()}
-              placeholder="코드 입력 (선택)"
-              className="flex-1 rounded-2xl border border-gray-200 bg-gray-100 px-4 py-2.5 text-sm font-bold text-gray-900 placeholder-gray-400 outline-none transition-all focus:border-[#0064FF] focus:bg-white"
-            />
-            <button
-              onClick={() => applyCode()}
-              disabled={codeStatus === 'loading' || !codeInput.trim()}
-              className="flex items-center gap-1.5 rounded-2xl bg-[#0064FF] px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#0052D6] disabled:opacity-40 active:scale-95"
-            >
-              {codeStatus === 'loading' ? <Loader2 size={14} className="animate-spin" /> : '적용'}
-            </button>
-          </div>
-
-          {codeStatus === 'valid' && discount && !notApplicable && (
-            <div className="mt-2 flex items-center gap-2 text-sm font-bold text-[#0064FF]">
-              <Check size={14} /> {discountLabel()} 적용됨
-            </div>
-          )}
-          {codeStatus === 'valid' && notApplicable && (
-            <p className="mt-2 text-sm font-bold text-amber-600">이 코드는 선택한 플랜에는 적용되지 않아요.</p>
-          )}
-          {codeStatus === 'invalid' && (
-            <p className="mt-2 text-sm font-bold text-red-500">유효하지 않은 코드입니다.</p>
-          )}
-          {codeStatus === 'expired' && (
-            <p className="mt-2 text-sm font-bold text-red-500">만료된 코드입니다.</p>
-          )}
-          {codeStatus === 'credit_only' && (
-            <p className="mt-2 text-sm font-bold text-amber-600">이용권 지급 코드예요. 앱의 "🎁 무료 이용권 받기"에서 사용해주세요.</p>
-          )}
-        </div>
-
         {/* 플랜 선택 (무료체험 시 숨김 — 체험은 플랜 무관) */}
         {!isFreedays && (
         <div className="mb-6">
