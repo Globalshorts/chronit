@@ -2902,7 +2902,8 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
   const frame = previewFrames[frameIdx] || "";
   // ★ 프리뷰 스케일 — 출력은 1080px 기준 fontSize×6.4, 프리뷰 박스는 300px.
   //   둘을 같은 비율로 보이게: 6.4 × (300/1080) ≈ 1.778 배로 프리뷰에 표시 ★
-  const PREVIEW_SCALE = 6.4 * (300 / 1080);
+  // ★ 렌더 엔진 보정: 브라우저 CSS 폰트가 libass/PIL보다 크게 보임 → 실제 출력과 맞추는 계수 ★
+  const PREVIEW_SCALE = 6.4 * (300 / 1080) * (tab === "thumbnail" ? 0.88 : 0.85);
   // 프리뷰는 "한 장면"만 보여줌 — 출력의 KSS 장면별 줄바꿈은 프리뷰에 적용하지 않음.
   //   사용자가 입력한 문구를 그대로 표시 (줄바꿈은 직접 입력한 경우만 반영).
   const previewText =
