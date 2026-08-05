@@ -428,7 +428,7 @@ export function LinkPageManager({ session }) {
           {sortedJobs.map((job) => {
             const it = theItem(job)
             return (
-              <JobRow key={job.id} job={job} item={it} uid={session.user.id}
+              <JobRow key={job.id} job={job} item={it} uid={session.user.id} autoNum={autoNum} nextNum={nextNum}
                 onSave={(vals) => upsertItem(job, vals, it)}
                 onDelete={() => removeCard(job, it)}
                 onMove={it && it.active ? (dir) => move(it, dir) : null} />
@@ -480,7 +480,7 @@ export default function LinksManager() {
   )
 }
 
-function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
+function JobRow({ job, item, uid, autoNum, nextNum, onSave, onDelete, onMove }) {
   const [title, setTitle] = useState(item?.title ?? (cleanKw(job.product_name) || job.seo_title || '').trim())
   const [url, setUrl] = useState(item?.target_url ?? '')
   const [searchKw, setSearchKw] = useState(item?.active ? '' : (cleanKw(job.product_name) || cleanKw(job.search_keyword) || '').trim())  // 표시(저장)된 카드=빈칸, 미표시(미저장)=분석 검색어 자동채움
@@ -493,6 +493,7 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
   const fracIdx = useRef(0)
   const active = !!item?.active
   const canShow = url.trim().length > 0
+  useEffect(() => { setTitle(item?.title ?? (cleanKw(job.product_name) || job.seo_title || '').trim()) }, [item?.title])
 
   const pickFrame = async () => {
     if (imgBusy) return
@@ -540,8 +541,13 @@ function JobRow({ job, item, uid, onSave, onDelete, onMove }) {
               : job.video_url ? <video src={`${job.video_url}#t=0.6`} muted playsInline preload="metadata" className="h-full w-full object-cover" /> : null}
           </button>
           <div className="min-w-0 flex-1 space-y-2">
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="카드 제목"
-              className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
+            <div className="flex items-center gap-1.5">
+              {autoNum && !active && !/^\s*\[\d+\]/.test(title || '') && (
+                <span className="shrink-0 rounded-md bg-gray-100 px-1.5 py-1.5 text-xs font-bold text-gray-400" title="표시하면 이 번호가 붙어요">[{pad2(nextNum)}]</span>
+              )}
+              <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="카드 제목"
+                className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
+            </div>
             <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="쿠팡 파트너스 링크 붙여넣기"
               className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm" />
             {url && /coupang\.com/i.test(url) && !/link\.coupang\.com/i.test(url) && (
