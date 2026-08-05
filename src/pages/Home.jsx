@@ -639,7 +639,6 @@ const Home = () => {
           </div>
 
 
-          <CouponBar codeFromUrl={codeFromUrl} onApply={(code) => { setCodeFromUrl(code); sessionStorage.setItem('chronit_code', code) }} />
 
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
             {/* Free */}
@@ -647,8 +646,8 @@ const Home = () => {
               className="group flex cursor-pointer flex-col rounded-2xl border border-gray-200 bg-white p-7 transition-all hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-[0_12px_32px_-16px_rgba(0,0,0,0.14)]">
               <h4 className="text-xl font-black text-gray-900">Free</h4>
               <p className="mt-1 text-sm text-gray-500">부담 없이 시작</p>
-              <div className="mt-5 flex items-baseline gap-1">
-                <span className="text-[2.6rem] font-black leading-none text-gray-900">₩0</span>
+              <div className="mt-5 flex items-baseline gap-1 whitespace-nowrap">
+                <span className="text-[2.4rem] font-black leading-none text-gray-900">₩0</span>
                 <span className="text-base font-bold text-gray-400">/ 월</span>
               </div>
               <p className="mt-2 text-sm text-gray-400">지금 바로 무료로</p>
@@ -681,8 +680,8 @@ const Home = () => {
                     {p.popular && <span className="rounded-full bg-[#0064FF] px-2 py-0.5 text-[11px] font-bold text-white">인기 있는</span>}
                   </div>
                   <p className="mt-1 text-sm text-gray-500">{p.sub}</p>
-                  <div className="mt-5 flex items-baseline gap-1">
-                    <span className="text-[2.6rem] font-black leading-none text-gray-900">₩{wonFmt(price)}</span>
+                  <div className="mt-5 flex items-baseline gap-1 whitespace-nowrap">
+                    <span className="text-[2.4rem] font-black leading-none text-gray-900">₩{wonFmt(price)}</span>
                     <span className="text-base font-bold text-gray-400">/ 월</span>
                   </div>
                   <p className="mt-2"><span className="inline-flex items-center rounded-full bg-[#0064FF]/10 px-2.5 py-1 text-sm font-bold text-[#0064FF]">하루 약 {wonFmt(Math.round(price / 30 / 10) * 10)}원</span></p>
