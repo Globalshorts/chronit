@@ -4306,7 +4306,7 @@ function StoryboardModal({ script, cuts, debug, stage, segsByVideo, clips, loadi
               const narr = estNarrSec(slot.text, speed); // ★ 현재 음성 배속 반영해 실시간 재계산
               const clip = Number(slot.seg?.duration) || 0;
               const over = narr > 0 && clip > 0 && narr > clip + 0.15;
-              const _segKey = (sl: any) => sl?.seg ? `${sl.seg.video_id || ""}:${sl.seg.seg}` : "";
+              const _segKey = (sl: any) => sl?.seg ? String(sl.seg.video_id || "") : "";  // 같은 클립(video) 기준 병합
               const sameAsPrev = !!_segKey(slot) && _segKey(slot) === _segKey(slots[i - 1]);
               return (
               <div key={i} className={`flex w-32 shrink-0 flex-col rounded-xl border bg-white p-1.5 ${sameAsPrev ? "border-[#0064FF]/30 -ml-2" : "border-gray-200"}`}>
