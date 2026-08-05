@@ -2660,6 +2660,23 @@ function UrlHint({ url }: { url: string }) {
   return <p className="mt-1.5 text-sm font-bold text-orange-500">⚠️ 인스타·틱톡·유튜브 <b>영상</b> 링크만 분석할 수 있어요</p>;
 }
 
+// ── 단계 진행 표시 (진행감) ──────────
+function StepProgress({ steps, active }: { steps: string[]; active: number }) {
+  return (
+    <div className="flex items-center justify-between px-1">
+      {steps.map((st: string, i: number) => (
+        <React.Fragment key={i}>
+          <div className="flex shrink-0 flex-col items-center gap-1">
+            <div className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-black transition ${i < active ? "bg-[#0064FF] text-white" : i === active ? "bg-white text-[#0064FF] ring-2 ring-[#0064FF]" : "bg-gray-100 text-gray-300"}`}>{i < active ? "\u2713" : i + 1}</div>
+            <span className={`whitespace-nowrap text-[10px] font-bold ${i <= active ? "text-gray-700" : "text-gray-300"}`}>{st}</span>
+          </div>
+          {i < steps.length - 1 && <div className={`mx-1 mb-4 h-0.5 flex-1 rounded ${i < active ? "bg-[#0064FF]" : "bg-gray-200"}`} />}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
 // ── 분석 진행률 바 (예상 시간 기반 — 백엔드 단일 호출이라 추정치) ──────────
 function AnalyzeProgress({ pid }: { pid?: string|null }) {
   const [pct, setPct] = React.useState(6);
@@ -2694,6 +2711,7 @@ function AnalyzeProgress({ pid }: { pid?: string|null }) {
   return (
     <>
       <div className="mt-3 rounded-xl bg-gray-100 px-4 py-3.5">
+        <div className="mb-3"><StepProgress steps={["영상 분석", "클립 검색", "정리"]} active={pct < 40 ? 0 : pct < 75 ? 1 : 2} /></div>
         <div className="mb-2 flex items-center justify-between">
           <span className="text-sm font-bold text-gray-700">{label}</span>
           <span className="text-sm font-black text-[#0064FF]">{pct}%</span>
@@ -4287,10 +4305,15 @@ function StoryboardModal({ script, cuts, debug, stage, segsByVideo, clips, loadi
       </div>
       <div className="flex-1 overflow-y-auto bg-gray-50 p-4">
         {loading ? (
-          <div className="py-24 text-center">
-            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-[#0064FF]" />
-            <p className="text-sm font-semibold text-gray-700">{stage || "준비 중"}</p>
-            <p className="mt-1 text-xs text-gray-400">자동생성과 동일한 컷을 만드는 중 · 클립 다운로드가 대부분이라 1~2분 걸려요</p>
+          <div className="px-6 py-16">
+            <div className="mx-auto max-w-md">
+              <StepProgress steps={["클립 불러오기", "대본 쓰기", "클립 배정"]} active={/배정|붙이는|정리 중|분석 중/.test(stage || "") ? 2 : /대본/.test(stage || "") ? 1 : 0} />
+              <div className="mt-6 text-center">
+                <div className="mx-auto mb-2 h-5 w-5 animate-spin rounded-full border-2 border-gray-200 border-t-[#0064FF]" />
+                <p className="text-sm font-semibold text-gray-700">{stage || "준비 중"}</p>
+                <p className="mt-1 text-xs text-gray-400">클립 다운로드가 대부분이라 1~2분 걸려요 · 대본이 먼저 뜨면 편집 시작하세요</p>
+              </div>
+            </div>
           </div>
         ) : !slots.length ? (
           <div className="py-24 text-center text-sm text-gray-500">
