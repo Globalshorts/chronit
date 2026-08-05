@@ -1171,7 +1171,7 @@ export default function VideoGenerator() {
             let pr: any;
             try {
               const presp = await fetch(FN("search-clips"), { method: "POST", headers,
-                body: JSON.stringify({ action: "poll", prediction_id: _pid }) });
+                body: JSON.stringify({ action: "poll", prediction_id: _pid, no_search: true }) });
               pr = await presp.json();
             } catch { continue; } // 일시 네트워크 → 다음 폴링
             if (pr?.status === "processing") continue;
@@ -1183,7 +1183,7 @@ export default function VideoGenerator() {
         loadBalance(); // 잔액 즉시 반영
 
         // 성공
-        const rawClips: Clip[] = data1.clips ?? [];
+        let rawClips: Clip[] = data1.clips ?? [];
         const refFrames: string[] = data1.reference_frames ?? [];
         const urlClip: any = (ov === undefined) ? buildUrlSourceClip(su.trim(), data1) : null;
         const _pf = (data1.reference_frames && data1.reference_frames[0]) || "";
@@ -1196,17 +1196,28 @@ export default function VideoGenerator() {
           if (_fd?.food === true) { setShowFoodBlock(true); setClips([]); return; }
         } catch { /* 분류 실패 시 통과 — 오탐으로 막지 않음 */ }
         try { if (genMode === 'voice' && (data1.product_name || data1.keyword)) loadAbc(styleProfileId); } catch (_e) {}
-        // ★ 진행감: 샤오홍슈(XHS) 먼저 — 붙는 대로 상단에, 틱톡은 아래로 ★
+        // ★ 병렬: 틱톡 검색 + XHS 검색 동시 실행 — 각자 붙는 대로 표시(XHS 먼저 상단, 틱톡 아래) ★
         const _shownBase = [...(keepUploads as any), ...(urlClip ? [urlClip] : [])];
         let xhsClips: Clip[] = [];
-        try {
-          const rx = await fetch(FN("search-xhs"), { method: "POST", headers,
-            body: JSON.stringify({ product_name: data1.product_name || "", keyword: data1.keyword || "", keywords: data1.keywords || [], tiktok_queries: data1.tiktok_queries || [] }) });
-          const dx = await rx.json();
-          if (dx?.ok && Array.isArray(dx.clips)) xhsClips = dx.clips;
-        } catch { /* XHS 실패 무시 */ }
-        if (xhsClips.length) setClips([..._shownBase, ...xhsClips]);  // ★ XHS 먼저 ★
-        if (rawClips.length) setClips([..._shownBase, ...xhsClips, ...rawClips]);  // 틱톡 아래로
+        const _q = data1.tiktok_queries || [];
+        const _render = () => setClips([..._shownBase, ...xhsClips, ...rawClips]);
+        const pTik = (async () => {
+          try {
+            const rt = await fetch(FN("search-clips"), { method: "POST", headers,
+              body: JSON.stringify({ action: "search_tiktok", queries: _q }) });
+            const dt = await rt.json();
+            if (dt?.ok && Array.isArray(dt.clips)) { rawClips = dt.clips; _render(); }
+          } catch { /* 틱톡 실패 무시 */ }
+        })();
+        const pXhs = (async () => {
+          try {
+            const rx = await fetch(FN("search-xhs"), { method: "POST", headers,
+              body: JSON.stringify({ product_name: data1.product_name || "", keyword: data1.keyword || "", keywords: data1.keywords || [], tiktok_queries: _q }) });
+            const dx = await rx.json();
+            if (dx?.ok && Array.isArray(dx.clips)) { xhsClips = dx.clips; _render(); }
+          } catch { /* XHS 실패 무시 */ }
+        })();
+        await Promise.all([pTik, pXhs]);
         // ★ 틱톡+XHS 후보를 합쳐 CLIP 필터에 함께 태움 → 관련성 통합 필터 + 점수순 정렬
         //   (기존: XHS는 필터 없이 상단 prepend → 특징 안 맞는 XHS 다수 + 틱톡 묻힘)
         const allCand: Clip[] = [...xhsClips, ...rawClips];  // XHS 우선
