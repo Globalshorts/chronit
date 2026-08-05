@@ -1196,6 +1196,9 @@ export default function VideoGenerator() {
           if (_fd?.food === true) { setShowFoodBlock(true); setClips([]); return; }
         } catch { /* 분류 실패 시 통과 — 오탐으로 막지 않음 */ }
         try { if (genMode === 'voice' && (data1.product_name || data1.keyword)) loadAbc(styleProfileId); } catch (_e) {}
+        // ★ 진행감: 틱톡 검색 결과를 XHS·필터 전에 먼저 뿌림 (되는대로 바로) ★
+        const _shownBase = [...(keepUploads as any), ...(urlClip ? [urlClip] : [])];
+        if (rawClips.length) setClips([..._shownBase, ...rawClips]);
         // 샤오홍슈(XHS) 보조 소스 — 격리(실패해도 틱톡 결과 영향 없음)
         let xhsClips: Clip[] = [];
         try {
@@ -1204,6 +1207,7 @@ export default function VideoGenerator() {
           const dx = await rx.json();
           if (dx?.ok && Array.isArray(dx.clips)) xhsClips = dx.clips;
         } catch { /* XHS 실패 무시 */ }
+        if (xhsClips.length) setClips([..._shownBase, ...rawClips, ...xhsClips]);  // ★ XHS 붙는 대로 추가 ★
         // ★ 틱톡+XHS 후보를 합쳐 CLIP 필터에 함께 태움 → 관련성 통합 필터 + 점수순 정렬
         //   (기존: XHS는 필터 없이 상단 prepend → 특징 안 맞는 XHS 다수 + 틱톡 묻힘)
         const allCand: Clip[] = [...rawClips, ...xhsClips];
