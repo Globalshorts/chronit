@@ -444,7 +444,7 @@ export default function VideoGenerator() {
     xPos: 50,
   };
   const [subtitleStyle, setSubtitleStyle] = useState(DEFAULT_STYLE);
-  const [thumbnailStyle, setThumbnailStyle] = useState({ ...DEFAULT_STYLE, yPos: 50, bgOn: true, bgOpacity: 45, accentColor: "#7CFFB2", accentBg: false });
+  const [thumbnailStyle, setThumbnailStyle] = useState({ ...DEFAULT_STYLE, yPos: 50, bgOn: true, bgOpacity: 45, accentColor: "#FFC400", accentBg: true });
   const [showThumbnail, setShowThumbnail] = useState(true);
   const subtitlePreset = "custom";
   // ★ 프론트 camelCase 스타일 → cog가 기대하는 snake_case 키로 변환 (자막 ASS + 썸네일 빌더 공용) ★
@@ -3067,7 +3067,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
         <p className="text-xs font-bold text-gray-500">✨ 강조 <span className="font-normal text-gray-400">· 핵심어에 자동 적용</span></p>
         <div>
           <label className="text-xs font-bold text-gray-400 block mb-1.5">강조 색</label>
-          <ColorPalette value={s.accentColor || "#7CFFB2"} onChange={(c) => upd("accentColor", c)} />
+          <ColorPalette value={s.accentColor || "#FFC400"} onChange={(c) => upd("accentColor", c)} />
         </div>
         <div className="flex items-center justify-between">
           <label className="text-xs font-bold text-gray-400">강조 배경 <span className="font-normal text-gray-400">· 켜면 색 박스+흰 글씨</span></label>
