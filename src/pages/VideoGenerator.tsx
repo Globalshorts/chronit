@@ -372,6 +372,7 @@ export default function VideoGenerator() {
   const [segEditorOpen, setSegEditorOpen] = useState(false);
   const [sbScript, setSbScript] = useState<any[] | null>(null);
   const [sbCuts, setSbCuts] = useState<any[]>([]);
+  const [sbDebug, setSbDebug] = useState<any>(null);
   const [sbCta, setSbCta] = useState("");  // 기본 빈칸 — placeholder가 힌트, 비우면 백엔드가 '프로필 링크에서 확인하세요'로 마무리
   // ★ 스토리보드(하단 자동생성 바)와 채널톡 런처가 겹침 → 열릴 때 채널톡 버튼 숨기고 닫으면 복구 ★
   useEffect(() => {
@@ -1320,6 +1321,7 @@ export default function VideoGenerator() {
     Object.entries(by).forEach(([vid, arr]) => { if ((arr as any[])[0]) init.add(vid + "#" + (arr as any[])[0].seg); });
     setSegSel(init);
     setSbCuts(plan.cuts || []);
+    setSbDebug(plan.debug || null);
     sbTtsRef.current = plan.tts_b64 || "";
     setSbScript((plan.script && plan.script.segments) || []);
   };
@@ -1332,7 +1334,7 @@ export default function VideoGenerator() {
       return;
     }
     sbSigRef.current = sig; sbBusyRef.current = true;
-    setSbLoading(true); setSbScript(null); setSbCuts([]); sbTtsRef.current = ""; setSegsByVideo({}); setSbSlots([]);
+    setSbLoading(true); setSbScript(null); setSbCuts([]); setSbDebug(null); sbTtsRef.current = ""; setSegsByVideo({}); setSbSlots([]);
     try { await loadPlan(); } finally { setSbLoading(false); sbBusyRef.current = false; }
   };
   const toggleCart = (id: string) => {
@@ -2442,7 +2444,7 @@ export default function VideoGenerator() {
       </div>
 
       {segEditorOpen && (
-        <StoryboardModal script={sbScript} cuts={sbCuts} stage={sbStage} segsByVideo={segsByVideo} clips={clips} onRetry={openStoryboard}
+        <StoryboardModal script={sbScript} cuts={sbCuts} debug={sbDebug} stage={sbStage} segsByVideo={segsByVideo} clips={clips} onRetry={openStoryboard}
           loading={sbLoading} slots={sbSlots} setSlots={setSbSlots} onClose={() => setSegEditorOpen(false)}
           cta={sbCta} setCta={setSbCta} speed={voiceSpeed / 100} generating={rendering}
           onGenerate={() => { setSegEditorOpen(false); handleRender({ ctaText: sbCta }); }} />
@@ -4206,7 +4208,7 @@ function estNarrSec(text: string, speed: number = 1.2): number {
   // 실측 보정: 호흡 쉼 ~0.2s + 글자당 0.13s, 음성 속도로 나눔
   return Math.max(0.5, Math.round((0.2 + chars * 0.13 / s) * 10) / 10);
 }
-function StoryboardModal({ script, cuts, stage, segsByVideo, clips, loading, slots, setSlots, onClose, onRetry, cta, setCta, speed, onGenerate, generating }: any) {
+function StoryboardModal({ script, cuts, debug, stage, segsByVideo, clips, loading, slots, setSlots, onClose, onRetry, cta, setCta, speed, onGenerate, generating }: any) {
   const pool = React.useMemo(() => Object.values(segsByVideo || {}).flat() as any[], [segsByVideo]);
   const [pickSlot, setPickSlot] = useState<number | null>(null);
   const scriptEmpty = !script || !script.length;
@@ -4296,6 +4298,9 @@ function StoryboardModal({ script, cuts, stage, segsByVideo, clips, loading, slo
               </div>
             )}
           <div className="mb-1.5 px-1 text-[11px] text-gray-400"><Mic size={12} style={{display:"inline",verticalAlign:"-2px"}} /> 예상 나레이션 · <Film size={12} style={{display:"inline",verticalAlign:"-2px"}} /> 클립 길이 — 나레이션이 더 길면 빨간 경고 <span className="text-gray-300">(예상치 · 음성 {(Number(speed)||1.2).toFixed(1)}배)</span></div>
+          {debug && (
+            <div className="mb-1 px-1 text-[10px] text-gray-400">클립 배정: <span className={String(debug.assign||"").startsWith("caption_llm") ? "font-bold text-green-600" : "font-bold text-amber-600"}>{debug.assign}</span> · 캡션 {debug.captioned}/{debug.segs}</div>
+          )}
           <div className="flex gap-3 overflow-x-auto px-1 pb-4">
             {slots.map((slot: any, i: number) => {
               const narr = estNarrSec(slot.text, speed); // ★ 현재 음성 배속 반영해 실시간 재계산
