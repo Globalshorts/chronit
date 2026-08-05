@@ -49,6 +49,31 @@ const App = () => {
     })
     return () => { try { sub.subscription.unsubscribe() } catch {} }
   }, [])
+  // ★ 자동 업데이트: 새 번들이 배포되면 탭 복귀 시 자동 새로고침 (모바일이 옛 번들 무는 문제 방지) ★
+  useEffect(() => {
+    const curSrc = () => { try { const el = document.querySelector('script[type="module"][src*="/assets/"]'); return el ? el.src.split('/').pop() : '' } catch { return '' } }
+    const mine = curSrc()
+    if (!mine) return
+    let updateReady = false
+    const check = async () => {
+      if (updateReady || document.hidden) return
+      try {
+        const html = await fetch('/?_v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '')
+        const m = html.match(/\/assets\/(index-[A-Za-z0-9_]+\.js)/)
+        if (m && m[1] && m[1] !== mine) updateReady = true
+      } catch {}
+    }
+    const onVis = () => {
+      if (document.hidden) return
+      if (updateReady) { try { window.location.reload() } catch {} ; return }
+      check()
+    }
+    const iv = setInterval(check, 3 * 60 * 1000)
+    const t = setTimeout(check, 20000)
+    document.addEventListener('visibilitychange', onVis)
+    window.addEventListener('focus', onVis)
+    return () => { clearInterval(iv); clearTimeout(t); document.removeEventListener('visibilitychange', onVis); window.removeEventListener('focus', onVis) }
+  }, [])
   return (
   <BrowserRouter>
     <ScrollToTop />
