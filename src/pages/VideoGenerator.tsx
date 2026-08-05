@@ -2999,6 +2999,28 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
     display: "inline-flex", alignItems: "center", lineHeight: 1,
   } : { display: "inline-block" };
 
+  // ★ 썸네일 미리보기 강조: 첫 단어에 강조 스타일(노랑박스+흰글씨 or 강조색 글씨) — 실제 출력의 [[ ]] 강조를 근사 표시 ★
+  const accentWordStyle = (st: any): React.CSSProperties => st.accentBg ? {
+    backgroundColor: st.accentColor || "#FFC400",
+    color: "#FFFFFF",
+    padding: `${2 * PREVIEW_SCALE}px ${8 * PREVIEW_SCALE}px`,
+    borderRadius: `${(st.bgRadius ?? 8)}px`,
+    WebkitTextStroke: "0px transparent",
+    textShadow: "none",
+    boxDecorationBreak: "clone" as any,
+    WebkitBoxDecorationBreak: "clone" as any,
+  } : {
+    color: st.accentColor || "#FFC400",
+  };
+  const previewContent = (tab === "thumbnail" && previewText.trim())
+    ? (() => {
+        const _parts = previewText.trim().split(/\s+/);
+        const _first = _parts[0];
+        const _rest = _parts.slice(1).join(" ");
+        return (<><span style={accentWordStyle(s)}>{_first}</span>{_rest ? " " + _rest : ""}</>);
+      })()
+    : previewText;
+
   const [showPos, setShowPos] = React.useState(false);
   const stylePanel = (
     <div className="space-y-3">
@@ -3289,7 +3311,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
               transform: "translate(-50%, -50%)",
               textAlign: "center",
             }}>
-              <span style={{ ...toTextStyle(s), ...toBgStyle(s) }}>{previewText}</span>
+              <span style={{ ...toTextStyle(s), ...toBgStyle(s) }}>{previewContent}</span>
             </div>
           </div>
         </div>
