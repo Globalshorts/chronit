@@ -1160,7 +1160,8 @@ export default function VideoGenerator() {
         if (!sub.ok || !sub.prediction_id) {
           const credit = (subResp.status === 402 || sub.code === "INSUFFICIENT_CREDITS");
           if (!credit && attempt < MAX) { await new Promise(r => setTimeout(r, 1500)); continue; } // 서버 일시 오류 → 자동 재시도
-          setSearchError(credit ? (sub.error ?? "이용권이 부족해요. 요금제를 확인해 주세요.") : (sub.error ?? "분석에 실패했어요. 잠시 후 다시 시도해 주세요."));
+          const _techSub = /버전 조회|version|prediction|Internal|50[0-9]|Replicate|Token|버전/i.test(String(sub.error||""));
+          setSearchError(credit ? (sub.error ?? "이용권이 부족해요. 요금제를 확인해 주세요.") : (_techSub ? "분석 서버가 일시적으로 점검 중이에요. 몇 분 후 다시 시도해 주세요." : (sub.error ?? "분석에 실패했어요. 잠시 후 다시 시도해 주세요.")));
           return;
         }
         // Step 1b: 폴링 — 콜드부팅 포함 최대 수분까지 끊김 없이 완료 대기 (로딩 화면 유지)
@@ -1178,7 +1179,7 @@ export default function VideoGenerator() {
             } catch { continue; } // 일시 네트워크 → 다음 폴링
             if (pr?.status === "processing") continue;
             if (pr?.ok && pr?.status === "done") { data1 = pr; break; }
-            if (pr && pr.ok === false) { setSearchError(pr.error ?? "분석에 실패했어요. 잠시 후 다시 시도해 주세요."); return; }
+            if (pr && pr.ok === false) { const _techPr = /버전 조회|version|prediction|Internal|50[0-9]|Replicate|Token|버전/i.test(String(pr.error||"")); setSearchError(_techPr ? "분석 서버가 일시적으로 점검 중이에요. 몇 분 후 다시 시도해 주세요." : (pr.error ?? "분석에 실패했어요. 잠시 후 다시 시도해 주세요.")); return; }
           }
         }
         if (!data1) { setSearchError("분석이 지연되고 있어요. 잠시 후 다시 시도해 주세요."); return; }
