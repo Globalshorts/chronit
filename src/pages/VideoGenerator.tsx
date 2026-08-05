@@ -357,6 +357,7 @@ export default function VideoGenerator() {
   const [trendShowComp, setTrendShowComp] = useState(false);  // TOP·모음 컴필레이션 표시 여부
   const [searching, setSearching]   = useState(false);
   const [filtering, setFiltering]   = useState(false); // 병렬 검색~CLIP 관련도 필터 진행 중
+  const filterStartRef = React.useRef(0); // 정리 배너 최소 노출 시간 계산용
   const [analyzePid, setAnalyzePid]  = useState<string|null>(null);
   const [showSrc, setShowSrc] = useState(false);
   const [searchError, setSearchError] = useState("");
@@ -1198,7 +1199,7 @@ export default function VideoGenerator() {
         } catch { /* 분류 실패 시 통과 — 오탐으로 막지 않음 */ }
         try { if (genMode === 'voice' && (data1.product_name || data1.keyword)) loadAbc(styleProfileId); } catch (_e) {}
         // ★ 병렬: 틱톡 검색 + XHS 검색 동시 실행 — 각자 붙는 대로 표시(XHS 먼저 상단, 틱톡 아래) ★
-        setFiltering(true); // 아직 관련도 필터 전 → 상단이 정렬 안됐음을 배너로 알림
+        filterStartRef.current = Date.now(); setFiltering(true); // 아직 관련도 필터 전 → 상단이 정렬 안됐음을 배너로 알림
         const _shownBase = [...(keepUploads as any), ...(urlClip ? [urlClip] : [])];
         let xhsClips: Clip[] = [];
         const _q = data1.tiktok_queries || [];
@@ -1243,7 +1244,11 @@ export default function VideoGenerator() {
         return;
       }
     } catch (e) { setSearchError("분석 중 일시적인 오류가 있었어요. 잠시 후 다시 시도해 주세요."); /* 일시적 분석 오류는 재시도로 회복되므로 오류 팝업을 띄우지 않음(오탐 방지) */ }
-    finally { setSearching(false); setFiltering(false); }
+    finally {
+      setSearching(false);
+      const _el = filterStartRef.current ? Date.now() - filterStartRef.current : 9999;
+      if (_el < 1000) { setTimeout(() => setFiltering(false), 1000 - _el); } else { setFiltering(false); }
+    }
   };
   const loadSegments = async () => {
     const sel = (clips as any[]).filter(c => cart.has(c.video_id) && c.source !== "upload");
@@ -2420,7 +2425,10 @@ export default function VideoGenerator() {
                     <span className="text-sm font-bold text-[#0064FF]">{cart.size}개 담음</span>
                   </div>
                   {filtering && (
-                    <p className="mb-2 text-xs text-gray-500">딱 맞는 클립을 위로 정렬하는 중이에요. 잠시만 기다려 주세요.</p>
+                    <div className="mb-2 flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-[#0064FF]">
+                      <svg className="h-4 w-4 shrink-0 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z"/></svg>
+                      <span>지금 순서는 임시예요 — 딱 맞는 클립을 위로 정렬하는 중입니다. 잠시만요!</span>
+                    </div>
                   )}
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {clips.map(clip => (
