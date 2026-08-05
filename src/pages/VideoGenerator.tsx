@@ -1296,6 +1296,7 @@ export default function VideoGenerator() {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
     }).then(r => r.json());
     let plan: any = null;
+    let earlyShown = false;
     // PA 일시중단 등 → 최대 2회 재시작. 각 시도는 시작 후 최대 6분 폴링.
     for (let attempt = 0; attempt < 3 && !plan; attempt++) {
       let start: any = null;
@@ -1309,6 +1310,7 @@ export default function VideoGenerator() {
         let pl: any = null;
         try { pl = await call({ poll: true, prediction_id: pid }); } catch { continue; }
         if (pl?.stage) setSbStage(pl.stage);
+        if (pl?.cuts && pl.cuts.length && !earlyShown) { earlyShown = true; setSbCuts(pl.cuts); setSbLoading(false); }  // ★ 대본 먼저 표시
         if (pl?.status === "succeeded") { plan = pl; break; }
         if (pl?.ok === false || pl?.status === "failed" || pl?.status === "canceled") break; // 재시작(PA 등)
       }
@@ -4213,7 +4215,13 @@ function StoryboardModal({ script, cuts, debug, stage, segsByVideo, clips, loadi
   const [pickSlot, setPickSlot] = useState<number | null>(null);
   const scriptEmpty = !script || !script.length;
   useEffect(() => {
-    if (!pool.length) return;
+    // ★ 순차(A): 대본(cuts)만 먼저 왔고 클립(pool) 아직 → 대본만 슬롯화(썸네일 placeholder) ★
+    if (!pool.length) {
+      if (cuts && cuts.length) {
+        setSlots(cuts.map((cut: any) => ({ text: cut.text, narrSec: Number(cut.dur) || 0, cutIdx: cut.cut, segIndices: cut.seg_indices, seg: null })));
+      }
+      return;
+    }
     // 대본 있으면 대본 줄 수만큼, 없으면(대본 지연) 구간 전부로 슬롯 구성 → 재생 테스트 가능
     const hasScript = !!(script && script.length);
     const lines: any[] = hasScript ? script : pool;
