@@ -250,19 +250,19 @@ const SUBTITLE_PRESETS = [
 const STYLE_PACKS = [
   { key:"review", name:"감성 리뷰", emoji:"🤍", desc:"차분·신뢰 · 뷰티·리빙",
     targetSeconds:20, voiceId:"4e118bfbb83e401c84699c09b5f08257", voiceIdBasic:"shimmer", voiceSpeed:100, voiceVolume:130, styleProfileId:"auto",
-    subtitleStyle:{fontFamily:"'Gowun Dodum', sans-serif",color:"#FFFFFF",fontSize:13,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
+    subtitleStyle:{fontFamily:"'Gowun Dodum', sans-serif",color:"#FFFFFF",fontSize:14,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
     thumbnailStyle:{fontFamily:"'Gowun Dodum', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
   { key:"unboxing", name:"다이나믹 언박싱", emoji:"⚡", desc:"쨍·활기 · 가전·잡화",
     targetSeconds:20, voiceId:"46939387dd944a45a399bd92b8de52cb", voiceIdBasic:"nova", voiceSpeed:100, voiceVolume:130, styleProfileId:"auto",
-    subtitleStyle:{fontFamily:"'Moneygraphy Rounded', sans-serif",color:"#FFE500",fontSize:13,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
+    subtitleStyle:{fontFamily:"'Moneygraphy Rounded', sans-serif",color:"#FFE500",fontSize:14,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
     thumbnailStyle:{fontFamily:"'Moneygraphy Rounded', sans-serif",color:"#FFE500",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
   { key:"info", name:"정보형 꿀템", emoji:"📌", desc:"가독성 · 주방·기능성",
     targetSeconds:20, voiceId:"c4857e9f2c4249ad967916a979e9da36", voiceIdBasic:"echo", voiceSpeed:100, voiceVolume:130, styleProfileId:"auto",
-    subtitleStyle:{fontFamily:"'Kakao Big Sans', sans-serif",color:"#FFFFFF",fontSize:13,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:70,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
+    subtitleStyle:{fontFamily:"'Kakao Big Sans', sans-serif",color:"#FFFFFF",fontSize:14,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:70,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
     thumbnailStyle:{fontFamily:"'Kakao Big Sans', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
   { key:"hand", name:"손글씨 감성", emoji:"✍️", desc:"따뜻 · 육아·감성소품",
     targetSeconds:20, voiceId:"2940e486b6f146fc8968fe49fa2f04dc", voiceIdBasic:"fable", voiceSpeed:100, voiceVolume:130, styleProfileId:"auto",
-    subtitleStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:13,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
+    subtitleStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:14,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
     thumbnailStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
 ];
 const PACK_ICON: Record<string, any> = { review: Heart, unboxing: Zap, info: Lightbulb, hand: PenTool };
@@ -441,7 +441,7 @@ export default function VideoGenerator() {
     xPos: 50,
   };
   const [subtitleStyle, setSubtitleStyle] = useState(DEFAULT_STYLE);
-  const [thumbnailStyle, setThumbnailStyle] = useState({ ...DEFAULT_STYLE, yPos: 50, bgOn: true, bgOpacity: 45 });
+  const [thumbnailStyle, setThumbnailStyle] = useState({ ...DEFAULT_STYLE, yPos: 50, bgOn: true, bgOpacity: 45, accentColor: "#7CFFB2", accentBg: false });
   const [showThumbnail, setShowThumbnail] = useState(true);
   const subtitlePreset = "custom";
   // ★ 프론트 camelCase 스타일 → cog가 기대하는 snake_case 키로 변환 (자막 ASS + 썸네일 빌더 공용) ★
@@ -464,6 +464,11 @@ export default function VideoGenerator() {
     blur: st.blur ?? 0,
     x: Math.round((st.xPos ?? 50) * 10.8),
     y: Math.round((st.yPos ?? 75) * 19.2),
+    ...(st.accentColor !== undefined ? {
+      thumbnail_accent_color: st.accentColor,
+      thumbnail_accent_bg: !!st.accentBg,
+      thumbnail_accent_bg_color: st.accentBgColor || st.bgColor,
+    } : {}),
   });
 
   // Stage 5
@@ -2798,6 +2803,7 @@ type SubtitleStyle = {
   strokeColor: string; strokeWidth: number; strokeOn: boolean;
   bgOn: boolean; bgColor: string; bgOpacity: number; bgRadius?: number;
   shadowOn?: boolean; shadowColor?: string; shadowOpacity?: number; shadowSize?: number; blur?: number;
+  accentColor?: string; accentBg?: boolean; accentBgColor?: string;
   yPos: number; xPos: number;
 };
 
@@ -2993,6 +2999,28 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
       </div>
       <button onClick={() => { setS({ ...s, yPos: 75, xPos: 50 }); try { localStorage.removeItem("chronit_active_pack"); } catch {} }}
         className="text-xs text-gray-500 hover:text-[#0064FF] transition underline">↺ 위치 초기화</button>
+      {tab === "thumbnail" && (
+      <div className="pt-3 mt-1 border-t border-gray-100 space-y-3">
+        <p className="text-xs font-bold text-gray-500">✨ 강조 <span className="font-normal text-gray-400">· 핵심어에 자동 적용</span></p>
+        <div>
+          <label className="text-xs font-bold text-gray-400 block mb-1.5">강조 색</label>
+          <ColorPalette value={s.accentColor || "#7CFFB2"} onChange={(c) => upd("accentColor", c)} />
+        </div>
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-bold text-gray-400">강조 배경</label>
+          <button onClick={() => upd("accentBg", !s.accentBg)}
+            className={`rounded-full px-3 py-1 text-xs font-black transition ${s.accentBg ? "bg-[#0064FF] text-white" : "bg-gray-200 text-gray-400"}`}>
+            {s.accentBg ? "ON" : "OFF"}
+          </button>
+        </div>
+        {s.accentBg && (
+          <div>
+            <label className="text-xs font-bold text-gray-400 block mb-1.5">강조 배경 색</label>
+            <ColorPalette value={s.accentBgColor || "#000000"} onChange={(c) => upd("accentBgColor", c)} />
+          </div>
+        )}
+      </div>
+      )}
       </div>
       )}
       {styleTab === "effect" && (
