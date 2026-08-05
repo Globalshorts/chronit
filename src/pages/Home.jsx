@@ -685,7 +685,7 @@ const Home = () => {
                     <span className="text-[2.6rem] font-black leading-none text-gray-900">₩{wonFmt(price)}</span>
                     <span className="text-base font-bold text-gray-400">/ 월</span>
                   </div>
-                  <p className="mt-2 text-sm text-gray-400">하루 약 {wonFmt(Math.round(price / 30 / 10) * 10)}원</p>
+                  <p className="mt-2"><span className="inline-flex items-center rounded-full bg-[#0064FF]/10 px-2.5 py-1 text-sm font-bold text-[#0064FF]">하루 약 {wonFmt(Math.round(price / 30 / 10) * 10)}원</span></p>
                   <button onClick={(e) => { e.stopPropagation(); openPayment(p.key) }}
                     className={`mt-6 w-full rounded-xl py-3.5 text-base font-bold transition-all active:scale-[0.98] ${p.popular ? 'bg-[#0064FF] text-white hover:bg-[#0052D6]' : 'border border-gray-200 bg-white text-gray-900 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>
                     {p.name} 시작하기
