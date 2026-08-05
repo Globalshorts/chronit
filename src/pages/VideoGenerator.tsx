@@ -467,7 +467,6 @@ export default function VideoGenerator() {
     ...(st.accentColor !== undefined ? {
       thumbnail_accent_color: st.accentColor,
       thumbnail_accent_bg: !!st.accentBg,
-      thumbnail_accent_bg_color: st.accentBgColor || st.bgColor,
     } : {}),
   });
 
@@ -2803,7 +2802,7 @@ type SubtitleStyle = {
   strokeColor: string; strokeWidth: number; strokeOn: boolean;
   bgOn: boolean; bgColor: string; bgOpacity: number; bgRadius?: number;
   shadowOn?: boolean; shadowColor?: string; shadowOpacity?: number; shadowSize?: number; blur?: number;
-  accentColor?: string; accentBg?: boolean; accentBgColor?: string;
+  accentColor?: string; accentBg?: boolean;
   yPos: number; xPos: number;
 };
 
@@ -2945,6 +2944,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
     display: "inline-flex", alignItems: "center", lineHeight: 1,
   } : { display: "inline-block" };
 
+  const [showPos, setShowPos] = React.useState(false);
   const stylePanel = (
     <div className="space-y-3">
       <div className="flex gap-2">
@@ -2984,21 +2984,29 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
         <input type="range" min={10} max={20} step={1} value={s.fontSize}
           onChange={e => upd("fontSize", Number(e.target.value))} className="w-full accent-[#0064FF]" />
       </div>
-      {/* 위치 */}
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="text-xs font-bold text-gray-400 block mb-1.5">Y <span className="text-[#0064FF]">{s.yPos}%</span></label>
-          <input type="range" min={5} max={95} value={s.yPos}
-            onChange={e => upd("yPos", Number(e.target.value))} className="w-full accent-[#0064FF]" />
+      {/* 위치 (접기) */}
+      <div>
+        <button type="button" onClick={() => setShowPos(v => !v)}
+          className="text-xs font-bold text-gray-400 hover:text-gray-600">위치 조정 {showPos ? "▴" : "▾"}</button>
+        {showPos && (
+        <div className="mt-2 space-y-2">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-bold text-gray-400 block mb-1.5">Y <span className="text-[#0064FF]">{s.yPos}%</span></label>
+              <input type="range" min={5} max={95} value={s.yPos}
+                onChange={e => upd("yPos", Number(e.target.value))} className="w-full accent-[#0064FF]" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-400 block mb-1.5">X <span className="text-[#0064FF]">{s.xPos}%</span></label>
+              <input type="range" min={5} max={95} value={s.xPos}
+                onChange={e => upd("xPos", Number(e.target.value))} className="w-full accent-[#0064FF]" />
+            </div>
+          </div>
+          <button onClick={() => { setS({ ...s, yPos: 75, xPos: 50 }); try { localStorage.removeItem("chronit_active_pack"); } catch {} }}
+            className="text-xs text-gray-500 hover:text-[#0064FF] transition underline">↺ 위치 초기화</button>
         </div>
-        <div>
-          <label className="text-xs font-bold text-gray-400 block mb-1.5">X <span className="text-[#0064FF]">{s.xPos}%</span></label>
-          <input type="range" min={5} max={95} value={s.xPos}
-            onChange={e => upd("xPos", Number(e.target.value))} className="w-full accent-[#0064FF]" />
-        </div>
+        )}
       </div>
-      <button onClick={() => { setS({ ...s, yPos: 75, xPos: 50 }); try { localStorage.removeItem("chronit_active_pack"); } catch {} }}
-        className="text-xs text-gray-500 hover:text-[#0064FF] transition underline">↺ 위치 초기화</button>
       {tab === "thumbnail" && (
       <div className="pt-3 mt-1 border-t border-gray-100 space-y-3">
         <p className="text-xs font-bold text-gray-500">✨ 강조 <span className="font-normal text-gray-400">· 핵심어에 자동 적용</span></p>
@@ -3007,18 +3015,12 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
           <ColorPalette value={s.accentColor || "#7CFFB2"} onChange={(c) => upd("accentColor", c)} />
         </div>
         <div className="flex items-center justify-between">
-          <label className="text-xs font-bold text-gray-400">강조 배경</label>
+          <label className="text-xs font-bold text-gray-400">강조 배경 <span className="font-normal text-gray-400">· 켜면 색 박스+흰 글씨</span></label>
           <button onClick={() => upd("accentBg", !s.accentBg)}
             className={`rounded-full px-3 py-1 text-xs font-black transition ${s.accentBg ? "bg-[#0064FF] text-white" : "bg-gray-200 text-gray-400"}`}>
             {s.accentBg ? "ON" : "OFF"}
           </button>
         </div>
-        {s.accentBg && (
-          <div>
-            <label className="text-xs font-bold text-gray-400 block mb-1.5">강조 배경 색</label>
-            <ColorPalette value={s.accentBgColor || "#000000"} onChange={(c) => upd("accentBgColor", c)} />
-          </div>
-        )}
       </div>
       )}
       </div>
