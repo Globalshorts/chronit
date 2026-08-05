@@ -2949,26 +2949,24 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
         ))}
       </div>
       {styleTab === "basic" && (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-5 gap-y-3">
+      <div className="space-y-4">
       {/* 글씨체 */}
       <div>
         <label className="text-xs font-bold text-gray-400 block mb-1.5">글씨체</label>
         <FontDropdown value={s.fontFamily} onChange={(v) => upd("fontFamily", v)} />
       </div>
       {/* 색상 + 두께 */}
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="text-xs font-bold text-gray-400 block mb-1.5">색상</label>
-          <ColorPalette value={s.color} onChange={(c) => upd("color", c)} />
-        </div>
-        <div>
-          <label className="text-xs font-bold text-gray-400 block mb-1.5">두께</label>
-          <div className="flex gap-1">
-            {([["400","보통"],["700","굵게"]] as [string,string][]).map(([w,l]) => (
-              <button key={w} onClick={() => upd("fontWeight", w as any)}
-                className={`flex-1 rounded-lg py-2 text-xs font-bold transition border ${s.fontWeight===w ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 text-gray-400"}`}>{l}</button>
-            ))}
-          </div>
+      <div>
+        <label className="text-xs font-bold text-gray-400 block mb-1.5">색상</label>
+        <ColorPalette value={s.color} onChange={(c) => upd("color", c)} />
+      </div>
+      <div>
+        <label className="text-xs font-bold text-gray-400 block mb-1.5">두께</label>
+        <div className="flex gap-2 max-w-[240px]">
+          {([["400","보통"],["700","굵게"]] as [string,string][]).map(([w,l]) => (
+            <button key={w} onClick={() => upd("fontWeight", w as any)}
+              className={`flex-1 rounded-lg py-2 text-xs font-bold transition border ${s.fontWeight===w ? "border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]" : "border-gray-200 text-gray-400"}`}>{l}</button>
+          ))}
         </div>
       </div>
       {/* 크기 */}
@@ -2997,7 +2995,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
       </div>
       )}
       {styleTab === "effect" && (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-5 gap-y-3">
+      <div className="space-y-4">
       {/* 외곽선 */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
@@ -3008,7 +3006,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
           </button>
         </div>
         {s.strokeOn && (
-          <div className="grid grid-cols-2 gap-3 mt-2">
+          <div className="space-y-2.5 mt-2">
             <div>
               <label className="text-xs text-gray-400 block mb-1">색상</label>
               <ColorPalette value={s.strokeColor} onChange={(c) => upd("strokeColor", c)} />
@@ -3031,7 +3029,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
           </button>
         </div>
         {s.bgOn && (
-          <div className="grid grid-cols-2 gap-3 mt-2">
+          <div className="space-y-2.5 mt-2">
             <div>
               <label className="text-xs text-gray-400 block mb-1">색상</label>
               <ColorPalette value={s.bgColor} onChange={(c) => upd("bgColor", c)} />
@@ -3060,7 +3058,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
           </button>
         </div>
         {s.shadowOn && (
-          <div className="grid grid-cols-2 gap-3 mt-2">
+          <div className="space-y-2.5 mt-2">
             <div>
               <label className="text-xs text-gray-400 block mb-1">색상</label>
               <ColorPalette value={s.shadowColor ?? "#000000"} onChange={(c) => upd("shadowColor", c)} />
