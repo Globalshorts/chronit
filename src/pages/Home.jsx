@@ -517,7 +517,7 @@ const Home = () => {
               촬영도 편집도 없이<br /><span className="bg-gradient-to-r from-[#10b981] to-[#0064FF] bg-clip-text text-transparent">매일 올리는 쇼핑 숏폼</span>
             </h1>
             <p className="mx-auto mb-9 max-w-md text-lg font-bold text-gray-500 break-keep md:max-w-none md:text-2xl">
-              영상 링크만 넣으면 상품 분석·자막·AI 음성·컷편집까지 자동으로, 완성된 쇼핑 숏폼으로 돌려드려요.
+              이제 편집자가 아니라, 채널을 굴리는 운영자가 되세요.
             </p>
             </>)}
 
