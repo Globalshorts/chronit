@@ -521,6 +521,16 @@ const Home = () => {
             </p>
             </>)}
 
+            {!user && (
+              <div className="flex w-full max-w-md flex-col items-center gap-2">
+                <button onClick={handleStart}
+                  className="w-full rounded-2xl bg-[#0064FF] px-8 py-4 text-lg font-extrabold text-white shadow-lg shadow-[#0064FF]/30 transition-all hover:bg-[#0052D6] active:scale-95">
+                  무료로 시작하기 →
+                </button>
+                <Link to="/manual" className="text-sm font-medium text-gray-400 transition-colors hover:text-[#0064FF]">1분 사용법 보기 →</Link>
+              </div>
+            )}
+            {user && (
             <div className="flex w-full max-w-2xl flex-col gap-3">
               {/* 입력 방식 탭 */}
               <div className="flex gap-1.5 rounded-2xl border-2 border-gray-200 bg-white p-1.5">
@@ -570,6 +580,7 @@ const Home = () => {
                 1분 사용법 보기 →
               </Link>
             </div>
+            )}
             {!user && (
               <div className="mt-8 w-full max-w-2xl">
                 <TimeLossCalculator onStart={handleStart} />

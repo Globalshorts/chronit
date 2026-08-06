@@ -21,12 +21,13 @@ const TimeLossCalculator = ({ onStart }) => {
   const [shown, setShown] = useState(false)
 
   const n = (v) => { const x = parseInt(v, 10); return isNaN(x) ? 0 : x }
-  const manual = (n(sh) * 60 + n(sm)) + (n(eh) * 60 + n(em))
-  const saved = Math.max(0, manual - 5)
-  const week = saved * Math.max(0, n(vw))
-  const month = week * (30 / 7)
-  const year = week * (365 / 7)
-  const evenings = Math.round(year / 180)
+  const perVideo = (n(sh) * 60 + n(sm)) + (n(eh) * 60 + n(em))   // 순수 소싱+편집 (크로닛 미포함)
+  const vids = Math.max(0, n(vw))
+  const lossWeek = perVideo * vids                               // 지금 매주 버리는 시간 (raw)
+  const lossMonth = lossWeek * (30 / 7)
+  const lossYear = lossWeek * (365 / 7)
+  const evenings = Math.round(lossYear / 180)
+  const savedWeek = Math.max(0, perVideo - 5) * vids            // 크로닛으로 되찾는 시간 (영상당 5분)
 
   const reveal = () => { setRevealed(true); setTimeout(() => setShown(true), 10) }
   const numProps = { type: 'number', inputMode: 'numeric', pattern: '[0-9]*' }
@@ -76,24 +77,31 @@ const TimeLossCalculator = ({ onStart }) => {
         <div className={`transition-all duration-300 ${shown ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'}`}>
           <div className="mt-4 rounded-xl border border-red-100 bg-red-50 p-4">
             <p className="mb-0.5 text-xs font-bold text-red-600">지금 매주 편집에 버리는 시간</p>
-            <p className="text-3xl font-black leading-tight text-red-500">{fmtH(week)}</p>
+            <p className="text-3xl font-black leading-tight text-red-500">{fmtH(lossWeek)}</p>
             <p className="mt-1 text-xs font-bold text-red-400">이게 매주 반복돼요.</p>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-gray-50 p-3.5">
               <p className="mb-0.5 text-xs text-gray-500">한 달이면</p>
-              <p className="text-xl font-black text-gray-900">{fmtH(month)}</p>
+              <p className="text-xl font-black text-gray-900">{fmtH(lossMonth)}</p>
             </div>
             <div className="rounded-xl bg-gray-50 p-3.5">
               <p className="mb-0.5 text-xs text-gray-500">1년이면</p>
-              <p className="text-xl font-black text-gray-900">{fmtH(year)}</p>
+              <p className="text-xl font-black text-gray-900">{fmtH(lossYear)}</p>
             </div>
           </div>
-          {year > 0 && (
+          {lossYear > 0 && (
             <p className="mt-3 flex items-center gap-1.5 text-sm leading-relaxed text-gray-800">
               <Moon size={15} className="shrink-0 text-red-500" /> 1년이면 <b className="font-black text-red-500">퇴근 후 저녁 {evenings.toLocaleString()}번</b>을 편집에 뺏기는 거예요.
             </p>
           )}
+
+          <div className="mt-4 rounded-xl border border-[#0064FF]/25 bg-[#0064FF]/5 p-4">
+            <p className="mb-0.5 text-xs font-bold text-[#0064FF]">크로닛으로 바꾸면 · 영상당 5분</p>
+            <p className="text-2xl font-black leading-tight text-[#0064FF]">매주 {fmtH(savedWeek)} 되찾음</p>
+            <p className="mt-1 text-xs font-bold text-[#0064FF]/70">이 시간에 편집 대신, 채널을 굴리세요.</p>
+          </div>
+
           <div className="mt-4 border-t border-gray-100 pt-4">
             <p className="text-[15px] font-bold text-gray-900">남들이 이 시간에 갈려나갈 때, 당신은 되찾습니다.</p>
             <p className="mb-3 text-xs text-gray-500">아직 크로닛으로 시스템을 굴리는 사람은 소수예요. 편집자 말고, 운영자가 되세요.</p>
