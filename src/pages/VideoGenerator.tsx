@@ -911,7 +911,7 @@ export default function VideoGenerator() {
       (res: any) => {
         const d = res?.data;
         if (d?.ok) {
-          setRefMsg({ ok: true, text: `🎉 추천 코드 적용! 프로 7일 무료 체험이 시작됐어요` });
+          setRefMsg({ ok: true, text: `🎉 추천 코드 적용! 이용권 2개가 지급됐어요` });
           loadBalance();
           setTimeout(() => closeSurvey(), 1600);
         } else {
@@ -2071,7 +2071,7 @@ export default function VideoGenerator() {
               <>
                 <div className="mt-2 text-center text-4xl">🎉</div>
                 <p className="mt-2 text-center text-lg font-black text-gray-900">추천 코드가 적용됐어요!</p>
-                <p className="mt-1 text-center text-sm text-gray-500"><b className="text-[#0064FF]">프로 7일 무료 체험</b>이 시작됐어요.</p>
+                <p className="mt-1 text-center text-sm text-gray-500"><b className="text-[#0064FF]">이용권 2개</b>가 지급됐어요.</p>
                 <button onClick={closeSurvey}
                   className="mt-5 w-full rounded-xl bg-[#0064FF] px-4 py-3 text-sm font-black text-white transition hover:bg-[#0052D6] active:scale-[0.98]">
                   시작하기
@@ -2080,7 +2080,7 @@ export default function VideoGenerator() {
             ) : (
               <>
                 <p className="text-center text-lg font-black text-gray-900">추천 코드가 있으신가요?</p>
-                <p className="mt-1 text-center text-sm text-gray-500">입력하면 <b className="text-[#0064FF]">프로 7일 무료 체험</b>! (친구가 결제하면 추천인도 프로 30일)</p>
+                <p className="mt-1 text-center text-sm text-gray-500">입력하면 <b className="text-[#0064FF]">이용권 2개</b> 무료! (친구가 결제하면 추천인 이용권 5개)</p>
                 <input
                   value={refCode}
                   onChange={(e) => { setRefCode(e.target.value.toUpperCase()); setRefMsg(null); }}

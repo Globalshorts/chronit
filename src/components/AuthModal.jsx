@@ -103,7 +103,7 @@ const AuthModal = ({ open, onClose, referralCode }) => {
           <div className="mb-5 flex items-center gap-2 rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/10 px-4 py-3">
             <Gift size={15} className="shrink-0 text-[#0064FF]" />
             <span className="text-sm font-bold text-[#0064FF]">
-              추천 코드 <span className="text-gray-900">{referralCode}</span> — 가입 시 프로 7일 무료 체험
+              추천 코드 <span className="text-gray-900">{referralCode}</span> — 가입 시 이용권 2개 무료
             </span>
           </div>
         )}

@@ -44,7 +44,7 @@ const SignupSurveyModal = ({ open, onDone }) => {
     try {
       const { data } = await supabase.rpc('redeem_referral_rpc', { p_referral_code: code, p_fingerprint: getFp() })
       if (data?.ok) {
-        setRefMsg({ ok: true, text: `🎉 추천 코드 적용! 프로 7일 체험이 시작됐어요` })
+        setRefMsg({ ok: true, text: `🎉 추천 코드 적용! 이용권 2개가 지급됐어요` })
         setTimeout(() => onDone?.(), 1400)
       } else {
         setRefMsg({ ok: false, text: data?.error ?? '추천 코드 적용에 실패했어요' })
@@ -78,7 +78,7 @@ const SignupSurveyModal = ({ open, onDone }) => {
         ) : (
           <>
             <p className="text-center text-lg font-black text-gray-900">추천 코드가 있나요?</p>
-            <p className="mt-1 text-center text-sm text-gray-500">입력하면 프로 7일 무료 체험! (선택)</p>
+            <p className="mt-1 text-center text-sm text-gray-500">입력하면 이용권 2개 무료 지급! (선택)</p>
             <div className="mt-5 flex gap-2">
               <input value={refCode} onChange={e => setRefCode(e.target.value.toUpperCase())}
                 onKeyDown={e => e.key === 'Enter' && applyReferral()}
