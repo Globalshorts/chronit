@@ -517,7 +517,7 @@ const Home = () => {
               촬영도 편집도 없이<br /><span className="bg-gradient-to-r from-[#10b981] to-[#0064FF] bg-clip-text text-transparent">매일 올리는 쇼핑 숏폼</span>
             </h1>
             <p className="mx-auto mb-9 max-w-md text-lg font-bold text-gray-500 break-keep md:max-w-none md:text-2xl">
-              이제 편집자가 아니라,<br className="md:hidden" />채널을 굴리는 운영자가 되세요.
+              이제 <span style={{ background: 'linear-gradient(transparent 55%, rgba(148,163,184,0.45) 55%)' }} className="px-0.5 font-black text-gray-700">편집자</span>가 아니라,<br className="md:hidden" />채널을 굴리는 <span style={{ background: 'linear-gradient(transparent 55%, rgba(0,100,255,0.30) 55%)' }} className="px-0.5 font-black text-gray-900">운영자</span>가 되세요.
             </p>
             </>)}
 
