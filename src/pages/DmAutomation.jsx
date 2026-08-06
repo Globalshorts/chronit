@@ -147,6 +147,7 @@ export default function DmAutomation({ userPlan, userRole }) {
   const inputCls = "w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0064FF] focus:ring-1 focus:ring-[#0064FF] transition"
 
   return (
+    <div className="min-h-screen bg-gradient-to-b from-[#EEF2F9] via-[#F5F6FA] to-[#FAFAF8]">
     <div className="mx-auto w-full max-w-2xl px-4 py-6">
       <h1 className="mb-1 flex items-center gap-2 text-xl font-black text-gray-900"><MessageCircle size={22} className="text-[#0064FF]" /> 인스타 댓글 자동 DM</h1>
       <p className="mb-5 text-sm text-gray-500">내 인스타를 연결하고, 특정 키워드 댓글에 자동으로 DM(링크)을 보내세요. 계정은 여러 개 연결할 수 있어요.</p>
@@ -163,7 +164,7 @@ export default function DmAutomation({ userPlan, userRole }) {
                 <div key={c.id}
                   className={`flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 transition ${on ? 'border-[#0064FF] bg-[#0064FF]/5' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
                   <button onClick={() => setActiveIg(c.ig_user_id)} className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
-                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${on ? 'bg-[#0064FF] text-white' : 'bg-gray-100 text-gray-400'}`}>
+                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${on ? 'bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white' : 'bg-gray-100 text-gray-400'}`}>
                       {on ? <Check size={16} strokeWidth={3} /> : <AtSign size={16} />}
                     </span>
                     <span className="min-w-0">
@@ -214,7 +215,7 @@ export default function DmAutomation({ userPlan, userRole }) {
             공개 답글도 남기기 ("방금 DM 보냈어요")
           </label>
           <button onClick={addRule} disabled={!conn}
-            className="flex items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] px-4 py-2.5 text-sm font-black text-white hover:bg-[#0052D6] disabled:opacity-40 transition">
+            className="flex items-center justify-center gap-1.5 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2.5 text-sm font-black text-white hover:brightness-95 disabled:opacity-40 transition">
             <Plus size={15} strokeWidth={2.5} /> 규칙 추가
           </button>
         </div>
@@ -248,6 +249,7 @@ export default function DmAutomation({ userPlan, userRole }) {
           </div>
         )) : <p className="py-2 text-center text-sm text-gray-400">아직 발송 내역이 없어요.</p>}
       </div>
+    </div>
     </div>
   )
 }

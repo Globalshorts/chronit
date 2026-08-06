@@ -96,7 +96,7 @@ const DemoVideosPanel = () => {
           <h2 className="text-base font-bold">Demo Videos</h2>
           <span className="rounded-full bg-white/8 px-2 py-0.5 text-xs text-slate-400">{videos.length}</span>
         </div>
-        <label className={`flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all active:scale-95 ${uploading ? 'bg-slate-700 text-slate-400' : 'bg-blue-600 text-white hover:bg-blue-500'}`}>
+        <label className={`flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all active:scale-95 ${uploading ? 'bg-slate-700 text-slate-400' : 'bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white hover:brightness-95'}`}>
           {uploading ? <Loader size={14} className="animate-spin" /> : <Upload size={14} />}
           {uploading ? 'Uploading...' : 'Add Video'}
           <input type="file" accept="video/*" multiple className="sr-only" onChange={handleUpload} disabled={uploading} />
@@ -230,8 +230,8 @@ const MissionsPanel = () => {
       <div>
         <label className={labelCls}>유형</label>
         <div className="flex gap-2">
-          <button onClick={() => set('type', 'claim')} className={`flex-1 rounded-xl px-3 py-2 text-sm font-bold ${form.type === 'claim' ? 'bg-blue-600 text-white' : 'border border-white/10 text-slate-400'}`}>즉시 지급 (버튼 누르면 이용권)</button>
-          <button onClick={() => set('type', 'link')} className={`flex-1 rounded-xl px-3 py-2 text-sm font-bold ${form.type === 'link' ? 'bg-blue-600 text-white' : 'border border-white/10 text-slate-400'}`}>링크 이동 (구글폼 등)</button>
+          <button onClick={() => set('type', 'claim')} className={`flex-1 rounded-xl px-3 py-2 text-sm font-bold ${form.type === 'claim' ? 'bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white' : 'border border-white/10 text-slate-400'}`}>즉시 지급 (버튼 누르면 이용권)</button>
+          <button onClick={() => set('type', 'link')} className={`flex-1 rounded-xl px-3 py-2 text-sm font-bold ${form.type === 'link' ? 'bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white' : 'border border-white/10 text-slate-400'}`}>링크 이동 (구글폼 등)</button>
         </div>
         {form.type === 'link' && <p className="mt-1 text-xs text-slate-500">※ 링크형은 이용권을 자동 지급하지 않아요. 지급은 수동/쿠폰으로.</p>}
       </div>
@@ -247,8 +247,8 @@ const MissionsPanel = () => {
           <div>
             <label className={labelCls}>지급 방식</label>
             <div className="flex gap-2">
-              <button onClick={() => set('auto', false)} className={`flex-1 rounded-xl px-3 py-2 text-sm font-bold ${!form.auto ? 'bg-blue-600 text-white' : 'border border-white/10 text-slate-400'}`}>버튼 눌러 받기</button>
-              <button onClick={() => set('auto', true)} className={`flex-1 rounded-xl px-3 py-2 text-sm font-bold ${form.auto ? 'bg-blue-600 text-white' : 'border border-white/10 text-slate-400'}`}>🎯 자동 지급 (퀘스트)</button>
+              <button onClick={() => set('auto', false)} className={`flex-1 rounded-xl px-3 py-2 text-sm font-bold ${!form.auto ? 'bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white' : 'border border-white/10 text-slate-400'}`}>버튼 눌러 받기</button>
+              <button onClick={() => set('auto', true)} className={`flex-1 rounded-xl px-3 py-2 text-sm font-bold ${form.auto ? 'bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white' : 'border border-white/10 text-slate-400'}`}>🎯 자동 지급 (퀘스트)</button>
             </div>
             <p className="mt-1 text-xs text-slate-500">{form.auto ? '조건을 충족하는 순간 자동으로 지급돼요 (영상 생성 완료 시 즉시 / 모달 열 때 소급).' : '조건 충족 후 사용자가 모달에서 "받기"를 눌러야 지급돼요.'}</p>
           </div>
@@ -277,7 +277,7 @@ const MissionsPanel = () => {
         </div>
       </div>
       {msg && <p className={`text-sm ${msg.ok ? 'text-green-400' : 'text-red-400'}`}>{msg.text}</p>}
-      <button onClick={save} disabled={saving || !form.title.trim()} className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-40">
+      <button onClick={save} disabled={saving || !form.title.trim()} className="flex items-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-5 py-2.5 text-sm font-bold text-white disabled:opacity-40">
         {saving ? <Loader size={14} className="animate-spin" /> : <Save size={14} />} 저장
       </button>
     </div>
@@ -290,7 +290,7 @@ const MissionsPanel = () => {
           <h2 className="text-lg font-black text-white">이벤트 (이용권 미션)</h2>
           <span className="rounded-full bg-white/8 px-2 py-0.5 text-xs text-slate-400">{list.length}</span>
         </div>
-        <button onClick={openNew} className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white"><Plus size={15} /> 새 이벤트</button>
+        <button onClick={openNew} className="flex items-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-sm font-bold text-white"><Plus size={15} /> 새 이벤트</button>
       </div>
       <p className="mb-4 text-xs text-slate-500">영상 만들기 → "🎁 무료 이용권 받기" 모달에 노출됩니다. 추천·후기 미션은 코드 고정이라 여기엔 없어요.</p>
       {list.length === 0 ? (
@@ -348,7 +348,7 @@ const TipsPanel = () => {
           <h2 className="text-lg font-black text-white">숏폼 부업 꿀팁</h2>
           <span className="rounded-full bg-white/8 px-2 py-0.5 text-xs text-slate-400">{list.length}</span>
         </div>
-        <button onClick={openNew} className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white"><Plus size={15} /> 새 꿀팁</button>
+        <button onClick={openNew} className="flex items-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-sm font-bold text-white"><Plus size={15} /> 새 꿀팁</button>
       </div>
       <p className="mb-4 text-xs text-slate-500">영상 생성 로딩 화면에 30초마다 랜덤으로 노출돼요.</p>
 
@@ -364,7 +364,7 @@ const TipsPanel = () => {
             <label className="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" checked={form.active} onChange={e => set('active', e.target.checked)} /> 노출</label>
             <div className="flex gap-2">
               <button onClick={() => setEditing(null)} className="rounded-xl border border-white/10 px-4 py-2 text-sm font-bold text-slate-400">취소</button>
-              <button onClick={save} disabled={saving || !form.text.trim()} className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">{saving ? <Loader size={14} className="animate-spin" /> : <Save size={14} />} 저장</button>
+              <button onClick={save} disabled={saving || !form.text.trim()} className="flex items-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-sm font-bold text-white disabled:opacity-40">{saving ? <Loader size={14} className="animate-spin" /> : <Save size={14} />} 저장</button>
             </div>
           </div>
         </div>
@@ -483,7 +483,7 @@ const Admin = () => {
       <ShieldCheck size={48} className="text-slate-600" />
       <p className="text-lg font-bold text-slate-400">Login required</p>
       <button onClick={() => supabase.auth.signInWithOAuth({ provider: 'google' })}
-        className="rounded-xl bg-blue-600 px-6 py-3 font-bold text-white hover:bg-blue-500">Sign in with Google</button>
+        className="rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-6 py-3 font-bold text-white hover:brightness-95">Sign in with Google</button>
     </div>
   )
 
@@ -533,7 +533,7 @@ const Admin = () => {
             { key: 'trends', icon: <Flame size={15} />, label: '오늘의 트렌드' },
           ].map(t => (
             <button key={t.key} onClick={() => { setTab(t.key); setView('list') }}
-              className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2 text-sm font-bold transition-all ${tab === t.key ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'border border-white/10 text-slate-400 hover:text-white'}`}>
+              className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2 text-sm font-bold transition-all ${tab === t.key ? 'bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white shadow-lg shadow-blue-600/20' : 'border border-white/10 text-slate-400 hover:text-white'}`}>
               {t.icon}{t.label}
             </button>
           ))}
@@ -554,7 +554,7 @@ const Admin = () => {
                 <span className="rounded-full bg-white/8 px-2 py-0.5 text-xs text-slate-400">{events.length}</span>
               </div>
               <button onClick={openNew}
-                className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-500 active:scale-95">
+                className="flex items-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-sm font-bold text-white hover:brightness-95 active:scale-95">
                 <Plus size={15} /> New Event
               </button>
             </div>
@@ -661,7 +661,7 @@ const Admin = () => {
             </div>
             <div className="flex items-center gap-4">
               <button onClick={handleSave} disabled={saving}
-                className="flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-bold text-white transition-all hover:bg-blue-500 active:scale-95 disabled:opacity-50">
+                className="flex items-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-6 py-3 font-bold text-white transition-all hover:brightness-95 active:scale-95 disabled:opacity-50">
                 {saving ? <Loader size={16} className="animate-spin" /> : <Save size={16} />}
                 {editing ? 'Update' : 'Save'}
               </button>
@@ -755,7 +755,7 @@ function TrendAccountsPanel() {
           className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 outline-none focus:border-orange-500/50" />
         <div className="mt-2 flex items-center gap-3">
           <button onClick={addBulk} disabled={busy}
-            className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-500 disabled:opacity-40">
+            className="flex items-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-sm font-bold text-white hover:brightness-95 disabled:opacity-40">
             <Plus size={15} /> 추가
           </button>
           {msg && <span className="text-sm font-bold text-slate-300">{msg}</span>}
