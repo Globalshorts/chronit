@@ -5202,7 +5202,7 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
                     {saving===j.id ? <><Loader2 size={15} className="animate-spin" /> 준비 중…</> : (readyToSave===j.id && isIOS) ? <><Download size={15} /> 한 번 더 눌러 저장</> : isIOS ? <><Smartphone size={15} /> 갤러리에 저장</> : <><Download size={15} /> 동영상 저장</>}
                   </button>
                   {(j.seo_description || j.seo_tags) ? (
-                    <button onClick={()=>copyText([j.seo_description, cap5Tags(j.seo_tags)].filter(Boolean).join("\n\n"), j.id+"-all")}
+                    <button onClick={()=>copyText([j.seo_description, "이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.", cap5Tags(j.seo_tags)].filter(Boolean).join("\n\n"), j.id+"-all")}
                       className="block text-center rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-gray-700 hover:border-[#0064FF]/50 hover:text-[#0064FF] transition">
                       <span className="flex items-center justify-center gap-1.5">{copied===j.id+"-all" ? <><Check size={14} /> 복사됨</> : <><Copy size={14} /> 캡션 복사</>}</span>
                       <span className="block text-[10px] font-normal text-gray-400">설명·해시태그 바로 붙여넣기</span>
