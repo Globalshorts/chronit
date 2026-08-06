@@ -51,7 +51,7 @@ const MyPage = () => {
     setRedeeming(true); setRedeemMsg(null)
     try {
       const { data } = await supabase.rpc('redeem_referral_rpc', { p_referral_code: code })
-      if (data?.ok) { setRedeemMsg({ ok: true, text: '🎉 추천 코드 적용! 프로 7일 체험이 시작됐어요' }); setRedeemCode(''); if (user) load(user.id) }
+      if (data?.ok) { setRedeemMsg({ ok: true, text: '🎉 추천 코드 적용! 이용권 2개가 지급됐어요' }); setRedeemCode(''); if (user) load(user.id) }
       else setRedeemMsg({ ok: false, text: data?.error ?? '적용에 실패했어요' })
     } catch { setRedeemMsg({ ok: false, text: '적용에 실패했어요' }) }
     setRedeeming(false)
@@ -96,21 +96,20 @@ const MyPage = () => {
             </button>
             <div className="mt-2 rounded-xl bg-[#0064FF]/5 px-4 py-3 text-xs leading-relaxed text-slate-600">
               <p className="mb-1 font-bold text-gray-800">🎁 친구 초대 보상</p>
-              <p>• 친구가 내 링크로 <b>가입</b>하면 → 친구에게 <b>프로 7일</b></p>
-              <p>• 친구가 <b>첫 영상</b>을 만들면 → 나에게 <b>프로 7일</b></p>
-              <p>• 친구가 <b>결제</b>하면 → 나에게 <b>프로 30일</b></p>
-              <p className="mt-1.5 text-slate-400">※ 추천 보상은 최근 30일 기준 무료 회원 최대 14일, 유료 회원 최대 30일까지 쌓여요.</p>
+              <p>• 친구가 내 링크로 <b>가입</b>하면 → 친구에게 <b>이용권 2개</b></p>
+              <p>• 친구가 <b>결제</b>하면 → 나에게 <b>이용권 5개</b></p>
+              <p className="mt-1.5 text-slate-400">※ 추천 보상은 최근 30일 기준 무료 회원 최대 10회, 유료 회원 최대 30회까지 지급돼요.</p>
             </div>
-            {refInfo && !refInfo.ref_is_paid && refInfo.ref_remaining_days > 0 ? (
+            {refInfo && refInfo.ref_remaining_days > 0 ? (
               <div className="mt-2 rounded-xl border border-[#0064FF]/20 bg-white px-4 py-3">
                 <div className="mb-1.5 flex items-center justify-between text-xs">
-                  <span className="font-bold text-gray-700">🎁 프로 체험 잔여</span>
+                  <span className="font-bold text-gray-700">🎁 보너스 이용권 만료까지</span>
                   <span className={refInfo.ref_remaining_days <= 3 ? "font-bold text-red-500" : "text-slate-500"}>{refInfo.ref_remaining_days}일</span>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
-                  <div className={`h-full rounded-full transition-all ${refInfo.ref_remaining_days <= 3 ? "bg-red-500" : "bg-[#0064FF]"}`} style={{ width: `${Math.min(100, Math.round((refInfo.ref_remaining_days / Math.max(1, refInfo.ref_cap_days)) * 100))}%` }} />
+                  <div className={`h-full rounded-full transition-all ${refInfo.ref_remaining_days <= 3 ? "bg-red-500" : "bg-[#0064FF]"}`} style={{ width: `${Math.min(100, Math.round((refInfo.ref_remaining_days / 30) * 100))}%` }} />
                 </div>
-                <p className="mt-1.5 text-[11px] text-slate-400">매일 줄어들어요 · 친구가 영상 만들면 +7일 (최대 {refInfo.ref_cap_days}일)</p>
+                <p className="mt-1.5 text-[11px] text-slate-400">받은 보너스 이용권은 만료 전에 사용하세요.</p>
               </div>
             ) : null}
             </>
@@ -120,7 +119,7 @@ const MyPage = () => {
         {/* 받은 추천 코드 입력 */}
         <div className="mt-4 rounded-3xl border border-gray-200 bg-white p-5">
           <p className="mb-1 text-sm font-bold text-gray-800">받은 추천 코드가 있나요?</p>
-          <p className="mb-3 text-xs text-slate-500">입력하면 프로 7일 무료 체험이 시작돼요.</p>
+          <p className="mb-3 text-xs text-slate-500">입력하면 이용권 2개가 지급돼요.</p>
           <div className="flex gap-2">
             <input value={redeemCode} onChange={(e) => setRedeemCode(e.target.value.toUpperCase())} onKeyDown={(e) => e.key === 'Enter' && redeem()}
               placeholder="추천 코드"
