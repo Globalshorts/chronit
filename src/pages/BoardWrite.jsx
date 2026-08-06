@@ -22,6 +22,8 @@ const BoardWrite = () => {
   const [uploading, setUploading] = useState(false)
   const [imgErr, setImgErr] = useState('')
   const [showPopup, setShowPopup] = useState(false)  // 홈 팝업 띄우기
+  const [popupStart, setPopupStart] = useState('')   // 팝업 시작일(YYYY-MM-DD, 빈값=즉시)
+  const [popupEnd, setPopupEnd] = useState('')       // 팝업 종료일(YYYY-MM-DD, 빈값=무기한)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -35,10 +37,10 @@ const BoardWrite = () => {
 
   useEffect(() => {
     if (!editId) return
-    supabase.from('board_posts').select('category, title, body, is_deleted, image_url, show_popup').eq('id', editId).maybeSingle()
+    supabase.from('board_posts').select('category, title, body, is_deleted, image_url, show_popup, popup_start, popup_end').eq('id', editId).maybeSingle()
       .then(({ data }) => {
         if (!data || data.is_deleted) { nav('/board'); return }
-        setTitle(data.title || ''); setBody(data.body || ''); setImageUrl(data.image_url || ''); setShowPopup(!!data.show_popup)
+        setTitle(data.title || ''); setBody(data.body || ''); setImageUrl(data.image_url || ''); setShowPopup(!!data.show_popup); setPopupStart(data.popup_start || ''); setPopupEnd(data.popup_end || '')
       })
   }, [editId]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -68,7 +70,7 @@ const BoardWrite = () => {
     const applyPopup = async (postId) => {
       try {
         if (showPopup) await supabase.from('board_posts').update({ show_popup: false }).eq('show_popup', true).neq('id', postId)
-        await supabase.from('board_posts').update({ show_popup: showPopup }).eq('id', postId)
+        await supabase.from('board_posts').update({ show_popup: showPopup, popup_start: showPopup ? (popupStart || null) : null, popup_end: showPopup ? (popupEnd || null) : null }).eq('id', postId)
       } catch { /* 팝업 플래그 실패는 무시 */ }
     }
     if (editId) {
@@ -159,6 +161,20 @@ const BoardWrite = () => {
             <span className="mt-0.5 block text-xs text-slate-500">체크하면 이 공지가 로그인 화면에 팝업으로 떠요. (팝업은 하나만 — 새로 체크하면 이전 팝업은 자동 해제)</span>
           </span>
         </label>
+
+        {showPopup && (
+          <div className="mt-2 grid grid-cols-2 gap-2 rounded-xl border border-[#0064FF]/15 bg-white px-4 py-3">
+            <label className="text-xs font-bold text-slate-600">시작일 (선택)
+              <input type="date" value={popupStart} onChange={e => setPopupStart(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5 text-sm text-slate-800" />
+            </label>
+            <label className="text-xs font-bold text-slate-600">종료일 (선택)
+              <input type="date" value={popupEnd} min={popupStart || undefined} onChange={e => setPopupEnd(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5 text-sm text-slate-800" />
+            </label>
+            <span className="col-span-2 text-[11px] leading-snug text-slate-400">비워두면 시작일=지금 바로, 종료일=무기한이에요. 종료일까지(그날 포함) 팝업이 떠요.</span>
+          </div>
+        )}
 
         {err && <p className="mt-3 text-sm font-medium text-red-500">{err}</p>}
 

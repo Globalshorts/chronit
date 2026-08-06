@@ -988,10 +988,14 @@ export default function VideoGenerator() {
     (async () => {
       try {
         const { data } = await supabase.from("board_posts")
-          .select("id, title, body, updated_at")
+          .select("id, title, body, updated_at, popup_start, popup_end")
           .eq("show_popup", true).eq("is_deleted", false).eq("is_hidden", false)
           .order("updated_at", { ascending: false }).limit(1).maybeSingle();
         if (!data) return;
+        const _tp = (n: number) => String(n).padStart(2, "0"); const _now = new Date();
+        const _today = `${_now.getFullYear()}-${_tp(_now.getMonth()+1)}-${_tp(_now.getDate())}`;
+        const _ps = (data as any).popup_start, _pe = (data as any).popup_end;
+        if ((_ps && _today < _ps) || (_pe && _today > _pe)) return; // 팝업 노출 기간 밖이면 표시 안 함
         setNoticePost(data as any);
         const until = Number(localStorage.getItem(`${noticeKey(data as any)}_hide_until`) || 0);
         if (Date.now() >= until) setNoticeOpen(true);
