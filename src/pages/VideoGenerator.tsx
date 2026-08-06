@@ -2290,14 +2290,14 @@ export default function VideoGenerator() {
           <StagePanel n={1} title="링크 붙여넣기" current={stage} hideNum
             headerRight={
               <div className="flex items-center gap-2 shrink-0">
-              {(refInfo && !refInfo.ref_is_paid && refInfo.ref_remaining_days > 0) && (
+              {(refInfo && refInfo.ref_remaining_days > 0) && (
               <div className="w-32 sm:w-40">
                 <div className="mb-1 flex items-center justify-between text-[11px]">
-                  <span className="font-bold text-[#0064FF] inline-flex items-center gap-1"><Gift size={11} /> 프로 잔여</span>
+                  <span className="font-bold text-[#0064FF] inline-flex items-center gap-1"><Gift size={11} /> 보너스 만료</span>
                   <span className={refInfo.ref_remaining_days <= 3 ? "font-bold text-red-500" : "text-gray-400"}>{refInfo.ref_remaining_days}일</span>
                 </div>
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
-                  <div className={`h-full rounded-full transition-all ${refInfo.ref_remaining_days <= 3 ? "bg-red-500" : "bg-[#0064FF]"}`} style={{ width: `${Math.min(100, Math.round((refInfo.ref_remaining_days / Math.max(1, refInfo.ref_cap_days)) * 100))}%` }} />
+                  <div className={`h-full rounded-full transition-all ${refInfo.ref_remaining_days <= 3 ? "bg-red-500" : "bg-[#0064FF]"}`} style={{ width: `${Math.min(100, Math.round((refInfo.ref_remaining_days / 30) * 100))}%` }} />
                 </div>
               </div>
               )}
@@ -3781,7 +3781,7 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
         objectType: "feed",
         content: {
           title: "편집 몰라도 2분이면 쇼핑 숏폼 완성 🎬 크로닛",
-          description: "쇼핑 영상 링크만 붙이면 자막·AI 목소리·썸네일 자동. 추천 링크로 가입 시 프로 7일 무료!",
+          description: "쇼핑 영상 링크만 붙이면 자막·AI 목소리·썸네일 자동. 추천 링크로 가입 시 이용권 2개 무료!",
           imageUrl: KAKAO_SHARE_IMG,
           link: { mobileWebUrl: link, webUrl: link },
         },
@@ -3819,7 +3819,7 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
           className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#FEE500] py-4 text-base font-black text-[#3C1E1E] shadow-sm transition hover:brightness-95 active:scale-[0.98]">
           💬 카카오톡으로 친구 초대하기
         </button>
-        <p className="mt-2 mb-5 text-center text-xs text-gray-500">친구가 가입하면 서로 무료 이용권을 받아요{invites ? ` · 현재 ${invites}명 초대함` : ""}</p>
+        <p className="mt-2 mb-5 text-center text-xs text-gray-500">친구 초대하고 이용권 받아요{invites ? ` · 현재 ${invites}명 초대함` : ""}</p>
 
         {/* 쿠폰 코드 */}
         <div className="rounded-2xl bg-[#0064FF]/5 border border-[#0064FF]/30 p-4 mb-3">
@@ -3836,13 +3836,12 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
 
         {/* 미션 A — 추천 */}
         <div className="rounded-2xl bg-gray-100/60 border border-gray-200 p-4 mb-3">
-          <span className="inline-block rounded-lg bg-[#0064FF] text-white text-xs font-bold px-2.5 py-1 mb-2">미션 A · 프로 체험 선물</span>
+          <span className="inline-block rounded-lg bg-[#0064FF] text-white text-xs font-bold px-2.5 py-1 mb-2">미션 A · 친구 초대 보상</span>
           <div className="mb-3 text-sm text-gray-700">
             <p className="mb-1.5 text-gray-500">친구가 내 코드로 가입하면</p>
             <div className="space-y-1">
-              <p className="flex items-center gap-1.5">🎁 친구 <b className="text-gray-900">프로 7일 무료</b></p>
-              <p className="flex items-center gap-1.5">🎬 친구 첫 영상 → 나도 <b className="text-gray-900">프로 7일</b></p>
-              <p className="flex items-center gap-1.5">💳 친구 결제 → 나는 <b className="text-gray-900">프로 30일</b></p>
+              <p className="flex items-center gap-1.5">🎁 친구 가입 → 친구에게 <b className="text-gray-900">이용권 2개</b></p>
+              <p className="flex items-center gap-1.5">💳 친구 결제 → 나에게 <b className="text-gray-900">이용권 5개</b></p>
             </div>
           </div>
 

@@ -142,7 +142,7 @@ const Register = () => {
     setSaving(true); setRefMsg(null)
     try {
       const { data } = await supabase.rpc('redeem_referral_rpc', { p_referral_code: code, p_fingerprint: getFp() })
-      if (data?.ok) { setRefMsg({ ok: true, text: `🎉 추천 코드 적용! 프로 7일 체험이 시작됐어요` }); setRefApplied(true) }
+      if (data?.ok) { setRefMsg({ ok: true, text: `🎉 추천 코드 적용! 이용권 2개가 지급됐어요` }); setRefApplied(true) }
       else setRefMsg({ ok: false, text: data?.error ?? '추천 코드 적용에 실패했어요' })
     } catch { setRefMsg({ ok: false, text: '추천 코드 적용에 실패했어요' }) }
     setSaving(false)
@@ -250,7 +250,7 @@ const Register = () => {
         {step === STEP.REFERRAL && (
           <div>
             <h2 className="mb-1 text-lg font-black text-gray-900">추천 코드가 있나요?</h2>
-            <p className="mb-5 text-sm leading-relaxed text-gray-500">입력하면 프로 7일 무료 체험! <span className="text-gray-400">(선택)</span></p>
+            <p className="mb-5 text-sm leading-relaxed text-gray-500">입력하면 이용권 2개 무료! <span className="text-gray-400">(선택)</span></p>
             {refApplied ? (
               <div className="rounded-2xl bg-green-500/10 px-4 py-4 text-center text-sm font-bold text-green-600">🎉 추천 코드가 적용됐어요</div>
             ) : (
