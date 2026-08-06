@@ -100,12 +100,12 @@ const Board = () => {
               ))}
             </div>
             {isAdmin && tab === 'notice' && (
-              <Link to="/board/write" className="hidden items-center gap-1.5 rounded-full bg-[#0064FF] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#0052D6] active:scale-95 sm:flex">
+              <Link to="/board/write" className="hidden items-center gap-1.5 rounded-full bg-[#0064FF] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#0052D6] active:scale-[0.98] sm:flex">
                 <PenLine size={15} /> 공지 작성
               </Link>
             )}
             {isAdmin && tab === 'event' && (
-              <Link to="/events/write" className="hidden items-center gap-1.5 rounded-full bg-[#0064FF] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#0052D6] active:scale-95 sm:flex">
+              <Link to="/events/write" className="hidden items-center gap-1.5 rounded-full bg-[#0064FF] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#0052D6] active:scale-[0.98] sm:flex">
                 <PenLine size={15} /> 이벤트 작성
               </Link>
             )}

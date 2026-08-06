@@ -74,14 +74,14 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
       <nav className="flex shrink-0 items-center gap-2 text-sm font-bold text-gray-600 md:gap-3">
         {canInstall && (
           <button onClick={() => window.dispatchEvent(new Event('chronit:open-install'))} title="홈 화면에 앱으로 추가"
-            className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-2.5 py-1.5 text-xs font-bold text-white shadow-sm active:scale-95">
+            className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-2.5 py-1.5 text-xs font-bold text-white shadow-sm active:scale-[0.98]">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
             앱 설치
           </button>
         )}
         {onInvite && (
           <button onClick={onInvite} title="친구 초대하고 무료 이용권 받기"
-            className="event-badge inline-flex shrink-0 items-center gap-1 rounded-full bg-gradient-to-r from-[#0064FF] via-[#3B82F6] to-[#7C6BFF] px-3 py-1.5 text-xs font-bold text-white active:scale-95">
+            className="event-badge inline-flex shrink-0 items-center gap-1 rounded-full bg-gradient-to-r from-[#0064FF] via-[#3B82F6] to-[#7C6BFF] px-3 py-1.5 text-xs font-bold text-white active:scale-[0.98]">
             <Gift size={13} aria-hidden="true" />
             무료 충전
           </button>
@@ -1999,7 +1999,7 @@ export default function VideoGenerator() {
             <div className="text-4xl mb-3">🍽️</div>
             <p className="text-lg font-bold text-gray-900 mb-2 break-keep">음식·레시피 영상은 아직 지원하지 않아요</p>
             <p className="text-sm text-gray-500 mb-5 break-keep">크로닛은 지금 쿠팡 상품 소개 숏폼에 최적화돼 있어요.<br/>상품 링크를 넣어 다시 시도해 주세요.</p>
-            <button onClick={() => setShowFoodBlock(false)} className="w-full rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-3 text-sm font-bold text-white hover:brightness-95 active:scale-95">상품 링크로 다시 하기</button>
+            <button onClick={() => setShowFoodBlock(false)} className="w-full rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-3 text-sm font-bold text-white hover:brightness-95 active:scale-[0.98]">상품 링크로 다시 하기</button>
           </div>
         </div>
       )}      {/* 완성 알림 팝업 */}
@@ -2119,7 +2119,7 @@ export default function VideoGenerator() {
         </div>
       )}
       {session && clips.length === 0 && !(showDemo || showInvite || creditWall || showHistory || mobileMenuOpen || noticeOpen || showFoodBlock) && (
-        <button onClick={() => setShowDemo(true)} className="fixed bottom-32 left-4 z-40 flex items-center gap-1 rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-3.5 py-2 text-xs font-bold text-white shadow-lg hover:brightness-95 active:scale-95">▶ 30초만에 크로닛 이해하기</button>
+        <button onClick={() => setShowDemo(true)} className="fixed bottom-32 left-4 z-40 flex items-center gap-1 rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-3.5 py-2 text-xs font-bold text-white shadow-lg hover:brightness-95 active:scale-[0.98]">▶ 30초만에 크로닛 이해하기</button>
       )}
       {showDemo && <QuickDemo onClose={() => setShowDemo(false)} />}
       <PwaInstall />

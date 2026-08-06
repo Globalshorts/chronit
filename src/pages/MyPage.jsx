@@ -84,7 +84,7 @@ const MyPage = () => {
               {profile?.created_at && <div className="mt-0.5 text-xs text-slate-400">가입일 {new Date(profile.created_at).toLocaleDateString('ko-KR')}</div>}
             </div>
             <button onClick={() => supabase.auth.signOut().then(() => nav('/'))}
-              className="flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 px-3.5 py-2 text-sm font-bold text-gray-600 transition-all hover:border-gray-400 active:scale-95">
+              className="flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 px-3.5 py-2 text-sm font-bold text-gray-600 transition-all hover:border-gray-400 active:scale-[0.98]">
               <LogOut size={15} /> 로그아웃
             </button>
           </div>

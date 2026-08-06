@@ -47,13 +47,13 @@ const CommunityHeader = ({ active = null }) => {
           <div className="flex shrink-0 items-center gap-2">
             {user ? (
               <>
-                <Link to="/generate" className="hidden items-center gap-1.5 rounded-full bg-[#0064FF] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#0052D6] active:scale-95 md:flex">무료 체험</Link>
-                <Link to="/me" className="hidden items-center gap-1.5 rounded-full bg-gray-900 px-3.5 py-2 text-sm font-bold text-white transition-all hover:bg-[#0064FF] active:scale-95 md:flex">
+                <Link to="/generate" className="hidden items-center gap-1.5 rounded-full bg-[#0064FF] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#0052D6] active:scale-[0.98] md:flex">무료 체험</Link>
+                <Link to="/me" className="hidden items-center gap-1.5 rounded-full bg-gray-900 px-3.5 py-2 text-sm font-bold text-white transition-all hover:bg-[#0064FF] active:scale-[0.98] md:flex">
                   <User size={16} /> <span className="max-w-[90px] truncate">{nickname || '마이페이지'}</span>
                 </Link>
               </>
             ) : (
-              <Link to="/generate" className="hidden rounded-full bg-[#0064FF] px-7 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-lg shadow-black/5 transition-all hover:bg-[#0052D6] active:scale-95 md:block">
+              <Link to="/generate" className="hidden rounded-full bg-[#0064FF] px-7 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-lg shadow-black/5 transition-all hover:bg-[#0052D6] active:scale-[0.98] md:block">
                 로그인 / 무료 체험
               </Link>
             )}

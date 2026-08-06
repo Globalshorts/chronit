@@ -81,14 +81,14 @@ const AuthModal = ({ open, onClose, referralCode }) => {
               {isAndroid && (
                 <button
                   onClick={openExternal}
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2 text-xs font-bold text-white active:scale-95"
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2 text-xs font-bold text-white active:scale-[0.98]"
                 >
                   <ExternalLink size={13} /> Chrome에서 열기
                 </button>
               )}
               <button
                 onClick={copyLink}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-amber-400 bg-white px-3 py-2 text-xs font-bold text-amber-700 active:scale-95"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-amber-400 bg-white px-3 py-2 text-xs font-bold text-amber-700 active:scale-[0.98]"
               >
                 {copied ? (<><Check size={13} /> 복사됨</>) : (<><Copy size={13} /> 주소 복사</>)}
               </button>

@@ -96,7 +96,7 @@ const DemoVideosPanel = () => {
           <h2 className="text-base font-bold">Demo Videos</h2>
           <span className="rounded-full bg-white/8 px-2 py-0.5 text-xs text-slate-400">{videos.length}</span>
         </div>
-        <label className={`flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all active:scale-95 ${uploading ? 'bg-slate-700 text-slate-400' : 'bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white hover:brightness-95'}`}>
+        <label className={`flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all active:scale-[0.98] ${uploading ? 'bg-slate-700 text-slate-400' : 'bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white hover:brightness-95'}`}>
           {uploading ? <Loader size={14} className="animate-spin" /> : <Upload size={14} />}
           {uploading ? 'Uploading...' : 'Add Video'}
           <input type="file" accept="video/*" multiple className="sr-only" onChange={handleUpload} disabled={uploading} />
@@ -554,7 +554,7 @@ const Admin = () => {
                 <span className="rounded-full bg-white/8 px-2 py-0.5 text-xs text-slate-400">{events.length}</span>
               </div>
               <button onClick={openNew}
-                className="flex items-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-sm font-bold text-white hover:brightness-95 active:scale-95">
+                className="flex items-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-sm font-bold text-white hover:brightness-95 active:scale-[0.98]">
                 <Plus size={15} /> New Event
               </button>
             </div>
@@ -661,7 +661,7 @@ const Admin = () => {
             </div>
             <div className="flex items-center gap-4">
               <button onClick={handleSave} disabled={saving}
-                className="flex items-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-6 py-3 font-bold text-white transition-all hover:brightness-95 active:scale-95 disabled:opacity-50">
+                className="flex items-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-6 py-3 font-bold text-white transition-all hover:brightness-95 active:scale-[0.98] disabled:opacity-50">
                 {saving ? <Loader size={16} className="animate-spin" /> : <Save size={16} />}
                 {editing ? 'Update' : 'Save'}
               </button>

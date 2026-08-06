@@ -90,7 +90,7 @@ const Events = () => {
         <div className="mx-auto max-w-4xl">
           {isAdmin && (
             <div className="mb-3 flex justify-end">
-              <Link to="/events/write" className="inline-flex items-center gap-1.5 rounded-xl bg-[#0064FF] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#0052D6] active:scale-95">+ 이벤트 글쓰기</Link>
+              <Link to="/events/write" className="inline-flex items-center gap-1.5 rounded-xl bg-[#0064FF] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#0052D6] active:scale-[0.98]">+ 이벤트 글쓰기</Link>
             </div>
           )}
           {/* 탭 */}
