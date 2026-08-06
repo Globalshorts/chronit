@@ -1841,7 +1841,7 @@ export default function VideoGenerator() {
           <div className="rounded-2xl bg-white border border-gray-200 shadow-2xl w-full max-w-md p-6 space-y-5">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900">자동 진행 시작</h2>
-              <button onClick={() => setShowAutoModal(false)} className="text-gray-500 hover:text-gray-900 text-xl">✕</button>
+              <button onClick={() => setShowAutoModal(false)} className="text-gray-500 hover:text-gray-900 text-xl"><X size={18} /></button>
             </div>
 
             {/* 크레딧 내역 */}
@@ -1964,7 +1964,7 @@ export default function VideoGenerator() {
           <div className="relative flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-start justify-between gap-3 border-b border-gray-100 px-6 py-4">
               <p className="text-lg font-bold leading-snug text-gray-900">{noticePost.title}</p>
-              <button onClick={closeNotice} aria-label="닫기" className="mt-0.5 shrink-0 text-xl leading-none text-gray-400 hover:text-gray-700">✕</button>
+              <button onClick={closeNotice} aria-label="닫기" className="mt-0.5 shrink-0 text-xl leading-none text-gray-400 hover:text-gray-700"><X size={18} /></button>
             </div>
             <style>{`
               .chronit-notice-body { color:#374151; font-size:15px; line-height:1.85; word-break:keep-all; }
@@ -2015,7 +2015,7 @@ export default function VideoGenerator() {
             <p className="font-bold text-sm">{completionAlert}</p>
             {!completionAlert.startsWith("❌") && (completionAlert.includes("완성") || completionAlert.includes("생성 내역")) && <p className="text-xs text-green-100 mt-0.5">생성 내역 탭에서 다운로드하세요</p>}
           </div>
-          <button onClick={() => setCompletionAlert(null)} className="ml-4 text-gray-900/70 hover:text-gray-900 text-lg">✕</button>
+          <button onClick={() => setCompletionAlert(null)} className="ml-4 text-gray-900/70 hover:text-gray-900 text-lg"><X size={18} /></button>
         </div>
       )}
 
@@ -2115,7 +2115,7 @@ export default function VideoGenerator() {
       {session && !openchatX && clips.length === 0 && !(showDemo || showInvite || creditWall || showHistory || mobileMenuOpen || noticeOpen || showFoodBlock) && (
         <div className="fixed bottom-20 left-4 z-40 flex items-center gap-1 rounded-full bg-[#FEE500] pl-3.5 pr-1.5 py-2 shadow-lg shadow-black/10">
           <a href="https://open.kakao.com/o/s7CrKpxi" target="_blank" rel="noreferrer" className="text-xs font-bold text-[#3C1E1E] hover:brightness-90">💬 오픈채팅 · 불편한 점 알려주세요</a>
-          <button onClick={() => { try { sessionStorage.setItem("chronit_openchat_x", "1"); } catch {} setOpenchatX(true); }} title="닫기" className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[#3C1E1E]/60 hover:bg-black/10 hover:text-[#3C1E1E]">✕</button>
+          <button onClick={() => { try { sessionStorage.setItem("chronit_openchat_x", "1"); } catch {} setOpenchatX(true); }} title="닫기" className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[#3C1E1E]/60 hover:bg-black/10 hover:text-[#3C1E1E]"><X size={18} /></button>
         </div>
       )}
       {session && clips.length === 0 && !(showDemo || showInvite || creditWall || showHistory || mobileMenuOpen || noticeOpen || showFoodBlock) && (
@@ -2127,7 +2127,7 @@ export default function VideoGenerator() {
       {creditWall && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm" onClick={()=>setCreditWall(null)}>
           <div className="relative w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-7 text-center shadow-2xl" onClick={e=>e.stopPropagation()}>
-            <button onClick={()=>setCreditWall(null)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">✕</button>
+            <button onClick={()=>setCreditWall(null)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"><X size={18} /></button>
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0064FF]/10 text-3xl">🎬</div>
             <h3 className="text-xl font-bold text-gray-900">{creditWall==="expired" ? "이용권이 만료됐어요" : "이번 이용권을 다 쓰셨어요"}</h3>
             <p className="mt-2 text-sm leading-relaxed text-gray-500">계속 만들려면 두 가지 방법이 있어요.<br/><strong className="text-gray-700">친구를 초대하면 무료로</strong> 이어서 만들 수 있어요.</p>
@@ -2469,7 +2469,7 @@ export default function VideoGenerator() {
                         <div className="text-red-300/80 mt-0.5">{friendlyError(autoRunError)}</div>
                         <div className="text-red-300/60 text-xs mt-1">영상은 합성 성공 시 이용권 1개가 차감되고, 실패하면 차감되지 않아요. (분석·대본·음성은 무료예요)</div>
                       </div>
-                      <button onClick={() => setAutoRunError("")} className="text-red-300/60 hover:text-red-300">✕</button>
+                      <button onClick={() => setAutoRunError("")} className="text-red-300/60 hover:text-red-300"><X size={18} /></button>
                     </div>
                   )}
                 </div>
@@ -3279,7 +3279,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
                     확인
                   </button>
                   <button onClick={() => setShowPresets(false)}
-                    className="rounded-lg border border-gray-200 px-2 py-1.5 text-xs text-gray-400">✕</button>
+                    className="rounded-lg border border-gray-200 px-2 py-1.5 text-xs text-gray-400"><X size={18} /></button>
                 </div>
               )}
             </div>
@@ -3489,7 +3489,7 @@ function QuickDemo({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm" onClick={onClose}>
       <div className="relative w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute right-4 top-4 text-xl text-gray-400 hover:text-gray-600">✕</button>
+        <button onClick={onClose} className="absolute right-4 top-4 text-xl text-gray-400 hover:text-gray-600"><X size={18} /></button>
         <p className="mb-2 text-center text-xs font-bold text-[#0064FF]">⏱ 30초만에 크로닛 이해하기</p>
         {step === 0 && (
           <div className="text-center">
@@ -3586,7 +3586,7 @@ function CreditHistoryModal({ open, onClose, session }: { open:boolean; onClose:
       <div className="w-full max-w-md rounded-3xl bg-white border border-gray-200 p-6 max-h-[85vh] flex flex-col" onClick={e=>e.stopPropagation()}>
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-xl font-bold text-gray-900">📒 사용 내역</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-900 text-xl">✕</button>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-900 text-xl"><X size={18} /></button>
         </div>
         <p className="text-xs text-gray-500 mb-4">최근 100건까지 표시됩니다</p>
 
@@ -3810,7 +3810,7 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
       <div className="w-full max-w-md rounded-3xl bg-white border border-gray-200 p-6 max-h-[90vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-xl font-bold text-gray-900">무료 이용권 더 받기</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-900 text-xl">✕</button>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-900 text-xl"><X size={18} /></button>
         </div>
         <p className="text-xs text-gray-500 mb-5">미션을 완료하면 이용권이 지급됩니다</p>
 
@@ -4118,7 +4118,7 @@ function StyleLibraryList({ session, onSelect, selectedId }: { session: any; onS
           <div className="flex items-start justify-between gap-2">
             <p className="text-xs font-bold text-gray-900 truncate flex-1">{s.label}</p>
             <button onClick={(e)=>del(s.id, e)} title="삭제"
-              className="shrink-0 text-gray-600 hover:text-red-400 text-xs leading-none px-1">✕</button>
+              className="shrink-0 text-gray-600 hover:text-red-400 text-xs leading-none px-1"><X size={18} /></button>
           </div>
           {s.source_channel && <p className="text-xs text-gray-500">@{s.source_channel}</p>}
         </div>
@@ -4261,7 +4261,7 @@ function PoolPicker({ pool, clips, onPick, onClose }: any) {
       <div className="mt-auto max-h-[75vh] overflow-y-auto rounded-t-2xl bg-white p-3" onClick={(e) => e.stopPropagation()}>
         <div className="mb-2 flex items-center justify-between">
           <span className="text-sm font-bold text-gray-900">클립 바꾸기 <span className="font-normal text-gray-400">탭하면 재생 · 선택으로 교체</span></span>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700">✕</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700"><X size={18} /></button>
         </div>
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
           {(pool as any[]).map((seg: any, i: number) => (
@@ -4650,7 +4650,7 @@ function StyleSelector({ selected, onSelect, session }: {
                   <div className="flex items-center gap-1.5 shrink-0">
                     {selected === p.id && <span className="text-xs text-[#0064FF] font-bold">선택됨</span>}
                     <button onClick={(e)=>del(p.id, e)} title="삭제"
-                      className="text-gray-600 hover:text-red-400 text-sm leading-none px-1">✕</button>
+                      className="text-gray-600 hover:text-red-400 text-sm leading-none px-1"><X size={18} /></button>
                   </div>
                 </div>
                 {p.source_channel && (
@@ -6006,7 +6006,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
         {refModalOpen && sel && (
           <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm" onClick={()=>setRefModalOpen(false)}>
           <div className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl" onClick={e=>e.stopPropagation()}>
-            <button onClick={()=>setRefModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">✕</button>
+            <button onClick={()=>setRefModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"><X size={18} /></button>
             <p className="text-sm font-bold text-gray-900 mb-1">추천 현황{selUser ? ` — ${selUser.email}` : ""}</p>
             <p className="text-xs text-gray-400 mb-3">{refData?.code ? `추천코드 ${refData.code}` : ""}</p>
             {!refData ? <p className="text-sm text-gray-400">불러오는 중...</p> : refData.ok === false ? <p className="text-sm text-red-400">불러오기 실패: {refData.error || "권한 없음/오류"}</p> : (<>
