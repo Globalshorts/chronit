@@ -14,6 +14,7 @@ import SiteNav from '../components/SiteNav'
 import Reveal from '../components/Reveal'
 import NicknameModal from '../components/NicknameModal'
 import SignupSurveyModal from '../components/SignupSurveyModal'
+import TimeLossCalculator from '../components/TimeLossCalculator'
 import { supabase } from '../lib/supabase'
 
 const GREEN = '#0064FF'
@@ -569,6 +570,11 @@ const Home = () => {
                 1분 사용법 보기 →
               </Link>
             </div>
+            {!user && (
+              <div className="mt-8 w-full max-w-2xl">
+                <TimeLossCalculator onStart={handleStart} />
+              </div>
+            )}
           </div>
         </div>
       </section>
