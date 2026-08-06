@@ -5978,9 +5978,9 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
               {plans.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>
             <input value={days} onChange={e=>setDays(e.target.value)} className="w-28 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none" placeholder="기간(일)" />
             <input value={payAmt} onChange={e=>setPayAmt(e.target.value)} className="w-36 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none" placeholder="결제금액(정산용·선택)" />
-            <Btn onClick={grant} color="bg-green-600 hover:bg-green-500">✓ 구독 부여/연장</Btn>
+            <Btn onClick={grant} color="bg-[linear-gradient(140deg,#22C55E_0%,#16A34A_55%,#15803D_100%)] hover:brightness-95">✓ 구독 부여/연장</Btn>
             <Btn onClick={grantTrial} color="bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] hover:brightness-95">🎁 프로 체험 부여(이벤트)</Btn>
-            <Btn onClick={cancel} color="bg-red-600 hover:bg-red-500">✕ 구독 취소</Btn>
+            <Btn onClick={cancel} color="bg-[linear-gradient(140deg,#F05252_0%,#E02424_55%,#C81E1E_100%)] hover:brightness-95">✕ 구독 취소</Btn>
             <Btn onClick={resetDev} color="bg-gray-200 hover:bg-gray-300">🖥 디바이스 모두 해제</Btn>
           </div>
         </div>
@@ -5988,8 +5988,8 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
           <p className="text-xs text-gray-500 mb-2">이용권 관리</p>
           <div className="flex flex-wrap items-center gap-2">
             <input type="number" min={0} max={1000000} value={amt} onChange={e=>setAmt(e.target.value)} className="w-36 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none" placeholder="변동량" />
-            <Btn onClick={()=>credit("add")} color="bg-green-600 hover:bg-green-500">＋ 지급 (잔량 증가)</Btn>
-            <Btn onClick={()=>credit("sub")} color="bg-orange-600 hover:bg-orange-500">－ 차감 (잔량 감소)</Btn>
+            <Btn onClick={()=>credit("add")} color="bg-[linear-gradient(140deg,#22C55E_0%,#16A34A_55%,#15803D_100%)] hover:brightness-95">＋ 지급 (잔량 증가)</Btn>
+            <Btn onClick={()=>credit("sub")} color="bg-[linear-gradient(140deg,#FB923C_0%,#EA580C_55%,#C2410C_100%)] hover:brightness-95">－ 차감 (잔량 감소)</Btn>
             <Btn onClick={()=>credit("reset")} color="bg-gray-200 hover:bg-gray-300">🔄 사용량 0으로 초기화</Btn>
           </div>
         </div>
@@ -6085,7 +6085,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
                   </div>
                 ))}
               </div>
-              <button onClick={savePartnerUpline} className="mt-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-4 py-2 text-xs font-bold text-white">상위 파트너 저장</button>
+              <button onClick={savePartnerUpline} className="mt-3 rounded-lg bg-[linear-gradient(140deg,#6366F1_0%,#4F46E5_55%,#4338CA_100%)] hover:brightness-95 px-4 py-2 text-xs font-bold text-white">상위 파트너 저장</button>
               {upMsg && <p className="text-xs text-indigo-500 mt-2">{upMsg}</p>}
             </div>
 
@@ -6343,7 +6343,7 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
             <input type="date" value={exp} disabled={unlimited} onChange={e=>setExp(e.target.value)} className="block mt-1 rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none disabled:opacity-40" /></div>
           <label className="flex items-center gap-2 text-sm text-gray-700 pb-2"><input type="checkbox" checked={unlimited} onChange={e=>setUnlimited(e.target.checked)} className="accent-[#0064FF]" /> 무기한</label>
         </div>
-        <button onClick={create} className="w-full rounded-xl bg-green-600 hover:bg-green-500 py-2.5 text-sm font-bold text-white transition">✓ 코드 생성</button>
+        <button onClick={create} className="w-full rounded-xl bg-[linear-gradient(140deg,#22C55E_0%,#16A34A_55%,#15803D_100%)] hover:brightness-95 py-2.5 text-sm font-bold text-white transition">✓ 코드 생성</button>
         {msg && <p className="text-xs text-[#0064FF] mt-2">{msg}</p>}
       </div>
 
@@ -6430,8 +6430,8 @@ function AdminReviewsTab({ session, supabase }: { session:any; supabase:any }) {
         </table>
       </div>
       <div className="flex items-center gap-2">
-        <button onClick={approve} className="rounded-xl bg-green-600 hover:bg-green-500 px-5 py-2.5 text-sm font-bold text-white transition">✓ 승인 (+영상 5개)</button>
-        <button onClick={reject} className="rounded-xl bg-red-600 hover:bg-red-500 px-5 py-2.5 text-sm font-bold text-white transition">✕ 거절</button>
+        <button onClick={approve} className="rounded-xl bg-[linear-gradient(140deg,#22C55E_0%,#16A34A_55%,#15803D_100%)] hover:brightness-95 px-5 py-2.5 text-sm font-bold text-white transition">✓ 승인 (+영상 5개)</button>
+        <button onClick={reject} className="rounded-xl bg-[linear-gradient(140deg,#F05252_0%,#E02424_55%,#C81E1E_100%)] hover:brightness-95 px-5 py-2.5 text-sm font-bold text-white transition">✕ 거절</button>
         {msg && <span className="text-xs text-[#0064FF] ml-2">{msg}</span>}
       </div>
     </div>
