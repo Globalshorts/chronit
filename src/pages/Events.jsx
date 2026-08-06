@@ -39,6 +39,7 @@ const Events = () => {
   const [events, setEvents]             = useState([])
   const [eventTab, setEventTab]         = useState('active')
   const [loading, setLoading]           = useState(true)
+  const [isAdmin, setIsAdmin]            = useState(false)
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50)
@@ -49,6 +50,15 @@ const Events = () => {
   useEffect(() => {
     supabase.from('events').select('*').order('created_at', { ascending: false })
       .then(({ data }) => { setEvents(data || []); setLoading(false) })
+  }, [])
+
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data }) => {
+      const u = data.session?.user
+      if (!u) return
+      const { data: sub } = await supabase.from('subscriptions').select('role').eq('user_id', u.id).maybeSingle()
+      if (sub?.role === 'super_admin') setIsAdmin(true)
+    })
   }, [])
 
   const tabs = [
@@ -78,6 +88,11 @@ const Events = () => {
       {/* 본문 */}
       <section className="px-5 pb-32 md:px-8">
         <div className="mx-auto max-w-4xl">
+          {isAdmin && (
+            <div className="mb-3 flex justify-end">
+              <Link to="/events/write" className="inline-flex items-center gap-1.5 rounded-xl bg-[#0064FF] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#0052D6] active:scale-95">+ 이벤트 글쓰기</Link>
+            </div>
+          )}
           {/* 탭 */}
           <div className="mb-1 flex border-b border-gray-200">
             {tabs.map(tab => (
