@@ -434,13 +434,13 @@ const Home = () => {
               )}
               <button onClick={handleStart}
                 className="rounded-full bg-[#0064FF] px-7 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-md shadow-[#0064FF]/25 transition-all hover:bg-[#0052D6] active:scale-95">
-                무료 체험
+                {user ? '작업실 열기 →' : '무료 체험'}
               </button>
             </div>
             {/* 모바일 상단 시작하기 CTA (햄버거에 가려지지 않게 상시 노출) */}
             <button onClick={handleStart}
               className="rounded-full bg-[#0064FF] px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-md shadow-[#0064FF]/25 transition-all active:scale-95 md:hidden">
-              무료 체험
+              {user ? '작업실' : '무료 체험'}
             </button>
             <button onClick={() => setMenuOpen((v) => !v)} aria-label="메뉴"
               className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 text-gray-700 transition-all hover:border-gray-400 md:hidden">
@@ -488,7 +488,7 @@ const Home = () => {
             )}
             <button onClick={() => { setMenuOpen(false); handleStart() }}
               className="w-full rounded-xl bg-[#0064FF] px-4 py-4 text-lg font-extrabold text-white shadow-md transition-all hover:bg-[#0052D6] active:scale-95">
-              무료 체험
+              {user ? '작업실 열기 →' : '무료 체험'}
             </button>
           </div>
         </div>
@@ -498,6 +498,17 @@ const Home = () => {
       <section className="relative bg-gradient-to-b from-[#E4EFE7] via-[#EDF3EE] to-[#FAFAF8] px-5 pt-32 pb-16 md:px-8 md:pt-40 md:pb-24">
         <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
           <div className="flex w-full flex-col items-center">
+            {user && (
+              <div className="mb-8 w-full max-w-xl rounded-2xl border-2 border-[#0064FF]/30 bg-white px-6 py-6 text-center shadow-sm">
+                <p className="text-xl font-black text-gray-900">돌아오셨어요{nickname ? `, ${nickname}님` : ''}</p>
+                <p className="mt-1 mb-5 text-sm font-bold text-gray-500">바로 이어서 만들까요?</p>
+                <button onClick={handleStart}
+                  className="mx-auto flex items-center justify-center gap-2 rounded-2xl bg-[#0064FF] px-8 py-4 text-lg font-extrabold text-white shadow-lg shadow-[#0064FF]/30 transition-all hover:bg-[#0052D6] active:scale-95">
+                  작업실 열기 <ArrowRight size={20} />
+                </button>
+              </div>
+            )}
+            {!user && (<>
             <div key={badgeIdx} className="tip-fade mb-6 inline-flex items-center gap-2 rounded-full border border-[#0064FF]/30 bg-[#0064FF]/10 px-4 py-2 text-sm font-bold text-[#0064FF] md:text-base">
               {curBadge.icon} {curBadge.text}
             </div>
@@ -507,6 +518,7 @@ const Home = () => {
             <p className="mb-9 text-xl font-bold text-gray-500 break-keep md:text-2xl">
               링크만 넣으면 상품 분석·자막·AI 음성·컷 편집까지<br />완성된 쇼핑 숏폼으로 돌려드려요.
             </p>
+            </>)}
 
             <div className="flex w-full max-w-2xl flex-col gap-3">
               {/* 입력 방식 탭 */}
@@ -547,9 +559,11 @@ const Home = () => {
                 </div>
               )}
 
+              {!user && (
               <p className="flex items-center justify-center gap-1.5 text-sm font-bold text-gray-500">
                 <Gift size={15} className="text-[#0064FF]" /> 카카오 3초 로그인 · 무료 영상 2개
               </p>
+              )}
               <Link to="/manual"
                 className="text-sm font-medium text-gray-400 transition-colors hover:text-[#0064FF]">
                 1분 사용법 보기 →
