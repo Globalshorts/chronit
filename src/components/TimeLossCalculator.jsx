@@ -9,7 +9,7 @@ const fmtH = (min) => {
   return `${m}분`
 }
 
-const nc = 'w-11 rounded-md border border-[#0064FF]/30 bg-white px-1.5 py-1 text-center text-sm font-bold text-gray-900 outline-none focus:border-[#0064FF]'
+const nc = 'w-14 rounded-md border border-[#0064FF]/30 bg-white px-1.5 py-1 text-center text-sm font-bold text-gray-900 outline-none focus:border-[#0064FF]'
 const rowCls = 'flex items-center justify-between gap-2 px-3 py-2.5'
 const rowLabel = 'text-xs font-bold text-[#0064FF]'
 const unit = 'text-xs text-gray-400'
@@ -30,7 +30,7 @@ const TimeLossCalculator = ({ onStart }) => {
   const savedWeek = Math.max(0, perVideo - 5) * vids
 
   const reveal = () => { setRevealed(true); setTimeout(() => setShown(true), 10) }
-  const np = { type: 'number', inputMode: 'numeric', pattern: '[0-9]*' }
+  const np = { type: 'text', inputMode: 'numeric', pattern: '[0-9]*', maxLength: 3 }
 
   return (
     <div className="rounded-2xl border-2 border-[#0064FF]/20 bg-white p-4 text-left shadow-sm">
