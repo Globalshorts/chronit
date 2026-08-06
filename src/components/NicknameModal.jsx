@@ -43,7 +43,7 @@ const NicknameModal = ({ open, onClose, onDone, required = false }) => {
         <button
           onClick={submit}
           disabled={saving}
-          className="mt-5 w-full rounded-xl bg-[#0064FF] py-3 text-base font-bold text-white transition-all hover:bg-[#0052D6] active:scale-95 disabled:opacity-50"
+          className="mt-5 w-full rounded-xl bg-[#0064FF] py-3 text-base font-bold text-white transition-all hover:bg-[#0052D6] active:scale-[0.98] disabled:opacity-50"
         >
           {saving ? '저장 중…' : '설정하기'}
         </button>

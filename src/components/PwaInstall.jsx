@@ -58,8 +58,8 @@ export default function PwaInstall() {
           <div className="space-y-3">
             <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">인앱 브라우저에선 추가가 안 돼요. <b>크롬/사파리</b>에서 열어주세요.</div>
             <div className="flex gap-2">
-              {isAndroid && <button onClick={openChrome} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] px-3 py-3 text-sm font-bold text-white active:scale-95"><ExternalLink size={15} /> Chrome에서 열기</button>}
-              <button onClick={copyLink} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-gray-300 px-3 py-3 text-sm font-bold text-gray-700 active:scale-95">{copied ? (<><Check size={15} /> 복사됨</>) : (<><Copy size={15} /> 주소 복사</>)}</button>
+              {isAndroid && <button onClick={openChrome} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] px-3 py-3 text-sm font-bold text-white active:scale-[0.98]"><ExternalLink size={15} /> Chrome에서 열기</button>}
+              <button onClick={copyLink} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-gray-300 px-3 py-3 text-sm font-bold text-gray-700 active:scale-[0.98]">{copied ? (<><Check size={15} /> 복사됨</>) : (<><Copy size={15} /> 주소 복사</>)}</button>
             </div>
           </div>
         ) : hasPrompt ? (

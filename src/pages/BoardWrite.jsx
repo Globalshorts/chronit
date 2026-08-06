@@ -179,7 +179,7 @@ const BoardWrite = () => {
         {err && <p className="mt-3 text-sm font-medium text-red-500">{err}</p>}
 
         <button onClick={submit} disabled={saving}
-          className="mt-5 w-full rounded-xl bg-[#0064FF] py-3.5 text-base font-bold text-white transition-all hover:bg-[#0052D6] active:scale-95 disabled:opacity-50">
+          className="mt-5 w-full rounded-xl bg-[#0064FF] py-3.5 text-base font-bold text-white transition-all hover:bg-[#0052D6] active:scale-[0.98] disabled:opacity-50">
           {saving ? (editId ? '수정 중…' : '등록 중…') : (editId ? '수정 완료' : '등록하기')}
         </button>
       </section>

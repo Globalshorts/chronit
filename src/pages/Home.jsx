@@ -52,7 +52,7 @@ const CouponBar = ({ codeFromUrl, onApply }) => {
           className="flex-1 rounded-2xl border-2 border-gray-300 bg-white px-5 py-4 text-base font-bold text-gray-900 placeholder-gray-400 outline-none transition-all focus:border-[#0064FF] focus:ring-4 focus:ring-[#0064FF]/15"
         />
         <button onClick={handleApply}
-          className="rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-6 py-4 text-base font-bold text-white transition-all hover:brightness-95 active:scale-95">
+          className="rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-6 py-4 text-base font-bold text-white transition-all hover:brightness-95 active:scale-[0.98]">
           적용
         </button>
       </div>
@@ -419,11 +419,11 @@ const Home = () => {
               {user ? (
                 <>
                   {nickname ? (
-                    <Link to="/me" className="flex items-center gap-1.5 rounded-full bg-gray-900 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] active:scale-95">
+                    <Link to="/me" className="flex items-center gap-1.5 rounded-full bg-gray-900 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] active:scale-[0.98]">
                       <User size={16} /> <span className="max-w-[110px] truncate">{nickname}</span>
                     </Link>
                   ) : (
-                    <button onClick={() => setNickOpen(true)} className="flex items-center gap-1.5 rounded-full border-2 border-[#0064FF] px-4 py-1.5 text-sm font-bold text-[#0064FF] transition-all hover:bg-[#0064FF]/10 active:scale-95">
+                    <button onClick={() => setNickOpen(true)} className="flex items-center gap-1.5 rounded-full border-2 border-[#0064FF] px-4 py-1.5 text-sm font-bold text-[#0064FF] transition-all hover:bg-[#0064FF]/10 active:scale-[0.98]">
                       <User size={16} /> 닉네임 설정
                     </button>
                   )}
@@ -439,13 +439,13 @@ const Home = () => {
                 </button>
               )}
               <button onClick={handleStart}
-                className="rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-7 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-md shadow-black/5 transition-all hover:brightness-95 active:scale-95">
+                className="rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-7 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-md shadow-black/5 transition-all hover:brightness-95 active:scale-[0.98]">
                 {user ? '작업실 열기 →' : '무료 체험'}
               </button>
             </div>
             {/* 모바일 상단 시작하기 CTA (햄버거에 가려지지 않게 상시 노출) */}
             <button onClick={handleStart}
-              className="rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-md shadow-black/5 transition-all active:scale-95 md:hidden">
+              className="rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-md shadow-black/5 transition-all active:scale-[0.98] md:hidden">
               {user ? '작업실' : '무료 체험'}
             </button>
             <button onClick={() => setMenuOpen((v) => !v)} aria-label="메뉴"
@@ -493,7 +493,7 @@ const Home = () => {
               </button>
             )}
             <button onClick={() => { setMenuOpen(false); handleStart() }}
-              className="w-full rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-4 text-lg font-bold text-white shadow-md transition-all hover:brightness-95 active:scale-95">
+              className="w-full rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-4 text-lg font-bold text-white shadow-md transition-all hover:brightness-95 active:scale-[0.98]">
               {user ? '작업실 열기 →' : '무료 체험'}
             </button>
           </div>
@@ -509,7 +509,7 @@ const Home = () => {
                 <p className="text-xl font-bold text-gray-900">돌아오셨어요{nickname ? `, ${nickname}님` : ''}</p>
                 <p className="mt-1 mb-5 text-sm font-bold text-gray-500">바로 이어서 만들까요?</p>
                 <button onClick={handleStart}
-                  className="mx-auto flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-black/5 transition-all hover:brightness-95 active:scale-95">
+                  className="mx-auto flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-black/5 transition-all hover:brightness-95 active:scale-[0.98]">
                   작업실 열기 <ArrowRight size={20} />
                 </button>
               </div>
@@ -529,7 +529,7 @@ const Home = () => {
             {!user && (
               <div className="flex w-full max-w-md flex-col items-center gap-2">
                 <button onClick={handleStart}
-                  className="w-full rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-black/5 transition-all hover:brightness-95 active:scale-95">
+                  className="w-full rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-black/5 transition-all hover:brightness-95 active:scale-[0.98]">
                   무료로 시작하기 →
                 </button>
                 <Link to="/manual" className="text-sm font-medium text-gray-400 transition-colors hover:text-[#0064FF]">1분 사용법 보기 →</Link>
@@ -713,7 +713,7 @@ const Home = () => {
 
           <div className="mt-12 text-center">
             <button onClick={handleStart}
-              className="w-full rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-5 text-xl font-bold text-white shadow-lg shadow-black/5 transition-all hover:brightness-95 active:scale-95 sm:w-auto md:px-20 md:py-6">
+              className="w-full rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-5 text-xl font-bold text-white shadow-lg shadow-black/5 transition-all hover:brightness-95 active:scale-[0.98] sm:w-auto md:px-20 md:py-6">
               무료로 영상 만들기
             </button>
           </div>
@@ -876,14 +876,14 @@ const DemoCarousel = () => {
         })}
       </div>
       <div className="mt-8 flex items-center justify-center gap-6">
-        <button onClick={prev} className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-700 shadow transition-all hover:border-[#0064FF] hover:text-[#0064FF] active:scale-95">{"<"}</button>
+        <button onClick={prev} className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-700 shadow transition-all hover:border-[#0064FF] hover:text-[#0064FF] active:scale-[0.98]">{"<"}</button>
         <div className="flex gap-2">
           {videos.map((_, i) => (
             <button key={i} onClick={() => setActive(i)} className="h-1.5 rounded-full transition-all duration-300"
               style={{ width: i === active ? '24px' : '6px', background: i === active ? '#0064FF' : '#d1d5db' }} />
           ))}
         </div>
-        <button onClick={next} className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-700 shadow transition-all hover:border-[#0064FF] hover:text-[#0064FF] active:scale-95">{">"}</button>
+        <button onClick={next} className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-700 shadow transition-all hover:border-[#0064FF] hover:text-[#0064FF] active:scale-[0.98]">{">"}</button>
       </div>
     </section>
   )

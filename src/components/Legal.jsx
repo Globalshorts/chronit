@@ -39,7 +39,7 @@ const Legal = ({ title, subtitle, markdown }) => {
           </Link>
           <Link
             to="/"
-            className="shrink-0 rounded-full bg-blue-600 px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-lg shadow-blue-600/25 transition-all hover:bg-blue-500 active:scale-95 md:px-7 md:py-2.5 md:text-base"
+            className="shrink-0 rounded-full bg-blue-600 px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-lg shadow-blue-600/25 transition-all hover:bg-blue-500 active:scale-[0.98] md:px-7 md:py-2.5 md:text-base"
           >
             홈으로
           </Link>

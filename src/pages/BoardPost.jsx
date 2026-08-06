@@ -151,7 +151,7 @@ const BoardPost = () => {
 
         <div className="flex justify-center pb-8">
           <button onClick={toggleLike}
-            className={`flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold transition-all active:scale-95 ${liked ? 'bg-[#0064FF] text-white shadow-lg shadow-black/5' : 'bg-white text-slate-600 ring-1 ring-gray-200 hover:ring-[#0064FF]/40'}`}>
+            className={`flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold transition-all active:scale-[0.98] ${liked ? 'bg-[#0064FF] text-white shadow-lg shadow-black/5' : 'bg-white text-slate-600 ring-1 ring-gray-200 hover:ring-[#0064FF]/40'}`}>
             <ThumbsUp size={16} /> 추천 {post.like_count}
           </button>
         </div>
@@ -164,7 +164,7 @@ const BoardPost = () => {
               placeholder={user ? '댓글을 입력하세요' : '로그인 후 댓글을 남길 수 있어요'}
               className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#0064FF]" />
             <button onClick={submitComment} disabled={posting}
-              className="rounded-xl bg-[#0064FF] px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#0052D6] active:scale-95 disabled:opacity-50">
+              className="rounded-xl bg-[#0064FF] px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#0052D6] active:scale-[0.98] disabled:opacity-50">
               {posting ? '등록 중' : '등록'}
             </button>
           </div>
@@ -202,7 +202,7 @@ const BoardPost = () => {
             <div className="flex flex-col gap-2">
               {[['ad', '광고/홍보'], ['abuse', '욕설/비방'], ['flood', '도배'], ['etc', '기타']].map(([k, label]) => (
                 <button key={k} onClick={() => submitReport(k)}
-                  className="rounded-xl border border-gray-200 py-2.5 text-sm font-bold text-gray-700 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-500 active:scale-95">
+                  className="rounded-xl border border-gray-200 py-2.5 text-sm font-bold text-gray-700 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-500 active:scale-[0.98]">
                   {label}
                 </button>
               ))}
