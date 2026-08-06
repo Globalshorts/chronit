@@ -29,6 +29,7 @@ const EventDetail = () => {
   const [scrolled, setScrolled] = useState(false)
   const [event, setEvent] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50)
@@ -40,6 +41,15 @@ const EventDetail = () => {
     supabase.from('events').select('*').eq('id', id).maybeSingle()
       .then(({ data }) => { setEvent(data); setLoading(false) })
   }, [id])
+
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data }) => {
+      const u = data.session?.user
+      if (!u) return
+      const { data: sub } = await supabase.from('subscriptions').select('role').eq('user_id', u.id).maybeSingle()
+      if (sub?.role === 'super_admin') setIsAdmin(true)
+    })
+  }, [])
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans break-keep text-gray-900">
@@ -82,6 +92,9 @@ const EventDetail = () => {
             <div className="mb-4 flex flex-wrap items-center gap-3">
               <EventBadge status={event.status} label={event.label} />
               <span className="text-sm text-slate-400">{fmtDate(event.created_at)}</span>
+              {isAdmin && (
+                <Link to={`/events/write?edit=${id}`} className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-[#0064FF]/30 bg-[#0064FF]/5 px-3 py-1 text-xs font-bold text-[#0064FF] transition-colors hover:bg-[#0064FF]/10">✏ 수정</Link>
+              )}
             </div>
 
             {/* 제목 */}
