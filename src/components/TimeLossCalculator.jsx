@@ -10,6 +10,8 @@ const fmtH = (min) => {
 }
 
 const numCls = 'w-14 rounded-lg border border-[#0064FF]/30 bg-white px-2 py-1.5 text-center text-sm font-bold text-gray-900 outline-none focus:border-[#0064FF]'
+const boxCls = 'rounded-xl border border-[#0064FF]/25 bg-[#0064FF]/5 p-3'
+const labelCls = 'mb-2 text-xs font-bold text-[#0064FF]'
 
 const TimeLossCalculator = ({ onStart }) => {
   const [sh, setSh] = useState('0'); const [sm, setSm] = useState('20')
@@ -27,13 +29,7 @@ const TimeLossCalculator = ({ onStart }) => {
   const evenings = Math.round(year / 180)
 
   const reveal = () => { setRevealed(true); setTimeout(() => setShown(true), 10) }
-
-  const Box = ({ label, children }) => (
-    <div className="rounded-xl border border-[#0064FF]/25 bg-[#0064FF]/5 p-3">
-      <p className="mb-2 text-xs font-bold text-[#0064FF]">{label}</p>
-      <div className="flex items-center gap-1.5">{children}</div>
-    </div>
-  )
+  const numProps = { type: 'number', inputMode: 'numeric', pattern: '[0-9]*' }
 
   return (
     <div className="rounded-2xl border-2 border-[#0064FF]/20 bg-white p-5 text-left shadow-sm">
@@ -42,22 +38,31 @@ const TimeLossCalculator = ({ onStart }) => {
       </p>
 
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
-        <Box label="소싱(찾기) 시간">
-          <input type="number" min="0" max="24" value={sh} onChange={e => setSh(e.target.value)} className={numCls} aria-label="소싱 시간" />
-          <span className="text-xs text-gray-400">시간</span>
-          <input type="number" min="0" max="59" value={sm} onChange={e => setSm(e.target.value)} className={numCls} aria-label="소싱 분" />
-          <span className="text-xs text-gray-400">분</span>
-        </Box>
-        <Box label="편집 시간">
-          <input type="number" min="0" max="24" value={eh} onChange={e => setEh(e.target.value)} className={numCls} aria-label="편집 시간" />
-          <span className="text-xs text-gray-400">시간</span>
-          <input type="number" min="0" max="59" value={em} onChange={e => setEm(e.target.value)} className={numCls} aria-label="편집 분" />
-          <span className="text-xs text-gray-400">분</span>
-        </Box>
-        <Box label="일주일에 몇 개?">
-          <input type="number" min="1" max="100" value={vw} onChange={e => setVw(e.target.value)} className="w-16 rounded-lg border border-[#0064FF]/30 bg-white px-2 py-1.5 text-center text-sm font-bold text-gray-900 outline-none focus:border-[#0064FF]" aria-label="주당 영상 개수" />
-          <span className="text-xs text-gray-400">개 / 주</span>
-        </Box>
+        <div className={boxCls}>
+          <p className={labelCls}>소싱(찾기) 시간</p>
+          <div className="flex items-center gap-1.5">
+            <input {...numProps} min="0" max="24" value={sh} onChange={e => setSh(e.target.value)} className={numCls} aria-label="소싱 시간" />
+            <span className="text-xs text-gray-400">시간</span>
+            <input {...numProps} min="0" max="59" value={sm} onChange={e => setSm(e.target.value)} className={numCls} aria-label="소싱 분" />
+            <span className="text-xs text-gray-400">분</span>
+          </div>
+        </div>
+        <div className={boxCls}>
+          <p className={labelCls}>편집 시간</p>
+          <div className="flex items-center gap-1.5">
+            <input {...numProps} min="0" max="24" value={eh} onChange={e => setEh(e.target.value)} className={numCls} aria-label="편집 시간" />
+            <span className="text-xs text-gray-400">시간</span>
+            <input {...numProps} min="0" max="59" value={em} onChange={e => setEm(e.target.value)} className={numCls} aria-label="편집 분" />
+            <span className="text-xs text-gray-400">분</span>
+          </div>
+        </div>
+        <div className={boxCls}>
+          <p className={labelCls}>일주일에 몇 개?</p>
+          <div className="flex items-center gap-1.5">
+            <input {...numProps} min="1" max="100" value={vw} onChange={e => setVw(e.target.value)} className="w-16 rounded-lg border border-[#0064FF]/30 bg-white px-2 py-1.5 text-center text-sm font-bold text-gray-900 outline-none focus:border-[#0064FF]" aria-label="주당 영상 개수" />
+            <span className="text-xs text-gray-400">개 / 주</span>
+          </div>
+        </div>
       </div>
 
       {!revealed && (
