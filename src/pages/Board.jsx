@@ -104,6 +104,11 @@ const Board = () => {
                 <PenLine size={15} /> 공지 작성
               </Link>
             )}
+            {isAdmin && tab === 'event' && (
+              <Link to="/events/write" className="hidden items-center gap-1.5 rounded-full bg-[#0064FF] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#0052D6] active:scale-95 sm:flex">
+                <PenLine size={15} /> 이벤트 작성
+              </Link>
+            )}
           </div>
 
           {/* 공지 탭 */}
@@ -154,12 +159,16 @@ const Board = () => {
                 {events.map(ev => {
                   const st = evStatus[ev.status] || evStatus.active
                   return (
-                    <Link key={ev.id} to={`/events/${ev.id}`}
-                      className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-[#FAFAF8]">
-                      <span className={`flex-none rounded-full px-2 py-0.5 text-[11px] font-bold ${st.cls}`}>{st.label}</span>
-                      <span className="flex-1 truncate text-sm font-bold text-gray-900">{ev.title}</span>
+                    <div key={ev.id} className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-[#FAFAF8]">
+                      <Link to={`/events/${ev.id}`} className="flex min-w-0 flex-1 items-center gap-3">
+                        <span className={`flex-none rounded-full px-2 py-0.5 text-[11px] font-bold ${st.cls}`}>{st.label}</span>
+                        <span className="flex-1 truncate text-sm font-bold text-gray-900">{ev.title}</span>
+                      </Link>
                       <span className="hidden flex-none text-xs text-slate-400 sm:block">{evFmtDate(ev.created_at)}</span>
-                    </Link>
+                      {isAdmin && (
+                        <Link to={`/events/write?edit=${ev.id}`} className="flex-none rounded-lg border border-[#0064FF]/30 bg-[#0064FF]/5 px-2.5 py-1 text-xs font-bold text-[#0064FF] transition-colors hover:bg-[#0064FF]/10">수정</Link>
+                      )}
+                    </div>
                   )
                 })}
               </div>
@@ -169,8 +178,8 @@ const Board = () => {
       </section>
 
       {/* 모바일 공지 작성 FAB (운영자만) */}
-      {isAdmin && tab === 'notice' && (
-        <button onClick={() => nav('/board/write')}
+      {isAdmin && (
+        <button onClick={() => nav(tab === 'event' ? '/events/write' : '/board/write')}
           className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#0064FF] text-white shadow-xl shadow-[#0064FF]/30 transition-all active:scale-90 sm:hidden">
           <PenLine size={22} />
         </button>
