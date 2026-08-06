@@ -74,7 +74,7 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
       <nav className="flex shrink-0 items-center gap-2 text-sm font-bold text-gray-600 md:gap-3">
         {canInstall && (
           <button onClick={() => window.dispatchEvent(new Event('chronit:open-install'))} title="홈 화면에 앱으로 추가"
-            className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#0064FF] px-2.5 py-1.5 text-xs font-black text-white shadow-sm active:scale-95">
+            className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-2.5 py-1.5 text-xs font-black text-white shadow-sm active:scale-95">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
             앱 설치
           </button>
@@ -88,7 +88,7 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
         )}
         <div className="relative">
           <button onClick={() => setMenuOpen(o => !o)}
-            className="flex items-center gap-1.5 rounded-full bg-gray-900 px-3.5 py-1.5 font-bold text-white transition-colors hover:bg-[#0064FF]">
+            className="flex items-center gap-1.5 rounded-full bg-gray-900 px-3.5 py-1.5 font-bold text-white transition-colors hover:bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)]">
             <span className="max-w-[110px] truncate">{name}</span>
             <ChevronDown size={13} className="opacity-80" />
           </button>
@@ -117,7 +117,7 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
       {VIEW_TABS.map((t: any) => (
         <button key={t.v} disabled={t.locked}
           onClick={() => onViewChange && onViewChange(t.v)}
-          className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors ${activeView === t.v ? "bg-[#0064FF] text-white" : "bg-gray-100 text-gray-600"} ${t.locked ? "opacity-50 cursor-not-allowed" : ""}`}>
+          className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors ${activeView === t.v ? "bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white" : "bg-gray-100 text-gray-600"} ${t.locked ? "opacity-50 cursor-not-allowed" : ""}`}>
           {t.label}{t.locked && <span className="ml-1 text-[9px] text-gray-400">오픈예정</span>}
         </button>
       ))}
@@ -184,7 +184,7 @@ function AppTabBar({ activeView, onViewChange, userRole, userPlan }: { activeVie
             {icon && <span>{icon}</span>}
             <span>{label}</span>
             {locked && <span className="ml-0.5 rounded bg-gray-200 px-1 text-[9px] text-gray-500">오픈예정</span>}
-            {v === "product-search" && extractRunning && <span className="ml-0.5 h-2 w-2 rounded-full bg-[#0064FF] animate-pulse" />}
+            {v === "product-search" && extractRunning && <span className="ml-0.5 h-2 w-2 rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] animate-pulse" />}
           </button>
         ))}
       </div>
@@ -1748,7 +1748,7 @@ export default function VideoGenerator() {
     <div className="flex flex-col items-center justify-center min-h-screen gap-6 bg-[#FAFAF8]">
       <h1 className="text-2xl font-black text-gray-900">로그인이 필요합니다</h1>
       <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin + window.location.pathname } })}
-        className="rounded-xl bg-[#0064FF] px-8 py-3 font-bold text-white hover:bg-[#0052D6] transition">
+        className="rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-3 font-bold text-white hover:brightness-95 transition">
         Google로 로그인
       </button>
     </div>
@@ -1808,7 +1808,7 @@ export default function VideoGenerator() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FAFAF8] text-gray-900">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#EEF2F9] via-[#F5F6FA] to-[#FAFAF8] text-gray-900">
       {/* ── 저작권 동의 모달 (매번) ── */}
       {consentAsk && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
@@ -1829,7 +1829,7 @@ export default function VideoGenerator() {
               <button onClick={() => { setConsentAsk(null); setConsentSkip(false); }}
                 className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 transition">취소</button>
               <button onClick={() => { if (consentSkip) { try { localStorage.setItem(`chronit_consent_skip_${TERMS_VERSION}`, "1"); } catch {} } logConsent("agree"); const fn = consentAsk; setConsentAsk(null); setConsentSkip(false); if (fn) fn(); }}
-                className="flex-1 rounded-xl bg-[#0064FF] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#0052D6] transition">동의하고 계속</button>
+                className="flex-1 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-95 transition">동의하고 계속</button>
             </div>
           </div>
         </div>
@@ -1950,7 +1950,7 @@ export default function VideoGenerator() {
               </button>
               <button
                 onClick={() => { if (balance !== null && balance < 1) { setShowAutoModal(false); setCreditWall("empty"); return; } setCtaText(modalCtaText); handleAutoRun(modalCtaText); }}
-                className="flex-1 rounded-xl bg-[#0064FF] py-3 text-sm font-black text-white hover:bg-[#0052D6] transition">
+                className="flex-1 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-3 text-sm font-black text-white hover:brightness-95 transition">
                 {balance !== null && balance < 1 ? "요금제 보기" : "진행"}
               </button>
             </div>
@@ -1958,7 +1958,7 @@ export default function VideoGenerator() {
         </div>
       )}
 
-      {packInfoMsg && (<div className="fixed top-6 left-1/2 -translate-x-1/2 z-[140] rounded-2xl bg-[#0064FF] px-5 py-3 text-sm font-bold text-white shadow-2xl">🎨 {packInfoMsg}</div>)}
+      {packInfoMsg && (<div className="fixed top-6 left-1/2 -translate-x-1/2 z-[140] rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-5 py-3 text-sm font-bold text-white shadow-2xl">🎨 {packInfoMsg}</div>)}
       {noticeOpen && noticePost && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={closeNotice}>
           <div className="relative flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
@@ -1988,7 +1988,7 @@ export default function VideoGenerator() {
                 <input type="checkbox" checked={noticeHideDay} onChange={e => setNoticeHideDay(e.target.checked)} className="h-4 w-4 rounded" />
                 하루 동안 보지 않기
               </label>
-              <button onClick={closeNotice} className="rounded-xl bg-[#0064FF] px-5 py-2 text-sm font-bold text-white transition hover:brightness-95">닫기</button>
+              <button onClick={closeNotice} className="rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-5 py-2 text-sm font-bold text-white transition hover:brightness-95">닫기</button>
             </div>
           </div>
         </div>
@@ -1999,7 +1999,7 @@ export default function VideoGenerator() {
             <div className="text-4xl mb-3">🍽️</div>
             <p className="text-lg font-black text-gray-900 mb-2 break-keep">음식·레시피 영상은 아직 지원하지 않아요</p>
             <p className="text-sm text-gray-500 mb-5 break-keep">크로닛은 지금 쿠팡 상품 소개 숏폼에 최적화돼 있어요.<br/>상품 링크를 넣어 다시 시도해 주세요.</p>
-            <button onClick={() => setShowFoodBlock(false)} className="w-full rounded-xl bg-[#0064FF] py-3 text-sm font-bold text-white hover:bg-[#0052D6] active:scale-95">상품 링크로 다시 하기</button>
+            <button onClick={() => setShowFoodBlock(false)} className="w-full rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-3 text-sm font-bold text-white hover:brightness-95 active:scale-95">상품 링크로 다시 하기</button>
           </div>
         </div>
       )}      {/* 완성 알림 팝업 */}
@@ -2054,8 +2054,8 @@ export default function VideoGenerator() {
           <div className="w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl">
             {/* 진행 표시 */}
             <div className="mb-4 flex items-center justify-center gap-1.5">
-              <span className={`h-1.5 rounded-full transition-all ${surveyPage === 1 ? "w-6 bg-[#0064FF]" : "w-1.5 bg-gray-300"}`} />
-              <span className={`h-1.5 rounded-full transition-all ${surveyPage === 2 ? "w-6 bg-[#0064FF]" : "w-1.5 bg-gray-300"}`} />
+              <span className={`h-1.5 rounded-full transition-all ${surveyPage === 1 ? "w-6 bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)]" : "w-1.5 bg-gray-300"}`} />
+              <span className={`h-1.5 rounded-full transition-all ${surveyPage === 2 ? "w-6 bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)]" : "w-1.5 bg-gray-300"}`} />
             </div>
 
             {surveyPage === 1 ? (
@@ -2077,7 +2077,7 @@ export default function VideoGenerator() {
                 <p className="mt-2 text-center text-lg font-black text-gray-900">추천 코드가 적용됐어요!</p>
                 <p className="mt-1 text-center text-sm text-gray-500"><b className="text-[#0064FF]">이용권 2개</b>가 지급됐어요.</p>
                 <button onClick={closeSurvey}
-                  className="mt-5 w-full rounded-xl bg-[#0064FF] px-4 py-3 text-sm font-black text-white transition hover:bg-[#0052D6] active:scale-[0.98]">
+                  className="mt-5 w-full rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-3 text-sm font-black text-white transition hover:brightness-95 active:scale-[0.98]">
                   시작하기
                 </button>
               </>
@@ -2097,7 +2097,7 @@ export default function VideoGenerator() {
                   <p className={`mt-2 text-center text-sm font-semibold ${refMsg.ok ? "text-[#0064FF]" : "text-red-500"}`}>{refMsg.text}</p>
                 )}
                 <button disabled={refLoading || !refCode.trim()} onClick={applyReferral}
-                  className="mt-4 w-full rounded-xl bg-[#0064FF] px-4 py-3 text-sm font-black text-white transition hover:bg-[#0052D6] active:scale-[0.98] disabled:opacity-40">
+                  className="mt-4 w-full rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-3 text-sm font-black text-white transition hover:brightness-95 active:scale-[0.98] disabled:opacity-40">
                   {refLoading ? "적용 중..." : "추천 코드 적용"}
                 </button>
                 <button disabled={refLoading} onClick={closeSurvey}
@@ -2119,7 +2119,7 @@ export default function VideoGenerator() {
         </div>
       )}
       {session && clips.length === 0 && !(showDemo || showInvite || creditWall || showHistory || mobileMenuOpen || noticeOpen || showFoodBlock) && (
-        <button onClick={() => setShowDemo(true)} className="fixed bottom-32 left-4 z-40 flex items-center gap-1 rounded-full bg-[#0064FF] px-3.5 py-2 text-xs font-black text-white shadow-lg hover:bg-[#0052D6] active:scale-95">▶ 30초만에 크로닛 이해하기</button>
+        <button onClick={() => setShowDemo(true)} className="fixed bottom-32 left-4 z-40 flex items-center gap-1 rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-3.5 py-2 text-xs font-black text-white shadow-lg hover:brightness-95 active:scale-95">▶ 30초만에 크로닛 이해하기</button>
       )}
       {showDemo && <QuickDemo onClose={() => setShowDemo(false)} />}
       <PwaInstall />
@@ -2131,7 +2131,7 @@ export default function VideoGenerator() {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0064FF]/10 text-3xl">🎬</div>
             <h3 className="text-xl font-black text-gray-900">{creditWall==="expired" ? "이용권이 만료됐어요" : "이번 이용권을 다 쓰셨어요"}</h3>
             <p className="mt-2 text-sm leading-relaxed text-gray-500">계속 만들려면 두 가지 방법이 있어요.<br/><strong className="text-gray-700">친구를 초대하면 무료로</strong> 이어서 만들 수 있어요.</p>
-            <button onClick={()=>{ setCreditWall(null); setShowInvite(true); }} className="mt-6 w-full rounded-xl bg-[#0064FF] py-3.5 text-sm font-black text-white transition hover:bg-[#0052D6]">🎁 친구 초대하고 무료로 계속</button>
+            <button onClick={()=>{ setCreditWall(null); setShowInvite(true); }} className="mt-6 w-full rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-3.5 text-sm font-black text-white transition hover:brightness-95">🎁 친구 초대하고 무료로 계속</button>
             <button onClick={()=>{ setCreditWall(null); setPayOpen(true); }} className="mt-2 w-full rounded-xl border-2 border-[#0064FF] bg-[#0064FF]/5 py-3 text-sm font-black text-[#0064FF] transition hover:bg-[#0064FF]/10">Pro로 업그레이드 · 스마트스토어</button>
           </div>
         </div>
@@ -2297,7 +2297,7 @@ export default function VideoGenerator() {
                   <span className={refInfo.ref_remaining_days <= 3 ? "font-bold text-red-500" : "text-gray-400"}>{refInfo.ref_remaining_days}일</span>
                 </div>
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
-                  <div className={`h-full rounded-full transition-all ${refInfo.ref_remaining_days <= 3 ? "bg-red-500" : "bg-[#0064FF]"}`} style={{ width: `${Math.min(100, Math.round((refInfo.ref_remaining_days / 30) * 100))}%` }} />
+                  <div className={`h-full rounded-full transition-all ${refInfo.ref_remaining_days <= 3 ? "bg-red-500" : "bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)]"}`} style={{ width: `${Math.min(100, Math.round((refInfo.ref_remaining_days / 30) * 100))}%` }} />
                 </div>
               </div>
               )}
@@ -2404,7 +2404,7 @@ export default function VideoGenerator() {
                     disabled={searching}
                     className="flex-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-3.5 text-base text-gray-900 placeholder-gray-500 outline-none focus:border-[#0064FF] focus:ring-1 focus:ring-[#0064FF] disabled:opacity-50 transition" />
                   <button onClick={() => handleSearch()} disabled={searching || !sourceUrl.trim()}
-                    className="w-full sm:w-auto shrink-0 rounded-xl bg-[#0064FF] px-5 py-3.5 text-base font-bold text-white hover:bg-[#0052D6] disabled:opacity-40 transition flex items-center justify-center gap-2">
+                    className="w-full sm:w-auto shrink-0 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-5 py-3.5 text-base font-bold text-white hover:brightness-95 disabled:opacity-40 transition flex items-center justify-center gap-2">
                     {searching
                       ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />분석 중...</>
                       : <><Search size={16} /> 분석 시작</>}
@@ -2705,10 +2705,10 @@ function StepProgress({ steps, active }: { steps: string[]; active: number }) {
       {steps.map((st: string, i: number) => (
         <React.Fragment key={i}>
           <div className="flex shrink-0 flex-col items-center gap-1">
-            <div className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-black transition ${i < active ? "bg-[#0064FF] text-white" : i === active ? "bg-white text-[#0064FF] ring-2 ring-[#0064FF]" : "bg-gray-100 text-gray-300"}`}>{i < active ? "\u2713" : i + 1}</div>
+            <div className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-black transition ${i < active ? "bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white" : i === active ? "bg-white text-[#0064FF] ring-2 ring-[#0064FF]" : "bg-gray-100 text-gray-300"}`}>{i < active ? "\u2713" : i + 1}</div>
             <span className={`whitespace-nowrap text-[10px] font-bold ${i <= active ? "text-gray-700" : "text-gray-300"}`}>{st}</span>
           </div>
-          {i < steps.length - 1 && <div className={`mx-1 mb-4 h-0.5 flex-1 rounded ${i < active ? "bg-[#0064FF]" : "bg-gray-200"}`} />}
+          {i < steps.length - 1 && <div className={`mx-1 mb-4 h-0.5 flex-1 rounded ${i < active ? "bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)]" : "bg-gray-200"}`} />}
         </React.Fragment>
       ))}
     </div>
@@ -3099,7 +3099,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
         <div className="flex items-center justify-between">
           <label className="text-xs font-bold text-gray-400">강조 배경 <span className="font-normal text-gray-400">· 켜면 색 박스+흰 글씨</span></label>
           <button onClick={() => upd("accentBg", !s.accentBg)}
-            className={`rounded-full px-3 py-1 text-xs font-black transition ${s.accentBg ? "bg-[#0064FF] text-white" : "bg-gray-200 text-gray-400"}`}>
+            className={`rounded-full px-3 py-1 text-xs font-black transition ${s.accentBg ? "bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white" : "bg-gray-200 text-gray-400"}`}>
             {s.accentBg ? "ON" : "OFF"}
           </button>
         </div>
@@ -3114,7 +3114,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
         <div className="flex items-center justify-between mb-1.5">
           <label className="text-xs font-bold text-gray-400">외곽선</label>
           <button onClick={() => upd("strokeOn", !s.strokeOn)}
-            className={`rounded-full px-3 py-1 text-xs font-black transition ${s.strokeOn ? "bg-[#0064FF] text-white" : "bg-gray-200 text-gray-400"}`}>
+            className={`rounded-full px-3 py-1 text-xs font-black transition ${s.strokeOn ? "bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white" : "bg-gray-200 text-gray-400"}`}>
             {s.strokeOn ? "ON" : "OFF"}
           </button>
         </div>
@@ -3137,7 +3137,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
         <div className="flex items-center justify-between mb-1.5">
           <label className="text-xs font-bold text-gray-400">배경</label>
           <button onClick={() => upd("bgOn", !s.bgOn)}
-            className={`rounded-full px-3 py-1 text-xs font-black transition ${s.bgOn ? "bg-[#0064FF] text-white" : "bg-gray-200 text-gray-400"}`}>
+            className={`rounded-full px-3 py-1 text-xs font-black transition ${s.bgOn ? "bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white" : "bg-gray-200 text-gray-400"}`}>
             {s.bgOn ? "ON" : "OFF"}
           </button>
         </div>
@@ -3166,7 +3166,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
         <div className="flex items-center justify-between">
           <label className="text-xs font-bold text-gray-400">그림자</label>
           <button onClick={() => upd("shadowOn", !s.shadowOn)}
-            className={`rounded-full px-3 py-1 text-xs font-black transition ${s.shadowOn ? "bg-[#0064FF] text-white" : "bg-gray-200 text-gray-400"}`}>
+            className={`rounded-full px-3 py-1 text-xs font-black transition ${s.shadowOn ? "bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white" : "bg-gray-200 text-gray-400"}`}>
             {s.shadowOn ? "ON" : "OFF"}
           </button>
         </div>
@@ -3275,7 +3275,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
                     autoFocus
                     className="flex-1 rounded-lg bg-gray-100 border border-[#0064FF] px-3 py-1.5 text-xs text-gray-900 outline-none" />
                   <button onClick={() => savePreset(s, tab)} disabled={!presetName.trim()}
-                    className="rounded-lg bg-[#0064FF] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#0052D6] disabled:opacity-40 transition">
+                    className="rounded-lg bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-3 py-1.5 text-xs font-bold text-white hover:brightness-95 disabled:opacity-40 transition">
                     확인
                   </button>
                   <button onClick={() => setShowPresets(false)}
@@ -3339,7 +3339,7 @@ function Stage4Panel({ subtitleStyle, setSubtitleStyle, thumbnailStyle, setThumb
           <div className="flex gap-1.5">
             {previewFrames.slice(0,5).map((_, i) => (
               <button key={i} onClick={() => setFrameIdx(i)}
-                className={`h-2 w-2 rounded-full transition ${i===frameIdx ? "bg-[#0064FF]" : "bg-gray-600"}`} />
+                className={`h-2 w-2 rounded-full transition ${i===frameIdx ? "bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)]" : "bg-gray-600"}`} />
             ))}
           </div>
         )}
@@ -3496,7 +3496,7 @@ function QuickDemo({ onClose }: { onClose: () => void }) {
             <div className="my-6 text-5xl">🎬</div>
             <h3 className="text-lg font-black text-gray-900">링크만 넣으면 숏폼이 뚝딱</h3>
             <p className="mt-2 text-sm text-gray-500">크로닛이 어떻게 동작하는지 30초로 보여드릴게요.</p>
-            <button onClick={() => setStep(1)} className="mt-6 w-full rounded-2xl bg-[#0064FF] py-3.5 text-base font-black text-white hover:bg-[#0052D6]">시작하기</button>
+            <button onClick={() => setStep(1)} className="mt-6 w-full rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-3.5 text-base font-black text-white hover:brightness-95">시작하기</button>
           </div>
         )}
         {step === 1 && (
@@ -3506,7 +3506,7 @@ function QuickDemo({ onClose }: { onClose: () => void }) {
             <img src={DEMO.productImg} alt="상품" className="mb-5 h-40 w-full rounded-xl bg-gray-100 object-cover" />
             <div className="relative mx-auto w-fit">
               <DemoArrow />
-              <button onClick={() => setStep(2)} className="animate-pulse rounded-2xl bg-[#0064FF] px-10 py-3 text-base font-black text-white ring-4 ring-red-400/70 hover:bg-[#0052D6]">분석 시작</button>
+              <button onClick={() => setStep(2)} className="animate-pulse rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-10 py-3 text-base font-black text-white ring-4 ring-red-400/70 hover:brightness-95">분석 시작</button>
             </div>
           </div>
         )}
@@ -3518,13 +3518,13 @@ function QuickDemo({ onClose }: { onClose: () => void }) {
               {DEMO.clips.map((c, i) => (
                 <div key={i} className="relative aspect-[9/16] overflow-hidden rounded-lg bg-gray-100">
                   <img src={c} alt="" className="h-full w-full object-cover" />
-                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-[#0064FF] px-2 py-0.5 text-[10px] font-black text-white">✓ 담김</span>
+                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-2 py-0.5 text-[10px] font-black text-white">✓ 담김</span>
                 </div>
               ))}
             </div>
             <div className="relative mx-auto w-fit">
               <DemoArrow />
-              <button onClick={() => setStep(4)} className="animate-pulse rounded-2xl bg-[#0064FF] px-10 py-3 text-base font-black text-white ring-4 ring-red-400/70 hover:bg-[#0052D6]">자동 생성</button>
+              <button onClick={() => setStep(4)} className="animate-pulse rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-10 py-3 text-base font-black text-white ring-4 ring-red-400/70 hover:brightness-95">자동 생성</button>
             </div>
           </div>
         )}
@@ -3535,7 +3535,7 @@ function QuickDemo({ onClose }: { onClose: () => void }) {
             <h3 className="text-lg font-black text-gray-900">영상 완성!</h3>
             <img src={DEMO.resultImg} alt="완성" className="mx-auto my-4 h-56 w-auto rounded-xl bg-gray-100 object-cover" />
             <p className="text-sm text-gray-500">이렇게 링크만 넣으면 끝이에요.</p>
-            <button onClick={onClose} className="mt-5 w-full rounded-2xl bg-[#0064FF] py-3.5 text-base font-black text-white hover:bg-[#0052D6]">직접 만들어보기</button>
+            <button onClick={onClose} className="mt-5 w-full rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-3.5 text-base font-black text-white hover:brightness-95">직접 만들어보기</button>
           </div>
         )}
       </div>
@@ -3829,14 +3829,14 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
               placeholder="코드 입력"
               className="min-w-0 flex-1 rounded-xl bg-white border border-gray-200 px-3 py-2 text-sm font-bold tracking-widest text-gray-900 placeholder-gray-400 outline-none focus:border-[#0064FF]" />
             <button onClick={redeemCoupon} disabled={couponLoading}
-              className="shrink-0 rounded-xl bg-[#0064FF] hover:bg-[#0052D6] disabled:opacity-50 px-4 py-2 text-sm font-bold text-white">{couponLoading?"...":"사용"}</button>
+              className="shrink-0 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] hover:brightness-95 disabled:opacity-50 px-4 py-2 text-sm font-bold text-white">{couponLoading?"...":"사용"}</button>
           </div>
           {couponMsg && <p className={`mt-2 text-xs font-medium ${couponMsg.ok?"text-green-600":"text-red-500"}`}>{couponMsg.text}</p>}
         </div>
 
         {/* 미션 A — 추천 */}
         <div className="rounded-2xl bg-gray-100/60 border border-gray-200 p-4 mb-3">
-          <span className="inline-block rounded-lg bg-[#0064FF] text-white text-xs font-bold px-2.5 py-1 mb-2">미션 A · 친구 초대 보상</span>
+          <span className="inline-block rounded-lg bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white text-xs font-bold px-2.5 py-1 mb-2">미션 A · 친구 초대 보상</span>
           <div className="mb-3 text-sm text-gray-700">
             <p className="mb-1.5 text-gray-500">친구가 내 코드로 가입하면</p>
             <div className="space-y-1">
@@ -3849,13 +3849,13 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
           <div className="flex items-center gap-2 mb-2 rounded-xl bg-white border border-[#0064FF]/40 px-3 py-2">
             <span className="text-xs text-gray-500 shrink-0">내 추천 코드</span>
             <span className="font-mono text-lg font-black tracking-[0.2em] text-[#0064FF]">{code || "생성 중..."}</span>
-            <button onClick={copyCode} disabled={!code} className="ml-auto shrink-0 rounded-lg bg-[#0064FF] hover:bg-[#0052D6] disabled:opacity-40 px-3 py-1.5 text-xs font-bold text-white">{copiedCode?"✓ 복사됨":"코드 복사"}</button>
+            <button onClick={copyCode} disabled={!code} className="ml-auto shrink-0 rounded-lg bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] hover:brightness-95 disabled:opacity-40 px-3 py-1.5 text-xs font-bold text-white">{copiedCode?"✓ 복사됨":"코드 복사"}</button>
           </div>
           <p className="text-[11px] text-gray-500 mb-3">블로그·카페엔 코드만 적어도 돼요 — 예) "제 추천 코드는 <b className="text-gray-700">{code || "OOOO"}</b> 예요"</p>
 
           <div className="flex gap-2">
             <input readOnly value={link} className="flex-1 rounded-xl bg-white border border-gray-200 px-3 py-2 text-xs text-gray-700 outline-none truncate" />
-            <button onClick={copyLink} className="shrink-0 rounded-xl bg-[#0064FF] hover:bg-[#0052D6] px-4 py-2 text-sm font-bold text-white">{copied?"✓ 복사됨":"링크 복사"}</button>
+            <button onClick={copyLink} className="shrink-0 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] hover:brightness-95 px-4 py-2 text-sm font-bold text-white">{copied?"✓ 복사됨":"링크 복사"}</button>
             <button onClick={shareKakao} className="shrink-0 rounded-xl bg-[#FEE500] hover:brightness-95 px-3 py-2 text-sm font-bold text-[#3C1E1E]">💬 카톡</button>
           </div>
           <p className="text-xs text-gray-600 mt-2">현재 {invites}명 초대함</p>
@@ -3893,7 +3893,7 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
             {m.description && <p className="text-sm text-gray-700 mb-3 whitespace-pre-wrap">{m.description}</p>}
             {m.type === "link" ? (
               <button onClick={()=>claimMission(m)}
-                className="w-full rounded-xl bg-[#0064FF] hover:bg-[#0052D6] py-2.5 text-sm font-bold text-white">
+                className="w-full rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] hover:brightness-95 py-2.5 text-sm font-bold text-white">
                 {m.action_label || "참여하기"}
               </button>
             ) : m.claimed ? (
@@ -3904,7 +3904,7 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
               <div className="rounded-xl px-3 py-2.5 text-sm text-center bg-gray-200 text-gray-500 font-bold">🔒 {m.reason || "조건 미충족"}</div>
             ) : (
               <button onClick={()=>claimMission(m)} disabled={claiming===m.id}
-                className="w-full rounded-xl bg-[#0064FF] hover:bg-[#0052D6] disabled:opacity-40 py-2.5 text-sm font-bold text-white">
+                className="w-full rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] hover:brightness-95 disabled:opacity-40 py-2.5 text-sm font-bold text-white">
                 {claiming===m.id ? "받는 중..." : (m.action_label || "받기")}
               </button>
             )}
@@ -3966,7 +3966,7 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
                 {icon && <span className="text-lg">{icon}</span>}
                 <span>{label}</span>
                 {v==="product-search" && extractRunning && (
-                  <span className="ml-auto w-2 h-2 rounded-full bg-[#0064FF] animate-pulse" title="검색어 추출 중" />
+                  <span className="ml-auto w-2 h-2 rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] animate-pulse" title="검색어 추출 중" />
                 )}
               </button>
             ))}
@@ -4187,7 +4187,7 @@ function TrendCard({ item, onAdd, onAnalyze }: { item: any; onAdd: () => void; o
           <button onClick={onAdd} title="이 영상을 소스로 담기 (무료)"
             className="flex-1 rounded-lg border border-[#0064FF] py-2 text-xs font-bold text-[#0064FF] hover:bg-[#0064FF]/10 transition">＋ 담기</button>
           <button onClick={onAnalyze} title="담기 + 상품 분석"
-            className="flex-1 rounded-lg bg-[#0064FF] py-2 text-xs font-bold text-white hover:bg-[#0052D6] transition">🔍 분석</button>
+            className="flex-1 rounded-lg bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-2 text-xs font-bold text-white hover:brightness-95 transition">🔍 분석</button>
         </div>
       </div>
     </div>
@@ -4270,7 +4270,7 @@ function PoolPicker({ pool, clips, onPick, onClose }: any) {
                 <SegPlayer clip={clipOf(seg)} seg={seg} />
                 <span className="absolute bottom-0.5 right-0.5 z-10 rounded bg-black/70 px-1 text-[10px] font-bold text-white">{seg.duration}s</span>
               </div>
-              <button onClick={() => onPick(seg)} className="w-full bg-[#0064FF] py-1 text-[11px] font-black text-white hover:bg-[#0052D6]">선택</button>
+              <button onClick={() => onPick(seg)} className="w-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-1 text-[11px] font-black text-white hover:brightness-95">선택</button>
             </div>
           ))}
         </div>
@@ -4360,7 +4360,7 @@ function StoryboardModal({ script, cuts, debug, stage, segsByVideo, clips, loadi
       <div className="flex items-center gap-2 border-b bg-white px-3 py-3">
         <button onClick={onClose} aria-label="뒤로" className="flex items-center justify-center rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-800"><ChevronLeft size={22} /></button>
         <span className="flex-1 min-w-0 truncate font-bold text-gray-900 inline-flex items-center gap-1.5"><Film size={18} strokeWidth={2.2} />스토리보드 <span className="text-sm font-normal text-gray-400">대본 줄마다 클립 고르기</span></span>
-        <button onClick={onClose} className="shrink-0 rounded-lg bg-[#0064FF] px-4 py-2 text-sm font-bold text-white hover:bg-[#0052D6]">완료</button>
+        <button onClick={onClose} className="shrink-0 rounded-lg bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-sm font-bold text-white hover:brightness-95">완료</button>
       </div>
       <div className="flex-1 overflow-y-auto bg-gray-50 p-4">
         {loading ? (
@@ -4377,7 +4377,7 @@ function StoryboardModal({ script, cuts, debug, stage, segsByVideo, clips, loadi
         ) : !slots.length ? (
           <div className="py-24 text-center text-sm text-gray-500">
             구간을 불러오지 못했어요.
-            {onRetry && <button onClick={onRetry} className="ml-2 rounded-lg bg-[#0064FF] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#0052D6]">다시 시도</button>}
+            {onRetry && <button onClick={onRetry} className="ml-2 rounded-lg bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-3 py-1.5 text-xs font-bold text-white hover:brightness-95">다시 시도</button>}
           </div>
         ) : (
           <div className="flex flex-col">
@@ -4440,7 +4440,7 @@ function StoryboardModal({ script, cuts, debug, stage, segsByVideo, clips, loadi
               placeholder="예: 관심, 알려줘 (선택)"
               className="min-w-0 flex-1 rounded-xl border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-[#0064FF]" />
             <button onClick={onGenerate} disabled={generating}
-              className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-[#0064FF] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#0052D6] disabled:opacity-60">
+              className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-5 py-2.5 text-sm font-bold text-white hover:brightness-95 disabled:opacity-60">
               {generating ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />생성 중</> : <><Sparkles size={16} />자동 생성</>}
             </button>
           </div>
@@ -4509,7 +4509,7 @@ function ClipCard({ clip, selected, onToggle, onRemove, onMeasured }: { clip: Cl
           <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1 py-0.5 text-xs text-white font-bold">{clip.duration || vidDur}s</div>
         )}
         {selected && (
-          <div className="absolute top-1.5 left-1.5 h-5 w-5 rounded-full bg-[#0064FF] flex items-center justify-center">
+          <div className="absolute top-1.5 left-1.5 h-5 w-5 rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] flex items-center justify-center">
             <span className="text-white text-xs font-black">✓</span>
           </div>
         )}
@@ -4530,7 +4530,7 @@ function ClipCard({ clip, selected, onToggle, onRemove, onMeasured }: { clip: Cl
           className={`w-full rounded-lg py-2.5 text-sm font-black transition ${
             selected
               ? "bg-red-500/15 border-2 border-red-500 text-red-500 hover:bg-red-500/25"
-              : "bg-[#0064FF] text-white hover:bg-[#0052D6] shadow-sm"
+              : "bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white hover:brightness-95 shadow-sm"
           }`}>
           {selected ? "✓ 담음 (빼기)" : "＋ 담기"}
         </button>
@@ -4558,7 +4558,7 @@ function JobCard({ job }: { job: Job }) {
           {job.status === "error" && <p className="mt-1 text-xs text-red-400">{friendlyError(job.error_message)}</p>}
         </div>
         {job.status === "done" && job.video_url && (
-          <a href={job.video_url + (job.video_url.includes("?")?"&":"?") + "download=" + encodeURIComponent((job.product_name||"chronit")+".mp4")} className="shrink-0 rounded-xl bg-[#0064FF] px-3 py-2 text-xs font-bold text-white hover:bg-[#0052D6] transition">다운로드</a>
+          <a href={job.video_url + (job.video_url.includes("?")?"&":"?") + "download=" + encodeURIComponent((job.product_name||"chronit")+".mp4")} className="shrink-0 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-3 py-2 text-xs font-bold text-white hover:brightness-95 transition">다운로드</a>
         )}
         {job.status === "done" && !job.video_url && job.expired && (
           <span className="shrink-0 text-xs text-gray-500">⌛ 보관 만료(3일)</span>
@@ -4791,7 +4791,7 @@ function StyleFinderView({ session, onImport }: { session: any; onImport: (id:st
         <div className="flex gap-3">
           <input value={url} onChange={e=>setUrl(e.target.value)} onKeyDown={e=>e.key==="Enter"&&run()} disabled={loading}
             placeholder="https://www.instagram.com/p/..." className="flex-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#0064FF] disabled:opacity-50" />
-          <button onClick={run} disabled={loading||!url.trim()} className="rounded-xl bg-[#0064FF] px-5 py-2.5 text-sm font-black text-white hover:bg-[#0052D6] disabled:opacity-40 transition">
+          <button onClick={run} disabled={loading||!url.trim()} className="rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-5 py-2.5 text-sm font-black text-white hover:brightness-95 disabled:opacity-40 transition">
             {loading ? "분석 중..." : "분석 시작"}
           </button>
         </div>
@@ -4810,12 +4810,12 @@ function StyleFinderView({ session, onImport }: { session: any; onImport: (id:st
               <p className="font-black text-gray-900 text-lg">{result.label}</p>
               {result.source_channel && <p className="text-xs text-gray-500">@{result.source_channel}</p>}
             </div>
-            <button onClick={()=>onImport(result.id)} className="shrink-0 rounded-xl bg-[#0064FF] px-4 py-2 text-sm font-black text-white hover:bg-[#0052D6] transition">이 스타일 가져오기 →</button>
+            <button onClick={()=>onImport(result.id)} className="shrink-0 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-sm font-black text-white hover:brightness-95 transition">이 스타일 가져오기 →</button>
           </div>
           <div className="p-5 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-1 h-4 bg-[#0064FF] rounded" />
+                <div className="w-1 h-4 bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] rounded" />
                 <p className="font-bold text-gray-900 text-sm">GPT 프롬프트 (이 스타일 그대로 따라하기)</p>
               </div>
               <button
@@ -4905,7 +4905,7 @@ function GachaModal({ data, onClose }: { data: any; onClose: ()=>void }) {
               <span style={{ fontSize:60 }}>🎉</span>
             </div>
             <p className="text-4xl font-black" style={{ color: finalT.color }}>+{data.points}P</p>
-            <button onClick={(e)=>{ e.stopPropagation(); onClose(); }} className="mt-5 w-full rounded-xl bg-[#0064FF] py-3 text-sm font-bold text-white hover:bg-[#0052D6] transition">받기</button>
+            <button onClick={(e)=>{ e.stopPropagation(); onClose(); }} className="mt-5 w-full rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-3 text-sm font-bold text-white hover:brightness-95 transition">받기</button>
           </>
         )}
       </div>
@@ -4957,7 +4957,7 @@ function FeedbackModal({ job, onClose }: { job:any; onClose:()=>void }) {
               className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#0064FF] mb-4 resize-none" />
             <div className="flex gap-2">
               <button onClick={onClose} className="rounded-xl px-4 py-3 text-sm font-bold text-gray-500 hover:bg-gray-100">다음에</button>
-              <button onClick={submit} disabled={submitting || !rating} className="flex-1 rounded-xl bg-[#0064FF] py-3 text-sm font-black text-white hover:bg-[#0052D6] disabled:opacity-40 transition">
+              <button onClick={submit} disabled={submitting || !rating} className="flex-1 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-3 text-sm font-black text-white hover:brightness-95 disabled:opacity-40 transition">
                 {submitting ? "보내는 중…" : "제출하고 +2 이용권 받기"}
               </button>
             </div>
@@ -5201,7 +5201,7 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
               {done ? (
                 <div className="mt-auto flex flex-col gap-1.5">
                   <button onClick={()=>saveVideo(j)} disabled={saving===j.id}
-                    className="flex items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] px-3 py-2.5 text-sm font-bold text-white hover:bg-[#0052D6] active:bg-[#0052D6] disabled:opacity-50 transition">
+                    className="flex items-center justify-center gap-1.5 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-3 py-2.5 text-sm font-bold text-white hover:brightness-95 active:bg-[#0052D6] disabled:opacity-50 transition">
                     {saving===j.id ? <><Loader2 size={15} className="animate-spin" /> 준비 중…</> : (readyToSave===j.id && isIOS) ? <><Download size={15} /> 한 번 더 눌러 저장</> : isIOS ? <><Smartphone size={15} /> 갤러리에 저장</> : <><Download size={15} /> 동영상 저장</>}
                   </button>
                   {(j.seo_description || j.seo_tags) ? (
@@ -5330,7 +5330,7 @@ function SettingsView({ session, supabase, balance, userPlan }:
           <span className="text-sm font-black text-[#0064FF]">{bal.toLocaleString()}개 / {maxC.toLocaleString()}개</span>
         </div>
         <div className="h-2 rounded-full bg-gray-100 overflow-hidden mb-4">
-          <div className="h-full bg-[#0064FF] transition-all" style={{ width:`${pct}%` }} />
+          <div className="h-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] transition-all" style={{ width:`${pct}%` }} />
         </div>
         <div className="flex justify-between text-sm"><span className="text-gray-500">다음 결제일</span><span className="text-gray-900">{nextBilling}</span></div>
       </Section>
@@ -5342,7 +5342,7 @@ function SettingsView({ session, supabase, balance, userPlan }:
             onKeyDown={e=>{ if(e.key==="Enter") registerCode(); }}
             className="flex-1 rounded-xl bg-gray-100 border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#0064FF]" />
           <button onClick={registerCode} disabled={registering || !code.trim()}
-            className="rounded-xl bg-[#0064FF] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#0052D6] disabled:opacity-50 transition">{registering?"등록 중":"등록"}</button>
+            className="rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-5 py-2.5 text-sm font-bold text-white hover:brightness-95 disabled:opacity-50 transition">{registering?"등록 중":"등록"}</button>
         </div>
         {codeMsg && <p className={`text-xs mt-2 ${codeMsg.ok?"text-green-400":"text-red-400"}`}>{codeMsg.text}</p>}
       </Section>
@@ -5616,7 +5616,7 @@ function AdminPayoutsTab({ session, supabase }: { session:any; supabase:any }) {
           <p className="text-[11px] text-gray-500 font-bold">누적 지급완료</p>
           <p className="text-lg font-black text-gray-700">{won(tot.paid)}</p>
         </div>
-        <button onClick={payAll} className="ml-auto rounded-lg bg-[#0064FF] hover:bg-[#0052D6] px-4 py-2.5 text-sm font-bold text-white">확정분 전체 지급 처리</button>
+        <button onClick={payAll} className="ml-auto rounded-lg bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] hover:brightness-95 px-4 py-2.5 text-sm font-bold text-white">확정분 전체 지급 처리</button>
         <button onClick={load} className="rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-bold text-gray-500 hover:text-gray-900">새로고침</button>
       </div>
       {msg && <p className="text-xs text-[#0064FF] mb-3">{msg}</p>}
@@ -5653,7 +5653,7 @@ function AdminPayoutsTab({ session, supabase }: { session:any; supabase:any }) {
                 <td className="px-3 py-2.5 text-right text-gray-400">{won(r.paid)}</td>
                 <td className="px-3 py-2.5 text-gray-500 text-xs">{r.upline_email||"-"}</td>
                 <td className="px-3 py-2.5 text-right">
-                  {Number(r.confirmed)>0 && <button onClick={()=>payOne(r.pid, r.email)} className="rounded-lg bg-[#0064FF] hover:bg-[#0052D6] px-3 py-1.5 text-xs font-bold text-white">지급</button>}
+                  {Number(r.confirmed)>0 && <button onClick={()=>payOne(r.pid, r.email)} className="rounded-lg bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] hover:brightness-95 px-3 py-1.5 text-xs font-bold text-white">지급</button>}
                 </td>
               </tr>
             ))}
@@ -5979,7 +5979,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
             <input value={days} onChange={e=>setDays(e.target.value)} className="w-28 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none" placeholder="기간(일)" />
             <input value={payAmt} onChange={e=>setPayAmt(e.target.value)} className="w-36 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none" placeholder="결제금액(정산용·선택)" />
             <Btn onClick={grant} color="bg-green-600 hover:bg-green-500">✓ 구독 부여/연장</Btn>
-            <Btn onClick={grantTrial} color="bg-[#0064FF] hover:bg-[#0052D6]">🎁 프로 체험 부여(이벤트)</Btn>
+            <Btn onClick={grantTrial} color="bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] hover:brightness-95">🎁 프로 체험 부여(이벤트)</Btn>
             <Btn onClick={cancel} color="bg-red-600 hover:bg-red-500">✕ 구독 취소</Btn>
             <Btn onClick={resetDev} color="bg-gray-200 hover:bg-gray-300">🖥 디바이스 모두 해제</Btn>
           </div>
@@ -5998,7 +5998,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
           <div className="flex flex-wrap items-center gap-2">
             <select value={roleSel} onChange={e=>setRoleSel(e.target.value)} className="rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none">
               <option value="user">일반 (user)</option><option value="partner">파트너 (partner)</option><option value="super_admin">관리자 (super_admin)</option></select>
-            <Btn onClick={applyRole} color="bg-[#0064FF] hover:bg-[#0052D6]">✓ 권한 적용</Btn>
+            <Btn onClick={applyRole} color="bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] hover:brightness-95">✓ 권한 적용</Btn>
           </div>
         </div>
 
@@ -6066,7 +6066,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
                 </div>
               ))}
             </div>
-            <button onClick={savePartnerRates} className="mt-3 rounded-lg bg-[#0064FF] hover:bg-[#0052D6] px-4 py-2 text-xs font-bold text-white">정산 수수료 저장</button>
+            <button onClick={savePartnerRates} className="mt-3 rounded-lg bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] hover:brightness-95 px-4 py-2 text-xs font-bold text-white">정산 수수료 저장</button>
             {prMsg && <p className="text-xs text-[#0064FF] mt-2">{prMsg}</p>}
 
             {/* 상위 파트너(친구) 오버라이드 */}
@@ -6118,7 +6118,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
                   </div>
                 ))}
               </div>
-              <button onClick={createPartnerCoupon} className="mt-3 rounded-lg bg-[#0064FF] hover:bg-[#0052D6] px-4 py-2 text-xs font-bold text-white">코드 발급</button>
+              <button onClick={createPartnerCoupon} className="mt-3 rounded-lg bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] hover:brightness-95 px-4 py-2 text-xs font-bold text-white">코드 발급</button>
 
               <div className="mt-4 pt-3 border-t border-dashed border-gray-200">
                 <p className="text-xs font-bold text-gray-700 mb-2">🎁 무료 체험 쿠폰 (기간 한정)</p>
@@ -6274,11 +6274,11 @@ function AdminCouponsTab({ session, supabase }: { session:any; supabase:any }) {
           <label className="text-xs text-gray-500">코드 종류</label>
           <div className="mt-1.5 flex gap-2">
             <button type="button" onClick={()=>setMode("discount")}
-              className={`rounded-xl px-4 py-2 text-sm font-bold transition ${mode==="discount"?"bg-[#0064FF] text-white":"bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>💳 플랜 할인</button>
+              className={`rounded-xl px-4 py-2 text-sm font-bold transition ${mode==="discount"?"bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white":"bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>💳 플랜 할인</button>
             <button type="button" onClick={()=>setMode("credits")}
-              className={`rounded-xl px-4 py-2 text-sm font-bold transition ${mode==="credits"?"bg-[#0064FF] text-white":"bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>💎 이용권 지급</button>
+              className={`rounded-xl px-4 py-2 text-sm font-bold transition ${mode==="credits"?"bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white":"bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>💎 이용권 지급</button>
             <button type="button" onClick={()=>setMode("free_days")}
-              className={`rounded-xl px-4 py-2 text-sm font-bold transition ${mode==="free_days"?"bg-[#0064FF] text-white":"bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>🎁 무료체험</button>
+              className={`rounded-xl px-4 py-2 text-sm font-bold transition ${mode==="free_days"?"bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white":"bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>🎁 무료체험</button>
           </div>
         </div>
 
@@ -6520,7 +6520,7 @@ function PartnerView({ session, supabase }: { session: any; supabase: any }) {
           <option value="all">상태 전체</option><option value="active">유효</option><option value="expired">만료</option></select>
         <select value={plFilter} onChange={e=>setPlFilter(e.target.value)} className="rounded-xl bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-900 outline-none">
           <option value="all">플랜 전체</option><option value="starter">스타터</option><option value="pro">프로</option><option value="master">마스터</option><option value="free">무료</option></select>
-        <button onClick={load} className="rounded-xl bg-[#0064FF] hover:bg-[#0052D6] px-4 py-2.5 text-sm font-bold text-white transition">🔄 새로고침</button>
+        <button onClick={load} className="rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] hover:brightness-95 px-4 py-2.5 text-sm font-bold text-white transition">🔄 새로고침</button>
       </div>
       <p className="text-xs text-gray-500 mb-2">전체 {members.length} · 무료 {members.filter(m=>!m.plan||m.plan==="free").length} · 스타터 {members.filter(m=>m.plan==="starter").length} · <span className="text-[#0064FF]">프로 {members.filter(m=>m.plan==="pro").length}</span> · <span className="text-purple-500">마스터 {members.filter(m=>m.plan==="master").length}</span> · 검색 {filtered.length}명</p>
 
