@@ -501,7 +501,7 @@ const Home = () => {
       </div>
 
       {/* ── Hero ── */}
-      <section className="relative bg-gradient-to-b from-[#E4EFE7] via-[#EDF3EE] to-[#FAFAF8] px-5 pt-32 pb-16 md:px-8 md:pt-40 md:pb-24">
+      <section className="relative bg-gradient-to-b from-[#E9EFF8] via-[#F2F5FB] to-[#FAFAF8] px-5 pt-32 pb-16 md:px-8 md:pt-40 md:pb-24">
         <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
           <div className="flex w-full flex-col items-center">
             {user && (
