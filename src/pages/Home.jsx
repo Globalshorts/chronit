@@ -391,13 +391,18 @@ const Home = () => {
       {/* 진행중인 이벤트 배너 */}
       {eventBannerOn && (
         <div
-          className="fixed right-0 left-0 z-[59] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[#0052D6] px-4 py-3 text-sm font-bold text-white shadow-md cursor-pointer"
+          className="fixed right-0 left-0 z-[59] flex items-center justify-center overflow-hidden whitespace-nowrap bg-[linear-gradient(90deg,#0A1F3D_0%,#123C7A_50%,#0A1F3D_100%)] px-4 py-3 text-sm text-white cursor-pointer"
           style={{ top: `${((refFromUrl ? 1 : 0) + (codeFromUrl ? 1 : 0)) * 44}px` }}
           onClick={() => { window.location.href = '/events' }}
         >
-          <span>🎉</span>
-          <span>진행 중인 이벤트 <strong>{events.filter(e => e.status === 'active').length}건</strong> — 확인하기 →</span>
-          <button onClick={e => { e.stopPropagation(); sessionStorage.setItem('chronit_event_banner_closed', '1'); window.location.reload() }} className="ml-2 opacity-80 hover:opacity-100">✕</button>
+          <div className="flex items-center gap-2.5">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#2A7BFF] px-2.5 py-0.5 text-[11px] font-bold tracking-wide text-white">
+              <span className="h-1.5 w-1.5 rounded-full bg-white/90 animate-pulse" />EVENT
+            </span>
+            <span className="font-medium text-white/85">진행 중인 이벤트 <strong className="font-bold text-white">{events.filter(e => e.status === 'active').length}건</strong></span>
+            <span className="inline-flex items-center gap-0.5 font-bold text-[#7FB2FF]">확인하기 <ArrowRight size={13} /></span>
+          </div>
+          <button onClick={e => { e.stopPropagation(); sessionStorage.setItem('chronit_event_banner_closed', '1'); window.location.reload() }} className="absolute right-3 text-white/50 transition-colors hover:text-white/90" aria-label="이벤트 배너 닫기"><X size={15} /></button>
         </div>
       )}
 
