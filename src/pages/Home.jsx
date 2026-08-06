@@ -52,7 +52,7 @@ const CouponBar = ({ codeFromUrl, onApply }) => {
           className="flex-1 rounded-2xl border-2 border-gray-300 bg-white px-5 py-4 text-base font-bold text-gray-900 placeholder-gray-400 outline-none transition-all focus:border-[#0064FF] focus:ring-4 focus:ring-[#0064FF]/15"
         />
         <button onClick={handleApply}
-          className="rounded-2xl bg-[#0064FF] px-6 py-4 text-base font-bold text-white transition-all hover:bg-[#0052D6] active:scale-95">
+          className="rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-6 py-4 text-base font-bold text-white transition-all hover:brightness-95 active:scale-95">
           적용
         </button>
       </div>
@@ -71,7 +71,7 @@ const EventBadge = ({ status, label }) => {
   const cfg = statusCfg[status] || statusCfg.active
   return (
     <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold ${cfg.cls}`}>
-      {cfg.dot && <span className="badge-pulse h-1.5 w-1.5 rounded-full bg-[#0064FF]" />}
+      {cfg.dot && <span className="badge-pulse h-1.5 w-1.5 rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)]" />}
       {cfg.label}
     </span>
   )
@@ -373,7 +373,7 @@ const Home = () => {
     <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans break-keep text-gray-900 selection:bg-[#0064FF]/20" style={{ paddingTop: bannerH ? `${bannerH}px` : undefined }}>
       {/* 추천인 코드 배너 */}
       {refFromUrl && (
-        <div className="fixed top-0 right-0 left-0 z-[61] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[#0064FF] px-4 py-3 text-sm font-bold text-white shadow-md">
+        <div className="fixed top-0 right-0 left-0 z-[61] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-3 text-sm font-bold text-white shadow-md">
           <Gift size={15} />
           <span>추천 코드 <strong>{refFromUrl}</strong> 적용됨!</span>
           <button onClick={() => { setRefFromUrl(null); sessionStorage.removeItem('chronit_ref') }} className="ml-2 opacity-80 hover:opacity-100">✕</button>
@@ -414,7 +414,7 @@ const Home = () => {
               {user ? (
                 <>
                   {nickname ? (
-                    <Link to="/me" className="flex items-center gap-1.5 rounded-full bg-gray-900 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#0064FF] active:scale-95">
+                    <Link to="/me" className="flex items-center gap-1.5 rounded-full bg-gray-900 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] active:scale-95">
                       <User size={16} /> <span className="max-w-[110px] truncate">{nickname}</span>
                     </Link>
                   ) : (
@@ -434,13 +434,13 @@ const Home = () => {
                 </button>
               )}
               <button onClick={handleStart}
-                className="rounded-full bg-[#0064FF] px-7 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-md shadow-[#0064FF]/25 transition-all hover:bg-[#0052D6] active:scale-95">
+                className="rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-7 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-md shadow-[#0064FF]/25 transition-all hover:brightness-95 active:scale-95">
                 {user ? '작업실 열기 →' : '무료 체험'}
               </button>
             </div>
             {/* 모바일 상단 시작하기 CTA (햄버거에 가려지지 않게 상시 노출) */}
             <button onClick={handleStart}
-              className="rounded-full bg-[#0064FF] px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-md shadow-[#0064FF]/25 transition-all active:scale-95 md:hidden">
+              className="rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-md shadow-[#0064FF]/25 transition-all active:scale-95 md:hidden">
               {user ? '작업실' : '무료 체험'}
             </button>
             <button onClick={() => setMenuOpen((v) => !v)} aria-label="메뉴"
@@ -467,7 +467,7 @@ const Home = () => {
             {user ? (
               <>
                 {nickname ? (
-                  <Link to="/me" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-3.5 text-lg font-bold text-white transition-colors hover:bg-[#0064FF]">
+                  <Link to="/me" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-3.5 text-lg font-bold text-white transition-colors hover:bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)]">
                     <User size={18} /> {nickname} <span className="ml-auto text-sm font-medium text-white/70">마이페이지 →</span>
                   </Link>
                 ) : (
@@ -488,7 +488,7 @@ const Home = () => {
               </button>
             )}
             <button onClick={() => { setMenuOpen(false); handleStart() }}
-              className="w-full rounded-xl bg-[#0064FF] px-4 py-4 text-lg font-extrabold text-white shadow-md transition-all hover:bg-[#0052D6] active:scale-95">
+              className="w-full rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-4 text-lg font-extrabold text-white shadow-md transition-all hover:brightness-95 active:scale-95">
               {user ? '작업실 열기 →' : '무료 체험'}
             </button>
           </div>
@@ -504,7 +504,7 @@ const Home = () => {
                 <p className="text-xl font-black text-gray-900">돌아오셨어요{nickname ? `, ${nickname}님` : ''}</p>
                 <p className="mt-1 mb-5 text-sm font-bold text-gray-500">바로 이어서 만들까요?</p>
                 <button onClick={handleStart}
-                  className="mx-auto flex items-center justify-center gap-2 rounded-2xl bg-[#0064FF] px-8 py-4 text-lg font-extrabold text-white shadow-lg shadow-[#0064FF]/30 transition-all hover:bg-[#0052D6] active:scale-95">
+                  className="mx-auto flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-extrabold text-white shadow-lg shadow-[#0064FF]/30 transition-all hover:brightness-95 active:scale-95">
                   작업실 열기 <ArrowRight size={20} />
                 </button>
               </div>
@@ -524,7 +524,7 @@ const Home = () => {
             {!user && (
               <div className="flex w-full max-w-md flex-col items-center gap-2">
                 <button onClick={handleStart}
-                  className="w-full rounded-2xl bg-[#0064FF] px-8 py-4 text-lg font-extrabold text-white shadow-lg shadow-[#0064FF]/30 transition-all hover:bg-[#0052D6] active:scale-95">
+                  className="w-full rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-extrabold text-white shadow-lg shadow-[#0064FF]/30 transition-all hover:brightness-95 active:scale-95">
                   무료로 시작하기 →
                 </button>
                 <Link to="/manual" className="text-sm font-medium text-gray-400 transition-colors hover:text-[#0064FF]">1분 사용법 보기 →</Link>
@@ -535,11 +535,11 @@ const Home = () => {
               {/* 입력 방식 탭 */}
               <div className="flex gap-1.5 rounded-2xl border-2 border-gray-200 bg-white p-1.5">
                 <button onClick={() => setHeroTab('link')}
-                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold transition-all ${heroTab === 'link' ? 'bg-[#0064FF] text-white shadow' : 'text-gray-500 hover:text-gray-800'}`}>
+                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold transition-all ${heroTab === 'link' ? 'bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white shadow' : 'text-gray-500 hover:text-gray-800'}`}>
                   🔗 영상 링크
                 </button>
                 <button onClick={() => setHeroTab('upload')}
-                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold transition-all ${heroTab === 'upload' ? 'bg-[#0064FF] text-white shadow' : 'text-gray-500 hover:text-gray-800'}`}>
+                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold transition-all ${heroTab === 'upload' ? 'bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white shadow' : 'text-gray-500 hover:text-gray-800'}`}>
                   ⬆️ 직접 업로드
                 </button>
               </div>
@@ -553,7 +553,7 @@ const Home = () => {
                     className="flex-1 rounded-2xl border-2 border-gray-300 bg-white px-5 py-4 text-base font-bold text-gray-900 placeholder-gray-400 outline-none transition-all focus:border-[#0064FF] focus:ring-4 focus:ring-[#0064FF]/15"
                   />
                   <button onClick={handleStart}
-                    className="group flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-[#0064FF] px-8 py-4 text-lg font-extrabold text-white shadow-lg shadow-[#0064FF]/30 transition-all hover:bg-[#0052D6] active:scale-95">
+                    className="group flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-extrabold text-white shadow-lg shadow-[#0064FF]/30 transition-all hover:brightness-95 active:scale-95">
                     쇼핑 숏폼 만들기 <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
                   </button>
                 </div>
@@ -648,7 +648,7 @@ const Home = () => {
             ].map(({ q, a }) => (
               <div key={q} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] md:p-7">
                 <div className="mb-3 flex items-start gap-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0064FF] text-sm font-black text-white">Q</span>
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-sm font-black text-white">Q</span>
                   <p className="pt-0.5 text-lg font-black text-gray-900">{q}</p>
                 </div>
                 <div className="flex items-start gap-3">
@@ -708,7 +708,7 @@ const Home = () => {
                   className={`group relative flex cursor-pointer flex-col rounded-2xl border bg-white p-7 transition-all hover:-translate-y-0.5 ${p.popular ? 'border-[#0064FF] shadow-[0_16px_44px_-18px_rgba(0,100,255,0.32)]' : 'border-gray-200 hover:border-[#0064FF]/40 hover:shadow-[0_12px_32px_-16px_rgba(0,0,0,0.14)]'}`}>
                   <div className="flex items-center gap-2">
                     <h4 className="text-xl font-black text-gray-900">{p.name}</h4>
-                    {p.popular && <span className="rounded-full bg-[#0064FF] px-2 py-0.5 text-[11px] font-bold text-white">인기 있는</span>}
+                    {p.popular && <span className="rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-2 py-0.5 text-[11px] font-bold text-white">인기 있는</span>}
                   </div>
                   <p className="mt-1 text-sm text-gray-500">{p.sub}</p>
                   <div className="mt-5 flex items-baseline gap-1 whitespace-nowrap">
@@ -717,7 +717,7 @@ const Home = () => {
                   </div>
                   <p className="mt-2"><span className="inline-flex items-center rounded-full bg-[#0064FF]/10 px-2.5 py-1 text-sm font-bold text-[#0064FF]">하루 약 {wonFmt(Math.round(price / 30 / 10) * 10)}원</span></p>
                   <button onClick={(e) => { e.stopPropagation(); openPayment(p.key) }}
-                    className={`mt-6 w-full rounded-xl py-3.5 text-base font-bold transition-all active:scale-[0.98] ${p.popular ? 'bg-[#0064FF] text-white hover:bg-[#0052D6]' : 'border border-gray-200 bg-white text-gray-900 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>
+                    className={`mt-6 w-full rounded-xl py-3.5 text-base font-bold transition-all active:scale-[0.98] ${p.popular ? 'bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white hover:brightness-95' : 'border border-gray-200 bg-white text-gray-900 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>
                     {p.name} 시작하기
                   </button>
                   <ul className="mt-6 space-y-3 border-t border-gray-100 pt-6 text-sm text-gray-700">
@@ -759,7 +759,7 @@ const Home = () => {
 
           <div className="mt-12 text-center">
             <button onClick={handleStart}
-              className="w-full rounded-2xl bg-[#0064FF] px-8 py-5 text-xl font-black text-white shadow-lg shadow-[#0064FF]/25 transition-all hover:bg-[#0052D6] active:scale-95 sm:w-auto md:px-20 md:py-6">
+              className="w-full rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-5 text-xl font-black text-white shadow-lg shadow-[#0064FF]/25 transition-all hover:brightness-95 active:scale-95 sm:w-auto md:px-20 md:py-6">
               무료로 영상 만들기
             </button>
           </div>
