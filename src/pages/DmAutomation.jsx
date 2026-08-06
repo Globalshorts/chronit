@@ -149,13 +149,13 @@ export default function DmAutomation({ userPlan, userRole }) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#EEF2F9] via-[#F5F6FA] to-[#FAFAF8]">
     <div className="mx-auto w-full max-w-2xl px-4 py-6">
-      <h1 className="mb-1 flex items-center gap-2 text-xl font-black text-gray-900"><MessageCircle size={22} className="text-[#0064FF]" /> 인스타 댓글 자동 DM</h1>
+      <h1 className="mb-1 flex items-center gap-2 text-xl font-bold text-gray-900"><MessageCircle size={22} className="text-[#0064FF]" /> 인스타 댓글 자동 DM</h1>
       <p className="mb-5 text-sm text-gray-500">내 인스타를 연결하고, 특정 키워드 댓글에 자동으로 DM(링크)을 보내세요. 계정은 여러 개 연결할 수 있어요.</p>
       {msg && <div className="mb-4 rounded-xl border border-[#0064FF]/20 bg-[#0064FF]/5 px-4 py-2.5 text-sm font-medium text-[#0052D6]">{msg}</div>}
 
       {/* 1. 계정 연결 (다계정) */}
       <div className="mb-5 rounded-2xl border border-gray-200 p-4">
-        <p className="mb-3 flex items-center justify-between text-sm font-black text-gray-700"><span>1. 인스타 계정 연결</span><span className="text-xs font-bold text-gray-400">{conns.length}/{maxAccounts} 계정</span></p>
+        <p className="mb-3 flex items-center justify-between text-sm font-bold text-gray-700"><span>1. 인스타 계정 연결</span><span className="text-xs font-bold text-gray-400">{conns.length}/{maxAccounts} 계정</span></p>
         {conns.length > 0 ? (
           <div className="flex flex-col gap-2">
             {conns.map((c) => {
@@ -168,7 +168,7 @@ export default function DmAutomation({ userPlan, userRole }) {
                       {on ? <Check size={16} strokeWidth={3} /> : <AtSign size={16} />}
                     </span>
                     <span className="min-w-0">
-                      <span className="block truncate text-sm font-black text-gray-900">@{c.ig_username || c.ig_user_id}</span>
+                      <span className="block truncate text-sm font-bold text-gray-900">@{c.ig_username || c.ig_user_id}</span>
                       <span className={`block text-xs ${c.status === 'active' ? 'text-emerald-500' : 'text-gray-400'}`}>{c.status === 'active' ? '연결됨' : c.status}{on ? ' · 선택됨' : ''}</span>
                     </span>
                   </button>
@@ -188,7 +188,7 @@ export default function DmAutomation({ userPlan, userRole }) {
           </div>
         ) : (
           <a href={igAuthUrl}
-            className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-sm font-black text-white transition active:scale-[0.99]"
+            className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-sm font-bold text-white transition active:scale-[0.99]"
             style={{ background: 'linear-gradient(90deg,#833AB4,#FD1D1D,#FCB045)' }}>
             <AtSign size={18} /> 인스타그램 연결하기
           </a>
@@ -197,7 +197,7 @@ export default function DmAutomation({ userPlan, userRole }) {
 
       {/* 2. 규칙 (선택 계정 기준) */}
       <div className={`mb-5 rounded-2xl border border-gray-200 p-4 ${conn ? '' : 'opacity-50'}`}>
-        <p className="mb-3 text-sm font-black text-gray-700">2. 자동 DM 규칙{conn ? ` · @${conn.ig_username || conn.ig_user_id}` : ''}</p>
+        <p className="mb-3 text-sm font-bold text-gray-700">2. 자동 DM 규칙{conn ? ` · @${conn.ig_username || conn.ig_user_id}` : ''}</p>
         <div className="mb-3 flex flex-col gap-2">
           <input value={kw} onChange={(e) => setKw(e.target.value)} placeholder="트리거 키워드 (비우면 모든 댓글에 DM)" disabled={!conn} className={inputCls} />
           <div>
@@ -215,14 +215,14 @@ export default function DmAutomation({ userPlan, userRole }) {
             공개 답글도 남기기 ("방금 DM 보냈어요")
           </label>
           <button onClick={addRule} disabled={!conn}
-            className="flex items-center justify-center gap-1.5 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2.5 text-sm font-black text-white hover:brightness-95 disabled:opacity-40 transition">
+            className="flex items-center justify-center gap-1.5 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-95 disabled:opacity-40 transition">
             <Plus size={15} strokeWidth={2.5} /> 규칙 추가
           </button>
         </div>
         {rules.map((r) => (
           <div key={r.id} className="flex items-start justify-between gap-3 border-t border-gray-100 py-2.5">
             <div className="min-w-0">
-              <p className="text-sm font-black text-gray-900">{r.keyword ? `"${r.keyword}" 댓글` : '모든 댓글'} → DM</p>
+              <p className="text-sm font-bold text-gray-900">{r.keyword ? `"${r.keyword}" 댓글` : '모든 댓글'} → DM</p>
               <p className="my-0.5 flex items-center gap-1 text-xs font-bold text-[#8B5CF6]">
                 {r.media_id ? <Target size={11} /> : <FileText size={11} />} {scopeLabel(r.media_id)}
               </p>
@@ -241,7 +241,7 @@ export default function DmAutomation({ userPlan, userRole }) {
 
       {/* 3. 로그 (선택 계정 기준) */}
       <div className="rounded-2xl border border-gray-200 p-4">
-        <p className="mb-3 flex items-center gap-1.5 text-sm font-black text-gray-700"><Send size={14} className="text-[#0064FF]" /> 최근 자동 DM 발송{conn ? ` · @${conn.ig_username || conn.ig_user_id}` : ''}</p>
+        <p className="mb-3 flex items-center gap-1.5 text-sm font-bold text-gray-700"><Send size={14} className="text-[#0064FF]" /> 최근 자동 DM 발송{conn ? ` · @${conn.ig_username || conn.ig_user_id}` : ''}</p>
         {logs.length ? logs.map((l) => (
           <div key={l.id} className="flex items-center justify-between gap-2 border-t border-gray-100 py-2 text-sm">
             <span className="min-w-0 truncate text-gray-700">@{l.commenter_username || '?'} · "{l.matched_keyword}"</span>

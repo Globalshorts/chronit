@@ -92,7 +92,7 @@ export default function Landing() {
       {/* ── HERO ── */}
       <section className="mx-auto max-w-md px-5 pt-12 pb-8 text-center">
         <p className="text-sm font-bold tracking-wide" style={{ color: BLUE }}>이미 영상으로 매출 내는 셀러를 위한</p>
-        <h1 className="mt-3 text-[2.05rem] font-black leading-tight">
+        <h1 className="mt-3 text-[2.05rem] font-bold leading-tight">
           잘 만든 1개보다,<br/>꾸준히 올린 30개
         </h1>
         <p className="mt-3 text-[15px] leading-relaxed text-gray-500">
@@ -113,12 +113,12 @@ export default function Landing() {
 
 
         <div className="mt-7 rounded-2xl border border-[#0064FF]/25 bg-[#F7FAFF] px-4 py-3">
-          <p className="text-[15px] font-black text-[#191F28]">🎁 로그인만 하면 <span style={{ color: BLUE }}>무료 영상 2개</span></p>
+          <p className="text-[15px] font-bold text-[#191F28]">🎁 로그인만 하면 <span style={{ color: BLUE }}>무료 영상 2개</span></p>
           <p className="mt-0.5 text-xs text-gray-500">카드 없이 · 카카오 3초 · 바로 만들기</p>
         </div>
 
         <button onClick={start}
-          className="mt-4 w-full rounded-2xl py-4 text-base font-black text-white shadow-lg transition active:scale-[0.98]"
+          className="mt-4 w-full rounded-2xl py-4 text-base font-bold text-white shadow-lg transition active:scale-[0.98]"
           style={{ background: BLUE }}>
           카카오로 무료 시작
         </button>
@@ -128,7 +128,7 @@ export default function Landing() {
       {/* ── 공감(은근한 압박) ── */}
       <section className="bg-[#F7FAFF] px-5 py-12">
         <div className="mx-auto max-w-md">
-          <h2 className="text-center text-xl font-black">찍고 싶은 만큼, 왜 못 올릴까요?</h2>
+          <h2 className="text-center text-xl font-bold">찍고 싶은 만큼, 왜 못 올릴까요?</h2>
           <div className="mt-6 space-y-3">
             {[
               ['⏱', '소싱→다운로드→캡컷 재가공→업로드', '한 편에 매일 2~3시간'],
@@ -153,7 +153,7 @@ export default function Landing() {
       {/* ── 작동 방식 ── */}
       <section className="px-5 py-12">
         <div className="mx-auto max-w-md">
-          <h2 className="text-center text-xl font-black">당신은 고르기만 하면 돼요</h2>
+          <h2 className="text-center text-xl font-bold">당신은 고르기만 하면 돼요</h2>
           <div className="mt-7 space-y-5">
             {[
               ['1', '터지는 영상 소싱', '직촬·릴스·틱톡·쇼츠 링크 아무거나'],
@@ -161,7 +161,7 @@ export default function Landing() {
               ['3', '다운로드 후 업로드', '그 시간에 다음 걸 소싱하세요'],
             ].map(([n, t, s]) => (
               <div key={n} className="flex items-start gap-4">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-black text-white" style={{ background: BLUE }}>{n}</span>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white" style={{ background: BLUE }}>{n}</span>
                 <div className="text-left">
                   <p className="text-[16px] font-bold">{t}</p>
                   <p className="text-sm text-gray-500">{s}</p>
@@ -175,7 +175,7 @@ export default function Landing() {
       {/* ── 혜택 ── */}
       <section className="bg-[#191F28] px-5 py-12 text-white">
         <div className="mx-auto max-w-md">
-          <h2 className="text-center text-xl font-black">이렇게 바뀌어요</h2>
+          <h2 className="text-center text-xl font-bold">이렇게 바뀌어요</h2>
           <div className="mt-6 grid grid-cols-2 gap-3">
             {[
               ['2~3시간 → 5분', '재가공 시간'],
@@ -184,7 +184,7 @@ export default function Landing() {
               ['소싱에 집중', '남는 시간'],
             ].map(([big, sm]) => (
               <div key={sm} className="rounded-2xl bg-white/5 p-5 text-center">
-                <p className="text-lg font-black" style={{ color: '#7DB0FF' }}>{big}</p>
+                <p className="text-lg font-bold" style={{ color: '#7DB0FF' }}>{big}</p>
                 <p className="mt-1 text-xs text-gray-400">{sm}</p>
               </div>
             ))}
@@ -195,14 +195,14 @@ export default function Landing() {
       {/* ── 오퍼 ── */}
       <section className="px-5 py-14 text-center">
         <div className="mx-auto max-w-md">
-          <h2 className="text-2xl font-black leading-snug">고수는 데모로<br/>판단하죠</h2>
+          <h2 className="text-2xl font-bold leading-snug">고수는 데모로<br/>판단하죠</h2>
           <p className="mt-4 text-[15px] leading-relaxed text-gray-500">
             <b className="text-[#191F28]">무료로 바로</b> 시작 — 카드 없이.<br/>
             캡컷·Vrew 써본 눈으로 자막싱크·더빙 퀄을 직접 확인하세요.<br/>
             더 만들려면 <b className="text-[#191F28]">친구 초대(무료)</b> 또는 결제. 자동결제 없어요.
           </p>
           <button onClick={start}
-            className="mt-7 w-full rounded-2xl py-4 text-base font-black text-white shadow-lg transition active:scale-[0.98]"
+            className="mt-7 w-full rounded-2xl py-4 text-base font-bold text-white shadow-lg transition active:scale-[0.98]"
             style={{ background: BLUE }}>
             카카오로 무료 시작
           </button>
@@ -228,9 +228,9 @@ export default function Landing() {
 
       {/* ── 푸터 CTA ── */}
       <section className="px-5 py-12 text-center">
-        <p className="text-lg font-black">소싱할 시간, 지금 벌어두세요</p>
+        <p className="text-lg font-bold">소싱할 시간, 지금 벌어두세요</p>
         <button onClick={start}
-          className="mx-auto mt-5 block w-full max-w-md rounded-2xl py-4 text-base font-black text-white shadow-lg transition active:scale-[0.98]"
+          className="mx-auto mt-5 block w-full max-w-md rounded-2xl py-4 text-base font-bold text-white shadow-lg transition active:scale-[0.98]"
           style={{ background: BLUE }}>
           카카오로 무료 시작
         </button>

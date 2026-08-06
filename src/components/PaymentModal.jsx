@@ -301,7 +301,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null, 
             <CreditCard size={22} />
           </div>
           <div>
-            <h3 className="text-xl font-black tracking-tight text-gray-900 md:text-2xl">
+            <h3 className="text-xl font-bold tracking-tight text-gray-900 md:text-2xl">
               {isFreedays ? '무료 체험 신청' : '결제 신청'}
             </h3>
             <p className="text-sm font-medium text-gray-500 md:text-base">
@@ -355,13 +355,13 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null, 
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-base font-bold text-gray-900">프로 6개월</span>
-                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-black text-amber-700">안심 패키지</span>
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">안심 패키지</span>
                 </div>
                 <div className="mt-0.5 text-xs text-gray-500">프로 요금제 6개월 유지 · 매월 영상 30개 지급</div>
               </div>
               <div className="text-right leading-tight">
                 <div className="text-[11px] font-medium text-gray-400 line-through">{plans.pkg6.list.toLocaleString('ko-KR')}</div>
-                <div className="text-base font-black text-amber-600">{plans.pkg6.price.toLocaleString('ko-KR')}원</div>
+                <div className="text-base font-bold text-amber-600">{plans.pkg6.price.toLocaleString('ko-KR')}원</div>
                 <div className="text-[11px] font-bold text-amber-600">월 {Math.round(plans.pkg6.price / 6).toLocaleString('ko-KR')}원 수준</div>
               </div>
             </button>
@@ -386,7 +386,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null, 
               <span className="text-xl font-bold text-gray-400 line-through">
                 {plan.list.toLocaleString('ko-KR')}
               </span>
-              <span className="text-3xl font-black text-gray-900 md:text-4xl">
+              <span className="text-3xl font-bold text-gray-900 md:text-4xl">
                 {plan.price.toLocaleString('ko-KR')}
               </span>
               <span className="text-base font-bold text-gray-500">원</span>
@@ -400,14 +400,14 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null, 
                 {/* 정기결제(구독) — 할인 없을 때만(할인은 1회 결제에만 적용) */}
                 {!hasDiscount && selectedPlan !== 'pkg6' && TOSS_BILLING_CLIENT_KEY && (
                   <button onClick={registerBillingToss}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#3182F6] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(49,130,246,0.55)] transition-all hover:brightness-95 active:scale-[0.98]">
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#3182F6] px-6 py-4 text-lg font-bold text-white shadow-[0_15px_40px_-12px_rgba(49,130,246,0.55)] transition-all hover:brightness-95 active:scale-[0.98]">
                     <CreditCard size={18} /> 구독 결제 시작 (월 {plan.price.toLocaleString('ko-KR')}원)
                   </button>
                 )}
                 {/* 1회 카드결제 — 금액은 할인 반영(plan.price). 할인 시 이게 메인 */}
                 <button onClick={payWithToss}
                   className={hasDiscount
-                    ? "flex w-full items-center justify-center gap-2 rounded-2xl bg-[#3182F6] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(49,130,246,0.55)] transition-all hover:brightness-95 active:scale-[0.98]"
+                    ? "flex w-full items-center justify-center gap-2 rounded-2xl bg-[#3182F6] px-6 py-4 text-lg font-bold text-white shadow-[0_15px_40px_-12px_rgba(49,130,246,0.55)] transition-all hover:brightness-95 active:scale-[0.98]"
                     : "flex w-full items-center justify-center gap-2 rounded-2xl border border-[#3182F6]/40 bg-white px-6 py-3 text-sm font-bold text-[#3182F6] transition-all hover:bg-[#3182F6]/5 active:scale-[0.98]"}>
                   <CreditCard size={hasDiscount ? 18 : 15} /> {hasDiscount ? '할인가로 카드결제' : '1회만 카드결제'} ({plan.price.toLocaleString('ko-KR')}원)
                 </button>
@@ -434,7 +434,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null, 
 
         {isFreedays ? (
           <div>
-            <button onClick={startTrial} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-4 text-lg font-black text-white shadow-[0_15px_40px_-12px_rgba(3,199,90,0.6)] transition-all hover:bg-[#0052D6] active:scale-[0.98]">
+            <button onClick={startTrial} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-4 text-lg font-bold text-white shadow-[0_15px_40px_-12px_rgba(3,199,90,0.6)] transition-all hover:bg-[#0052D6] active:scale-[0.98]">
             {discount.value}일 무료 체험 시작
           </button>
             {trialMsg && <p className="mt-3 text-center text-sm font-bold text-[#0064FF]">{trialMsg}</p>}

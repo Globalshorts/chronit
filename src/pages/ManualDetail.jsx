@@ -53,10 +53,10 @@ const TipsCards = ({ md }) => {
             <div className={`h-1 w-full ${c.accent}`} />
             <div className="p-5 md:p-6">
               {/* 번호 배지 */}
-              <span className={`mb-3 inline-block rounded-full px-3 py-1 text-xs font-black ${c.light}`}>
+              <span className={`mb-3 inline-block rounded-full px-3 py-1 text-xs font-bold ${c.light}`}>
                 {tip.title.match(/^[①②③④⑤⑥⑦⑧⑨⑩]/)?.[0] ?? `#${i+1}`}
               </span>
-              <h3 className="mb-3 text-base font-black leading-snug text-gray-900 md:text-lg">
+              <h3 className="mb-3 text-base font-bold leading-snug text-gray-900 md:text-lg">
                 {tip.title.replace(/^[①②③④⑤⑥⑦⑧⑨⑩]\s*/, '')}
               </h3>
               <p className="text-sm leading-[1.9] text-slate-600 [overflow-wrap:anywhere] md:text-base whitespace-pre-line">
@@ -73,7 +73,7 @@ const TipsCards = ({ md }) => {
 /* ── 시작하기 STEP 카드 ── */
 const fmtInline = (s) => s
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-  .replace(/\*\*(.+?)\*\*/g, '<strong class="font-black text-[#0064FF]">$1</strong>')
+  .replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold text-[#0064FF]">$1</strong>')
 
 const StartSteps = ({ md }) => {
   const steps = useMemo(() => parseTips(md), [md])
@@ -86,13 +86,13 @@ const StartSteps = ({ md }) => {
         return (
           <div key={i} className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm md:p-7">
             <div className="flex items-start gap-4 md:gap-5">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#0064FF] text-lg font-black text-white shadow-md shadow-[#0064FF]/30 md:h-14 md:w-14 md:text-xl">{num}</div>
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#0064FF] text-lg font-bold text-white shadow-md shadow-black/5 md:h-14 md:w-14 md:text-xl">{num}</div>
               <div className="min-w-0 flex-1 pt-1">
-                <h3 className="mb-4 text-lg font-black leading-snug text-gray-900 md:text-xl">{title}</h3>
+                <h3 className="mb-4 text-lg font-bold leading-snug text-gray-900 md:text-xl">{title}</h3>
                 <ul className="space-y-3">
                   {bullets.map((b, j) => (
                     <li key={j} className="flex items-start gap-3 text-base leading-relaxed text-gray-700 md:text-lg">
-                      <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#0064FF]/15 text-[11px] font-black text-[#0064FF]">✓</span>
+                      <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#0064FF]/15 text-[11px] font-bold text-[#0064FF]">✓</span>
                       <span className="[overflow-wrap:anywhere]" dangerouslySetInnerHTML={{ __html: fmtInline(b) }} />
                     </li>
                   ))}
@@ -103,7 +103,7 @@ const StartSteps = ({ md }) => {
         )
       })}
       <div className="rounded-3xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-5 text-center md:p-6">
-        <p className="text-base font-black text-gray-900 md:text-lg">🎉 정말 이게 전부예요!</p>
+        <p className="text-base font-bold text-gray-900 md:text-lg">🎉 정말 이게 전부예요!</p>
         <p className="mt-1.5 text-sm text-gray-500 md:text-base">영상 길이·목소리·자막은 처음에 한 번만 정해두면 다음부터 자동이에요. 잘 모르겠으면 그대로 둬도 괜찮아요.</p>
       </div>
     </div>
@@ -136,7 +136,7 @@ const GuideWalkthrough = ({ steps, onImageClick }) => {
     <div className="space-y-8">
       <div className="rounded-2xl border border-[#0064FF]/30 bg-[#0064FF]/5 px-5 py-4">
         <p className="mb-2.5 text-sm font-bold text-gray-500">핵심은 이게 다예요</p>
-        <div className="flex flex-wrap items-center gap-2 text-sm font-black text-gray-900">
+        <div className="flex flex-wrap items-center gap-2 text-sm font-bold text-gray-900">
           <span className="rounded-lg border border-gray-200 bg-white px-3 py-1.5">쇼핑 링크 넣기</span>
           <span className="text-[#0064FF]">→</span>
           <span className="rounded-lg border border-gray-200 bg-white px-3 py-1.5">자동 생성</span>
@@ -156,7 +156,7 @@ const StepGroup = ({ group, onImageClick }) => {
   const total = items.length
   const s = items[Math.min(idx, total - 1)]
   const badge = (
-    <span className={`rounded-full px-3 py-1 text-xs font-black ${group.once ? 'bg-[#0064FF]/15 text-[#0064FF]' : 'bg-amber-100 text-amber-700'}`}>
+    <span className={`rounded-full px-3 py-1 text-xs font-bold ${group.once ? 'bg-[#0064FF]/15 text-[#0064FF]' : 'bg-amber-100 text-amber-700'}`}>
       {group.once ? '처음 한 번만' : '매번 반복'}
     </span>
   )
@@ -165,20 +165,20 @@ const StepGroup = ({ group, onImageClick }) => {
       {group.group && (group.collapsible ? (
         <button onClick={() => setOpen((o) => !o)} className="mb-3 flex w-full flex-wrap items-center gap-2.5 text-left">
           {badge}
-          <h2 className="text-lg font-black text-gray-900 md:text-xl">{group.group}</h2>
+          <h2 className="text-lg font-bold text-gray-900 md:text-xl">{group.group}</h2>
           <span className="ml-auto rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-500">{open ? '접기 ▲' : '펼치기 ▼'}</span>
         </button>
       ) : (
         <div className="mb-3 flex flex-wrap items-center gap-2.5">
           {badge}
-          <h2 className="text-lg font-black text-gray-900 md:text-xl">{group.group}</h2>
+          <h2 className="text-lg font-bold text-gray-900 md:text-xl">{group.group}</h2>
         </div>
       ))}
       {open && (
       <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
         <div className="p-5 md:p-6">
           <p className="mb-1.5 text-xs font-bold text-gray-400">{idx + 1} / {total}</p>
-          <h3 className="mb-2 text-base font-black leading-snug text-gray-900 md:text-lg" dangerouslySetInnerHTML={{ __html: fmtInline(s.title) }} />
+          <h3 className="mb-2 text-base font-bold leading-snug text-gray-900 md:text-lg" dangerouslySetInnerHTML={{ __html: fmtInline(s.title) }} />
           <p className="text-sm leading-[1.85] text-slate-600 md:text-base" dangerouslySetInnerHTML={{ __html: fmtInline(s.desc) }} />
           {s.note && (
             <div className="mt-3 rounded-xl bg-[#0064FF]/8 px-4 py-3 text-sm leading-[1.8] text-gray-700" dangerouslySetInnerHTML={{ __html: '💡 ' + fmtInline(s.note) }} />
@@ -323,7 +323,7 @@ const ManualDetail = () => {
           <Link to="/manual" className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition-colors hover:text-[#0064FF]">
             <ArrowLeft size={16} /> 사용 방법 목록
           </Link>
-          <h1 className="text-3xl font-black tracking-tight text-gray-900 md:text-5xl">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 md:text-5xl">
             <span className="mr-3">{data.emoji}</span>{data.title}
           </h1>
         </div>
@@ -340,10 +340,10 @@ const ManualDetail = () => {
 
           {section === 'app' && (
             <div className="mb-6 rounded-3xl border-2 border-[#0064FF]/40 bg-gradient-to-br from-[#0064FF]/10 to-[#0064FF]/5 p-6 text-center md:p-7">
-              <h3 className="text-xl font-black text-gray-900 md:text-2xl">지금 홈 화면에 추가하기</h3>
+              <h3 className="text-xl font-bold text-gray-900 md:text-2xl">지금 홈 화면에 추가하기</h3>
               <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">버튼을 누르면 설치 안내가 떠요. 앱스토어 없이 아이콘 하나로 끝.</p>
               <button onClick={() => window.dispatchEvent(new Event('chronit:open-install'))}
-                className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0064FF] px-7 py-3.5 text-base font-black text-white shadow-md shadow-[#0064FF]/25 transition-all hover:gap-3">
+                className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0064FF] px-7 py-3.5 text-base font-bold text-white shadow-md shadow-black/5 transition-all hover:gap-3">
                 📲 앱 설치하기
               </button>
             </div>
@@ -374,23 +374,23 @@ const ManualDetail = () => {
 
           {section === 'start' && (
             <Link to="/manual/features" className="group mt-8 block overflow-hidden rounded-3xl border-2 border-[#0064FF]/40 bg-gradient-to-br from-[#0064FF]/12 to-[#0064FF]/5 p-6 transition-all hover:-translate-y-0.5 hover:border-[#0064FF] hover:shadow-xl md:p-7">
-              <span className="inline-block rounded-full bg-[#0064FF] px-3 py-1 text-xs font-black text-white">사진 보고 따라하기</span>
-              <h3 className="mt-3 text-xl font-black leading-snug text-gray-900 md:text-2xl">세팅부터 내 링크 공유까지 한 단계씩 📸</h3>
+              <span className="inline-block rounded-full bg-[#0064FF] px-3 py-1 text-xs font-bold text-white">사진 보고 따라하기</span>
+              <h3 className="mt-3 text-xl font-bold leading-snug text-gray-900 md:text-2xl">세팅부터 내 링크 공유까지 한 단계씩 📸</h3>
               <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">
                 처음 한 번만 하는 <b className="text-[#0064FF]">세팅</b>과, 영상 만들 때마다 반복하는 단계를 <b className="text-[#0064FF]">다음 ▶ 으로 한 단계씩</b> 따라할 수 있어요.
               </p>
-              <span className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-black text-white shadow-md shadow-[#0064FF]/25 transition-all group-hover:gap-3">
+              <span className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-bold text-white shadow-md shadow-black/5 transition-all group-hover:gap-3">
                 사진 가이드 보러가기 <ArrowRight size={18} />
               </span>
             </Link>
           )}
           {section === 'revenue' && (
             <div className="mt-10 rounded-3xl border-2 border-[#0064FF]/40 bg-gradient-to-br from-[#0064FF]/12 to-[#0064FF]/5 p-7 text-center md:p-8">
-              <h3 className="text-xl font-black text-gray-900 md:text-2xl">이제 직접 만들어 볼까요?</h3>
+              <h3 className="text-xl font-bold text-gray-900 md:text-2xl">이제 직접 만들어 볼까요?</h3>
               <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">
                 상품 영상만 준비하면 돼요. <b className="text-[#0064FF]">가입은 무료</b>, 구글 로그인이면 바로 시작할 수 있어요.
               </p>
-              <Link to="/generate" className="group mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0064FF] px-8 py-4 text-lg font-black text-white shadow-md shadow-[#0064FF]/25 transition-all hover:bg-[#0052D6]">
+              <Link to="/generate" className="group mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0064FF] px-8 py-4 text-lg font-bold text-white shadow-md shadow-black/5 transition-all hover:bg-[#0052D6]">
                 무료 체험 <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
               </Link>
             </div>

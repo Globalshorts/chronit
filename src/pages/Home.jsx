@@ -85,7 +85,7 @@ function HomeScarcity({ spots }) {
   const pct = Math.min(100, Math.round((spots / HOME_CAP) * 100))
   return (
     <div className="mx-auto mb-6 max-w-md rounded-2xl border-2 border-[#FF5A5F]/30 bg-[#FFF5F5] px-5 py-4">
-      <div className="mb-2 flex items-center justify-between text-sm font-black">
+      <div className="mb-2 flex items-center justify-between text-sm font-bold">
         <span className="text-[#FF5A5F]">🔥 선착순 100명 무료</span>
         <span className="text-gray-500">현재 {spots}명 신청</span>
       </div>
@@ -411,7 +411,7 @@ const Home = () => {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
           <a href="/" className="flex min-w-0 items-center gap-2 md:gap-3">
             <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-9 w-9 shrink-0 md:h-10 md:w-10" />
-            <h1 className="hidden md:block text-2xl font-black tracking-tight text-gray-900 md:text-3xl">Chronit</h1>
+            <h1 className="hidden md:block text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">Chronit</h1>
           </a>
           <SiteNav />
           <div className="flex shrink-0 items-center gap-2">
@@ -439,13 +439,13 @@ const Home = () => {
                 </button>
               )}
               <button onClick={handleStart}
-                className="rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-7 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-md shadow-[#0064FF]/25 transition-all hover:brightness-95 active:scale-95">
+                className="rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-7 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-md shadow-black/5 transition-all hover:brightness-95 active:scale-95">
                 {user ? '작업실 열기 →' : '무료 체험'}
               </button>
             </div>
             {/* 모바일 상단 시작하기 CTA (햄버거에 가려지지 않게 상시 노출) */}
             <button onClick={handleStart}
-              className="rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-md shadow-[#0064FF]/25 transition-all active:scale-95 md:hidden">
+              className="rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-md shadow-black/5 transition-all active:scale-95 md:hidden">
               {user ? '작업실' : '무료 체험'}
             </button>
             <button onClick={() => setMenuOpen((v) => !v)} aria-label="메뉴"
@@ -493,7 +493,7 @@ const Home = () => {
               </button>
             )}
             <button onClick={() => { setMenuOpen(false); handleStart() }}
-              className="w-full rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-4 text-lg font-extrabold text-white shadow-md transition-all hover:brightness-95 active:scale-95">
+              className="w-full rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-4 text-lg font-bold text-white shadow-md transition-all hover:brightness-95 active:scale-95">
               {user ? '작업실 열기 →' : '무료 체험'}
             </button>
           </div>
@@ -506,10 +506,10 @@ const Home = () => {
           <div className="flex w-full flex-col items-center">
             {user && (
               <div className="mb-8 w-full max-w-xl rounded-2xl border-2 border-[#0064FF]/30 bg-white px-6 py-6 text-center shadow-sm">
-                <p className="text-xl font-black text-gray-900">돌아오셨어요{nickname ? `, ${nickname}님` : ''}</p>
+                <p className="text-xl font-bold text-gray-900">돌아오셨어요{nickname ? `, ${nickname}님` : ''}</p>
                 <p className="mt-1 mb-5 text-sm font-bold text-gray-500">바로 이어서 만들까요?</p>
                 <button onClick={handleStart}
-                  className="mx-auto flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-extrabold text-white shadow-lg shadow-[#0064FF]/30 transition-all hover:brightness-95 active:scale-95">
+                  className="mx-auto flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-black/5 transition-all hover:brightness-95 active:scale-95">
                   작업실 열기 <ArrowRight size={20} />
                 </button>
               </div>
@@ -522,14 +522,14 @@ const Home = () => {
               촬영도 편집도 없이<br /><span className="bg-gradient-to-r from-[#10b981] to-[#0064FF] bg-clip-text text-transparent">매일 올리는 쇼핑 숏폼</span>
             </h1>
             <p className="mx-auto mb-9 max-w-md text-lg font-bold text-gray-500 break-keep md:max-w-none md:text-2xl">
-              이제 <span style={{ background: 'linear-gradient(transparent 55%, rgba(148,163,184,0.45) 55%)' }} className="px-0.5 font-black text-gray-700">편집자</span>가 아니라,<br className="md:hidden" />채널을 굴리는 <span style={{ background: 'linear-gradient(transparent 55%, rgba(0,100,255,0.30) 55%)' }} className="px-0.5 font-black text-gray-900">운영자</span>가 되세요.
+              이제 <span style={{ background: 'linear-gradient(transparent 55%, rgba(148,163,184,0.45) 55%)' }} className="px-0.5 font-bold text-gray-700">편집자</span>가 아니라,<br className="md:hidden" />채널을 굴리는 <span style={{ background: 'linear-gradient(transparent 55%, rgba(0,100,255,0.30) 55%)' }} className="px-0.5 font-bold text-gray-900">운영자</span>가 되세요.
             </p>
             </>)}
 
             {!user && (
               <div className="flex w-full max-w-md flex-col items-center gap-2">
                 <button onClick={handleStart}
-                  className="w-full rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-extrabold text-white shadow-lg shadow-[#0064FF]/30 transition-all hover:brightness-95 active:scale-95">
+                  className="w-full rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-black/5 transition-all hover:brightness-95 active:scale-95">
                   무료로 시작하기 →
                 </button>
                 <Link to="/manual" className="text-sm font-medium text-gray-400 transition-colors hover:text-[#0064FF]">1분 사용법 보기 →</Link>
@@ -566,7 +566,7 @@ const Home = () => {
       <section id="features" style={{ scrollMarginTop: '200px' }} className="px-5 py-16 md:px-8 md:py-24">
         <Reveal className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
-            <h2 className="text-3xl font-black text-gray-900 md:text-4xl">링크 한 번 넣으면, 이걸 다 해드려요</h2>
+            <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">링크 한 번 넣으면, 이걸 다 해드려요</h2>
             <p className="mt-3 text-lg text-gray-500 md:text-xl">제작에 필요한 과정을 크로닛이 자동으로 처리해요</p>
           </div>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -580,7 +580,7 @@ const Home = () => {
             ].map(({ Icon, title, desc }) => (
               <div key={title} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-0.5 hover:border-[#0064FF]/40 hover:shadow-[0_12px_32px_rgba(0,100,255,0.10)]">
                 <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0064FF]/10 text-[#0064FF]"><Icon size={22} strokeWidth={2.2} /></div>
-                <h3 className="mb-1.5 text-lg font-black text-gray-900">{title}</h3>
+                <h3 className="mb-1.5 text-lg font-bold text-gray-900">{title}</h3>
                 <p className="text-sm leading-relaxed text-gray-500">{desc}</p>
               </div>
             ))}
@@ -591,7 +591,7 @@ const Home = () => {
       <section id="faq" className="px-5 py-16 md:px-8 md:py-20">
         <Reveal className="mx-auto max-w-2xl">
           <div className="mb-12 text-center">
-            <h2 className="text-3xl font-black text-gray-900 md:text-4xl">많이 물어보시는 것들</h2>
+            <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">많이 물어보시는 것들</h2>
           </div>
           <div className="space-y-4">
             {[
@@ -602,11 +602,11 @@ const Home = () => {
             ].map(({ q, a }) => (
               <div key={q} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] md:p-7">
                 <div className="mb-3 flex items-start gap-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-sm font-black text-white">Q</span>
-                  <p className="pt-0.5 text-lg font-black text-gray-900">{q}</p>
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-sm font-bold text-white">Q</span>
+                  <p className="pt-0.5 text-lg font-bold text-gray-900">{q}</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-black text-gray-500">A</span>
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-bold text-gray-500">A</span>
                   <p className="pt-0.5 text-base leading-relaxed text-gray-600">{a}</p>
                 </div>
               </div>
@@ -619,7 +619,7 @@ const Home = () => {
       <section id="pricing" style={{ scrollMarginTop: '120px' }} className="px-5 py-16 md:px-8 md:py-24">
         <Reveal className="mx-auto max-w-6xl">
           <div className="mb-4 text-center">
-            <h2 className="text-3xl font-black text-gray-900 md:text-5xl">필요한 만큼만 고르세요</h2>
+            <h2 className="text-3xl font-bold text-gray-900 md:text-5xl">필요한 만큼만 고르세요</h2>
             <p className="mt-3 text-lg text-gray-500 md:text-xl">부담 없이 시작하고, 언제든 바꿀 수 있어요</p>
           </div>
 
@@ -629,10 +629,10 @@ const Home = () => {
             {/* Free */}
             <div onClick={handleStart}
               className="group flex cursor-pointer flex-col rounded-2xl border border-gray-200 bg-white p-7 transition-all hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-[0_12px_32px_-16px_rgba(0,0,0,0.14)]">
-              <h4 className="text-xl font-black text-gray-900">Free</h4>
+              <h4 className="text-xl font-bold text-gray-900">Free</h4>
               <p className="mt-1 text-sm text-gray-500">부담 없이 시작</p>
               <div className="mt-5 flex items-baseline gap-1 whitespace-nowrap">
-                <span className="text-[2.4rem] font-black leading-none text-gray-900">₩0</span>
+                <span className="text-[2.4rem] font-bold leading-none text-gray-900">₩0</span>
                 <span className="text-base font-bold text-gray-400">/ 월</span>
               </div>
               <p className="mt-2 text-sm text-gray-400">지금 바로 무료로</p>
@@ -661,12 +661,12 @@ const Home = () => {
                 <div key={p.key} onClick={() => openPayment(p.key)}
                   className={`group relative flex cursor-pointer flex-col rounded-2xl border bg-white p-7 transition-all hover:-translate-y-0.5 ${p.popular ? 'border-[#0064FF] shadow-[0_16px_44px_-18px_rgba(0,100,255,0.32)]' : 'border-gray-200 hover:border-[#0064FF]/40 hover:shadow-[0_12px_32px_-16px_rgba(0,0,0,0.14)]'}`}>
                   <div className="flex items-center gap-2">
-                    <h4 className="text-xl font-black text-gray-900">{p.name}</h4>
+                    <h4 className="text-xl font-bold text-gray-900">{p.name}</h4>
                     {p.popular && <span className="rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-2 py-0.5 text-[11px] font-bold text-white">인기 있는</span>}
                   </div>
                   <p className="mt-1 text-sm text-gray-500">{p.sub}</p>
                   <div className="mt-5 flex items-baseline gap-1 whitespace-nowrap">
-                    <span className="text-[2.4rem] font-black leading-none text-gray-900">₩{wonFmt(price)}</span>
+                    <span className="text-[2.4rem] font-bold leading-none text-gray-900">₩{wonFmt(price)}</span>
                     <span className="text-base font-bold text-gray-400">/ 월</span>
                   </div>
                   <p className="mt-2"><span className="inline-flex items-center rounded-full bg-[#0064FF]/10 px-2.5 py-1 text-sm font-bold text-[#0064FF]">하루 약 {wonFmt(Math.round(price / 30 / 10) * 10)}원</span></p>
@@ -690,7 +690,7 @@ const Home = () => {
             <div>
               <div className="mb-1.5 flex items-center gap-2">
                 <span className="rounded-full bg-[#FFB800] px-2.5 py-0.5 text-[11px] font-bold text-white">안심 패키지</span>
-                <h4 className="text-xl font-black text-gray-900">프로 6개월</h4>
+                <h4 className="text-xl font-bold text-gray-900">프로 6개월</h4>
               </div>
               <p className="text-sm text-gray-600 md:text-base">프로 요금제를 <strong className="text-gray-900">6개월 동안</strong> · 매월 영상 30개 · 가장 알뜰한 장기 플랜</p>
             </div>
@@ -698,7 +698,7 @@ const Home = () => {
               <div className="text-left sm:text-right">
                 <span className="text-sm font-bold text-gray-400 line-through">{wonFmt(planPrices.pkg6.list)}원</span>
                 <div className="flex items-baseline gap-1 sm:justify-end">
-                  <span className="text-4xl font-black text-[#b07d00]">₩{wonFmt(planPrices.pkg6.sale)}</span>
+                  <span className="text-4xl font-bold text-[#b07d00]">₩{wonFmt(planPrices.pkg6.sale)}</span>
                 </div>
                 <div className="mt-0.5 text-sm font-bold text-[#b07d00]/80">월 {wonFmt(Math.round(planPrices.pkg6.sale / 6))}원 수준</div>
               </div>
@@ -713,7 +713,7 @@ const Home = () => {
 
           <div className="mt-12 text-center">
             <button onClick={handleStart}
-              className="w-full rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-5 text-xl font-black text-white shadow-lg shadow-[#0064FF]/25 transition-all hover:brightness-95 active:scale-95 sm:w-auto md:px-20 md:py-6">
+              className="w-full rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-5 text-xl font-bold text-white shadow-lg shadow-black/5 transition-all hover:brightness-95 active:scale-95 sm:w-auto md:px-20 md:py-6">
               무료로 영상 만들기
             </button>
           </div>
@@ -724,7 +724,7 @@ const Home = () => {
       {events.length > 0 && (
         <section id="events" className="px-5 py-12 md:px-8">
           <div className="mx-auto max-w-4xl">
-            <h2 className="mb-8 text-2xl font-black tracking-tight text-gray-900">이벤트</h2>
+            <h2 className="mb-8 text-2xl font-bold tracking-tight text-gray-900">이벤트</h2>
             <div className="mb-1 flex border-b border-gray-200">
               {[
                 { key: 'active', label: '진행중인 이벤트' },
@@ -845,7 +845,7 @@ const DemoCarousel = () => {
   return (
     <section ref={sectionRef} className="px-5 pt-16 pb-10 md:pt-20 md:pb-16">
       <div className="mb-10 text-center md:mb-14">
-        <h2 className="text-2xl font-black tracking-tight text-gray-900 md:text-4xl">이렇게 만들어져요</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-gray-900 md:text-4xl">이렇게 만들어져요</h2>
         <p className="mt-3 text-lg text-gray-500">실제로 크로닛이 만든 영상이에요</p>
       </div>
       <div className="relative flex items-center justify-center select-none" style={{ height: 'min(72vw, 560px)' }}

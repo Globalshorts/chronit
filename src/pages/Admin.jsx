@@ -210,7 +210,7 @@ const MissionsPanel = () => {
     <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8 space-y-4 max-w-2xl">
       <div className="flex items-center gap-2">
         <button onClick={() => setEditing(null)} className="text-slate-400 hover:text-white"><ChevronLeft size={18} /></button>
-        <h2 className="text-lg font-black text-white">{editing === 'new' ? '새 이벤트' : '이벤트 수정'}</h2>
+        <h2 className="text-lg font-bold text-white">{editing === 'new' ? '새 이벤트' : '이벤트 수정'}</h2>
       </div>
       <div><label className={labelCls}>제목</label><input className={inputCls} value={form.title} onChange={e => set('title', e.target.value)} placeholder="예) 첫 영상 만들기 도전!" /></div>
       <div><label className={labelCls}>설명</label><textarea className={inputCls} rows={3} value={form.description} onChange={e => set('description', e.target.value)} placeholder="이벤트 안내 문구 (줄바꿈 가능)" /></div>
@@ -287,7 +287,7 @@ const MissionsPanel = () => {
     <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-black text-white">이벤트 (이용권 미션)</h2>
+          <h2 className="text-lg font-bold text-white">이벤트 (이용권 미션)</h2>
           <span className="rounded-full bg-white/8 px-2 py-0.5 text-xs text-slate-400">{list.length}</span>
         </div>
         <button onClick={openNew} className="flex items-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-sm font-bold text-white"><Plus size={15} /> 새 이벤트</button>
@@ -345,7 +345,7 @@ const TipsPanel = () => {
     <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-black text-white">숏폼 부업 꿀팁</h2>
+          <h2 className="text-lg font-bold text-white">숏폼 부업 꿀팁</h2>
           <span className="rounded-full bg-white/8 px-2 py-0.5 text-xs text-slate-400">{list.length}</span>
         </div>
         <button onClick={openNew} className="flex items-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-sm font-bold text-white"><Plus size={15} /> 새 꿀팁</button>
@@ -511,7 +511,7 @@ const Admin = () => {
               </button>
             )}
             <ShieldCheck size={22} className="text-blue-400" />
-            <h1 className="text-xl font-black tracking-tight">Chronit Admin</h1>
+            <h1 className="text-xl font-bold tracking-tight">Chronit Admin</h1>
           </div>
           <div className="flex items-center gap-2">
             <a href="/" className="flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-2 text-sm font-bold text-slate-300 hover:bg-white/5 hover:text-white">🏠 홈</a>

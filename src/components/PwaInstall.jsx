@@ -50,7 +50,7 @@ export default function PwaInstall() {
         <button onClick={() => setOpen(false)} className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100"><X size={20} /></button>
         <div className="mb-5 text-center">
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0064FF]/10 text-[#0064FF]"><Download size={26} /></div>
-          <h3 className="text-lg font-black text-gray-900">홈 화면에 추가하고 앱처럼 쓰기</h3>
+          <h3 className="text-lg font-bold text-gray-900">홈 화면에 추가하고 앱처럼 쓰기</h3>
           <p className="mt-1.5 text-sm text-gray-500">아이콘 한 번으로 바로 들어와요. (설치·앱스토어 불필요)</p>
         </div>
 
@@ -66,9 +66,9 @@ export default function PwaInstall() {
           <button onClick={androidInstall} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0064FF] px-4 py-3.5 font-bold text-white active:scale-[0.98]"><Download size={18} /> 홈 화면에 추가</button>
         ) : isIOS ? (
           <ol className="space-y-3.5 text-sm text-gray-700">
-            <li className="flex items-center gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-900 text-xs font-black text-white">1</span> 하단 <Share size={16} className="inline" /> <b>공유</b> 버튼을 누르세요</li>
-            <li className="flex items-center gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-900 text-xs font-black text-white">2</span> <b>'홈 화면에 추가'</b> <Plus size={15} className="inline" /> 를 선택하세요</li>
-            <li className="flex items-center gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-900 text-xs font-black text-white">3</span> 우측 상단 <b>'추가'</b>를 누르면 끝!</li>
+            <li className="flex items-center gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-900 text-xs font-bold text-white">1</span> 하단 <Share size={16} className="inline" /> <b>공유</b> 버튼을 누르세요</li>
+            <li className="flex items-center gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-900 text-xs font-bold text-white">2</span> <b>'홈 화면에 추가'</b> <Plus size={15} className="inline" /> 를 선택하세요</li>
+            <li className="flex items-center gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-900 text-xs font-bold text-white">3</span> 우측 상단 <b>'추가'</b>를 누르면 끝!</li>
           </ol>
         ) : (
           <p className="text-center text-sm text-gray-600">브라우저 메뉴(⋮)에서 <b>'앱 설치'</b> 또는 <b>'홈 화면에 추가'</b>를 눌러주세요.</p>

@@ -77,7 +77,7 @@ const MyPage = () => {
           <div className="flex items-center justify-between">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="truncate text-2xl font-black">{profile?.nickname || '닉네임 미설정'}</span>
+                <span className="truncate text-2xl font-bold">{profile?.nickname || '닉네임 미설정'}</span>
                 <button onClick={() => setNickOpen(true)} className="shrink-0 text-slate-400 hover:text-[#0064FF]" title="닉네임 변경"><Pencil size={16} /></button>
               </div>
               <div className="mt-1 truncate text-sm text-slate-500">{profile?.email || user?.email}</div>
@@ -134,7 +134,7 @@ const MyPage = () => {
         <div className="mt-4">
           <Link to="/generate" className="block rounded-2xl border border-gray-200 bg-white p-4 transition-all hover:border-[#0064FF]/40">
             <div className="flex items-center gap-1 text-xs text-slate-400"><Film size={13} /> 남은 영상</div>
-            <div className="mt-1 text-xl font-black text-gray-800">{credits === null ? '…' : credits.toLocaleString()}</div>
+            <div className="mt-1 text-xl font-bold text-gray-800">{credits === null ? '…' : credits.toLocaleString()}</div>
           </Link>
         </div>
 

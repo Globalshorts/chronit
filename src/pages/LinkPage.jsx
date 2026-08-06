@@ -58,7 +58,7 @@ export default function LinkPage() {
   if (state === 'notfound')
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[#ECEAE3] px-6 text-center">
-        <p className="text-2xl font-black text-gray-900">페이지를 찾을 수 없어요</p>
+        <p className="text-2xl font-bold text-gray-900">페이지를 찾을 수 없어요</p>
         <p className="text-gray-500">주소를 다시 확인해 주세요.</p>
         <a href="https://chronit.kr" className="mt-2 text-sm font-bold text-[#0064FF] hover:underline">크로닛으로 가기 →</a>
       </div>
@@ -100,7 +100,7 @@ export default function LinkPage() {
             <div style={{ backgroundColor: `${btnColor}1A`, color: btnColor }}
               className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-3xl">🛍️</div>
           )}
-          <h1 className="text-2xl font-black">{page.title || `@${page.handle}`}</h1>
+          <h1 className="text-2xl font-bold">{page.title || `@${page.handle}`}</h1>
           {page.bio && <p className={`mt-2 text-sm leading-relaxed ${sub}`}>{page.bio}</p>}
         </header>
 
@@ -137,7 +137,7 @@ export default function LinkPage() {
                     <div className="min-w-0 flex-1">
                       {it.badge && (
                         <span style={{ backgroundColor: it.badge_color || '#ff4d4f', color: textOn(it.badge_color || '#ff4d4f') }}
-                          className="mb-1 inline-block rounded-md px-1.5 py-0.5 text-[10px] font-black leading-none">{it.badge}</span>
+                          className="mb-1 inline-block rounded-md px-1.5 py-0.5 text-[10px] font-bold leading-none">{it.badge}</span>
                       )}
                       <p className="line-clamp-2 text-sm font-bold leading-snug">{it.title || '상품 보러가기'}</p>
                     </div>

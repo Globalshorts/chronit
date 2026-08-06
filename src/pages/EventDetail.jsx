@@ -59,7 +59,7 @@ const EventDetail = () => {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
           <Link to="/" className="flex min-w-0 items-center gap-2 md:gap-3">
             <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-8 w-8 shrink-0 rounded-lg md:h-10 md:w-10" />
-            <h1 className="text-2xl font-black tracking-tighter text-gray-900 md:text-3xl">Chronit</h1>
+            <h1 className="text-2xl font-bold tracking-tighter text-gray-900 md:text-3xl">Chronit</h1>
           </Link>
           <nav className="hidden gap-12 text-base font-bold tracking-wide text-slate-500 md:flex">
             <Link to="/#faq" className="uppercase transition-colors hover:text-[#0064FF]">자주 묻는 질문</Link>
@@ -67,7 +67,7 @@ const EventDetail = () => {
             <Link to="/#pricing"  className="uppercase transition-colors hover:text-[#0064FF]">요금제</Link>
             <Link to="/events"    className="uppercase text-[#0064FF]">이벤트</Link>
           </nav>
-          <Link to="/#pricing" className="shrink-0 rounded-full bg-[#0064FF] px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-lg shadow-[#0064FF]/25 transition-all hover:bg-[#0052D6] active:scale-95 md:px-7 md:py-2.5 md:text-base">
+          <Link to="/#pricing" className="shrink-0 rounded-full bg-[#0064FF] px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-lg shadow-black/5 transition-all hover:bg-[#0052D6] active:scale-95 md:px-7 md:py-2.5 md:text-base">
             무료 체험
           </Link>
         </div>
@@ -98,7 +98,7 @@ const EventDetail = () => {
             </div>
 
             {/* 제목 */}
-            <h1 className="mb-7 text-3xl font-black leading-[1.25] tracking-tight text-gray-900 md:text-4xl">{event.title}</h1>
+            <h1 className="mb-7 text-3xl font-bold leading-[1.25] tracking-tight text-gray-900 md:text-4xl">{event.title}</h1>
 
             {/* 대표 이미지 */}
             {event.thumbnail_url && (
@@ -113,7 +113,7 @@ const EventDetail = () => {
             {/* CTA */}
             {event.cta_text && event.cta_url && (
               <a href={event.cta_url} target="_blank" rel="noopener noreferrer"
-                className="mt-10 flex w-full items-center justify-center rounded-2xl bg-[#0064FF] px-6 py-4 text-base font-black text-white shadow-lg shadow-[#0064FF]/25 transition-all hover:bg-[#0052D6] active:scale-[0.99]">
+                className="mt-10 flex w-full items-center justify-center rounded-2xl bg-[#0064FF] px-6 py-4 text-base font-bold text-white shadow-lg shadow-black/5 transition-all hover:bg-[#0052D6] active:scale-[0.99]">
                 {event.cta_text} →
               </a>
             )}

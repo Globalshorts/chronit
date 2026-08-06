@@ -70,7 +70,7 @@ const Board = () => {
 
       <section className="relative px-5 pt-32 pb-8 md:px-8 md:pt-44 md:pb-10">
         <div className="relative z-10 mx-auto max-w-3xl text-center">
-          <h1 className="mb-3 text-4xl font-black tracking-tight md:text-5xl">공지·이벤트</h1>
+          <h1 className="mb-3 text-4xl font-bold tracking-tight md:text-5xl">공지·이벤트</h1>
           <p className="text-base leading-[1.8] text-slate-500 md:text-lg">크로닛 소식을 확인하고, 후기·질문·자랑은 공식 네이버 카페에서 만나요.</p>
         </div>
       </section>
@@ -83,7 +83,7 @@ const Board = () => {
             className="mb-6 flex items-center gap-3 rounded-2xl border border-[#0064FF]/25 bg-gradient-to-r from-[#0064FF]/10 to-[#0064FF]/5 px-5 py-4 transition hover:from-[#0064FF]/15">
             <span className="text-2xl">💬</span>
             <div className="flex-1">
-              <p className="text-sm font-black text-gray-900">크로닛 공식 네이버 카페</p>
+              <p className="text-sm font-bold text-gray-900">크로닛 공식 네이버 카페</p>
               <p className="text-xs text-slate-500">후기·꿀팁·질문은 공식 카페에서 — 가입하고 이벤트 받기</p>
             </div>
             <span className="flex-none rounded-full bg-[#0064FF] px-3 py-1.5 text-xs font-bold text-white">가입하기 →</span>
@@ -180,7 +180,7 @@ const Board = () => {
       {/* 모바일 공지 작성 FAB (운영자만) */}
       {isAdmin && (
         <button onClick={() => nav(tab === 'event' ? '/events/write' : '/board/write')}
-          className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#0064FF] text-white shadow-xl shadow-[#0064FF]/30 transition-all active:scale-90 sm:hidden">
+          className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#0064FF] text-white shadow-xl shadow-black/5 transition-all active:scale-90 sm:hidden">
           <PenLine size={22} />
         </button>
       )}

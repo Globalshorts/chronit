@@ -64,7 +64,7 @@ const SignupSurveyModal = ({ open, onDone }) => {
 
         {page === 1 ? (
           <>
-            <p className="text-center text-lg font-black text-gray-900">크로닛을 어떻게 알게 되셨어요?</p>
+            <p className="text-center text-lg font-bold text-gray-900">크로닛을 어떻게 알게 되셨어요?</p>
             <p className="mt-1 text-center text-sm text-gray-500">더 나은 서비스를 위해 참고할게요 🙏</p>
             <div className="mt-5 grid grid-cols-2 gap-2.5">
               {OPTIONS.map(opt => (
@@ -77,7 +77,7 @@ const SignupSurveyModal = ({ open, onDone }) => {
           </>
         ) : (
           <>
-            <p className="text-center text-lg font-black text-gray-900">추천 코드가 있나요?</p>
+            <p className="text-center text-lg font-bold text-gray-900">추천 코드가 있나요?</p>
             <p className="mt-1 text-center text-sm text-gray-500">입력하면 이용권 2개 무료 지급! (선택)</p>
             <div className="mt-5 flex gap-2">
               <input value={refCode} onChange={e => setRefCode(e.target.value.toUpperCase())}

@@ -108,7 +108,7 @@ const BoardPost = () => {
         <div className="mb-3 flex items-center gap-2">
           <span className={`rounded-md px-2 py-0.5 text-xs font-bold ${CAT_CLS[post.category] || CAT_CLS.free}`}>{CAT_LABEL[post.category] || '자유'}</span>
         </div>
-        <h1 className="mb-3 text-2xl font-black leading-snug md:text-3xl">{post.title}</h1>
+        <h1 className="mb-3 text-2xl font-bold leading-snug md:text-3xl">{post.title}</h1>
         <div className="flex items-center gap-3 border-b border-gray-200 pb-4 text-sm text-slate-400">
           <Link to={post.user_id === user?.id ? '/me' : `/board/u/${post.user_id}`} className="font-bold text-slate-600 hover:text-[#0064FF] hover:underline">{post.author_nickname}</Link>
           <span>{fmtWhen(post.created_at)}</span>
@@ -151,14 +151,14 @@ const BoardPost = () => {
 
         <div className="flex justify-center pb-8">
           <button onClick={toggleLike}
-            className={`flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold transition-all active:scale-95 ${liked ? 'bg-[#0064FF] text-white shadow-lg shadow-[#0064FF]/25' : 'bg-white text-slate-600 ring-1 ring-gray-200 hover:ring-[#0064FF]/40'}`}>
+            className={`flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold transition-all active:scale-95 ${liked ? 'bg-[#0064FF] text-white shadow-lg shadow-black/5' : 'bg-white text-slate-600 ring-1 ring-gray-200 hover:ring-[#0064FF]/40'}`}>
             <ThumbsUp size={16} /> 추천 {post.like_count}
           </button>
         </div>
 
         {/* 댓글 */}
         <div className="border-t border-gray-200 pt-6">
-          <h2 className="mb-4 flex items-center gap-1.5 text-base font-black"><MessageSquare size={17} /> 댓글 {comments.length}</h2>
+          <h2 className="mb-4 flex items-center gap-1.5 text-base font-bold"><MessageSquare size={17} /> 댓글 {comments.length}</h2>
           <div className="mb-5 flex flex-col gap-2 sm:flex-row">
             <input value={text} onChange={e => setText(e.target.value)} onKeyDown={e => e.key === 'Enter' && submitComment()}
               placeholder={user ? '댓글을 입력하세요' : '로그인 후 댓글을 남길 수 있어요'}
@@ -197,7 +197,7 @@ const BoardPost = () => {
       {reportTarget && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-5 backdrop-blur-sm" onClick={() => setReportTarget(null)}>
           <div className="w-full max-w-xs rounded-3xl bg-white p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="mb-1 text-lg font-black text-gray-900">신고하기</h3>
+            <h3 className="mb-1 text-lg font-bold text-gray-900">신고하기</h3>
             <p className="mb-4 text-sm text-slate-500">신고 사유를 선택해주세요. 누적되면 자동으로 숨김 처리돼요.</p>
             <div className="flex flex-col gap-2">
               {[['ad', '광고/홍보'], ['abuse', '욕설/비방'], ['flood', '도배'], ['etc', '기타']].map(([k, label]) => (

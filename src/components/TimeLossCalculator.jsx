@@ -72,20 +72,20 @@ const TimeLossCalculator = ({ onStart }) => {
         <div className={`transition-all duration-300 ${shown ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'}`}>
           <div className="mt-3 rounded-xl border border-red-100 bg-red-50 p-3.5">
             <p className="text-xs font-bold text-red-600">지금 매주 편집에 버리는 시간</p>
-            <p className="text-2xl font-black leading-tight text-red-500">{fmtH(lossWeek)}</p>
+            <p className="text-2xl font-bold leading-tight text-red-500">{fmtH(lossWeek)}</p>
             <p className="text-xs font-bold text-red-400">이게 매주 반복돼요.</p>
           </div>
           {lossYear > 0 && (
             <p className="mt-2.5 flex items-start gap-1.5 text-sm leading-relaxed text-gray-800 break-keep">
-              <Moon size={15} className="mt-0.5 shrink-0 text-red-500" /> <span>1년이면 <b className="font-black text-red-500">{fmtH(lossYear)}</b> — 퇴근 후 <b className="font-black text-red-500">저녁 {evenings.toLocaleString()}번</b>을 편집에 뺏겨요.</span>
+              <Moon size={15} className="mt-0.5 shrink-0 text-red-500" /> <span>1년이면 <b className="font-bold text-red-500">{fmtH(lossYear)}</b> — 퇴근 후 <b className="font-bold text-red-500">저녁 {evenings.toLocaleString()}번</b>을 편집에 뺏겨요.</span>
             </p>
           )}
           <div className="mt-3 rounded-xl border border-[#0064FF]/25 bg-[#0064FF]/5 p-3.5">
             <p className="text-xs font-bold text-[#0064FF]">크로닛으로 바꾸면 · 영상당 5분</p>
-            <p className="text-xl font-black leading-tight text-[#0064FF]">매주 {fmtH(savedWeek)} 되찾음</p>
+            <p className="text-xl font-bold leading-tight text-[#0064FF]">매주 {fmtH(savedWeek)} 되찾음</p>
           </div>
           <button onClick={onStart}
-            className="group mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-3.5 text-base font-extrabold text-white transition-all hover:brightness-95 active:scale-[0.98]">
+            className="group mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-3.5 text-base font-bold text-white transition-all hover:brightness-95 active:scale-[0.98]">
             먼저 시스템 갖기 <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
           </button>
           <p className="mt-2 text-center text-xs text-gray-400 break-keep">편집자 말고, 운영자가 되세요.</p>
