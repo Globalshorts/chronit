@@ -63,7 +63,7 @@ const TimeLossCalculator = ({ onStart }) => {
 
       {!revealed && (
         <button onClick={reveal}
-          className="mt-3 w-full rounded-xl bg-[#0064FF] py-3 text-base font-bold text-white transition-all hover:bg-[#0052D6] active:scale-[0.98]">
+          className="mt-3 w-full rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-3 text-base font-bold text-white transition-all hover:brightness-95 active:scale-[0.98]">
           내가 편집에 버리는 시간 보기
         </button>
       )}
@@ -85,7 +85,7 @@ const TimeLossCalculator = ({ onStart }) => {
             <p className="text-xl font-black leading-tight text-[#0064FF]">매주 {fmtH(savedWeek)} 되찾음</p>
           </div>
           <button onClick={onStart}
-            className="group mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#0064FF] py-3.5 text-base font-extrabold text-white transition-all hover:bg-[#0052D6] active:scale-[0.98]">
+            className="group mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-3.5 text-base font-extrabold text-white transition-all hover:brightness-95 active:scale-[0.98]">
             먼저 시스템 갖기 <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
           </button>
           <p className="mt-2 text-center text-xs text-gray-400 break-keep">편집자 말고, 운영자가 되세요.</p>
