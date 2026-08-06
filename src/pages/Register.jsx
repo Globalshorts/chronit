@@ -162,7 +162,7 @@ const Register = () => {
         {/* 헤더 */}
         <div className="mb-6 flex flex-col items-center text-center">
           <img src={ICON} alt="크로닛" className="mb-3 h-12 w-12" />
-          <h1 className="text-xl font-black text-gray-900">크로닛 시작하기</h1>
+          <h1 className="text-xl font-bold text-gray-900">크로닛 시작하기</h1>
           <p className="mt-1 text-sm text-gray-500">{session?.user?.email}</p>
         </div>
 
@@ -176,7 +176,7 @@ const Register = () => {
         {/* ── STEP 1. 약관 ── */}
         {step === STEP.TERMS && (
           <div>
-            <h2 className="mb-1 text-lg font-black text-gray-900">서비스 이용 동의</h2>
+            <h2 className="mb-1 text-lg font-bold text-gray-900">서비스 이용 동의</h2>
             <p className="mb-5 text-sm leading-relaxed text-gray-500">시작하려면 아래 약관에 동의해주세요.</p>
 
             <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-gray-200 bg-[#FAFAF8] p-4 transition-all hover:border-[#0064FF]/40">
@@ -203,7 +203,7 @@ const Register = () => {
 
             <div className="mt-6 space-y-2">
               <button onClick={() => submitTerms(true)} disabled={saving}
-                className="w-full rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-black text-white shadow-[0_10px_30px_-10px_rgba(0,100,255,0.45)] transition-all hover:bg-[#0052D6] active:scale-[0.98] disabled:opacity-40">
+                className="w-full rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-bold text-white shadow-[0_10px_30px_-10px_rgba(0,100,255,0.45)] transition-all hover:bg-[#0052D6] active:scale-[0.98] disabled:opacity-40">
                 모두 동의하기
               </button>
               <button onClick={() => submitTerms(marketing)} disabled={!agree || saving}
@@ -217,14 +217,14 @@ const Register = () => {
         {/* ── STEP 2. 닉네임 ── */}
         {step === STEP.NICK && (
           <div>
-            <h2 className="mb-1 text-lg font-black text-gray-900">닉네임 설정</h2>
+            <h2 className="mb-1 text-lg font-bold text-gray-900">닉네임 설정</h2>
             <p className="mb-5 text-sm leading-relaxed text-gray-500">서비스에 표시될 닉네임을 정해주세요. (2~10자, 중복 불가)</p>
             <input value={nick} onChange={(e) => setNick(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submitNick()}
               maxLength={10} placeholder="예: 숏폼장인" autoFocus
               className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base text-gray-900 outline-none focus:border-[#0064FF]" />
             {nickErr && <p className="mt-2 text-sm font-medium text-red-500">{nickErr}</p>}
             <button onClick={submitNick} disabled={saving || nick.trim().length < 2}
-              className="mt-6 w-full rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-black text-white transition-all hover:bg-[#0052D6] active:scale-[0.98] disabled:opacity-40">
+              className="mt-6 w-full rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-bold text-white transition-all hover:bg-[#0052D6] active:scale-[0.98] disabled:opacity-40">
               {saving ? '저장 중…' : '다음'}
             </button>
           </div>
@@ -233,7 +233,7 @@ const Register = () => {
         {/* ── STEP 3. 유입경로 ── */}
         {step === STEP.SOURCE && (
           <div>
-            <h2 className="mb-1 text-lg font-black text-gray-900">크로닛을 어떻게 알게 되셨어요?</h2>
+            <h2 className="mb-1 text-lg font-bold text-gray-900">크로닛을 어떻게 알게 되셨어요?</h2>
             <p className="mb-5 text-sm leading-relaxed text-gray-500">더 나은 서비스를 위해 참고할게요 🙏</p>
             <div className="grid grid-cols-2 gap-2.5">
               {SOURCE_OPTIONS.map((opt) => (
@@ -249,7 +249,7 @@ const Register = () => {
         {/* ── STEP 4. 추천코드 (선택) ── */}
         {step === STEP.REFERRAL && (
           <div>
-            <h2 className="mb-1 text-lg font-black text-gray-900">추천 코드가 있나요?</h2>
+            <h2 className="mb-1 text-lg font-bold text-gray-900">추천 코드가 있나요?</h2>
             <p className="mb-5 text-sm leading-relaxed text-gray-500">입력하면 이용권 2개 무료! <span className="text-gray-400">(선택)</span></p>
             {refApplied ? (
               <div className="rounded-2xl bg-green-500/10 px-4 py-4 text-center text-sm font-bold text-green-600">🎉 추천 코드가 적용됐어요</div>
@@ -266,7 +266,7 @@ const Register = () => {
               </>
             )}
             <button onClick={finish} disabled={saving}
-              className="mt-6 w-full rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-black text-white transition-all hover:bg-[#0052D6] active:scale-[0.98] disabled:opacity-40">
+              className="mt-6 w-full rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-bold text-white transition-all hover:bg-[#0052D6] active:scale-[0.98] disabled:opacity-40">
               {saving ? '시작하는 중…' : '시작하기'}
             </button>
             {!refApplied && (

@@ -130,7 +130,7 @@ const BoardWrite = () => {
         <button onClick={() => nav('/board')} className="mb-5 flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-gray-900">
           <ArrowLeft size={16} /> 목록으로
         </button>
-        <h1 className="mb-6 text-2xl font-black md:text-3xl">{editId ? '글 수정' : '글쓰기'}</h1>
+        <h1 className="mb-6 text-2xl font-bold md:text-3xl">{editId ? '글 수정' : '글쓰기'}</h1>
 
         <input value={title} onChange={e => setTitle(e.target.value)} maxLength={80} placeholder="제목"
           className="mb-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base font-bold outline-none focus:border-[#0064FF]" />

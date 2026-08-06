@@ -80,7 +80,7 @@ const Events = () => {
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#0064FF]/20 bg-[#0064FF]/10 px-4 py-1.5 text-sm font-bold text-[#0064FF] shadow-[0_0_20px_rgba(59,130,246,0.15)] md:text-base">
             <Megaphone size={14} /> <span>크로닛 이벤트</span>
           </div>
-          <h1 className="mb-4 text-4xl font-black tracking-tight text-gray-900 md:text-6xl">이벤트</h1>
+          <h1 className="mb-4 text-4xl font-bold tracking-tight text-gray-900 md:text-6xl">이벤트</h1>
           <p className="text-lg leading-[1.8] text-slate-500 md:text-xl">크로닛의 다양한 이벤트와 혜택을 확인하세요.</p>
         </div>
       </section>
@@ -139,7 +139,7 @@ const Events = () => {
                     </div>
                   </div>
                   <div className="flex flex-1 flex-col gap-2 p-5">
-                    <h3 className="text-lg font-black leading-snug text-gray-900 md:text-xl">{ev.title}</h3>
+                    <h3 className="text-lg font-bold leading-snug text-gray-900 md:text-xl">{ev.title}</h3>
                     {excerpt(ev.content) && (
                       <p className="line-clamp-2 text-sm leading-relaxed text-slate-500">{excerpt(ev.content)}</p>
                     )}

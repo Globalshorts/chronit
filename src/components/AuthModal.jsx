@@ -67,7 +67,7 @@ const AuthModal = ({ open, onClose, referralCode }) => {
 
         <div className="mb-8 text-center">
           <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="mx-auto mb-4 h-12 w-12" />
-          <h3 className="text-xl font-black text-gray-900">로그인</h3>
+          <h3 className="text-xl font-bold text-gray-900">로그인</h3>
           <p className="mt-2 text-sm leading-relaxed text-gray-500">
             로그인하면 무료로 영상 2개를 바로 드려요.
           </p>

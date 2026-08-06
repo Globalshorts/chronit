@@ -309,10 +309,10 @@ export function LinkPageManager({ session }) {
     return (
       <div className="py-16 text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0064FF]/10 text-[#0064FF]"><Link2 size={26} /></div>
-        <p className="text-base font-black text-gray-900">아직 링크 페이지가 없어요</p>
+        <p className="text-base font-bold text-gray-900">아직 링크 페이지가 없어요</p>
         <p className="mt-1 text-sm leading-relaxed text-gray-500">인스타를 연결하면 그 계정 이름으로 페이지가 자동 생성돼요.<br />자동 DM 연결도 한 번에 됩니다.</p>
         <div className="mt-5 flex flex-col items-center gap-2">
-          <a href={igAuthUrl} className="flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-black text-white" style={{ background: 'linear-gradient(90deg,#833AB4,#FD1D1D,#FCB045)' }}>인스타 연결하고 페이지 만들기</a>
+          <a href={igAuthUrl} className="flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold text-white" style={{ background: 'linear-gradient(90deg,#833AB4,#FD1D1D,#FCB045)' }}>인스타 연결하고 페이지 만들기</a>
           <button onClick={newPage} className="text-sm font-bold text-gray-500 hover:text-[#0064FF]">직접 주소 정해서 새 페이지 만들기</button>
         </div>
       </div>
@@ -348,7 +348,7 @@ export function LinkPageManager({ session }) {
       {/* 페이지 커스텀 (접기) */}
       <div className="mb-5 overflow-hidden rounded-3xl border border-gray-200 bg-white">
         <button onClick={() => setCustomOpen((o) => !o)} className="flex w-full items-center justify-between px-5 py-4 text-left">
-          <span className="flex items-center gap-1.5 text-sm font-black text-gray-900"><Palette size={15} className="text-[#0064FF]" /> 페이지 커스텀</span>
+          <span className="flex items-center gap-1.5 text-sm font-bold text-gray-900"><Palette size={15} className="text-[#0064FF]" /> 페이지 커스텀</span>
           <span className="inline-flex items-center gap-0.5 rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-500">{customOpen ? '접기' : '펼치기'}{customOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}</span>
         </button>
         {customOpen && (
@@ -399,7 +399,7 @@ export function LinkPageManager({ session }) {
 
       {/* 영상 목록 */}
       <div className="mb-3 flex items-center justify-between gap-3">
-        <p className="text-sm font-black text-gray-900">영상 → 카드로 추가</p>
+        <p className="text-sm font-bold text-gray-900">영상 → 카드로 추가</p>
         <div className="flex items-center gap-2.5">
           <label className="flex items-center gap-1.5 whitespace-nowrap text-xs font-bold text-gray-600">
             <input type="checkbox" checked={activeOnly} onChange={(e) => setActiveOnly(e.target.checked)} />
@@ -461,7 +461,7 @@ export default function LinksManager() {
   if (!session)
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-5 bg-[#ECEAE3] px-6 text-center">
-        <h1 className="text-2xl font-black text-gray-900">로그인이 필요해요</h1>
+        <h1 className="text-2xl font-bold text-gray-900">로그인이 필요해요</h1>
         <button onClick={() => supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + window.location.pathname } })}
           className="rounded-xl bg-[#0064FF] px-8 py-3 font-bold text-white hover:bg-[#0052D6]">구글로 로그인</button>
       </div>
@@ -471,7 +471,7 @@ export default function LinksManager() {
     <div className="min-h-screen bg-[#ECEAE3] px-5 py-8">
       <div className="mx-auto w-full max-w-2xl">
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-black text-gray-900">내 링크 페이지</h1>
+          <h1 className="text-2xl font-bold text-gray-900">내 링크 페이지</h1>
           <a href="/generate" className="text-sm font-bold text-gray-500 hover:text-[#0064FF]">← 영상 만들기</a>
         </div>
         <LinkPageManager session={session} />

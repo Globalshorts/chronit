@@ -31,7 +31,7 @@ export default function PaymentResult({ fail = false }) {
         {state === 'success' && (
           <>
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#0064FF]/10 text-2xl">✅</div>
-            <h1 className="text-xl font-black text-gray-900">결제 완료</h1>
+            <h1 className="text-xl font-bold text-gray-900">결제 완료</h1>
             <p className="mt-2 text-sm text-gray-600">{msg}</p>
             <Link to="/generate" className="mt-6 inline-block w-full rounded-2xl bg-[#0064FF] py-3.5 text-base font-bold text-white">영상 만들러 가기</Link>
           </>
@@ -39,7 +39,7 @@ export default function PaymentResult({ fail = false }) {
         {state === 'fail' && (
           <>
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-2xl">⚠️</div>
-            <h1 className="text-xl font-black text-gray-900">결제 실패</h1>
+            <h1 className="text-xl font-bold text-gray-900">결제 실패</h1>
             <p className="mt-2 text-sm text-gray-600">{msg}</p>
             <Link to="/generate" className="mt-6 inline-block w-full rounded-2xl border border-gray-200 py-3.5 text-base font-bold text-gray-800">돌아가기</Link>
           </>

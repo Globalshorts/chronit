@@ -102,7 +102,7 @@ const EventWrite = () => {
         <button onClick={() => nav('/events')} className="mb-4 inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 transition-colors hover:text-[#0064FF]">
           <ArrowLeft size={16} /> 목록으로
         </button>
-        <h1 className="mb-6 text-2xl font-black tracking-tight">{editId ? '이벤트 수정' : '이벤트 글쓰기'}</h1>
+        <h1 className="mb-6 text-2xl font-bold tracking-tight">{editId ? '이벤트 수정' : '이벤트 글쓰기'}</h1>
 
         <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-5">
           <div>

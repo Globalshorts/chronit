@@ -46,7 +46,7 @@ const Footer = ({ dark = false, user = null }) => {
               alt="Chronit"
               className="h-9 w-9"
             />
-            <span className={`text-2xl font-black tracking-tight ${t.brand}`}>Chronit</span>
+            <span className={`text-2xl font-bold tracking-tight ${t.brand}`}>Chronit</span>
           </div>
           <p className={`text-lg leading-[1.8] font-medium ${t.lead}`}>
             당신의 시간을 아껴주는<br />가장 쉬운 숏폼 도구.

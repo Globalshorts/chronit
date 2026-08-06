@@ -27,8 +27,8 @@ export const Lightbox = ({ src, alt, onClose }) => (
 
 /* ── 마크다운 렌더러 ── */
 const makeMdComponents = (onImageClick) => ({
-  h1: (p) => <h1 className="mt-8 mb-3 text-xl font-black text-gray-900 md:text-2xl" {...p} />,
-  h2: (p) => <h2 className="mt-8 mb-3 text-lg font-black text-gray-900 md:text-xl" {...p} />,
+  h1: (p) => <h1 className="mt-8 mb-3 text-xl font-bold text-gray-900 md:text-2xl" {...p} />,
+  h2: (p) => <h2 className="mt-8 mb-3 text-lg font-bold text-gray-900 md:text-xl" {...p} />,
   h3: (p) => <h3 className="mt-5 mb-2 text-base font-bold text-gray-700 md:text-lg" {...p} />,
   p:  (p) => <p className="my-2 text-base leading-[1.9] text-slate-600 [overflow-wrap:anywhere] md:text-lg" {...p} />,
   ul: (p) => <ul className="my-2 list-disc space-y-1.5 pl-5 text-slate-600 [overflow-wrap:anywhere]" {...p} />,
@@ -51,7 +51,7 @@ const makeMdComponents = (onImageClick) => ({
     </div>
   ),
   thead: (p) => <thead className="bg-[#0064FF]/10" {...p} />,
-  th: (p) => <th className="border-b border-gray-200 px-4 py-2 text-xs font-black tracking-widest text-[#0064FF] uppercase" {...p} />,
+  th: (p) => <th className="border-b border-gray-200 px-4 py-2 text-xs font-bold tracking-widest text-[#0064FF] uppercase" {...p} />,
   td: (p) => <td className="border-b border-gray-100 px-4 py-2.5 text-slate-600 last:border-b-0" {...p} />,
   hr: (p) => <hr className="my-8 border-gray-200" {...p} />,
   img: ({ src, alt, ...p }) => (

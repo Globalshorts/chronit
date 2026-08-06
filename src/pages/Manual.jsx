@@ -81,7 +81,7 @@ const Manual = () => {
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#0064FF]/20 bg-[#0064FF]/10 px-4 py-1.5 text-sm font-bold text-[#0064FF] shadow-[0_0_20px_rgba(59,130,246,0.15)] md:text-base">
             <Sparkles size={14} fill="currentColor" /> <span>크로닛 사용 방법</span>
           </div>
-          <h1 className="mb-4 text-4xl font-black tracking-tight text-gray-900 md:text-6xl">사용 방법</h1>
+          <h1 className="mb-4 text-4xl font-bold tracking-tight text-gray-900 md:text-6xl">사용 방법</h1>
           <p className="text-lg leading-[1.8] text-slate-500 md:text-xl">세팅부터 제작·공유까지, 크로닛을 제대로 쓰는 법.</p>
         </div>
       </section>
@@ -102,7 +102,7 @@ const Manual = () => {
               )}
               <span className="text-3xl">{card.emoji}</span>
               <div>
-                <h2 className="text-lg font-black text-gray-900">{card.title}</h2>
+                <h2 className="text-lg font-bold text-gray-900">{card.title}</h2>
                 <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-slate-500">{card.desc}</p>
               </div>
               <div className="mt-auto flex items-center gap-1 text-sm font-bold text-[#0064FF] transition-gap group-hover:gap-2">

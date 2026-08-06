@@ -33,7 +33,7 @@ const Legal = ({ title, subtitle, markdown }) => {
               alt="Chronit"
               className="h-8 w-8 shrink-0 md:h-10 md:w-10"
             />
-            <h1 className="bg-gradient-to-r from-white to-slate-400 bg-clip-text text-2xl font-black tracking-tighter text-transparent md:text-3xl">
+            <h1 className="bg-gradient-to-r from-white to-slate-400 bg-clip-text text-2xl font-bold tracking-tighter text-transparent md:text-3xl">
               Chronit
             </h1>
           </Link>
@@ -52,7 +52,7 @@ const Legal = ({ title, subtitle, markdown }) => {
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-1.5 text-sm font-bold text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.15)] md:text-base">
             <FileText size={14} /> <span>법적 문서</span>
           </div>
-          <h1 className="mb-4 text-4xl font-black tracking-tight md:text-6xl">{title}</h1>
+          <h1 className="mb-4 text-4xl font-bold tracking-tight md:text-6xl">{title}</h1>
           <p className="text-lg leading-[1.8] text-slate-400 md:text-xl">{subtitle}</p>
         </div>
       </section>
@@ -82,7 +82,7 @@ const Legal = ({ title, subtitle, markdown }) => {
 
 const mdComponents = {
   h1: (props) => (
-    <h1 className="mt-10 mb-4 text-2xl font-black text-white md:text-3xl" {...props} />
+    <h1 className="mt-10 mb-4 text-2xl font-bold text-white md:text-3xl" {...props} />
   ),
   h2: (props) => (
     <h2
@@ -120,7 +120,7 @@ const mdComponents = {
   thead: (props) => <thead className="bg-blue-500/10" {...props} />,
   th: (props) => (
     <th
-      className="border-b border-white/10 px-4 py-3 text-xs font-black tracking-widest text-blue-300 uppercase"
+      className="border-b border-white/10 px-4 py-3 text-xs font-bold tracking-widest text-blue-300 uppercase"
       {...props}
     />
   ),
