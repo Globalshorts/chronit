@@ -165,23 +165,23 @@ function AppTabBar({ activeView, onViewChange, userRole, userPlan }: { activeVie
   const isPartner = userRole === "partner" || userRole === "super_admin";
   const isAdmin = userRole === "super_admin";
   const TABS: any[] = [
-    ...(FEATURES.trendFeed ? [{ v: "trends", label: "오늘의 트렌드", icon: "🔥" }] : []),
+    ...(FEATURES.trendFeed ? [{ v: "trends", label: "오늘의 트렌드", Icon: Flame }] : []),
     { v: "generator", label: "프로젝트" },
     { v: "history", label: "생성 내역" },
     { v: "product-search", label: "내 링크" },
     { v: "dm", label: "자동 DM", locked: !isPartner },
     { v: "settings", label: "결제·계정" },
-    ...(isPartner ? [{ v: "partner", label: "파트너스", icon: "📊" }] : []),
-    ...(isAdmin ? [{ v: "admin", label: "관리자", icon: "👑" }] : []),
+    ...(isPartner ? [{ v: "partner", label: "파트너스", Icon: Receipt }] : []),
+    ...(isAdmin ? [{ v: "admin", label: "관리자", Icon: Shield }] : []),
   ];
   return (
     <div className="hidden md:block shrink-0 border-b border-gray-200 bg-[#FAFAF8]">
       <div className="flex items-center gap-1 overflow-x-auto px-4 py-2 md:px-6">
-        {TABS.map(({ v, label, icon, locked }: any) => (
+        {TABS.map(({ v, label, Icon, locked }: any) => (
           <button key={v} disabled={locked}
             onClick={() => onViewChange(v)}
             className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition ${activeView === v ? "bg-[#0064FF]/15 text-[#0064FF]" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"} ${locked ? "opacity-50 cursor-not-allowed" : ""}`}>
-            {icon && <span>{icon}</span>}
+            {Icon && <Icon size={14} />}
             <span>{label}</span>
             {locked && <span className="ml-0.5 rounded bg-gray-200 px-1 text-[9px] text-gray-500">오픈예정</span>}
             {v === "product-search" && extractRunning && <span className="ml-0.5 h-2 w-2 rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] animate-pulse" />}
@@ -2016,13 +2016,13 @@ export default function VideoGenerator() {
         </div>
       )}
       {completionAlert && (
-        <div onClick={() => setCompletionAlert(null)} className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 rounded-2xl shadow-2xl px-6 py-4 flex items-center gap-3 text-white cursor-pointer ${completionAlert.startsWith("❌") ? "bg-red-500 shadow-red-500/40" : "bg-green-500 shadow-green-500/40"}`}>
-          <span className="text-2xl">{completionAlert.startsWith("❌") ? "⚠️" : "🎉"}</span>
+        <div onClick={() => setCompletionAlert(null)} className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 rounded-2xl shadow-2xl px-6 py-4 flex items-center gap-3 text-white cursor-pointer ${completionAlert.startsWith("❌") ? "bg-red-500 shadow-black/20" : "bg-green-500 shadow-black/20"}`}>
+          <span className="shrink-0">{completionAlert.startsWith("❌") ? <AlertTriangle size={22} /> : <Sparkles size={22} />}</span>
           <div>
-            <p className="font-bold text-sm">{completionAlert}</p>
+            <p className="font-bold text-sm">{completionAlert.replace(/^[\u2705\u274C\uD83C\uDF89]\s*/, "")}</p>
             {!completionAlert.startsWith("❌") && (completionAlert.includes("완성") || completionAlert.includes("생성 내역")) && <p className="text-xs text-green-100 mt-0.5">생성 내역 탭에서 다운로드하세요</p>}
           </div>
-          <button onClick={() => setCompletionAlert(null)} className="ml-4 text-gray-900/70 hover:text-gray-900 text-lg"><X size={18} /></button>
+          <button onClick={() => setCompletionAlert(null)} className="ml-4 text-white/80 hover:text-white"><X size={18} /></button>
         </div>
       )}
 
@@ -3958,7 +3958,7 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
   const isAdmin = userRole === "super_admin";
   const GROUPS = [
     { title: "자주 쓰는 메뉴", items: [
-      ...(FEATURES.trendFeed ? [{ v: "trends", label: "오늘의 트렌드", icon: "🔥" }] : []),
+      ...(FEATURES.trendFeed ? [{ v: "trends", label: "오늘의 트렌드", Icon: Flame }] : []),
       { v: "generator",      label: "프로젝트" },
       { v: "history",        label: "생성 내역" },
       { v: "product-search", label: "내 링크" },
@@ -3967,8 +3967,8 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
       { v: "settings", label: "결제·계정" },
     ]},
     ...(isPartner || isAdmin ? [{ title: "관리", items: [
-      ...(isPartner ? [{ v: "partner", label: "파트너스", icon: "📊" }] : []),
-      ...(isAdmin ? [{ v: "admin", label: "관리자", icon: "👑" }] : []),
+      ...(isPartner ? [{ v: "partner", label: "파트너스", Icon: Receipt }] : []),
+      ...(isAdmin ? [{ v: "admin", label: "관리자", Icon: Shield }] : []),
     ]}] : []),
   ];
   return (
@@ -3983,10 +3983,10 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
         {GROUPS.map((g)=>(
           <div key={g.title} className="space-y-0.5 border-t border-gray-200 pt-4 mt-4 first:border-0 first:pt-0 first:mt-0">
             <p className="px-3 pb-1 text-[11px] font-bold text-gray-500 uppercase tracking-wider">{g.title}</p>
-            {g.items.map(({ v, label, icon }:any)=>(
+            {g.items.map(({ v, label, Icon }:any)=>(
               <button key={v} onClick={()=>onViewChange(v)}
                 className={`w-full text-left rounded-xl px-3 py-3 text-base font-bold transition flex items-center gap-2.5 ${activeView===v ? "bg-[#0064FF]/15 text-[#0064FF]" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"}`}>
-                {icon && <span className="text-lg">{icon}</span>}
+                {Icon && <Icon size={18} />}
                 <span>{label}</span>
                 {v==="product-search" && extractRunning && (
                   <span className="ml-auto w-2 h-2 rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] animate-pulse" title="검색어 추출 중" />
