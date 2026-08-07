@@ -1748,19 +1748,7 @@ export default function VideoGenerator() {
   // ── Auth 화면 ────────────────────────────────────────────
   if (authLoading) return (
     <div className="flex items-center justify-center min-h-screen bg-[#FAFAF8]">
-      <svg width="60" height="60" viewBox="0 0 48 48" fill="none" role="img" aria-label="크로닛 로딩 중">
-        <defs>
-          <linearGradient id="chronit-cg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#2A7BFF" /><stop offset="1" stopColor="#0064FF" />
-          </linearGradient>
-        </defs>
-        <path d="M35.6 10.2 A18 18 0 1 0 35.6 37.8" stroke="url(#chronit-cg)" strokeWidth="5" strokeLinecap="round" fill="none" strokeDasharray="82" strokeDashoffset="82">
-          <animate attributeName="stroke-dashoffset" values="82;0;0;-82" keyTimes="0;0.45;0.6;1" dur="1.7s" repeatCount="indefinite" />
-        </path>
-        <line x1="24" y1="24" x2="32.5" y2="15.5" stroke="url(#chronit-cg)" strokeWidth="4" strokeLinecap="round" />
-        <line x1="24" y1="24" x2="16" y2="26.5" stroke="url(#chronit-cg)" strokeWidth="4" strokeLinecap="round" />
-        <circle cx="24" cy="24" r="2.6" fill="#0064FF" />
-      </svg>
+      <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-16 w-16 animate-pulse" />
     </div>
   );
   if (!session) return (
@@ -2784,16 +2772,6 @@ function AnalyzeProgress({ pid }: { pid?: string|null }) {
         <div className="h-full bg-[linear-gradient(90deg,#2A7BFF,#0064FF)] transition-[width] duration-300 ease-out" style={{ width: `${pct}%` }} />
       </div>
       <div className="mt-3 rounded-xl bg-gray-100 px-4 py-3.5">
-        <div className="mb-3 flex justify-center">
-          <svg width="44" height="44" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-            <defs><linearGradient id="ap-cg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop stopColor="#2A7BFF" /><stop offset="1" stopColor="#0064FF" /></linearGradient></defs>
-            <path d="M35.6 10.2 A18 18 0 1 0 35.6 37.8" stroke="#e5e7eb" strokeWidth="5" strokeLinecap="round" fill="none" />
-            <path d="M35.6 10.2 A18 18 0 1 0 35.6 37.8" stroke="url(#ap-cg)" strokeWidth="5" strokeLinecap="round" fill="none" strokeDasharray="82" strokeDashoffset={82 * (1 - Math.min(100, pct) / 100)} style={{ transition: "stroke-dashoffset 0.3s ease-out" }} />
-            <line x1="24" y1="24" x2="32.5" y2="15.5" stroke="url(#ap-cg)" strokeWidth="4" strokeLinecap="round" opacity={pct > 55 ? 1 : 0.25} style={{ transition: "opacity 0.3s" }} />
-            <line x1="24" y1="24" x2="16" y2="26.5" stroke="url(#ap-cg)" strokeWidth="4" strokeLinecap="round" opacity={pct > 70 ? 1 : 0.25} style={{ transition: "opacity 0.3s" }} />
-            <circle cx="24" cy="24" r="2.6" fill="#0064FF" opacity={pct > 40 ? 1 : 0.3} />
-          </svg>
-        </div>
         <div className="mb-3"><StepProgress steps={["영상 분석", "클립 검색", "정리"]} active={pct < 40 ? 0 : pct < 75 ? 1 : 2} /></div>
         <div className="mb-2 flex items-center justify-between">
           <span className="text-sm font-bold text-gray-700">{label}</span>
