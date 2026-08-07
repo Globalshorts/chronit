@@ -384,11 +384,21 @@ export default function VideoGenerator() {
   }, [segEditorOpen, clips.length]);
   const sbTtsRef = useRef<string>("");
   const prefetchRef = useRef<Record<string, string>>({});
+  const cleanFiredRef = useRef<Record<string, boolean>>({});  // 배경 자막제거 중복발사 방지
   const firePrefetch = (clip: any) => {
     if (!clip || clip.source === "upload" || !clip.download_url || prefetchRef.current[clip.video_id]) return;
     fetch(FN("prefetch-clip") + "?k=chronit-pf-9x", { method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ video_id: clip.video_id, download_url: clip.download_url, download_url_hevc: clip.download_url_hevc, page_url: clip.page_url, source: clip.source }) })
-      .then(r => r.json()).then(d => { if (d?.ok && d.cached_url) { prefetchRef.current[clip.video_id] = d.cached_url; setClips(prev => (prev as any[]).map((c: any) => c.video_id === clip.video_id ? { ...c, download_url: d.cached_url } : c)); } }).catch(() => {});
+      .then(r => r.json()).then(d => { if (d?.ok && d.cached_url) {
+        prefetchRef.current[clip.video_id] = d.cached_url;
+        setClips(prev => (prev as any[]).map((c: any) => c.video_id === clip.video_id ? { ...c, download_url: d.cached_url } : c));
+        // ★ 배경 자막제거: prefetch 캐시본으로 청소 시작(다운로드 1회화). 담기 시점이라 스토리보드 스킵해도 커버 ★
+        if (!cleanFiredRef.current[clip.video_id]) {
+          cleanFiredRef.current[clip.video_id] = true;
+          fetch(FN("clean-clips") + "?k=chr-clean-9x", { method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ clips: [{ video_id: clip.video_id, page_url: clip.page_url, download_url: d.cached_url, download_url_hevc: "", source: clip.source }] }) }).catch(() => {});
+        }
+      } }).catch(() => {});
   };
   // ★ 담긴(cart) 클립을 백그라운드로 clip-cache에 캐시 → 프리뷰가 CORS 없이 재생(인스타 포함) ★
   useEffect(() => {
@@ -1369,14 +1379,6 @@ export default function VideoGenerator() {
     sbSigRef.current = sig; sbBusyRef.current = true;
     setSbLoading(true); setSbScript(null); setSbCuts([]); setSbDebug(null); sbTtsRef.current = ""; setSegsByVideo({}); setSbSlots([]);
     try { await loadPlan(); } finally { setSbLoading(false); sbBusyRef.current = false; }
-    // ★ 배경 자막제거: storyboard-plan 완료 후 시작(모델 경합·콜드스타트 방지). 렌더 전까지 캐시. ★
-    try {
-      const _cc = collectSelected().filter((c: any) => c.source !== "upload" && c.download_url);
-      if (_cc.length) fetch(FN("clean-clips") + "?k=chr-clean-9x", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clips: _cc.map((c: any) => ({ video_id: c.video_id, page_url: c.page_url, download_url: c.download_url, download_url_hevc: c.download_url_hevc, source: c.source })) }),
-      }).catch(() => {});
-    } catch {}
   };
   const toggleCart = (id: string) => {
     const adding = !cart.has(id);
