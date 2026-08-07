@@ -447,7 +447,7 @@ export default function VideoGenerator() {
     xPos: 50,
   };
   const [subtitleStyle, setSubtitleStyle] = useState(DEFAULT_STYLE);
-  const [thumbnailStyle, setThumbnailStyle] = useState({ ...DEFAULT_STYLE, yPos: 50, bgOn: true, bgOpacity: 45, accentColor: "#FFC400", accentBg: true });
+  const [thumbnailStyle, setThumbnailStyle] = useState({ ...DEFAULT_STYLE, fontFamily: "'Do Hyeon', sans-serif", yPos: 50, bgOn: true, bgOpacity: 45, accentColor: "#FFC400", accentBg: true });
   const [showThumbnail, setShowThumbnail] = useState(true);
   const subtitlePreset = "custom";
   // ★ 프론트 camelCase 스타일 → cog가 기대하는 snake_case 키로 변환 (자막 ASS + 썸네일 빌더 공용) ★
