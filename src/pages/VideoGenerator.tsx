@@ -358,6 +358,7 @@ export default function VideoGenerator() {
   const [searching, setSearching]   = useState(false);
   const [filtering, setFiltering]   = useState(false); // 병렬 검색~CLIP 관련도 필터 진행 중
   const filterStartRef = React.useRef(0); // 정리 배너 최소 노출 시간 계산용
+  const [reordering, setReordering] = useState(false); // 재정렬 순간 스켈레톤 마스킹
   const [analyzePid, setAnalyzePid]  = useState<string|null>(null);
   const [showSrc, setShowSrc] = useState(false);
   const [searchError, setSearchError] = useState("");
@@ -365,6 +366,7 @@ export default function VideoGenerator() {
   const [clips, setClips]           = useState<Clip[]>([]);
   const analysisMetaRef = React.useRef<{ name: string; keyword: string; poster: string; use_case?: string; keywords?: string[] }>({ name: "", keyword: "", poster: "" });
   const [cart, setCart]             = useState<Set<string>>(new Set());
+  const cartClipsRef = React.useRef<Record<string, any>>({}); // A: 담은 클립 데이터 스냅샷(피드 필터와 무관하게 보존)
   const [measuredDurs, setMeasuredDurs] = useState<Record<string, number>>({});  // ClipCard가 메타데이터로 잰 실제 길이(초)
   // ── 구간 선택(스토리보드) MVP ──
   const [segsByVideo, setSegsByVideo] = useState<Record<string, any[]>>({});
@@ -1243,7 +1245,10 @@ export default function VideoGenerator() {
           // clip-filter가 download_url(CDN)을 떨궈도 video_id로 원본에서 다시 붙임 (렌더 다운로드용)
           const _dlMap = new Map(allCand.map((c: any) => [c.video_id, c.download_url]));
           finalClips = finalClips.map((c: any) => ({ ...c, download_url: c.download_url || _dlMap.get(c.video_id) || "" }));
-          setClips([...(keepUploads as any), ...(urlClip ? [urlClip] : []), ...finalClips]);
+          const _finalIds = new Set(finalClips.map((c: any) => c.video_id));
+          const _leftovers = allCand.filter((c: any) => !_finalIds.has(c.video_id)).map((c: any) => ({ ...c, _lowRel: true })); // B: 삭제 대신 하위 랭킹으로
+          const _sorted = [...(keepUploads as any), ...(urlClip ? [urlClip] : []), ...finalClips, ..._leftovers];
+          setReordering(true); setTimeout(() => { setClips(_sorted as any); setReordering(false); }, 500); // 재정렬을 스켈레톤으로 잠깐 덮어 혼란 방지
           if (!finalClips.length && !keepUploads.length && !urlClip) setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요.");
         } catch { setClips([...(keepUploads as any), ...(urlClip ? [urlClip] : []), ...allCand]); }
         return;
@@ -1256,7 +1261,7 @@ export default function VideoGenerator() {
     }
   };
   const loadSegments = async () => {
-    const sel = (clips as any[]).filter(c => cart.has(c.video_id) && c.source !== "upload");
+    const sel = collectSelected().filter((c: any) => c.source !== "upload"); // A
     if (!sel.length) return;
     setSegLoading(true); setSegMode(true);
     try {
@@ -1368,6 +1373,7 @@ export default function VideoGenerator() {
   const toggleCart = (id: string) => {
     const adding = !cart.has(id);
     const clip = (clips as any[]).find((c: any) => c.video_id === id);
+    if (adding && clip) cartClipsRef.current[id] = clip; // A: 담을 때 데이터 스냅샷
     if (adding && clip && clip.source !== "upload") {
       // 타인 콘텐츠(원본 링크·유사 클립·트렌드) 담기 → 매번 저작권 확인
       askConsent(() => {
@@ -1644,7 +1650,8 @@ export default function VideoGenerator() {
 
   // 선택 클립 수집 + 업로드 클립에 상품정보(대본용) 주입 + analysisMeta 보정
   const collectSelected = () => {
-    const sel = clips.filter(c => cart.has(c.video_id));
+    const _byId = new Map((clips as any[]).map((c: any) => [c.video_id, c]));
+    const sel = ([...cart].map((id) => _byId.get(id) || cartClipsRef.current[id]).filter(Boolean)) as any[]; // A: 피드에서 빠져도 스냅샷에서 복구
     const pn = uploadName.trim(), pd = uploadDesc.trim();
     const hasUpload = sel.some((c: any) => c.source === "upload" && !String(c.video_id || "").startsWith("trend_"));
     if (hasUpload) {
@@ -1741,7 +1748,7 @@ export default function VideoGenerator() {
   // ── Auth 화면 ────────────────────────────────────────────
   if (authLoading) return (
     <div className="flex items-center justify-center min-h-screen bg-[#FAFAF8]">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#0064FF] border-t-transparent" />
+      <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-16 w-16 animate-pulse" />
     </div>
   );
   if (!session) return (
@@ -2435,14 +2442,27 @@ export default function VideoGenerator() {
                       <span>지금 순서는 임시예요 — 딱 맞는 클립을 위로 정렬하는 중입니다. 잠시만요!</span>
                     </div>
                   )}
+                  {reordering ? (
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                    {clips.map(clip => (
-                      <ClipCard key={clip.video_id} clip={clip}
+                    {Array.from({ length: Math.min(8, Math.max(4, clips.length || 8)) }).map((_, i) => (
+                      <div key={i} className="aspect-[9/16] animate-pulse rounded-xl bg-gray-200" />
+                    ))}
+                  </div>
+                  ) : (
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {clips.map(clip => {
+                      const _low = (clip as any)._lowRel && !cart.has(clip.video_id); // C: 관련도 낮음은 흐리게(호버 복구), 담은 건 유지
+                      return (
+                      <div key={clip.video_id} className={`transition-opacity duration-300 ${_low ? "opacity-50 hover:opacity-100" : ""}`}>
+                      <ClipCard clip={clip}
                         selected={cart.has(clip.video_id)} onToggle={() => toggleCart(clip.video_id)}
                         onMeasured={(d: number) => setMeasuredDurs(m => m[clip.video_id] === d ? m : ({ ...m, [clip.video_id]: d }))}
                         onRemove={((clip as any).source === "upload" || (clip as any).source === "trend" || (clip as any).source === "url") ? () => handleRemoveUpload(clip) : undefined} />
-                    ))}
+                      </div>
+                      );
+                    })}
                   </div>
+                  )}
                   {(() => {
                     const needUploadName = clips.some((c: any) => c.source === "upload" && !String(c.video_id || "").startsWith("trend_")) && !uploadName.trim();
                     // ★ 푸티지 부족 반려: 담은 클립 길이 합 < 목표 길이면 막음(프리즈·반복 방지).
@@ -2748,6 +2768,9 @@ function AnalyzeProgress({ pid }: { pid?: string|null }) {
   }, []);
   return (
     <>
+      <div className="fixed inset-x-0 top-0 z-[60] h-[3px]" aria-hidden="true">
+        <div className="h-full bg-[linear-gradient(90deg,#2A7BFF,#0064FF)] transition-[width] duration-300 ease-out" style={{ width: `${pct}%` }} />
+      </div>
       <div className="mt-3 rounded-xl bg-gray-100 px-4 py-3.5">
         <div className="mb-3"><StepProgress steps={["영상 분석", "클립 검색", "정리"]} active={pct < 40 ? 0 : pct < 75 ? 1 : 2} /></div>
         <div className="mb-2 flex items-center justify-between">
