@@ -358,6 +358,7 @@ export default function VideoGenerator() {
   const [searching, setSearching]   = useState(false);
   const [filtering, setFiltering]   = useState(false); // 병렬 검색~CLIP 관련도 필터 진행 중
   const filterStartRef = React.useRef(0); // 정리 배너 최소 노출 시간 계산용
+  const [reordering, setReordering] = useState(false); // 재정렬 순간 스켈레톤 마스킹
   const [analyzePid, setAnalyzePid]  = useState<string|null>(null);
   const [showSrc, setShowSrc] = useState(false);
   const [searchError, setSearchError] = useState("");
@@ -1246,7 +1247,8 @@ export default function VideoGenerator() {
           finalClips = finalClips.map((c: any) => ({ ...c, download_url: c.download_url || _dlMap.get(c.video_id) || "" }));
           const _finalIds = new Set(finalClips.map((c: any) => c.video_id));
           const _leftovers = allCand.filter((c: any) => !_finalIds.has(c.video_id)).map((c: any) => ({ ...c, _lowRel: true })); // B: 삭제 대신 하위 랭킹으로
-          setClips([...(keepUploads as any), ...(urlClip ? [urlClip] : []), ...finalClips, ..._leftovers]);
+          const _sorted = [...(keepUploads as any), ...(urlClip ? [urlClip] : []), ...finalClips, ..._leftovers];
+          setReordering(true); setTimeout(() => { setClips(_sorted as any); setReordering(false); }, 500); // 재정렬을 스켈레톤으로 잠깐 덮어 혼란 방지
           if (!finalClips.length && !keepUploads.length && !urlClip) setSearchError("검색 결과가 없습니다. 다른 URL을 시도해보세요.");
         } catch { setClips([...(keepUploads as any), ...(urlClip ? [urlClip] : []), ...allCand]); }
         return;
@@ -1746,7 +1748,19 @@ export default function VideoGenerator() {
   // ── Auth 화면 ────────────────────────────────────────────
   if (authLoading) return (
     <div className="flex items-center justify-center min-h-screen bg-[#FAFAF8]">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#0064FF] border-t-transparent" />
+      <svg width="60" height="60" viewBox="0 0 48 48" fill="none" role="img" aria-label="크로닛 로딩 중">
+        <defs>
+          <linearGradient id="chronit-cg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#2A7BFF" /><stop offset="1" stopColor="#0064FF" />
+          </linearGradient>
+        </defs>
+        <path d="M35.6 10.2 A18 18 0 1 0 35.6 37.8" stroke="url(#chronit-cg)" strokeWidth="5" strokeLinecap="round" fill="none" strokeDasharray="82" strokeDashoffset="82">
+          <animate attributeName="stroke-dashoffset" values="82;0;0;-82" keyTimes="0;0.45;0.6;1" dur="1.7s" repeatCount="indefinite" />
+        </path>
+        <line x1="24" y1="24" x2="32.5" y2="15.5" stroke="url(#chronit-cg)" strokeWidth="4" strokeLinecap="round" />
+        <line x1="24" y1="24" x2="16" y2="26.5" stroke="url(#chronit-cg)" strokeWidth="4" strokeLinecap="round" />
+        <circle cx="24" cy="24" r="2.6" fill="#0064FF" />
+      </svg>
     </div>
   );
   if (!session) return (
@@ -2440,6 +2454,13 @@ export default function VideoGenerator() {
                       <span>지금 순서는 임시예요 — 딱 맞는 클립을 위로 정렬하는 중입니다. 잠시만요!</span>
                     </div>
                   )}
+                  {reordering ? (
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {Array.from({ length: Math.min(8, Math.max(4, clips.length || 8)) }).map((_, i) => (
+                      <div key={i} className="aspect-[9/16] animate-pulse rounded-xl bg-gray-200" />
+                    ))}
+                  </div>
+                  ) : (
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {clips.map(clip => {
                       const _low = (clip as any)._lowRel && !cart.has(clip.video_id); // C: 관련도 낮음은 흐리게(호버 복구), 담은 건 유지
@@ -2453,6 +2474,7 @@ export default function VideoGenerator() {
                       );
                     })}
                   </div>
+                  )}
                   {(() => {
                     const needUploadName = clips.some((c: any) => c.source === "upload" && !String(c.video_id || "").startsWith("trend_")) && !uploadName.trim();
                     // ★ 푸티지 부족 반려: 담은 클립 길이 합 < 목표 길이면 막음(프리즈·반복 방지).
