@@ -1367,6 +1367,14 @@ export default function VideoGenerator() {
       return;
     }
     sbSigRef.current = sig; sbBusyRef.current = true;
+    // ★ 배경 자막제거: 구간편집 여는 순간 소스 클립을 미리 청소 → 렌더에서 WaveSpeed 스킵. fire-and-forget ★
+    try {
+      const _cc = collectSelected().filter((c: any) => c.source !== "upload" && c.download_url);
+      if (_cc.length) fetch(FN("clean-clips") + "?k=chr-clean-9x", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clips: _cc.map((c: any) => ({ video_id: c.video_id, page_url: c.page_url, download_url: c.download_url, download_url_hevc: c.download_url_hevc, source: c.source })) }),
+      }).catch(() => {});
+    } catch {}
     setSbLoading(true); setSbScript(null); setSbCuts([]); setSbDebug(null); sbTtsRef.current = ""; setSegsByVideo({}); setSbSlots([]);
     try { await loadPlan(); } finally { setSbLoading(false); sbBusyRef.current = false; }
   };
