@@ -2035,10 +2035,6 @@ export default function VideoGenerator() {
             <p className="text-lg font-bold text-gray-900">잠깐! 아직 닫으면 안 돼요 🙏</p>
             <p className="text-sm text-[#0064FF] mt-1">{autoRunStep || "처리 중..."}</p>
             <p className="text-xs text-gray-500 mt-3">영상 설정을 준비하고 있어요.<br/>거의 다 됐어요 — 이 단계만 지나면 기다리는 동안 다른 걸 하셔도 돼요!</p>
-            <div className="mt-5 h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
-              <div className="h-full w-full rounded-full" style={{ background: "linear-gradient(90deg,#2A7BFF,#0064FF,#7C6BFF,#0064FF,#2A7BFF)", backgroundSize: "300% 100%", animation: "chrflow 2.6s linear infinite" }} />
-            </div>
-            <style>{`@keyframes chrflow{0%{background-position:0% 50%}100%{background-position:-300% 50%}}`}</style>
           </div>
         </div>
       )}
@@ -3725,8 +3721,9 @@ function RenderProgressCard({ job, tick, onMinimize, onCancel }: { job:any; tick
         <h2 className="text-xl font-bold text-gray-900">이제 넷플릭스 보셔도 괜찮아요</h2>
         <p className="text-sm text-gray-500 mt-1">{real?.label ? <><b className="text-[#0064FF]">{real.label}</b><br/>다 되면 알려드릴게요!</> : <>AI가 열심히 영상을 만들고 있어요.<br/>다 되면 알려드릴게요!</>}</p>
         <div className="mt-5 h-3 w-full rounded-full bg-gray-100 overflow-hidden">
-          <div className="h-full rounded-full bg-gradient-to-r from-[#0064FF] to-[#0052D6] transition-[width] duration-1000 ease-linear" style={{ width: `${Math.round(pct*100)}%` }} />
+          <div className="h-full rounded-full transition-[width] duration-1000 ease-linear" style={{ width: `${Math.round(pct*100)}%`, backgroundImage: "linear-gradient(90deg,#2A7BFF,#0064FF,#7C6BFF,#0064FF,#2A7BFF)", backgroundSize: "300% 100%", animation: "chrflow 2.6s linear infinite" }} />
         </div>
+        <style>{`@keyframes chrflow{0%{background-position:0% 50%}100%{background-position:-300% 50%}}`}</style>
         <p className="text-xs text-gray-500 mt-2">{mm}분 {String(ss).padStart(2,"0")}초 경과 · 보통 약 4분 걸려요</p>
         <LoadingTips />
         <button onClick={onMinimize} className="mt-5 w-full rounded-xl bg-gray-100 hover:bg-gray-200 py-3 text-sm font-bold text-gray-700">최소화하고 다른 작업 하기</button>
