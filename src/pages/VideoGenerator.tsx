@@ -349,7 +349,7 @@ export default function VideoGenerator() {
   // ── 트렌드 소스 피드 (FEATURES.trendFeed) ──
   const [trendOpen, setTrendOpen]     = useState(false);
   const [trendItems, setTrendItems]   = useState<any[]>([]);
-  const [trendSort, setTrendSort] = useState<"comment"|"view"|"like">("comment");  // 트렌드 탭 유저 정렬
+  const [trendSort, setTrendSort] = useState<"recent"|"comment"|"view"|"like">("recent");  // 트렌드 탭 유저 정렬
   const [trendLoading, setTrendLoading] = useState(false);
   const [trendNote, setTrendNote]     = useState("");
   const [trendNeedsSetup, setTrendNeedsSetup] = useState(false);
@@ -447,7 +447,7 @@ export default function VideoGenerator() {
     xPos: 50,
   };
   const [subtitleStyle, setSubtitleStyle] = useState(DEFAULT_STYLE);
-  const [thumbnailStyle, setThumbnailStyle] = useState({ ...DEFAULT_STYLE, yPos: 50, bgOn: true, bgOpacity: 45, accentColor: "#FFC400", accentBg: true });
+  const [thumbnailStyle, setThumbnailStyle] = useState({ ...DEFAULT_STYLE, fontFamily: "'Do Hyeon', sans-serif", yPos: 50, bgOn: true, bgOpacity: 45, accentColor: "#FFC400", accentBg: true });
   const [showThumbnail, setShowThumbnail] = useState(true);
   const subtitlePreset = "custom";
   // ★ 프론트 camelCase 스타일 → cog가 기대하는 snake_case 키로 변환 (자막 ASS + 썸네일 빌더 공용) ★
@@ -2191,7 +2191,7 @@ export default function VideoGenerator() {
                 )}
                 <div className="mb-3 flex items-center gap-1.5">
                   <span className="mr-1 text-xs font-bold text-gray-400">정렬</span>
-                  {([["view","▶ 조회수"],["like","❤️ 좋아요"],["comment","💬 댓글"]] as const).map(([k,label]) => (
+                  {([["recent","🆕 최신"],["view","▶ 조회수"],["like","❤️ 좋아요"],["comment","💬 댓글"]] as const).map(([k,label]) => (
                     <button key={k} onClick={() => setTrendSort(k as any)}
                       className={`rounded-full px-3 py-1 text-xs font-bold transition ${trendSort===k ? "bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>{label}</button>
                   ))}
@@ -2205,7 +2205,7 @@ export default function VideoGenerator() {
                     const base = single.length >= 5 ? single : within; // 단일상품이 너무 적으면 전체(최근)
                     const shown = (base.length ? base : trendItems)
                       .slice()
-                      .sort((a: any, b: any) => { const mk = trendSort==="view"?"view_count":trendSort==="like"?"like_count":"comment_count"; return (Number(b[mk])||0)-(Number(a[mk])||0); }); // 유저 선택 정렬
+                      .sort((a: any, b: any) => { if (trendSort==="recent") return (new Date(b.taken_at||0).getTime())-(new Date(a.taken_at||0).getTime()); const mk = trendSort==="view"?"view_count":trendSort==="like"?"like_count":"comment_count"; return (Number(b[mk])||0)-(Number(a[mk])||0); }); // 유저 선택 정렬
                     return shown.map((it: any) => (<TrendCard key={it.shortcode} item={it} onAdd={() => trendAdd(it)} onAnalyze={() => trendAnalyze(it)} />));
                   })()}
                 </div>
