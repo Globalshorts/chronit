@@ -251,19 +251,19 @@ const STYLE_PACKS = [
   { key:"review", name:"감성 리뷰", emoji:"🤍", desc:"차분·신뢰 · 뷰티·리빙",
     targetSeconds:20, voiceId:"4e118bfbb83e401c84699c09b5f08257", voiceIdBasic:"shimmer", voiceSpeed:100, voiceVolume:130, styleProfileId:"auto",
     subtitleStyle:{fontFamily:"'Gowun Dodum', sans-serif",color:"#FFFFFF",fontSize:14,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
-    thumbnailStyle:{fontFamily:"'Gowun Dodum', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
+    thumbnailStyle:{fontFamily:"'Do Hyeon', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
   { key:"unboxing", name:"다이나믹 언박싱", emoji:"⚡", desc:"쨍·활기 · 가전·잡화",
     targetSeconds:20, voiceId:"46939387dd944a45a399bd92b8de52cb", voiceIdBasic:"nova", voiceSpeed:100, voiceVolume:130, styleProfileId:"auto",
     subtitleStyle:{fontFamily:"'Moneygraphy Rounded', sans-serif",color:"#FFE500",fontSize:14,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
-    thumbnailStyle:{fontFamily:"'Moneygraphy Rounded', sans-serif",color:"#FFE500",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
+    thumbnailStyle:{fontFamily:"'Black Han Sans', sans-serif",color:"#FFE500",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
   { key:"info", name:"정보형 꿀템", emoji:"📌", desc:"가독성 · 주방·기능성",
     targetSeconds:20, voiceId:"c4857e9f2c4249ad967916a979e9da36", voiceIdBasic:"echo", voiceSpeed:100, voiceVolume:130, styleProfileId:"auto",
     subtitleStyle:{fontFamily:"'Kakao Big Sans', sans-serif",color:"#FFFFFF",fontSize:14,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:70,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
-    thumbnailStyle:{fontFamily:"'Kakao Big Sans', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
+    thumbnailStyle:{fontFamily:"'Jalnan', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
   { key:"hand", name:"손글씨 감성", emoji:"✍️", desc:"따뜻 · 육아·감성소품",
     targetSeconds:20, voiceId:"2940e486b6f146fc8968fe49fa2f04dc", voiceIdBasic:"fable", voiceSpeed:100, voiceVolume:130, styleProfileId:"auto",
     subtitleStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:14,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:false,bgColor:"#000000",bgOpacity:60,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:65,xPos:50},
-    thumbnailStyle:{fontFamily:"'Hakgyoansim Dunggeunmiso TTF', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
+    thumbnailStyle:{fontFamily:"'Cafe24 Dongdong', sans-serif",color:"#FFFFFF",fontSize:22,fontWeight:"900",strokeColor:"#000000",strokeWidth:1,strokeOn:true,bgOn:true,bgColor:"#000000",bgOpacity:45,bgRadius:8,shadowOn:true,shadowColor:"#000000",shadowOpacity:55,shadowSize:2,blur:0,yPos:50,xPos:50} },
 ];
 const PACK_ICON: Record<string, any> = { review: Heart, unboxing: Zap, info: Lightbulb, hand: PenTool };
 function PackIcon({ k, size = 14, className = "" }: { k: string; size?: number; className?: string }) {
