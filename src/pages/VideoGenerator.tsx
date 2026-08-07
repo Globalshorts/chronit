@@ -349,6 +349,7 @@ export default function VideoGenerator() {
   // ── 트렌드 소스 피드 (FEATURES.trendFeed) ──
   const [trendOpen, setTrendOpen]     = useState(false);
   const [trendItems, setTrendItems]   = useState<any[]>([]);
+  const [trendSort, setTrendSort] = useState<"comment"|"view"|"like">("comment");  // 트렌드 탭 유저 정렬
   const [trendLoading, setTrendLoading] = useState(false);
   const [trendNote, setTrendNote]     = useState("");
   const [trendNeedsSetup, setTrendNeedsSetup] = useState(false);
@@ -2171,7 +2172,7 @@ export default function VideoGenerator() {
             {activeView === "trends" && (
               <div className="max-w-5xl mx-auto">
                 <h2 className="mb-1 text-xl font-bold text-gray-900">🔥 오늘의 트렌드</h2>
-                <p className="mb-4 text-sm text-gray-500">댓글 많은 쇼핑 릴스를 매일 서버에서 자동 수집해 댓글수 순으로 보여줘요. 카드를 누르면 그 영상으로 바로 제작 흐름으로 넘어가요.</p>
+                <p className="mb-4 text-sm text-gray-500">쇼핑 릴스를 매일 서버에서 자동 수집해요. 조회수·좋아요·댓글 순으로 정렬해 볼 수 있어요. 카드를 누르면 그 영상으로 바로 제작 흐름으로 넘어가요.</p>
                 {trendNote && <p className="mb-3 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">{trendNote}</p>}
                 {trendNeedsSetup && (session?.user?.email || "").toLowerCase() === "pv2066pv@gmail.com" && (
                   <div className="mb-4 max-w-md space-y-2 rounded-xl border border-amber-300 bg-amber-50 p-3">
@@ -2188,6 +2189,13 @@ export default function VideoGenerator() {
                     <span className="text-xs text-gray-400">처음 불러올 땐 1~2분 걸려요…</span>
                   </div>
                 )}
+                <div className="mb-3 flex items-center gap-1.5">
+                  <span className="mr-1 text-xs font-bold text-gray-400">정렬</span>
+                  {([["view","▶ 조회수"],["like","❤️ 좋아요"],["comment","💬 댓글"]] as const).map(([k,label]) => (
+                    <button key={k} onClick={() => setTrendSort(k as any)}
+                      className={`rounded-full px-3 py-1 text-xs font-bold transition ${trendSort===k ? "bg-[#0064FF] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>{label}</button>
+                  ))}
+                </div>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                   {(() => {
                     const cutoff = Date.now() - 7 * 86400000; // 최근 7일
@@ -2197,7 +2205,7 @@ export default function VideoGenerator() {
                     const base = single.length >= 5 ? single : within; // 단일상품이 너무 적으면 전체(최근)
                     const shown = (base.length ? base : trendItems)
                       .slice()
-                      .sort((a: any, b: any) => (b.comment_count || 0) - (a.comment_count || 0)); // 댓글 많은 순
+                      .sort((a: any, b: any) => { const mk = trendSort==="view"?"view_count":trendSort==="like"?"like_count":"comment_count"; return (Number(b[mk])||0)-(Number(a[mk])||0); }); // 유저 선택 정렬
                     return shown.map((it: any) => (<TrendCard key={it.shortcode} item={it} onAdd={() => trendAdd(it)} onAnalyze={() => trendAnalyze(it)} />));
                   })()}
                 </div>
@@ -4194,7 +4202,6 @@ function TrendCard({ item, onAdd, onAnalyze }: { item: any; onAdd: () => void; o
         {!imgErr && item.thumbnail_url
           ? <img src={proxyThumb(item.thumbnail_url)} referrerPolicy="no-referrer" onError={() => setImgErr(true)} className="h-full w-full object-cover" />
           : <div className="flex h-full w-full items-center justify-center text-3xl text-gray-300">🎬</div>}
-        <div className={`absolute left-1 top-1 rounded ${badge.bg} px-1.5 py-0.5 text-[10px] font-bold text-white shadow`}>{badge.ic} {f(cc)}</div>
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/35">
           <span className="rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-gray-900 opacity-0 shadow transition group-hover:opacity-100">▶ 영상 보기</span>
         </div>
@@ -4202,6 +4209,7 @@ function TrendCard({ item, onAdd, onAnalyze }: { item: any; onAdd: () => void; o
       <div className="flex flex-1 flex-col gap-1.5 p-2">
         <p className="line-clamp-2 text-[11px] leading-snug text-gray-700">{item.caption || "(설명 없음)"}</p>
         <div className="mt-auto flex items-center gap-2 text-[10px] font-medium text-gray-400">
+          <span title="댓글">💬 {f(cc)}</span>
           <span title="좋아요">❤️ {f(item.like_count)}</span>
           <span title="조회수">▶ {f(item.view_count)}</span>
           {item.taken_at && (() => { const d = Math.floor((Date.now() - new Date(item.taken_at).getTime()) / 86400000); return <span title={new Date(item.taken_at).toLocaleDateString("ko")} className="ml-auto">📅 {d <= 0 ? "오늘" : d + "일 전"}</span>; })()}
