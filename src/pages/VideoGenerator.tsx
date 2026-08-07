@@ -1435,9 +1435,10 @@ export default function VideoGenerator() {
         const start = Date.now();
         while (Date.now() - start < 300_000) {
           await new Promise(r => setTimeout(r, 2000));
+          const { data: { session: _ps } } = await supabase.auth.getSession(); // 반창고: 긴 폴링 중 토큰 만료 방지(자동 갱신)
           const poll = await (await fetch(FN("generate-script"), {
             method: "POST",
-            headers: { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" },
+            headers: { "Authorization": `Bearer ${_ps?.access_token || s.access_token}`, "Content-Type": "application/json" },
             body: JSON.stringify({ poll: true, prediction_id: predId }),
           })).json();
           if (poll.status === "succeeded") { genSegments = poll.segments ?? []; setScript(poll.segments ?? []); setScriptLoading(false); resolve(); return; }
@@ -1771,7 +1772,7 @@ export default function VideoGenerator() {
     try {
       const { data: { session: s } } = await supabase.auth.getSession();
       if (!s) throw new Error("로그인 필요");
-      const mk = (payload: any) => fetch(FN("generate-script"), { method: "POST", headers: { Authorization: `Bearer ${s.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify(payload) }).then(r => r.json());
+      const mk = async (payload: any) => { const { data: { session: _ps } } = await supabase.auth.getSession(); return fetch(FN("generate-script"), { method: "POST", headers: { Authorization: `Bearer ${_ps?.access_token || s.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify(payload) }).then(r => r.json()); }; // 반창고: 폴링마다 최신 토큰
       const data = await mk({ source_url: sourceUrl.trim(), selected_clips: selected, product_name: analysisMetaRef.current?.name || "", use_case: analysisMetaRef.current?.use_case || "", target_seconds: targetSeconds, style_profile_id: "", style_profile_json: "", cta_text: "" });   // CTA는 대본에 넣지 않음 — 렌더 시 댓글 유도 단어로 마지막에 붙음
       if (!data.ok) throw new Error(data.error ?? "대본 생성 실패");
       let segs: any[] = data.segments ?? [];
