@@ -2035,6 +2035,10 @@ export default function VideoGenerator() {
             <p className="text-lg font-bold text-gray-900">잠깐! 아직 닫으면 안 돼요 🙏</p>
             <p className="text-sm text-[#0064FF] mt-1">{autoRunStep || "처리 중..."}</p>
             <p className="text-xs text-gray-500 mt-3">영상 설정을 준비하고 있어요.<br/>거의 다 됐어요 — 이 단계만 지나면 기다리는 동안 다른 걸 하셔도 돼요!</p>
+            <div className="mt-5 h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+              <div className="h-full w-full rounded-full" style={{ background: "linear-gradient(90deg,#2A7BFF,#0064FF,#7C6BFF,#0064FF,#2A7BFF)", backgroundSize: "300% 100%", animation: "chrflow 2.6s linear infinite" }} />
+            </div>
+            <style>{`@keyframes chrflow{0%{background-position:0% 50%}100%{background-position:-300% 50%}}`}</style>
           </div>
         </div>
       )}
@@ -2193,7 +2197,7 @@ export default function VideoGenerator() {
                   <span className="mr-1 text-xs font-bold text-gray-400">정렬</span>
                   {([["view","▶ 조회수"],["like","❤️ 좋아요"],["comment","💬 댓글"]] as const).map(([k,label]) => (
                     <button key={k} onClick={() => setTrendSort(k as any)}
-                      className={`rounded-full px-3 py-1 text-xs font-bold transition ${trendSort===k ? "bg-[#0064FF] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>{label}</button>
+                      className={`rounded-full px-3 py-1 text-xs font-bold transition ${trendSort===k ? "bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>{label}</button>
                   ))}
                 </div>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
