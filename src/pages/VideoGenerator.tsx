@@ -1412,41 +1412,8 @@ export default function VideoGenerator() {
         genSegments = _manual.split(/\n+|(?<=[.!?。])\s+/).map((t: string) => t.trim()).filter(Boolean).map((text: string) => ({ text }));
         if (!genSegments.length) genSegments = [{ text: _manual }];
         setScript(genSegments);
-      } else {
-      setAutoRunStep("1/3  대본 생성 중...");
-      await new Promise<void>(async (resolve, reject) => {
-        setScriptError(""); setScriptLoading(true); setScript(null);
-        const { data: { session: s } } = await supabase.auth.getSession();
-        if (!s) { reject(new Error("로그인 필요")); return; }
-        const selected = collectSelected();
-        const resp = await fetch(FN("generate-script"), {
-          method: "POST",
-          headers: { "Authorization": `Bearer ${s.access_token}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ source_url: sourceUrl.trim(), selected_clips: selected,
-            product_name: analysisMetaRef.current?.name || "", use_case: analysisMetaRef.current?.use_case || "",
-            target_seconds: targetSeconds, style_profile_id: "", style_profile_json: "", cta_text: "" }),   // CTA 제외 — 렌더 단계에서 붙음
-        });
-        const data = await resp.json();
-        if (!data.ok) { reject(new Error(data.error ?? "대본 생성 실패")); return; }
-        const predId = data.prediction_id;
-        setScriptPredId(predId ?? "");
-        if (data.status === "succeeded" && data.segments) { genSegments = data.segments; setScript(data.segments); setScriptLoading(false); resolve(); return; }
-        // 폴링
-        const start = Date.now();
-        while (Date.now() - start < 300_000) {
-          await new Promise(r => setTimeout(r, 2000));
-          const { data: { session: _ps } } = await supabase.auth.getSession(); // 반창고: 긴 폴링 중 토큰 만료 방지(자동 갱신)
-          const poll = await (await fetch(FN("generate-script"), {
-            method: "POST",
-            headers: { "Authorization": `Bearer ${_ps?.access_token || s.access_token}`, "Content-Type": "application/json" },
-            body: JSON.stringify({ poll: true, prediction_id: predId }),
-          })).json();
-          if (poll.status === "succeeded") { genSegments = poll.segments ?? []; setScript(poll.segments ?? []); setScriptLoading(false); resolve(); return; }
-          if (poll.status === "failed") { reject(new Error(poll.error ?? "대본 실패")); return; }
-        }
-        reject(new Error("대본 생성 시간 초과"));
-      });
       }
+      // ★ 대본 미입력 시 generate-script 별도 호출 제거 → 렌더가 내부 Step3에서 대본 생성(다운로드·분할·캡션 1회로 통합). 자동생성=단일 렌더 호출 ★
 
       }  // end if(!videoOnly)
 
