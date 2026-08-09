@@ -264,6 +264,29 @@ export default function Finds() {
           </div>
         )}
 
+        {/* 분석 중 로딩바 — 흐르는 그라데이션 */}
+        {searching && (
+          <div className="mt-5">
+            <div className="mb-2 flex items-center gap-2 text-sm text-slate-500">
+              <Loader2 size={14} className="animate-spin text-[#0064FF]" /> 관련 소스를 찾고 분석하고 있어요…
+            </div>
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+              <div className="finds-loadbar h-full w-full rounded-full" />
+            </div>
+            <style>{`
+              .finds-loadbar {
+                background: linear-gradient(90deg, #2A7BFF, #0064FF, #7C6BFF, #0064FF, #2A7BFF);
+                background-size: 200% 100%;
+                animation: finds-loadslide 1.15s linear infinite;
+              }
+              @keyframes finds-loadslide {
+                0% { background-position: 200% 0; }
+                100% { background-position: 0% 0; }
+              }
+            `}</style>
+          </div>
+        )}
+
         {/* 클립 그리드 — 한 줄 4개 */}
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {clips.map((c) => <FindCard key={c.video_id} clip={c} onAnalyze={setModalClip} />)}
