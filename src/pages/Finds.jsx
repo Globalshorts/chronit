@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Navigate } from 'react-router-dom'
-import { Search, Loader2, AlertTriangle, Flame, Eye, Heart, Sparkles, X, Copy, Check } from 'lucide-react'
+import { Search, Loader2, AlertTriangle, Flame, Eye, Heart, MessageCircle, Sparkles, X, Copy, Check } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
 
@@ -109,8 +109,9 @@ function AnalyzeModal({ clip, onClose }) {
         <p className="mt-0.5 text-xs text-slate-400">@{clip.author || '?'} · {clip.source}</p>
 
         <div className="mt-3 flex items-center gap-4 text-sm text-slate-600">
-          <span className="flex items-center gap-1"><Eye size={14} />{fmt(clip.views) ?? '지표 연동 예정'}</span>
+          {clip.views != null && <span className="flex items-center gap-1"><Eye size={14} />{fmt(clip.views)}</span>}
           <span className="flex items-center gap-1"><Heart size={14} />{fmt(clip.likes) ?? '—'}</span>
+          <span className="flex items-center gap-1"><MessageCircle size={14} />{fmt(clip.comments) ?? '—'}</span>
         </div>
 
         {clip.page_url && (
@@ -223,7 +224,7 @@ export default function Finds() {
         } catch { finalClips = allCand }
       }
       // 지표 필드 정규화(있으면 사용)
-      setClips(finalClips.map((c) => ({ ...c, views: c.views ?? c.view_count ?? c.play_count, likes: c.likes ?? c.like_count ?? c.digg_count })))
+      setClips(finalClips.map((c) => ({ ...c, views: c.views ?? c.view_count ?? c.play_count, likes: c.likes ?? c.like_count ?? c.digg_count, comments: c.comments ?? c.comment_count ?? c.comments_count })))
     } catch {
       setError('분석 중 일시적인 오류가 있었어요. 잠시 후 다시 시도해 주세요.')
     } finally {
