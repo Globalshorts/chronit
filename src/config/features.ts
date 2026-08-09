@@ -6,4 +6,5 @@ export const FEATURES = {
   directUpload: true,   // ① 내 영상 직접 업로드
   trendFeed:   true,    // ② 트렌드 소스 피드 (살림 패팔)
   linkLanding: false,   // ③ 상품 링크 랜딩 페이지 (예정)
+  finds:       false,   // ④ 소스 발견 페이지 (스텔스: false면 URL 접근도 홈으로 리다이렉트)
 };
