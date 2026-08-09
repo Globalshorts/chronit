@@ -67,11 +67,37 @@ function FindCard({ clip, onAnalyze }) {
 // ── 분석 팝업(모달) ──
 function AnalyzeModal({ clip, onClose }) {
   const [copied, setCopied] = useState(false)
-  // TODO(과금): 모달 오픈 시 이용권 -1 (나중 별도 적용)
-  // TODO(AI): 훅/셀링포인트/구도 요약 = 백엔드 analyze-clip 연동 지점
+  const [loading, setLoading] = useState(true)
+  const [result, setResult] = useState(null)
+  const [err, setErr] = useState('')
+
+  // 모달 오픈 시 analyze-clip 호출 → 훅/셀링포인트/구도 생성
+  // TODO(과금): 최초 분석 시 이용권 -1 (나중 별도 적용)
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      setLoading(true); setErr(''); setResult(null)
+      try {
+        const { data: { session: s } } = await supabase.auth.getSession()
+        if (!s) { if (alive) { setErr('로그인이 필요합니다'); setLoading(false) } return }
+        const r = await fetch(FN('analyze-clip'), {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${s.access_token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: clip.title, source: clip.source, thumbnail_url: clip.thumbnail_url }),
+        })
+        const d = await r.json()
+        if (!alive) return
+        if (d.ok) setResult(d); else setErr(d.error || '분석에 실패했어요.')
+      } catch { if (alive) setErr('분석 중 오류가 발생했어요.') }
+      finally { if (alive) setLoading(false) }
+    })()
+    return () => { alive = false }
+  }, [clip])
+
   const copy = async () => {
     try { await navigator.clipboard.writeText(clip.page_url || ''); setCopied(true); setTimeout(() => setCopied(false), 1500) } catch { /* noop */ }
   }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
@@ -83,13 +109,11 @@ function AnalyzeModal({ clip, onClose }) {
         <p className="line-clamp-2 text-sm text-slate-600">{clip.title || '(제목 없음)'}</p>
         <p className="mt-0.5 text-xs text-slate-400">@{clip.author || '?'} · {clip.source}</p>
 
-        {/* 지표 */}
         <div className="mt-3 flex items-center gap-4 text-sm text-slate-600">
           <span className="flex items-center gap-1"><Eye size={14} />{fmt(clip.views) ?? '지표 연동 예정'}</span>
           <span className="flex items-center gap-1"><Heart size={14} />{fmt(clip.likes) ?? '—'}</span>
         </div>
 
-        {/* 출처 : 복사 버튼 */}
         {clip.page_url && (
           <div className="mt-4">
             <div className="mb-1 text-xs font-bold text-slate-500">출처</div>
@@ -102,15 +126,26 @@ function AnalyzeModal({ clip, onClose }) {
           </div>
         )}
 
-        {/* AI 벤치마크 — analyze-clip 백엔드 연동 예정 */}
-        <div className="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-500">
-          <div className="mb-1.5 flex items-center gap-1 font-bold text-slate-700"><Sparkles size={14} />AI 벤치마크 분석</div>
-          <ul className="space-y-1">
-            <li>• 훅: <span className="text-slate-400">(생성 예정)</span></li>
-            <li>• 셀링포인트: <span className="text-slate-400">(생성 예정)</span></li>
-            <li>• 구도·편집 패턴: <span className="text-slate-400">(생성 예정)</span></li>
-          </ul>
-          <div className="mt-2 text-[10px] text-slate-300">analyze-clip 백엔드 연동 지점</div>
+        {/* AI 벤치마크 — analyze-clip 결과 */}
+        <div className="mt-4 rounded-lg bg-slate-50 p-3 text-sm">
+          <div className="mb-2 flex items-center gap-1 font-bold text-slate-700"><Sparkles size={14} />AI 벤치마크 분석</div>
+          {loading ? (
+            <div className="flex items-center gap-2 py-2 text-slate-400"><Loader2 size={15} className="animate-spin" />분석 중…</div>
+          ) : err ? (
+            <div className="flex items-center gap-1.5 text-red-500"><AlertTriangle size={14} />{err}</div>
+          ) : result ? (
+            <div className="space-y-2 text-slate-600">
+              <div><span className="font-bold text-slate-700">훅</span> · {result.hook || '—'}</div>
+              <div>
+                <span className="font-bold text-slate-700">셀링포인트</span>
+                <ul className="mt-0.5 list-disc space-y-0.5 pl-5">
+                  {(result.selling_points || []).length ? result.selling_points.map((sp, i) => <li key={i}>{sp}</li>) : <li className="text-slate-400">—</li>}
+                </ul>
+              </div>
+              <div><span className="font-bold text-slate-700">구도·편집</span> · {result.composition || '—'}</div>
+              {!result.used_image && <div className="text-[10px] text-slate-300">※ 썸네일 미확보 — 제목 기반 분석</div>}
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
