@@ -4505,8 +4505,10 @@ function ClipCard({ clip, selected, onToggle, onRemove, onMeasured }: { clip: Cl
             onLoadedMetadata={e => { const d = Math.round((e.currentTarget as HTMLVideoElement).duration || 0); if (d > 0) { setVidDur(d); onMeasured?.(d); } }}
             style={{ display: "none" }} />
         )}
-        {(clip.duration || vidDur) > 0 && !playing && (
-          <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1 py-0.5 text-xs text-white font-bold">{clip.duration || vidDur}s</div>
+        {((clip.duration || vidDur) > 0 || (clip as any).src_height > 0) && !playing && (
+          <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1 py-0.5 text-[10px] text-white font-bold">
+            {(clip as any).src_height > 0 ? `${(clip as any).src_height}p` : ''}{(clip as any).src_height > 0 && (clip.duration || vidDur) > 0 ? ' · ' : ''}{(clip.duration || vidDur) > 0 ? `${clip.duration || vidDur}s` : ''}
+          </div>
         )}
         {selected && (
           <div className="absolute top-1.5 left-1.5 h-5 w-5 rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] flex items-center justify-center">

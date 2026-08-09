@@ -46,8 +46,10 @@ function FindCard({ clip, onAnalyze }) {
                 </div>
               </div>
             )}
-            {clip.duration > 0 && (
-              <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1 py-0.5 text-xs font-bold text-white">{clip.duration}s</div>
+            {(clip.duration > 0 || clip.src_height > 0) && (
+              <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1 py-0.5 text-[10px] font-bold text-white">
+                {clip.src_height > 0 ? `${clip.src_height}p` : ''}{clip.src_height > 0 && clip.duration > 0 ? ' · ' : ''}{clip.duration > 0 ? `${clip.duration}s` : ''}
+              </div>
             )}
           </>
         )}
