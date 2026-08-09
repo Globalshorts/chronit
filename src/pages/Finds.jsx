@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Navigate } from 'react-router-dom'
-import { Search, ExternalLink, Loader2, AlertTriangle, Flame } from 'lucide-react'
+import { Search, ExternalLink, Loader2, AlertTriangle, Flame, Eye, Heart, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
 
@@ -12,7 +12,7 @@ const FN = (n) => `${SB}/functions/v1/${n}`
 const isValidUrl = (u) =>
   ['youtube.com', 'youtu.be', 'tiktok.com', 'instagram.com'].some((p) => u.toLowerCase().includes(p))
 
-// 링크 전용(합법안): 원본 링크만 노출. download_url/video_url은 저장·표시하지 않음.
+// 링크 전용(합법안): 원본 링크·지표만 노출. download_url/video_url은 저장·표시하지 않음.
 const toLinkOnly = (c) => ({
   video_id: c.video_id,
   title: c.title || '',
@@ -20,7 +20,12 @@ const toLinkOnly = (c) => ({
   thumbnail_url: c.thumbnail_url || '',
   page_url: c.page_url || '',
   source: c.source || '',
+  // 지표(있으면 사용, 백엔드가 아직 안 내려주면 undefined → 카드에서 '연동 예정' 처리)
+  views: c.views ?? c.view_count ?? c.play_count,
+  likes: c.likes ?? c.like_count ?? c.digg_count,
 })
+
+const fmt = (n) => (typeof n === 'number' ? n.toLocaleString('ko-KR') : null)
 
 export default function Finds() {
   const [session, setSession] = useState(null)
@@ -28,6 +33,7 @@ export default function Finds() {
   const [clips, setClips] = useState([])
   const [searching, setSearching] = useState(false)
   const [error, setError] = useState('')
+  const [expanded, setExpanded] = useState({}) // { [video_id]: true } — 분석 펼침 상태
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
@@ -41,13 +47,13 @@ export default function Finds() {
   // (모든 훅 호출 이후에 위치 — React 훅 규칙 준수)
   if (!FEATURES.finds) return <Navigate to="/" replace />
 
-  // ── 분석: submit → poll → (틱톡+샤오홍슈 병렬) → clip-filter ──
-  // (과금 로직은 이 페이지에 아직 적용하지 않음 — 추후 별도 반영)
+  // ── 분석(검색): submit → poll → (틱톡+샤오홍슈 병렬) → clip-filter ──
+  // (이용권/과금 로직은 이 페이지에 아직 적용하지 않음 — 추후 별도 반영)
   const analyze = async () => {
     const su = sourceUrl.trim()
     if (!su) { setError('URL을 입력해주세요'); return }
     if (!isValidUrl(su)) { setError('틱톡·유튜브·인스타 링크를 입력해 주세요.'); return }
-    setError(''); setSearching(true); setClips([])
+    setError(''); setSearching(true); setClips([]); setExpanded({})
     try {
       const { data: { session: s } } = await supabase.auth.getSession()
       if (!s) { setError('로그인이 필요합니다'); setSearching(false); return }
@@ -125,6 +131,11 @@ export default function Finds() {
     }
   }
 
+  // 카드별 "분석하기" — 카드 안에서 인사이트 펼침
+  // TODO(과금): 최초 펼칠 때 이용권 -1 (나중 별도 적용)
+  // TODO(AI): 셀링포인트/훅/구도 요약은 백엔드 analyze-clip 연동 지점 (아래 AI 블록)
+  const toggleAnalyze = (id) => setExpanded((p) => ({ ...p, [id]: !p[id] }))
+
   return (
     <div className="min-h-screen bg-white">
       <div className="mx-auto max-w-6xl px-4 py-8">
@@ -163,33 +174,64 @@ export default function Finds() {
           </div>
         )}
 
-        {clips.length > 0 && (
-          <div className="mt-6 rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-500">
-            📊 벤치마크 분석 (예정): 인기 컷 구도 · 훅 · 셀링포인트 요약이 여기 들어갑니다.
-          </div>
-        )}
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {clips.map((c) => {
+            const open = !!expanded[c.video_id]
+            return (
+              <div key={c.video_id} className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-sm">
+                {/* TODO(재생): 기존 카드 재생 컴포넌트 재사용 지점 (임베드 가능한 TT/YT/IG는 인앱 재생) */}
+                <div className="aspect-[9/16] bg-slate-100">
+                  {c.thumbnail_url ? (
+                    <img src={c.thumbnail_url} alt={c.title} loading="lazy" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                  ) : null}
+                </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {clips.map((c) => (
-            <div key={c.video_id} className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-sm">
-              <div className="aspect-[9/16] bg-slate-100">
-                {c.thumbnail_url ? (
-                  <img src={c.thumbnail_url} alt={c.title} loading="lazy" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none' }} />
-                ) : null}
-              </div>
-              <div className="p-2">
-                <div className="line-clamp-2 text-xs font-medium text-slate-700">{c.title || '(제목 없음)'}</div>
-                <div className="mt-1 flex items-center justify-between">
-                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] uppercase text-slate-400">{c.source}</span>
-                  {c.page_url && (
-                    <a href={c.page_url} target="_blank" rel="noreferrer noopener" className="flex items-center gap-1 text-[11px] font-semibold text-[#0064FF]">
-                      원본 보기<ExternalLink size={11} />
-                    </a>
+                <div className="p-3">
+                  <div className="line-clamp-2 text-xs font-medium text-slate-700">{c.title || '(제목 없음)'}</div>
+                  <div className="mt-1 flex items-center gap-2">
+                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] uppercase text-slate-400">{c.source}</span>
+                    {c.author && <span className="truncate text-[11px] text-slate-400">@{c.author}</span>}
+                  </div>
+
+                  <button
+                    onClick={() => toggleAnalyze(c.video_id)}
+                    className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#0064FF]/10 px-3 py-2 text-xs font-bold text-[#0064FF] transition-colors hover:bg-[#0064FF]/15"
+                  >
+                    <Sparkles size={13} />분석하기{open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                  </button>
+
+                  {/* 분석 내용 — 카드 안에서 펼침 */}
+                  {open && (
+                    <div className="mt-3 space-y-3 border-t border-slate-100 pt-3 text-xs">
+                      {/* 지표 */}
+                      <div className="flex items-center gap-4 text-slate-500">
+                        <span className="flex items-center gap-1"><Eye size={13} />{fmt(c.views) ?? '지표 연동 예정'}</span>
+                        <span className="flex items-center gap-1"><Heart size={13} />{fmt(c.likes) ?? '—'}</span>
+                      </div>
+
+                      {/* 원본 링크 (출처 확인용 — 리서치/벤치마크 목적) */}
+                      {c.page_url && (
+                        <a href={c.page_url} target="_blank" rel="noreferrer noopener" className="flex items-center gap-1 font-semibold text-[#0064FF]">
+                          원본 출처 확인<ExternalLink size={12} />
+                        </a>
+                      )}
+
+                      {/* AI 셀링포인트/훅/구도 — 백엔드 analyze-clip 연동 예정 */}
+                      <div className="rounded-lg bg-slate-50 p-2.5 text-slate-500">
+                        <div className="mb-1 flex items-center gap-1 font-bold text-slate-600"><Sparkles size={12} />AI 벤치마크 분석</div>
+                        <ul className="space-y-0.5">
+                          <li>• 훅: <span className="text-slate-400">(생성 예정)</span></li>
+                          <li>• 셀링포인트: <span className="text-slate-400">(생성 예정)</span></li>
+                          <li>• 구도·편집 패턴: <span className="text-slate-400">(생성 예정)</span></li>
+                        </ul>
+                        <div className="mt-1.5 text-[10px] text-slate-300">analyze-clip 백엔드 연동 지점</div>
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         {!searching && clips.length === 0 && !error && (
