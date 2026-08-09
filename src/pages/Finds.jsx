@@ -42,7 +42,7 @@ export default function Finds() {
   if (!FEATURES.finds) return <Navigate to="/" replace />
 
   // ── 분석: submit → poll → (틱톡+샤오홍슈 병렬) → clip-filter ──
-  // ⚠️ 크레딧 정책 미정: search-clips는 이용권을 차감함. Finds 발견을 무료/저가로 둘지 제품 결정 필요.
+  // (과금 로직은 이 페이지에 아직 적용하지 않음 — 추후 별도 반영)
   const analyze = async () => {
     const su = sourceUrl.trim()
     if (!su) { setError('URL을 입력해주세요'); return }
@@ -59,7 +59,7 @@ export default function Finds() {
       })
       const sub = await subResp.json()
       if (!sub.ok || !sub.prediction_id) {
-        setError(subResp.status === 402 ? (sub.error || '이용권이 부족해요.') : (sub.error || '분석에 실패했어요. 잠시 후 다시 시도해 주세요.'))
+        setError(sub.error || '분석에 실패했어요. 잠시 후 다시 시도해 주세요.')
         setSearching(false); return
       }
 
