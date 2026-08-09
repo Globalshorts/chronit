@@ -1244,8 +1244,8 @@ export default function VideoGenerator() {
           const data2 = await resp2.json();
           let finalClips: Clip[] = data2.ok ? (data2.clips ?? allCand) : allCand.slice(0, 20);
           // clip-filter가 download_url(CDN)을 떨궈도 video_id로 원본에서 다시 붙임 (렌더 다운로드용)
-          const _dlMap = new Map(allCand.map((c: any) => [c.video_id, c.download_url]));
-          finalClips = finalClips.map((c: any) => ({ ...c, download_url: c.download_url || _dlMap.get(c.video_id) || "" }));
+          const _cMap = new Map(allCand.map((c: any) => [c.video_id, c]));
+          finalClips = finalClips.map((c: any) => { const _o: any = _cMap.get(c.video_id) || {}; return { ..._o, ...c, download_url: c.download_url || _o.download_url || "" }; });
           const _finalIds = new Set(finalClips.map((c: any) => c.video_id));
           const _leftovers = allCand.filter((c: any) => !_finalIds.has(c.video_id)).map((c: any) => ({ ...c, _lowRel: true })); // B: 삭제 대신 하위 랭킹으로
           const _sorted = [...(keepUploads as any), ...(urlClip ? [urlClip] : []), ...finalClips, ..._leftovers];

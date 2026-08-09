@@ -221,6 +221,9 @@ export default function Finds() {
           const r2 = await fetch(FN('clip-filter'), { method: 'POST', headers, body: JSON.stringify({ reference_frames: refFrames, candidates: allCand, clip_count: 80 }) })
           const d2 = await r2.json()
           finalClips = d2.ok ? (d2.clips || allCand) : allCand.slice(0, 20)
+          // clip-filter가 부가필드(src_height·지표·download_url)를 떨구므로 원본에서 재병합
+          const _cm = new Map(allCand.map((x) => [x.video_id, x]))
+          finalClips = finalClips.map((c) => { const o = _cm.get(c.video_id) || {}; return { ...o, ...c, download_url: c.download_url || o.download_url || '' } })
           const dlMap = new Map(allCand.map((c) => [c.video_id, c.download_url]))
           finalClips = finalClips.map((c) => ({ ...c, download_url: c.download_url || dlMap.get(c.video_id) || '' }))
         } catch { finalClips = allCand }
