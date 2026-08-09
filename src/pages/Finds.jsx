@@ -53,8 +53,7 @@ function FindCard({ clip, onAnalyze }) {
         )}
       </div>
       <div className="bg-white p-1.5">
-        <p className="line-clamp-1 text-xs font-medium text-gray-900">{clip.title || '(제목 없음)'}</p>
-        <p className="mb-1.5 text-xs text-gray-500">@{clip.author || '?'}</p>
+        {/* 제목·아이디는 무료 카드에서 숨김 → 분석하기(유료) 팝업에서만 공개 (우회 방지) */}
         <button onClick={(e) => { e.stopPropagation(); onAnalyze(clip) }}
           className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-2.5 text-sm font-bold text-white shadow-sm transition hover:brightness-95">
           <Sparkles size={14} />분석하기
