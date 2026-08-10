@@ -12,10 +12,13 @@ const fmt = (n) => { n = Math.max(0, Math.trunc(Number(n) || 0)); return n >= 10
 
 const SORTS = [['recent', '최신'], ['view', '조회수'], ['like', '좋아요'], ['comment', '댓글']]
 const RANGES = [['24h', '24시간', 1], ['7d', '7일', 7], ['all', '전체', 0]]
+const TREND_TTL = 10 * 60 * 1000 // 10분: 이 안이면 재요청 안 함(서버는 최대 24h마다 갱신)
+const readTrendCache = () => { try { const c = JSON.parse(sessionStorage.getItem('chronit_trend_cache') || 'null'); return (c && Array.isArray(c.items)) ? c : null } catch { return null } }
+const writeTrendCache = (items) => { try { sessionStorage.setItem('chronit_trend_cache', JSON.stringify({ items, at: Date.now() })) } catch { /* noop */ } }
 
 export default function Trend() {
   const [session, setSession] = useState(null)
-  const [items, setItems] = useState([])
+  const [items, setItems] = useState(() => readTrendCache()?.items || [])
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState('')
   const [sort, setSort] = useState('recent')
@@ -29,15 +32,19 @@ export default function Trend() {
 
   useEffect(() => {
     if (!session) return
+    const cached = readTrendCache()
+    if (cached) setItems(cached.items)                       // 캐시 있으면 즉시 표시(스피너 없음)
+    if (cached && Date.now() - cached.at < TREND_TTL) return  // 신선하면 재요청 스킵
     let alive = true
+    if (!cached) setLoading(true)                            // 보여줄 캐시 없을 때만 스피너
     ;(async () => {
-      setLoading(true); setErr('')
+      setErr('')
       try {
         const { data: { session: s } } = await supabase.auth.getSession()
         const r = await fetch(FN('trend-feed'), { method: 'POST', headers: { Authorization: `Bearer ${s.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
         const d = await r.json()
-        if (alive) setItems(d.items || [])
-      } catch { if (alive) setErr('트렌드를 불러오지 못했어요.') }
+        if (alive) { setItems(d.items || []); writeTrendCache(d.items || []) }  // 백그라운드 갱신 + 캐시 저장
+      } catch { if (alive && !cached) setErr('트렌드를 불러오지 못했어요.') }
       finally { if (alive) setLoading(false) }
     })()
     return () => { alive = false }
