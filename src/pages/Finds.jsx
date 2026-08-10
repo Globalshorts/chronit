@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, Link } from 'react-router-dom'
 import { Search, Loader2, AlertTriangle, Flame, Eye, Heart, MessageCircle, Sparkles, X, Copy, Check } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
+import SiteNav from '../components/SiteNav'
 
 // ⚠️ Finds = 기존 영상분석 뷰(클립 그리드 + 재생)를 복제한 독립 페이지.
 //    VideoGenerator는 건드리지 않음(회귀 위험 0). '담기' 대신 '분석하기' 모달로 대체.
@@ -239,6 +240,19 @@ export default function Finds() {
 
   return (
     <div className="min-h-screen bg-white">
+      <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/90 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
+          <Link to="/" className="flex items-center gap-2">
+            <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-8 w-8" />
+            <span className="text-lg font-extrabold text-slate-900">Chronit</span>
+          </Link>
+          <SiteNav />
+          <div className="flex items-center gap-2">
+            <Link to="/" className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-bold text-slate-600 transition-colors hover:border-slate-400">홈</Link>
+            {session && <Link to="/me" className="rounded-full bg-slate-900 px-3 py-1.5 text-sm font-bold text-white">마이</Link>}
+          </div>
+        </div>
+      </header>
       <div className="mx-auto max-w-6xl px-4 py-8">
         <header className="mb-6">
           <div className="flex items-center gap-2 text-[#0064FF]">
