@@ -461,6 +461,7 @@ const Home = () => {
         <div className="border-b border-gray-200 bg-white px-6 py-6 shadow-lg overflow-y-auto overscroll-contain" style={{ maxHeight: `calc(100dvh - ${bannerH + 76}px)` }}>
           <nav className="flex flex-col gap-1 text-lg font-bold text-gray-700">
             <Link to="/finds" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 font-extrabold text-[#0064FF] transition-colors hover:bg-[#0064FF]/5">🔎 Finds — 터지는 영상 찾기</Link>
+            <Link to="/trend" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 font-extrabold text-[#0064FF] transition-colors hover:bg-[#0064FF]/5">🔥 실시간 트렌드</Link>
             <a href="#features" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#0064FF]">기능</a>
             <a href="#faq" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#0064FF]">자주 묻는 질문</a>
             <Link to="/manual" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#0064FF]">사용 방법</Link>

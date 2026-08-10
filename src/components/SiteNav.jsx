@@ -8,6 +8,7 @@ import { ChevronDown } from 'lucide-react'
  */
 export const SITE_MENUS = [
   { key: 'finds', label: 'Finds', to: '/finds' },
+  { key: 'trend', label: '트렌드', to: '/trend' },
   { key: 'features', label: '기능', to: '/#features' },
   { key: 'pricing', label: '가격 안내', to: '/#pricing' },
   { key: 'faq', label: '자주 묻는 질문', to: '/#faq' },
