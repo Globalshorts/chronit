@@ -24,6 +24,7 @@ import DmAutomation from './pages/DmAutomation'
 import PaymentResult from './pages/PaymentResult'
 import ErrorBoundary from './components/ErrorBoundary'
 import ErrorReportModal from './components/ErrorReportModal'
+import AdminFab from './components/AdminFab'
 import { installGlobalErrorCapture } from './lib/errorReport'
 import { supabase } from './lib/supabase'
 import { trackSignupIfNew } from './lib/trackSignup'
@@ -80,6 +81,7 @@ const App = () => {
   <BrowserRouter>
     <ScrollToTop />
     <ErrorReportModal />
+    <AdminFab />
     <ErrorBoundary>
     <Routes>
       <Route path="/" element={<Home />} />

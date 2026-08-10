@@ -7,6 +7,7 @@ import { ChevronDown } from 'lucide-react'
  * 모바일에서는 각 헤더의 햄버거 메뉴를 사용(이 컴포넌트는 md+에서만 표시).
  */
 export const SITE_MENUS = [
+  { key: 'finds', label: 'Finds', to: '/finds' },
   { key: 'features', label: '기능', to: '/#features' },
   { key: 'pricing', label: '가격 안내', to: '/#pricing' },
   { key: 'faq', label: '자주 묻는 질문', to: '/#faq' },
