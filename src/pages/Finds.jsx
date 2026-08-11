@@ -3,6 +3,7 @@ import { Navigate, Link } from 'react-router-dom'
 import { Search, Loader2, AlertTriangle, Flame, Eye, Heart, MessageCircle, Sparkles, X, Copy, Check } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
+import FindsPricing from '../components/FindsPricing'
 import SiteNav from '../components/SiteNav'
 
 // ⚠️ Finds = 기존 영상분석 뷰(클립 그리드 + 재생)를 복제한 독립 페이지.
@@ -339,15 +340,7 @@ export default function Finds() {
       </div>
 
       {modalClip && <AnalyzeModal clip={modalClip} onClose={() => setModalClip(null)} />}
-      {payWall && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setPayWall(false)}>
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-2 text-lg font-extrabold text-slate-900">이용권을 다 썼어요</div>
-            <p className="mb-5 text-sm text-slate-500">무료 이용권을 모두 사용했어요. 이용권 충전은 곧 열려요.</p>
-            <button onClick={() => setPayWall(false)} className="w-full rounded-xl bg-[#0064FF] py-3 text-sm font-bold text-white">확인</button>
-          </div>
-        </div>
-      )}
+      <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
     </div>
   )
 }
