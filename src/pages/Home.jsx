@@ -467,8 +467,8 @@ const Home = () => {
       <div className={`fixed top-0 left-0 right-0 z-40 transform transition-all duration-300 ease-in-out md:hidden ${menuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`} style={{ paddingTop: `${bannerH + 76}px` }}>
         <div className="border-b border-gray-200 bg-white px-6 py-6 shadow-lg overflow-y-auto overscroll-contain" style={{ maxHeight: `calc(100dvh - ${bannerH + 76}px)` }}>
           <nav className="flex flex-col gap-1 text-lg font-bold text-gray-700">
-            <Link to="/finds" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 font-extrabold text-[#0064FF] transition-colors hover:bg-[#0064FF]/5">🔎 Finds — 터지는 영상 찾기</Link>
-            <Link to="/trend" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 font-extrabold text-[#0064FF] transition-colors hover:bg-[#0064FF]/5">🔥 실시간 트렌드</Link>
+            <Link to="/finds" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 font-semibold text-[#0064FF] transition-colors hover:bg-[#0064FF]/5">Finds — 터지는 영상 찾기</Link>
+            <Link to="/trend" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 font-semibold text-[#0064FF] transition-colors hover:bg-[#0064FF]/5">실시간 트렌드</Link>
             <a href="#features" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#0064FF]">기능</a>
             <a href="#faq" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#0064FF]">자주 묻는 질문</a>
             <Link to="/manual" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#0064FF]">사용 방법</Link>
@@ -524,10 +524,10 @@ const Home = () => {
               </div>
             )}
             {!user && (<>
-            <div key={badgeIdx} className="tip-fade mb-6 inline-flex items-center gap-2 rounded-full border border-[#0064FF]/30 bg-[#0064FF]/10 px-4 py-2 text-sm font-bold text-[#0064FF] md:text-base">
+            <div key={badgeIdx} className="tip-fade mb-6 inline-flex items-center gap-2 rounded-full border border-[#0064FF]/30 bg-[#0064FF]/10 px-4 py-2 text-sm font-medium text-[#0064FF] md:text-base">
               {curBadge.icon} {curBadge.text}
             </div>
-            <h1 className="mb-5 text-4xl font-black leading-[1.15] tracking-tight text-gray-900 break-keep md:text-6xl">
+            <h1 className="mb-5 text-4xl font-bold leading-[1.15] tracking-tight text-gray-900 break-keep md:text-6xl">
               <span className="bg-gradient-to-r from-[#0064FF] to-[#06B6D4] bg-clip-text text-transparent">터지는 소스</span>를<br />찾으세요
             </h1>
             <p className="mx-auto mb-9 max-w-md text-lg font-bold text-gray-500 break-keep md:max-w-none md:text-2xl">
