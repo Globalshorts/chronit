@@ -201,9 +201,12 @@ export default function Finds() {
     setError(''); setSearching(true); setClips([]); setRelatedKw([])
     try {
       let sess = (await supabase.auth.getSession()).data.session
-      if (!sess) { sess = (await supabase.auth.signInAnonymously()).data?.session ?? null }
+      if (!sess) {
+        const _r = await supabase.auth.signInAnonymously()
+        sess = _r.data?.session ?? null
+        if (!sess) { setError('세션 오류: ' + (_r.error?.message || '익명 로그인 실패')); setSearching(false); return }
+      }
       const s = sess
-      if (!s) { setError('일시적 오류예요. 잠시 후 다시 시도해주세요.'); setSearching(false); return }
       const headers = { Authorization: `Bearer ${s.access_token}`, 'Content-Type': 'application/json' }
 
       let refFrames = []
