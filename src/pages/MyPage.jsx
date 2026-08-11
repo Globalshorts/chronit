@@ -22,7 +22,7 @@ const MyPage = () => {
   const [redeemMsg, setRedeemMsg] = useState(null)
   const [redeeming, setRedeeming] = useState(false)
 
-  useEffect(() => { supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null)) }, [])
+  useEffect(() => { supabase.auth.getSession().then(({ data }) => { const u = data.session?.user; setUser(u && u.is_anonymous !== true ? u : null) }) }, [])
 
   const load = async (uid) => {
     const [{ data: prof }, { data: bal }, { data: ps }, { data: cs }, { data: refi }] = await Promise.all([
@@ -61,7 +61,7 @@ const MyPage = () => {
     <div className="min-h-screen bg-[#FAFAF8] font-sans"><CommunityHeader active="me" />
       <div className="flex min-h-[70vh] flex-col items-center justify-center gap-4 px-5 text-center">
         <p className="text-lg font-bold">로그인이 필요해요</p>
-        <button onClick={() => nav('/generate')} className="rounded-full bg-[#0064FF] px-6 py-2.5 font-bold text-white">로그인하러 가기</button>
+        <button onClick={() => nav('/')} className="rounded-full bg-[#0064FF] px-6 py-2.5 font-bold text-white">로그인하러 가기</button>
       </div>
     </div>
   )

@@ -23,6 +23,7 @@ export default function Trend() {
   const [err, setErr] = useState('')
   const [sort, setSort] = useState('recent')
   const [range, setRange] = useState(7)
+  const isReal = !!session && session.user?.is_anonymous !== true
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
@@ -31,7 +32,7 @@ export default function Trend() {
   }, [])
 
   useEffect(() => {
-    if (!session) return
+    if (!isReal) return
     const cached = readTrendCache()
     if (cached) setItems(cached.items)                       // 캐시 있으면 즉시 표시(스피너 없음)
     if (cached && Date.now() - cached.at < TREND_TTL) return  // 신선하면 재요청 스킵
@@ -72,7 +73,7 @@ export default function Trend() {
           <SiteNav />
           <div className="flex items-center gap-2">
             <Link to="/" className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-bold text-slate-600 transition-colors hover:border-slate-400">홈</Link>
-            {session && <Link to="/me" className="rounded-full bg-slate-900 px-3 py-1.5 text-sm font-bold text-white">마이</Link>}
+            {isReal && <Link to="/me" className="rounded-full bg-slate-900 px-3 py-1.5 text-sm font-bold text-white">마이</Link>}
           </div>
         </div>
       </header>
@@ -93,7 +94,7 @@ export default function Trend() {
           ))}
         </div>
 
-        {!session ? (
+        {!isReal ? (
           <div className="rounded-2xl border border-slate-100 bg-slate-50 p-10 text-center">
             <p className="font-bold text-slate-600">로그인하면 실시간 트렌드를 볼 수 있어요.</p>
             <Link to="/" className="mt-3 inline-block rounded-full bg-[#0064FF] px-5 py-2 text-sm font-bold text-white">로그인하러 가기</Link>
