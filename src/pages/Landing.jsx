@@ -36,6 +36,7 @@ export default function Landing() {
     // 로그인 유저는 랜딩에 가두지 않고 바로 앱(신규는 /register 온보딩)으로 — '이중 랜딩' 이탈 방지
     const forward = (session) => {
       if (!session) { setSession(null); return }
+      if (session.user?.is_anonymous) { setSession(session); return }
       supabase.from('profiles').select('onboarded').eq('id', session.user.id).maybeSingle()
         .then(({ data: prof }) => { window.location.href = (prof && prof.onboarded === false) ? '/register' : '/generate' })
         .catch(() => { window.location.href = '/generate' })

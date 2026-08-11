@@ -281,7 +281,7 @@ const Home = () => {
         // (시간 휴리스틱 대신 onboarded 기준 — 방금 가입한 계정이 계속 /register로 튕기던 버그 수정)
         supabase.from('profiles').select('onboarded').eq('id', session.user.id).maybeSingle()
           .then(({ data: prof }) => {
-            if (prof && prof.onboarded === false) {
+            if (prof && prof.onboarded === false && !session?.user?.is_anonymous) {
               // 추천 코드(chronit_ref)는 /register에서 적용/정리함
               window.location.href = '/register'
             } else {
@@ -588,18 +588,25 @@ const Home = () => {
             <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">소싱, 혼자 다 하기 벅차죠</h2>
             <p className="mt-3 text-base text-gray-500 md:text-lg">크로닛이 그 시간과 비용을 돌려드려요.</p>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {[
-              { pain: '매일 뭐 올릴지, 소스 찾다 보면 한두 시간이 훅 가요', sol: '터지는 소스를 몇 초 만에 찾아드려요.' },
-              { pain: '외주 맡기자니 비싸고, 혼자 하자니 벅차요', sol: '월 9,900원부터, 직접 빠르게 하세요.' },
-              { pain: '감으로 올리는데, 뭐가 터질지 진짜 모르겠어요', sol: '검증된 소스에 왜 터졌는지까지 알려드려요.' },
-            ].map(({ pain, sol }) => (
-              <div key={pain} className="flex flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">
-                <p className="text-[15px] font-medium leading-relaxed text-gray-400">“{pain}”</p>
-                <div className="my-4 h-px w-full bg-gray-100" />
-                <p className="text-[15px] font-semibold leading-relaxed text-gray-900">{sol}</p>
-              </div>
-            ))}
+          <div className="mx-auto max-w-lg space-y-2.5">
+            <div className="flex items-end gap-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-200 text-[11px] font-bold text-gray-500">셀러</div>
+              <div className="max-w-[82%] rounded-2xl rounded-bl-md bg-white px-4 py-2.5 text-[15px] leading-relaxed text-gray-800 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">매일 뭐 올릴지, 소스 찾다 보면 한두 시간이 훅 가요…</div>
+            </div>
+            <div className="flex items-end gap-2">
+              <div className="h-8 w-8 shrink-0" />
+              <div className="max-w-[82%] rounded-2xl rounded-bl-md bg-white px-4 py-2.5 text-[15px] leading-relaxed text-gray-800 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">외주 맡기자니 1건에 1~2만원인데, 매일 올리려니 부담이에요</div>
+            </div>
+            <div className="flex items-end gap-2">
+              <div className="h-8 w-8 shrink-0" />
+              <div className="max-w-[82%] rounded-2xl rounded-bl-md bg-white px-4 py-2.5 text-[15px] leading-relaxed text-gray-800 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">감으로 올리는데, 뭐가 터질지 진짜 모르겠어요</div>
+            </div>
+            <div className="flex items-end justify-end gap-2 pt-3">
+              <div className="max-w-[82%] rounded-2xl rounded-br-md bg-[#0064FF] px-4 py-2.5 text-[15px] font-medium leading-relaxed text-white">그거, 크로닛이 다 풀어드려요</div>
+            </div>
+            <div className="flex items-end justify-end gap-2">
+              <div className="max-w-[82%] rounded-2xl rounded-br-md bg-[#0064FF] px-4 py-2.5 text-[15px] font-medium leading-relaxed text-white">터지는 소스를 몇 초 만에 찾고, 왜 터졌는지까지 분석해드려요</div>
+            </div>
           </div>
         </Reveal>
       </section>
