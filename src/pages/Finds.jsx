@@ -183,7 +183,8 @@ export default function Finds() {
 
   // 분석하기 = 이용권 -1 (세션 내 같은 클립 재분석은 무과금). 부족하면 페이월.
   const handleAnalyze = async (clip) => {
-    if (!session) { setError('로그인이 필요합니다'); return }
+    // 익명은 분석(유료) 불가 — 진짜 로그인 필요. (검색은 익명 OK)
+    if (!session || session.user?.is_anonymous) { setError('로그인하면 분석할 수 있어요'); return }
     if (analyzedIds.includes(clip.video_id)) { setModalClip(clip); return }
     const { data } = await supabase.rpc('use_finds_credit_rpc')
     if (!data?.ok) { setPayWall(true); return }
