@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
 import SiteNav from '../components/SiteNav'
 import { AnalyzeModal } from './Finds'
+import AuthModal from '../components/AuthModal'
 import FindsPricing from '../components/FindsPricing'
 
 // 기존 "오늘의 트렌드"(VideoGenerator) 데이터 로딩을 재사용한 독립 페이지 + pint 스타일 대시보드.
@@ -28,6 +29,7 @@ export default function Trend() {
   const [modalClip, setModalClip] = useState(null)
   const [payWall, setPayWall] = useState(false)
   const [analyzedIds, setAnalyzedIds] = useState([])
+  const [showAuth, setShowAuth] = useState(false)
   const isReal = !!session && session.user?.is_anonymous !== true
 
   const handleAnalyze = async (clip) => {
@@ -111,7 +113,7 @@ export default function Trend() {
         {!isReal ? (
           <div className="rounded-2xl border border-slate-100 bg-slate-50 p-10 text-center">
             <p className="font-bold text-slate-600">로그인하면 실시간 트렌드를 볼 수 있어요.</p>
-            <Link to="/" className="mt-3 inline-block rounded-full bg-[#0064FF] px-5 py-2 text-sm font-bold text-white">로그인하러 가기</Link>
+            <button onClick={() => setShowAuth(true)} className="mt-3 inline-block rounded-full bg-[#0064FF] px-5 py-2 text-sm font-bold text-white">로그인하러 가기</button>
           </div>
         ) : loading ? (
           <div className="flex items-center gap-2 py-10 text-slate-400"><Loader2 size={16} className="animate-spin" />트렌드 불러오는 중…</div>
@@ -146,6 +148,7 @@ export default function Trend() {
       </div>
       {modalClip && <AnalyzeModal clip={modalClip} onClose={() => setModalClip(null)} />}
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
+      <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
     </div>
   )
 }
