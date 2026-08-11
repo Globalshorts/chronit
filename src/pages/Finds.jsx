@@ -162,6 +162,9 @@ export default function Finds() {
   const [searching, setSearching] = useState(false)
   const [error, setError] = useState('')
   const [modalClip, setModalClip] = useState(null)
+  const [analyzedIds, setAnalyzedIds] = useState([])
+  const [balance, setBalance] = useState(null)
+  const [payWall, setPayWall] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
@@ -169,8 +172,24 @@ export default function Finds() {
     return () => { try { sub.subscription.unsubscribe() } catch { /* noop */ } }
   }, [])
 
+  useEffect(() => {
+    if (!session) { setBalance(null); return }
+    supabase.rpc('get_my_balance_rpc').then(({ data }) => { if (data) setBalance(data.balance ?? 0) })
+  }, [session])
+
   // 스텔스 게이트 (모든 훅 이후)
   if (!FEATURES.finds) return <Navigate to="/" replace />
+
+  // 분석하기 = 이용권 -1 (세션 내 같은 클립 재분석은 무과금). 부족하면 페이월.
+  const handleAnalyze = async (clip) => {
+    if (!session) { setError('로그인이 필요합니다'); return }
+    if (analyzedIds.includes(clip.video_id)) { setModalClip(clip); return }
+    const { data } = await supabase.rpc('use_finds_credit_rpc')
+    if (!data?.ok) { setPayWall(true); return }
+    setBalance(data.balance)
+    setAnalyzedIds((prev) => [...prev, clip.video_id])
+    setModalClip(clip)
+  }
 
   // ── 검색/분석: submit → poll → (틱톡+샤오홍슈 병렬) → clip-filter ──
   // (이용권/과금 로직은 이 페이지에 아직 적용하지 않음 — 추후 별도 반영)
@@ -265,6 +284,11 @@ export default function Finds() {
           </p>
         </header>
 
+        {session && balance !== null && (
+          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+            <Sparkles size={12} /> 남은 이용권 {balance}
+          </div>
+        )}
         <div className="flex flex-col gap-2 sm:flex-row">
           <input value={sourceUrl} onChange={(e) => setSourceUrl(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') analyze() }}
             placeholder="틱톡·유튜브·인스타 링크를 붙여넣으세요"
@@ -306,7 +330,7 @@ export default function Finds() {
 
         {/* 클립 그리드 — 한 줄 4개 */}
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {clips.map((c) => <FindCard key={c.video_id} clip={c} onAnalyze={setModalClip} />)}
+          {clips.map((c) => <FindCard key={c.video_id} clip={c} onAnalyze={handleAnalyze} />)}
         </div>
 
         {!searching && clips.length === 0 && !error && (
@@ -315,6 +339,15 @@ export default function Finds() {
       </div>
 
       {modalClip && <AnalyzeModal clip={modalClip} onClose={() => setModalClip(null)} />}
+      {payWall && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setPayWall(false)}>
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-2 text-lg font-extrabold text-slate-900">이용권을 다 썼어요</div>
+            <p className="mb-5 text-sm text-slate-500">무료 이용권을 모두 사용했어요. 이용권 충전은 곧 열려요.</p>
+            <button onClick={() => setPayWall(false)} className="w-full rounded-xl bg-[#0064FF] py-3 text-sm font-bold text-white">확인</button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
