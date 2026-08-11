@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Navigate, Link } from 'react-router-dom'
-import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2 } from 'lucide-react'
+import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
 import SiteNav from '../components/SiteNav'
+import { AnalyzeModal } from './Finds'
+import FindsPricing from '../components/FindsPricing'
 
 // 기존 "오늘의 트렌드"(VideoGenerator) 데이터 로딩을 재사용한 독립 페이지 + pint 스타일 대시보드.
 const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
@@ -23,7 +25,19 @@ export default function Trend() {
   const [err, setErr] = useState('')
   const [sort, setSort] = useState('recent')
   const [range, setRange] = useState(7)
+  const [modalClip, setModalClip] = useState(null)
+  const [payWall, setPayWall] = useState(false)
+  const [analyzedIds, setAnalyzedIds] = useState([])
   const isReal = !!session && session.user?.is_anonymous !== true
+
+  const handleAnalyze = async (clip) => {
+    const key = clip.page_url || clip.title
+    if (analyzedIds.includes(key)) { setModalClip(clip); return }
+    const { data } = await supabase.rpc('use_finds_credit_rpc')
+    if (!data?.ok) { setPayWall(true); return }
+    setAnalyzedIds((prev) => [...prev, key])
+    setModalClip(clip)
+  }
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
@@ -104,29 +118,34 @@ export default function Trend() {
         ) : err ? (
           <div className="py-10 text-red-500">{err}</div>
         ) : (
-          <div className="flex flex-col divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100">
-            {list.map((it, i) => (
-              <a key={it.shortcode || i} href={it.url} target="_blank" rel="noreferrer noopener" className="flex items-center gap-3 p-3 transition-colors hover:bg-slate-50">
-                <span className="w-6 shrink-0 text-center text-sm font-extrabold text-slate-400">{i + 1}</span>
-                <div className="h-16 w-12 shrink-0 overflow-hidden rounded-lg bg-slate-100">
-                  {it.thumbnail_url ? <img src={it.thumbnail_url} referrerPolicy="no-referrer" loading="lazy" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none' }} /> : null}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {list.map((it, i) => {
+              const clip = { title: it.caption, source: 'instagram', thumbnail_url: it.thumbnail_url, author: it.owner, views: it.view_count, likes: it.like_count, comments: it.comment_count, page_url: it.url }
+              return (
+                <div key={it.shortcode || i} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                  <a href={it.url} target="_blank" rel="noreferrer noopener" className="relative block aspect-[9/16] bg-slate-100">
+                    {it.thumbnail_url ? <img src={it.thumbnail_url} referrerPolicy="no-referrer" loading="lazy" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none' }} /> : null}
+                    <div className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">#{i + 1}</div>
+                  </a>
+                  <div className="p-2">
+                    <div className="mb-1.5 flex items-center gap-2 text-[11px] text-slate-500">
+                      <span className="flex items-center gap-0.5"><Eye size={11} />{fmt(it.view_count)}</span>
+                      <span className="flex items-center gap-0.5"><Heart size={11} />{fmt(it.like_count)}</span>
+                    </div>
+                    <div className="flex gap-1.5">
+                      <button onClick={() => handleAnalyze(clip)} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Sparkles size={12} />분석</button>
+                      <button onClick={() => { window.location.href = '/finds?url=' + encodeURIComponent(it.url) }} className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-slate-200 py-1.5 text-xs font-bold text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]">비슷한 소스</button>
+                    </div>
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="line-clamp-2 text-sm font-medium text-slate-800">{it.caption || '(설명 없음)'}</p>
-                  <p className="mt-0.5 text-xs text-slate-400">@{it.owner || '?'}{it.taken_at ? ` · ${Math.max(0, Math.floor((now - new Date(it.taken_at).getTime()) / 86400000))}일 전` : ''}</p>
-                </div>
-                <div className="hidden shrink-0 items-center gap-3 text-xs text-slate-500 sm:flex">
-                  <span className="flex items-center gap-1"><Eye size={13} />{fmt(it.view_count)}</span>
-                  <span className="flex items-center gap-1"><Heart size={13} />{fmt(it.like_count)}</span>
-                  <span className="flex items-center gap-1"><MessageCircle size={13} />{fmt(it.comment_count)}</span>
-                </div>
-                <ExternalLink size={14} className="shrink-0 text-slate-300" />
-              </a>
-            ))}
-            {!list.length && <div className="p-10 text-center text-sm text-slate-400">해당 기간에 트렌드가 없어요.</div>}
+              )
+            })}
+            {!list.length && <div className="col-span-full p-10 text-center text-sm text-slate-400">해당 기간에 트렌드가 없어요.</div>}
           </div>
         )}
       </div>
+      {modalClip && <AnalyzeModal clip={modalClip} onClose={() => setModalClip(null)} />}
+      <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
     </div>
   )
 }

@@ -69,7 +69,7 @@ function FindCard({ clip, onAnalyze }) {
 }
 
 // ── 분석 팝업(모달) ──
-function AnalyzeModal({ clip, onClose }) {
+export function AnalyzeModal({ clip, onClose }) {
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(true)
   const [result, setResult] = useState(null)
@@ -177,6 +177,11 @@ export default function Finds() {
     })
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
     return () => { try { sub.subscription.unsubscribe() } catch { /* noop */ } }
+  }, [])
+
+  useEffect(() => {
+    const u = new URLSearchParams(window.location.search).get('url')
+    if (u) { setSourceUrl(u); setTimeout(() => analyze(u), 0) }
   }, [])
 
   useEffect(() => {
