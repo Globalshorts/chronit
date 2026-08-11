@@ -1720,7 +1720,7 @@ export default function VideoGenerator() {
       <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-16 w-16 animate-pulse" />
     </div>
   );
-  if (!session) return (
+  if (!session || (session.user as any)?.is_anonymous) return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-6 bg-[#FAFAF8]">
       <h1 className="text-2xl font-bold text-gray-900">로그인이 필요합니다</h1>
       <button onClick={() => supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin + window.location.pathname } })}

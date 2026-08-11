@@ -27,7 +27,8 @@ const BoardWrite = () => {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      const u = data.session?.user ?? null
+      const _u = data.session?.user ?? null
+      const u = _u && _u.is_anonymous !== true ? _u : null
       setUser(u)
       if (!u) { setRole(null); return }
       supabase.from('subscriptions').select('role').eq('user_id', u.id).maybeSingle()

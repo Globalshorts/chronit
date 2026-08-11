@@ -448,6 +448,7 @@ export function LinkPageManager({ session }) {
 export default function LinksManager() {
   const [session, setSession] = useState(null)
   const [authReady, setAuthReady] = useState(false)
+  const isReal = !!session && session.user?.is_anonymous !== true
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => { setSession(data.session); setAuthReady(true) })
@@ -458,7 +459,7 @@ export default function LinksManager() {
   if (!authReady)
     return <div className="flex min-h-screen items-center justify-center bg-[#ECEAE3]"><div className="h-8 w-8 animate-spin rounded-full border-2 border-[#0064FF] border-t-transparent" /></div>
 
-  if (!session)
+  if (!isReal)
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-5 bg-[#ECEAE3] px-6 text-center">
         <h1 className="text-2xl font-bold text-gray-900">로그인이 필요해요</h1>

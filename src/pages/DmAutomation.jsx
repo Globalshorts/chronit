@@ -71,7 +71,8 @@ export default function DmAutomation({ userPlan, userRole }) {
 
   useEffect(() => {
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user: _u } } = await supabase.auth.getUser()
+      const user = _u && _u.is_anonymous !== true ? _u : null
       if (!user) { setLoading(false); return }
       setUser(user)
       const p = new URLSearchParams(window.location.search)
