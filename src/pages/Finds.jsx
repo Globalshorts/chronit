@@ -162,6 +162,7 @@ export default function Finds() {
   const [searching, setSearching] = useState(false)
   const [error, setError] = useState('')
   const [modalClip, setModalClip] = useState(null)
+  const [relatedKw, setRelatedKw] = useState([])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
@@ -178,7 +179,7 @@ export default function Finds() {
     const su = (typeof override === 'string' ? override : sourceUrl).trim()
     if (!su) { setError('링크나 키워드를 입력해주세요'); return }
     const isUrl = isValidUrl(su)
-    setError(''); setSearching(true); setClips([])
+    setError(''); setSearching(true); setClips([]); setRelatedKw([])
     try {
       const { data: { session: s } } = await supabase.auth.getSession()
       if (!s) { setError('로그인이 필요합니다'); setSearching(false); return }
@@ -243,6 +244,15 @@ export default function Finds() {
       }
       // 지표 필드 정규화(있으면 사용)
       setClips(finalClips.map((c) => ({ ...c, views: c.views ?? c.view_count ?? c.play_count, likes: c.likes ?? c.like_count ?? c.digg_count, comments: c.comments ?? c.comment_count ?? c.comments_count })))
+
+      const kwForRelated = isUrl ? (searchArgs.keyword || '') : su
+      if (kwForRelated) {
+        try {
+          const rr = await fetch(FN('related-keywords'), { method: 'POST', headers, body: JSON.stringify({ keyword: kwForRelated }) })
+          const rd = await rr.json()
+          if (rd?.ok && Array.isArray(rd.keywords)) setRelatedKw(rd.keywords.filter((k) => k && k !== kwForRelated))
+        } catch { /* noop */ }
+      }
     } catch {
       setError('분석 중 일시적인 오류가 있었어요. 잠시 후 다시 시도해 주세요.')
     } finally {
@@ -287,10 +297,10 @@ export default function Finds() {
           </button>
         </div>
 
-        {!searching && clips.length === 0 && (
+        {(relatedKw.length > 0 || (!searching && clips.length === 0)) && (
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            <span className="mr-1 text-xs text-slate-400">추천</span>
-            {['살림템', '주방템', '자취템', '청소템', '수납템', '다이어트', '캠핑', '인테리어'].map((k) => (
+            <span className="mr-1 text-xs text-slate-400">{relatedKw.length ? '연관' : '추천'}</span>
+            {(relatedKw.length ? relatedKw : ['살림템', '주방템', '자취템', '청소템', '수납템', '다이어트', '캠핑', '인테리어']).map((k) => (
               <button key={k} onClick={() => { setSourceUrl(k); analyze(k) }}
                 className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]">#{k}</button>
             ))}
