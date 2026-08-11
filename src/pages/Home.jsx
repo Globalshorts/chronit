@@ -550,11 +550,6 @@ const Home = () => {
                 ) : null}
               </div>
             )}
-            {!user && (
-              <div className="mt-8 w-full max-w-2xl">
-                <TimeLossCalculator onStart={handleStart} />
-              </div>
-            )}
           </div>
         </div>
       </section>
