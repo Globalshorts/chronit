@@ -542,6 +542,12 @@ const Home = () => {
                   소스 발굴 시작 →
                 </button>
                 <Link to="/trend" className="text-sm font-medium text-gray-400 transition-colors hover:text-[#0064FF]">트렌드 먼저 보기 →</Link>
+                {stats?.clips ? (
+                  <p className="mt-2 text-xs text-gray-400 break-keep">
+                    <Search size={12} className="mr-1 inline align-[-1px]" />
+                    지금까지 <span className="font-bold text-gray-500">{Number(stats.clips).toLocaleString('ko-KR')}개</span> 클립 발굴 · 큐레이터 <span className="font-bold text-gray-500">{Number(stats.curators).toLocaleString('ko-KR')}곳</span> 추적 중
+                  </p>
+                ) : null}
               </div>
             )}
             {!user && (
