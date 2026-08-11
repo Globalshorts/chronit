@@ -559,43 +559,49 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 실행 → 완성 데모 (앱 실행 3:4 → 완성 릴스 9:16) */}
-      <div className="px-5 pt-12 md:px-8 md:pt-16">
-        <div className="mx-auto flex max-w-2xl items-center justify-center gap-2 sm:gap-4 md:gap-6">
-          <div className="flex flex-col items-center gap-2">
-            <video src="/phone-demo.mp4" muted loop playsInline autoPlay preload="metadata"
-              className="h-[190px] w-auto rounded-2xl border border-gray-200 shadow-[0_12px_30px_-12px_rgba(0,0,0,0.25)] sm:h-[320px] md:h-[440px]" />
-            <span className="text-xs font-bold text-gray-500 sm:text-sm">링크만 넣으면</span>
+      {/* ── 작동 방식 3스텝 ── */}
+      <section className="px-5 pt-14 pb-2 md:px-8 md:pt-20">
+        <Reveal className="mx-auto max-w-4xl">
+          <div className="mb-10 text-center">
+            <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">3단계면 끝나요</h2>
+            <p className="mt-3 text-base text-gray-500 md:text-lg">복잡한 소싱을, 링크 하나로.</p>
           </div>
-          <ArrowRight className="shrink-0 text-[#0064FF]" size={26} strokeWidth={2.6} />
-          <div className="flex flex-col items-center gap-2">
-            <video src="/demo6.mp4" muted loop playsInline autoPlay preload="metadata"
-              className="h-[190px] w-auto rounded-2xl border border-gray-200 shadow-[0_12px_30px_-12px_rgba(0,0,0,0.25)] sm:h-[320px] md:h-[440px]" />
-            <span className="text-xs font-bold text-gray-500 sm:text-sm">완성</span>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {[
+              { n: '1', Icon: Zap, title: '링크·키워드 입력', desc: '틱톡·유튜브·인스타 링크나 키워드만 넣어요.' },
+              { n: '2', Icon: Search, title: '터지는 소스 발굴', desc: '샤오훙슈·틱톡에서 검증된 소스를 찾아드려요.' },
+              { n: '3', Icon: Sparkles, title: '왜 터졌는지 분석', desc: '훅·셀링포인트·구성을 짚어 바로 활용해요.' },
+            ].map(({ n, Icon, title, desc }) => (
+              <div key={n} className="rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0064FF]/[0.08] text-[#0064FF]"><Icon size={20} strokeWidth={2.1} /></div>
+                  <span className="text-2xl font-bold text-gray-200">{n}</span>
+                </div>
+                <h3 className="mb-1.5 text-lg font-semibold text-gray-900">{title}</h3>
+                <p className="text-sm leading-relaxed text-gray-500">{desc}</p>
+              </div>
+            ))}
           </div>
-        </div>
-      </div>
+        </Reveal>
+      </section>
 
 
-      {/* ── 기능 소개 (서비스 구성) ── */}
+      {/* ── 왜 Finds인가 ── */}
       <section id="features" style={{ scrollMarginTop: '200px' }} className="px-5 py-16 md:px-8 md:py-24">
         <Reveal className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">링크 한 번 넣으면, 이걸 다 해드려요</h2>
-            <p className="mt-3 text-lg text-gray-500 md:text-xl">제작에 필요한 과정을 크로닛이 자동으로 처리해요</p>
+            <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">감이 아니라, 데이터로</h2>
+            <p className="mt-3 text-base text-gray-500 md:text-lg">잘 파는 셀러는 소스부터 다릅니다.</p>
           </div>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {[
-              { Icon: Search, title: '상품 자동 분석', desc: '영상 속 상품을 인식해 관련 클립을 찾아줘요.' },
-              { Icon: Captions, title: 'AI 자동 자막', desc: '음성을 인식해 자막을 자동으로 만들어 넣어드려요.' },
-              { Icon: Mic, title: 'AI 음성', desc: '자연스러운 한국어 나레이션을 자동으로 생성해요.' },
-              { Icon: Scissors, title: '자동 컷편집', desc: '숏폼 길이에 맞춰 영상을 자동으로 잘라 구성해요.' },
-              { Icon: Palette, title: '스타일·썸네일 프리셋', desc: '자막·썸네일 스타일을 골라 일관된 톤으로 완성해요.' },
-              { Icon: Zap, title: '편집 없이 빠르게', desc: '영상만 넣으면 몇 분 뒤 완성 — 매일 여러 개도 거뜬해요.' },
+              { Icon: Zap, title: '남들보다 먼저', desc: '이미 유명한 게 아니라, 지금 막 터지는 소스를 먼저 발굴해요.' },
+              { Icon: Search, title: '검증된 소스만', desc: '조회수·반응으로 검증된 영상만 골라, 헛수고 없이 바로 씁니다.' },
+              { Icon: Sparkles, title: '왜 터졌는지까지', desc: '훅·셀링포인트·구성을 분석해 그대로 벤치마크할 수 있어요.' },
             ].map(({ Icon, title, desc }) => (
-              <div key={title} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-0.5 hover:border-[#0064FF]/40 hover:shadow-[0_12px_32px_rgba(0,100,255,0.10)]">
-                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0064FF]/10 text-[#0064FF]"><Icon size={22} strokeWidth={2.2} /></div>
-                <h3 className="mb-1.5 text-lg font-bold text-gray-900">{title}</h3>
+              <div key={title} className="rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[#0064FF]/[0.08] text-[#0064FF]"><Icon size={20} strokeWidth={2.1} /></div>
+                <h3 className="mb-1.5 text-lg font-semibold text-gray-900">{title}</h3>
                 <p className="text-sm leading-relaxed text-gray-500">{desc}</p>
               </div>
             ))}
@@ -610,14 +616,14 @@ const Home = () => {
           </div>
           <div className="space-y-4">
             {[
-              { q: '만든 영상은 어디에 올리나요?', a: '완성본은 파일로 저장돼요. 인스타그램 릴스·틱톡·유튜브 쇼츠 등 원하는 채널에 자유롭게 업로드하시면 됩니다.' },
-              { q: '영상 스타일이나 음성을 고를 수 있나요?', a: '네. 감성 리뷰·다이나믹 언박싱 같은 스타일과 여러 AI 음성 중에서 골라, 채널 톤에 맞게 만들 수 있어요.' },
-              { q: '영상은 얼마나 빨리 만들어지나요?', a: '보통 영상 하나에 3~5분. 만드는 동안 창을 닫거나 다른 일을 하셔도 계속 생성되고, 완성되면 생성 내역에서 받을 수 있어요.' },
-              { q: '환불 규정은 어떻게 되나요?', a: '디지털 콘텐츠 특성상 영상을 1회라도 생성하면 환불이 어렵습니다. 이용 이력이 전혀 없는 경우 결제일로부터 7일 이내 전액 환불이 가능합니다.' },
+              { q: '저작권 문제는 없나요?', a: '크로닛은 벤치마킹·리서치를 위한 소스 발굴과 분석을 제공해요. 원본 콘텐츠의 저작권은 원저작자에게 있으며, 사용 권한이 있는 콘텐츠만 활용해 주세요.' },
+              { q: '어떤 플랫폼의 소스를 찾아주나요?', a: '샤오훙슈·틱톡·인스타 등에서 지금 반응이 좋은 소스를 찾아드려요. 국내에 아직 안 알려진 소스도 먼저 발견할 수 있어요.' },
+              { q: '분석은 뭘 알려주나요?', a: '영상이 왜 통했는지 — 훅(첫 3초)·셀링포인트·구성 흐름을 짚어드려요. 그대로 벤치마크해 내 영상에 적용할 수 있어요.' },
+              { q: '이용권은 어떻게 쓰이나요?', a: '분석하기 1회에 이용권 1개가 쓰여요. 검색과 미리보기는 무료이고, 가입 시 무료 이용권을 드려 먼저 써볼 수 있어요.' },
             ].map(({ q, a }) => (
-              <div key={q} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] md:p-7">
+              <div key={q} className="rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)] md:p-7">
                 <div className="mb-3 flex items-start gap-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-sm font-bold text-white">Q</span>
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0064FF] text-sm font-semibold text-white">Q</span>
                   <p className="pt-0.5 text-lg font-bold text-gray-900">{q}</p>
                 </div>
                 <div className="flex items-start gap-3">
