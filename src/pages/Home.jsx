@@ -623,16 +623,17 @@ const Home = () => {
             <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">먼저 써본 크리에이터들</h2>
             <p className="mt-3 text-base text-gray-500 md:text-lg">진짜 사용자들이 남긴 이야기예요.</p>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             {[
-              { who: '크림샌드', text: '제품 사용해보니 영상 모아주는 게 너무 편해요.' },
-              { who: '수수수', text: '아주 획기적입니다. 굿굿굿 정말 굿입니다.' },
-              { who: 'ronipop', text: '와… 대박입니다. 안 쓸 수가 없어요.' },
-            ].map(({ who, text }) => (
+              { who: '민석', desc: '4만 크리에이터', text: '영상 찾는 게 늘 병목이었는데, 그게 해결됐어요.' },
+              { who: '크림샌드', desc: '크리에이터', text: '제품 사용해보니 영상 모아주는 게 너무 편해요.' },
+              { who: '수수수', desc: '', text: '아주 획기적입니다. 굿굿굿 정말 굿입니다.' },
+              { who: 'ronipop', desc: '', text: '와… 대박입니다. 안 쓸 수가 없어요.' },
+            ].map(({ who, desc, text }) => (
               <div key={who} className="flex flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">
                 <div className="mb-3 text-sm tracking-wide text-[#0064FF]">★★★★★</div>
                 <p className="flex-1 text-[15px] leading-relaxed text-gray-800">“{text}”</p>
-                <div className="mt-4 text-sm font-semibold text-gray-500">{who}</div>
+                <div className="mt-4 text-sm font-semibold text-gray-700">{who}{desc ? <span className="ml-1 font-normal text-gray-400">· {desc}</span> : null}</div>
               </div>
             ))}
           </div>
