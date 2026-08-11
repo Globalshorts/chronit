@@ -4,6 +4,7 @@ import { Search, Loader2, AlertTriangle, Flame, Eye, Heart, MessageCircle, Spark
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
 import AuthModal from '../components/AuthModal'
+import FindsPricing from '../components/FindsPricing'
 import SiteNav from '../components/SiteNav'
 
 // ⚠️ Finds = 기존 영상분석 뷰(클립 그리드 + 재생)를 복제한 독립 페이지.
@@ -165,6 +166,9 @@ export default function Finds() {
   const [modalClip, setModalClip] = useState(null)
   const [relatedKw, setRelatedKw] = useState([])
   const [showAuth, setShowAuth] = useState(false)
+  const [analyzedIds, setAnalyzedIds] = useState([])
+  const [balance, setBalance] = useState(null)
+  const [payWall, setPayWall] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -187,10 +191,26 @@ export default function Finds() {
     } catch { /* noop */ }
   }, [])
 
+  useEffect(() => {
+    if (!session) { setBalance(null); return }
+    supabase.rpc('get_my_balance_rpc').then(({ data }) => { if (data) setBalance(data.balance ?? 0) })
+  }, [session])
+
   // 스텔스 게이트 (모든 훅 이후)
   if (!FEATURES.finds) return <Navigate to="/" replace />
 
   const isAnon = !session || session?.user?.is_anonymous === true
+
+  const handleAnalyze = async (clip) => {
+    // 익명은 분석(유료) 불가 — 진짜 로그인 필요. (검색은 익명 OK)
+    if (!session || session.user?.is_anonymous) { setError('로그인하면 분석할 수 있어요'); return }
+    if (analyzedIds.includes(clip.video_id)) { setModalClip(clip); return }
+    const { data } = await supabase.rpc('use_finds_credit_rpc')
+    if (!data?.ok) { setPayWall(true); return }
+    setBalance(data.balance)
+    setAnalyzedIds((prev) => [...prev, clip.video_id])
+    setModalClip(clip)
+  }
 
   // ── 검색/분석: submit → poll → (틱톡+샤오홍슈 병렬) → clip-filter ──
   // (이용권/과금 로직은 이 페이지에 아직 적용하지 않음 — 추후 별도 반영)
@@ -312,6 +332,14 @@ export default function Finds() {
           </p>
         </header>
 
+        <div className="mb-3 flex items-center gap-2">
+          {session && balance !== null && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+              <Sparkles size={12} /> 남은 이용권 {balance}
+            </span>
+          )}
+          <button onClick={() => setPayWall(true)} className="inline-flex items-center gap-1 rounded-full bg-[#0064FF] px-3 py-1 text-xs font-bold text-white transition hover:brightness-95">이용권 구매</button>
+        </div>
         <div className="flex flex-col gap-2 sm:flex-row">
           <input value={sourceUrl} onChange={(e) => setSourceUrl(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') analyze() }}
             placeholder="링크를 붙여넣거나 키워드를 입력하세요"
@@ -363,7 +391,7 @@ export default function Finds() {
         {/* 클립 그리드 — 익명은 블러, 로그인 시 즉시 공개 */}
         <div className="relative">
           <div className={`mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 ${isAnon && clips.length ? 'pointer-events-none select-none blur-[6px]' : ''}`}>
-            {clips.map((c) => <FindCard key={c.video_id} clip={c} onAnalyze={setModalClip} />)}
+            {clips.map((c) => <FindCard key={c.video_id} clip={c} onAnalyze={handleAnalyze} />)}
           </div>
           {isAnon && clips.length > 0 && (
             <div className="absolute inset-0 flex items-start justify-center pt-24">
@@ -383,6 +411,7 @@ export default function Finds() {
 
       {modalClip && <AnalyzeModal clip={modalClip} onClose={() => setModalClip(null)} />}
       <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
+      <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
     </div>
   )
 }

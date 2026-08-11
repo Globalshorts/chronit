@@ -648,8 +648,10 @@ export default function VideoGenerator() {
       setSession(session);
       if (session) {
         // 온보딩 미완료 신규 가입자는 회원가입 페이지로
-        const { data: prof } = await supabase.from("profiles").select("onboarded").eq("id", session.user.id).maybeSingle();
+        const { data: prof } = await supabase.from("profiles").select("onboarded, created_at").eq("id", session.user.id).maybeSingle();
         if (prof && prof.onboarded === false) { window.location.href = "/register"; return; }
+        // 렌더 게이팅: 신규 유저(컷오프 이후 가입)는 렌더 미접근 → Finds로. 기존 유저·내부계정은 통과.
+        if (prof && prof.created_at && new Date(prof.created_at) >= new Date("2026-08-12T00:00:00Z")) { window.location.replace("/finds"); return; }
       }
       setAuthLoading(false);
     });
