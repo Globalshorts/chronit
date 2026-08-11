@@ -189,6 +189,11 @@ const Home = () => {
     setShowAuthModal(true)
   }
 
+  const handleFinds = () => {
+    if (user) { window.location.href = '/finds'; return }
+    setShowAuthModal(true)
+  }
+
   const handleTermsAgree = async (marketing = false) => {
     setShowTermsModal(false)
     const session = pendingSessionRef.current
@@ -518,23 +523,23 @@ const Home = () => {
             )}
             {!user && (<>
             <div key={badgeIdx} className="tip-fade mb-6 inline-flex items-center gap-2 rounded-full border border-[#0064FF]/30 bg-[#0064FF]/10 px-4 py-2 text-sm font-bold text-[#0064FF] md:text-base">
-              {curBadge.icon} {curBadge.text}
+              <Search size={16} /> 소재 찾느라 지친 셀러에게
             </div>
             <h1 className="mb-5 text-4xl font-black leading-[1.15] tracking-tight text-gray-900 break-keep md:text-6xl">
-              촬영도 편집도 없이<br /><span className="bg-gradient-to-r from-[#10b981] to-[#0064FF] bg-clip-text text-transparent">매일 올리는 쇼핑 숏폼</span>
+              <span className="bg-gradient-to-r from-[#10b981] to-[#0064FF] bg-clip-text text-transparent">터지는 소스</span>를<br />찾으세요
             </h1>
             <p className="mx-auto mb-9 max-w-md text-lg font-bold text-gray-500 break-keep md:max-w-none md:text-2xl">
-              이제 <span style={{ background: 'linear-gradient(transparent 55%, rgba(148,163,184,0.45) 55%)' }} className="px-0.5 font-bold text-gray-700">편집자</span>가 아니라,<br className="md:hidden" />채널을 굴리는 <span style={{ background: 'linear-gradient(transparent 55%, rgba(0,100,255,0.30) 55%)' }} className="px-0.5 font-bold text-gray-900">운영자</span>가 되세요.
+              남들 알기 전에 뜨는 소스를 발굴하고,<br className="md:hidden" /> 왜 먹혔는지 짚어드려요.
             </p>
             </>)}
 
             {!user && (
               <div className="flex w-full max-w-md flex-col items-center gap-2">
-                <button onClick={handleStart}
+                <button onClick={handleFinds}
                   className="w-full rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-black/5 transition-all hover:brightness-95 active:scale-[0.98]">
-                  무료로 시작하기 →
+                  소스 발굴 시작 →
                 </button>
-                <Link to="/manual" className="text-sm font-medium text-gray-400 transition-colors hover:text-[#0064FF]">1분 사용법 보기 →</Link>
+                <Link to="/trend" className="text-sm font-medium text-gray-400 transition-colors hover:text-[#0064FF]">트렌드 먼저 보기 →</Link>
               </div>
             )}
             {!user && (
