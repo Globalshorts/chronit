@@ -3,6 +3,7 @@ import { Navigate, Link } from 'react-router-dom'
 import { Search, Loader2, AlertTriangle, Flame, Eye, Heart, MessageCircle, Sparkles, X, Copy, Check } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
+import AuthModal from '../components/AuthModal'
 import SiteNav from '../components/SiteNav'
 
 // ⚠️ Finds = 기존 영상분석 뷰(클립 그리드 + 재생)를 복제한 독립 페이지.
@@ -163,15 +164,33 @@ export default function Finds() {
   const [error, setError] = useState('')
   const [modalClip, setModalClip] = useState(null)
   const [relatedKw, setRelatedKw] = useState([])
+  const [showAuth, setShowAuth] = useState(false)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session))
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) setSession(data.session)
+      else supabase.auth.signInAnonymously().then(({ data: ad }) => setSession(ad?.session ?? null)).catch(() => {})
+    })
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
     return () => { try { sub.subscription.unsubscribe() } catch { /* noop */ } }
   }, [])
 
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('finds_cache')
+      if (raw) {
+        const c = JSON.parse(raw)
+        if (c && Array.isArray(c.clips) && c.clips.length && Date.now() - (c.ts || 0) < 1800000) {
+          setClips(c.clips); if (c.q) setSourceUrl(c.q); if (Array.isArray(c.related)) setRelatedKw(c.related)
+        }
+      }
+    } catch { /* noop */ }
+  }, [])
+
   // 스텔스 게이트 (모든 훅 이후)
   if (!FEATURES.finds) return <Navigate to="/" replace />
+
+  const isAnon = !session || session?.user?.is_anonymous === true
 
   // ── 검색/분석: submit → poll → (틱톡+샤오홍슈 병렬) → clip-filter ──
   // (이용권/과금 로직은 이 페이지에 아직 적용하지 않음 — 추후 별도 반영)
@@ -181,8 +200,10 @@ export default function Finds() {
     const isUrl = isValidUrl(su)
     setError(''); setSearching(true); setClips([]); setRelatedKw([])
     try {
-      const { data: { session: s } } = await supabase.auth.getSession()
-      if (!s) { setError('로그인이 필요합니다'); setSearching(false); return }
+      let sess = (await supabase.auth.getSession()).data.session
+      if (!sess) { sess = (await supabase.auth.signInAnonymously()).data?.session ?? null }
+      const s = sess
+      if (!s) { setError('일시적 오류예요. 잠시 후 다시 시도해주세요.'); setSearching(false); return }
       const headers = { Authorization: `Bearer ${s.access_token}`, 'Content-Type': 'application/json' }
 
       let refFrames = []
@@ -244,6 +265,7 @@ export default function Finds() {
       }
       // 지표 필드 정규화(있으면 사용)
       setClips(finalClips.map((c) => ({ ...c, views: c.views ?? c.view_count ?? c.play_count, likes: c.likes ?? c.like_count ?? c.digg_count, comments: c.comments ?? c.comment_count ?? c.comments_count })))
+      try { sessionStorage.setItem('finds_cache', JSON.stringify({ q: su, clips: finalClips, ts: Date.now() })) } catch { /* noop */ }
 
       const kwForRelated = isUrl ? (searchArgs.keyword || '') : su
       if (kwForRelated) {
@@ -335,17 +357,29 @@ export default function Finds() {
           </div>
         )}
 
-        {/* 클립 그리드 — 한 줄 4개 */}
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {clips.map((c) => <FindCard key={c.video_id} clip={c} onAnalyze={setModalClip} />)}
+        {/* 클립 그리드 — 익명은 블러, 로그인 시 즉시 공개 */}
+        <div className="relative">
+          <div className={`mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 ${isAnon && clips.length ? 'pointer-events-none select-none blur-[6px]' : ''}`}>
+            {clips.map((c) => <FindCard key={c.video_id} clip={c} onAnalyze={setModalClip} />)}
+          </div>
+          {isAnon && clips.length > 0 && (
+            <div className="absolute inset-0 flex items-start justify-center pt-24">
+              <div className="rounded-2xl border border-slate-100 bg-white/95 px-7 py-6 text-center shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] backdrop-blur">
+                <p className="mb-1 text-lg font-bold text-slate-900">{clips.length}개의 소스를 찾았어요</p>
+                <p className="mb-5 text-sm text-slate-500">로그인하면 바로 확인할 수 있어요</p>
+                <button onClick={() => setShowAuth(true)} className="rounded-xl bg-[#0064FF] px-7 py-3 text-sm font-bold text-white transition hover:brightness-95">로그인하고 결과 보기</button>
+              </div>
+            </div>
+          )}
         </div>
 
         {!searching && clips.length === 0 && !error && (
-          <div className="mt-16 text-center text-sm text-slate-400">링크를 넣고 분석을 눌러보세요.</div>
+          <div className="mt-16 text-center text-sm text-slate-400">링크나 키워드를 넣고 검색해보세요.</div>
         )}
       </div>
 
       {modalClip && <AnalyzeModal clip={modalClip} onClose={() => setModalClip(null)} />}
+      <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
     </div>
   )
 }
