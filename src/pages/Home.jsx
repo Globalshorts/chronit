@@ -585,29 +585,34 @@ const Home = () => {
       <section id="features" style={{ scrollMarginTop: '200px' }} className="px-5 py-16 md:px-8 md:py-24">
         <Reveal className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">소싱, 혼자 다 하기 벅차죠</h2>
-            <p className="mt-3 text-base text-gray-500 md:text-lg">크로닛이 그 시간과 비용을 돌려드려요.</p>
+            <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">소싱, 이렇게 바뀌어요</h2>
+            <p className="mt-3 text-base text-gray-500 md:text-lg">큐레이션 계정 운영 — 크로닛 전과 후.</p>
           </div>
-          <div className="mx-auto max-w-lg space-y-2.5">
-            <div className="flex items-end gap-2">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-200 text-[11px] font-bold text-gray-500">셀러</div>
-              <div className="max-w-[82%] rounded-2xl rounded-bl-md bg-white px-4 py-2.5 text-[15px] leading-relaxed text-gray-800 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">매일 뭐 올릴지, 소스 찾다 보면 한두 시간이 훅 가요…</div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-6">
+              <div className="mb-4 inline-flex items-center rounded-full bg-gray-200 px-3 py-1 text-xs font-semibold text-gray-500">크로닛 전</div>
+              <ul className="space-y-3 text-[15px] text-gray-500">
+                <li className="flex gap-2"><span className="text-gray-300">—</span> 소스 하나 찾는 데 하루 1~2시간</li>
+                <li className="flex gap-2"><span className="text-gray-300">—</span> 외주 맡기면 1건에 1~2만원</li>
+                <li className="flex gap-2"><span className="text-gray-300">—</span> 감으로 올려서 조회수 복불복</li>
+              </ul>
             </div>
-            <div className="flex items-end gap-2">
-              <div className="h-8 w-8 shrink-0" />
-              <div className="max-w-[82%] rounded-2xl rounded-bl-md bg-white px-4 py-2.5 text-[15px] leading-relaxed text-gray-800 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">외주 맡기자니 1건에 1~2만원인데, 매일 올리려니 부담이에요</div>
-            </div>
-            <div className="flex items-end gap-2">
-              <div className="h-8 w-8 shrink-0" />
-              <div className="max-w-[82%] rounded-2xl rounded-bl-md bg-white px-4 py-2.5 text-[15px] leading-relaxed text-gray-800 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">감으로 올리는데, 뭐가 터질지 진짜 모르겠어요</div>
-            </div>
-            <div className="flex items-end justify-end gap-2 pt-3">
-              <div className="max-w-[82%] rounded-2xl rounded-br-md bg-[#0064FF] px-4 py-2.5 text-[15px] font-medium leading-relaxed text-white">그거, 크로닛이 다 풀어드려요</div>
-            </div>
-            <div className="flex items-end justify-end gap-2">
-              <div className="max-w-[82%] rounded-2xl rounded-br-md bg-[#0064FF] px-4 py-2.5 text-[15px] font-medium leading-relaxed text-white">터지는 소스를 몇 초 만에 찾고, 왜 터졌는지까지 분석해드려요</div>
+            <div className="rounded-2xl border-2 border-[#0064FF] bg-white p-6">
+              <div className="mb-4 inline-flex items-center rounded-full bg-[#0064FF]/10 px-3 py-1 text-xs font-semibold text-[#0064FF]">크로닛 후</div>
+              <ul className="space-y-3 text-[15px] font-medium text-gray-900">
+                <li className="flex gap-2"><Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-[#0064FF]" /> 터지는 소스를 몇 초 만에 발굴</li>
+                <li className="flex gap-2"><Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-[#0064FF]" /> 월 9,900원부터, 외주 없이 직접</li>
+                <li className="flex gap-2"><Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-[#0064FF]" /> 검증된 소스 + 왜 터졌는지 분석</li>
+              </ul>
             </div>
           </div>
+          {stats?.clips ? (
+            <div className="mt-8 grid grid-cols-3 divide-x divide-gray-100 rounded-2xl border border-gray-100 bg-white py-6 text-center">
+              <div><div className="text-2xl font-bold text-gray-900 md:text-3xl">{Number(stats.clips).toLocaleString('ko-KR')}</div><div className="mt-1 text-xs text-gray-400">발굴한 소스</div></div>
+              <div><div className="text-2xl font-bold text-gray-900 md:text-3xl">{Number(stats.curators).toLocaleString('ko-KR')}</div><div className="mt-1 text-xs text-gray-400">추적 중인 큐레이터</div></div>
+              <div><div className="text-2xl font-bold text-gray-900 md:text-3xl">매일</div><div className="mt-1 text-xs text-gray-400">새 소스 갱신</div></div>
+            </div>
+          ) : null}
         </Reveal>
       </section>
 
