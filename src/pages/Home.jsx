@@ -585,19 +585,19 @@ const Home = () => {
       <section id="features" style={{ scrollMarginTop: '200px' }} className="px-5 py-16 md:px-8 md:py-24">
         <Reveal className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">감이 아니라, 데이터로</h2>
-            <p className="mt-3 text-base text-gray-500 md:text-lg">잘 파는 셀러는 소스부터 다릅니다.</p>
+            <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">소싱, 혼자 다 하기 벅차죠</h2>
+            <p className="mt-3 text-base text-gray-500 md:text-lg">크로닛이 그 시간과 비용을 돌려드려요.</p>
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {[
-              { Icon: Zap, title: '남들보다 먼저', desc: '이미 유명한 게 아니라, 지금 막 터지는 소스를 먼저 발굴해요.' },
-              { Icon: Search, title: '검증된 소스만', desc: '조회수·반응으로 검증된 영상만 골라, 헛수고 없이 바로 씁니다.' },
-              { Icon: Sparkles, title: '왜 터졌는지까지', desc: '훅·셀링포인트·구성을 분석해 그대로 벤치마크할 수 있어요.' },
-            ].map(({ Icon, title, desc }) => (
-              <div key={title} className="rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[#0064FF]/[0.08] text-[#0064FF]"><Icon size={20} strokeWidth={2.1} /></div>
-                <h3 className="mb-1.5 text-lg font-semibold text-gray-900">{title}</h3>
-                <p className="text-sm leading-relaxed text-gray-500">{desc}</p>
+              { pain: '소스 찾는 데만 하루 1시간 넘게 써요', sol: '터지는 소스를 몇 초 만에 발굴해드려요.' },
+              { pain: '편집·소싱 외주는 건당 5~15만원이라 부담돼요', sol: '월 9,900원부터, 외주 없이 직접 하세요.' },
+              { pain: '감으로 올리니 조회수가 복불복이에요', sol: '검증된 소스 + 왜 터졌는지 분석으로 바꿔요.' },
+            ].map(({ pain, sol }) => (
+              <div key={pain} className="flex flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">
+                <p className="text-[15px] font-medium leading-relaxed text-gray-400">“{pain}”</p>
+                <div className="my-4 h-px w-full bg-gray-100" />
+                <p className="text-[15px] font-semibold leading-relaxed text-gray-900">{sol}</p>
               </div>
             ))}
           </div>
@@ -611,7 +611,6 @@ const Home = () => {
           </div>
           <div className="space-y-4">
             {[
-              { q: '저작권 문제는 없나요?', a: '크로닛은 벤치마킹·리서치를 위한 소스 발굴과 분석을 제공해요. 원본 콘텐츠의 저작권은 원저작자에게 있으며, 사용 권한이 있는 콘텐츠만 활용해 주세요.' },
               { q: '어떤 플랫폼의 소스를 찾아주나요?', a: '샤오훙슈·틱톡·인스타 등에서 지금 반응이 좋은 소스를 찾아드려요. 국내에 아직 안 알려진 소스도 먼저 발견할 수 있어요.' },
               { q: '분석은 뭘 알려주나요?', a: '영상이 왜 통했는지 — 훅(첫 3초)·셀링포인트·구성 흐름을 짚어드려요. 그대로 벤치마크해 내 영상에 적용할 수 있어요.' },
               { q: '이용권은 어떻게 쓰이나요?', a: '분석하기 1회에 이용권 1개가 쓰여요. 검색과 미리보기는 무료이고, 가입 시 무료 이용권을 드려 먼저 써볼 수 있어요.' },
