@@ -122,8 +122,10 @@ const Home = () => {
   const [badgeIdx, setBadgeIdx] = useState(0)
   useEffect(() => { supabase.rpc('public_stats_rpc').then(({ data }) => { if (data) setStats(data) }) }, [])
   const heroBadges = [
-    { icon: <Sparkles size={14} fill="currentColor" />, text: '쇼핑 숏폼 특화 AI' },
-    ...(stats ? [{ icon: <Users size={14} />, text: `${Number(stats.users).toLocaleString('ko-KR')}명이 ${Number(stats.videos).toLocaleString('ko-KR')}개의 영상을 만들었어요` }] : []),
+    { icon: <Search size={14} />, text: '소재 찾느라 지친 셀러에게' },
+    { icon: <Search size={14} />, text: '그 상품 원본 클립, 못 찾아 헤맸다면' },
+    { icon: <Search size={14} />, text: '쓸 만한 소스 영상이 안 보였다면' },
+    { icon: <Search size={14} />, text: '상품 클립 찾느라 시간 다 썼다면' },
   ]
   useEffect(() => {
     if (heroBadges.length < 2) return
@@ -523,10 +525,10 @@ const Home = () => {
             )}
             {!user && (<>
             <div key={badgeIdx} className="tip-fade mb-6 inline-flex items-center gap-2 rounded-full border border-[#0064FF]/30 bg-[#0064FF]/10 px-4 py-2 text-sm font-bold text-[#0064FF] md:text-base">
-              <Search size={16} /> 소재 찾느라 지친 셀러에게
+              {curBadge.icon} {curBadge.text}
             </div>
             <h1 className="mb-5 text-4xl font-black leading-[1.15] tracking-tight text-gray-900 break-keep md:text-6xl">
-              <span className="bg-gradient-to-r from-[#10b981] to-[#0064FF] bg-clip-text text-transparent">터지는 소스</span>를<br />찾으세요
+              <span className="bg-gradient-to-r from-[#0064FF] to-[#06B6D4] bg-clip-text text-transparent">터지는 소스</span>를<br />찾으세요
             </h1>
             <p className="mx-auto mb-9 max-w-md text-lg font-bold text-gray-500 break-keep md:max-w-none md:text-2xl">
               남들 알기 전에 뜨는 소스를 발굴하고,<br className="md:hidden" /> 왜 먹혔는지 짚어드려요.
