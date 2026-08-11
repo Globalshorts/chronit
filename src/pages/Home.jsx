@@ -586,7 +586,7 @@ const Home = () => {
         <Reveal className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
             <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">소싱, 이렇게 바뀌어요</h2>
-            <p className="mt-3 text-base text-gray-500 md:text-lg">큐레이션 계정 운영 — 크로닛 전과 후.</p>
+            <p className="mt-3 text-base text-gray-500 md:text-lg">쇼핑 크리에이터의 소싱 — 크로닛 전과 후.</p>
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="rounded-2xl border border-gray-100 bg-gray-50 p-6">
