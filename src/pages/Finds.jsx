@@ -174,47 +174,59 @@ export default function Finds() {
 
   // ── 검색/분석: submit → poll → (틱톡+샤오홍슈 병렬) → clip-filter ──
   // (이용권/과금 로직은 이 페이지에 아직 적용하지 않음 — 추후 별도 반영)
-  const analyze = async () => {
-    const su = sourceUrl.trim()
-    if (!su) { setError('URL을 입력해주세요'); return }
-    if (!isValidUrl(su)) { setError('틱톡·유튜브·인스타 링크를 입력해 주세요.'); return }
+  const analyze = async (override) => {
+    const su = (typeof override === 'string' ? override : sourceUrl).trim()
+    if (!su) { setError('링크나 키워드를 입력해주세요'); return }
+    const isUrl = isValidUrl(su)
     setError(''); setSearching(true); setClips([])
     try {
       const { data: { session: s } } = await supabase.auth.getSession()
       if (!s) { setError('로그인이 필요합니다'); setSearching(false); return }
       const headers = { Authorization: `Bearer ${s.access_token}`, 'Content-Type': 'application/json' }
 
-      const subResp = await fetch(FN('search-clips'), { method: 'POST', headers, body: JSON.stringify({ action: 'submit', source_url: su }) })
-      const sub = await subResp.json()
-      if (!sub.ok || !sub.prediction_id) { setError(sub.error || '분석에 실패했어요. 잠시 후 다시 시도해 주세요.'); setSearching(false); return }
+      let refFrames = []
+      let queries = []
+      let searchArgs = { product_name: '', keyword: '', keywords: [] }
+      let rawClips = []
 
-      let data1 = null
-      const t0 = Date.now()
-      while (Date.now() - t0 < 600000) {
-        await new Promise((r) => setTimeout(r, 2500))
-        let pr
-        try {
-          const presp = await fetch(FN('search-clips'), { method: 'POST', headers, body: JSON.stringify({ action: 'poll', prediction_id: sub.prediction_id, no_search: true }) })
-          pr = await presp.json()
-        } catch { continue }
-        if (pr?.status === 'processing') continue
-        if (pr?.ok && pr?.status === 'done') { data1 = pr; break }
-        if (pr && pr.ok === false) { setError(pr.error || '분석에 실패했어요.'); setSearching(false); return }
+      if (isUrl) {
+        // 링크 모드: 레퍼런스 영상 분석 → 키워드 추출 → 유사도 필터
+        const subResp = await fetch(FN('search-clips'), { method: 'POST', headers, body: JSON.stringify({ action: 'submit', source_url: su }) })
+        const sub = await subResp.json()
+        if (!sub.ok || !sub.prediction_id) { setError(sub.error || '분석에 실패했어요. 잠시 후 다시 시도해 주세요.'); setSearching(false); return }
+
+        let data1 = null
+        const t0 = Date.now()
+        while (Date.now() - t0 < 600000) {
+          await new Promise((r) => setTimeout(r, 2500))
+          let pr
+          try {
+            const presp = await fetch(FN('search-clips'), { method: 'POST', headers, body: JSON.stringify({ action: 'poll', prediction_id: sub.prediction_id, no_search: true }) })
+            pr = await presp.json()
+          } catch { continue }
+          if (pr?.status === 'processing') continue
+          if (pr?.ok && pr?.status === 'done') { data1 = pr; break }
+          if (pr && pr.ok === false) { setError(pr.error || '분석에 실패했어요.'); setSearching(false); return }
+        }
+        if (!data1) { setError('분석이 지연되고 있어요. 잠시 후 다시 시도해 주세요.'); setSearching(false); return }
+        refFrames = data1.reference_frames || []
+        queries = data1.tiktok_queries || []
+        rawClips = data1.clips || []
+        searchArgs = { product_name: data1.product_name || '', keyword: data1.keyword || '', keywords: data1.keywords || [] }
+      } else {
+        // 키워드 모드: 바로 검색 (레퍼런스·유사도 필터 없음)
+        queries = [su]
+        searchArgs = { product_name: '', keyword: su, keywords: [su] }
       }
-      if (!data1) { setError('분석이 지연되고 있어요. 잠시 후 다시 시도해 주세요.'); setSearching(false); return }
 
-      const refFrames = data1.reference_frames || []
-      const queries = data1.tiktok_queries || []
-      let rawClips = data1.clips || []
       let xhsClips = []
-
       await Promise.all([
         (async () => { try { const r = await fetch(FN('search-clips'), { method: 'POST', headers, body: JSON.stringify({ action: 'search_tiktok', queries }) }); const d = await r.json(); if (d?.ok && Array.isArray(d.clips)) rawClips = d.clips } catch { /* noop */ } })(),
-        (async () => { try { const r = await fetch(FN('search-xhs'), { method: 'POST', headers, body: JSON.stringify({ product_name: data1.product_name || '', keyword: data1.keyword || '', keywords: data1.keywords || [], tiktok_queries: queries }) }); const d = await r.json(); if (d?.ok && Array.isArray(d.clips)) xhsClips = d.clips } catch { /* noop */ } })(),
+        (async () => { try { const r = await fetch(FN('search-xhs'), { method: 'POST', headers, body: JSON.stringify({ ...searchArgs, tiktok_queries: queries }) }); const d = await r.json(); if (d?.ok && Array.isArray(d.clips)) xhsClips = d.clips } catch { /* noop */ } })(),
       ])
 
       const allCand = [...xhsClips, ...rawClips]
-      if (!allCand.length) { setError('검색 결과가 없습니다. 다른 URL을 시도해보세요.'); setSearching(false); return }
+      if (!allCand.length) { setError(isUrl ? '검색 결과가 없습니다. 다른 URL을 시도해보세요.' : '검색 결과가 없어요. 다른 키워드를 시도해보세요.'); setSearching(false); return }
 
       let finalClips = allCand
       if (refFrames.length) {
@@ -267,7 +279,7 @@ export default function Finds() {
 
         <div className="flex flex-col gap-2 sm:flex-row">
           <input value={sourceUrl} onChange={(e) => setSourceUrl(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') analyze() }}
-            placeholder="틱톡·유튜브·인스타 링크를 붙여넣으세요"
+            placeholder="링크를 붙여넣거나 키워드를 입력하세요"
             className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#0064FF]" />
           <button onClick={analyze} disabled={searching}
             className="flex items-center justify-center gap-2 rounded-xl bg-[#0064FF] px-6 py-3 text-sm font-bold text-white disabled:opacity-50">
@@ -275,6 +287,15 @@ export default function Finds() {
           </button>
         </div>
 
+        {!searching && clips.length === 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            <span className="mr-1 text-xs text-slate-400">추천</span>
+            {['살림템', '주방템', '자취템', '청소템', '수납템', '다이어트', '캠핑', '인테리어'].map((k) => (
+              <button key={k} onClick={() => { setSourceUrl(k); analyze(k) }}
+                className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]">#{k}</button>
+            ))}
+          </div>
+        )}
         {error && (
           <div className="mt-3 flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
             <AlertTriangle size={15} />{error}
