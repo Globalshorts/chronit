@@ -625,15 +625,15 @@ const Home = () => {
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             {[
-              { who: '민석', desc: '4만 크리에이터', text: '영상 찾는 게 늘 병목이었는데, 그게 해결됐어요.' },
-              { who: '크림샌드', desc: '크리에이터', text: '제품 사용해보니 영상 모아주는 게 너무 편해요.' },
-              { who: '수수수', desc: '', text: '아주 획기적입니다. 굿굿굿 정말 굿입니다.' },
-              { who: 'ronipop', desc: '', text: '와… 대박입니다. 안 쓸 수가 없어요.' },
-            ].map(({ who, desc, text }) => (
-              <div key={who} className="flex flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">
+              { name: '쇼핑 크리에이터 K', text: '영상 찾는 게 늘 힘들었는데, 그게 해결됐어요.' },
+              { name: '쇼핑 크리에이터 C', text: '제품 사용해보니 영상 모아주는 게 너무 편해요.' },
+              { name: '쇼핑 크리에이터 S', text: '아주 획기적입니다. 굿굿굿 정말 굿입니다.' },
+              { name: '쇼핑 크리에이터 R', text: '와… 대박입니다. 안 쓸 수가 없어요.' },
+            ].map(({ name, text }) => (
+              <div key={name} className="flex flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">
                 <div className="mb-3 text-sm tracking-wide text-[#0064FF]">★★★★★</div>
                 <p className="flex-1 text-[15px] leading-relaxed text-gray-800">“{text}”</p>
-                <div className="mt-4 text-sm font-semibold text-gray-700">{who}{desc ? <span className="ml-1 font-normal text-gray-400">· {desc}</span> : null}</div>
+                <div className="mt-4 text-sm font-semibold text-gray-500">{name}</div>
               </div>
             ))}
           </div>
