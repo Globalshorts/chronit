@@ -590,9 +590,9 @@ const Home = () => {
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {[
-              { pain: '소스 찾는 데만 하루 1시간 넘게 써요', sol: '터지는 소스를 몇 초 만에 발굴해드려요.' },
-              { pain: '편집·소싱 외주는 건당 5~15만원이라 부담돼요', sol: '월 9,900원부터, 외주 없이 직접 하세요.' },
-              { pain: '감으로 올리니 조회수가 복불복이에요', sol: '검증된 소스 + 왜 터졌는지 분석으로 바꿔요.' },
+              { pain: '매일 뭐 올릴지, 소스 찾다 보면 한두 시간이 훅 가요', sol: '터지는 소스를 몇 초 만에 찾아드려요.' },
+              { pain: '외주 맡기자니 비싸고, 혼자 하자니 벅차요', sol: '월 9,900원부터, 직접 빠르게 하세요.' },
+              { pain: '감으로 올리는데, 뭐가 터질지 진짜 모르겠어요', sol: '검증된 소스에 왜 터졌는지까지 알려드려요.' },
             ].map(({ pain, sol }) => (
               <div key={pain} className="flex flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">
                 <p className="text-[15px] font-medium leading-relaxed text-gray-400">“{pain}”</p>
