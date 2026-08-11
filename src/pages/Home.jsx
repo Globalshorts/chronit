@@ -268,15 +268,15 @@ const Home = () => {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      const u = session?.user ?? null
+      const u = (session?.user && !session.user.is_anonymous) ? session.user : null
       setUser(u)
       // (제거) 로그인 시 /generate 강제 이동 — 결제/광고 랜딩 접근을 막아 비활성화함.
       //  로그인 상태여도 홈에 머무를 수 있게 함. 앱 진입은 상단 CTA/네비로.
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null)
-      if (event === 'SIGNED_IN' && session) {
+      setUser((session?.user && !session.user.is_anonymous) ? session.user : null)
+      if (event === 'SIGNED_IN' && session && !session.user?.is_anonymous) {
         // 온보딩 미완료(신규)면 회원가입 페이지로, 완료면 정상 진행
         // (시간 휴리스틱 대신 onboarded 기준 — 방금 가입한 계정이 계속 /register로 튕기던 버그 수정)
         supabase.from('profiles').select('onboarded').eq('id', session.user.id).maybeSingle()
