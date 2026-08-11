@@ -616,6 +616,29 @@ const Home = () => {
         </Reveal>
       </section>
 
+      {/* ── 실사용 후기 ── */}
+      <section className="px-5 py-16 md:px-8 md:py-20">
+        <Reveal className="mx-auto max-w-4xl">
+          <div className="mb-10 text-center">
+            <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">먼저 써본 크리에이터들</h2>
+            <p className="mt-3 text-base text-gray-500 md:text-lg">진짜 사용자들이 남긴 이야기예요.</p>
+          </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {[
+              { who: '크림샌드', text: '제품 사용해보니 영상 모아주는 게 너무 편해요.' },
+              { who: '수수수', text: '아주 획기적입니다. 굿굿굿 정말 굿입니다.' },
+              { who: 'ronipop', text: '와… 대박입니다. 안 쓸 수가 없어요.' },
+            ].map(({ who, text }) => (
+              <div key={who} className="flex flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">
+                <div className="mb-3 text-sm tracking-wide text-[#0064FF]">★★★★★</div>
+                <p className="flex-1 text-[15px] leading-relaxed text-gray-800">“{text}”</p>
+                <div className="mt-4 text-sm font-semibold text-gray-500">{who}</div>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+      </section>
+
       <section id="faq" className="px-5 py-16 md:px-8 md:py-20">
         <Reveal className="mx-auto max-w-2xl">
           <div className="mb-12 text-center">
