@@ -4,7 +4,7 @@ import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles } fro
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
 import SiteNav from '../components/SiteNav'
-import { AnalyzeModal } from './Finds'
+import { AnalyzeModal, ackAnalyzeCost } from './Finds'
 import AuthModal from '../components/AuthModal'
 import FindsPricing from '../components/FindsPricing'
 
@@ -35,6 +35,7 @@ export default function Trend() {
   const handleAnalyze = async (clip) => {
     const key = clip.page_url || clip.title
     if (analyzedIds.includes(key)) { setModalClip(clip); return }
+    if (!ackAnalyzeCost(null)) return
     const { data } = await supabase.rpc('use_finds_credit_rpc')
     if (!data?.ok) { setPayWall(true); return }
     setAnalyzedIds((prev) => [...prev, key])
@@ -98,6 +99,7 @@ export default function Trend() {
         <header className="mb-5">
           <div className="flex items-center gap-2 text-[#0064FF]"><Flame size={22} /><h1 className="text-2xl font-extrabold text-slate-900">실시간 트렌드</h1></div>
           <p className="mt-1 text-sm text-slate-500">지금 뜨는 쇼핑 숏폼을 한눈에. 조회수·좋아요 순으로 정렬해 확인하세요.</p>
+          <p className="mt-0.5 text-[11px] text-slate-400">[분석]은 이용권 1개가 차감돼요 · 이미 분석한 소스는 다시 열어도 무료예요</p>
         </header>
 
         <div className="mb-5 flex flex-wrap items-center gap-2">

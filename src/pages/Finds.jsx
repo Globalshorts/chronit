@@ -69,6 +69,15 @@ function FindCard({ clip, onAnalyze }) {
 }
 
 // ── 분석 팝업(모달) ──
+// 분석 차감 안내 — 세션당 최초 1회 확인
+export function ackAnalyzeCost(balance) {
+  try { if (sessionStorage.getItem('finds_analyze_ack')) return true } catch { /* noop */ }
+  const bal = balance != null ? `\n남은 이용권: ${balance}개` : ''
+  const ok = window.confirm(`분석 1회에 Finds 이용권 1개가 차감돼요.${bal}\n(이미 분석한 소스는 다시 열어도 무료예요)\n\n계속할까요?`)
+  if (ok) { try { sessionStorage.setItem('finds_analyze_ack', '1') } catch { /* noop */ } }
+  return ok
+}
+
 export function AnalyzeModal({ clip, onClose }) {
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -230,6 +239,7 @@ export default function Finds() {
     // 익명은 분석(유료) 불가 — 진짜 로그인 필요. (검색은 익명 OK)
     if (!session || session.user?.is_anonymous) { setError('로그인하면 분석할 수 있어요'); return }
     if (analyzedIds.includes(clip.video_id)) { setModalClip(clip); return }
+    if (!ackAnalyzeCost(balance)) return
     const { data } = await supabase.rpc('use_finds_credit_rpc')
     if (!data?.ok) { setPayWall(true); return }
     setBalance(data.balance)
@@ -365,6 +375,7 @@ export default function Finds() {
           )}
           <button onClick={() => (isAnon ? setShowAuth(true) : setPayWall(true))} className="inline-flex items-center gap-1 rounded-full bg-[#0064FF] px-3 py-1 text-xs font-bold text-white transition hover:brightness-95">이용권 구매</button>
         </div>
+        <p className="-mt-1 mb-3 text-[11px] text-slate-400">분석 1회에 이용권 1개가 차감돼요 · 이미 분석한 소스는 다시 열어도 무료예요</p>
         <div className="flex flex-col gap-2 sm:flex-row">
           <input value={sourceUrl} onChange={(e) => setSourceUrl(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') analyze() }}
             placeholder="링크를 붙여넣거나 키워드를 입력하세요"
