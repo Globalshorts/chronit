@@ -16,6 +16,7 @@ import { supabase } from "../lib/supabase";
 import { getFp } from "../lib/fp";
 import type { Session } from "@supabase/supabase-js";
 import PaymentModal from "../components/PaymentModal";
+import FindsPricing from "../components/FindsPricing";
 import DmAutomation from "./DmAutomation";
 import ColorPalette from "../components/ColorPalette";
 import SiteNav from "../components/SiteNav";
@@ -97,7 +98,7 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
               <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
               <div className="absolute right-0 top-full z-50 mt-2 w-48 rounded-2xl border border-gray-200 bg-white p-1.5 shadow-xl shadow-black/5">
                 {balance !== null && balance !== undefined && (
-                  <div className="mb-1 rounded-xl bg-[#0064FF]/10 px-3 py-2.5 text-center text-sm font-bold text-[#0064FF]">이용권 {balance.toLocaleString()}개 · D-{daysLeft ?? 0}</div>
+                  <div className="mb-1 rounded-xl bg-[#0064FF]/10 px-3 py-2.5 text-center text-sm font-bold text-[#0064FF]">렌더 {balance.toLocaleString()}개</div>
                 )}
                 <a href="/me" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]"><User size={14} className="inline align-[-2px] mr-1.5" />마이페이지</a>
                 {userRole === "super_admin" && (
@@ -674,7 +675,7 @@ export default function VideoGenerator() {
   }, []);
   const loadBalance = useCallback(async () => {
     const { data } = await supabase.rpc("get_my_balance_rpc").single();
-    if (data?.balance !== undefined) setBalance(data.balance);
+    if (data && (data as any).render_credits !== undefined) setBalance((data as any).render_credits);
     if (data && (data as any).can_pro_voice !== undefined) setCanProVoice(!!(data as any).can_pro_voice);
     if (!proDefaultRef.current && data && (data as any).can_pro_voice && !localStorage.getItem("chronit_voice_pref")) {
       proDefaultRef.current = true;
@@ -690,6 +691,12 @@ export default function VideoGenerator() {
       if (sub?.plan) setUserPlan(sub.plan);
       if (sub?.role) setUserRole(sub.role);
     }
+  }, [session]);
+
+  // 신규 렌더 체험 2개 (비익명·평생1회)
+  useEffect(() => {
+    if (!session || (session.user as any)?.is_anonymous) return;
+    supabase.rpc("grant_render_trial_rpc").then(({ data }: any) => { if (data?.ok) loadBalance(); }).catch(() => {});
   }, [session]);
 
   // ── 포인트·연속·출석 ─────────────────────────────────────────
@@ -2107,14 +2114,13 @@ export default function VideoGenerator() {
           <div className="relative w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-7 text-center shadow-2xl" onClick={e=>e.stopPropagation()}>
             <button onClick={()=>setCreditWall(null)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"><X size={18} /></button>
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0064FF]/10 text-3xl">🎬</div>
-            <h3 className="text-xl font-bold text-gray-900">{creditWall==="expired" ? "이용권이 만료됐어요" : "이번 이용권을 다 쓰셨어요"}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-gray-500">계속 만들려면 두 가지 방법이 있어요.<br/><strong className="text-gray-700">친구를 초대하면 무료로</strong> 이어서 만들 수 있어요.</p>
-            <button onClick={()=>{ setCreditWall(null); setShowInvite(true); }} className="mt-6 w-full rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-3.5 text-sm font-bold text-white transition hover:brightness-95">🎁 친구 초대하고 무료로 계속</button>
-            <button onClick={()=>{ setCreditWall(null); setPayOpen(true); }} className="mt-2 w-full rounded-xl border-2 border-[#0064FF] bg-[#0064FF]/5 py-3 text-sm font-bold text-[#0064FF] transition hover:bg-[#0064FF]/10">Pro로 업그레이드 · 스마트스토어</button>
+            <h3 className="text-xl font-bold text-gray-900">렌더 이용권을 다 쓰셨어요</h3>
+            <p className="mt-2 text-sm leading-relaxed text-gray-500">영상을 계속 만들려면 <strong className="text-gray-700">렌더 이용권</strong>을 충전해주세요.</p>
+            <button onClick={()=>{ setCreditWall(null); setPayOpen(true); }} className="mt-6 w-full rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-3.5 text-sm font-bold text-white transition hover:brightness-95">렌더 이용권 충전</button>
           </div>
         </div>
       )}
-      {payOpen && <PaymentModal open={payOpen} onClose={()=>setPayOpen(false)} defaultPlan={userPlan && userPlan!=="free" ? userPlan : "pro"} />}
+      {payOpen && <FindsPricing open={payOpen} onClose={()=>{ setPayOpen(false); loadBalance(); }} defaultProduct="render" />}
       <CreditHistoryModal open={showHistory} onClose={() => setShowHistory(false)} session={session} />
 
       {/* ── 모바일 사이드바 드로어 ── */}
@@ -5411,7 +5417,7 @@ function SettingsView({ session, supabase, balance, userPlan }:
         </div>
       </Section>
 
-      {showPay && <PaymentModal open={showPay} onClose={()=>setShowPay(false)} defaultPlan={plan==="free"?"pro":plan} />}
+      {showPay && <FindsPricing open={showPay} onClose={()=>setShowPay(false)} defaultProduct="render" />}
     </div>
   );
 }
