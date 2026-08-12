@@ -675,7 +675,7 @@ export default function VideoGenerator() {
   }, []);
   const loadBalance = useCallback(async () => {
     const { data } = await supabase.rpc("get_my_balance_rpc").single();
-    if (data && (data as any).render_credits !== undefined) setBalance((data as any).render_credits);
+    setBalance(null); // 렌더 무료(9/14 종료 예정) — 잔액/페이월 UI 숨김
     if (data && (data as any).can_pro_voice !== undefined) setCanProVoice(!!(data as any).can_pro_voice);
     if (!proDefaultRef.current && data && (data as any).can_pro_voice && !localStorage.getItem("chronit_voice_pref")) {
       proDefaultRef.current = true;
@@ -691,12 +691,6 @@ export default function VideoGenerator() {
       if (sub?.plan) setUserPlan(sub.plan);
       if (sub?.role) setUserRole(sub.role);
     }
-  }, [session]);
-
-  // 신규 렌더 체험 2개 (비익명·평생1회)
-  useEffect(() => {
-    if (!session || (session.user as any)?.is_anonymous) return;
-    supabase.rpc("grant_render_trial_rpc").then(({ data }: any) => { if (data?.ok) loadBalance(); }).catch(() => {});
   }, [session]);
 
   // ── 포인트·연속·출석 ─────────────────────────────────────────
@@ -2120,7 +2114,7 @@ export default function VideoGenerator() {
           </div>
         </div>
       )}
-      {payOpen && <FindsPricing open={payOpen} onClose={()=>{ setPayOpen(false); loadBalance(); }} defaultProduct="render" />}
+      {payOpen && <FindsPricing open={payOpen} onClose={()=>{ setPayOpen(false); loadBalance(); }} />}
       <CreditHistoryModal open={showHistory} onClose={() => setShowHistory(false)} session={session} />
 
       {/* ── 모바일 사이드바 드로어 ── */}
@@ -5417,7 +5411,7 @@ function SettingsView({ session, supabase, balance, userPlan }:
         </div>
       </Section>
 
-      {showPay && <FindsPricing open={showPay} onClose={()=>setShowPay(false)} defaultProduct="render" />}
+      {showPay && <FindsPricing open={showPay} onClose={()=>setShowPay(false)} />}
     </div>
   );
 }

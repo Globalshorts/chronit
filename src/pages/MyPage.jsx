@@ -15,7 +15,6 @@ const MyPage = () => {
   const [credits, setCredits] = useState(null)
   const [wallet, setWallet] = useState(null)
   const [payOpen, setPayOpen] = useState(false)
-  const [payProduct, setPayProduct] = useState('finds')
   const [canceling, setCanceling] = useState(false)
   const [posts, setPosts] = useState([])
   const [comments, setComments] = useState([])
@@ -64,7 +63,8 @@ const MyPage = () => {
 
   const PLAN_LABEL = { free: '무료', finds30: '스탠다드', finds100: '프로', finds300: '비즈니스' }
   const fmtDate = (d) => d ? new Date(d).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }) : ''
-  const openPay = (prod) => { setPayProduct(prod); setPayOpen(true) }
+  const openPay = () => setPayOpen(true)
+  const isExistingRender = profile?.created_at && new Date(profile.created_at) < new Date('2026-08-12T00:00:00Z')
   const cancelSub = async () => {
     if (!window.confirm('구독을 취소할까요? 남은 기간까지는 계속 이용할 수 있고, 다음 결제부터 청구되지 않아요.')) return
     setCanceling(true)
@@ -149,19 +149,15 @@ const MyPage = () => {
           {redeemMsg && <p className={`mt-2 text-sm font-medium ${redeemMsg.ok ? 'text-green-600' : 'text-red-500'}`}>{redeemMsg.text}</p>}
         </div>
 
-        {/* 이용권 두 블록 */}
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <div className="rounded-2xl border border-gray-200 bg-white p-4">
-            <div className="flex items-center gap-1 text-xs text-slate-400"><Sparkles size={13} /> Finds 이용권</div>
-            <div className="mt-1 text-2xl font-bold text-gray-800">{wallet ? wallet.finds_balance.toLocaleString() : '…'}</div>
-            <div className="mt-0.5 text-[11px] text-slate-400">{PLAN_LABEL[wallet?.plan] || '무료'}{wallet?.sub_active ? ' 구독' : ''}</div>
-            <button onClick={() => openPay('finds')} className="mt-3 w-full rounded-xl bg-[#0064FF] py-2 text-xs font-bold text-white transition hover:brightness-95">구매</button>
-          </div>
-          <div className="rounded-2xl border border-gray-200 bg-white p-4">
-            <div className="flex items-center gap-1 text-xs text-slate-400"><Film size={13} /> 렌더 이용권</div>
-            <div className="mt-1 text-2xl font-bold text-gray-800">{wallet ? wallet.render_credits.toLocaleString() : '…'}</div>
-            <div className="mt-0.5 text-[11px] text-slate-400">팩 충전식</div>
-            <button onClick={() => openPay('render')} className="mt-3 w-full rounded-xl border border-slate-200 py-2 text-xs font-bold text-slate-700 transition hover:border-[#0064FF]">충전</button>
+        {/* Finds 이용권 */}
+        <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-1 text-xs text-slate-400"><Sparkles size={13} /> Finds 이용권</div>
+              <div className="mt-1 text-2xl font-bold text-gray-800">{wallet ? wallet.finds_balance.toLocaleString() : '…'}</div>
+              <div className="mt-0.5 text-[11px] text-slate-400">{PLAN_LABEL[wallet?.plan] || '무료'}{wallet?.sub_active ? ' 구독' : ''}</div>
+            </div>
+            <button onClick={openPay} className="shrink-0 rounded-xl bg-[#0064FF] px-5 py-2.5 text-sm font-bold text-white transition hover:brightness-95">구매</button>
           </div>
         </div>
 
@@ -175,6 +171,17 @@ const MyPage = () => {
             {wallet.auto_renew && (
               <button onClick={cancelSub} disabled={canceling} className="shrink-0 rounded-full border border-gray-300 px-3.5 py-1.5 text-xs font-bold text-gray-500 transition hover:border-red-300 hover:text-red-500 disabled:opacity-50">구독 취소</button>
             )}
+          </div>
+        )}
+
+        {/* 영상 편집 종료 안내 — 기존 유저만 */}
+        {isExistingRender && (
+          <div className="mt-3 flex items-center justify-between rounded-2xl border border-amber-200 bg-amber-50/60 px-4 py-3">
+            <div>
+              <div className="flex items-center gap-1 text-sm font-bold text-amber-800"><Film size={14} /> 영상 편집 · 9/14 종료 예정</div>
+              <div className="text-xs text-amber-600">9/14까지 기존과 동일하게 이용할 수 있어요.</div>
+            </div>
+            <Link to="/generate" className="shrink-0 rounded-full border border-amber-300 px-3.5 py-1.5 text-xs font-bold text-amber-700 transition hover:bg-amber-100">작업실 열기</Link>
           </div>
         )}
 
@@ -213,7 +220,7 @@ const MyPage = () => {
         )}
       </section>
 
-      <FindsPricing open={payOpen} onClose={() => { setPayOpen(false); if (user) load(user.id) }} defaultProduct={payProduct} />
+      <FindsPricing open={payOpen} onClose={() => { setPayOpen(false); if (user) load(user.id) }} />
       <NicknameModal open={nickOpen} onClose={() => setNickOpen(false)} onDone={(n) => { setNickOpen(false); setProfile(p => ({ ...p, nickname: n })) }} />
       <Footer />
     </div>

@@ -195,6 +195,7 @@ const Home = () => {
     if (user) { window.location.href = '/finds'; return }
     setShowAuthModal(true)
   }
+  const isExistingRender = !!(user && user.created_at && new Date(user.created_at) < new Date('2026-08-12T00:00:00Z'))
 
   const handleTermsAgree = async (marketing = false) => {
     setShowTermsModal(false)
@@ -445,15 +446,15 @@ const Home = () => {
                   로그인
                 </button>
               )}
-              <button onClick={handleStart}
+              <button onClick={handleFinds}
                 className="rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-7 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-md shadow-black/5 transition-all hover:brightness-95 active:scale-[0.98]">
-                {user ? '작업실 열기 →' : '무료 체험'}
+                {user ? 'Finds 열기 →' : '무료 체험'}
               </button>
             </div>
             {/* 모바일 상단 시작하기 CTA (햄버거에 가려지지 않게 상시 노출) */}
-            <button onClick={handleStart}
+            <button onClick={handleFinds}
               className="rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-md shadow-black/5 transition-all active:scale-[0.98] md:hidden">
-              {user ? '작업실' : '무료 체험'}
+              {user ? 'Finds' : '무료 체험'}
             </button>
             <button onClick={() => setMenuOpen((v) => !v)} aria-label="메뉴"
               className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 text-gray-700 transition-all hover:border-gray-400 md:hidden">
@@ -501,10 +502,13 @@ const Home = () => {
                 로그인
               </button>
             )}
-            <button onClick={() => { setMenuOpen(false); handleStart() }}
+            <button onClick={() => { setMenuOpen(false); handleFinds() }}
               className="w-full rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-4 text-lg font-bold text-white shadow-md transition-all hover:brightness-95 active:scale-[0.98]">
-              {user ? '작업실 열기 →' : '무료 체험'}
+              {user ? 'Finds 열기 →' : '무료 체험'}
             </button>
+            {isExistingRender && (
+              <Link to="/generate" onClick={() => setMenuOpen(false)} className="w-full rounded-xl border border-amber-300 px-4 py-3 text-center text-sm font-bold text-amber-700 hover:bg-amber-50">편집 작업실 (9/14 종료 예정)</Link>
+            )}
           </div>
         </div>
       </div>
@@ -516,11 +520,14 @@ const Home = () => {
             {user && (
               <div className="mb-8 w-full max-w-xl rounded-2xl border-2 border-[#0064FF]/30 bg-white px-6 py-6 text-center shadow-sm">
                 <p className="text-xl font-bold text-gray-900">돌아오셨어요{nickname ? `, ${nickname}님` : ''}</p>
-                <p className="mt-1 mb-5 text-sm font-bold text-gray-500">바로 이어서 만들까요?</p>
-                <button onClick={handleStart}
+                <p className="mt-1 mb-5 text-sm font-bold text-gray-500">오늘 뜨는 소스, 보러 갈까요?</p>
+                <button onClick={handleFinds}
                   className="mx-auto flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-black/5 transition-all hover:brightness-95 active:scale-[0.98]">
-                  작업실 열기 <ArrowRight size={20} />
+                  Finds 열기 <ArrowRight size={20} />
                 </button>
+                {isExistingRender && (
+                  <div className="mt-3"><Link to="/generate" className="text-sm font-semibold text-amber-700 hover:underline">편집 작업실 (9/14 종료 예정) →</Link></div>
+                )}
               </div>
             )}
             {!user && (<>
