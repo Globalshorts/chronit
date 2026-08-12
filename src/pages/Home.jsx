@@ -521,12 +521,22 @@ const Home = () => {
               <div className="mb-8 w-full max-w-xl rounded-2xl border-2 border-[#0064FF]/30 bg-white px-6 py-6 text-center shadow-sm">
                 <p className="text-xl font-bold text-gray-900">돌아오셨어요{nickname ? `, ${nickname}님` : ''}</p>
                 <p className="mt-1 mb-5 text-sm font-bold text-gray-500">오늘 뜨는 소스, 보러 갈까요?</p>
-                <button onClick={handleFinds}
-                  className="mx-auto flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-black/5 transition-all hover:brightness-95 active:scale-[0.98]">
-                  Finds 열기 <ArrowRight size={20} />
-                </button>
-                {isExistingRender && (
-                  <div className="mt-3"><Link to="/generate" className="text-sm font-semibold text-amber-700 hover:underline">편집 작업실 (9/14 종료 예정) →</Link></div>
+                {isExistingRender ? (
+                  <div className="mx-auto flex w-full max-w-md gap-2">
+                    <button onClick={handleFinds}
+                      className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-4 text-base font-bold text-white shadow-lg shadow-black/5 transition-all hover:brightness-95 active:scale-[0.98]">
+                      Finds 열기 <ArrowRight size={18} />
+                    </button>
+                    <Link to="/generate"
+                      className="flex flex-1 flex-col items-center justify-center rounded-2xl border-2 border-amber-300 bg-amber-50/60 px-4 py-3 text-base font-bold leading-tight text-amber-700 transition hover:bg-amber-100 active:scale-[0.98]">
+                      편집 작업실 <span className="mt-0.5 text-[11px] font-bold text-amber-500">9/14 종료 예정</span>
+                    </Link>
+                  </div>
+                ) : (
+                  <button onClick={handleFinds}
+                    className="mx-auto flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-black/5 transition-all hover:brightness-95 active:scale-[0.98]">
+                    Finds 열기 <ArrowRight size={20} />
+                  </button>
                 )}
               </div>
             )}
