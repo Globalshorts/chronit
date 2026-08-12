@@ -39,7 +39,7 @@ export default function FindsPricing({ open, onClose }) {
     try {
       const { data: ses } = await supabase.auth.getSession()
       const user = ses?.session?.user
-      if (!user) { setMsg('로그인이 필요해요'); setBusy(''); return }
+      if (!user || user.is_anonymous) { setMsg('로그인이 필요해요'); setBusy(''); return }
       if (!BCK) { setMsg('결제 설정 준비 중이에요'); setBusy(''); return }
       await loadToss()
       const payment = window.TossPayments(BCK).payment({ customerKey: user.id })
@@ -55,7 +55,7 @@ export default function FindsPricing({ open, onClose }) {
     try {
       const { data: ses } = await supabase.auth.getSession()
       const user = ses?.session?.user
-      if (!user) { setMsg('로그인이 필요해요'); setBusy(''); return }
+      if (!user || user.is_anonymous) { setMsg('로그인이 필요해요'); setBusy(''); return }
       if (!CK) { setMsg('결제 설정 준비 중이에요'); setBusy(''); return }
       await loadToss()
       const payment = window.TossPayments(CK).payment({ customerKey: user.id })

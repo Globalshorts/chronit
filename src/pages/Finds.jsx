@@ -338,12 +338,12 @@ export default function Finds() {
         </header>
 
         <div className="mb-3 flex items-center gap-2">
-          {session && balance !== null && (
+          {!isAnon && balance !== null && (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
               <Sparkles size={12} /> 남은 이용권 {balance}
             </span>
           )}
-          <button onClick={() => setPayWall(true)} className="inline-flex items-center gap-1 rounded-full bg-[#0064FF] px-3 py-1 text-xs font-bold text-white transition hover:brightness-95">이용권 구매</button>
+          <button onClick={() => (isAnon ? setShowAuth(true) : setPayWall(true))} className="inline-flex items-center gap-1 rounded-full bg-[#0064FF] px-3 py-1 text-xs font-bold text-white transition hover:brightness-95">이용권 구매</button>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
           <input value={sourceUrl} onChange={(e) => setSourceUrl(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') analyze() }}
