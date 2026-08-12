@@ -139,15 +139,35 @@ export function AnalyzeModal({ clip, onClose }) {
           ) : err ? (
             <div className="flex items-center gap-1.5 text-red-500"><AlertTriangle size={14} />{err}</div>
           ) : result ? (
-            <div className="space-y-2 text-slate-600">
-              <div><span className="font-bold text-slate-700">훅</span> · {result.hook || '—'}</div>
+            <div className="space-y-2.5 text-slate-600">
+              {(result.key_takeaways || []).length > 0 && (
+                <div className="rounded-lg border border-orange-200 bg-orange-50/60 p-2.5">
+                  <div className="mb-1.5 flex items-center gap-1 text-xs font-extrabold text-orange-700"><Sparkles size={12} />핵심 벤치마크 포인트</div>
+                  <ul className="space-y-1.5">
+                    {result.key_takeaways.map((k, i) => (
+                      <li key={i} className="leading-relaxed">
+                        <mark className="rounded-[3px] bg-orange-200/80 px-1 py-0.5 font-semibold text-slate-800 [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{k}</mark>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div>
+                <span className="font-bold text-slate-700">훅 (첫 3초)</span> · {result.hook || '—'}
+                {result.hook_why && <span className="mt-0.5 block text-xs text-slate-400">{result.hook_why}</span>}
+              </div>
               <div>
                 <span className="font-bold text-slate-700">셀링포인트</span>
                 <ul className="mt-0.5 list-disc space-y-0.5 pl-5">
                   {(result.selling_points || []).length ? result.selling_points.map((sp, i) => <li key={i}>{sp}</li>) : <li className="text-slate-400">—</li>}
                 </ul>
               </div>
+              {result.structure && <div><span className="font-bold text-slate-700">구성·흐름</span> · {result.structure}</div>}
               <div><span className="font-bold text-slate-700">구도·편집</span> · {result.composition || '—'}</div>
+              {result.target && <div><span className="font-bold text-slate-700">타깃</span> · {result.target}</div>}
+              {result.apply_tip && (
+                <div className="rounded-lg bg-amber-50 p-2 text-xs leading-relaxed"><span className="font-bold text-amber-700">💡 적용 팁</span> · {result.apply_tip}</div>
+              )}
               {!result.used_image && <div className="text-[10px] text-slate-300">※ 썸네일 미확보 — 제목 기반 분석</div>}
             </div>
           ) : null}
