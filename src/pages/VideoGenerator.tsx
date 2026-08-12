@@ -4995,6 +4995,26 @@ function HistoryView({ session, onGoToLinks, onGacha }: { session: any; onGoToLi
       } catch {} finally { setLoading(false); }
     })();
   },[session]);
+
+  // 캡션(SEO) 자동 복구: 완료됐는데 캡션이 비어있는 잡은 generate-seo로 자동 생성(상품정보 기반). 버튼 없이 열람 시 채워짐.
+  const seoReqRef = React.useRef<Set<string>>(new Set());
+  React.useEffect(() => {
+    const targets = (jobs||[]).filter((j:any)=> j?.status==="done"
+      && !String(j.seo_title||"").trim() && !String(j.seo_description||"").trim() && !String(j.seo_tags||"").trim()
+      && !seoReqRef.current.has(j.id));
+    if (!targets.length) return;
+    (async () => {
+      for (const j of targets) {
+        seoReqRef.current.add(j.id);
+        try {
+          const { data } = await supabase.functions.invoke("generate-seo", { body: { job_id: j.id, source_url: j.product_url || "" } });
+          if (data?.ok && (data.title || data.description || data.tags)) {
+            setJobs((prev:any)=> prev.map((x:any)=> x.id===j.id ? { ...x, seo_title:data.title, seo_description:data.description, seo_tags:data.tags } : x));
+          }
+        } catch {}
+      }
+    })();
+  }, [jobs]);
   const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
   const isIOS = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && typeof document !== "undefined" && "ontouchend" in document);
   const isAndroid = /Android/i.test(ua);
