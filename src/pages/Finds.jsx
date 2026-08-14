@@ -215,7 +215,7 @@ export function AnalyzeModal({ clip, onClose }) {
 export default function Finds() {
   const [session, setSession] = useState(null)
   const [sourceUrl, setSourceUrl] = useState('')
-  const [chUrl, setChUrl] = useState('')
+  const [searchMode, setSearchMode] = useState('clip')
   const [chBusy, setChBusy] = useState(false)
   const [chOpen, setChOpen] = useState(false)
   const [chResult, setChResult] = useState(null)
@@ -372,7 +372,7 @@ export default function Finds() {
   }
 
   const analyzeChannel = async () => {
-    const input = chUrl.trim()
+    const input = sourceUrl.trim()
     if (!input) return
     if (!session || session.user?.is_anonymous) { setShowAuth(true); return }
     if (!ackAnalyzeCost(balance)) return
@@ -427,27 +427,23 @@ export default function Finds() {
           <button onClick={() => (isAnon ? setShowAuth(true) : setPayWall(true))} className="inline-flex items-center gap-1 rounded-full bg-[#0064FF] px-3 py-1 text-xs font-bold text-white transition hover:brightness-95">이용권 구매</button>
         </div>
         <p className="-mt-1 mb-3 text-[11px] text-slate-400">분석 1회에 이용권 1개가 차감돼요 · 이미 분석한 소스는 다시 열어도 무료예요</p>
+        <div className="mb-2 inline-flex rounded-xl bg-slate-100 p-1 text-sm font-bold">
+          <button onClick={() => setSearchMode('clip')} className={`rounded-lg px-4 py-2 transition ${searchMode === 'clip' ? 'bg-white text-[#0064FF] shadow-sm' : 'text-slate-500'}`}>관련 클립 검색</button>
+          <button onClick={() => setSearchMode('channel')} className={`rounded-lg px-4 py-2 transition ${searchMode === 'channel' ? 'bg-white text-[#0064FF] shadow-sm' : 'text-slate-500'}`}>채널 분석</button>
+        </div>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <input value={sourceUrl} onChange={(e) => setSourceUrl(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') analyze() }}
-            placeholder="링크를 붙여넣거나 키워드를 입력하세요"
+          <input value={sourceUrl} onChange={(e) => setSourceUrl(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') (searchMode === 'channel' ? analyzeChannel() : analyze()) }}
+            placeholder={searchMode === 'channel' ? '채널 URL·@아이디 (유튜브·인스타) — 통째로 따라하기' : '링크를 붙여넣거나 키워드를 입력하세요'}
             className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#0064FF]" />
-          <button onClick={analyze} disabled={searching}
+          <button onClick={() => (searchMode === 'channel' ? analyzeChannel() : analyze())} disabled={searching || chBusy}
             className="flex items-center justify-center gap-2 rounded-xl bg-[#0064FF] px-6 py-3 text-sm font-bold text-white disabled:opacity-50">
-            {searching ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}{searching ? '분석 중…' : '분석'}
+            {(searchMode === 'channel' ? chBusy : searching) ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+            {searchMode === 'channel' ? (chBusy ? '분석 중…' : '채널 분석') : (searching ? '분석 중…' : '분석')}
           </button>
         </div>
 
-        <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-          <input value={chUrl} onChange={(e) => setChUrl(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') analyzeChannel() }}
-            placeholder="채널 URL·@아이디 (유튜브·인스타) — 채널 통째로 따라하기 분석"
-            className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#0064FF]" />
-          <button onClick={analyzeChannel} disabled={chBusy}
-            className="flex items-center justify-center gap-2 rounded-xl border-2 border-[#0064FF] px-6 py-3 text-sm font-bold text-[#0064FF] transition hover:bg-[#0064FF]/5 disabled:opacity-50">
-            {chBusy ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}채널 분석
-          </button>
-        </div>
-
-        {(relatedKw.length > 0 || (!searching && clips.length === 0)) && (
+        {searchMode === 'clip' && (relatedKw.length > 0 || (!searching && clips.length === 0)) && (
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
             <span className="mr-1 text-xs text-slate-400">{relatedKw.length ? '연관' : '추천'}</span>
             {(relatedKw.length ? relatedKw : ['살림템', '주방템', '자취템', '청소템', '수납템', '다이어트', '캠핑', '인테리어']).map((k) => (
