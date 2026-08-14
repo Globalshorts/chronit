@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { AnalysisProvider } from './context/analysis'
 import VideoGenerator from './pages/VideoGenerator'
 import Finds from './pages/Finds'
 import Trend from './pages/Trend'
@@ -80,6 +81,7 @@ const App = () => {
   }, [])
   return (
   <BrowserRouter>
+    <AnalysisProvider>
     <ScrollToTop />
     <ErrorReportModal />
     <AdminFab />
@@ -111,6 +113,7 @@ const App = () => {
       <Route path="/payments/fail" element={<PaymentResult fail />} />
     </Routes>
     </ErrorBoundary>
+    </AnalysisProvider>
   </BrowserRouter>
   )
 }

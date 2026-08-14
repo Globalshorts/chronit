@@ -7,6 +7,7 @@ import AuthModal from '../components/AuthModal'
 import FindsPricing from '../components/FindsPricing'
 import SiteNav from '../components/SiteNav'
 import ChannelModal from '../components/ChannelModal'
+import { useAnalysis } from '../context/analysis'
 import FindsBottomNav from '../components/FindsBottomNav'
 
 // ⚠️ Finds = 기존 영상분석 뷰(클립 그리드 + 재생)를 복제한 독립 페이지.
@@ -216,11 +217,8 @@ export default function Finds() {
   const [session, setSession] = useState(null)
   const [sourceUrl, setSourceUrl] = useState('')
   const [searchMode, setSearchMode] = useState('clip')
-  const [chBusy, setChBusy] = useState(false)
-  const [chOpen, setChOpen] = useState(false)
-  const [chResult, setChResult] = useState(null)
-  const [chErr, setChErr] = useState('')
   const [progress, setProgress] = useState(0)
+  const { startChannel, channelLoading } = useAnalysis()
   const [clips, setClips] = useState([])
   const [searching, setSearching] = useState(false)
   const [error, setError] = useState('')
@@ -372,7 +370,7 @@ export default function Finds() {
     }
   }
 
-  const busyAny = searching || chBusy
+  const busyAny = searching
   useEffect(() => {
     if (!busyAny) return
     setProgress(6)
@@ -388,22 +386,13 @@ export default function Finds() {
     const { data: cr } = await supabase.rpc('use_finds_credit_rpc')
     if (!cr?.ok) { setPayWall(true); return }
     setBalance(cr.balance)
-    setChOpen(true); setChBusy(true); setChErr(''); setChResult(null)
-    try {
-      const { data: { session: s } } = await supabase.auth.getSession()
-      const r = await fetch(FN('analyze-channel'), { method: 'POST', headers: { Authorization: `Bearer ${s.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ input }) })
-      const d = await r.json()
-      if (d.ok) setChResult(d)
-      else { setChErr(d.error || '분석에 실패했어요.'); try { await supabase.rpc('refund_finds_credit_rpc'); setBalance((b) => (b == null ? b : b + 1)) } catch { /* noop */ } }
-    } catch {
-      setChErr('분석 중 오류가 발생했어요.'); try { await supabase.rpc('refund_finds_credit_rpc'); setBalance((b) => (b == null ? b : b + 1)) } catch { /* noop */ }
-    } finally { setChBusy(false) }
+    startChannel(input, () => setBalance((b) => (b == null ? b : b + 1)))
   }
 
   return (
     <div className="min-h-screen bg-white">
       <div className="fixed inset-x-0 top-0 z-[70] h-[3px]">
-        {(searching || chBusy) && <div className="h-full bg-gradient-to-r from-[#2A7BFF] via-[#0064FF] to-[#7C6BFF] transition-[width] duration-300 ease-out" style={{ width: progress + '%' }} />}
+        {searching && <div className="h-full bg-gradient-to-r from-[#2A7BFF] via-[#0064FF] to-[#7C6BFF] transition-[width] duration-300 ease-out" style={{ width: progress + '%' }} />}
       </div>
       <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
@@ -451,10 +440,10 @@ export default function Finds() {
             onKeyDown={(e) => { if (e.key === 'Enter') (searchMode === 'channel' ? analyzeChannel() : analyze()) }}
             placeholder={searchMode === 'channel' ? '채널 URL·@아이디 (유튜브·인스타) — 통째로 따라하기' : '링크를 붙여넣거나 키워드를 입력하세요'}
             className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#0064FF]" />
-          <button onClick={() => (searchMode === 'channel' ? analyzeChannel() : analyze())} disabled={searching || chBusy}
+          <button onClick={() => (searchMode === 'channel' ? analyzeChannel() : analyze())} disabled={searching || channelLoading}
             className="flex items-center justify-center gap-2 rounded-xl bg-[#0064FF] px-6 py-3 text-sm font-bold text-white disabled:opacity-50">
-            {(searchMode === 'channel' ? chBusy : searching) ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
-            {searchMode === 'channel' ? (chBusy ? '분석 중…' : '채널 분석') : (searching ? '분석 중…' : '분석')}
+            {(searchMode === 'channel' ? channelLoading : searching) ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+            {searchMode === 'channel' ? (channelLoading ? '분석 중…' : '채널 분석') : (searching ? '분석 중…' : '분석')}
           </button>
         </div>
 
@@ -508,7 +497,6 @@ export default function Finds() {
 
       {modalClip && <AnalyzeModal clip={modalClip} onClose={() => setModalClip(null)} />}
       <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
-      <ChannelModal open={chOpen} loading={chBusy} progress={progress} result={chResult} err={chErr} onClose={() => setChOpen(false)} />
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
       <div className="h-16 md:hidden" />
       <FindsBottomNav />
