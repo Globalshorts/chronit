@@ -14,7 +14,7 @@ const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
 const FN = (n) => `${SB}/functions/v1/${n}`
 const fmt = (n) => { n = Math.max(0, Math.trunc(Number(n) || 0)); return n >= 10000 ? (n / 10000).toFixed(1) + '만' : n >= 1000 ? (n / 1000).toFixed(1) + '천' : String(n) }
 
-const SORTS = [['recent', '최신'], ['view', '조회수'], ['like', '좋아요'], ['comment', '댓글']]
+const SORTS = [['view', '조회수'], ['recent', '최신'], ['like', '좋아요'], ['comment', '댓글']]
 const RANGES = [['24h', '24시간', 1], ['7d', '7일', 7], ['all', '전체', 0]]
 const TREND_TTL = 10 * 60 * 1000 // 10분: 이 안이면 재요청 안 함(서버는 최대 24h마다 갱신)
 const readTrendCache = () => { try { const c = JSON.parse(sessionStorage.getItem('chronit_trend_cache') || 'null'); return (c && Array.isArray(c.items)) ? c : null } catch { return null } }
@@ -25,7 +25,7 @@ export default function Trend() {
   const [items, setItems] = useState(() => readTrendCache()?.items || [])
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState('')
-  const [sort, setSort] = useState('recent')
+  const [sort, setSort] = useState('view')
   const [range, setRange] = useState(7)
   const [modalClip, setModalClip] = useState(null)
   const [payWall, setPayWall] = useState(false)
