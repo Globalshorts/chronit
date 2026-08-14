@@ -220,6 +220,7 @@ export default function Finds() {
   const [chOpen, setChOpen] = useState(false)
   const [chResult, setChResult] = useState(null)
   const [chErr, setChErr] = useState('')
+  const [progress, setProgress] = useState(0)
   const [clips, setClips] = useState([])
   const [searching, setSearching] = useState(false)
   const [error, setError] = useState('')
@@ -371,6 +372,14 @@ export default function Finds() {
     }
   }
 
+  const busyAny = searching || chBusy
+  useEffect(() => {
+    if (!busyAny) return
+    setProgress(6)
+    const iv = setInterval(() => setProgress((x) => (x >= 92 ? 92 : x + Math.max(0.4, (92 - x) * 0.05))), 250)
+    return () => { clearInterval(iv); setProgress(100); setTimeout(() => setProgress(0), 500) }
+  }, [busyAny])
+
   const analyzeChannel = async () => {
     const input = sourceUrl.trim()
     if (!input) return
@@ -393,6 +402,9 @@ export default function Finds() {
 
   return (
     <div className="min-h-screen bg-white">
+      <div className="fixed inset-x-0 top-0 z-[70] h-[3px]">
+        {(searching || chBusy) && <div className="h-full bg-gradient-to-r from-[#2A7BFF] via-[#0064FF] to-[#7C6BFF] transition-[width] duration-300 ease-out" style={{ width: progress + '%' }} />}
+      </div>
       <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
           <Link to="/" className="flex items-center gap-2">
@@ -461,26 +473,15 @@ export default function Finds() {
           </div>
         )}
 
-        {/* 분석 중 로딩바 — 흐르는 그라데이션 */}
         {searching && (
           <div className="mt-5">
-            <div className="mb-2 flex items-center gap-2 text-sm text-slate-500">
-              <Loader2 size={14} className="animate-spin text-[#0064FF]" /> 관련 소스를 찾고 분석하고 있어요…
+            <div className="mb-1.5 flex items-center justify-between text-sm text-slate-500">
+              <span className="flex items-center gap-2"><Loader2 size={14} className="animate-spin text-[#0064FF]" /> 관련 소스를 찾고 분석하고 있어요…</span>
+              <span className="font-bold text-[#0064FF]">{Math.round(progress)}%</span>
             </div>
             <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
-              <div className="finds-loadbar h-full w-full rounded-full" />
+              <div className="h-full rounded-full bg-gradient-to-r from-[#2A7BFF] via-[#0064FF] to-[#7C6BFF] transition-[width] duration-300 ease-out" style={{ width: progress + '%' }} />
             </div>
-            <style>{`
-              .finds-loadbar {
-                background: linear-gradient(90deg, #2A7BFF, #0064FF, #7C6BFF, #0064FF, #2A7BFF);
-                background-size: 200% 100%;
-                animation: finds-loadslide 1.15s linear infinite;
-              }
-              @keyframes finds-loadslide {
-                0% { background-position: 200% 0; }
-                100% { background-position: 0% 0; }
-              }
-            `}</style>
           </div>
         )}
 
@@ -507,7 +508,7 @@ export default function Finds() {
 
       {modalClip && <AnalyzeModal clip={modalClip} onClose={() => setModalClip(null)} />}
       <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
-      <ChannelModal open={chOpen} loading={chBusy} result={chResult} err={chErr} onClose={() => setChOpen(false)} />
+      <ChannelModal open={chOpen} loading={chBusy} progress={progress} result={chResult} err={chErr} onClose={() => setChOpen(false)} />
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
       <div className="h-16 md:hidden" />
       <FindsBottomNav />

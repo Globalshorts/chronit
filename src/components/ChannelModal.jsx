@@ -11,7 +11,7 @@ function Section({ icon: Icon, label, children }) {
   )
 }
 
-export default function ChannelModal({ open, loading, result, err, onClose }) {
+export default function ChannelModal({ open, loading, progress = 0, result, err, onClose }) {
   if (!open) return null
   const r = result
   return (
@@ -23,7 +23,15 @@ export default function ChannelModal({ open, loading, result, err, onClose }) {
         </div>
 
         {loading ? (
-          <div className="flex items-center gap-2 py-12 text-slate-400"><Loader2 size={16} className="animate-spin" />채널을 분석하고 있어요… (10~20초)</div>
+          <div className="py-10">
+            <div className="mb-2 flex items-center justify-between text-sm text-slate-500">
+              <span className="flex items-center gap-2"><Loader2 size={16} className="animate-spin text-[#0064FF]" />채널을 분석하고 있어요…</span>
+              <span className="font-bold text-[#0064FF]">{Math.round(progress)}%</span>
+            </div>
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+              <div className="h-full rounded-full bg-gradient-to-r from-[#2A7BFF] via-[#0064FF] to-[#7C6BFF] transition-[width] duration-300 ease-out" style={{ width: progress + '%' }} />
+            </div>
+          </div>
         ) : err ? (
           <div className="flex items-center gap-1.5 py-6 text-red-500"><AlertTriangle size={15} />{err}</div>
         ) : r ? (
