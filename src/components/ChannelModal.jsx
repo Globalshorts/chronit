@@ -1,4 +1,4 @@
-import { X, Loader2, AlertTriangle, LayoutList, Scissors, Target, FileText, Type, Zap, Youtube, Instagram } from 'lucide-react'
+import { X, Loader2, AlertTriangle, LayoutList, Scissors, Target, FileText, Type, Zap } from 'lucide-react'
 
 function Section({ icon: Icon, label, children }) {
   return (
@@ -30,7 +30,7 @@ export default function ChannelModal({ open, loading, result, err, onClose }) {
           <div className="space-y-2.5">
             <div className="rounded-xl bg-gradient-to-br from-[#0064FF]/10 to-[#06B6D4]/10 p-3">
               <div className="flex items-center gap-1.5 text-xs font-bold text-[#0064FF]">
-                {r.platform === 'youtube' ? <Youtube size={14} /> : <Instagram size={14} />}{r.name}
+                <span className="rounded bg-[#0064FF]/15 px-1.5 py-0.5 text-[10px] uppercase tracking-wide">{r.platform === 'youtube' ? 'YouTube' : 'Instagram'}</span>{r.name}
               </div>
               {r.channel_summary && <div className="mt-1 text-[15px] font-extrabold leading-snug text-slate-900">{r.channel_summary}</div>}
             </div>
