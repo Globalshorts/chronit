@@ -6,6 +6,7 @@ import { FEATURES } from '../config/features'
 import AuthModal from '../components/AuthModal'
 import FindsPricing from '../components/FindsPricing'
 import SiteNav from '../components/SiteNav'
+import ChannelModal from '../components/ChannelModal'
 import FindsBottomNav from '../components/FindsBottomNav'
 
 // ⚠️ Finds = 기존 영상분석 뷰(클립 그리드 + 재생)를 복제한 독립 페이지.
@@ -214,6 +215,11 @@ export function AnalyzeModal({ clip, onClose }) {
 export default function Finds() {
   const [session, setSession] = useState(null)
   const [sourceUrl, setSourceUrl] = useState('')
+  const [chUrl, setChUrl] = useState('')
+  const [chBusy, setChBusy] = useState(false)
+  const [chOpen, setChOpen] = useState(false)
+  const [chResult, setChResult] = useState(null)
+  const [chErr, setChErr] = useState('')
   const [clips, setClips] = useState([])
   const [searching, setSearching] = useState(false)
   const [error, setError] = useState('')
@@ -365,6 +371,24 @@ export default function Finds() {
     }
   }
 
+  const analyzeChannel = async () => {
+    const input = chUrl.trim()
+    if (!input) return
+    if (!session || session.user?.is_anonymous) { setShowAuth(true); return }
+    if (!ackAnalyzeCost(balance)) return
+    const { data: cr } = await supabase.rpc('use_finds_credit_rpc')
+    if (!cr?.ok) { setPayWall(true); return }
+    setBalance(cr.balance)
+    setChOpen(true); setChBusy(true); setChErr(''); setChResult(null)
+    try {
+      const { data: { session: s } } = await supabase.auth.getSession()
+      const r = await fetch(FN('analyze-channel'), { method: 'POST', headers: { Authorization: `Bearer ${s.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ input }) })
+      const d = await r.json()
+      if (d.ok) setChResult(d); else setChErr(d.error || '분석에 실패했어요.')
+    } catch { setChErr('분석 중 오류가 발생했어요.') }
+    finally { setChBusy(false) }
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/90 backdrop-blur">
@@ -408,6 +432,16 @@ export default function Finds() {
           <button onClick={analyze} disabled={searching}
             className="flex items-center justify-center gap-2 rounded-xl bg-[#0064FF] px-6 py-3 text-sm font-bold text-white disabled:opacity-50">
             {searching ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}{searching ? '분석 중…' : '분석'}
+          </button>
+        </div>
+
+        <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+          <input value={chUrl} onChange={(e) => setChUrl(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') analyzeChannel() }}
+            placeholder="채널 URL·@아이디 (유튜브·인스타) — 채널 통째로 따라하기 분석"
+            className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#0064FF]" />
+          <button onClick={analyzeChannel} disabled={chBusy}
+            className="flex items-center justify-center gap-2 rounded-xl border-2 border-[#0064FF] px-6 py-3 text-sm font-bold text-[#0064FF] transition hover:bg-[#0064FF]/5 disabled:opacity-50">
+            {chBusy ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}채널 분석
           </button>
         </div>
 
@@ -472,6 +506,7 @@ export default function Finds() {
 
       {modalClip && <AnalyzeModal clip={modalClip} onClose={() => setModalClip(null)} />}
       <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
+      <ChannelModal open={chOpen} loading={chBusy} result={chResult} err={chErr} onClose={() => setChOpen(false)} />
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
       <div className="h-16 md:hidden" />
       <FindsBottomNav />
