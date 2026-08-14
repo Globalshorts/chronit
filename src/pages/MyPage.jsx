@@ -5,6 +5,7 @@ import FindsPricing from '../components/FindsPricing'
 import CommunityHeader from '../components/CommunityHeader'
 import NicknameModal from '../components/NicknameModal'
 import Footer from '../components/Footer'
+import FindsBottomNav from '../components/FindsBottomNav'
 import { supabase } from '../lib/supabase'
 import { CAT_LABEL, CAT_CLS, fmtWhen } from './Board'
 
@@ -222,6 +223,8 @@ const MyPage = () => {
 
       <FindsPricing open={payOpen} onClose={() => { setPayOpen(false); if (user) load(user.id) }} />
       <NicknameModal open={nickOpen} onClose={() => setNickOpen(false)} onDone={(n) => { setNickOpen(false); setProfile(p => ({ ...p, nickname: n })) }} />
+      <div className="h-16 md:hidden" />
+      <FindsBottomNav />
       <Footer />
     </div>
   )

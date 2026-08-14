@@ -6,6 +6,7 @@ import { FEATURES } from '../config/features'
 import AuthModal from '../components/AuthModal'
 import FindsPricing from '../components/FindsPricing'
 import SiteNav from '../components/SiteNav'
+import FindsBottomNav from '../components/FindsBottomNav'
 
 // ⚠️ Finds = 기존 영상분석 뷰(클립 그리드 + 재생)를 복제한 독립 페이지.
 //    VideoGenerator는 건드리지 않음(회귀 위험 0). '담기' 대신 '분석하기' 모달로 대체.
@@ -472,6 +473,8 @@ export default function Finds() {
       {modalClip && <AnalyzeModal clip={modalClip} onClose={() => setModalClip(null)} />}
       <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
+      <div className="h-16 md:hidden" />
+      <FindsBottomNav />
     </div>
   )
 }

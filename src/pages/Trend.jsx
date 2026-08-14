@@ -4,6 +4,7 @@ import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles } fro
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
 import SiteNav from '../components/SiteNav'
+import FindsBottomNav from '../components/FindsBottomNav'
 import { AnalyzeModal, ackAnalyzeCost } from './Finds'
 import AuthModal from '../components/AuthModal'
 import FindsPricing from '../components/FindsPricing'
@@ -151,6 +152,8 @@ export default function Trend() {
       {modalClip && <AnalyzeModal clip={modalClip} onClose={() => setModalClip(null)} />}
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
       <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
+      <div className="h-16 md:hidden" />
+      <FindsBottomNav />
     </div>
   )
 }
