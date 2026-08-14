@@ -384,9 +384,11 @@ export default function Finds() {
       const { data: { session: s } } = await supabase.auth.getSession()
       const r = await fetch(FN('analyze-channel'), { method: 'POST', headers: { Authorization: `Bearer ${s.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ input }) })
       const d = await r.json()
-      if (d.ok) setChResult(d); else setChErr(d.error || '분석에 실패했어요.')
-    } catch { setChErr('분석 중 오류가 발생했어요.') }
-    finally { setChBusy(false) }
+      if (d.ok) setChResult(d)
+      else { setChErr(d.error || '분석에 실패했어요.'); try { await supabase.rpc('refund_finds_credit_rpc'); setBalance((b) => (b == null ? b : b + 1)) } catch { /* noop */ } }
+    } catch {
+      setChErr('분석 중 오류가 발생했어요.'); try { await supabase.rpc('refund_finds_credit_rpc'); setBalance((b) => (b == null ? b : b + 1)) } catch { /* noop */ }
+    } finally { setChBusy(false) }
   }
 
   return (
