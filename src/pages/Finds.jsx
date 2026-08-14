@@ -110,18 +110,23 @@ export function AnalyzeModal({ clip, onClose }) {
   const copy = async () => {
     try { await navigator.clipboard.writeText(clip.page_url || ''); setCopied(true); setTimeout(() => setCopied(false), 1500) } catch { /* noop */ }
   }
-  const download = () => {
+  const download = async () => {
     const src = (clip.download_url || clip.video_url || '').replace(/^http:\/\//, 'https://')
     if (!src) { alert('이 소스는 다운로드 URL이 없어요.'); return }
-    try {
-      if (!sessionStorage.getItem('finds_dl_ack')) {
-        if (!window.confirm('다운로드 안내\n\n콘텐츠의 저작권은 원저작자에게 있으며, 다운로드·활용에 대한 책임은 이용자에게 있습니다. 권리가 있는 콘텐츠만 사용해 주세요.\n\n계속할까요?')) return
-        sessionStorage.setItem('finds_dl_ack', '1')
-      }
-    } catch { /* noop */ }
-    const name = ((clip.author || 'chronit') + '_' + (clip.video_id || '')).replace(/[^a-zA-Z0-9_.-]/g, '_')
-    const proxied = FN('dl') + '?url=' + encodeURIComponent(src) + '&name=' + encodeURIComponent(name)
-    const a = document.createElement('a'); a.href = proxied; a.rel = 'noreferrer'; document.body.appendChild(a); a.click(); a.remove()
+    const go = () => {
+      const name = ((clip.author || 'chronit') + '_' + (clip.video_id || '')).replace(/[^a-zA-Z0-9_.-]/g, '_')
+      const proxied = FN('dl') + '?url=' + encodeURIComponent(src) + '&name=' + encodeURIComponent(name)
+      const a = document.createElement('a'); a.href = proxied; a.rel = 'noreferrer'; document.body.appendChild(a); a.click(); a.remove()
+    }
+    // 계정 단위 1회 동의 (세션 아님) — 로컬 캐시 → DB 확인 순
+    let consented = false
+    try { consented = !!localStorage.getItem('dl_consent') } catch { /* noop */ }
+    if (!consented) { try { const { data } = await supabase.rpc('has_dl_consent_rpc'); consented = !!data } catch { /* noop */ } }
+    if (consented) { try { localStorage.setItem('dl_consent', '1') } catch { /* noop */ } ; go(); return }
+    if (!window.confirm('다운로드 및 콘텐츠 활용 안내\n\n다운로드하는 콘텐츠의 저작권은 원저작자에게 있으며, 다운로드·활용에 대한 책임은 이용자 본인에게 있습니다. 권리가 있는 콘텐츠만 사용하는 것에 동의하십니까?')) return
+    try { await supabase.rpc('record_dl_consent_rpc') } catch { /* noop */ }
+    try { localStorage.setItem('dl_consent', '1') } catch { /* noop */ }
+    go()
   }
 
   return (
