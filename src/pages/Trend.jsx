@@ -12,6 +12,13 @@ import FindsPricing from '../components/FindsPricing'
 // 기존 "오늘의 트렌드"(VideoGenerator) 데이터 로딩을 재사용한 독립 페이지 + pint 스타일 대시보드.
 const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
 const FN = (n) => `${SB}/functions/v1/${n}`
+
+function TrendThumb({ url }) {
+  const [err, setErr] = useState(false)
+  const src = url ? `${SB}/functions/v1/thumbnail-proxy?url=${encodeURIComponent(url)}` : ''
+  if (!src || err) return <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-slate-300"><Flame size={26} /></div>
+  return <img src={src} referrerPolicy="no-referrer" loading="lazy" className="h-full w-full object-cover" onError={() => setErr(true)} />
+}
 const fmt = (n) => { n = Math.max(0, Math.trunc(Number(n) || 0)); return n >= 10000 ? (n / 10000).toFixed(1) + '만' : n >= 1000 ? (n / 1000).toFixed(1) + '천' : String(n) }
 
 const SORTS = [['view', '조회수'], ['recent', '최신'], ['like', '좋아요'], ['comment', '댓글']]
@@ -129,7 +136,7 @@ export default function Trend() {
               return (
                 <div key={it.shortcode || i} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
                   <a href={it.url} target="_blank" rel="noreferrer noopener" className="relative block aspect-[9/16] bg-slate-100">
-                    {it.thumbnail_url ? <img src={it.thumbnail_url} referrerPolicy="no-referrer" loading="lazy" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none' }} /> : null}
+                    <TrendThumb url={it.thumbnail_url} />
                     <div className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">#{i + 1}</div>
                   </a>
                   <div className="p-2">
