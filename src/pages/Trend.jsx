@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Navigate, Link } from 'react-router-dom'
-import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles } from 'lucide-react'
+import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, HelpCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
 import SiteNav from '../components/SiteNav'
@@ -33,6 +33,7 @@ export default function Trend() {
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState('')
   const [sort, setSort] = useState('view')
+  const [showHelp, setShowHelp] = useState(false)
   const [range, setRange] = useState(7)
   const [modalClip, setModalClip] = useState(null)
   const [payWall, setPayWall] = useState(false)
@@ -105,7 +106,19 @@ export default function Trend() {
 
       <div className="mx-auto max-w-5xl px-4 py-8">
         <header className="mb-5">
-          <div className="flex items-center gap-2 text-[#0064FF]"><Flame size={22} /><h1 className="text-2xl font-extrabold text-slate-900">실시간 트렌드</h1></div>
+          <div className="flex items-center gap-2 text-[#0064FF]">
+            <Flame size={22} />
+            <h1 className="text-2xl font-extrabold text-slate-900">실시간 트렌드</h1>
+            <div className="relative">
+              <button onClick={() => setShowHelp((v) => !v)} className="flex text-slate-300 transition-colors hover:text-slate-500" aria-label="선정 기준"><HelpCircle size={18} /></button>
+              {showHelp && (
+                <div className="absolute left-0 top-7 z-50 w-64 rounded-xl border border-slate-200 bg-white p-3 text-xs font-medium leading-relaxed text-slate-600 shadow-xl" onClick={() => setShowHelp(false)}>
+                  <div className="mb-0.5 font-bold text-slate-800">선정 기준</div>
+                  팔로워 <b className="text-slate-800">2만 미만</b> 계정 중, 최근 <b className="text-slate-800">반응이 잘 터진</b>(댓글·조회수 높은) 쇼핑 숏폼만 골라 모아드려요.
+                </div>
+              )}
+            </div>
+          </div>
           <p className="mt-1 text-sm text-slate-500">지금 뜨는 쇼핑 숏폼을 한눈에. 조회수·좋아요 순으로 정렬해 확인하세요.</p>
           <p className="mt-0.5 text-[11px] text-slate-400">[분석]은 이용권 1개가 차감돼요 · 이미 분석한 소스는 다시 열어도 무료예요</p>
         </header>
@@ -143,6 +156,7 @@ export default function Trend() {
                     <div className="mb-1.5 flex items-center gap-2 text-[11px] text-slate-500">
                       <span className="flex items-center gap-0.5"><Eye size={11} />{fmt(it.view_count)}</span>
                       <span className="flex items-center gap-0.5"><Heart size={11} />{fmt(it.like_count)}</span>
+                      <span className="flex items-center gap-0.5"><MessageCircle size={11} />{fmt(it.comment_count)}</span>
                     </div>
                     <div className="flex gap-1.5">
                       <button onClick={() => handleAnalyze(clip)} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Sparkles size={12} />분석</button>
