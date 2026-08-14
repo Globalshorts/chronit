@@ -426,7 +426,9 @@ export default function Finds() {
           )}
           <button onClick={() => (isAnon ? setShowAuth(true) : setPayWall(true))} className="inline-flex items-center gap-1 rounded-full bg-[#0064FF] px-3 py-1 text-xs font-bold text-white transition hover:brightness-95">이용권 구매</button>
         </div>
-        <p className="-mt-1 mb-3 text-[11px] text-slate-400">분석 1회에 이용권 1개가 차감돼요 · 이미 분석한 소스는 다시 열어도 무료예요</p>
+        <p className="-mt-1 mb-3 text-[11px] text-slate-400">{searchMode === 'channel'
+          ? '‘채널 분석’ 실행 시 이용권 1개가 차감돼요 · 분석 실패 시 자동 환불돼요'
+          : '검색은 무료예요 · 클립별 ‘분석하기’를 누르면 이용권 1개 차감 (같은 소스 다시 열기는 무료)'}</p>
         <div className="relative mb-2 flex w-full max-w-xs rounded-xl bg-slate-100 p-1 text-sm font-bold">
           <span aria-hidden className="absolute left-1 top-1 bottom-1 w-[calc(50%-0.25rem)] rounded-lg bg-white shadow-sm transition-transform duration-300 ease-out" style={{ transform: searchMode === 'channel' ? 'translateX(100%)' : 'translateX(0)' }} />
           <button onClick={() => setSearchMode('clip')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors active:scale-[0.98] ${searchMode === 'clip' ? 'text-[#0064FF]' : 'text-slate-500'}`}>관련 클립 검색</button>
