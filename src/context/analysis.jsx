@@ -37,7 +37,7 @@ export function AnalysisProvider({ children }) {
   }, [])
 
   return (
-    <AnalysisCtx.Provider value={{ startChannel, channelLoading: loading }}>
+    <AnalysisCtx.Provider value={{ startChannel, channelLoading: loading, channelResult: result, reopenChannel: () => { if (result) setOpen(true) } }}>
       <div className="pointer-events-none fixed inset-x-0 top-0 z-[80] h-[3px]">
         {loading && <div className="h-full bg-gradient-to-r from-[#2A7BFF] via-[#0064FF] to-[#7C6BFF] transition-[width] duration-300 ease-out" style={{ width: progress + '%' }} />}
       </div>

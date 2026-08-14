@@ -83,6 +83,8 @@ export function ackAnalyzeCost(balance) {
 
 export function AnalyzeModal({ clip, onClose }) {
   const [copied, setCopied] = useState(false)
+  const [dlErr, setDlErr] = useState('')
+  const [dling, setDling] = useState(false)
   const [loading, setLoading] = useState(true)
   const [result, setResult] = useState(null)
   const [err, setErr] = useState('')
@@ -116,10 +118,20 @@ export function AnalyzeModal({ clip, onClose }) {
   const download = async () => {
     const src = (clip.download_url || clip.video_url || '').replace(/^http:\/\//, 'https://')
     if (!src) { alert('이 소스는 다운로드 URL이 없어요.'); return }
-    const go = () => {
+    const go = async () => {
       const name = ((clip.author || 'chronit') + '_' + (clip.video_id || '')).replace(/[^a-zA-Z0-9_.-]/g, '_')
       const proxied = FN('dl') + '?url=' + encodeURIComponent(src) + '&name=' + encodeURIComponent(name)
-      const a = document.createElement('a'); a.href = proxied; a.rel = 'noreferrer'; document.body.appendChild(a); a.click(); a.remove()
+      setDlErr(''); setDling(true)
+      try {
+        const resp = await fetch(proxied)
+        if (!resp.ok) throw new Error('expired')
+        const blob = await resp.blob()
+        if (!blob || blob.size < 1000) throw new Error('expired')
+        const objUrl = URL.createObjectURL(blob)
+        const a = document.createElement('a'); a.href = objUrl; a.download = name + '.mp4'; document.body.appendChild(a); a.click(); a.remove()
+        setTimeout(() => URL.revokeObjectURL(objUrl), 8000)
+      } catch { setDlErr('이 소스는 캐시가 만료됐어요. Finds에서 다시 검색해 주세요.') }
+      finally { setDling(false) }
     }
     // 계정 단위 1회 동의 (세션 아님) — 로컬 캐시 → DB 확인 순
     let consented = false
@@ -150,9 +162,12 @@ export function AnalyzeModal({ clip, onClose }) {
         </div>
 
         {(clip.download_url || clip.video_url) && (
-          <button onClick={download} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-3 text-sm font-bold text-white shadow-sm transition hover:brightness-95">
-            <Download size={16} /> HD 다운로드
-          </button>
+          <>
+            <button onClick={download} disabled={dling} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-3 text-sm font-bold text-white shadow-sm transition hover:brightness-95 disabled:opacity-60">
+              {dling ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} {dling ? '내려받는 중…' : 'HD 다운로드'}
+            </button>
+            {dlErr && <p className="mt-2 flex items-center gap-1.5 text-xs text-amber-600"><AlertTriangle size={13} />{dlErr}</p>}
+          </>
         )}
 
         {clip.page_url && (
@@ -217,8 +232,9 @@ export default function Finds() {
   const [session, setSession] = useState(null)
   const [sourceUrl, setSourceUrl] = useState('')
   const [searchMode, setSearchMode] = useState('clip')
+  const [chUrl, setChUrl] = useState('')
   const [progress, setProgress] = useState(0)
-  const { startChannel, channelLoading } = useAnalysis()
+  const { startChannel, channelLoading, channelResult, reopenChannel } = useAnalysis()
   const [clips, setClips] = useState([])
   const [searching, setSearching] = useState(false)
   const [error, setError] = useState('')
@@ -379,7 +395,7 @@ export default function Finds() {
   }, [busyAny])
 
   const analyzeChannel = async () => {
-    const input = sourceUrl.trim()
+    const input = chUrl.trim()
     if (!input) return
     if (!session || session.user?.is_anonymous) { setShowAuth(true); return }
     if (!ackAnalyzeCost(balance)) return
@@ -436,7 +452,7 @@ export default function Finds() {
           <button onClick={() => setSearchMode('channel')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors active:scale-[0.98] ${searchMode === 'channel' ? 'text-[#0064FF]' : 'text-slate-500'}`}>채널 분석</button>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <input value={sourceUrl} onChange={(e) => setSourceUrl(e.target.value)}
+          <input value={searchMode === 'channel' ? chUrl : sourceUrl} onChange={(e) => (searchMode === 'channel' ? setChUrl(e.target.value) : setSourceUrl(e.target.value))}
             onKeyDown={(e) => { if (e.key === 'Enter') (searchMode === 'channel' ? analyzeChannel() : analyze()) }}
             placeholder={searchMode === 'channel' ? '채널 URL·@아이디 (유튜브·인스타) — 통째로 따라하기' : '링크를 붙여넣거나 키워드를 입력하세요'}
             className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#0064FF]" />
@@ -462,7 +478,7 @@ export default function Finds() {
           </div>
         )}
 
-        {searching && (
+        {searchMode === 'clip' && searching && (
           <div className="mt-5">
             <div className="mb-1.5 flex items-center justify-between text-sm text-slate-500">
               <span className="flex items-center gap-2"><Loader2 size={14} className="animate-spin text-[#0064FF]" /> 관련 소스를 찾고 분석하고 있어요…</span>
@@ -474,7 +490,7 @@ export default function Finds() {
           </div>
         )}
 
-        {/* 클립 그리드 — 익명은 블러, 로그인 시 즉시 공개 */}
+        {searchMode === 'clip' && (
         <div className="relative">
           <div className={`mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 ${isAnon && clips.length ? 'pointer-events-none select-none blur-[6px]' : ''}`}>
             {clips.map((c) => <FindCard key={c.video_id} clip={c} onAnalyze={handleAnalyze} />)}
@@ -489,8 +505,17 @@ export default function Finds() {
             </div>
           )}
         </div>
+        )}
 
-        {!searching && clips.length === 0 && !error && (
+        {searchMode === 'channel' && (
+          <div className="mt-8 text-center">
+            {channelResult
+              ? <button onClick={reopenChannel} className="rounded-xl border border-[#0064FF] px-5 py-2.5 text-sm font-bold text-[#0064FF] transition hover:bg-[#0064FF]/5">최근 채널 분석 결과 다시 보기 →</button>
+              : (!channelLoading && <p className="mt-12 text-sm text-slate-400">채널 URL·@아이디를 넣고 분석하면 따라하기 플레이북이 나와요. (유튜브·인스타 지원)</p>)}
+          </div>
+        )}
+
+        {searchMode === 'clip' && !searching && clips.length === 0 && !error && (
           <div className="mt-16 text-center text-sm text-slate-400">링크나 키워드를 넣고 검색해보세요.</div>
         )}
       </div>
