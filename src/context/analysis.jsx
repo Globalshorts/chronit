@@ -7,7 +7,7 @@ const AnalysisCtx = createContext(null)
 export const useAnalysis = () => useContext(AnalysisCtx) || {}
 
 // 채널 분석을 앱 레벨에서 관리 → 페이지 이동해도(Finds→트렌드 등) 계속 진행
-// 진행률: 백엔드가 스트림으로 보내는 실제 단계(pct/stage)를 목표로 삼아 바를 채운다.
+// 진행률: 백엔드가 DB에 기록하는 실제 단계(pct/stage)를 폴링해 목표로 삼아 바를 채운다.
 export function AnalysisProvider({ children }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -31,30 +31,29 @@ export function AnalysisProvider({ children }) {
   const startChannel = useCallback(async (input, onRefund) => {
     setOpen(true); setLoading(true); setErr(''); setResult(null); setStage('시작하는 중'); targetRef.current = 8; setProgress(4)
     const refund = async () => { try { await supabase.rpc('refund_finds_credit_rpc'); onRefund && onRefund() } catch { /* noop */ } }
-    try {
+    const post = async (payload) => {
       const { data: { session } } = await supabase.auth.getSession()
       const r = await fetch(`${SB}/functions/v1/analyze-channel`, {
-        method: 'POST', headers: { Authorization: `Bearer ${session?.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ input }),
+        method: 'POST', headers: { Authorization: `Bearer ${session?.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
       })
-      if (!r.ok || !r.body) {
-        let e = ''; try { const d = await r.json(); e = d.error } catch { /* noop */ }
-        setErr(e || '분석에 실패했어요.'); await refund(); return
-      }
-      const reader = r.body.getReader(); const dec = new TextDecoder(); let buf = ''; let final = null
+      return r.json()
+    }
+    try {
+      const started = await post({ input })
+      if (!started?.ok || !started.job_id) { setErr(started?.error || '분석에 실패했어요.'); await refund(); setLoading(false); return }
+      const jobId = started.job_id
+      const t0 = Date.now()
       for (;;) {
-        const { value, done } = await reader.read(); if (done) break
-        buf += dec.decode(value, { stream: true })
-        let idx
-        while ((idx = buf.indexOf('\n')) >= 0) {
-          const line = buf.slice(0, idx).trim(); buf = buf.slice(idx + 1)
-          if (!line) continue
-          let ev; try { ev = JSON.parse(line) } catch { continue }
-          if (ev.t === 'p') { if (typeof ev.pct === 'number') targetRef.current = ev.pct; if (ev.stage) setStage(ev.stage) }
-          else if (ev.t === 'done') { final = ev }
-        }
+        await new Promise((res) => setTimeout(res, 1000))
+        if (Date.now() - t0 > 180000) { setErr('분석이 지연되고 있어요. 잠시 후 다시 시도해 주세요.'); await refund(); break }
+        let d = null
+        try { d = await post({ job_id: jobId }) } catch { continue }
+        if (!d?.ok) { setErr(d?.error || '분석에 실패했어요.'); await refund(); break }
+        if (typeof d.pct === 'number') targetRef.current = d.pct
+        if (d.stage) setStage(d.stage)
+        if (d.status === 'done') { targetRef.current = 100; setStage('완료'); setResult(d); break }
+        if (d.status === 'error') { setErr(d.error || '분석에 실패했어요.'); await refund(); break }
       }
-      if (final && final.ok) { targetRef.current = 100; setStage('완료'); setResult(final) }
-      else { setErr((final && final.error) || '분석에 실패했어요.'); await refund() }
     } catch {
       setErr('분석 중 오류가 발생했어요.'); await refund()
     } finally { setLoading(false) }
