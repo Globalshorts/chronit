@@ -303,6 +303,7 @@ export default function Finds() {
     const isUrl = isValidUrl(su)
     setError(''); setSearching(true); setClips([]); setRelatedKw([])
     srchTargetRef.current = 8; setProgress(4); setSrchStage('시작하는 중')
+    try { if (/instagram\.com|^@/i.test(su)) supabase.auth.getSession().then(({ data }) => fetch(FN('trend-capture'), { method: 'POST', headers: { Authorization: `Bearer ${data.session?.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ url: su }) }).catch(() => {})) } catch { /* noop */ }
     try {
       let sess = (await supabase.auth.getSession()).data.session
       if (!sess) {
@@ -410,6 +411,7 @@ export default function Finds() {
   const analyzeChannel = async () => {
     const input = chUrl.trim()
     if (!input) return
+    try { if (/instagram\.com|^@/i.test(input)) supabase.auth.getSession().then(({ data }) => fetch(FN('trend-capture'), { method: 'POST', headers: { Authorization: `Bearer ${data.session?.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ url: input }) }).catch(() => {})) } catch { /* noop */ }
     if (!session || session.user?.is_anonymous) { setShowAuth(true); return }
     if (!ackAnalyzeCost(balance)) return
     const { data: cr } = await supabase.rpc('use_finds_credit_rpc')
