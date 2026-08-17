@@ -1,6 +1,7 @@
 {
   "name": "크로닛 (Chronit)",
   "short_name": "크로닛",
+  "description": "터지는 쇼핑 숏폼 소스를 찾아주고 AI로 분석해주는 서비스",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
