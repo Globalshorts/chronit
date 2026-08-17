@@ -3777,8 +3777,8 @@ function CreditMissionsModal({ open, onClose, session, onCredited }: { open:bool
       Kakao.Share.sendDefault({
         objectType: "feed",
         content: {
-          title: "편집 몰라도 2분이면 쇼핑 숏폼 완성 🎬 크로닛",
-          description: "쇼핑 영상 링크만 붙이면 자막·AI 목소리·썸네일 자동. 추천 링크로 가입 시 이용권 2개 무료!",
+          title: "터지는 쇼핑 숏폼 소스, AI가 찾아줘요 🔍 크로닛",
+          description: "링크·키워드만 넣으면 잘 터진 쇼핑 숏폼을 찾아주고, 왜 터졌는지 분석까지. 무료로 써보세요.",
           imageUrl: KAKAO_SHARE_IMG,
           link: { mobileWebUrl: link, webUrl: link },
         },
