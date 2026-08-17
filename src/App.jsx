@@ -15,7 +15,6 @@ import EventWrite from './pages/EventWrite'
 import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import Admin from './pages/Admin'
-import Manage from './pages/Manage'
 import LinkPage from './pages/LinkPage'
 import LinksManager from './pages/LinksManager'
 import Board from './pages/Board'
@@ -99,7 +98,6 @@ const App = () => {
       <Route path="/terms" element={<Terms />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/admin" element={<Admin />} />
-      <Route path="/manage" element={<Manage />} />
       <Route path="/generate" element={<VideoGenerator />} />
       <Route path="/finds" element={<Finds />} />
       <Route path="/trend" element={<Trend />} />

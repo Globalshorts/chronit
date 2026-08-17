@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+import AdminManage from './AdminManage'
 import { supabase } from '../lib/supabase'
 import RichEditor from '../components/RichEditor'
 import {
@@ -391,294 +393,64 @@ const TipsPanel = () => {
 }
 
 const Admin = () => {
-  const [user, setUser] = useState(null)
+  const [session, setSession] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [events, setEvents] = useState([])
-  const [tab, setTab] = useState('events')
-  const [view, setView] = useState('list')
-  const [editing, setEditing] = useState(null)
-  const [form, setForm] = useState(emptyForm())
-  const [saving, setSaving] = useState(false)
-  const [saveMsg, setSaveMsg] = useState(null)
-  const [preview, setPreview] = useState(false)
-  const [deleting, setDeleting] = useState(null)
-
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
-
+  const [tab, setTab] = useState('manage')
   useEffect(() => {
-    const init = async () => {
+    (async () => {
       const { data: { session } } = await supabase.auth.getSession()
+      setSession(session)
       if (!session) { setLoading(false); return }
-      setUser(session.user)
       const { data: sub } = await supabase.from('subscriptions').select('role').eq('user_id', session.user.id).single()
-      if (sub?.role === 'super_admin') {
-        setIsAdmin(true)
-        await loadEvents()
-      }
+      setIsAdmin(sub?.role === 'super_admin')
       setLoading(false)
-    }
-    init()
+    })()
   }, [])
 
-  const loadEvents = async () => {
-    const { data } = await supabase.from('events').select('*').order('created_at', { ascending: false })
-    if (data) setEvents(data)
-  }
-
-  const openNew = () => { setForm(emptyForm()); setEditing(null); setPreview(false); setView('form') }
-  const openEdit = ev => {
-    setForm({ title: ev.title, content: ev.content, status: ev.status, cta_text: ev.cta_text || '', cta_url: ev.cta_url || '', thumbnail_url: ev.thumbnail_url || '' })
-    setEditing(ev.id); setPreview(false); setView('form')
-  }
-
-  const [thumbUploading, setThumbUploading] = useState(false)
-  const uploadThumbnail = async (file) => {
-    if (!file?.type.startsWith('image/')) return
-    setThumbUploading(true)
-    try {
-      const ext = file.name.split('.').pop()
-      const path = `thumbnails/${Date.now()}.${ext}`
-      const { error } = await supabase.storage.from('event-assets').upload(path, file, { upsert: true })
-      if (error) throw error
-      const { data: { publicUrl } } = supabase.storage.from('event-assets').getPublicUrl(path)
-      set('thumbnail_url', publicUrl)
-    } catch { setSaveMsg('이미지 업로드 실패'); setTimeout(() => setSaveMsg(null), 2000) }
-    finally { setThumbUploading(false) }
-  }
-
-  const handleSave = async () => {
-    if (!form.title.trim()) { setSaveMsg('title required'); setTimeout(() => setSaveMsg(null), 2000); return }
-    setSaving(true); setSaveMsg(null)
-    const payload = {
-      title: form.title, content: form.content, status: form.status,
-      label: STATUS_CFG[form.status]?.label || '진행중',
-      cta_text: form.cta_text, cta_url: form.cta_url, thumbnail_url: form.thumbnail_url || '',
-      updated_at: new Date().toISOString(), created_by: user.id,
-    }
-    let error
-    if (editing) {
-      ({ error } = await supabase.from('events').update(payload).eq('id', editing))
-    } else {
-      ({ error } = await supabase.from('events').insert(payload))
-    }
-    setSaving(false)
-    if (error) { setSaveMsg('Error: ' + error.message) }
-    else { setSaveMsg('Saved!'); await loadEvents(); setTimeout(() => { setSaveMsg(null); setView('list') }, 1000) }
-  }
-
-  const handleDelete = async (id) => {
-    setDeleting(id)
-    await supabase.from('events').delete().eq('id', id)
-    await loadEvents()
-    setDeleting(null)
-  }
-
-  const formatDate = s => new Date(s).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '')
-
-  if (loading) return <div className="flex min-h-screen items-center justify-center bg-[#020617]"><Loader size={24} className="animate-spin text-slate-400" /></div>
-
-  if (!user) return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-[#020617] text-slate-100">
-      <ShieldCheck size={48} className="text-slate-600" />
-      <p className="text-lg font-bold text-slate-400">Login required</p>
-      <button onClick={() => supabase.auth.signInWithOAuth({ provider: 'google' })}
-        className="rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-6 py-3 font-bold text-white hover:brightness-95">Sign in with Google</button>
+  if (loading) return <div className="flex min-h-screen items-center justify-center bg-[#FAFAF8] text-sm text-gray-400">불러오는 중…</div>
+  if (!session) return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#FAFAF8]">
+      <p className="text-gray-600">로그인이 필요해요.</p>
+      <button onClick={() => supabase.auth.signInWithOAuth({ provider: 'google' })} className="rounded-xl bg-[#0064FF] px-6 py-2.5 text-sm font-bold text-white">구글로 로그인</button>
     </div>
   )
-
   if (!isAdmin) return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#020617] text-slate-100">
-      <ShieldCheck size={48} className="text-red-500/60" />
-      <p className="text-lg font-bold text-slate-400">No admin access</p>
-      <p className="text-sm text-slate-600">{user.email}</p>
-      <button onClick={() => supabase.auth.signOut()}
-        className="mt-2 flex items-center gap-2 rounded-xl border border-white/10 px-5 py-2.5 text-sm font-bold text-slate-400 hover:text-white">
-        <LogOut size={15} /> Sign out
-      </button>
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#FAFAF8]">
+      <p className="text-gray-600">관리자 전용 페이지예요.</p>
+      <Link to="/" className="text-sm font-bold text-[#0064FF]">홈으로</Link>
     </div>
   )
 
+  const TABS = [
+    { key: 'manage', label: '회원·결제' },
+    { key: 'trends', label: '트렌드 계정' },
+    { key: 'errors', label: '오류 로그' },
+  ]
   return (
-    <div className="min-h-screen bg-[#020617] px-4 py-16 text-slate-100">
-      <div className="mx-auto max-w-3xl">
-
-        <div className="mb-8 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {tab === 'events' && view === 'form' && (
-              <button onClick={() => setView('list')} className="mr-1 flex items-center gap-1 text-sm text-slate-400 hover:text-white">
-                <ChevronLeft size={16} /> Back
-              </button>
-            )}
-            <ShieldCheck size={22} className="text-blue-400" />
-            <h1 className="text-xl font-bold tracking-tight">Chronit Admin</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <a href="/" className="flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-2 text-sm font-bold text-slate-300 hover:bg-white/5 hover:text-white">🏠 홈</a>
-            <a href="/generate" className="flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-2 text-sm font-bold text-slate-300 hover:bg-white/5 hover:text-white">🎬 영상 만들기</a>
-            <button onClick={() => supabase.auth.signOut()}
-              className="flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2 text-sm font-bold text-slate-400 hover:text-white">
-              <LogOut size={14} /> Sign out
-            </button>
+    <div className="min-h-screen bg-[#FAFAF8] text-gray-900">
+      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-2"><ShieldCheck size={18} className="text-[#0064FF]" /><h1 className="text-base font-bold">Chronit 관리</h1></div>
+          <div className="flex items-center gap-1.5 text-sm">
+            <Link to="/" className="rounded-lg border border-gray-200 px-3 py-1.5 font-bold text-gray-600 transition hover:text-[#0064FF]">홈</Link>
+            <button onClick={() => supabase.auth.signOut()} className="rounded-lg border border-gray-200 px-3 py-1.5 font-bold text-gray-600 transition hover:text-red-500">로그아웃</button>
           </div>
         </div>
-
-        <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
-          {[
-            { key: 'events', icon: <Megaphone size={15} />, label: 'Events' },
-            { key: 'missions', icon: <Gift size={15} />, label: '이벤트(이용권)' },
-            { key: 'tips', icon: <Megaphone size={15} />, label: '꿀팁' },
-            { key: 'videos', icon: <Film size={15} />, label: 'Demo Videos' },
-            { key: 'errors', icon: <AlertTriangle size={15} />, label: '오류 로그' },
-            { key: 'trends', icon: <Flame size={15} />, label: '오늘의 트렌드' },
-          ].map(t => (
-            <button key={t.key} onClick={() => { setTab(t.key); setView('list') }}
-              className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2 text-sm font-bold transition-all ${tab === t.key ? 'bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white shadow-lg shadow-blue-600/20' : 'border border-white/10 text-slate-400 hover:text-white'}`}>
-              {t.icon}{t.label}
+        <div className="mx-auto flex max-w-6xl gap-1 px-4">
+          {TABS.map((t) => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-bold transition ${tab === t.key ? 'border-[#0064FF] text-[#0064FF]' : 'border-transparent text-gray-400 hover:text-gray-900'}`}>
+              {t.label}
             </button>
           ))}
         </div>
-
-        {tab === 'videos' && <DemoVideosPanel />}
-        {tab === 'errors' && <ErrorReportsPanel />}
-        {tab === 'missions' && <MissionsPanel />}
-        {tab === 'tips' && <TipsPanel />}
+      </header>
+      <main className="mx-auto max-w-6xl px-4 py-6">
+        {tab === 'manage' && <AdminManage session={session} />}
         {tab === 'trends' && <TrendAccountsPanel />}
-
-        {tab === 'events' && view === 'list' && (
-          <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
-            <div className="mb-6 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Megaphone size={18} className="text-violet-400" />
-                <h2 className="text-base font-bold">Events</h2>
-                <span className="rounded-full bg-white/8 px-2 py-0.5 text-xs text-slate-400">{events.length}</span>
-              </div>
-              <button onClick={openNew}
-                className="flex items-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-sm font-bold text-white hover:brightness-95 active:scale-[0.98]">
-                <Plus size={15} /> New Event
-              </button>
-            </div>
-            {events.length === 0 ? (
-              <div className="py-16 text-center text-slate-500">
-                <Megaphone size={32} className="mx-auto mb-3 opacity-30" />
-                <p className="text-sm">No events yet</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {events.map(ev => (
-                  <div key={ev.id} className="flex items-center gap-3 rounded-xl border border-white/6 bg-white/[0.02] px-4 py-3 transition-colors hover:bg-white/[0.04]">
-                    <StatusBadge status={ev.status} />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold text-slate-200">{ev.title}</p>
-                      <p className="text-xs text-slate-500">{formatDate(ev.created_at)}</p>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => openEdit(ev)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-white/10 hover:text-blue-400">
-                        <Pencil size={14} />
-                      </button>
-                      <button onClick={() => handleDelete(ev.id)} disabled={deleting === ev.id}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-white/10 hover:text-red-400 disabled:opacity-40">
-                        {deleting === ev.id ? <Loader size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {tab === 'events' && view === 'form' && (
-          <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
-            <h2 className="mb-6 text-base font-bold">{editing ? 'Edit Event' : 'New Event'}</h2>
-            <div className="mb-4">
-              <label className="mb-2 block text-sm font-bold text-slate-400">Title</label>
-              <input value={form.title} onChange={e => set('title', e.target.value)}
-                placeholder="Event title"
-                className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 outline-none focus:border-blue-500/50" />
-            </div>
-            <div className="mb-5">
-              <label className="mb-2 block text-sm font-bold text-slate-400">Status</label>
-              <div className="flex gap-3">
-                {Object.entries(STATUS_CFG).map(([key, cfg]) => (
-                  <button key={key} type="button" onClick={() => set('status', key)}
-                    className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition-all ${form.status === key ? cfg.cls + ' border-current' : 'border-white/10 text-slate-500 hover:text-slate-300'}`}>
-                    {key === 'active' && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-400" />}
-                    {cfg.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="mb-5 grid grid-cols-2 gap-4">
-              <div>
-                <label className="mb-2 block text-sm font-bold text-slate-400">CTA Text</label>
-                <input value={form.cta_text} onChange={e => set('cta_text', e.target.value)} placeholder="Join Now"
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 outline-none focus:border-blue-500/50" />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-bold text-slate-400">CTA URL</label>
-                <input value={form.cta_url} onChange={e => set('cta_url', e.target.value)} placeholder="https://..."
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 outline-none focus:border-blue-500/50" />
-              </div>
-            </div>
-            <div className="mb-5">
-              <label className="mb-2 block text-sm font-bold text-slate-400">대표 이미지 (썸네일)</label>
-              <div className="flex items-center gap-4">
-                {form.thumbnail_url ? (
-                  <img src={form.thumbnail_url} alt="" className="h-20 w-32 rounded-lg border border-white/10 object-cover" />
-                ) : (
-                  <div className="flex h-20 w-32 items-center justify-center rounded-lg border border-dashed border-white/15 text-xs text-slate-500">없음</div>
-                )}
-                <div className="flex flex-col gap-2">
-                  <label className="cursor-pointer rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-bold text-slate-300 hover:text-white">
-                    {thumbUploading ? '업로드 중...' : '이미지 업로드'}
-                    <input type="file" accept="image/*" className="sr-only" onChange={e => { uploadThumbnail(e.target.files?.[0]); e.target.value = '' }} />
-                  </label>
-                  {form.thumbnail_url && (
-                    <button type="button" onClick={() => set('thumbnail_url', '')} className="text-left text-xs text-slate-500 hover:text-red-400">이미지 제거</button>
-                  )}
-                </div>
-              </div>
-              <p className="mt-2 text-xs text-slate-500">목록 카드에 표시됩니다. 가로형(예: 1200×630) 이미지를 권장해요.</p>
-            </div>
-            <div className="mb-6">
-              <div className="mb-2 flex items-center justify-between">
-                <label className="text-sm font-bold text-slate-400">Content</label>
-                <button onClick={() => setPreview(v => !v)}
-                  className="flex items-center gap-1.5 text-xs font-bold text-slate-500 transition-colors hover:text-slate-300">
-                  {preview ? <EyeOff size={13} /> : <Eye size={13} />}
-                  {preview ? 'Edit' : 'Preview'}
-                </button>
-              </div>
-              {preview ? (
-                <div className="min-h-[360px] rounded-xl border border-white/10 bg-[#0f172a] p-6 text-slate-200"
-                  style={{ fontSize: '15px', lineHeight: '1.8' }}
-                  dangerouslySetInnerHTML={{ __html: form.content || '<p style="color:#475569">No content</p>' }} />
-              ) : (
-                <RichEditor value={form.content} onChange={v => set('content', v)} />
-              )}
-            </div>
-            <div className="flex items-center gap-4">
-              <button onClick={handleSave} disabled={saving}
-                className="flex items-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-6 py-3 font-bold text-white transition-all hover:brightness-95 active:scale-[0.98] disabled:opacity-50">
-                {saving ? <Loader size={16} className="animate-spin" /> : <Save size={16} />}
-                {editing ? 'Update' : 'Save'}
-              </button>
-              <button onClick={() => setView('list')}
-                className="rounded-xl border border-white/10 px-5 py-3 text-sm font-bold text-slate-400 transition-colors hover:text-white">
-                Cancel
-              </button>
-              {saveMsg && (
-                <span className={`text-sm font-bold ${saveMsg.includes('Error') || saveMsg.includes('required') ? 'text-red-400' : 'text-green-400'}`}>
-                  {saveMsg}
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-
-      </div>
+        {tab === 'errors' && <ErrorReportsPanel />}
+      </main>
     </div>
   )
 }
@@ -735,12 +507,12 @@ function TrendAccountsPanel() {
   const activeCount = list.filter(a => a.active).length
 
   return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
+    <div className="rounded-2xl border border-gray-200 bg-white/[0.03] p-8">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Flame size={18} className="text-orange-400" />
           <h2 className="text-base font-bold">오늘의 트렌드 — 계정 리스트</h2>
-          <span className="rounded-full bg-white/8 px-2 py-0.5 text-xs text-slate-400">활성 {activeCount} · 비활성 {list.length - activeCount}</span>
+          <span className="rounded-full bg-gray-50 px-2 py-0.5 text-xs text-gray-500">활성 {activeCount} · 비활성 {list.length - activeCount}</span>
         </div>
         <button onClick={scanNow} disabled={scanning}
           className="flex items-center gap-2 rounded-xl bg-orange-600 px-4 py-2 text-sm font-bold text-white hover:bg-orange-500 disabled:opacity-40">
@@ -749,38 +521,38 @@ function TrendAccountsPanel() {
       </div>
 
       <div className="mb-5">
-        <label className="mb-2 block text-sm font-bold text-slate-400">계정 추가 (한 줄에 하나 · @·URL·아이디 다 인식)</label>
+        <label className="mb-2 block text-sm font-bold text-gray-500">계정 추가 (한 줄에 하나 · @·URL·아이디 다 인식)</label>
         <textarea value={bulk} onChange={e => setBulk(e.target.value)} rows={4}
           placeholder={'home.basket_0\n@salimgom_\nhttps://www.instagram.com/moa_zoa/'}
-          className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 outline-none focus:border-orange-500/50" />
+          className="w-full rounded-xl border border-gray-200 bg-white/[0.03] px-4 py-3 text-sm text-gray-800 outline-none focus:border-orange-500/50" />
         <div className="mt-2 flex items-center gap-3">
           <button onClick={addBulk} disabled={busy}
             className="flex items-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-sm font-bold text-white hover:brightness-95 disabled:opacity-40">
             <Plus size={15} /> 추가
           </button>
-          {msg && <span className="text-sm font-bold text-slate-300">{msg}</span>}
+          {msg && <span className="text-sm font-bold text-gray-600">{msg}</span>}
         </div>
       </div>
 
       {list.length === 0 ? (
-        <div className="py-12 text-center text-slate-500"><Flame size={28} className="mx-auto mb-3 opacity-30" /><p className="text-sm">계정이 없어요. 위에 추가하세요.</p></div>
+        <div className="py-12 text-center text-gray-400"><Flame size={28} className="mx-auto mb-3 opacity-30" /><p className="text-sm">계정이 없어요. 위에 추가하세요.</p></div>
       ) : (
         <div className="space-y-1.5">
           {list.map(a => (
-            <div key={a.id} className={'flex items-center gap-3 rounded-xl border border-white/6 px-4 py-2.5 ' + (a.active ? 'bg-white/[0.02]' : 'bg-white/[0.01] opacity-50')}>
+            <div key={a.id} className={'flex items-center gap-3 rounded-xl border border-gray-100 px-4 py-2.5 ' + (a.active ? 'bg-white/[0.02]' : 'bg-white/[0.01] opacity-50')}>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-bold text-slate-200">@{a.username}{a.nickname ? <span className="ml-2 text-xs font-normal text-slate-500">{a.nickname}</span> : null}</p>
-                <p className="text-xs text-slate-500">{a.follower_count ? '팔로워 ' + a.follower_count : ''}{a.last_found_at ? ' · 최근발견 ' + new Date(a.last_found_at).toLocaleDateString() : (a.last_checked_at ? ' · 확인됨' : ' · 미확인')}</p>
-                {a.note ? <span className="mt-1 inline-block rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold text-amber-300">{a.note}</span> : null}
+                <p className="truncate text-sm font-bold text-gray-800">@{a.username}{a.nickname ? <span className="ml-2 text-xs font-normal text-gray-400">{a.nickname}</span> : null}</p>
+                <p className="text-xs text-gray-400">{a.follower_count ? '팔로워 ' + a.follower_count : ''}{a.last_found_at ? ' · 최근발견 ' + new Date(a.last_found_at).toLocaleDateString() : (a.last_checked_at ? ' · 확인됨' : ' · 미확인')}</p>
+                {a.note ? <span className="mt-1 inline-block rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">{a.note}</span> : null}
               </div>
-              <a href={'https://www.instagram.com/' + a.username + '/'} target="_blank" rel="noreferrer" className="text-xs text-slate-500 hover:text-white">열기</a>
-              <button onClick={() => toggle(a)} title={a.active ? '끄기' : '켜기'} className="text-slate-400 hover:text-white">{a.active ? <Eye size={16} /> : <EyeOff size={16} />}</button>
-              <button onClick={() => del(a.id)} className="text-slate-400 hover:text-red-400"><Trash2 size={16} /></button>
+              <a href={'https://www.instagram.com/' + a.username + '/'} target="_blank" rel="noreferrer" className="text-xs text-gray-400 hover:text-gray-900">열기</a>
+              <button onClick={() => toggle(a)} title={a.active ? '끄기' : '켜기'} className="text-gray-500 hover:text-gray-900">{a.active ? <Eye size={16} /> : <EyeOff size={16} />}</button>
+              <button onClick={() => del(a.id)} className="text-gray-500 hover:text-red-400"><Trash2 size={16} /></button>
             </div>
           ))}
         </div>
       )}
-      <p className="mt-4 text-xs text-slate-500">자동 스캔: 2시간마다(cron). 켜진 계정만 스캔하고, 최근 7일 내 댓글 100+ 글을 오늘의 트렌드에 올려요.</p>
+      <p className="mt-4 text-xs text-gray-400">자동 스캔: 2시간마다(cron). 켜진 계정만 스캔하고, 최근 7일 내 댓글 100+ 글을 오늘의 트렌드에 올려요.</p>
     </div>
   )
 }
@@ -796,39 +568,39 @@ const ErrorReportsPanel = () => {
       .then(({ data }) => { setItems(data || []); setLoading(false) })
   }
   useEffect(() => { load() }, [])
-  const SRC = { video_gen: 'bg-blue-500/20 text-blue-300', react: 'bg-red-500/20 text-red-300', promise: 'bg-amber-500/20 text-amber-300', runtime: 'bg-slate-500/20 text-slate-300', test: 'bg-emerald-500/20 text-emerald-300' }
+  const SRC = { video_gen: 'bg-blue-500/20 text-blue-700', react: 'bg-red-500/20 text-red-700', promise: 'bg-amber-500/20 text-amber-700', runtime: 'bg-slate-500/20 text-gray-600', test: 'bg-emerald-500/20 text-emerald-700' }
   return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
+    <div className="rounded-2xl border border-gray-200 bg-white/[0.03] p-8">
       <div className="mb-6 flex items-center gap-2">
         <AlertTriangle size={18} className="text-amber-400" />
         <h2 className="text-base font-bold">오류 로그</h2>
-        <span className="ml-2 text-xs text-slate-500">사용자가 보낸 오류 리포트 (최근 100건)</span>
-        <button onClick={load} className="ml-auto flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white"><RefreshCw size={13} /> 새로고침</button>
+        <span className="ml-2 text-xs text-gray-400">사용자가 보낸 오류 리포트 (최근 100건)</span>
+        <button onClick={load} className="ml-auto flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-bold text-gray-600 hover:text-gray-900"><RefreshCw size={13} /> 새로고침</button>
       </div>
       {loading ? (
-        <p className="py-10 text-center text-sm text-slate-500">불러오는 중…</p>
+        <p className="py-10 text-center text-sm text-gray-400">불러오는 중…</p>
       ) : items.length === 0 ? (
-        <p className="py-10 text-center text-sm text-slate-500">접수된 오류가 없습니다</p>
+        <p className="py-10 text-center text-sm text-gray-400">접수된 오류가 없습니다</p>
       ) : (
         <div className="flex flex-col gap-2.5">
           {items.map(it => (
-            <div key={it.id} className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+            <div key={it.id} className="rounded-xl border border-gray-200 bg-white/[0.02] p-4">
               <div className="mb-1.5 flex flex-wrap items-center gap-2 text-xs">
                 <span className={`rounded-md px-2 py-0.5 font-bold ${SRC[it.source] || SRC.runtime}`}>{it.source}</span>
-                {it.job_id && <span className="rounded-md bg-white/10 px-2 py-0.5 text-slate-300">job {it.job_id}</span>}
-                <span className="ml-auto text-slate-500">{new Date(it.created_at).toLocaleString('ko-KR')}</span>
+                {it.job_id && <span className="rounded-md bg-gray-100 px-2 py-0.5 text-gray-600">job {it.job_id}</span>}
+                <span className="ml-auto text-gray-400">{new Date(it.created_at).toLocaleString('ko-KR')}</span>
               </div>
-              <div className="text-sm font-bold text-white break-all">{it.message}</div>
-              {it.user_memo && <div className="mt-1 text-sm text-amber-300">메모: {it.user_memo}</div>}
-              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+              <div className="text-sm font-bold text-gray-900 break-all">{it.message}</div>
+              {it.user_memo && <div className="mt-1 text-sm text-amber-700">메모: {it.user_memo}</div>}
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400">
                 <span>{it.user_email || '비로그인'}</span>
-                {it.url && <a href={it.url} target="_blank" rel="noreferrer" className="max-w-[240px] truncate text-slate-400 hover:text-white">{it.url}</a>}
-                {it.stack && <button onClick={() => setOpen(open === it.id ? null : it.id)} className="text-slate-400 hover:text-white">{open === it.id ? '스택 숨기기' : '스택 보기'}</button>}
+                {it.url && <a href={it.url} target="_blank" rel="noreferrer" className="max-w-[240px] truncate text-gray-500 hover:text-gray-900">{it.url}</a>}
+                {it.stack && <button onClick={() => setOpen(open === it.id ? null : it.id)} className="text-gray-500 hover:text-gray-900">{open === it.id ? '스택 숨기기' : '스택 보기'}</button>}
               </div>
               {open === it.id && it.stack && (
-                <pre className="mt-2 max-h-52 overflow-auto whitespace-pre-wrap rounded-lg bg-[#0f172a] p-3 text-[11px] leading-relaxed text-slate-400">{it.stack}</pre>
+                <pre className="mt-2 max-h-52 overflow-auto whitespace-pre-wrap rounded-lg bg-white p-3 text-[11px] leading-relaxed text-gray-500">{it.stack}</pre>
               )}
-              {it.user_agent && <p className="mt-1 truncate text-[10px] text-slate-600">{it.user_agent}</p>}
+              {it.user_agent && <p className="mt-1 truncate text-[10px] text-gray-500">{it.user_agent}</p>}
             </div>
           ))}
         </div>
