@@ -24,8 +24,8 @@ const fmt = (n) => { n = Math.max(0, Math.trunc(Number(n) || 0)); return n >= 10
 const SORTS = [['view', '조회수'], ['recent', '최신'], ['like', '좋아요'], ['comment', '댓글']]
 const RANGES = [['24h', '24시간', 1], ['7d', '7일', 7], ['all', '전체', 0]]
 const TREND_TTL = 10 * 60 * 1000 // 10분: 이 안이면 재요청 안 함(서버는 최대 24h마다 갱신)
-const readTrendCache = () => { try { const c = JSON.parse(sessionStorage.getItem('chronit_trend_cache') || 'null'); return (c && Array.isArray(c.items)) ? c : null } catch { return null } }
-const writeTrendCache = (items) => { try { sessionStorage.setItem('chronit_trend_cache', JSON.stringify({ items, at: Date.now() })) } catch { /* noop */ } }
+const readTrendCache = () => { try { const c = JSON.parse(localStorage.getItem('chronit_trend_cache') || 'null'); return (c && Array.isArray(c.items)) ? c : null } catch { return null } }
+const writeTrendCache = (items) => { try { localStorage.setItem('chronit_trend_cache', JSON.stringify({ items, at: Date.now() })) } catch { /* noop */ } }
 
 export default function Trend() {
   const [session, setSession] = useState(null)
