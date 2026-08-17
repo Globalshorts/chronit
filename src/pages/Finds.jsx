@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Navigate, Link } from 'react-router-dom'
 import { Search, Loader2, AlertTriangle, Flame, Eye, Heart, MessageCircle, Sparkles, X, Copy, Check, Download } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -234,6 +234,8 @@ export default function Finds() {
   const [searchMode, setSearchMode] = useState('clip')
   const [chUrl, setChUrl] = useState('')
   const [progress, setProgress] = useState(0)
+  const [srchStage, setSrchStage] = useState('')
+  const srchTargetRef = useRef(8)
   const { startChannel, channelLoading, channelResult, reopenChannel } = useAnalysis()
   const [clips, setClips] = useState([])
   const [searching, setSearching] = useState(false)
@@ -300,6 +302,7 @@ export default function Finds() {
     if (!su) { setError('링크나 키워드를 입력해주세요'); return }
     const isUrl = isValidUrl(su)
     setError(''); setSearching(true); setClips([]); setRelatedKw([])
+    srchTargetRef.current = 8; setProgress(4); setSrchStage('시작하는 중')
     try {
       let sess = (await supabase.auth.getSession()).data.session
       if (!sess) {
@@ -320,6 +323,7 @@ export default function Finds() {
         const subResp = await fetch(FN('search-clips'), { method: 'POST', headers, body: JSON.stringify({ action: 'submit', source_url: su }) })
         const sub = await subResp.json()
         if (!sub.ok || !sub.prediction_id) { setError(sub.error || '분석에 실패했어요. 잠시 후 다시 시도해 주세요.'); setSearching(false); return }
+        setSrchStage('레퍼런스 영상 분석 중'); srchTargetRef.current = 40
 
         let data1 = null
         const t0 = Date.now()
@@ -339,23 +343,28 @@ export default function Finds() {
         queries = data1.tiktok_queries || []
         rawClips = data1.clips || []
         searchArgs = { product_name: data1.product_name || '', keyword: data1.keyword || '', keywords: data1.keywords || [] }
+        setSrchStage('후보 소스 수집 중'); srchTargetRef.current = 58
       } else {
         // 키워드 모드: 바로 검색 (레퍼런스·유사도 필터 없음)
         queries = [su]
         searchArgs = { product_name: '', keyword: su, keywords: [su] }
+        setSrchStage('소스 검색 중'); srchTargetRef.current = 48
       }
 
       let xhsClips = []
+      setSrchStage('소스 수집 중'); srchTargetRef.current = Math.max(srchTargetRef.current, 66)
       await Promise.all([
         (async () => { try { const r = await fetch(FN('search-clips'), { method: 'POST', headers, body: JSON.stringify({ action: 'search_tiktok', queries }) }); const d = await r.json(); if (d?.ok && Array.isArray(d.clips)) rawClips = d.clips } catch { /* noop */ } })(),
         (async () => { try { const r = await fetch(FN('search-xhs'), { method: 'POST', headers, body: JSON.stringify({ ...searchArgs, tiktok_queries: queries }) }); const d = await r.json(); if (d?.ok && Array.isArray(d.clips)) xhsClips = d.clips } catch { /* noop */ } })(),
       ])
 
+      srchTargetRef.current = 76
       const allCand = [...xhsClips, ...rawClips]
       if (!allCand.length) { setError(isUrl ? '검색 결과가 없습니다. 다른 URL을 시도해보세요.' : '검색 결과가 없어요. 다른 키워드를 시도해보세요.'); setSearching(false); return }
 
       let finalClips = allCand
       if (refFrames.length) {
+        setSrchStage('관련도 필터 중'); srchTargetRef.current = 88
         try {
           const r2 = await fetch(FN('clip-filter'), { method: 'POST', headers, body: JSON.stringify({ reference_frames: refFrames, candidates: allCand, clip_count: 80 }) })
           const d2 = await r2.json()
@@ -368,6 +377,7 @@ export default function Finds() {
         } catch { finalClips = allCand }
       }
       // 지표 필드 정규화(있으면 사용)
+      setSrchStage('정리 중'); srchTargetRef.current = 95
       setClips(finalClips.map((c) => ({ ...c, views: c.views ?? c.view_count ?? c.play_count, likes: c.likes ?? c.like_count ?? c.digg_count, comments: c.comments ?? c.comment_count ?? c.comments_count })))
       try { sessionStorage.setItem('finds_cache', JSON.stringify({ q: su, clips: finalClips, ts: Date.now() })) } catch { /* noop */ }
 
@@ -389,9 +399,12 @@ export default function Finds() {
   const busyAny = searching
   useEffect(() => {
     if (!busyAny) return
-    setProgress(6)
-    const iv = setInterval(() => setProgress((x) => (x >= 92 ? 92 : x + Math.max(0.4, (92 - x) * 0.05))), 250)
-    return () => { clearInterval(iv); setProgress(100); setTimeout(() => setProgress(0), 500) }
+    const iv = setInterval(() => setProgress((x) => {
+      const t = srchTargetRef.current
+      if (x >= t) return x
+      return Math.min(t, x + Math.max(0.5, (t - x) * 0.18))
+    }), 120)
+    return () => { clearInterval(iv); setProgress(100); setTimeout(() => { setProgress(0); setSrchStage('') }, 500) }
   }, [busyAny])
 
   const analyzeChannel = async () => {
@@ -481,7 +494,7 @@ export default function Finds() {
         {searchMode === 'clip' && searching && (
           <div className="mt-5">
             <div className="mb-1.5 flex items-center justify-between text-sm text-slate-500">
-              <span className="flex items-center gap-2"><Loader2 size={14} className="animate-spin text-[#0064FF]" /> 관련 소스를 찾고 분석하고 있어요…</span>
+              <span className="flex items-center gap-2"><Loader2 size={14} className="animate-spin text-[#0064FF]" /> {srchStage || '관련 소스를 찾고 분석하고 있어요…'}</span>
               <span className="font-bold text-[#0064FF]">{Math.round(progress)}%</span>
             </div>
             <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
