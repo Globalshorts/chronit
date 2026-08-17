@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Film, Pencil, LogOut, Copy, Check, Sparkles } from 'lucide-react'
+import { Film, Pencil, LogOut, Copy, Check, Sparkles, ShieldCheck } from 'lucide-react'
 import FindsPricing from '../components/FindsPricing'
 import CommunityHeader from '../components/CommunityHeader'
 import NicknameModal from '../components/NicknameModal'
@@ -26,6 +26,7 @@ const MyPage = () => {
   const [redeemCode, setRedeemCode] = useState('')
   const [redeemMsg, setRedeemMsg] = useState(null)
   const [redeeming, setRedeeming] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => { supabase.auth.getSession().then(({ data }) => { const u = data.session?.user; setUser(u && u.is_anonymous !== true ? u : null) }) }, [])
 
@@ -40,6 +41,8 @@ const MyPage = () => {
     setProfile(prof || { email: user?.email })
     setCredits(bal?.finds_balance ?? 0); setWallet(bal || null)
     setPosts(ps || []); setComments(cs || []); setRefInfo(refi || null)
+    const { data: sub } = await supabase.from('subscriptions').select('role').eq('user_id', uid).maybeSingle()
+    setIsAdmin(sub?.role === 'super_admin')
   }
   useEffect(() => { if (user) load(user.id) }, [user])
 
@@ -91,6 +94,13 @@ const MyPage = () => {
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans break-keep text-gray-900">
       <CommunityHeader active="me" />
+      {isAdmin && (
+        <div className="mx-auto max-w-2xl px-5 pt-4 md:hidden">
+          <Link to="/admin" className="flex items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 text-sm font-bold text-white transition hover:bg-[#0064FF]">
+            <ShieldCheck size={16} /> 관리자 페이지
+          </Link>
+        </div>
+      )}
       <section className="mx-auto max-w-2xl px-5 pt-28 pb-24 md:pt-36">
         {/* 프로필 카드 */}
         <div className="rounded-3xl border border-gray-200 bg-white p-6">
