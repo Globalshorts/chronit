@@ -559,6 +559,11 @@ const Home = () => {
                   소스 발굴 시작 →
                 </button>
                 <Link to="/trend" className="text-sm font-medium text-gray-400 transition-colors hover:text-[#0064FF]">트렌드 먼저 보기 →</Link>
+                {spots != null && spots > 0 && (
+                  <p className="mt-2 flex items-center gap-1.5 text-sm font-bold text-gray-700">
+                    <Users size={14} className="text-[#0064FF]" /> 이미 <span className="text-[#0064FF]">{spots.toLocaleString('ko-KR')}</span>명의 크리에이터가 함께해요
+                  </p>
+                )}
                 {stats?.clips ? (
                   <p className="mt-2 text-xs text-gray-400 break-keep">
                     <Search size={12} className="mr-1 inline align-[-1px]" />
