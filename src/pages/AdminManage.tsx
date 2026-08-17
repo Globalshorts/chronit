@@ -12,9 +12,7 @@ function AdminView({ session, supabase }: { session: any; supabase: any }) {
   const [tab, setTab] = React.useState<"subs"|"coupons"|"reviews"|"payouts"|"api">("subs");
   const TABS = [
     { v:"subs",    label:"👑 구독 관리" },
-    { v:"coupons", label:"🎟 쿠폰 코드" },
     { v:"payouts", label:"📊 파트너 정산" },
-    { v:"reviews", label:"📝 후기 승인" },
     { v:"api",     label:"🔌 API 잔량" },
   ] as const;
   return (
@@ -28,9 +26,7 @@ function AdminView({ session, supabase }: { session: any; supabase: any }) {
         ))}
       </div>
       {tab==="subs"    && <AdminSubsTab session={session} supabase={supabase} />}
-      {tab==="coupons" && <AdminCouponsTab session={session} supabase={supabase} />}
       {tab==="payouts" && <AdminPayoutsTab session={session} supabase={supabase} />}
-      {tab==="reviews" && <AdminReviewsTab session={session} supabase={supabase} />}
       {tab==="api"     && <AdminApiTab session={session} />}
     </div>
   );
