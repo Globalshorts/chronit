@@ -11,6 +11,7 @@ import AuthModal from '../components/AuthModal'
 import TermsModal from '../components/TermsModal'
 import Footer from '../components/Footer'
 import SiteNav from '../components/SiteNav'
+import SourcingBeforeAfter from '../components/SourcingBeforeAfter'
 import Reveal from '../components/Reveal'
 import NicknameModal from '../components/NicknameModal'
 import SignupSurveyModal from '../components/SignupSurveyModal'
@@ -628,6 +629,7 @@ const Home = () => {
               </ul>
             </div>
           </div>
+          <SourcingBeforeAfter />
           {stats?.clips ? (
             <div className="mt-8 grid grid-cols-3 divide-x divide-gray-100 rounded-2xl border border-gray-100 bg-white py-6 text-center">
               <div><div className="text-2xl font-bold text-gray-900 md:text-3xl">{Number(stats.clips).toLocaleString('ko-KR')}</div><div className="mt-1 text-xs text-gray-400">발굴한 소스</div></div>
