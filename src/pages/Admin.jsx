@@ -539,10 +539,11 @@ function TrendAccountsPanel() {
       ) : (
         <div className="space-y-1.5">
           {list.map(a => (
-            <div key={a.id} className={'flex items-center gap-3 rounded-xl border border-gray-100 px-4 py-2.5 ' + (a.active ? 'bg-white/[0.02]' : 'bg-white/[0.01] opacity-50')}>
+            <div key={a.id} className={'flex items-center gap-3 rounded-xl border px-4 py-2.5 ' + (a.active ? 'border-gray-100 bg-white' : 'border-red-200 bg-red-50')}>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-bold text-gray-800">@{a.username}{a.nickname ? <span className="ml-2 text-xs font-normal text-gray-400">{a.nickname}</span> : null}</p>
                 <p className="text-xs text-gray-400">{a.follower_count ? '팔로워 ' + a.follower_count : ''}{a.last_found_at ? ' · 최근발견 ' + new Date(a.last_found_at).toLocaleDateString() : (a.last_checked_at ? ' · 확인됨' : ' · 미확인')}</p>
+                {!a.active && <span className="mt-1 inline-block rounded-md bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">스캔 중단{(a.follower_count ?? 0) >= 20000 ? ' · 2만 초과' : ''}</span>}
                 {a.note ? <span className="mt-1 inline-block rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">{a.note}</span> : null}
               </div>
               <a href={'https://www.instagram.com/' + a.username + '/'} target="_blank" rel="noreferrer" className="text-xs text-gray-400 hover:text-gray-900">열기</a>
@@ -552,7 +553,7 @@ function TrendAccountsPanel() {
           ))}
         </div>
       )}
-      <p className="mt-4 text-xs text-gray-400">자동 스캔: 2시간마다(cron). 켜진 계정만 스캔하고, 최근 7일 내 댓글 100+ 글을 오늘의 트렌드에 올려요.</p>
+      <p className="mt-4 text-xs text-gray-400">자동 스캔: 켜진 계정만 스캔 · 최근 반응 좋은 글을 트렌드에 올려요. 3주간 성과 없는 계정은 자동으로 스캔 중단(빨간 표시)돼요.</p>
     </div>
   )
 }
