@@ -94,14 +94,12 @@ const MyPage = () => {
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans break-keep text-gray-900">
       <CommunityHeader active="me" />
-      {isAdmin && (
-        <div className="mx-auto max-w-2xl px-5 pt-4 md:hidden">
-          <Link to="/admin" className="flex items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 text-sm font-bold text-white transition hover:bg-[#0064FF]">
+      <section className="mx-auto max-w-2xl px-5 pt-28 pb-24 md:pt-36">
+        {isAdmin && (
+          <Link to="/admin" className="mb-4 flex items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 text-sm font-bold text-white transition hover:bg-[#0064FF] md:hidden">
             <ShieldCheck size={16} /> 관리자 페이지
           </Link>
-        </div>
-      )}
-      <section className="mx-auto max-w-2xl px-5 pt-28 pb-24 md:pt-36">
+        )}
         {/* 프로필 카드 */}
         <div className="rounded-3xl border border-gray-200 bg-white p-6">
           <div className="flex items-center justify-between">
