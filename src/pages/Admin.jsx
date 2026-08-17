@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import RichEditor from '../components/RichEditor'
-import AdminManage from './AdminManage'
 import {
   Megaphone, Save, LogOut, ShieldCheck, Loader, Eye, EyeOff,
   Plus, Pencil, Trash2, ChevronLeft,
@@ -393,11 +392,10 @@ const TipsPanel = () => {
 
 const Admin = () => {
   const [user, setUser] = useState(null)
-  const [session, setSession] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
   const [events, setEvents] = useState([])
-  const [tab, setTab] = useState('manage')
+  const [tab, setTab] = useState('events')
   const [view, setView] = useState('list')
   const [editing, setEditing] = useState(null)
   const [form, setForm] = useState(emptyForm())
@@ -412,7 +410,7 @@ const Admin = () => {
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { setLoading(false); return }
-      setUser(session.user); setSession(session)
+      setUser(session.user)
       const { data: sub } = await supabase.from('subscriptions').select('role').eq('user_id', session.user.id).single()
       if (sub?.role === 'super_admin') {
         setIsAdmin(true)
@@ -527,7 +525,6 @@ const Admin = () => {
 
         <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
           {[
-            { key: 'manage', icon: <ShieldCheck size={15} />, label: '회원·결제' },
             { key: 'events', icon: <Megaphone size={15} />, label: 'Events' },
             { key: 'missions', icon: <Gift size={15} />, label: '이벤트(이용권)' },
             { key: 'tips', icon: <Megaphone size={15} />, label: '꿀팁' },
@@ -542,7 +539,6 @@ const Admin = () => {
           ))}
         </div>
 
-        {tab === 'manage' && <div className="rounded-2xl bg-white p-4 text-gray-900 md:p-5"><AdminManage session={session} /></div>}
         {tab === 'videos' && <DemoVideosPanel />}
         {tab === 'errors' && <ErrorReportsPanel />}
         {tab === 'missions' && <MissionsPanel />}

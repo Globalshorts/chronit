@@ -101,7 +101,7 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
                 )}
                 <a href="/me" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]"><User size={14} className="inline align-[-2px] mr-1.5" />마이페이지</a>
                 {userRole === "super_admin" && (
-                  <a href="/admin" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]"><Shield size={14} className="inline align-[-2px] mr-1.5" />관리자 페이지</a>
+                  <a href="/manage" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]"><Shield size={14} className="inline align-[-2px] mr-1.5" />관리자 페이지</a>
                 )}
                 <button onClick={() => { setMenuOpen(false); onInvite && onInvite(); }} className="block w-full text-left rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]">무료 이용권 받기</button>
                 <a href="https://forms.gle/LCDeSEXSM7ALykqv5" target="_blank" rel="noreferrer" className="block rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-[#0064FF]"><MessageSquare size={14} className="inline align-[-2px] mr-1.5" />피드백 보내고 영상 2개</a>
