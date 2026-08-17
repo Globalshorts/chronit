@@ -10,6 +10,9 @@ import creditsMd    from '../content/credits.md?raw'
 import revenueMd    from '../content/revenue.md?raw'
 import tipsMd       from '../content/tips.md?raw'
 import faqMd        from '../content/faq.md?raw'
+import startMd      from '../content/quickstart.md?raw'
+import searchMd     from '../content/search-guide.md?raw'
+import trendMd      from '../content/trend-guide.md?raw'
 
 /* ── tips.md 파서 ── */
 function parseTips(md) {
@@ -215,16 +218,30 @@ const SECTIONS = {
   start: {
     emoji: '⚡',
     title: '3단계 빠른 시작',
-    callout: '영상 링크를 넣고 버튼 한 번이면 완성본까지 이어져요. 아래 3단계를 확인하세요.',
-    type: 'steps',
-    content: usageMd,
-  },
-  revenue: {
-    emoji: '💰',
-    title: '쿠팡 파트너스 & 수익 구조',
-    callout: '쿠팡 파트너스의 구조와 제휴 수익이 정산되는 과정을 한 번에 정리했어요.',
+    callout: '링크나 키워드를 넣으면 잘 터진 숏폼을 찾아주고, AI가 분석해줘요. 아래 3단계를 확인하세요.',
     type: 'markdown',
-    content: revenueMd,
+    content: startMd,
+  },
+  search: {
+    emoji: '🔍',
+    title: '검색 vs 채널 분석',
+    callout: '관련 클립 검색과 채널 분석, 언제 무엇을 쓰면 좋은지 정리했어요.',
+    type: 'markdown',
+    content: searchMd,
+  },
+  trend: {
+    emoji: '🔥',
+    title: '실시간 트렌드',
+    callout: '팔로워 2만 미만 계정이 최근 터뜨린 쇼핑 숏폼을 모아보는 곳이에요.',
+    type: 'markdown',
+    content: trendMd,
+  },
+  credits: {
+    emoji: '🪙',
+    title: '요금제 · 이용권',
+    callout: '분석 1회 = 이용권 1개. 요금제와 환불 규정을 정리했어요.',
+    type: 'markdown',
+    content: creditsMd,
   },
   app: {
     emoji: '📱',
@@ -232,27 +249,6 @@ const SECTIONS = {
     callout: '홈 화면에 추가하면 일반 앱처럼 바로 실행돼요. (앱스토어 설치 불필요)',
     type: 'markdown',
     content: webappMd,
-  },
-  features: {
-    emoji: '🧭',
-    title: '전체 제작 흐름',
-    callout: '처음 한 번의 세팅과 제작 때마다 반복하는 단계를 순서대로 정리했어요.',
-    type: 'guide',
-    content: GUIDE_STEPS,
-  },
-  credits: {
-    emoji: '🪙',
-    title: '요금제 · 이용 안내',
-    callout: '영상 1개 = 이용권 1개. 요금제와 환불 규정을 정리했어요.',
-    type: 'markdown',
-    content: creditsMd,
-  },
-  tips: {
-    emoji: '💡',
-    title: '고급 활용 팁',
-    callout: null,
-    type: 'tips',
-    content: tipsMd,
   },
   faq: {
     emoji: '❓',
@@ -373,14 +369,14 @@ const ManualDetail = () => {
           )}
 
           {section === 'start' && (
-            <Link to="/manual/features" className="group mt-8 block overflow-hidden rounded-3xl border-2 border-[#0064FF]/40 bg-gradient-to-br from-[#0064FF]/12 to-[#0064FF]/5 p-6 transition-all hover:-translate-y-0.5 hover:border-[#0064FF] hover:shadow-xl md:p-7">
-              <span className="inline-block rounded-full bg-[#0064FF] px-3 py-1 text-xs font-bold text-white">사진 보고 따라하기</span>
-              <h3 className="mt-3 text-xl font-bold leading-snug text-gray-900 md:text-2xl">세팅부터 내 링크 공유까지 한 단계씩 📸</h3>
+            <Link to="/finds" className="group mt-8 block overflow-hidden rounded-3xl border-2 border-[#0064FF]/40 bg-gradient-to-br from-[#0064FF]/12 to-[#0064FF]/5 p-6 transition-all hover:-translate-y-0.5 hover:border-[#0064FF] hover:shadow-xl md:p-7">
+              <span className="inline-block rounded-full bg-[#0064FF] px-3 py-1 text-xs font-bold text-white">바로 시작</span>
+              <h3 className="mt-3 text-xl font-bold leading-snug text-gray-900 md:text-2xl">지금 바로 소재 찾아보기 🔍</h3>
               <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">
-                처음 한 번만 하는 <b className="text-[#0064FF]">세팅</b>과, 영상 만들 때마다 반복하는 단계를 <b className="text-[#0064FF]">다음 ▶ 으로 한 단계씩</b> 따라할 수 있어요.
+                링크나 키워드만 넣으면 잘 터진 숏폼을 찾아줘요. <b className="text-[#0064FF]">가입은 무료</b>, 매월 이용권 5개를 드려요.
               </p>
               <span className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-bold text-white shadow-md shadow-black/5 transition-all group-hover:gap-3">
-                사진 가이드 보러가기 <ArrowRight size={18} />
+                Finds 열기 <ArrowRight size={18} />
               </span>
             </Link>
           )}
