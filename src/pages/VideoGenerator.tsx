@@ -60,7 +60,6 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
     { v: "dm", label: "자동 DM", locked: !(userRole === "partner" || userRole === "super_admin") },
     { v: "settings", label: "결제" },
     ...(userRole === "partner" || userRole === "super_admin" ? [{ v: "partner", label: "파트너스" }] : []),
-    ...(userRole === "super_admin" ? [{ v: "admin", label: "관리자" }] : []),
   ];
   return (
     <>
@@ -173,7 +172,6 @@ function AppTabBar({ activeView, onViewChange, userRole, userPlan }: { activeVie
     { v: "dm", label: "자동 DM", locked: !isPartner },
     { v: "settings", label: "결제·계정" },
     ...(isPartner ? [{ v: "partner", label: "파트너스", icon: "📊" }] : []),
-    ...(isAdmin ? [{ v: "admin", label: "관리자", icon: "👑" }] : []),
   ];
   return (
     <div className="hidden md:block shrink-0 border-b border-gray-200 bg-[#FAFAF8]">
@@ -2193,9 +2191,6 @@ export default function VideoGenerator() {
             {activeView === "settings" && (
               <SettingsView session={session} supabase={supabase} balance={balance} userPlan={userPlan} />
             )}
-            {activeView === "admin" && userRole === "super_admin" && (
-              <AdminView session={session} supabase={supabase} />
-            )}
             {activeView === "partner" && (userRole === "partner" || userRole === "super_admin") && (
               <PartnerView session={session} supabase={supabase} />
             )}
@@ -3947,8 +3942,7 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
     ]},
     ...(isPartner || isAdmin ? [{ title: "관리", items: [
       ...(isPartner ? [{ v: "partner", label: "파트너스", icon: "📊" }] : []),
-      ...(isAdmin ? [{ v: "admin", label: "관리자", icon: "👑" }] : []),
-    ]}] : []),
+      ]}] : []),
   ];
   return (
     <div className="flex flex-col h-full">
