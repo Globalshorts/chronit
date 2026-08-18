@@ -41,12 +41,15 @@ const Board = () => {
   const [loading, setLoading] = useState(true)
   const [uid, setUid] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isExRender, setIsExRender] = useState(false)  // 기존 렌더 유저(2026-08-12 이전 가입)
   const [events, setEvents] = useState([])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       const u = data.session?.user?.id ?? null
       setUid(u)
+      const cr = data.session?.user?.created_at
+      setIsExRender(!!(cr && new Date(cr) < new Date('2026-08-12T00:00:00Z')))
       if (u) supabase.from('subscriptions').select('role').eq('user_id', u).maybeSingle()
         .then(({ data: sub }) => setIsAdmin(sub?.role === 'super_admin'))
     })
@@ -63,6 +66,9 @@ const Board = () => {
       .order('created_at', { ascending: false }).limit(50)
       .then(({ data }) => { setPosts(data || []); setLoading(false) })
   }, [])
+
+  // 편집 종료 공지는 기존 렌더 유저에게만 — 신규 유저 이탈 방지
+  const notices = posts.filter(p => isExRender || !((p.category === 'notice') && /편집/.test(p.title || '') && /종료/.test(p.title || '')))
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans break-keep text-gray-900">
@@ -115,11 +121,11 @@ const Board = () => {
           {tab === 'notice' && (
             loading ? (
               <p className="py-16 text-center text-sm text-slate-500">불러오는 중…</p>
-            ) : posts.length === 0 ? (
+            ) : notices.length === 0 ? (
               <BoardEmptyState isAdmin={isAdmin} />
             ) : (
               <ul className="divide-y divide-gray-100 pt-2">
-                {posts.map(p => (
+                {notices.map(p => (
                   <li key={p.id}>
                     <Link to={`/board/${p.id}`} className="flex items-start gap-3 px-1 py-4 transition-colors hover:bg-white/60">
                       {p.image_url && (
