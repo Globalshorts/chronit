@@ -1,5 +1,12 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom'
+
+// 렌더(편집) 종료 게이트 — 2026-09-15 0시(KST)부터 작업실 진입 차단, Finds로 리다이렉트
+const RENDER_CLOSE = new Date('2026-09-15T00:00:00+09:00').getTime()
+function GenerateGate() {
+  if (Date.now() >= RENDER_CLOSE) return <Navigate to="/finds" replace />
+  return <VideoGenerator />
+}
 import { AnalysisProvider } from './context/analysis'
 import VideoGenerator from './pages/VideoGenerator'
 import Finds from './pages/Finds'
@@ -98,7 +105,7 @@ const App = () => {
       <Route path="/terms" element={<Terms />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/admin" element={<Admin />} />
-      <Route path="/generate" element={<VideoGenerator />} />
+      <Route path="/generate" element={<GenerateGate />} />
       <Route path="/finds" element={<Finds />} />
       <Route path="/trend" element={<Trend />} />
       <Route path="/links" element={<LinksManager />} />
