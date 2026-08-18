@@ -313,7 +313,8 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null, 
         {/* 플랜 선택 (무료체험 시 숨김 — 체험은 플랜 무관) */}
         {!isFreedays && (
         <div className="mb-6">
-          <p className="mb-3 text-sm font-bold tracking-widest text-gray-500 uppercase">요금제 선택</p>
+          <p className="mb-1 text-sm font-bold tracking-widest text-gray-500 uppercase">요금제 선택</p>
+          <p className="mb-3 text-xs font-medium text-gray-400">Finds 이용권 · 소스 발굴과 분석에 쓰여요 (영상 편집 기능 아님)</p>
           <div className="grid grid-cols-3 gap-2">
             {['starter','pro','master'].map((key) => {
               const p = plans[key]
@@ -357,7 +358,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null, 
                   <span className="text-base font-bold text-gray-900">프로 6개월</span>
                   <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">안심 패키지</span>
                 </div>
-                <div className="mt-0.5 text-xs text-gray-500">프로 요금제 6개월 유지 · 매월 영상 30개 지급</div>
+                <div className="mt-0.5 text-xs text-gray-500">프로 요금제 6개월 유지 · 매월 이용권 30개(분석 30회) 지급</div>
               </div>
               <div className="text-right leading-tight">
                 <div className="text-[11px] font-medium text-gray-400 line-through">{plans.pkg6.list.toLocaleString('ko-KR')}</div>
