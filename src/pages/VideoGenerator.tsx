@@ -988,6 +988,9 @@ export default function VideoGenerator() {
   const noticeKey = (post: { id: number; updated_at: string }) => `chronit_notice_${post.id}_${new Date(post.updated_at).getTime()}`;
   useEffect(() => {
     if (!session || noticeShownRef.current) return;
+    // 작업실 공지 팝업(편집 종료 안내 등)은 기존 렌더 유저(2026-08-12 이전 가입)에게만 노출 — 신규 유저 이탈 방지
+    const _cr = (session as any)?.user?.created_at;
+    if (!(_cr && new Date(_cr) < new Date('2026-08-12T00:00:00Z'))) return;
     noticeShownRef.current = true;
     (async () => {
       try {
