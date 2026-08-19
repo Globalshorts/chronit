@@ -4429,8 +4429,12 @@ function StoryboardModal({ script, cuts, debug, stage, segsByVideo, clips, loadi
                   <span className={(over ? "text-red-500" : "text-gray-500") + " inline-flex items-center gap-0.5"}><Film size={11} />{clip}s</span>
                 </div>
                 {over && <div className="mt-0.5 flex items-center justify-center gap-0.5 rounded bg-red-50 px-1 py-0.5 text-[9px] font-bold text-red-600"><AlertTriangle size={10} /> 나레이션이 길어요</div>}
-                <button onClick={() => setPickSlot(i)}
-                  className="mt-1 flex w-full items-center justify-center gap-1 rounded-lg bg-gray-100 py-1.5 text-[11px] font-bold text-gray-700 hover:bg-gray-200"><RefreshCw size={12} /> 바꾸기</button>
+                <button onClick={() => setPickSlot(i)} disabled={!pool || pool.length === 0}
+                  className="mt-1 flex w-full items-center justify-center gap-1 rounded-lg bg-gray-100 py-1.5 text-[11px] font-bold text-gray-700 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-gray-100">
+                  {(!pool || pool.length === 0)
+                    ? (<><span className="h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-gray-500" /> 클립 불러오는 중</>)
+                    : (<><RefreshCw size={12} /> 바꾸기</>)}
+                </button>
               </div>
               );
             })}
