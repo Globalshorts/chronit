@@ -4256,12 +4256,19 @@ function SegmentSection({ clips, cart, onOpen }: any) {
 function PoolPicker({ pool, clips, onPick, onClose }: any) {
   const clipOf = (seg: any) => (clips as any[]).find((c: any) => c.video_id === seg?.video_id);
   return (
-    <div className="absolute inset-0 z-20 flex flex-col bg-black/70" onClick={onClose}>
-      <div className="mt-auto max-h-[75vh] overflow-y-auto rounded-t-2xl bg-white p-3" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[150] flex flex-col bg-black/70" onClick={onClose}>
+      <div className="mt-auto max-h-[80vh] min-h-[38vh] overflow-y-auto rounded-t-2xl bg-white p-3" onClick={(e) => e.stopPropagation()}>
         <div className="mb-2 flex items-center justify-between">
           <span className="text-sm font-bold text-gray-900">클립 바꾸기 <span className="font-normal text-gray-400">탭하면 재생 · 선택으로 교체</span></span>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700"><X size={18} /></button>
         </div>
+        {(!pool || (pool as any[]).length === 0) ? (
+          <div className="flex flex-col items-center justify-center gap-2 py-14 text-center">
+            <span className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-[#0064FF]" />
+            <p className="text-sm font-bold text-gray-700">클립을 불러오는 중이에요</p>
+            <p className="text-xs text-gray-400">클립 다운로드가 끝나면 바꿀 수 있어요.<br />잠시 후 다시 눌러주세요.</p>
+          </div>
+        ) : (
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
           {(pool as any[]).map((seg: any, i: number) => (
             <div key={i} className="overflow-hidden rounded-lg border-2 border-gray-200">
@@ -4273,6 +4280,7 @@ function PoolPicker({ pool, clips, onPick, onClose }: any) {
             </div>
           ))}
         </div>
+        )}
       </div>
     </div>
   );
