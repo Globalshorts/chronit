@@ -25,7 +25,28 @@ const isValidUrl = (u) =>
 function FindCard({ clip, onAnalyze }) {
   const [imgError, setImgError] = useState(false)
   const [playing, setPlaying] = useState(false)
-  const rawUrl = (clip.download_url || clip.video_url || '').replace(/^http:\/\//, 'https://')
+  const [expired, setExpired] = useState(false)
+  const [freshUrl, setFreshUrl] = useState('')
+  const [triedRefresh, setTriedRefresh] = useState(false)
+  const rawUrl = (freshUrl || clip.download_url || clip.video_url || '').replace(/^http:\/\//, 'https://')
+
+  // 재생 실패(원본 CDN 만료) 시 video_id로 새 URL만 즉석 갱신해 재시도. 실패하면 썸네일 + 만료 표시.
+  const handleVidError = async () => {
+    if (triedRefresh) { setPlaying(false); setExpired(true); return }
+    setTriedRefresh(true)
+    try {
+      const { data: { session: s } } = await supabase.auth.getSession()
+      if (!s) { setPlaying(false); setExpired(true); return }
+      const r = await fetch(FN('refresh-clip-url'), {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${s.access_token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ video_id: clip.video_id, page_url: clip.page_url, source: clip.source }),
+      })
+      const d = await r.json()
+      if (d?.ok && d.download_url) { setExpired(false); setFreshUrl(d.download_url) }  // src 재계산 → 자동 재시도
+      else { setPlaying(false); setExpired(true) }
+    } catch { setPlaying(false); setExpired(true) }
+  }
   const isOwnStorage = rawUrl.includes('supabase.co/storage/v1/object/public/')
   const playUrl = !rawUrl ? '' : (isOwnStorage ? rawUrl : `${FN('video-proxy')}?url=${encodeURIComponent(rawUrl)}`)
   const thumbSrc = !imgError && clip.thumbnail_url ? proxyThumb(clip.thumbnail_url) : ''
@@ -35,15 +56,19 @@ function FindCard({ clip, onAnalyze }) {
       <div className="relative aspect-[9/16] cursor-pointer bg-gray-100" onClick={() => (playing ? setPlaying(false) : (playUrl && setPlaying(true)))}>
         {playing && playUrl ? (
           <video src={playUrl} autoPlay muted playsInline controls={false}
+            poster={thumbSrc || undefined}
             className="h-full w-full object-cover"
             onClick={(e) => { e.stopPropagation(); setPlaying(false) }}
-            onError={() => setPlaying(false)} />
+            onError={handleVidError} />
         ) : (
           <>
             {thumbSrc ? (
               <img src={thumbSrc} alt={clip.title} referrerPolicy="no-referrer" onError={() => setImgError(true)} className="h-full w-full object-cover" />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-3xl text-gray-400">🎬</div>
+            )}
+            {expired && (
+              <div className="absolute left-1.5 top-1.5 z-10 rounded-md bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white">원본 링크 만료 · 다시 검색</div>
             )}
             {playUrl && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition hover:bg-black/40">
