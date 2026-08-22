@@ -503,10 +503,6 @@ export default function Finds() {
           </button>
         </div>
 
-        {searchMode === 'clip' && (
-          <p className="mt-2 text-xs leading-relaxed text-slate-500">마음에 든 <b className="font-bold text-slate-700">쇼핑 릴스·틱톡 링크</b>를 넣으면 비슷한 클립을 찾아드려요. 뭘 넣을지 모르겠다면 아래 키워드를 눌러보세요 ↓</p>
-        )}
-
         {searchMode === 'clip' && (relatedKw.length > 0 || (!searching && clips.length === 0)) && (
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
             <span className="mr-1 text-xs font-bold text-slate-500">{relatedKw.length ? '연관 키워드' : '이렇게 시작해보세요'}</span>
