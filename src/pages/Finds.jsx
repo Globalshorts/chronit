@@ -494,7 +494,7 @@ export default function Finds() {
         <div className="flex flex-col gap-2 sm:flex-row">
           <input value={searchMode === 'channel' ? chUrl : sourceUrl} onChange={(e) => (searchMode === 'channel' ? setChUrl(e.target.value) : setSourceUrl(e.target.value))}
             onKeyDown={(e) => { if (e.key === 'Enter') (searchMode === 'channel' ? analyzeChannel() : analyze()) }}
-            placeholder={searchMode === 'channel' ? '채널 URL·@아이디 (유튜브·인스타) — 통째로 따라하기' : '링크를 붙여넣거나 키워드를 입력하세요'}
+            placeholder={searchMode === 'channel' ? '채널 URL·@아이디 (유튜브·인스타) — 통째로 따라하기' : '쇼핑 릴스·틱톡 링크 붙여넣기 (또는 키워드)'}
             className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#0064FF]" />
           <button onClick={() => (searchMode === 'channel' ? analyzeChannel() : analyze())} disabled={searching || channelLoading}
             className="flex items-center justify-center gap-2 rounded-xl bg-[#0064FF] px-6 py-3 text-sm font-bold text-white disabled:opacity-50">
@@ -503,9 +503,13 @@ export default function Finds() {
           </button>
         </div>
 
+        {searchMode === 'clip' && (
+          <p className="mt-2 text-xs leading-relaxed text-slate-500">마음에 든 <b className="font-bold text-slate-700">쇼핑 릴스·틱톡 링크</b>를 넣으면 비슷한 클립을 찾아드려요. 뭘 넣을지 모르겠다면 아래 키워드를 눌러보세요 ↓</p>
+        )}
+
         {searchMode === 'clip' && (relatedKw.length > 0 || (!searching && clips.length === 0)) && (
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            <span className="mr-1 text-xs text-slate-400">{relatedKw.length ? '연관' : '추천'}</span>
+            <span className="mr-1 text-xs font-bold text-slate-500">{relatedKw.length ? '연관 키워드' : '이렇게 시작해보세요'}</span>
             {(relatedKw.length ? relatedKw : ['살림템', '주방템', '자취템', '청소템', '수납템', '다이어트', '캠핑', '인테리어']).map((k) => (
               <button key={k} onClick={() => { setSourceUrl(k); analyze(k) }}
                 className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]">#{k}</button>
@@ -556,7 +560,7 @@ export default function Finds() {
         )}
 
         {searchMode === 'clip' && !searching && clips.length === 0 && !error && (
-          <div className="mt-16 text-center text-sm text-slate-400">링크나 키워드를 넣고 검색해보세요.</div>
+          <div className="mt-16 text-center text-sm text-slate-400">마음에 든 쇼핑 릴스 링크를 붙여넣거나, 위 키워드를 눌러 시작해보세요.</div>
         )}
       </div>
 
