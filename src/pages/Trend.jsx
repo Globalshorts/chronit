@@ -23,6 +23,7 @@ const fmt = (n) => { n = Math.max(0, Math.trunc(Number(n) || 0)); return n >= 10
 
 const SORTS = [['view', '조회수'], ['recent', '최신'], ['like', '좋아요'], ['comment', '댓글']]
 const RANGES = [['24h', '24시간', 1], ['7d', '7일', 7]]
+const FOLLOWERS = [['전체', '', ''], ['~1만', '', '10000'], ['1~2만', '10000', '20000'], ['2~3만', '20000', '30000'], ['3~5만', '30000', '50000'], ['5만+', '50000', '']]
 const TREND_TTL = 10 * 60 * 1000 // 10분: 이 안이면 재요청 안 함(서버는 최대 24h마다 갱신)
 const readTrendCache = () => { try { const c = JSON.parse(localStorage.getItem('chronit_trend_cache') || 'null'); return (c && Array.isArray(c.items)) ? c : null } catch { return null } }
 const writeTrendCache = (items) => { try { localStorage.setItem('chronit_trend_cache', JSON.stringify({ items, at: Date.now() })) } catch { /* noop */ } }
@@ -35,6 +36,8 @@ export default function Trend() {
   const [sort, setSort] = useState('view')
   const [showHelp, setShowHelp] = useState(false)
   const [range, setRange] = useState(7)
+  const [fMin, setFMin] = useState('')
+  const [fMax, setFMax] = useState('')
   const [modalClip, setModalClip] = useState(null)
   const [payWall, setPayWall] = useState(false)
   const [analyzedIds, setAnalyzedIds] = useState([])
@@ -82,6 +85,15 @@ export default function Trend() {
   const now = Date.now()
   const list = items
     .filter((it) => range === 0 ? true : (it.taken_at && now - new Date(it.taken_at).getTime() <= range * 86400000))
+    .filter((it) => {
+      const lo = Number(fMin) || 0, hi = Number(fMax) || 0
+      if (!lo && !hi) return true
+      const fc = Number(it.follower_count)
+      if (!fc) return false
+      if (lo && fc < lo) return false
+      if (hi && fc > hi) return false
+      return true
+    })
     .sort((a, b) => {
       if (sort === 'recent') return new Date(b.taken_at || 0) - new Date(a.taken_at || 0)
       const mk = sort === 'view' ? 'view_count' : sort === 'like' ? 'like_count' : 'comment_count'
@@ -114,7 +126,7 @@ export default function Trend() {
               {showHelp && (
                 <div className="absolute left-0 top-7 z-50 w-64 rounded-xl border border-slate-200 bg-white p-3 text-xs font-medium leading-relaxed text-slate-600 shadow-xl" onClick={() => setShowHelp(false)}>
                   <div className="mb-0.5 font-bold text-slate-800">선정 기준</div>
-                  팔로워 <b className="text-slate-800">2만 미만</b> 계정 중, 최근 <b className="text-slate-800">반응이 잘 터진</b>(댓글·조회수 높은) 쇼핑 숏폼만 골라 모아드려요.
+                  최근 <b className="text-slate-800">반응이 잘 터진</b>(댓글·조회수 높은) 쇼핑 숏폼을 모아드려요. 위 <b className="text-slate-800">팔로워</b> 범위로 원하는 계정 규모만 골라 볼 수 있어요.
                 </div>
               )}
             </div>
@@ -131,6 +143,20 @@ export default function Trend() {
           {RANGES.map(([k, l, d]) => (
             <button key={k} onClick={() => setRange(d)} className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition ${range === d ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{l}</button>
           ))}
+        </div>
+
+        <div className="mb-5 flex flex-wrap items-center gap-2">
+          <span className="text-sm font-bold text-slate-500">팔로워</span>
+          {FOLLOWERS.map(([l, lo, hi]) => {
+            const active = String(fMin) === String(lo) && String(fMax) === String(hi)
+            return <button key={l} onClick={() => { setFMin(lo); setFMax(hi) }} className={`rounded-full px-3 py-1.5 text-sm font-bold transition ${active ? 'bg-[#0064FF] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{l}</button>
+          })}
+          <span className="mx-1 h-4 w-px bg-slate-200" />
+          <div className="flex items-center gap-1 text-sm text-slate-500">
+            <input type="number" inputMode="numeric" value={fMin} onChange={(e) => setFMin(e.target.value)} placeholder="최소" className="w-20 rounded-lg border border-slate-200 px-2 py-1 text-sm" />
+            <span className="text-slate-400">~</span>
+            <input type="number" inputMode="numeric" value={fMax} onChange={(e) => setFMax(e.target.value)} placeholder="최대" className="w-20 rounded-lg border border-slate-200 px-2 py-1 text-sm" />
+          </div>
         </div>
 
         {!isReal ? (
@@ -158,6 +184,7 @@ export default function Trend() {
                       <span className="flex items-center gap-0.5"><Heart size={11} />{fmt(it.like_count)}</span>
                       <span className="flex items-center gap-0.5"><MessageCircle size={11} />{fmt(it.comment_count)}</span>
                     </div>
+                    <div className="mb-1.5 truncate text-[11px] text-slate-400">@{it.owner}{it.follower_count ? ` · 팔로워 ${fmt(it.follower_count)}` : ''}</div>
                     <div className="flex gap-1.5">
                       <button onClick={() => handleAnalyze(clip)} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Sparkles size={12} />분석</button>
                       <button onClick={() => { window.location.href = '/finds?url=' + encodeURIComponent(it.url) }} className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-slate-200 py-1.5 text-xs font-bold text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]">비슷한 소스</button>
