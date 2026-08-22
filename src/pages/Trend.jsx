@@ -193,7 +193,7 @@ export default function Trend() {
                 </div>
               )
             })}
-            {!list.length && <div className="col-span-full p-10 text-center text-sm text-slate-400">해당 기간에 트렌드가 없어요.</div>}
+            {!list.length && <div className="col-span-full p-10 text-center text-sm text-slate-400">{(fMin || fMax) ? '이 팔로워 구간은 아직 준비 중이에요. 곧 더 많은 계정을 추가할 예정이에요.' : '해당 기간에 트렌드가 없어요.'}</div>}
           </div>
         )}
       </div>
