@@ -104,6 +104,7 @@ const Home = () => {
   const [scrolled, setScrolled] = useState(false)
   const [paymentOpen, setPaymentOpen] = useState(false)
   const [buyOpen, setBuyOpen] = useState(false)
+  const [firstEligible, setFirstEligible] = useState(true)
   const [selectedPlan, setSelectedPlan] = useState('pro')
   const [heroTab, setHeroTab] = useState('link')  // 히어로 입력 탭: link | upload
   const [user, setUser] = useState(null)
@@ -202,6 +203,7 @@ const Home = () => {
     if (user && !user.is_anonymous) { setBuyOpen(true); return }
     setShowAuthModal(true)
   }
+  useEffect(() => { supabase.rpc('finds_first_sub_eligible').then(({ data }) => setFirstEligible(data !== false)).catch(() => {}) }, [user])
   const isExistingRender = !!(user && user.created_at && new Date(user.created_at) < new Date('2026-08-12T00:00:00Z'))
 
   const handleTermsAgree = async (marketing = false) => {
@@ -712,9 +714,9 @@ const Home = () => {
               <button onClick={handleFinds} className="mt-6 w-full rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-[#0064FF] hover:text-[#0064FF]">무료로 시작</button>
             </div>
             {[
-              { name: '스탠다드', credits: 30, price: '9,900' },
-              { name: '플러스', credits: 100, price: '19,900', hot: true },
-              { name: '프로', credits: 300, price: '29,900' },
+              { name: '스탠다드', credits: 30, price: 9900 },
+              { name: '플러스', credits: 100, price: 19900, hot: true },
+              { name: '프로', credits: 300, price: 29900 },
             ].map((p) => (
               <div key={p.name} className={`flex flex-col rounded-2xl bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)] ${p.hot ? 'border-2 border-[#0064FF]' : 'border border-gray-100'}`}>
                 <div className="flex items-center gap-2">
@@ -722,7 +724,14 @@ const Home = () => {
                   {p.hot && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0064FF]">인기</span>}
                 </div>
                 <p className="mt-1 text-sm text-gray-400">월 {p.credits}회 분석</p>
-                <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-gray-900">₩{p.price}</span><span className="text-sm text-gray-400">/ 월</span></div>
+                {firstEligible ? (
+                  <div className="mt-4">
+                    <div className="flex items-baseline gap-1"><span className="text-3xl font-bold text-[#0064FF]">₩{(Math.floor(p.price * 0.5 / 100) * 100).toLocaleString('ko-KR')}</span><span className="text-sm text-gray-400">첫 달</span></div>
+                    <div className="mt-0.5 text-xs text-gray-400">이후 ₩{p.price.toLocaleString('ko-KR')}/월</div>
+                  </div>
+                ) : (
+                  <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-gray-900">₩{p.price.toLocaleString('ko-KR')}</span><span className="text-sm text-gray-400">/ 월</span></div>
+                )}
                 <p className="mt-3 text-sm text-gray-500">매월 이용권 {p.credits}개로 리셋</p>
                 <button onClick={handleBuy} className={`mt-6 w-full rounded-xl py-2.5 text-sm font-semibold transition ${p.hot ? 'bg-[#0064FF] text-white hover:brightness-95' : 'border border-gray-200 text-gray-700 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>시작하기</button>
               </div>

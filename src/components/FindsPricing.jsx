@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { X, ChevronDown } from 'lucide-react'
+import { X } from 'lucide-react'
 
 const CK = import.meta.env.VITE_TOSS_CLIENT_KEY || ''
 const BCK = import.meta.env.VITE_TOSS_BILLING_CLIENT_KEY || ''
@@ -16,6 +16,8 @@ const PACKS = [
   { id: 'pack100', credits: 100, price: 34900 },
 ]
 const won = (n) => n.toLocaleString('ko-KR')
+const firstMonth = (price) => Math.floor(price * 0.5 / 100) * 100
+const perDay = (price) => Math.round(price / 30 / 10) * 10
 const genOrderId = (plan) => `chr_${plan}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
 
 function loadToss() {
@@ -30,9 +32,15 @@ function loadToss() {
 
 export default function FindsPricing({ open, onClose }) {
   const [tab, setTab] = useState('sub')
+  const [period, setPeriod] = useState('monthly')
+  const [eligible, setEligible] = useState(true) // 첫 결제 할인 대상 여부
   const [busy, setBusy] = useState('')
   const [msg, setMsg] = useState('')
-  useEffect(() => { if (open) { setTab('sub'); setMsg('') } }, [open])
+  useEffect(() => {
+    if (!open) return
+    setTab('sub'); setPeriod('monthly'); setMsg('')
+    supabase.rpc('finds_first_sub_eligible').then(({ data }) => setEligible(data !== false)).catch(() => setEligible(true))
+  }, [open])
   if (!open) return null
 
   const buySub = async (planId) => {
@@ -46,7 +54,7 @@ export default function FindsPricing({ open, onClose }) {
       const payment = window.TossPayments(BCK).payment({ customerKey: user.id })
       await payment.requestBillingAuth({
         method: 'CARD', customerEmail: user.email,
-        successUrl: `${window.location.origin}/payments/success?type=billing&plan=${planId}`,
+        successUrl: `${window.location.origin}/payments/success?type=billing&plan=${planId}&period=${period}`,
         failUrl: `${window.location.origin}/payments/fail`,
       })
     } catch (e) { if (e?.code !== 'USER_CANCEL') setMsg('결제 오류: ' + (e?.message || e)); setBusy('') }
@@ -72,6 +80,8 @@ export default function FindsPricing({ open, onClose }) {
     } catch (e) { if (e?.code !== 'USER_CANCEL') setMsg('결제 오류: ' + (e?.message || e)); setBusy('') }
   }
 
+  const annual = period === 'annual'
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div className="w-full max-w-md rounded-2xl bg-white p-6" onClick={(e) => e.stopPropagation()}>
@@ -82,23 +92,39 @@ export default function FindsPricing({ open, onClose }) {
 
         <div className="relative mb-4 flex rounded-xl bg-slate-100 p-1 text-sm font-bold">
           <span aria-hidden className="absolute left-1 top-1 bottom-1 w-[calc(50%-0.25rem)] rounded-lg bg-white shadow-sm transition-transform duration-300 ease-out" style={{ transform: tab === 'pack' ? 'translateX(100%)' : 'translateX(0)' }} />
-          <button onClick={() => setTab('sub')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${tab === 'sub' ? 'text-[#0064FF]' : 'text-slate-500'}`}>구독 (매월)</button>
+          <button onClick={() => setTab('sub')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${tab === 'sub' ? 'text-[#0064FF]' : 'text-slate-500'}`}>구독</button>
           <button onClick={() => setTab('pack')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${tab === 'pack' ? 'text-[#0064FF]' : 'text-slate-500'}`}>단건팩 (1회)</button>
         </div>
 
         {tab === 'sub' ? (
           <div className="flex flex-col gap-2">
+            <div className="mb-1 flex items-center justify-center gap-1.5 text-xs font-bold">
+              <button onClick={() => setPeriod('monthly')} className={`rounded-full px-3 py-1 transition ${!annual ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-500'}`}>월간</button>
+              <button onClick={() => setPeriod('annual')} className={`rounded-full px-3 py-1 transition ${annual ? 'bg-[#0064FF] text-white' : 'bg-slate-100 text-slate-500'}`}>연간 · 3개월 무료</button>
+            </div>
             {SUBS.map((p) => (
               <button key={p.id} disabled={!!busy} onClick={() => buySub(p.id)}
                 className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3 text-left transition hover:border-[#0064FF] disabled:opacity-50">
-                <div><div className="font-bold text-slate-900">{p.name} · 월 {p.credits}개</div><div className="text-xs text-slate-400">매월 자동 충전 · 언제든 해지</div></div>
-                <div className="text-right">
-                  <div className="text-[15px] font-bold text-[#0064FF]">첫 달 ₩{won(Math.floor(p.price * 0.5 / 100) * 100)}</div>
-                  <div className="text-[11px] text-slate-400">이후 ₩{won(p.price)}/월 · 하루 약 {won(Math.round(p.price / 30 / 10) * 10)}원</div>
-                </div>
+                <div><div className="font-bold text-slate-900">{p.name} · 월 {p.credits}개</div><div className="text-xs text-slate-400">{annual ? '매월 자동 충전 · 연 1회 결제' : '매월 자동 충전 · 언제든 해지'}</div></div>
+                {annual ? (
+                  <div className="text-right">
+                    <div className="text-[15px] font-bold text-[#0064FF]">₩{won(p.price * 9)}<span className="text-[11px] font-medium text-slate-400"> /년</span></div>
+                    <div className="text-[11px] text-slate-400"><span className="line-through">₩{won(p.price * 12)}</span> · 3개월 무료</div>
+                  </div>
+                ) : eligible ? (
+                  <div className="text-right">
+                    <div className="text-[15px] font-bold text-[#0064FF]">첫 달 ₩{won(firstMonth(p.price))}</div>
+                    <div className="text-[11px] text-slate-400">이후 ₩{won(p.price)}/월 · 하루 약 {won(perDay(p.price))}원</div>
+                  </div>
+                ) : (
+                  <div className="text-right">
+                    <div className="font-bold text-slate-900">₩{won(p.price)}</div>
+                    <div className="text-[11px] text-slate-400">/월 · 하루 약 {won(perDay(p.price))}원</div>
+                  </div>
+                )}
               </button>
             ))}
-            <p className="mt-1 text-center text-[11px] text-slate-400">첫 달 50% 할인은 첫 구독 1회 한정이에요.</p>
+            <p className="mt-1 text-center text-[11px] text-slate-400">{annual ? '연간은 매월 이용권이 자동 충전돼요.' : eligible ? '첫 달 50% 할인은 첫 구독 1회 한정이에요.' : '언제든 해지할 수 있어요.'}</p>
           </div>
         ) : (
           <div className="flex flex-col gap-2">

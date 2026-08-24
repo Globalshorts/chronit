@@ -12,7 +12,7 @@ export default function PaymentResult({ fail = false }) {
     const run = async () => {
       const type = params.get('type')
       const body = type === 'billing'
-        ? { mode: 'billing', authKey: params.get('authKey'), customerKey: params.get('customerKey'), plan: params.get('plan') }
+        ? { mode: 'billing', authKey: params.get('authKey'), customerKey: params.get('customerKey'), plan: params.get('plan'), period: params.get('period') || 'monthly' }
         : { mode: 'confirm', paymentKey: params.get('paymentKey'), orderId: params.get('orderId'), amount: Number(params.get('amount') || 0) }
       try {
         const { data, error } = await supabase.functions.invoke('toss-confirm', { body })
