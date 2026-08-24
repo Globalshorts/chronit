@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Film, Pencil, LogOut, Copy, Check, Sparkles, ShieldCheck } from 'lucide-react'
+import { Film, Pencil, LogOut, Copy, Check, Sparkles, ShieldCheck, Gift } from 'lucide-react'
 import FindsPricing from '../components/FindsPricing'
 import CommunityHeader from '../components/CommunityHeader'
 import NicknameModal from '../components/NicknameModal'
@@ -123,7 +123,7 @@ const MyPage = () => {
               {copied ? <Check size={16} className="text-[#0064FF]" /> : <Copy size={16} className="text-slate-400" />}
             </button>
             <div className="mt-2 rounded-xl bg-[#0064FF]/5 px-4 py-3 text-xs leading-relaxed text-slate-600">
-              <p className="mb-1 font-bold text-gray-800">친구 초대 보상</p>
+              <p className="mb-1 flex items-center gap-1 font-bold text-gray-800"><Gift size={14} className="text-[#0064FF]" /> 친구 초대 보상</p>
               <p>• 친구가 내 링크로 <b>가입</b>하면 → 친구에게 <b>이용권 2개</b></p>
               <p>• 친구가 <b>첫 결제</b>하면 → 나에게 <b>이용권 50개</b> · 친구에게 <b>이용권 20개</b></p>
               <p className="mt-1.5 text-slate-400">※ 결제 시 지급되는 보너스 이용권은 30일간 유효해요.</p>
@@ -131,7 +131,7 @@ const MyPage = () => {
             {refInfo && refInfo.ref_remaining_days > 0 ? (
               <div className="mt-2 rounded-xl border border-[#0064FF]/20 bg-white px-4 py-3">
                 <div className="mb-1.5 flex items-center justify-between text-xs">
-                  <span className="font-bold text-gray-700">보너스 이용권 만료까지</span>
+                  <span className="flex items-center gap-1 font-bold text-gray-700"><Gift size={13} className="text-[#0064FF]" /> 보너스 이용권 만료까지</span>
                   <span className={refInfo.ref_remaining_days <= 3 ? "font-bold text-red-500" : "text-slate-500"}>{refInfo.ref_remaining_days}일</span>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
