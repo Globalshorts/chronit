@@ -7,6 +7,7 @@ import {
 import { Link, useLocation } from 'react-router-dom'
 import AnimatedCounter from '../components/AnimatedCounter'
 import PaymentModal from '../components/PaymentModal'
+import FindsPricing from '../components/FindsPricing'
 import AuthModal from '../components/AuthModal'
 import TermsModal from '../components/TermsModal'
 import Footer from '../components/Footer'
@@ -102,6 +103,7 @@ const pctOff = (list, sale) => (list > 0 ? Math.round((list - sale) / list * 100
 const Home = () => {
   const [scrolled, setScrolled] = useState(false)
   const [paymentOpen, setPaymentOpen] = useState(false)
+  const [buyOpen, setBuyOpen] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState('pro')
   const [heroTab, setHeroTab] = useState('link')  // 히어로 입력 탭: link | upload
   const [user, setUser] = useState(null)
@@ -194,6 +196,10 @@ const Home = () => {
 
   const handleFinds = () => {
     if (user) { window.location.href = '/finds'; return }
+    setShowAuthModal(true)
+  }
+  const handleBuy = () => {
+    if (user && !user.is_anonymous) { setBuyOpen(true); return }
     setShowAuthModal(true)
   }
   const isExistingRender = !!(user && user.created_at && new Date(user.created_at) < new Date('2026-08-12T00:00:00Z'))
@@ -718,7 +724,7 @@ const Home = () => {
                 <p className="mt-1 text-sm text-gray-400">월 {p.credits}회 분석</p>
                 <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-gray-900">₩{p.price}</span><span className="text-sm text-gray-400">/ 월</span></div>
                 <p className="mt-3 text-sm text-gray-500">매월 이용권 {p.credits}개로 리셋</p>
-                <button onClick={handleFinds} className={`mt-6 w-full rounded-xl py-2.5 text-sm font-semibold transition ${p.hot ? 'bg-[#0064FF] text-white hover:brightness-95' : 'border border-gray-200 text-gray-700 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>시작하기</button>
+                <button onClick={handleBuy} className={`mt-6 w-full rounded-xl py-2.5 text-sm font-semibold transition ${p.hot ? 'bg-[#0064FF] text-white hover:brightness-95' : 'border border-gray-200 text-gray-700 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>시작하기</button>
               </div>
             ))}
           </div>
@@ -785,6 +791,7 @@ const Home = () => {
       `}</style>
 
       <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} referralCode={refFromUrl} />
+      <FindsPricing open={buyOpen} onClose={() => setBuyOpen(false)} />
       <TermsModal open={showTermsModal} onAgree={handleTermsAgree} onClose={() => setShowTermsModal(false)} />
       <NicknameModal open={nickOpen} required={nickRequired} onClose={handleNicknameClose} onDone={handleNicknameDone} />
       <SignupSurveyModal open={sourceOpen} onDone={handleSourceDone} />
