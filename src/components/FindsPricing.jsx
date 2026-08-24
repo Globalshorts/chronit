@@ -86,7 +86,7 @@ export default function FindsPricing({ open, onClose }) {
               <button key={p.id} disabled={!!busy} onClick={() => buySub(p.id)}
                 className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3 text-left transition hover:border-[#0064FF] disabled:opacity-50">
                 <div><div className="font-bold text-slate-900">{p.name} · 월 {p.credits}개</div><div className="text-xs text-slate-400">매월 자동 충전 · 언제든 해지</div></div>
-                <div className="text-right"><div className="font-bold text-slate-900">₩{won(p.price)}</div><div className="text-[11px] text-slate-400">/월</div></div>
+                <div className="text-right"><div className="font-bold text-slate-900">₩{won(p.price)}</div><div className="text-[11px] text-slate-400">/월 · 하루 약 {won(Math.round(p.price / 30 / 10) * 10)}원</div></div>
               </button>
             ))}
             <button onClick={() => setTab('pack')} className="mt-1 flex items-center justify-center gap-1 py-1 text-xs font-semibold text-slate-400 hover:text-slate-600">
