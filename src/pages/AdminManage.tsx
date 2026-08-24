@@ -486,7 +486,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
             : filtered.map(u=>{
               const max = (planMax[u.plan] ?? 0) + (u.bonus_credits||0); const left = max - (u.credits_used||0); const evA = (u.event_expires_at && new Date(u.event_expires_at).getTime() > now && (u.event_credits||0) > 0) ? (u.event_credits||0) : 0; const act = isActive(u);
               return (
-                <tr key={u.user_id} onClick={()=>{setSel(u.user_id); setRoleSel(u.role||"user"); if(u.plan)setPlanSel(u.plan);}}
+                <tr key={u.user_id} onClick={()=>{setSel(u.user_id); setRoleSel(u.role||"user"); if(u.plan)setPlanSel(u.plan); setActOpen(true);}}
                   className={`border-b border-gray-200/50 cursor-pointer ${sel===u.user_id?"bg-[#0064FF]/10":"hover:bg-gray-100/40"}`}>
                   <td className="px-3 py-2.5 text-gray-700 truncate max-w-[200px]"><ProvBadge p={u.provider} />{u.email}</td><td className="px-3 py-2.5 text-gray-700 truncate max-w-[120px]">{u.nickname||"-"}</td>
                   <td className="px-3 py-2.5">{u.role==="super_admin"?<span className="text-yellow-400 font-bold">👑 관리자</span>:u.role==="partner"?<span className="text-[#0064FF]">파트너</span>:<span className="text-gray-400">일반</span>}</td>
