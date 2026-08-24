@@ -125,8 +125,8 @@ const MyPage = () => {
             <div className="mt-2 rounded-xl bg-[#0064FF]/5 px-4 py-3 text-xs leading-relaxed text-slate-600">
               <p className="mb-1 font-bold text-gray-800">🎁 친구 초대 보상</p>
               <p>• 친구가 내 링크로 <b>가입</b>하면 → 친구에게 <b>이용권 2개</b></p>
-              <p>• 친구가 <b>결제</b>하면 → 나에게 <b>이용권 5개</b></p>
-              <p className="mt-1.5 text-slate-400">※ 추천 보상은 최근 30일 기준 무료 회원 최대 10회, 유료 회원 최대 30회까지 지급돼요.</p>
+              <p>• 친구가 <b>첫 결제</b>하면 → 나에게 <b>이용권 50개</b> · 친구에게 <b>이용권 20개</b></p>
+              <p className="mt-1.5 text-slate-400">※ 결제 시 지급되는 보너스 이용권은 30일간 유효해요.</p>
             </div>
             {refInfo && refInfo.ref_remaining_days > 0 ? (
               <div className="mt-2 rounded-xl border border-[#0064FF]/20 bg-white px-4 py-3">
