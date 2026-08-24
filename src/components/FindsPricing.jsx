@@ -80,6 +80,12 @@ export default function FindsPricing({ open, onClose }) {
           <button onClick={onClose} className="text-slate-400 hover:text-slate-700"><X size={18} /></button>
         </div>
 
+        <div className="relative mb-4 flex rounded-xl bg-slate-100 p-1 text-sm font-bold">
+          <span aria-hidden className="absolute left-1 top-1 bottom-1 w-[calc(50%-0.25rem)] rounded-lg bg-white shadow-sm transition-transform duration-300 ease-out" style={{ transform: tab === 'pack' ? 'translateX(100%)' : 'translateX(0)' }} />
+          <button onClick={() => setTab('sub')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${tab === 'sub' ? 'text-[#0064FF]' : 'text-slate-500'}`}>구독 (매월)</button>
+          <button onClick={() => setTab('pack')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${tab === 'pack' ? 'text-[#0064FF]' : 'text-slate-500'}`}>단건팩 (1회)</button>
+        </div>
+
         {tab === 'sub' ? (
           <div className="flex flex-col gap-2">
             {SUBS.map((p) => (
@@ -89,9 +95,6 @@ export default function FindsPricing({ open, onClose }) {
                 <div className="text-right"><div className="font-bold text-slate-900">₩{won(p.price)}</div><div className="text-[11px] text-slate-400">/월 · 하루 약 {won(Math.round(p.price / 30 / 10) * 10)}원</div></div>
               </button>
             ))}
-            <button onClick={() => setTab('pack')} className="mt-1 flex items-center justify-center gap-1 py-1 text-xs font-semibold text-slate-400 hover:text-slate-600">
-              구독 없이 한 번만? 낱개 충전 <ChevronDown size={13} />
-            </button>
           </div>
         ) : (
           <div className="flex flex-col gap-2">
@@ -102,7 +105,6 @@ export default function FindsPricing({ open, onClose }) {
                 <div className="font-bold text-slate-900">₩{won(p.price)}</div>
               </button>
             ))}
-            <button onClick={() => setTab('sub')} className="mt-1 py-1 text-xs font-semibold text-slate-400 hover:text-slate-600">← 구독으로 보기</button>
           </div>
         )}
 
