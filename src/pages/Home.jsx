@@ -737,7 +737,8 @@ const Home = () => {
               </div>
             ))}
           </div>
-          <p className="mt-6 text-center text-sm text-gray-400">필요할 때만 쓰는 <span className="font-semibold text-gray-600">단건 팩</span>도 있어요 · 이용권 10 · 30 · 100개</p>
+          <p className="mt-6 text-center text-sm text-gray-400">이용권은 <span className="font-semibold text-gray-600">매월 초기화</span>돼요 · 남은 이용권은 이월·누적되지 않아요.</p>
+          <p className="mt-1 text-center text-sm text-gray-400">필요할 때만 쓰는 <span className="font-semibold text-gray-600">단건 팩</span>도 있어요 · 이용권 10 · 30 · 100개</p>
         </Reveal>
       </section>
 
