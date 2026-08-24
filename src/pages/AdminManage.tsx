@@ -210,7 +210,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
   const [sel, setSel]       = React.useState<string>("");
   const [planSel, setPlanSel] = React.useState("pro");
   const [days, setDays]     = React.useState("30");
-  const [amt, setAmt]       = React.useState("1000");
+  const [amt, setAmt]       = React.useState("100");
   const [creditKind, setCreditKind] = React.useState<"finds"|"render">("finds");
   const [actOpen, setActOpen] = React.useState(false);
   const [payAmt, setPayAmt] = React.useState("");   // 결제금액(파트너 정산 적립용)
@@ -478,11 +478,11 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
       <div className="rounded-2xl bg-white border border-gray-200 overflow-hidden mb-5 max-h-[340px] overflow-y-auto">
         <table className="w-full text-xs">
           <thead className="border-b border-gray-200 text-gray-400 sticky top-0 bg-white">
-            <tr><th className="px-3 py-2.5 text-left">이메일</th><th className="px-3 py-2.5 text-left">닉네임</th><th className="px-3 py-2.5 text-left">권한</th><th className="px-3 py-2.5 text-left">플랜</th><th className="px-3 py-2.5 text-left">만료일</th><th className="px-3 py-2.5 text-left">가입일</th><th className="px-3 py-2.5 text-left">📣마케팅</th><th className="px-3 py-2.5 text-right">Finds(잔량/한도)</th><th className="px-3 py-2.5 text-right">렌더</th></tr>
+            <tr><th className="px-3 py-2.5 text-left">이메일</th><th className="px-3 py-2.5 text-left">닉네임</th><th className="px-3 py-2.5 text-left">권한</th><th className="px-3 py-2.5 text-left">플랜</th><th className="px-3 py-2.5 text-left">만료일</th><th className="px-3 py-2.5 text-left">가입일</th><th className="px-3 py-2.5 text-left">📣마케팅</th><th className="px-3 py-2.5 text-right">Finds(잔량/한도)</th><th className="px-3 py-2.5 text-right">렌더</th><th className="px-3 py-2.5 text-center">관리</th></tr>
           </thead>
           <tbody>
-            {loading ? <tr><td colSpan={9} className="py-8 text-center text-gray-500">불러오는 중...</td></tr>
-            : filtered.length===0 ? <tr><td colSpan={9} className="py-8 text-center text-gray-500">결과 없음</td></tr>
+            {loading ? <tr><td colSpan={10} className="py-8 text-center text-gray-500">불러오는 중...</td></tr>
+            : filtered.length===0 ? <tr><td colSpan={10} className="py-8 text-center text-gray-500">결과 없음</td></tr>
             : filtered.map(u=>{
               const max = (planMax[u.plan] ?? 0) + (u.bonus_credits||0); const left = max - (u.credits_used||0); const evA = (u.event_expires_at && new Date(u.event_expires_at).getTime() > now && (u.event_credits||0) > 0) ? (u.event_credits||0) : 0; const act = isActive(u);
               return (
@@ -494,7 +494,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
                   <td className="px-3 py-2.5 text-gray-400">{fmt(u.expires_at)}</td><td className="px-3 py-2.5 text-gray-400">{u.created_at?fmt(u.created_at):"-"}</td>
                   <td className="px-3 py-2.5">{u.marketing_consent?<span className="text-[#0064FF] font-bold">동의</span>:<span className="text-gray-300">-</span>}</td>
                   <td className="px-3 py-2.5 text-right text-gray-700">{left.toLocaleString()} / {max.toLocaleString()}{evA>0 && <span className="ml-1 font-bold text-[#0064FF]">+{evA}체험</span>}</td>
-                  <td className="px-3 py-2.5 text-right"><div className="flex items-center justify-end gap-2">{(u.render_credits||0) > 0 ? <span className="font-bold text-amber-600">{(u.render_credits||0).toLocaleString()}</span> : <span className="text-gray-300">-</span>}<button onClick={e=>{e.stopPropagation(); setSel(u.user_id); setRoleSel(u.role||"user"); if(u.plan)setPlanSel(u.plan); setActOpen(true);}} title="회원 관리" className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[#0064FF]/10 text-[#0064FF] font-bold hover:bg-[#0064FF] hover:text-white transition">+</button></div></td>
+                  <td className="px-3 py-2.5 text-right">{(u.render_credits||0) > 0 ? <span className="font-bold text-amber-600">{(u.render_credits||0).toLocaleString()}</span> : <span className="text-gray-300">-</span>}</td><td className="px-3 py-2.5 text-center"><button onClick={e=>{e.stopPropagation(); setSel(u.user_id); setRoleSel(u.role||"user"); if(u.plan)setPlanSel(u.plan); setActOpen(true);}} title="회원 관리" className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[#0064FF]/10 text-[#0064FF] font-bold hover:bg-[#0064FF] hover:text-white transition">+</button></td>
                 </tr>
               );
             })}
@@ -544,6 +544,38 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
               <option value="user">일반 (user)</option><option value="partner">파트너 (partner)</option><option value="super_admin">관리자 (super_admin)</option></select>
             <Btn onClick={applyRole} color="bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] hover:brightness-95">✓ 권한 적용</Btn>
           </div>
+        </div>
+        <div className="rounded-2xl bg-white border border-gray-200 p-4">
+          <p className="text-xs text-gray-500 mb-2">이 회원이 초대한 유저</p>
+          {!refData ? <p className="text-sm text-gray-400">불러오는 중...</p> : refData.ok === false ? <p className="text-sm text-red-400">불러오기 실패: {refData.error || "권한 없음/오류"}</p> : (<>
+            <p className="text-xs text-gray-400 mb-2">{refData?.code ? `추천코드 ${refData.code}` : ""}</p>
+            <div className="mb-3 flex gap-4 text-sm">
+              <span className="font-bold text-gray-800">초대 {refData.count}명</span>
+              <span className="text-gray-500">활성 {refData.activated}</span>
+              <span className="text-gray-500">결제전환 {refData.converted}</span>
+            </div>
+            {refData.list?.length ? (
+              <div className="max-h-56 overflow-y-auto rounded-xl border border-gray-100">
+                <table className="w-full text-xs">
+                  <thead className="text-gray-400 border-b border-gray-100"><tr>
+                    <th className="px-2 py-1.5 text-left">이메일</th><th className="px-2 py-1.5 text-left">닉네임</th><th className="px-2 py-1.5 text-left">가입경로</th><th className="px-2 py-1.5 text-center">폰인증</th><th className="px-2 py-1.5 text-center">활성</th><th className="px-2 py-1.5 text-right">가입일</th>
+                  </tr></thead>
+                  <tbody>
+                    {refData.list.map((r:any,i:number)=>(
+                      <tr key={i} className="border-b border-gray-50">
+                        <td className="px-2 py-1.5 text-gray-700 truncate max-w-[160px]">{r.email}</td>
+                        <td className="px-2 py-1.5 text-gray-600 truncate max-w-[90px]">{r.nickname||"-"}</td>
+                        <td className="px-2 py-1.5 text-gray-500">{r.source||"-"}</td>
+                        <td className="px-2 py-1.5 text-center">{r.phone_verified?<span className="text-[#0064FF]">✓</span>:<span className="text-red-400">✗</span>}</td>
+                        <td className="px-2 py-1.5 text-center">{r.activated?<span className="text-[#0064FF]">●</span>:<span className="text-gray-300">○</span>}</td>
+                        <td className="px-2 py-1.5 text-right text-gray-400">{new Date(r.created_at).toLocaleDateString("ko-KR")}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : <p className="text-xs text-gray-400">초대한 사람이 없어요</p>}
+          </>)}
         </div>
             </div>
           </div>
