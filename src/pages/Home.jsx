@@ -733,7 +733,6 @@ const Home = () => {
                   <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-gray-900">₩{p.price.toLocaleString('ko-KR')}</span><span className="text-sm text-gray-400">/ 월</span></div>
                 )}
                 <div className="mt-2.5 inline-flex items-center rounded-full bg-[#0064FF]/10 px-3 py-1 text-sm font-extrabold text-[#0064FF]">하루 약 {(Math.round(p.price / 30 / 10) * 10).toLocaleString('ko-KR')}원</div>
-                <p className="mt-3 text-sm text-gray-500">매월 이용권 {p.credits}개로 리셋</p>
                 <button onClick={handleBuy} className={`mt-6 w-full rounded-xl py-2.5 text-sm font-semibold transition ${p.hot ? 'bg-[#0064FF] text-white hover:brightness-95' : 'border border-gray-200 text-gray-700 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>시작하기</button>
               </div>
             ))}
