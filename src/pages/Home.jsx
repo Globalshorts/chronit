@@ -744,8 +744,8 @@ const Home = () => {
                 </div>
                 {[
                   { name: '스탠다드', credits: 30, price: 9900 },
-                  { name: '플러스', credits: 100, price: 19900, hot: true },
-                  { name: '프로', credits: 300, price: 29900 },
+                  { name: '프로', credits: 100, price: 19900, hot: true },
+                  { name: '비즈니스', credits: 300, price: 29900 },
                 ].map((p) => {
                   const annual = priceTab === 'annual'
                   return (
