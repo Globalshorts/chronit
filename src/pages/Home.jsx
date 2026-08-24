@@ -105,6 +105,9 @@ const Home = () => {
   const [paymentOpen, setPaymentOpen] = useState(false)
   const [buyOpen, setBuyOpen] = useState(false)
   const [firstEligible, setFirstEligible] = useState(true)
+  const [priceTab, setPriceTab] = useState('monthly')
+  const [buyTab, setBuyTab] = useState('sub')
+  const [buyPeriod, setBuyPeriod] = useState('monthly')
   const [selectedPlan, setSelectedPlan] = useState('pro')
   const [heroTab, setHeroTab] = useState('link')  // 히어로 입력 탭: link | upload
   const [user, setUser] = useState(null)
@@ -199,7 +202,8 @@ const Home = () => {
     if (user) { window.location.href = '/finds'; return }
     setShowAuthModal(true)
   }
-  const handleBuy = () => {
+  const handleBuy = (tab = 'sub', period = 'monthly') => {
+    setBuyTab(tab); setBuyPeriod(period)
     if (user && !user.is_anonymous) { setBuyOpen(true); return }
     setShowAuthModal(true)
   }
@@ -705,40 +709,74 @@ const Home = () => {
             <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">필요한 만큼만</h2>
             <p className="mt-3 text-base text-gray-500 md:text-lg">가입하면 무료 이용권을 드려요. 더 필요하면 구독하세요.</p>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-            <div className="flex flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">
-              <h4 className="text-lg font-semibold text-gray-900">무료</h4>
-              <p className="mt-1 text-sm text-gray-400">먼저 써보기</p>
-              <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-gray-900">₩0</span></div>
-              <p className="mt-3 text-sm leading-relaxed text-gray-500">매월 이용권 5개</p>
-              <button onClick={handleFinds} className="mt-6 w-full rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-[#0064FF] hover:text-[#0064FF]">무료로 시작</button>
+          <div className="mb-6 flex justify-center">
+            <div className="inline-flex rounded-xl bg-gray-100 p-1 text-sm font-bold">
+              <button onClick={() => setPriceTab('monthly')} className={`rounded-lg px-3.5 py-2 transition ${priceTab === 'monthly' ? 'bg-white text-[#0064FF] shadow-sm' : 'text-gray-500'}`}>월간</button>
+              <button onClick={() => setPriceTab('annual')} className={`rounded-lg px-3.5 py-2 transition ${priceTab === 'annual' ? 'bg-white text-[#0064FF] shadow-sm' : 'text-gray-500'}`}>연간 · 3개월 무료</button>
+              <button onClick={() => setPriceTab('pack')} className={`rounded-lg px-3.5 py-2 transition ${priceTab === 'pack' ? 'bg-white text-[#0064FF] shadow-sm' : 'text-gray-500'}`}>단건팩</button>
             </div>
-            {[
-              { name: '스탠다드', credits: 30, price: 9900 },
-              { name: '플러스', credits: 100, price: 19900, hot: true },
-              { name: '프로', credits: 300, price: 29900 },
-            ].map((p) => (
-              <div key={p.name} className={`flex flex-col rounded-2xl bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)] ${p.hot ? 'border-2 border-[#0064FF]' : 'border border-gray-100'}`}>
-                <div className="flex items-center gap-2">
-                  <h4 className="text-lg font-semibold text-gray-900">{p.name}</h4>
-                  {p.hot && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0064FF]">인기</span>}
-                </div>
-                <p className="mt-1 text-sm text-gray-400">월 {p.credits}회 분석</p>
-                {firstEligible ? (
-                  <div className="mt-4">
-                    <div className="flex items-baseline gap-1"><span className="text-3xl font-bold text-[#0064FF]">₩{(Math.floor(p.price * 0.5 / 100) * 100).toLocaleString('ko-KR')}</span><span className="text-sm text-gray-400">첫 달</span></div>
-                    <div className="mt-0.5 text-xs text-gray-400">이후 ₩{p.price.toLocaleString('ko-KR')}/월</div>
-                  </div>
-                ) : (
-                  <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-gray-900">₩{p.price.toLocaleString('ko-KR')}</span><span className="text-sm text-gray-400">/ 월</span></div>
-                )}
-                <div className="mt-2.5 inline-flex items-center rounded-full bg-[#0064FF]/10 px-3 py-1 text-sm font-extrabold text-[#0064FF]">하루 약 {(Math.round(p.price / 30 / 10) * 10).toLocaleString('ko-KR')}원</div>
-                <button onClick={handleBuy} className={`mt-6 w-full rounded-xl py-2.5 text-sm font-semibold transition ${p.hot ? 'bg-[#0064FF] text-white hover:brightness-95' : 'border border-gray-200 text-gray-700 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>시작하기</button>
-              </div>
-            ))}
           </div>
-          <p className="mt-6 text-center text-sm text-gray-400">이용권은 <span className="font-semibold text-gray-600">매월 초기화</span>돼요 · 남은 이용권은 이월·누적되지 않아요.</p>
-          <p className="mt-1 text-center text-sm text-gray-400">필요할 때만 쓰는 <span className="font-semibold text-gray-600">단건 팩</span>도 있어요 · 이용권 10 · 30 · 100개</p>
+
+          {priceTab === 'pack' ? (
+            <>
+              <div className="mx-auto grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
+                {[{ credits: 10, price: 4900 }, { credits: 30, price: 12900, hot: true }, { credits: 100, price: 34900 }].map((p) => (
+                  <div key={p.credits} className={`flex flex-col rounded-2xl bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)] ${p.hot ? 'border-2 border-[#0064FF]' : 'border border-gray-100'}`}>
+                    <div className="flex items-center gap-2"><h4 className="text-lg font-semibold text-gray-900">이용권 {p.credits}개</h4>{p.hot && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0064FF]">인기</span>}</div>
+                    <p className="mt-1 text-sm text-gray-400">1회 결제 · 유효 12개월</p>
+                    <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-gray-900">₩{p.price.toLocaleString('ko-KR')}</span></div>
+                    <div className="mt-2.5 inline-flex items-center rounded-full bg-[#0064FF]/10 px-3 py-1 text-sm font-extrabold text-[#0064FF]">개당 약 {(Math.round(p.price / p.credits / 10) * 10).toLocaleString('ko-KR')}원</div>
+                    <button onClick={() => handleBuy('pack', 'monthly')} className={`mt-6 w-full rounded-xl py-2.5 text-sm font-semibold transition ${p.hot ? 'bg-[#0064FF] text-white hover:brightness-95' : 'border border-gray-200 text-gray-700 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>구매하기</button>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-6 text-center text-sm text-gray-400">단건팩은 <span className="font-semibold text-gray-600">소진식</span>이에요 · 유효기간 12개월, 매월 초기화 없음</p>
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                <div className="flex flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">
+                  <h4 className="text-lg font-semibold text-gray-900">무료</h4>
+                  <p className="mt-1 text-sm text-gray-400">먼저 써보기</p>
+                  <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-gray-900">₩0</span></div>
+                  <p className="mt-3 text-sm leading-relaxed text-gray-500">매월 이용권 5개</p>
+                  <button onClick={handleFinds} className="mt-6 w-full rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-[#0064FF] hover:text-[#0064FF]">무료로 시작</button>
+                </div>
+                {[
+                  { name: '스탠다드', credits: 30, price: 9900 },
+                  { name: '플러스', credits: 100, price: 19900, hot: true },
+                  { name: '프로', credits: 300, price: 29900 },
+                ].map((p) => {
+                  const annual = priceTab === 'annual'
+                  return (
+                    <div key={p.name} className={`flex flex-col rounded-2xl bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)] ${p.hot ? 'border-2 border-[#0064FF]' : 'border border-gray-100'}`}>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-lg font-semibold text-gray-900">{p.name}</h4>
+                        {p.hot && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0064FF]">인기</span>}
+                      </div>
+                      <p className="mt-1 text-sm text-gray-400">월 {p.credits}회 분석</p>
+                      {annual ? (
+                        <div className="mt-4">
+                          <div className="flex items-baseline gap-1"><span className="text-3xl font-bold text-[#0064FF]">₩{(p.price * 9).toLocaleString('ko-KR')}</span><span className="text-sm text-gray-400">/ 년</span></div>
+                          <div className="mt-0.5 text-xs text-gray-400"><span className="line-through">₩{(p.price * 12).toLocaleString('ko-KR')}</span> · 3개월 무료</div>
+                        </div>
+                      ) : firstEligible ? (
+                        <div className="mt-4">
+                          <div className="flex items-baseline gap-1"><span className="text-3xl font-bold text-[#0064FF]">₩{(Math.floor(p.price * 0.5 / 100) * 100).toLocaleString('ko-KR')}</span><span className="text-sm text-gray-400">첫 달</span></div>
+                          <div className="mt-0.5 text-xs text-gray-400">이후 ₩{p.price.toLocaleString('ko-KR')}/월</div>
+                        </div>
+                      ) : (
+                        <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-gray-900">₩{p.price.toLocaleString('ko-KR')}</span><span className="text-sm text-gray-400">/ 월</span></div>
+                      )}
+                      <div className="mt-2.5 inline-flex items-center rounded-full bg-[#0064FF]/10 px-3 py-1 text-sm font-extrabold text-[#0064FF]">하루 약 {(annual ? Math.round(p.price * 9 / 365 / 10) * 10 : Math.round(p.price / 30 / 10) * 10).toLocaleString('ko-KR')}원</div>
+                      <button onClick={() => handleBuy('sub', annual ? 'annual' : 'monthly')} className={`mt-6 w-full rounded-xl py-2.5 text-sm font-semibold transition ${p.hot ? 'bg-[#0064FF] text-white hover:brightness-95' : 'border border-gray-200 text-gray-700 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>시작하기</button>
+                    </div>
+                  )
+                })}
+              </div>
+              <p className="mt-6 text-center text-sm text-gray-400">이용권은 <span className="font-semibold text-gray-600">매월 초기화</span>돼요 · 남은 이용권은 이월·누적되지 않아요.{priceTab === 'annual' ? ' 연간도 매월 자동 충전돼요.' : ''}</p>
+            </>
+          )}
         </Reveal>
       </section>
 
@@ -801,7 +839,7 @@ const Home = () => {
       `}</style>
 
       <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} referralCode={refFromUrl} />
-      <FindsPricing open={buyOpen} onClose={() => setBuyOpen(false)} />
+      <FindsPricing open={buyOpen} onClose={() => setBuyOpen(false)} defaultTab={buyTab} defaultPeriod={buyPeriod} />
       <TermsModal open={showTermsModal} onAgree={handleTermsAgree} onClose={() => setShowTermsModal(false)} />
       <NicknameModal open={nickOpen} required={nickRequired} onClose={handleNicknameClose} onDone={handleNicknameDone} />
       <SignupSurveyModal open={sourceOpen} onDone={handleSourceDone} />

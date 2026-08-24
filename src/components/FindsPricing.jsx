@@ -30,15 +30,15 @@ function loadToss() {
   })
 }
 
-export default function FindsPricing({ open, onClose }) {
-  const [tab, setTab] = useState('sub')
-  const [period, setPeriod] = useState('monthly')
+export default function FindsPricing({ open, onClose, defaultTab = 'sub', defaultPeriod = 'monthly' }) {
+  const [tab, setTab] = useState(defaultTab)
+  const [period, setPeriod] = useState(defaultPeriod)
   const [eligible, setEligible] = useState(true) // 첫 결제 할인 대상 여부
   const [busy, setBusy] = useState('')
   const [msg, setMsg] = useState('')
   useEffect(() => {
     if (!open) return
-    setTab('sub'); setPeriod('monthly'); setMsg('')
+    setTab(defaultTab); setPeriod(defaultPeriod); setMsg('')
     supabase.rpc('finds_first_sub_eligible').then(({ data }) => setEligible(data !== false)).catch(() => setEligible(true))
   }, [open])
   if (!open) return null
