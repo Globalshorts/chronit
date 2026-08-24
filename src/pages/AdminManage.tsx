@@ -475,8 +475,8 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
         <span>📣 <b className="text-gray-700">마케팅동의 {mkCnt}</b></span>
         <button onClick={copyMktEmails} className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-700 hover:bg-gray-100">동의 이메일 복사</button>
       </div>
-      <div className="rounded-2xl bg-white border border-gray-200 overflow-hidden mb-5 max-h-[340px] overflow-y-auto">
-        <table className="w-full text-xs">
+      <div className="rounded-2xl bg-white border border-gray-200 mb-5 max-h-[340px] overflow-auto">
+        <table className="w-full min-w-[920px] text-xs">
           <thead className="border-b border-gray-200 text-gray-400 sticky top-0 bg-white">
             <tr><th className="px-3 py-2.5 text-left">이메일</th><th className="px-3 py-2.5 text-left">닉네임</th><th className="px-3 py-2.5 text-left">권한</th><th className="px-3 py-2.5 text-left">플랜</th><th className="px-3 py-2.5 text-left">만료일</th><th className="px-3 py-2.5 text-left">가입일</th><th className="px-3 py-2.5 text-left">📣마케팅</th><th className="px-3 py-2.5 text-right">Finds(잔량/한도)</th><th className="px-3 py-2.5 text-right">렌더</th><th className="px-3 py-2.5 text-center">관리</th></tr>
           </thead>
