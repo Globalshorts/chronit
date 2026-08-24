@@ -709,13 +709,13 @@ const Home = () => {
             <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">필요한 만큼만</h2>
             <p className="mt-3 text-base text-gray-500 md:text-lg">가입하면 무료 이용권을 드려요. 더 필요하면 구독하세요.</p>
           </div>
-          <div className="mb-6 flex justify-center">
-            <div className="inline-flex rounded-xl bg-gray-100 p-1 text-sm font-bold">
-              <button onClick={() => setPriceTab('monthly')} className={`rounded-lg px-3.5 py-2 transition ${priceTab === 'monthly' ? 'bg-white text-[#0064FF] shadow-sm' : 'text-gray-500'}`}>월간</button>
-              <button onClick={() => setPriceTab('annual')} className={`rounded-lg px-3.5 py-2 transition ${priceTab === 'annual' ? 'bg-white text-[#0064FF] shadow-sm' : 'text-gray-500'}`}>연간 · 3개월 무료</button>
-              <button onClick={() => setPriceTab('pack')} className={`rounded-lg px-3.5 py-2 transition ${priceTab === 'pack' ? 'bg-white text-[#0064FF] shadow-sm' : 'text-gray-500'}`}>단건팩</button>
-            </div>
+          <div className="relative mx-auto mb-2 flex max-w-sm rounded-xl bg-gray-100 p-1 text-sm font-bold">
+            <span aria-hidden className="absolute left-1 top-1 bottom-1 w-[calc(33.333%-0.25rem)] rounded-lg bg-white shadow-sm transition-transform duration-300 ease-out" style={{ transform: `translateX(${priceTab === 'annual' ? '100%' : priceTab === 'pack' ? '200%' : '0%'})` }} />
+            <button onClick={() => setPriceTab('monthly')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${priceTab === 'monthly' ? 'text-[#0064FF]' : 'text-gray-500'}`}>월간</button>
+            <button onClick={() => setPriceTab('annual')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${priceTab === 'annual' ? 'text-[#0064FF]' : 'text-gray-500'}`}>연간</button>
+            <button onClick={() => setPriceTab('pack')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${priceTab === 'pack' ? 'text-[#0064FF]' : 'text-gray-500'}`}>단건팩</button>
           </div>
+          <p className="mb-6 text-center text-xs font-semibold text-[#0064FF]">{priceTab === 'annual' ? '연간 결제로 3개월 무료' : priceTab === 'pack' ? '필요할 때만 1회 결제' : '매월 자동 충전 · 언제든 해지'}</p>
 
           {priceTab === 'pack' ? (
             <>
