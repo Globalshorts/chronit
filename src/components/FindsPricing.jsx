@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { X } from 'lucide-react'
+import ReferralCTA from './ReferralCTA'
 
 const CK = import.meta.env.VITE_TOSS_CLIENT_KEY || ''
 const BCK = import.meta.env.VITE_TOSS_BILLING_CLIENT_KEY || ''
@@ -139,6 +140,7 @@ export default function FindsPricing({ open, onClose, defaultTab = 'sub', defaul
         )}
 
         {msg && <p className="mt-3 text-center text-sm text-red-500">{msg}</p>}
+        <ReferralCTA variant="card" className="mt-4" />
         <p className="mt-4 text-center text-[11px] text-slate-400">결제 시 결제대행 토스페이먼츠 창이 열립니다.</p>
       </div>
     </div>

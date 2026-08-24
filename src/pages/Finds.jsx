@@ -4,6 +4,7 @@ import { Search, Loader2, AlertTriangle, Flame, Eye, Heart, MessageCircle, Spark
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
 import AuthModal from '../components/AuthModal'
+import ReferralCTA from '../components/ReferralCTA'
 import FindsPricing from '../components/FindsPricing'
 import SiteNav from '../components/SiteNav'
 import ChannelModal from '../components/ChannelModal'
@@ -481,6 +482,7 @@ export default function Finds() {
               <Sparkles size={12} /> 남은 이용권 {balance}
             </span>
           )}
+          <ReferralCTA variant="button" />
           <button onClick={() => (isAnon ? setShowAuth(true) : setPayWall(true))} className="inline-flex items-center gap-1 rounded-full bg-[#0064FF] px-3 py-1 text-xs font-bold text-white transition hover:brightness-95">이용권 구매</button>
         </div>
         <p className="-mt-1 mb-3 text-[11px] text-slate-400">{searchMode === 'channel'

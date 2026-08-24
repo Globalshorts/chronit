@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import ReferralCTA from '../components/ReferralCTA'
 
 export default function PaymentResult({ fail = false }) {
   const [params] = useSearchParams()
@@ -33,7 +34,7 @@ export default function PaymentResult({ fail = false }) {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#0064FF]/10 text-2xl">✅</div>
             <h1 className="text-xl font-bold text-gray-900">결제 완료</h1>
             <p className="mt-2 text-sm text-gray-600">{msg}</p>
-            <Link to="/generate" className="mt-6 inline-block w-full rounded-2xl bg-[#0064FF] py-3.5 text-base font-bold text-white">영상 만들러 가기</Link>
+            <ReferralCTA variant="card" className="mt-5 text-left" /><Link to="/generate" className="mt-6 inline-block w-full rounded-2xl bg-[#0064FF] py-3.5 text-base font-bold text-white">영상 만들러 가기</Link>
           </>
         )}
         {state === 'fail' && (
