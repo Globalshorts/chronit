@@ -1,5 +1,6 @@
 import React from 'react'
 import { supabase } from '../lib/supabase'
+import { X } from 'lucide-react'
 
 const SB = "https://oxygqtbdpnxxcgzwdlzi.supabase.co";
 const FN = (n: string) => `${SB}/functions/v1/${n}`;
