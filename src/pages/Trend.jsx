@@ -97,6 +97,8 @@ export default function Trend() {
   if (!FEATURES.trendFeed) return <Navigate to="/" replace />
 
   const now = Date.now()
+  const FB_SCORE = 16
+  const fbScore = (it) => ((Number(it.comment_count) || 0) * 1000 + (Number(it.like_count) || 0) * 50 + (Number(it.view_count) || 0)) / Math.max(Number(it.follower_count) || 0, 1000)
   const list = items
     .filter((it) => {
       const win = fastBench ? 2 * 86400000 : (range === 0 ? Infinity : range * 86400000)
@@ -104,7 +106,7 @@ export default function Trend() {
     })
     .filter((it) => {
       if (!fastBench) return true
-      return (Number(it.comment_count) || 0) >= 50
+      return fbScore(it) >= FB_SCORE
     })
     .filter((it) => {
       const lo = Number(fMin) || 0, hi = Number(fMax) || 0
@@ -116,12 +118,13 @@ export default function Trend() {
       return true
     })
     .sort((a, b) => {
+      if (fastBench) return fbScore(b) - fbScore(a)
       if (sort === 'recent') return new Date(b.taken_at || 0) - new Date(a.taken_at || 0)
       const mk = sort === 'view' ? 'view_count' : sort === 'like' ? 'like_count' : 'comment_count'
       return (Number(b[mk]) || 0) - (Number(a[mk]) || 0)
     })
 
-  const fbQual = (it) => !!it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && (Number(it.comment_count) || 0) >= 50
+  const fbQual = (it) => !!it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && fbScore(it) >= FB_SCORE
   const gateOn = previewLock || (!isPaid && !isAdmin)
   const lockedCount = gateOn ? list.filter(fbQual).length : 0
 
@@ -176,7 +179,7 @@ export default function Trend() {
             <button key={k} onClick={() => setRange(d)} className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition ${range === d ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{l}</button>
           ))}
         </div>
-        {fastBench && <p className="mb-3 -mt-2 text-xs font-semibold text-[#0064FF]">지금 막 터진 소재 — 최근 48시간 · 댓글 50+ · 팔로워 규모는 위 필터로 선택</p>}
+        {fastBench && <p className="mb-3 -mt-2 text-xs font-semibold text-[#0064FF]">지금 막 터진 소재 — 최근 48시간 · 크로닛 터짐 점수순 (댓글·좋아요·조회를 팔로워 대비로 계산)</p>}
 
         <div className="mb-5 flex flex-wrap items-center gap-2">
           <span className="text-sm font-bold text-slate-500">팔로워</span>
