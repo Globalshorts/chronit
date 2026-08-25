@@ -122,8 +122,9 @@ export default function Trend() {
       return (Number(b[mk]) || 0) - (Number(a[mk]) || 0)
     })
 
-  const lockCount = ((isPaid || isAdmin) && !previewLock) ? 0 : Math.ceil(list.length / 3)
-  const lockedShorts = new Set(lockCount ? [...list].sort((a, b) => new Date(b.taken_at || 0) - new Date(a.taken_at || 0)).slice(0, lockCount).map((x) => x.shortcode) : [])
+  const fbQual = (it) => !!it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && Number(it.follower_count) > 0 && Number(it.follower_count) < 10000 && (Number(it.comment_count) || 0) >= 50
+  const gateOn = previewLock || (!isPaid && !isAdmin)
+  const lockedCount = gateOn ? list.filter(fbQual).length : 0
 
   return (
     <div className="min-h-screen bg-white">
@@ -203,11 +204,11 @@ export default function Trend() {
           <div className="py-10 text-red-500">{err}</div>
         ) : (
           <>
-          {lockedShorts.size > 0 && <p className="mb-3 rounded-xl bg-[#0064FF]/5 px-3 py-2 text-sm font-bold text-[#0064FF]">지금 제일 뜨는 소재 {lockedShorts.size}개가 잠겨 있어요 — 며칠 뒤엔 무료로 풀리지만, 그땐 남들이 다 따라한 뒤예요.</p>}
+          {lockedCount > 0 && <p className="mb-3 rounded-xl bg-[#0064FF]/5 px-3 py-2 text-sm font-bold text-[#0064FF]">지금 막 터진 소재 {lockedCount}개가 잠겨 있어요 — 며칠 뒤엔 무료로 풀리지만, 그땐 남들이 다 따라한 뒤예요.</p>}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {list.map((it, i) => {
               const clip = { title: it.caption, source: 'instagram', thumbnail_url: it.thumbnail_url, author: it.owner, views: it.view_count, likes: it.like_count, comments: it.comment_count, page_url: it.url, video_url: it.video_url, video_id: it.shortcode }
-              const locked = lockedShorts.has(it.shortcode)
+              const locked = gateOn && fbQual(it)
               return (
                 <div key={it.shortcode || i} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
                   {locked ? (
@@ -233,7 +234,7 @@ export default function Trend() {
                       <span className="flex items-center gap-0.5"><Heart size={11} />{fmt(it.like_count)}</span>
                       <span className="flex items-center gap-0.5"><MessageCircle size={11} />{fmt(it.comment_count)}</span>
                     </div>
-                    <div className="mb-1.5 truncate text-[11px] text-slate-400">{locked ? '방금 터진 소재 · 잠김' : `@${it.owner}${it.follower_count ? ` · 팔로워 ${fmt(it.follower_count)}` : ''}`}</div>
+                    <div className="mb-1.5 truncate text-[11px] text-slate-400">{locked ? '패스트벤치 · 잠김' : `@${it.owner}${it.follower_count ? ` · 팔로워 ${fmt(it.follower_count)}` : ''}`}</div>
                     {locked ? (
                       <button onClick={() => setPayWall(true)} className="flex w-full items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Lock size={12} />잠금 해제하고 보기</button>
                     ) : (
