@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Navigate, Link } from 'react-router-dom'
-import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, HelpCircle } from 'lucide-react'
+import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, HelpCircle, Zap } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
 import SiteNav from '../components/SiteNav'
@@ -38,6 +38,8 @@ export default function Trend() {
   const [range, setRange] = useState(7)
   const [fMin, setFMin] = useState('')
   const [fMax, setFMax] = useState('')
+  const [fastBench, setFastBench] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [modalClip, setModalClip] = useState(null)
   const [payWall, setPayWall] = useState(false)
   const [analyzedIds, setAnalyzedIds] = useState([])
@@ -59,6 +61,12 @@ export default function Trend() {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
     return () => { try { sub.subscription.unsubscribe() } catch { /* noop */ } }
   }, [])
+
+  useEffect(() => {
+    const u = session?.user
+    if (!u || u.is_anonymous) { setIsAdmin(false); return }
+    supabase.from('subscriptions').select('role').eq('user_id', u.id).maybeSingle().then(({ data }) => setIsAdmin(data?.role === 'super_admin'))
+  }, [session])
 
   useEffect(() => {
     if (!isReal) return
@@ -84,7 +92,10 @@ export default function Trend() {
 
   const now = Date.now()
   const list = items
-    .filter((it) => range === 0 ? true : (it.taken_at && now - new Date(it.taken_at).getTime() <= range * 86400000))
+    .filter((it) => {
+      const win = fastBench ? 2 * 86400000 : (range === 0 ? Infinity : range * 86400000)
+      return win === Infinity ? true : (it.taken_at && now - new Date(it.taken_at).getTime() <= win)
+    })
     .filter((it) => {
       const lo = Number(fMin) || 0, hi = Number(fMax) || 0
       if (!lo && !hi) return true
@@ -95,6 +106,11 @@ export default function Trend() {
       return true
     })
     .sort((a, b) => {
+      if (fastBench) {
+        const va = Number(a.velocity) || 0, vb = Number(b.velocity) || 0
+        if (vb !== va) return vb - va
+        return (Number(b.comment_count) || 0) - (Number(a.comment_count) || 0)
+      }
       if (sort === 'recent') return new Date(b.taken_at || 0) - new Date(a.taken_at || 0)
       const mk = sort === 'view' ? 'view_count' : sort === 'like' ? 'like_count' : 'comment_count'
       return (Number(b[mk]) || 0) - (Number(a[mk]) || 0)
@@ -143,7 +159,12 @@ export default function Trend() {
           {RANGES.map(([k, l, d]) => (
             <button key={k} onClick={() => setRange(d)} className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition ${range === d ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{l}</button>
           ))}
+          {isAdmin && (<>
+            <span className="mx-1 h-4 w-px bg-slate-200" />
+            <button onClick={() => setFastBench((v) => !v)} className={`inline-flex items-center gap-1 rounded-full px-3.5 py-1.5 text-sm font-bold transition ${fastBench ? 'bg-[#0064FF] text-white' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'}`}><Zap size={13} /> 패스트벤치</button>
+          </>)}
         </div>
+        {fastBench && <p className="mb-3 -mt-3 text-xs font-semibold text-amber-600">패스트벤치 (관리자·베타) — 최근 48시간 · 상승 속도순</p>}
 
         <div className="mb-5 flex flex-wrap items-center gap-2">
           <span className="text-sm font-bold text-slate-500">팔로워</span>
