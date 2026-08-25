@@ -98,6 +98,11 @@ export default function Trend() {
       return win === Infinity ? true : (it.taken_at && now - new Date(it.taken_at).getTime() <= win)
     })
     .filter((it) => {
+      if (!fastBench) return true
+      const fc = Number(it.follower_count)
+      return !!fc && fc < 10000 && (Number(it.comment_count) || 0) >= 50
+    })
+    .filter((it) => {
       const lo = Number(fMin) || 0, hi = Number(fMax) || 0
       if (!lo && !hi) return true
       const fc = Number(it.follower_count)
@@ -107,11 +112,6 @@ export default function Trend() {
       return true
     })
     .sort((a, b) => {
-      if (fastBench) {
-        const va = Number(a.velocity) || 0, vb = Number(b.velocity) || 0
-        if (vb !== va) return vb - va
-        return (Number(b.comment_count) || 0) - (Number(a.comment_count) || 0)
-      }
       if (sort === 'recent') return new Date(b.taken_at || 0) - new Date(a.taken_at || 0)
       const mk = sort === 'view' ? 'view_count' : sort === 'like' ? 'like_count' : 'comment_count'
       return (Number(b[mk]) || 0) - (Number(a[mk]) || 0)
@@ -165,7 +165,7 @@ export default function Trend() {
             <button onClick={() => setFastBench((v) => !v)} className={`inline-flex items-center gap-1 rounded-full px-3.5 py-1.5 text-sm font-bold transition ${fastBench ? 'bg-[#0064FF] text-white' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'}`}><Zap size={13} /> 패스트벤치</button>
           </>)}
         </div>
-        {fastBench && <p className="mb-3 -mt-3 text-xs font-semibold text-amber-600">패스트벤치 (관리자·베타) — 최근 48시간 · 상승 속도순</p>}
+        {fastBench && <p className="mb-3 -mt-3 text-xs font-semibold text-amber-600">패스트벤치 (관리자·베타) — 팔로워 1만 미만 · 최근 48시간 · 댓글 50+ (지금 따라할 소재)</p>}
 
         <div className="mb-5 flex flex-wrap items-center gap-2">
           <span className="text-sm font-bold text-slate-500">팔로워</span>
