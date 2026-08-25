@@ -101,7 +101,7 @@ export default function Trend() {
   const fbScore = (it) => ((Number(it.comment_count) || 0) * 1000 + (Number(it.like_count) || 0) * 50 + (Number(it.view_count) || 0)) / Math.max(Number(it.follower_count) || 0, 1000)
   const list = items
     .filter((it) => {
-      const win = range === 0 ? Infinity : range * 86400000
+      const win = fastBench ? 2 * 86400000 : (range === 0 ? Infinity : range * 86400000)
       return win === Infinity ? true : (it.taken_at && now - new Date(it.taken_at).getTime() <= win)
     })
     .filter((it) => {
@@ -124,7 +124,7 @@ export default function Trend() {
       return (Number(b[mk]) || 0) - (Number(a[mk]) || 0)
     })
 
-  const fbQual = (it) => fbScore(it) >= FB_SCORE
+  const fbQual = (it) => !!it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && fbScore(it) >= FB_SCORE
   const gateOn = previewLock || (!isPaid && !isAdmin)
   const lockedCount = gateOn ? list.filter(fbQual).length : 0
 
@@ -179,7 +179,7 @@ export default function Trend() {
             <button key={k} onClick={() => setRange(d)} className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition ${range === d ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{l}</button>
           ))}
         </div>
-        {fastBench && <p className="mb-3 -mt-2 text-xs font-semibold text-[#0064FF]">지금 뜨는 소재 — 크로닛 터짐 점수순 · 신선도는 24시간/7일 버튼으로</p>}
+        {fastBench && <p className="mb-3 -mt-2 text-xs font-semibold text-[#0064FF]">지금 막 터진 소재 — 최근 48시간 · 크로닛 터짐 점수순</p>}
 
         <div className="mb-5 flex flex-wrap items-center gap-2">
           <span className="text-sm font-bold text-slate-500">팔로워</span>
