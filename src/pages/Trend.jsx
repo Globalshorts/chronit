@@ -99,6 +99,7 @@ export default function Trend() {
   const now = Date.now()
   const FB_SCORE = 16
   const fbScore = (it) => ((Number(it.comment_count) || 0) * 1000 + (Number(it.like_count) || 0) * 50 + (Number(it.view_count) || 0)) / Math.max(Number(it.follower_count) || 0, 1000)
+  const fbCount = items.filter((it) => it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && fbScore(it) >= FB_SCORE).length
   const list = items
     .filter((it) => {
       const win = fastBench ? 2 * 86400000 : (range === 0 ? Infinity : range * 86400000)
@@ -163,10 +164,17 @@ export default function Trend() {
           <p className="mt-0.5 text-[11px] text-slate-400">[분석]은 이용권 1개가 차감돼요 · 이미 분석한 소스는 다시 열어도 무료예요</p>
         </header>
 
+        {isReal && !fastBench && fbCount > 0 && (
+          <button onClick={() => setFastBench(true)} className="mb-4 flex w-full items-center justify-between gap-2 rounded-xl bg-gradient-to-r from-[#0064FF] to-[#0052D6] px-4 py-3 text-left text-white transition hover:brightness-110 active:scale-[0.99]">
+            <span className="flex items-center gap-2 text-sm font-bold"><Flame size={16} /> 지금 막 터진 소재 {fbCount}개 — 남들 따라하기 전에 먼저 잡으세요</span>
+            <span className="shrink-0 whitespace-nowrap text-sm font-extrabold">패스트벤치 →</span>
+          </button>
+        )}
+
         <div className="relative mb-5 flex max-w-xs rounded-xl bg-slate-100 p-1 text-sm font-bold">
           <span aria-hidden className="absolute left-1 top-1 bottom-1 w-[calc(50%-0.25rem)] rounded-lg bg-white shadow-sm transition-transform duration-300 ease-out" style={{ transform: fastBench ? 'translateX(100%)' : 'translateX(0)' }} />
           <button onClick={() => setFastBench(false)} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${!fastBench ? 'text-[#0064FF]' : 'text-slate-500'}`}>트렌드</button>
-          <button onClick={() => setFastBench(true)} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${fastBench ? 'text-[#0064FF]' : 'text-slate-500'}`}>패스트벤치</button>
+          <button onClick={() => setFastBench(true)} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${fastBench ? 'text-[#0064FF]' : 'text-slate-500'}`}>패스트벤치{fbCount > 0 ? ` ${fbCount}` : ''}</button>
         </div>
         {isAdmin && <button onClick={() => setPreviewLock((v) => !v)} className={`mb-4 rounded-full px-3 py-1 text-xs font-bold transition ${previewLock ? 'bg-amber-500 text-white' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'}`}>블러 미리보기(관리자) {previewLock ? 'ON' : 'OFF'}</button>}
 
