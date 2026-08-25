@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Navigate, Link } from 'react-router-dom'
-import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, HelpCircle, Zap, Lock } from 'lucide-react'
+import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, HelpCircle, Zap, Lock, Crown } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
 import SiteNav from '../components/SiteNav'
@@ -165,9 +165,12 @@ export default function Trend() {
         </header>
 
         {isReal && !fastBench && fbCount > 0 && (
-          <button onClick={() => setFastBench(true)} className="mb-4 flex w-full items-center justify-between gap-2 rounded-xl bg-gradient-to-r from-[#0064FF] to-[#0052D6] px-4 py-3 text-left text-white transition hover:brightness-110 active:scale-[0.99]">
-            <span className="flex items-center gap-2 text-sm font-bold"><Flame size={16} /> 지금 막 터진 소재 {fbCount}개 — 남들 따라하기 전에 먼저 잡으세요</span>
-            <span className="shrink-0 whitespace-nowrap text-sm font-extrabold">패스트벤치 →</span>
+          <button onClick={() => setFastBench(true)} className="mb-4 flex w-full items-center justify-between gap-3 rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 px-4 py-3 text-left ring-1 ring-amber-400/30 transition hover:brightness-125 active:scale-[0.99]">
+            <span className="min-w-0">
+              <span className="flex items-center gap-1 text-[11px] font-extrabold tracking-wide text-amber-400"><Crown size={13} /> 패스트벤치 · PRO</span>
+              <span className="mt-0.5 block text-sm font-bold text-white">터진 뒤 따라하면 늦어요. 상위 크리에이터처럼 <span className="text-amber-300">터지는 순간</span> 먼저 잡으세요</span>
+            </span>
+            <span className="shrink-0 whitespace-nowrap rounded-lg bg-amber-400 px-3 py-1.5 text-sm font-extrabold text-slate-900">{fbCount}개 열기 →</span>
           </button>
         )}
 
@@ -187,7 +190,7 @@ export default function Trend() {
             <button key={k} onClick={() => setRange(d)} className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition ${range === d ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{l}</button>
           ))}
         </div>
-        {fastBench && <p className="mb-3 -mt-2 text-xs font-semibold text-[#0064FF]">지금 막 터진 소재 — 최근 48시간 · 크로닛 터짐 점수순</p>}
+        {fastBench && <p className="mb-3 -mt-2 flex items-center gap-1 text-xs font-semibold text-amber-600"><Crown size={12} /> 먼저 움직이는 크리에이터의 선점 리스트 — 최근 48시간 · 터짐 점수순</p>}
 
         <div className="mb-5 flex flex-wrap items-center gap-2">
           <span className="text-sm font-bold text-slate-500">팔로워</span>
@@ -214,7 +217,7 @@ export default function Trend() {
           <div className="py-10 text-red-500">{err}</div>
         ) : (
           <>
-          {lockedCount > 0 && <p className="mb-3 rounded-xl bg-[#0064FF]/5 px-3 py-2 text-sm font-bold text-[#0064FF]">지금 막 터진 소재 {lockedCount}개가 잠겨 있어요 — 며칠 뒤엔 무료로 풀리지만, 그땐 남들이 다 따라한 뒤예요.</p>}
+          {lockedCount > 0 && <p className="mb-3 flex items-start gap-1.5 rounded-xl bg-slate-900 px-3 py-2.5 text-sm font-bold text-white"><Crown size={15} className="mt-0.5 shrink-0 text-amber-400" /><span>지금 막 터진 소재 {lockedCount}개 · <span className="text-amber-300">상위 크리에이터는 지금 보고 있어요.</span> 며칠 뒤 무료로 풀리지만, 그땐 남들이 다 따라한 뒤예요.</span></p>}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {list.map((it, i) => {
               const clip = { title: it.caption, source: 'instagram', thumbnail_url: it.thumbnail_url, author: it.owner, views: it.view_count, likes: it.like_count, comments: it.comment_count, page_url: it.url, video_url: it.video_url, video_id: it.shortcode }
@@ -228,7 +231,7 @@ export default function Trend() {
                       {it.taken_at && <div className="absolute right-1.5 top-1.5 rounded bg-[#0064FF] px-1.5 py-0.5 text-[10px] font-bold text-white">{timeAgo(it.taken_at)}</div>}
                       <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/30 text-white">
                         <Lock size={20} />
-                        <span className="text-xs font-bold">패스트벤치 잠금</span>
+                        <span className="text-xs font-bold">패스트벤치 · PRO 전용</span>
                       </div>
                     </div>
                   ) : (
@@ -244,7 +247,7 @@ export default function Trend() {
                       <span className="flex items-center gap-0.5"><Heart size={11} />{fmt(it.like_count)}</span>
                       <span className="flex items-center gap-0.5"><MessageCircle size={11} />{fmt(it.comment_count)}</span>
                     </div>
-                    <div className="mb-1.5 truncate text-[11px] text-slate-400">{locked ? '패스트벤치 · 잠김' : `@${it.owner}${it.follower_count ? ` · 팔로워 ${fmt(it.follower_count)}` : ''}`}</div>
+                    <div className="mb-1.5 truncate text-[11px] text-slate-400">{locked ? '패스트벤치 · PRO 전용' : `@${it.owner}${it.follower_count ? ` · 팔로워 ${fmt(it.follower_count)}` : ''}`}</div>
                     {locked ? (
                       <button onClick={() => setPayWall(true)} className="flex w-full items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Lock size={12} />잠금 해제하고 보기</button>
                     ) : (
