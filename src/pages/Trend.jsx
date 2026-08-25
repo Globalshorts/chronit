@@ -121,6 +121,9 @@ export default function Trend() {
       return (Number(b[mk]) || 0) - (Number(a[mk]) || 0)
     })
 
+  const lockCount = (isPaid || isAdmin) ? 0 : Math.ceil(list.length / 3)
+  const lockedShorts = new Set(lockCount ? [...list].sort((a, b) => new Date(b.taken_at || 0) - new Date(a.taken_at || 0)).slice(0, lockCount).map((x) => x.shortcode) : [])
+
   return (
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/90 backdrop-blur">
@@ -197,10 +200,12 @@ export default function Trend() {
         ) : err ? (
           <div className="py-10 text-red-500">{err}</div>
         ) : (
+          <>
+          {lockedShorts.size > 0 && <p className="mb-3 rounded-xl bg-[#0064FF]/5 px-3 py-2 text-sm font-bold text-[#0064FF]">지금 제일 뜨는 소재 {lockedShorts.size}개가 잠겨 있어요 — 며칠 뒤엔 무료로 풀리지만, 그땐 남들이 다 따라한 뒤예요.</p>}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {list.map((it, i) => {
               const clip = { title: it.caption, source: 'instagram', thumbnail_url: it.thumbnail_url, author: it.owner, views: it.view_count, likes: it.like_count, comments: it.comment_count, page_url: it.url, video_url: it.video_url, video_id: it.shortcode }
-              const locked = !isPaid && !isAdmin && it.taken_at && (now - new Date(it.taken_at).getTime() < 2 * 86400000)
+              const locked = lockedShorts.has(it.shortcode)
               return (
                 <div key={it.shortcode || i} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
                   {locked ? (
@@ -241,6 +246,7 @@ export default function Trend() {
             })}
             {!list.length && <div className="col-span-full p-10 text-center text-sm text-slate-400">{(fMin || fMax) ? '이 팔로워 구간은 아직 준비 중이에요. 곧 더 많은 계정을 추가할 예정이에요.' : '해당 기간에 트렌드가 없어요.'}</div>}
           </div>
+          </>
         )}
       </div>
       {modalClip && <AnalyzeModal clip={modalClip} onClose={() => setModalClip(null)} />}
