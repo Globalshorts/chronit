@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Navigate, Link } from 'react-router-dom'
-import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, HelpCircle, Zap } from 'lucide-react'
+import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, HelpCircle, Zap, Lock } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
 import SiteNav from '../components/SiteNav'
@@ -41,6 +41,7 @@ export default function Trend() {
   const [fMax, setFMax] = useState('')
   const [fastBench, setFastBench] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isPaid, setIsPaid] = useState(false)
   const [modalClip, setModalClip] = useState(null)
   const [payWall, setPayWall] = useState(false)
   const [analyzedIds, setAnalyzedIds] = useState([])
@@ -66,7 +67,10 @@ export default function Trend() {
   useEffect(() => {
     const u = session?.user
     if (!u || u.is_anonymous) { setIsAdmin(false); return }
-    supabase.from('subscriptions').select('role').eq('user_id', u.id).maybeSingle().then(({ data }) => setIsAdmin(data?.role === 'super_admin'))
+    supabase.from('subscriptions').select('role, plan, expires_at').eq('user_id', u.id).maybeSingle().then(({ data }) => {
+      setIsAdmin(data?.role === 'super_admin')
+      setIsPaid(['finds30', 'finds100', 'finds300'].includes(data?.plan) && !!data?.expires_at && new Date(data.expires_at) > new Date())
+    })
   }, [session])
 
   useEffect(() => {
@@ -152,6 +156,12 @@ export default function Trend() {
           <p className="mt-0.5 text-[11px] text-slate-400">[분석]은 이용권 1개가 차감돼요 · 이미 분석한 소스는 다시 열어도 무료예요</p>
         </header>
 
+        <div className="relative mb-5 flex max-w-xs rounded-xl bg-slate-100 p-1 text-sm font-bold">
+          <span aria-hidden className="absolute left-1 top-1 bottom-1 w-[calc(50%-0.25rem)] rounded-lg bg-white shadow-sm transition-transform duration-300 ease-out" style={{ transform: fastBench ? 'translateX(100%)' : 'translateX(0)' }} />
+          <button onClick={() => setFastBench(false)} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${!fastBench ? 'text-[#0064FF]' : 'text-slate-500'}`}>트렌드</button>
+          <button onClick={() => setFastBench(true)} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${fastBench ? 'text-[#0064FF]' : 'text-slate-500'}`}>패스트벤치</button>
+        </div>
+
         <div className="mb-5 flex flex-wrap items-center gap-2">
           {SORTS.map(([k, l]) => (
             <button key={k} onClick={() => setSort(k)} className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition ${sort === k ? 'bg-[#0064FF] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{l}</button>
@@ -160,12 +170,8 @@ export default function Trend() {
           {RANGES.map(([k, l, d]) => (
             <button key={k} onClick={() => setRange(d)} className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition ${range === d ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{l}</button>
           ))}
-          {isAdmin && (<>
-            <span className="mx-1 h-4 w-px bg-slate-200" />
-            <button onClick={() => setFastBench((v) => !v)} className={`inline-flex items-center gap-1 rounded-full px-3.5 py-1.5 text-sm font-bold transition ${fastBench ? 'bg-[#0064FF] text-white' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'}`}><Zap size={13} /> 패스트벤치</button>
-          </>)}
         </div>
-        {fastBench && <p className="mb-3 -mt-3 text-xs font-semibold text-amber-600">패스트벤치 (관리자·베타) — 팔로워 1만 미만 · 최근 48시간 · 댓글 50+ (지금 따라할 소재)</p>}
+        {fastBench && <p className="mb-3 -mt-2 text-xs font-semibold text-[#0064FF]">지금 막 터진 소재 — 팔로워 1만 미만 · 최근 48시간 · 댓글 50+</p>}
 
         <div className="mb-5 flex flex-wrap items-center gap-2">
           <span className="text-sm font-bold text-slate-500">팔로워</span>
@@ -194,24 +200,41 @@ export default function Trend() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {list.map((it, i) => {
               const clip = { title: it.caption, source: 'instagram', thumbnail_url: it.thumbnail_url, author: it.owner, views: it.view_count, likes: it.like_count, comments: it.comment_count, page_url: it.url, video_url: it.video_url, video_id: it.shortcode }
+              const locked = !isPaid && !isAdmin && it.taken_at && (now - new Date(it.taken_at).getTime() < 2 * 86400000)
               return (
                 <div key={it.shortcode || i} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                  <a href={it.url} target="_blank" rel="noreferrer noopener" className="relative block aspect-[9/16] bg-slate-100">
-                    <TrendThumb url={it.thumbnail_url} />
-                    <div className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">#{i + 1}</div>
-                    {it.taken_at && <div className="absolute right-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">{timeAgo(it.taken_at)}</div>}
-                  </a>
+                  {locked ? (
+                    <div role="button" onClick={() => setPayWall(true)} className="relative block aspect-[9/16] cursor-pointer bg-slate-100">
+                      <div className="h-full w-full overflow-hidden blur-[12px]"><TrendThumb url={it.thumbnail_url} /></div>
+                      <div className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">#{i + 1}</div>
+                      {it.taken_at && <div className="absolute right-1.5 top-1.5 rounded bg-[#0064FF] px-1.5 py-0.5 text-[10px] font-bold text-white">{timeAgo(it.taken_at)}</div>}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/30 text-white">
+                        <Lock size={20} />
+                        <span className="text-xs font-bold">패스트벤치 잠금</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <a href={it.url} target="_blank" rel="noreferrer noopener" className="relative block aspect-[9/16] bg-slate-100">
+                      <TrendThumb url={it.thumbnail_url} />
+                      <div className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">#{i + 1}</div>
+                      {it.taken_at && <div className="absolute right-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">{timeAgo(it.taken_at)}</div>}
+                    </a>
+                  )}
                   <div className="p-2">
                     <div className="mb-1.5 flex items-center gap-2 text-[11px] text-slate-500">
                       <span className="flex items-center gap-0.5"><Eye size={11} />{fmt(it.view_count)}</span>
                       <span className="flex items-center gap-0.5"><Heart size={11} />{fmt(it.like_count)}</span>
                       <span className="flex items-center gap-0.5"><MessageCircle size={11} />{fmt(it.comment_count)}</span>
                     </div>
-                    <div className="mb-1.5 truncate text-[11px] text-slate-400">@{it.owner}{it.follower_count ? ` · 팔로워 ${fmt(it.follower_count)}` : ''}</div>
-                    <div className="flex gap-1.5">
-                      <button onClick={() => handleAnalyze(clip)} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Sparkles size={12} />분석</button>
-                      <button onClick={() => { window.location.href = '/finds?url=' + encodeURIComponent(it.url) }} className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-slate-200 py-1.5 text-xs font-bold text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]">비슷한 소스</button>
-                    </div>
+                    <div className="mb-1.5 truncate text-[11px] text-slate-400">{locked ? '방금 터진 소재 · 잠김' : `@${it.owner}${it.follower_count ? ` · 팔로워 ${fmt(it.follower_count)}` : ''}`}</div>
+                    {locked ? (
+                      <button onClick={() => setPayWall(true)} className="flex w-full items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Lock size={12} />잠금 해제하고 보기</button>
+                    ) : (
+                      <div className="flex gap-1.5">
+                        <button onClick={() => handleAnalyze(clip)} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Sparkles size={12} />분석</button>
+                        <button onClick={() => { window.location.href = '/finds?url=' + encodeURIComponent(it.url) }} className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-slate-200 py-1.5 text-xs font-bold text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]">소스 찾기</button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )
