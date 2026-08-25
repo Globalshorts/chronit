@@ -23,6 +23,8 @@ const fmt = (n) => { n = Math.max(0, Math.trunc(Number(n) || 0)); return n >= 10
 const timeAgo = (ts) => { if (!ts) return ''; const h = Math.floor((Date.now() - new Date(ts).getTime()) / 3600000); if (h < 1) return '방금'; if (h < 24) return `${h}시간 전`; return `${Math.floor(h / 24)}일 전` }
 
 const SORTS = [['view', '조회수'], ['recent', '최신'], ['like', '좋아요'], ['comment', '댓글']]
+const REGIONS = [['전체', ''], ['한국', 'kr'], ['일본', 'jp'], ['미국', 'us']]
+const regionOf = (it) => { const c = `${it.caption || ''} ${it.owner || ''}`; if (/[가-힣]/.test(c)) return 'kr'; if (/[ぁ-ゖァ-ヺ]/.test(c)) return 'jp'; return 'us' }
 const RANGES = [['24h', '24시간', 1], ['7d', '7일', 7]]
 const FOLLOWERS = [['전체', '', ''], ['~1만', '', '10000'], ['1~2만', '10000', '20000'], ['2~3만', '20000', '30000'], ['3~5만', '30000', '50000'], ['5만+', '50000', '']]
 const TREND_TTL = 10 * 60 * 1000 // 10분: 이 안이면 재요청 안 함(서버는 최대 24h마다 갱신)
@@ -39,6 +41,7 @@ export default function Trend() {
   const [range, setRange] = useState(7)
   const [fMin, setFMin] = useState('')
   const [fMax, setFMax] = useState('')
+  const [region, setRegion] = useState('')
   const [fastBench, setFastBench] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isPaid, setIsPaid] = useState(false)
@@ -118,6 +121,7 @@ export default function Trend() {
       if (hi && fc > hi) return false
       return true
     })
+    .filter((it) => !region || regionOf(it) === region)
     .sort((a, b) => {
       if (fastBench) return fbScore(b) - fbScore(a)
       if (sort === 'recent') return new Date(b.taken_at || 0) - new Date(a.taken_at || 0)
@@ -181,6 +185,7 @@ export default function Trend() {
         </div>
         {isAdmin && <button onClick={() => setPreviewLock((v) => !v)} className={`mb-4 rounded-full px-3 py-1 text-xs font-bold transition ${previewLock ? 'bg-amber-500 text-white' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'}`}>블러 미리보기(관리자) {previewLock ? 'ON' : 'OFF'}</button>}
 
+        {!fastBench && (
         <div className="mb-5 flex flex-wrap items-center gap-2">
           {SORTS.map(([k, l]) => (
             <button key={k} onClick={() => setSort(k)} className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition ${sort === k ? 'bg-[#0064FF] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{l}</button>
@@ -190,9 +195,15 @@ export default function Trend() {
             <button key={k} onClick={() => setRange(d)} className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition ${range === d ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{l}</button>
           ))}
         </div>
+        )}
         {fastBench && <p className="mb-3 -mt-2 flex items-center gap-1 text-xs font-semibold text-amber-600"><Crown size={12} /> 먼저 움직이는 크리에이터의 선점 리스트 — 최근 48시간 · 터짐 점수순</p>}
 
         <div className="mb-5 flex flex-wrap items-center gap-2">
+          <span className="text-sm font-bold text-slate-500">지역</span>
+          {REGIONS.map(([l, v]) => (
+            <button key={l} onClick={() => setRegion(v)} className={`rounded-full px-3 py-1.5 text-sm font-bold transition ${region === v ? 'bg-[#0064FF] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{l}</button>
+          ))}
+          <span className="mx-1 h-4 w-px bg-slate-200" />
           <span className="text-sm font-bold text-slate-500">팔로워</span>
           {FOLLOWERS.map(([l, lo, hi]) => {
             const active = String(fMin) === String(lo) && String(fMax) === String(hi)
