@@ -42,6 +42,7 @@ export default function Trend() {
   const [fastBench, setFastBench] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isPaid, setIsPaid] = useState(false)
+  const [previewLock, setPreviewLock] = useState(false)
   const [modalClip, setModalClip] = useState(null)
   const [payWall, setPayWall] = useState(false)
   const [analyzedIds, setAnalyzedIds] = useState([])
@@ -121,7 +122,7 @@ export default function Trend() {
       return (Number(b[mk]) || 0) - (Number(a[mk]) || 0)
     })
 
-  const lockCount = (isPaid || isAdmin) ? 0 : Math.ceil(list.length / 3)
+  const lockCount = ((isPaid || isAdmin) && !previewLock) ? 0 : Math.ceil(list.length / 3)
   const lockedShorts = new Set(lockCount ? [...list].sort((a, b) => new Date(b.taken_at || 0) - new Date(a.taken_at || 0)).slice(0, lockCount).map((x) => x.shortcode) : [])
 
   return (
@@ -164,6 +165,7 @@ export default function Trend() {
           <button onClick={() => setFastBench(false)} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${!fastBench ? 'text-[#0064FF]' : 'text-slate-500'}`}>트렌드</button>
           <button onClick={() => setFastBench(true)} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${fastBench ? 'text-[#0064FF]' : 'text-slate-500'}`}>패스트벤치</button>
         </div>
+        {isAdmin && <button onClick={() => setPreviewLock((v) => !v)} className={`mb-4 rounded-full px-3 py-1 text-xs font-bold transition ${previewLock ? 'bg-amber-500 text-white' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'}`}>블러 미리보기(관리자) {previewLock ? 'ON' : 'OFF'}</button>}
 
         <div className="mb-5 flex flex-wrap items-center gap-2">
           {SORTS.map(([k, l]) => (
