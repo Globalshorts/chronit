@@ -171,7 +171,7 @@ export default function Trend() {
         {isReal && !fastBench && fbCount > 0 && (
           <button onClick={() => setFastBench(true)} className="mb-4 flex w-full items-center justify-between gap-3 rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 px-4 py-3 text-left ring-1 ring-amber-400/30 transition hover:brightness-125 active:scale-[0.99]">
             <span className="min-w-0">
-              <span className="flex items-center gap-1 text-[11px] font-extrabold tracking-wide text-amber-400"><Crown size={13} /> 패스트벤치 · PRO</span>
+              <span className="flex items-center gap-1 text-[11px] font-extrabold tracking-wide text-amber-400"><Crown size={13} /> 패스트벤치 · 구독 전용</span>
               <span className="mt-0.5 block text-sm font-bold text-white">터진 뒤 따라하면 늦어요. 상위 크리에이터처럼 <span className="text-amber-300">터지는 순간</span> 먼저 잡으세요</span>
             </span>
             <span className="shrink-0 whitespace-nowrap rounded-lg bg-amber-400 px-3 py-1.5 text-sm font-extrabold text-slate-900">{fbCount}개 열기 →</span>
@@ -242,7 +242,7 @@ export default function Trend() {
                       {it.taken_at && <div className="absolute right-1.5 top-1.5 rounded bg-[#0064FF] px-1.5 py-0.5 text-[10px] font-bold text-white">{timeAgo(it.taken_at)}</div>}
                       <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/30 text-white">
                         <Lock size={20} />
-                        <span className="text-xs font-bold">패스트벤치 · PRO 전용</span>
+                        <span className="text-xs font-bold">구독 유저 전용</span>
                       </div>
                     </div>
                   ) : (
@@ -258,7 +258,7 @@ export default function Trend() {
                       <span className="flex items-center gap-0.5"><Heart size={11} />{fmt(it.like_count)}</span>
                       <span className="flex items-center gap-0.5"><MessageCircle size={11} />{fmt(it.comment_count)}</span>
                     </div>
-                    <div className="mb-1.5 truncate text-[11px] text-slate-400">{locked ? '패스트벤치 · PRO 전용' : `@${it.owner}${it.follower_count ? ` · 팔로워 ${fmt(it.follower_count)}` : ''}`}</div>
+                    <div className="mb-1.5 truncate text-[11px] text-slate-400">{locked ? '구독 유저 전용' : `@${it.owner}${it.follower_count ? ` · 팔로워 ${fmt(it.follower_count)}` : ''}`}</div>
                     {locked ? (
                       <button onClick={() => setPayWall(true)} className="flex w-full items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Lock size={12} />잠금 해제하고 보기</button>
                     ) : (
