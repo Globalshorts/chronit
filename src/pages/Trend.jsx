@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Navigate, Link } from 'react-router-dom'
-import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, HelpCircle, Zap, Lock, Crown } from 'lucide-react'
+import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, HelpCircle, Zap, Lock, Crown, X, Play } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
 import SiteNav from '../components/SiteNav'
@@ -31,6 +31,36 @@ const TREND_TTL = 10 * 60 * 1000 // 10분: 이 안이면 재요청 안 함(서�
 const readTrendCache = () => { try { const c = JSON.parse(localStorage.getItem('chronit_trend_cache') || 'null'); return (c && Array.isArray(c.items)) ? c : null } catch { return null } }
 const writeTrendCache = (items) => { try { localStorage.setItem('chronit_trend_cache', JSON.stringify({ items, at: Date.now() })) } catch { /* noop */ } }
 
+function VideoModal({ clip, onClose, onSource, onAnalyze }) {
+  const [vidErr, setVidErr] = useState(false)
+  if (!clip) return null
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 p-4" onClick={onClose}>
+      <div className="relative w-full max-w-sm overflow-hidden rounded-2xl bg-black" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute right-2 top-2 z-10 rounded-full bg-black/60 p-1.5 text-white hover:bg-black/80"><X size={18} /></button>
+        {clip.video_url && !vidErr ? (
+          <video src={clip.video_url} poster={clip.thumbnail_url} controls autoPlay loop muted playsInline onError={() => setVidErr(true)} className="aspect-[9/16] w-full bg-black object-contain" />
+        ) : (
+          <a href={clip.page_url} target="_blank" rel="noreferrer noopener" className="relative block aspect-[9/16] w-full bg-black">
+            <img src={clip.thumbnail_url} alt="" className="h-full w-full object-cover opacity-80" />
+            <span className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/40 text-white"><ExternalLink size={22} /><span className="text-sm font-bold">인스타그램에서 보기</span></span>
+          </a>
+        )}
+        <div className="bg-white p-3">
+          <div className="mb-2 flex items-center gap-3 text-xs text-slate-500">
+            <span className="flex items-center gap-0.5"><Eye size={12} />{fmt(clip.views)}</span>
+            <span className="flex items-center gap-0.5"><Heart size={12} />{fmt(clip.likes)}</span>
+            <span className="flex items-center gap-0.5"><MessageCircle size={12} />{fmt(clip.comments)}</span>
+            <a href={clip.page_url} target="_blank" rel="noreferrer noopener" className="ml-auto text-slate-400 hover:text-[#0064FF]">인스타 원본</a>
+          </div>
+          <button onClick={onSource} className="mb-1.5 flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] py-3 text-sm font-extrabold text-white transition hover:brightness-95"><Sparkles size={16} />이 영상 소스 찾기</button>
+          <button onClick={onAnalyze} className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]">벤치마크 분석</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Trend() {
   const [session, setSession] = useState(null)
   const [items, setItems] = useState(() => readTrendCache()?.items || [])
@@ -50,6 +80,7 @@ export default function Trend() {
   const [payWall, setPayWall] = useState(false)
   const [analyzedIds, setAnalyzedIds] = useState([])
   const [showAuth, setShowAuth] = useState(false)
+  const [playClip, setPlayClip] = useState(null)
   const isReal = !!session && session.user?.is_anonymous !== true
 
   const handleAnalyze = async (clip) => {
@@ -246,11 +277,12 @@ export default function Trend() {
                       </div>
                     </div>
                   ) : (
-                    <a href={it.url} target="_blank" rel="noreferrer noopener" className="relative block aspect-[9/16] bg-slate-100">
+                    <div role="button" onClick={() => setPlayClip(clip)} className="relative block aspect-[9/16] cursor-pointer bg-slate-100">
                       <TrendThumb url={it.thumbnail_url} />
                       <div className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">#{i + 1}</div>
                       {it.taken_at && <div className="absolute right-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">{timeAgo(it.taken_at)}</div>}
-                    </a>
+                      <div className="absolute inset-0 flex items-center justify-center opacity-90"><div className="flex h-9 w-9 items-center justify-center rounded-full bg-black/45 text-white"><Play size={16} className="ml-0.5" /></div></div>
+                    </div>
                   )}
                   <div className="p-2">
                     <div className="mb-1.5 flex items-center gap-2 text-[11px] text-slate-500">
@@ -277,6 +309,7 @@ export default function Trend() {
         )}
       </div>
       {modalClip && <AnalyzeModal clip={modalClip} onClose={() => setModalClip(null)} />}
+      {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onSource={() => { window.location.href = '/finds?url=' + encodeURIComponent(playClip.page_url) }} onAnalyze={() => { setPlayClip(null); handleAnalyze(playClip) }} />}
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
       <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
       <div className="h-16 md:hidden" />
