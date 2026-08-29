@@ -107,7 +107,7 @@ export function ackAnalyzeCost(balance) {
   return ok
 }
 
-export function AnalyzeModal({ clip, onClose }) {
+export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
   const [copied, setCopied] = useState(false)
   const [dlErr, setDlErr] = useState('')
   const [dling, setDling] = useState(false)
@@ -131,7 +131,7 @@ export function AnalyzeModal({ clip, onClose }) {
         })
         const d = await r.json()
         if (!alive) return
-        if (d.ok) setResult(d); else setErr(d.error || '분석에 실패했어요.')
+        if (d.ok) { setResult(d); try { onAnalyzed && onAnalyzed() } catch { /* noop */ } } else setErr(d.error || '분석에 실패했어요.')
       } catch { if (alive) setErr('분석 중 오류가 발생했어요.') }
       finally { if (alive) setLoading(false) }
     })()
@@ -254,6 +254,58 @@ export function AnalyzeModal({ clip, onClose }) {
   )
 }
 
+function FindsFeedbackModal({ onClose }) {
+  const [rating, setRating] = useState(0)
+  const [reason, setReason] = useState('')
+  const [comment, setComment] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [done, setDone] = useState(null)
+  const REASONS = ['원하는 소재를 못 찾아요', '결과가 안 맞아요', '느려요', '이용권/가격', '만족해요', '기타']
+  const submit = async () => {
+    if (submitting || !rating) return
+    setSubmitting(true)
+    try {
+      const { data } = await supabase.functions.invoke('submit-feedback', { body: { rating, reason, comment, job_id: null } })
+      try { localStorage.setItem('chronit_finds_fb_done', '1') } catch { /* noop */ }
+      setDone({ rewarded: !!(data && data.rewarded) })
+      setTimeout(onClose, 2200)
+    } catch { try { localStorage.setItem('chronit_finds_fb_done', '1') } catch { /* noop */ } setDone({ rewarded: false }); setTimeout(onClose, 1800) }
+    finally { setSubmitting(false) }
+  }
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 px-4" onClick={onClose}>
+      <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        {done ? (
+          <div className="py-4 text-center">
+            <p className="mb-1 text-lg font-bold text-slate-900">고마워요! 🙏</p>
+            <p className="text-sm text-slate-500">{done.rewarded ? '이용권 2개를 드렸어요.' : '소중한 의견 잘 받았어요.'}</p>
+          </div>
+        ) : (
+          <>
+            <p className="text-lg font-bold text-slate-900">소재 찾기 어떠셨어요?</p>
+            <p className="mb-4 mt-1 text-sm text-slate-500">의견 주시면 <b className="text-[#0064FF]">이용권 2개</b>를 드려요 · 최초 1회</p>
+            <div className="mb-4 flex justify-center gap-2">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button key={n} onClick={() => setRating(n)} className={`text-3xl transition ${n <= rating ? '' : 'opacity-30 grayscale'}`}>⭐</button>
+              ))}
+            </div>
+            <div className="mb-3 flex flex-wrap gap-1.5">
+              {REASONS.map((r) => (
+                <button key={r} onClick={() => setReason(reason === r ? '' : r)} className={`rounded-full border px-3 py-1 text-xs font-bold transition ${reason === r ? 'border-[#0064FF] bg-[#0064FF]/10 text-[#0064FF]' : 'border-slate-200 text-slate-600 hover:border-slate-400'}`}>{r}</button>
+              ))}
+            </div>
+            <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="한 줄 의견 (선택)" rows={2} className="mb-4 w-full resize-none rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-[#0064FF]" />
+            <div className="flex gap-2">
+              <button onClick={onClose} className="rounded-xl px-4 py-3 text-sm font-bold text-slate-500 hover:bg-slate-100">다음에</button>
+              <button onClick={submit} disabled={submitting || !rating} className="flex-1 rounded-xl bg-[#0064FF] py-3 text-sm font-bold text-white transition hover:brightness-95 disabled:opacity-40">{submitting ? '보내는 중…' : '제출하고 +2 이용권 받기'}</button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function Finds() {
   const [session, setSession] = useState(null)
   const [sourceUrl, setSourceUrl] = useState('')
@@ -267,6 +319,9 @@ export default function Finds() {
   const [searching, setSearching] = useState(false)
   const [error, setError] = useState('')
   const [modalClip, setModalClip] = useState(null)
+  const [fbOpen, setFbOpen] = useState(false)
+  const fbPending = useRef(false)
+  const fbShown = useRef(false)
   const [relatedKw, setRelatedKw] = useState([])
   const [showAuth, setShowAuth] = useState(false)
   const [analyzedIds, setAnalyzedIds] = useState([])
@@ -562,7 +617,8 @@ export default function Finds() {
         )}
       </div>
 
-      {modalClip && <AnalyzeModal clip={modalClip} onClose={() => setModalClip(null)} />}
+      {modalClip && <AnalyzeModal clip={modalClip} onAnalyzed={() => { fbPending.current = true }} onClose={() => { setModalClip(null); try { if (fbPending.current && !fbShown.current && !localStorage.getItem('chronit_finds_fb_done')) { fbPending.current = false; fbShown.current = true; setTimeout(() => setFbOpen(true), 500) } } catch { /* noop */ } }} />}
+      {fbOpen && <FindsFeedbackModal onClose={() => setFbOpen(false)} />}
       <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
       <div className="h-16 md:hidden" />
