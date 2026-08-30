@@ -23,6 +23,8 @@ export function initPosthog() {
       disable_session_recording: false,
       session_recording: {
         maskAllInputs: true,             // 개인정보(입력값) 마스킹 — 프라이버시 보호
+        // 검색창(비민감)만 마스킹 해제 → 녹화에서 실제 검색어 확인용
+        maskInputFn: (text, el) => { try { if (el && el.getAttribute && el.getAttribute('data-ph-search') === '1') return text } catch { /* noop */ } return '*'.repeat((text || '').length) },
         maskTextSelector: '[data-ph-mask]',
         recordCrossOriginIframes: false,
       },

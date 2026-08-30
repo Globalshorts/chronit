@@ -549,7 +549,7 @@ export default function Finds() {
           <button onClick={() => setSearchMode('channel')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors active:scale-[0.98] ${searchMode === 'channel' ? 'text-[#0064FF]' : 'text-slate-500'}`}>채널 분석</button>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <input value={searchMode === 'channel' ? chUrl : sourceUrl} onChange={(e) => (searchMode === 'channel' ? setChUrl(e.target.value) : setSourceUrl(e.target.value))}
+          <input data-ph-search="1" value={searchMode === 'channel' ? chUrl : sourceUrl} onChange={(e) => (searchMode === 'channel' ? setChUrl(e.target.value) : setSourceUrl(e.target.value))}
             onKeyDown={(e) => { if (e.key === 'Enter') (searchMode === 'channel' ? analyzeChannel() : analyze()) }}
             placeholder={searchMode === 'channel' ? '채널 URL·@아이디 (유튜브·인스타) — 통째로 따라하기' : '쇼핑 릴스·틱톡 링크 붙여넣기 (또는 키워드)'}
             className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#0064FF]" />
@@ -587,6 +587,9 @@ export default function Finds() {
           </div>
         )}
 
+        {searchMode === 'clip' && !searching && clips.length > 0 && (
+          <p className="mt-5 -mb-1 text-xs leading-relaxed text-slate-400">찾은 소재는 원본과 비슷한 <b className="text-slate-500">레퍼런스</b>예요 — 100% 동일 상품이 아닐 수 있어요.{/화장품|뷰티|코스메틱|화장|스킨|립|틴트|파운데이션|쿠션|앰플|세럼|향수|마스카라|아이섀도/.test(sourceUrl) && ' 특히 화장품·뷰티는 동일 상품 매칭이 어려워 비슷한 느낌 위주로 나와요.'}</p>
+        )}
         {searchMode === 'clip' && (
         <div className="relative">
           <div className={`mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 ${isAnon && clips.length ? 'pointer-events-none select-none blur-[6px]' : ''}`}>
