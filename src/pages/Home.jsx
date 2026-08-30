@@ -461,7 +461,7 @@ const Home = () => {
               )}
               <button onClick={handleFinds}
                 className="rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-7 py-2.5 text-base font-bold whitespace-nowrap text-white shadow-md shadow-black/5 transition-all hover:brightness-95 active:scale-[0.98]">
-                {user ? 'Finds 열기 →' : '무료 체험'}
+                {user ? '시작하기 →' : '무료 체험'}
               </button>
             </div>
             {/* 모바일 상단 시작하기 CTA (햄버거에 가려지지 않게 상시 노출) */}
@@ -517,7 +517,7 @@ const Home = () => {
             )}
             <button onClick={() => { setMenuOpen(false); handleFinds() }}
               className="w-full rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-4 text-lg font-bold text-white shadow-md transition-all hover:brightness-95 active:scale-[0.98]">
-              {user ? 'Finds 열기 →' : '무료 체험'}
+              {user ? '시작하기 →' : '무료 체험'}
             </button>
             {isExistingRender && (
               <Link to="/generate" onClick={() => setMenuOpen(false)} className="w-full rounded-xl border border-amber-300 px-4 py-3 text-center text-sm font-bold text-amber-700 hover:bg-amber-50">편집 작업실 (9/14 종료 예정)</Link>
@@ -538,7 +538,7 @@ const Home = () => {
                   <div className="mx-auto flex w-full max-w-md gap-2">
                     <button onClick={handleFinds}
                       className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-4 text-base font-bold text-white shadow-lg shadow-black/5 transition-all hover:brightness-95 active:scale-[0.98]">
-                      Finds 열기 <ArrowRight size={18} />
+                      시작하기 <ArrowRight size={18} />
                     </button>
                     <Link to="/generate"
                       className="flex flex-1 flex-col items-center justify-center rounded-2xl border-2 border-amber-300 bg-amber-50/60 px-4 py-3 text-base font-bold leading-tight text-amber-700 transition hover:bg-amber-100 active:scale-[0.98]">
@@ -548,7 +548,7 @@ const Home = () => {
                 ) : (
                   <button onClick={handleFinds}
                     className="mx-auto flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-black/5 transition-all hover:brightness-95 active:scale-[0.98]">
-                    Finds 열기 <ArrowRight size={20} />
+                    시작하기 <ArrowRight size={20} />
                   </button>
                 )}
               </div>
@@ -571,7 +571,7 @@ const Home = () => {
                   className="w-full rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-black/5 transition-all hover:brightness-95 active:scale-[0.98]">
                   소스 발굴 시작 →
                 </button>
-                <Link to="/trend" className="text-sm font-medium text-gray-400 transition-colors hover:text-[#0064FF]">트렌드 먼저 보기 →</Link>
+                <Link to="/finds" className="text-sm font-medium text-gray-400 transition-colors hover:text-[#0064FF]">바로 검색하기 →</Link>
                 {spots != null && spots > 0 && (
                   <p className="mt-2 flex items-center gap-1.5 text-sm font-bold text-gray-700">
                     <Users size={14} className="text-[#0064FF]" /> 이미 <span className="text-[#0064FF]">{spots.toLocaleString('ko-KR')}</span>명의 크리에이터가 함께해요
