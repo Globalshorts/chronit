@@ -136,7 +136,7 @@ export default function Trend() {
   if (!FEATURES.trendFeed) return <Navigate to="/" replace />
 
   const now = Date.now()
-  const FB_SCORE = 16
+  const FB_SCORE = 8
   const fbScore = (it) => ((Number(it.comment_count) || 0) * 1000 + (Number(it.like_count) || 0) * 50 + (Number(it.view_count) || 0)) / Math.max(Number(it.follower_count) || 0, 1000)
   const fbCount = items.filter((it) => it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && fbScore(it) >= FB_SCORE).length
   const list = items
