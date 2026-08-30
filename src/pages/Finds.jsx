@@ -309,6 +309,7 @@ function FindsFeedbackModal({ onClose }) {
 export default function Finds() {
   const [session, setSession] = useState(null)
   const [sourceUrl, setSourceUrl] = useState('')
+  const searchInputRef = useRef(null)
   const [searchMode, setSearchMode] = useState('clip')
   const [chUrl, setChUrl] = useState('')
   const [progress, setProgress] = useState(0)
@@ -549,7 +550,7 @@ export default function Finds() {
           <button onClick={() => setSearchMode('channel')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors active:scale-[0.98] ${searchMode === 'channel' ? 'text-[#0064FF]' : 'text-slate-500'}`}>채널 분석</button>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <input data-ph-search="1" value={searchMode === 'channel' ? chUrl : sourceUrl} onChange={(e) => (searchMode === 'channel' ? setChUrl(e.target.value) : setSourceUrl(e.target.value))}
+          <input data-ph-search="1" ref={searchInputRef} value={searchMode === 'channel' ? chUrl : sourceUrl} onChange={(e) => (searchMode === 'channel' ? setChUrl(e.target.value) : setSourceUrl(e.target.value))}
             onKeyDown={(e) => { if (e.key === 'Enter') (searchMode === 'channel' ? analyzeChannel() : analyze()) }}
             placeholder={searchMode === 'channel' ? '채널 URL·@아이디 (유튜브·인스타) — 통째로 따라하기' : '쇼핑 릴스·틱톡 링크 붙여넣기 (또는 키워드)'}
             className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#0064FF]" />
@@ -559,6 +560,9 @@ export default function Finds() {
             {searchMode === 'channel' ? (channelLoading ? '분석 중…' : '채널 분석') : (searching ? '분석 중…' : '분석')}
           </button>
         </div>
+        {searchMode === 'clip' && !searching && clips.length > 0 && (
+          <p className="mt-2 text-xs text-slate-400">원하는 결과가 없나요? <button onClick={() => { try { const el = searchInputRef.current; if (el) { el.focus(); el.select(); el.scrollIntoView({ behavior: 'smooth', block: 'center' }) } } catch { /* noop */ } }} className="font-bold text-[#0064FF] hover:underline">재검색</button></p>
+        )}
 
         {searchMode === 'clip' && (relatedKw.length > 0 || (!searching && clips.length === 0)) && (
           <div className="mt-3 flex flex-wrap items-center gap-1.5">

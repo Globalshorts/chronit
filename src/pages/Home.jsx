@@ -199,7 +199,7 @@ const Home = () => {
   }
 
   const handleFinds = () => {
-    if (user) { window.location.href = '/finds'; return }
+    if (user) { window.location.href = '/trend'; return }
     setShowAuthModal(true)
   }
   const handleBuy = (tab = 'sub', period = 'monthly') => {
