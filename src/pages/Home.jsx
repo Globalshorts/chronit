@@ -563,9 +563,9 @@ const Home = () => {
             <div className="mx-auto mb-9 max-w-md rounded-2xl border border-gray-100 bg-gray-50 p-4 text-left">
               <p className="mb-2.5 text-xs font-bold text-gray-400">터진 영상 찾기, 지금까지는</p>
               <div className="space-y-1.5">
-                <div className="flex items-center gap-2 text-sm text-gray-500"><span className="font-bold text-gray-300">✗</span>프리랜서 고용<span className="ml-auto font-semibold text-gray-400">편당 1.5만원</span></div>
-                <div className="flex items-center gap-2 text-sm text-gray-500"><span className="font-bold text-gray-300">✗</span>시트에 계정 1,000개<span className="ml-auto font-semibold text-gray-400">매일 직접 뒤지기</span></div>
-                <div className="flex items-center gap-2 text-sm text-gray-500"><span className="font-bold text-gray-300">✗</span>인스타 서치<span className="ml-auto font-semibold text-gray-400">하루 1~2시간</span></div>
+                <div className="flex items-center gap-2 text-sm text-gray-500"><span className="font-bold text-red-500">✗</span>프리랜서 고용<span className="ml-auto font-semibold text-gray-400">편당 1.5만원</span></div>
+                <div className="flex items-center gap-2 text-sm text-gray-500"><span className="font-bold text-red-500">✗</span>시트에 계정 1,000개<span className="ml-auto font-semibold text-gray-400">매일 직접 뒤지기</span></div>
+                <div className="flex items-center gap-2 text-sm text-gray-500"><span className="font-bold text-red-500">✗</span>인스타 서치<span className="ml-auto font-semibold text-gray-400">하루 1~2시간</span></div>
                 <div className="mt-2 flex items-center gap-2 rounded-xl bg-[#0064FF]/10 px-3 py-2.5 text-sm font-bold text-[#0064FF]"><span>✓</span>크로닛<span className="ml-auto">지금 막 터진 소재를 바로</span></div>
               </div>
             </div>
