@@ -130,7 +130,7 @@ const Home = () => {
   useEffect(() => { supabase.rpc('public_stats_rpc').then(({ data }) => { if (data) setStats(data) }) }, [])
   const PAINS = [
     { label: '프리랜서 고용', cost: '편당 1.5만원' },
-    { label: '시트에 계정 1,000개', cost: '매일 직접 찾기' },
+    { label: '시트 1,000개', cost: '매일 직접 찾기' },
     { label: '인스타 서치', cost: '하루 1~2시간' },
   ]
   useEffect(() => {
@@ -556,7 +556,7 @@ const Home = () => {
             <h1 className="mb-5 text-4xl font-bold leading-[1.15] tracking-tight text-gray-900 break-keep md:text-6xl">
               <span className="bg-gradient-to-r from-[#0064FF] to-[#06B6D4] bg-clip-text text-transparent">터지는 소스</span>를<br />찾으세요
             </h1>
-            <div className="mx-auto mb-9 flex max-w-md items-stretch gap-2 text-left">
+            <div className="mx-auto mb-9 grid max-w-md grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-2 text-left">
               <div className="flex-1 rounded-2xl border border-gray-100 bg-gray-50 p-3.5">
                 <p className="mb-2 text-[11px] font-bold text-gray-400">지금까지</p>
                 <div key={badgeIdx} className="tip-fade flex items-start gap-1.5">
