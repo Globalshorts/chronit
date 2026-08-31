@@ -633,8 +633,8 @@ const Home = () => {
       <section id="features" style={{ scrollMarginTop: '200px' }} className="px-5 py-16 md:px-8 md:py-24">
         <Reveal className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">소싱, 이렇게 바뀌어요</h2>
-            <p className="mt-3 text-base text-gray-500 md:text-lg">쇼핑 크리에이터의 소싱 — 크로닛 전과 후.</p>
+            <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">소재 찾기, 이렇게 바뀌어요</h2>
+            <p className="mt-3 text-base text-gray-500 md:text-lg">쇼핑 크리에이터의 하루 — 크로닛 전과 후.</p>
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="rounded-2xl border border-gray-100 bg-gray-50 p-6">
@@ -648,9 +648,9 @@ const Home = () => {
             <div className="rounded-2xl border-2 border-[#0064FF] bg-white p-6">
               <div className="mb-4 inline-flex items-center rounded-full bg-[#0064FF]/10 px-3 py-1 text-xs font-semibold text-[#0064FF]">크로닛 후</div>
               <ul className="space-y-3 text-[15px] font-medium text-gray-900">
-                <li className="flex gap-2"><Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-[#0064FF]" /> 터지는 소스를 몇 초 만에 발굴</li>
+                <li className="flex gap-2"><Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-[#0064FF]" /> 지금 막 터진 소재를 실시간으로</li>
                 <li className="flex gap-2"><Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-[#0064FF]" /> 월 9,900원부터, 외주 없이 직접</li>
-                <li className="flex gap-2"><Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-[#0064FF]" /> 검증된 소스 + 왜 터졌는지 분석</li>
+                <li className="flex gap-2"><Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-[#0064FF]" /> 남들보다 먼저, 확산 전에 선점</li>
               </ul>
             </div>
           </div>
