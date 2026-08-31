@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import {
   Clock, CheckCircle2, MessageCircle, ArrowRight, Users,
   Film, TrendingDown, LogOut, Gift, Menu, X, Play, User,
-  Search, Captions, Mic, Scissors, Palette, Zap, Sparkles, Check,
+  Search, Captions, Mic, Scissors, Palette, Zap, Sparkles, Check, Flame, Filter,
 } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import AnimatedCounter from '../components/AnimatedCounter'
@@ -607,13 +607,13 @@ const Home = () => {
         <Reveal className="mx-auto max-w-4xl">
           <div className="mb-10 text-center">
             <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">3단계면 끝나요</h2>
-            <p className="mt-3 text-base text-gray-500 md:text-lg">복잡한 소싱을, 링크 하나로.</p>
+            <p className="mt-3 text-base text-gray-500 md:text-lg">매일 뭐 올릴지, 여기서 끝.</p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {[
-              { n: '1', Icon: Zap, title: '링크·키워드 입력', desc: '틱톡·유튜브·인스타 링크나 키워드만 넣어요.' },
-              { n: '2', Icon: Search, title: '터지는 소스 발굴', desc: '샤오훙슈·틱톡에서 검증된 소스를 찾아드려요.' },
-              { n: '3', Icon: Sparkles, title: '왜 터졌는지 분석', desc: '훅·셀링포인트·구성을 짚어 바로 활용해요.' },
+              { n: '1', Icon: Flame, title: '실시간 터짐 포착', desc: '작은 계정에서 막 터진 쇼핑 소재를 실시간으로 잡아드려요.' },
+              { n: '2', Icon: Filter, title: '내 니치로 선별', desc: '카테고리·팔로워·지역 필터로 원하는 소재만 추려요.' },
+              { n: '3', Icon: Zap, title: '확산 전 선점', desc: '남들이 따라하기 전에 먼저 제작해 조회수를 선점해요.' },
             ].map(({ n, Icon, title, desc }) => (
               <div key={n} className="rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">
                 <div className="mb-4 flex items-center justify-between">
