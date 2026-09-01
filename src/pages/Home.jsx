@@ -429,9 +429,9 @@ const Home = () => {
       {/* Header */}
       <header style={{ top: `${bannerH}px` }} className={`fixed right-0 left-0 z-50 border-b transition-[background-color,border-color,padding] duration-300 ${scrolled ? 'border-gray-200 bg-[#FAFAF8]/90 py-3 backdrop-blur-md' : 'border-transparent bg-transparent py-4 md:py-5'}`}>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
-          <a href="/" className="flex min-w-0 items-center gap-2 md:gap-3">
+          <a href="/" className="flex min-w-0 items-center gap-1 md:gap-1.5">
             <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-9 w-9 shrink-0 md:h-10 md:w-10" />
-            <h1 className="hidden md:block text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">Chronit</h1>
+            <h1 className="hidden md:block text-2xl font-extrabold tracking-tighter text-gray-900 md:text-3xl">hronit</h1>
           </a>
           <SiteNav />
           <div className="flex shrink-0 items-center gap-2">
