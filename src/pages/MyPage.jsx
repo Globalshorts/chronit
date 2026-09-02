@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Film, Pencil, LogOut, Copy, Check, Sparkles, ShieldCheck, Gift } from 'lucide-react'
+import { Film, Pencil, LogOut, Copy, Check, Sparkles, ShieldCheck, Gift, Ticket } from 'lucide-react'
 import FindsPricing from '../components/FindsPricing'
 import CommunityHeader from '../components/CommunityHeader'
 import NicknameModal from '../components/NicknameModal'
@@ -26,6 +26,9 @@ const MyPage = () => {
   const [redeemCode, setRedeemCode] = useState('')
   const [redeemMsg, setRedeemMsg] = useState(null)
   const [redeeming, setRedeeming] = useState(false)
+  const [promoCode, setPromoCode] = useState('')
+  const [promoMsg, setPromoMsg] = useState(null)
+  const [promoing, setPromoing] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => { supabase.auth.getSession().then(({ data }) => { const u = data.session?.user; setUser(u && u.is_anonymous !== true ? u : null) }) }, [])
@@ -63,6 +66,18 @@ const MyPage = () => {
       else setRedeemMsg({ ok: false, text: data?.error ?? '적용에 실패했어요' })
     } catch { setRedeemMsg({ ok: false, text: '적용에 실패했어요' }) }
     setRedeeming(false)
+  }
+
+  const redeemPromo = async () => {
+    const code = promoCode.trim().toUpperCase()
+    if (!code) { setPromoMsg({ ok: false, text: '코드를 입력해주세요' }); return }
+    setPromoing(true); setPromoMsg(null)
+    try {
+      const { data } = await supabase.rpc('redeem_promo_rpc', { p_code: code })
+      if (data?.ok) { setPromoMsg({ ok: true, text: `🎉 프로모 코드 적용! 이용권 ${data.credits}개가 지급됐어요` }); setPromoCode(''); if (user) load(user.id) }
+      else setPromoMsg({ ok: false, text: data?.error ?? '적용에 실패했어요' })
+    } catch { setPromoMsg({ ok: false, text: '적용에 실패했어요' }) }
+    setPromoing(false)
   }
 
   const PLAN_LABEL = { free: '무료', finds30: '스탠다드', finds100: '프로', finds300: '비즈니스' }
@@ -144,18 +159,34 @@ const MyPage = () => {
           )}
         </div>
 
-        {/* 받은 추천 코드 입력 */}
-        <div className="mt-4 rounded-3xl border border-gray-200 bg-white p-5">
-          <p className="mb-1 text-sm font-bold text-gray-800">받은 추천 코드가 있나요?</p>
-          <p className="mb-3 text-xs text-slate-500">입력하면 이용권 2개가 지급돼요.</p>
-          <div className="flex gap-2">
-            <input value={redeemCode} onChange={(e) => setRedeemCode(e.target.value.toUpperCase())} onKeyDown={(e) => e.key === 'Enter' && redeem()}
-              placeholder="추천 코드"
-              className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-2.5 text-base font-bold tracking-widest text-gray-900 outline-none focus:border-[#0064FF]" />
-            <button onClick={redeem} disabled={redeeming}
-              className="shrink-0 rounded-xl bg-[#0064FF] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#0052D6] disabled:opacity-50">적용</button>
+        {/* 코드 입력: 추천 / 프로모 (좌우) */}
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {/* 추천 코드 */}
+          <div className="rounded-3xl border border-gray-200 bg-white p-5">
+            <p className="mb-1 flex items-center gap-1.5 text-sm font-bold text-gray-800"><Gift size={15} className="text-[#0064FF]" /> 추천 코드</p>
+            <p className="mb-3 text-xs text-slate-500">친구에게 받은 코드 · 이용권 2개</p>
+            <div className="flex gap-2">
+              <input value={redeemCode} onChange={(e) => setRedeemCode(e.target.value.toUpperCase())} onKeyDown={(e) => e.key === 'Enter' && redeem()}
+                placeholder="추천 코드"
+                className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-2.5 text-base font-bold tracking-widest text-gray-900 outline-none focus:border-[#0064FF]" />
+              <button onClick={redeem} disabled={redeeming}
+                className="shrink-0 rounded-xl bg-[#0064FF] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#0052D6] disabled:opacity-50">적용</button>
+            </div>
+            {redeemMsg && <p className={`mt-2 text-sm font-medium ${redeemMsg.ok ? 'text-green-600' : 'text-red-500'}`}>{redeemMsg.text}</p>}
           </div>
-          {redeemMsg && <p className={`mt-2 text-sm font-medium ${redeemMsg.ok ? 'text-green-600' : 'text-red-500'}`}>{redeemMsg.text}</p>}
+          {/* 프로모 코드 */}
+          <div className="rounded-3xl border border-gray-200 bg-white p-5">
+            <p className="mb-1 flex items-center gap-1.5 text-sm font-bold text-gray-800"><Ticket size={15} className="text-[#7C3AED]" /> 프로모 코드</p>
+            <p className="mb-3 text-xs text-slate-500">이벤트·광고 코드 · 보너스 이용권</p>
+            <div className="flex gap-2">
+              <input value={promoCode} onChange={(e) => setPromoCode(e.target.value.toUpperCase())} onKeyDown={(e) => e.key === 'Enter' && redeemPromo()}
+                placeholder="프로모 코드"
+                className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-2.5 text-base font-bold tracking-widest text-gray-900 outline-none focus:border-[#7C3AED]" />
+              <button onClick={redeemPromo} disabled={promoing}
+                className="shrink-0 rounded-xl bg-[#7C3AED] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#6D28D9] disabled:opacity-50">적용</button>
+            </div>
+            {promoMsg && <p className={`mt-2 text-sm font-medium ${promoMsg.ok ? 'text-green-600' : 'text-red-500'}`}>{promoMsg.text}</p>}
+          </div>
         </div>
 
         {/* Finds 이용권 */}
