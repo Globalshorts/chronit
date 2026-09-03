@@ -28,6 +28,7 @@ import Board from './pages/Board'
 import BoardWrite from './pages/BoardWrite'
 import BoardPost from './pages/BoardPost'
 import MyPage from './pages/MyPage'
+import Pricing from './pages/Pricing'
 import UserProfile from './pages/UserProfile'
 import DmAutomation from './pages/DmAutomation'
 import PaymentResult from './pages/PaymentResult'
@@ -116,6 +117,7 @@ const App = () => {
       <Route path="/board/u/:id" element={<UserProfile />} />
       <Route path="/board/:id" element={<BoardPost />} />
       <Route path="/me" element={<MyPage />} />
+      <Route path="/pricing" element={<Pricing />} />
       <Route path="/u/:handle" element={<LinkPage />} />
       <Route path="/dm" element={<DmAutomation />} />
       <Route path="/payments/success" element={<PaymentResult />} />
