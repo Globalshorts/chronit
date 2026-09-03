@@ -38,8 +38,8 @@ export default function Landing() {
       if (!session) { setSession(null); return }
       if (session.user?.is_anonymous) { setSession(session); return }
       supabase.from('profiles').select('onboarded').eq('id', session.user.id).maybeSingle()
-        .then(({ data: prof }) => { window.location.href = (prof && prof.onboarded === false) ? '/register' : '/generate' })
-        .catch(() => { window.location.href = '/generate' })
+        .then(({ data: prof }) => { window.location.href = (prof && prof.onboarded === false) ? '/register' : '/trend' })
+        .catch(() => { window.location.href = '/trend' })
     }
     supabase.auth.getSession().then(({ data: { session } }) => forward(session))
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => { if (event === 'SIGNED_IN' && session) forward(session) })
@@ -49,7 +49,7 @@ export default function Landing() {
 
   const start = () => {
     try { window.gtag?.('event', 'cta_click', { page: 'start', logged_in: !!session }) } catch {}
-    if (session) window.location.href = '/generate'; else setAuthOpen(true)
+    if (session) window.location.href = '/trend'; else setAuthOpen(true)
   }
   // ── 가입 전 체험(무료 미리보기) ──
   const [pvUrl, setPvUrl] = useState('')
@@ -77,7 +77,7 @@ export default function Landing() {
   }
   const startFromPreview = () => {
     try { window.gtag?.('event', 'cta_click', { page: 'start', from: 'preview' }) } catch {}
-    if (session) window.location.href = '/generate'; else setAuthOpen(true)
+    if (session) window.location.href = '/trend'; else setAuthOpen(true)
   }
   const pct = spots == null ? 0 : Math.min(100, Math.round((spots / CAP) * 100))
 

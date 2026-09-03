@@ -186,13 +186,13 @@ const Home = () => {
       pendingPlanRef.current = null
     } else if (pendingStartRef.current) {
       pendingStartRef.current = false
-      window.location.href = '/generate'
+      window.location.href = '/trend'
     }
   }
 
-  // 시작하기/무료로 시작하기 — 로그인 시 영상 만들기로, 아니면 로그인
+  // 시작하기/무료로 시작하기 — 로그인 시 트렌드로, 아니면 로그인
   const handleStart = () => {
-    if (user) { window.location.href = '/generate'; return }
+    if (user) { window.location.href = '/trend'; return }
     pendingStartRef.current = true
     setShowAuthModal(true)
   }

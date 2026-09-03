@@ -59,7 +59,7 @@ const Register = () => {
         .select('nickname, signup_source, terms_agreed_at, onboarded')
         .eq('id', s.user.id).maybeSingle()
 
-      if (prof?.onboarded) { window.location.href = '/generate'; return }
+      if (prof?.onboarded) { window.location.href = '/trend'; return }
 
       // 링크 추천코드 자동 적용 (chronit_ref / ?ref)
       try {
@@ -91,7 +91,7 @@ const Register = () => {
         try { await supabase.rpc('auto_nickname_rpc', { p_base: baseName }) } catch { /* noop */ }
       }
       if (!prof?.terms_agreed_at) setStep(STEP.TERMS)
-      else { try { await supabase.rpc('complete_onboarding_rpc') } catch { /* noop */ } window.location.href = '/generate'; return }
+      else { try { await supabase.rpc('complete_onboarding_rpc') } catch { /* noop */ } window.location.href = '/trend'; return }
       setLoading(false)
     })()
   }, [])
@@ -99,7 +99,7 @@ const Register = () => {
   const finish = async () => {
     setSaving(true)
     try { await supabase.rpc('complete_onboarding_rpc') } catch { /* noop */ }
-    window.location.href = '/generate'
+    window.location.href = '/trend'
   }
 
   // ── 각 스텝 핸들러 ──
@@ -115,7 +115,7 @@ const Register = () => {
     try { await supabase.rpc('auto_nickname_rpc', { p_base: baseName }) } catch { /* noop */ }
     // 유입경로 설문은 첫 영상 완료 후 앱에서 물어봄 — 여기서 막지 않고 바로 앱으로.
     try { await supabase.rpc('complete_onboarding_rpc') } catch { /* noop */ }
-    window.location.href = '/generate'
+    window.location.href = '/trend'
   }
 
   const submitNick = async () => {
