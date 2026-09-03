@@ -11,10 +11,6 @@ export const SITE_MENUS = [
   { key: 'trend', label: '트렌드', to: '/trend' },
   { key: 'pricing', label: '가격 안내', to: '/pricing' },
   { key: 'manual', label: '사용 방법', to: '/manual' },
-  { key: 'community', label: '커뮤니티', items: [
-    ['/board', '공지·이벤트'],
-    ['https://cafe.naver.com/chronit', '공식 카페'],
-  ] },
 ]
 
 const NavLink = ({ to, children, className }) =>
