@@ -134,3 +134,7 @@ button.bg-white, a.bg-white{
 @keyframes sgm2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-13vw,-7vh) scale(1.12)}}
 @keyframes sgm3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-9vw,11vh) scale(1.22)}}
 @media (prefers-reduced-motion: reduce){.sg{animation:none!important}}
+/* 밝은 회색 텍스트 가독성 (라이트 글래스/구름 배경 대비 확보) */
+.text-gray-300, .text-slate-300 { color:#6b7a90 !important; }
+.text-gray-400, .text-slate-400 { color:#57667e !important; }
+.text-gray-500, .text-slate-500 { color:#44536b !important; }
