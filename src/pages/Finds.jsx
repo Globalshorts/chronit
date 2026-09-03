@@ -306,7 +306,7 @@ function FindsFeedbackModal({ onClose }) {
   )
 }
 
-const SRC_EXAMPLES = ['https://www.instagram.com/reels/DcdCy4uBN4F/', 'https://www.tiktok.com/@al0nelyy/video/7673543016979696928']
+const SRC_EXAMPLES = ['https://www.instagram.com/reels/ABCD1234/', 'https://www.tiktok.com/@aaaaa/video/12345678']
 
 export default function Finds() {
   const nav = useNavigate()
