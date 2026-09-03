@@ -92,6 +92,7 @@ const App = () => {
   <BrowserRouter>
     <AnalysisProvider>
     <BlobBackground />
+    <div style={{ position: 'relative', zIndex: 1 }}>
     <ScrollToTop />
     <ErrorReportModal />
     <AdminFab />
@@ -124,6 +125,7 @@ const App = () => {
       <Route path="/payments/fail" element={<PaymentResult fail />} />
     </Routes>
     </ErrorBoundary>
+    </div>
     </AnalysisProvider>
   </BrowserRouter>
   )
