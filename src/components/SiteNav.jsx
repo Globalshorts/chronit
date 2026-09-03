@@ -9,9 +9,7 @@ import { ChevronDown } from 'lucide-react'
 export const SITE_MENUS = [
   { key: 'finds', label: 'Finds', to: '/finds' },
   { key: 'trend', label: '트렌드', to: '/trend' },
-  { key: 'features', label: '기능', to: '/#features' },
   { key: 'pricing', label: '가격 안내', to: '/pricing' },
-  { key: 'faq', label: '자주 묻는 질문', to: '/#faq' },
   { key: 'manual', label: '사용 방법', to: '/manual' },
   { key: 'community', label: '커뮤니티', items: [
     ['/board', '공지·이벤트'],

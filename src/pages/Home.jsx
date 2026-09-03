@@ -482,8 +482,6 @@ const Home = () => {
           <nav className="flex flex-col gap-1 text-lg font-bold text-gray-700">
             <Link to="/finds" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 font-semibold text-[#0064FF] transition-colors hover:bg-[#0064FF]/5">Finds — 터지는 영상 찾기</Link>
             <Link to="/trend" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 font-semibold text-[#0064FF] transition-colors hover:bg-[#0064FF]/5">실시간 트렌드</Link>
-            <a href="#features" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#0064FF]">기능</a>
-            <a href="#faq" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#0064FF]">자주 묻는 질문</a>
             <Link to="/manual" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#0064FF]">사용 방법</Link>
             <Link to="/board" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#0064FF]">공지·이벤트</Link>
             <a href="https://cafe.naver.com/chronit" target="_blank" rel="noreferrer" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#0064FF]">공식 카페</a>
