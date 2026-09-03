@@ -9,17 +9,17 @@ float fbm(vec2 p){float v=0.0,a=0.5;for(int i=0;i<5;i++){v+=a*noise(p);p*=2.0;a*
 void main(){
   vec2 uv=gl_FragCoord.xy/u_res.xy;
   float asp=u_res.x/u_res.y;
-  vec2 p=vec2(uv.x*asp,uv.y)*2.0;
-  float t=u_t*0.13;
-  float w=fbm(p*1.7 - t*1.0);
-  float n=fbm(p*1.3 + vec2(t*1.2, t*0.8) + w*1.4);
-  vec3 c1=vec3(0.0,0.39,1.0);
-  vec3 c2=vec3(0.486,0.36,1.0);
-  vec3 c3=vec3(0.133,0.827,0.933);
-  vec3 col=mix(c1,c2,smoothstep(0.28,0.72,n));
-  col=mix(col,c3,smoothstep(0.5,0.92,fbm(p*0.95+t*1.1)));
-  vec3 base=vec3(0.956,0.961,0.969);
-  col=mix(base,col,0.3);
+  vec2 p=vec2(uv.x*asp,uv.y);
+  float t=u_t*0.05;
+  vec2 q=p*3.0 + vec2(t,0.0);
+  float billow=fbm(q + fbm(q*0.6 + t*0.3)*1.3);
+  float clouds=smoothstep(0.44,0.92,billow);
+  vec3 skyTop=vec3(0.80,0.87,1.0);
+  vec3 skyBot=vec3(0.91,0.88,1.0);
+  vec3 sky=mix(skyBot,skyTop,uv.y);
+  sky=mix(sky, vec3(0.74,0.83,1.0), 0.28);
+  vec3 cloud=vec3(1.0);
+  vec3 col=mix(sky, cloud, clouds);
   gl_FragColor=vec4(col,1.0);
 }`
 
