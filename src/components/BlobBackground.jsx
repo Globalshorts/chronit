@@ -10,16 +10,16 @@ void main(){
   vec2 uv=gl_FragCoord.xy/u_res.xy;
   float asp=u_res.x/u_res.y;
   vec2 p=vec2(uv.x*asp,uv.y)*2.0;
-  float t=u_t*0.05;
-  float w=fbm(p*1.4 - t*0.6);
-  float n=fbm(p + vec2(t, t*0.7) + w);
+  float t=u_t*0.13;
+  float w=fbm(p*1.7 - t*1.0);
+  float n=fbm(p*1.3 + vec2(t*1.2, t*0.8) + w*1.4);
   vec3 c1=vec3(0.0,0.39,1.0);
   vec3 c2=vec3(0.486,0.36,1.0);
   vec3 c3=vec3(0.133,0.827,0.933);
-  vec3 col=mix(c1,c2,smoothstep(0.15,0.85,n));
-  col=mix(col,c3,smoothstep(0.55,1.0,fbm(p*0.8+t)));
+  vec3 col=mix(c1,c2,smoothstep(0.28,0.72,n));
+  col=mix(col,c3,smoothstep(0.5,0.92,fbm(p*0.95+t*1.1)));
   vec3 base=vec3(0.956,0.961,0.969);
-  col=mix(base,col,0.5);
+  col=mix(base,col,0.3);
   gl_FragColor=vec4(col,1.0);
 }`
 
