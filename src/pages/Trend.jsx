@@ -225,11 +225,11 @@ export default function Trend() {
         {!fastBench && (
         <div className="mb-5 flex flex-wrap items-center gap-2">
           {SORTS.map(([k, l]) => (
-            <button key={k} onClick={() => setSort(k)} className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition ${sort === k ? 'bg-[#0064FF] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{l}</button>
+            <button key={k} onClick={() => setSort(k)} className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition ${sort === k ? 'bg-[#0064FF] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{l}</button>
           ))}
           <span className="mx-1 h-4 w-px bg-slate-200" />
           {RANGES.map(([k, l, d]) => (
-            <button key={k} onClick={() => setRange(d)} className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition ${range === d ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{l}</button>
+            <button key={k} onClick={() => setRange(d)} className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition ${range === d ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{l}</button>
           ))}
         </div>
         )}
@@ -238,13 +238,13 @@ export default function Trend() {
         <div className="mb-5 flex flex-wrap items-center gap-2">
           <span className="text-sm font-bold text-slate-500">지역</span>
           {REGIONS.map(([l, v]) => (
-            <button key={l} onClick={() => setRegion(v)} className={`rounded-full px-3 py-1.5 text-sm font-bold transition ${region === v ? 'bg-[#0064FF] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{l}</button>
+            <button key={l} onClick={() => setRegion(v)} className={`rounded-full px-3 py-1.5 text-sm font-bold transition ${region === v ? 'bg-[#0064FF] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{l}</button>
           ))}
           <span className="mx-1 h-4 w-px bg-slate-200" />
           <span className="text-sm font-bold text-slate-500">팔로워</span>
           {FOLLOWERS.map(([l, lo, hi]) => {
             const active = String(fMin) === String(lo) && String(fMax) === String(hi)
-            return <button key={l} onClick={() => { setFMin(lo); setFMax(hi) }} className={`rounded-full px-3 py-1.5 text-sm font-bold transition ${active ? 'bg-[#0064FF] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{l}</button>
+            return <button key={l} onClick={() => { setFMin(lo); setFMax(hi) }} className={`rounded-full px-3 py-1.5 text-sm font-bold transition ${active ? 'bg-[#0064FF] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{l}</button>
           })}
           <span className="mx-1 h-4 w-px bg-slate-200" />
           <div className="flex items-center gap-1 text-sm text-slate-500">
