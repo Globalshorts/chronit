@@ -90,3 +90,15 @@ h1, h2 {
 /* 모바일 하단탭바 위로 생성바 띄우기 (프로토타입) */
 .chronit-genbar{bottom:calc(84px + env(safe-area-inset-bottom))}
 @media(min-width:768px){.chronit-genbar{bottom:24px}}
+
+/* ── Glass redesign foundation (glass-redesign 브랜치) ── */
+html, body, #root { background: #05070f; }
+.glass{position:relative;border:1px solid transparent;border-radius:20px;
+  background:linear-gradient(158deg,rgba(255,255,255,.14),rgba(255,255,255,.045)) padding-box,
+    linear-gradient(140deg,rgba(255,255,255,.7),rgba(255,255,255,.1) 42%,rgba(255,255,255,.03)) border-box;
+  -webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);
+  box-shadow:0 10px 34px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.42),inset 0 -14px 30px rgba(0,0,0,.16);}
+.glass-sheen::before{content:"";position:absolute;inset:0 0 auto 0;height:46%;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0));}
+.glass-btn{border:1px solid rgba(255,255,255,.22)!important;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.05))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.35);color:#eaf1fb!important;}
+.glass-btn-primary{border:1px solid rgba(150,190,255,.65)!important;background:linear-gradient(180deg,#4a93ff,#0064ff)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 6px 22px rgba(0,100,255,.45);color:#fff!important;}

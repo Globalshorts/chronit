@@ -32,6 +32,7 @@ import UserProfile from './pages/UserProfile'
 import DmAutomation from './pages/DmAutomation'
 import PaymentResult from './pages/PaymentResult'
 import ErrorBoundary from './components/ErrorBoundary'
+import CurveBackground from './components/CurveBackground'
 import ErrorReportModal from './components/ErrorReportModal'
 import AdminFab from './components/AdminFab'
 import { installGlobalErrorCapture } from './lib/errorReport'
@@ -89,6 +90,7 @@ const App = () => {
   return (
   <BrowserRouter>
     <AnalysisProvider>
+    <CurveBackground />
     <ScrollToTop />
     <ErrorReportModal />
     <AdminFab />

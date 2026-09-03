@@ -390,7 +390,7 @@ const Home = () => {
   const bannerH = bannerCount * 44
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans break-keep text-gray-900 selection:bg-[#0064FF]/20" style={{ paddingTop: bannerH ? `${bannerH}px` : undefined }}>
+    <div className="min-h-screen overflow-x-hidden font-sans break-keep text-slate-100 selection:bg-[#0064FF]/30" style={{ paddingTop: bannerH ? `${bannerH}px` : undefined }}>
       {/* 추천인 코드 배너 */}
       {refFromUrl && (
         <div className="fixed top-0 right-0 left-0 z-[61] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-3 text-sm font-bold text-white shadow-md">
@@ -427,11 +427,11 @@ const Home = () => {
       )}
 
       {/* Header */}
-      <header style={{ top: `${bannerH}px` }} className={`fixed right-0 left-0 z-50 border-b transition-[background-color,border-color,padding] duration-300 ${scrolled ? 'border-gray-200 bg-[#FAFAF8]/90 py-3 backdrop-blur-md' : 'border-transparent bg-transparent py-4 md:py-5'}`}>
+      <header style={{ top: `${bannerH}px` }} className={`fixed right-0 left-0 z-50 border-b transition-[background-color,border-color,padding] duration-300 ${scrolled ? 'border-white/10 bg-[#0a0f1c]/70 py-3 backdrop-blur-md' : 'border-transparent bg-transparent py-4 md:py-5'}`}>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
           <a href="/" className="flex min-w-0 items-center gap-2 md:gap-3">
             <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-9 w-9 shrink-0 md:h-10 md:w-10" />
-            <h1 className="hidden md:block text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">Chronit</h1>
+            <h1 className="hidden md:block text-2xl font-bold tracking-tight text-white md:text-3xl">Chronit</h1>
           </a>
           <SiteNav />
           <div className="flex shrink-0 items-center gap-2">
