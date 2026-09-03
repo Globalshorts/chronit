@@ -124,3 +124,13 @@ button.bg-white, a.bg-white{
   -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
   box-shadow:none !important; border-color: rgba(20,40,90,.14) !important;
 }
+/* 움직이는 브랜드 그라데이션 배경 (shadergradient 느낌, 무의존성) */
+.sg-bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.sg{position:absolute;border-radius:50%;filter:blur(58px);will-change:transform}
+.sg1{width:62vw;height:62vw;left:-10vw;top:-14vh;background:radial-gradient(circle at 42% 42%, rgba(0,100,255,.55), transparent 68%);animation:sgm1 26s ease-in-out infinite}
+.sg2{width:56vw;height:56vw;right:-12vw;bottom:-16vh;background:radial-gradient(circle at 55% 55%, rgba(124,92,255,.5), transparent 68%);animation:sgm2 32s ease-in-out infinite}
+.sg3{width:42vw;height:42vw;left:44vw;top:34vh;background:radial-gradient(circle at 50% 50%, rgba(34,211,238,.34), transparent 68%);animation:sgm3 30s ease-in-out infinite}
+@keyframes sgm1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(11vw,8vh) scale(1.16)}}
+@keyframes sgm2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-13vw,-7vh) scale(1.12)}}
+@keyframes sgm3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-9vw,11vh) scale(1.22)}}
+@media (prefers-reduced-motion: reduce){.sg{animation:none!important}}
