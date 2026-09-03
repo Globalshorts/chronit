@@ -102,3 +102,19 @@ html, body, #root { background: #05070f; }
   background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0));}
 .glass-btn{border:1px solid rgba(255,255,255,.22)!important;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.05))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.35);color:#eaf1fb!important;}
 .glass-btn-primary{border:1px solid rgba(150,190,255,.65)!important;background:linear-gradient(180deg,#4a93ff,#0064ff)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 6px 22px rgba(0,100,255,.45);color:#fff!important;}
+
+/* ── glass-redesign: 흰 표면 → 글래스 일괄 변환 (전역) ── */
+.bg-white{
+  background: rgba(255,255,255,.07) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+  border-color: rgba(255,255,255,.12) !important;
+  box-shadow: 0 8px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.28) !important;
+}
+.bg-\[\#FAFAF8\], .bg-gray-50, .bg-gray-100 { background: transparent !important; }
+.text-gray-900, .text-gray-800 { color:#eef3fb !important; }
+.text-gray-700, .text-gray-600 { color:#c4d0e1 !important; }
+.text-gray-500, .text-gray-400, .text-slate-500, .text-slate-600, .text-slate-400 { color:#94a4bb !important; }
+.border-gray-200, .border-gray-100, .border-gray-300 { border-color: rgba(255,255,255,.12) !important; }
+.divide-gray-200 > * + *, .divide-gray-100 > * + * { border-color: rgba(255,255,255,.1) !important; }
+.shadow-lg, .shadow-xl, .shadow-md, .shadow-sm { box-shadow: 0 10px 34px rgba(0,0,0,.4) !important; }
