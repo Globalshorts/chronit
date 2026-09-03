@@ -504,7 +504,7 @@ export default function Finds() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen">
       <div className="fixed inset-x-0 top-0 z-[70] h-[3px]">
         {searching && <div className="h-full bg-gradient-to-r from-[#2A7BFF] via-[#0064FF] to-[#7C6BFF] transition-[width] duration-300 ease-out" style={{ width: progress + '%' }} />}
       </div>
