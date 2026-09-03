@@ -93,7 +93,8 @@ h1, h2 {
 
 
 /* ── glass-redesign (LIGHT glass) ── */
-html, body, #root { background: #f4f5f7; }
+html, body { background: #f4f5f7; }
+#root { background: transparent; }
 .bg-white{
   background: linear-gradient(150deg, rgba(255,255,255,.82), rgba(255,255,255,.66)) !important;
   -webkit-backdrop-filter: blur(16px);
