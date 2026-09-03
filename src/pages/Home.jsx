@@ -762,7 +762,7 @@ const Home = () => {
                 ].map((p) => {
                   const annual = priceTab === 'annual'
                   return (
-                    <div key={p.name} className={`flex flex-col rounded-2xl bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)] ${p.hot ? 'border-2 border-[#0064FF]' : 'border border-gray-100'}`}>
+                    <div key={p.name} onClick={() => handleBuy('sub', annual ? 'annual' : 'monthly')} className={`flex cursor-pointer flex-col rounded-2xl bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_22px_48px_rgba(20,40,90,0.18)] ${p.hot ? 'border-2 border-[#0064FF]' : 'border border-gray-100'}`}>
                       <div className="flex items-center gap-2">
                         <h4 className="text-lg font-semibold text-gray-900">{p.name}</h4>
                         {p.hot && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0064FF]">인기</span>}
