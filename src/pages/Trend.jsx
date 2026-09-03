@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Navigate, Link } from 'react-router-dom'
+import { Navigate, Link, useNavigate } from 'react-router-dom'
 import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, HelpCircle, Zap, Lock, Crown, X, Play } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
@@ -67,6 +67,7 @@ function VideoModal({ clip, onClose, onSource, onAnalyze }) {
 }
 
 export default function Trend() {
+  const nav = useNavigate()
   const [session, setSession] = useState(null)
   const [items, setItems] = useState(() => readTrendCache()?.items || [])
   const [loading, setLoading] = useState(false)
@@ -93,7 +94,7 @@ export default function Trend() {
     if (analyzedIds.includes(key)) { setModalClip(clip); return }
     if (!ackAnalyzeCost(null)) return
     const { data } = await supabase.rpc('use_finds_credit_rpc')
-    if (!data?.ok) { setPayWall(true); return }
+    if (!data?.ok) { nav('/pricing'); return }
     setAnalyzedIds((prev) => [...prev, key])
     setModalClip(clip)
   }
@@ -272,7 +273,7 @@ export default function Trend() {
               return (
                 <div key={it.shortcode || i} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
                   {locked ? (
-                    <div role="button" onClick={() => setPayWall(true)} className="relative block aspect-[9/16] cursor-pointer bg-slate-100">
+                    <div role="button" onClick={() => nav('/pricing')} className="relative block aspect-[9/16] cursor-pointer bg-slate-100">
                       <div className="h-full w-full overflow-hidden blur-[12px]"><TrendThumb url={it.thumbnail_url} /></div>
                       <div className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">#{i + 1}</div>
                       {it.taken_at && <div className="absolute right-1.5 top-1.5 rounded bg-[#0064FF] px-1.5 py-0.5 text-[10px] font-bold text-white">{timeAgo(it.taken_at)}</div>}
@@ -297,7 +298,7 @@ export default function Trend() {
                     </div>
                     <div className="mb-1.5 truncate text-[11px] text-slate-400">{locked ? '구독 유저 전용' : `@${it.owner}${it.follower_count ? ` · 팔로워 ${fmt(it.follower_count)}` : ''}`}</div>
                     {locked ? (
-                      <button onClick={() => setPayWall(true)} className="flex w-full items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Lock size={12} />잠금 해제하고 보기</button>
+                      <button onClick={() => nav('/pricing')} className="flex w-full items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Lock size={12} />잠금 해제하고 보기</button>
                     ) : (
                       <div className="flex gap-1.5">
                         <button onClick={() => handleAnalyze(clip)} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Sparkles size={12} />분석</button>

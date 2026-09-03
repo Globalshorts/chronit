@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Navigate, Link } from 'react-router-dom'
+import { Navigate, Link, useNavigate } from 'react-router-dom'
 import { Search, Loader2, AlertTriangle, Flame, Eye, Heart, MessageCircle, Sparkles, X, Copy, Check, Download } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { FEATURES } from '../config/features'
@@ -307,6 +307,7 @@ function FindsFeedbackModal({ onClose }) {
 }
 
 export default function Finds() {
+  const nav = useNavigate()
   const [session, setSession] = useState(null)
   const [sourceUrl, setSourceUrl] = useState('')
   const searchInputRef = useRef(null)
@@ -371,7 +372,7 @@ export default function Finds() {
     if (analyzedIds.includes(clip.video_id)) { setModalClip(clip); return }
     if (!ackAnalyzeCost(balance)) return
     const { data } = await supabase.rpc('use_finds_credit_rpc')
-    if (!data?.ok) { setPayWall(true); return }
+    if (!data?.ok) { nav('/pricing'); return }
     setBalance(data.balance)
     setAnalyzedIds((prev) => [...prev, clip.video_id])
     setModalClip(clip)
@@ -497,7 +498,7 @@ export default function Finds() {
     if (!session || session.user?.is_anonymous) { setShowAuth(true); return }
     if (!ackAnalyzeCost(balance)) return
     const { data: cr } = await supabase.rpc('use_finds_credit_rpc')
-    if (!cr?.ok) { setPayWall(true); return }
+    if (!cr?.ok) { nav('/pricing'); return }
     setBalance(cr.balance)
     startChannel(input, () => setBalance((b) => (b == null ? b : b + 1)))
   }
@@ -539,7 +540,7 @@ export default function Finds() {
             </span>
           )}
           <ReferralCTA variant="button" />
-          <button onClick={() => (isAnon ? setShowAuth(true) : setPayWall(true))} className="inline-flex items-center gap-1 rounded-full bg-[#0064FF] px-3 py-1 text-xs font-bold text-white transition hover:brightness-95">이용권 구매</button>
+          <button onClick={() => (isAnon ? setShowAuth(true) : nav('/pricing'))} className="inline-flex items-center gap-1 rounded-full bg-[#0064FF] px-3 py-1 text-xs font-bold text-white transition hover:brightness-95">이용권 구매</button>
         </div>
         <p className="-mt-1 mb-3 text-[11px] text-slate-400">{searchMode === 'channel'
           ? '‘채널 분석’ 실행 시 이용권 1개가 차감돼요 · 분석 실패 시 자동 환불돼요'
