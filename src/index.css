@@ -105,11 +105,11 @@ html, body, #root { background: #05070f; }
 
 /* ── glass-redesign: 흰 표면 → 글래스 일괄 변환 (전역) ── */
 .bg-white{
-  background: rgba(255,255,255,.07) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  backdrop-filter: blur(20px) saturate(160%);
-  border-color: rgba(255,255,255,.12) !important;
-  box-shadow: 0 8px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.28) !important;
+  background: rgba(255,255,255,.11) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(170%);
+  backdrop-filter: blur(22px) saturate(170%);
+  border-color: rgba(255,255,255,.17) !important;
+  box-shadow: 0 10px 34px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.4) !important;
 }
 .bg-\[\#FAFAF8\], .bg-gray-50, .bg-gray-100 { background: transparent !important; }
 .text-gray-900, .text-gray-800 { color:#eef3fb !important; }
