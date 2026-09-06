@@ -15,7 +15,6 @@ import SiteNav from '../components/SiteNav'
 import SourcingBeforeAfter from '../components/SourcingBeforeAfter'
 import Reveal from '../components/Reveal'
 import NicknameModal from '../components/NicknameModal'
-import SignupSurveyModal from '../components/SignupSurveyModal'
 import TimeLossCalculator from '../components/TimeLossCalculator'
 import { supabase } from '../lib/supabase'
 
@@ -851,7 +850,6 @@ const Home = () => {
       <FindsPricing open={buyOpen} onClose={() => setBuyOpen(false)} defaultTab={buyTab} defaultPeriod={buyPeriod} />
       <TermsModal open={showTermsModal} onAgree={handleTermsAgree} onClose={() => setShowTermsModal(false)} />
       <NicknameModal open={nickOpen} required={nickRequired} onClose={handleNicknameClose} onDone={handleNicknameDone} />
-      <SignupSurveyModal open={sourceOpen} onDone={handleSourceDone} />
       <PaymentModal
         key={selectedPlan + (paymentOpen ? '-open' : '-closed')}
         open={paymentOpen}

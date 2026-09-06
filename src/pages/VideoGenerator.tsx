@@ -934,7 +934,7 @@ export default function VideoGenerator() {
     if (!job) return;
     if (job.status === "done") {
       genRetryRef.current = 0;
-      try { window.gtag?.('event','video_complete',{ job_id: job.id }); if (!localStorage.getItem('chronit_first_video')) { localStorage.setItem('chronit_first_video','1'); window.gtag?.('event','first_video',{ event_category:'activation' }); if (sourceNeededRef.current) { try { if (!localStorage.getItem('chronit_source_asked')) setTimeout(() => setShowSourceSurvey(true), 1400); } catch {} } } } catch {}
+      try { window.gtag?.('event','video_complete',{ job_id: job.id }); if (!localStorage.getItem('chronit_first_video')) { localStorage.setItem('chronit_first_video','1'); window.gtag?.('event','first_video',{ event_category:'activation' }); /* 온보딩 설문은 OnboardingSurveyGate/Register로 이전됨 */ } } catch {}
       if (stage === 5) setStage(1); // 자동 생성 흐름이면 1단계로 복귀
       setCompletionAlert("✅ 영상 생성 완료! 생성 내역으로 이동합니다.");
       try { if (!localStorage.getItem("chronit_install_nudged")) { localStorage.setItem("chronit_install_nudged","1"); setTimeout(() => window.dispatchEvent(new Event("chronit:open-install")), 1800); } } catch {}

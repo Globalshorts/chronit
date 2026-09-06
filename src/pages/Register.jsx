@@ -6,10 +6,12 @@ import { getFp } from '../lib/fp'
 
 const ICON = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png'
 const SOURCE_OPTIONS = ['유튜브', '인스타그램', '지인 추천', '블로그·카페', '검색(구글·네이버)', '기타']
+const PERSONA_OPTIONS = ['공구·제휴 크리에이터', '브랜드·쇼핑몰 SNS 운영', '릴스·틱톡 쇼핑 크리에이터', '부업·N잡 (막 시작)', '콘텐츠 대행사·편집자', '기타']
+const NICHE_OPTIONS = ['뷰티·화장품', '패션·의류', '리빙·홈·주방', '잡화·소품', '푸드·식품', '육아·키즈', '헬스·건강', '반려동물', '디지털·가전', '기타']
 
 // 스텝 인덱스 (닉네임 자동생성·추천 MyPage 이동으로 2단계)
-const STEP = { TERMS: 0, SOURCE: 1 }
-const TOTAL = 2
+const STEP = { TERMS: 0, SOURCE: 1, PROFILE: 2 }
+const TOTAL = 3
 
 const Register = () => {
   const [loading, setLoading] = useState(true)
@@ -28,6 +30,11 @@ const Register = () => {
   const [refCode, setRefCode] = useState('')
   const [refMsg, setRefMsg] = useState(null)
   const [refApplied, setRefApplied] = useState(false)
+  const [persona, setPersona] = useState('')
+  const [personaOther, setPersonaOther] = useState('')
+  const [niche, setNiche] = useState('')
+  const [nicheOther, setNicheOther] = useState('')
+  const [profErr, setProfErr] = useState('')
   // 휴대폰
   const [phone, setPhone] = useState('')
 
@@ -133,7 +140,19 @@ const Register = () => {
     setSaving(true)
     try { await supabase.rpc('set_signup_source_rpc', { p_source: src }) } catch { /* noop */ }
     setSaving(false)
-    await finish()   // 추천 단계 제거 → 유입경로 후 바로 완료
+    setStep(STEP.PROFILE)
+  }
+
+  const submitProfile = async () => {
+    if (saving) return
+    if (!persona) { setProfErr('직군을 선택해주세요'); return }
+    if (!niche) { setProfErr('주력 카테고리를 선택해주세요'); return }
+    const p = persona === '기타' ? (personaOther.trim() || '기타') : persona
+    const n = niche === '기타' ? (nicheOther.trim() || '기타') : niche
+    setSaving(true)
+    try { await supabase.rpc('set_profile_persona_niche_rpc', { p_persona: p, p_niche: n }) } catch { /* noop */ }
+    setSaving(false)
+    await finish()
   }
 
   const applyReferral = async () => {
@@ -243,6 +262,43 @@ const Register = () => {
                 </button>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* ── STEP 3. 직군·카테고리 ── */}
+        {step === STEP.PROFILE && (
+          <div>
+            <h2 className="mb-1 text-lg font-bold text-gray-900">거의 다 됐어요!</h2>
+            <p className="mb-5 text-sm leading-relaxed text-gray-500">딱 맞는 소재를 추천해드릴게요</p>
+
+            <label className="text-sm font-bold text-gray-700">어떤 일을 하세요?</label>
+            <select value={persona} onChange={(e) => { setPersona(e.target.value); setProfErr('') }}
+              className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm font-bold text-gray-900 outline-none focus:border-[#0064FF]">
+              <option value="" disabled>직군을 선택하세요</option>
+              {PERSONA_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+            </select>
+            {persona === '기타' && (
+              <input value={personaOther} onChange={(e) => setPersonaOther(e.target.value)} maxLength={40} placeholder="직접 입력해주세요"
+                className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 outline-none focus:border-[#0064FF]" />
+            )}
+
+            <label className="mt-4 block text-sm font-bold text-gray-700">주로 어떤 상품/카테고리를 다뤄요?</label>
+            <select value={niche} onChange={(e) => { setNiche(e.target.value); setProfErr('') }}
+              className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm font-bold text-gray-900 outline-none focus:border-[#0064FF]">
+              <option value="" disabled>카테고리를 선택하세요</option>
+              {NICHE_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+            </select>
+            {niche === '기타' && (
+              <input value={nicheOther} onChange={(e) => setNicheOther(e.target.value)} maxLength={40} placeholder="직접 입력해주세요"
+                className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 outline-none focus:border-[#0064FF]" />
+            )}
+
+            {profErr && <p className="mt-3 text-sm font-medium text-red-500">{profErr}</p>}
+
+            <button onClick={submitProfile} disabled={saving}
+              className="mt-6 w-full rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-bold text-white transition-all hover:bg-[#0052D6] active:scale-[0.98] disabled:opacity-40">
+              {saving ? '시작하는 중…' : '시작하기'}
+            </button>
           </div>
         )}
 

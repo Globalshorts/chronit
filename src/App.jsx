@@ -36,6 +36,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 import BlobBackground from './components/BlobBackground'
 import ErrorReportModal from './components/ErrorReportModal'
 import AdminFab from './components/AdminFab'
+import OnboardingSurveyGate from './components/OnboardingSurveyGate'
 import { installGlobalErrorCapture } from './lib/errorReport'
 import { supabase } from './lib/supabase'
 import { trackSignupIfNew } from './lib/trackSignup'
@@ -95,6 +96,7 @@ const App = () => {
     <div style={{ position: 'relative', zIndex: 1 }}>
     <ScrollToTop />
     <ErrorReportModal />
+    <OnboardingSurveyGate />
     <AdminFab />
     <ErrorBoundary>
     <Routes>

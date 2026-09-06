@@ -509,6 +509,13 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
           <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl" onClick={e=>e.stopPropagation()}>
             <button onClick={()=>setActOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X size={18} /></button>
             <p className="mb-4 text-sm font-bold text-gray-800">회원 관리{selUser && <span className="text-[#0064FF]"> — {selUser.email}</span>}</p>
+            {selUser && (
+              <div className="mb-4 grid grid-cols-3 gap-2">
+                <div className="rounded-xl bg-gray-50 border border-gray-200 px-3 py-2"><p className="text-[11px] text-gray-400">직군</p><p className="text-sm font-bold text-gray-800 truncate">{selUser.persona || "-"}</p></div>
+                <div className="rounded-xl bg-gray-50 border border-gray-200 px-3 py-2"><p className="text-[11px] text-gray-400">니치</p><p className="text-sm font-bold text-gray-800 truncate">{selUser.niche || "-"}</p></div>
+                <div className="rounded-xl bg-gray-50 border border-gray-200 px-3 py-2"><p className="text-[11px] text-gray-400">가입경로</p><p className="text-sm font-bold text-gray-800 truncate">{selUser.signup_source || selUser.acq_source || "-"}</p></div>
+              </div>
+            )}
             <div className="space-y-3">
         <div className="rounded-2xl bg-white border border-gray-200 p-4">
           <p className="text-xs text-gray-500 mb-2">구독 부여 / 수정 {selUser && <span className="text-[#0064FF]">— {selUser.email}</span>}</p>
