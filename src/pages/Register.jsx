@@ -150,7 +150,10 @@ const Register = () => {
     const p = persona === '기타' ? (personaOther.trim() || '기타') : persona
     const n = niche === '기타' ? (nicheOther.trim() || '기타') : niche
     setSaving(true)
-    try { await supabase.rpc('set_profile_persona_niche_rpc', { p_persona: p, p_niche: n }) } catch { /* noop */ }
+    try {
+      const { error } = await supabase.rpc('set_profile_persona_niche_rpc', { p_persona: p, p_niche: n })
+      if (error) { setSaving(false); setProfErr('저장에 실패했어요. 다시 시도해주세요.'); return }
+    } catch { setSaving(false); setProfErr('저장에 실패했어요. 다시 시도해주세요.'); return }
     setSaving(false)
     await finish()
   }

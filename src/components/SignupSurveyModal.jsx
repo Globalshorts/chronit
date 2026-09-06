@@ -36,9 +36,12 @@ const SignupSurveyModal = ({ open, hasSource = false, onDone }) => {
     const p = persona === '기타' ? (personaOther.trim() || '기타') : persona
     const n = niche === '기타' ? (nicheOther.trim() || '기타') : niche
     setSaving(true)
-    try { await supabase.rpc('set_profile_persona_niche_rpc', { p_persona: p, p_niche: n }) } catch { /* noop */ }
-    setSaving(false)
-    onDone?.()
+    try {
+      const { error } = await supabase.rpc('set_profile_persona_niche_rpc', { p_persona: p, p_niche: n })
+      setSaving(false)
+      if (error) { setErr('저장에 실패했어요. 다시 시도해주세요.'); return }
+      onDone?.()
+    } catch { setSaving(false); setErr('저장에 실패했어요. 다시 시도해주세요.') }
   }
 
   const selCls = 'mt-2 w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm font-bold text-gray-900 outline-none focus:border-[#0064FF]'
