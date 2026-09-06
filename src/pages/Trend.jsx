@@ -29,7 +29,7 @@ const RANGES = [['24h', '24시간', 1], ['7d', '7일', 7]]
 const FOLLOWERS = [['전체', '', ''], ['~1만', '', '10000'], ['1~2만', '10000', '20000'], ['2~3만', '20000', '30000'], ['3~5만', '30000', '50000'], ['5만+', '50000', '']]
 const TREND_TTL = 10 * 60 * 1000 // 10분: 이 안이면 재요청 안 함(서버는 최대 24h마다 갱신)
 const readTrendCache = () => { try { const c = JSON.parse(localStorage.getItem('chronit_trend_cache') || 'null'); return (c && Array.isArray(c.items)) ? c : null } catch { return null } }
-const writeTrendCache = (items) => { try { localStorage.setItem('chronit_trend_cache', JSON.stringify({ items, at: Date.now() })) } catch { /* noop */ } }
+const writeTrendCache = (items, fb, fbCount) => { try { localStorage.setItem('chronit_trend_cache', JSON.stringify({ items, fb: fb || [], fbCount: (typeof fbCount === 'number' ? fbCount : null), at: Date.now() })) } catch { /* noop */ } }
 
 function VideoModal({ clip, onClose, onSource, onAnalyze }) {
   const [src, setSrc] = useState(clip?.video_url || '')
@@ -70,6 +70,8 @@ export default function Trend() {
   const nav = useNavigate()
   const [session, setSession] = useState(null)
   const [items, setItems] = useState(() => readTrendCache()?.items || [])
+  const [fbItems, setFbItems] = useState(() => readTrendCache()?.fb || [])
+  const [fbCountSrv, setFbCountSrv] = useState(() => { const c = readTrendCache(); return c && typeof c.fbCount === 'number' ? c.fbCount : null })
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState('')
   const [sort, setSort] = useState('view')
@@ -117,7 +119,7 @@ export default function Trend() {
   useEffect(() => {
     if (!isReal) return
     const cached = readTrendCache()
-    if (cached) setItems(cached.items)                       // 캐시 있으면 즉시 표시(스피너 없음)
+    if (cached) { setItems(cached.items); setFbItems(cached.fb || []); if (typeof cached.fbCount === 'number') setFbCountSrv(cached.fbCount) }                       // 캐시 있으면 즉시 표시(스피너 없음)
     if (cached && Date.now() - cached.at < TREND_TTL) return  // 신선하면 재요청 스킵
     let alive = true
     if (!cached) setLoading(true)                            // 보여줄 캐시 없을 때만 스피너
@@ -127,7 +129,7 @@ export default function Trend() {
         const { data: { session: s } } = await supabase.auth.getSession()
         const r = await fetch(FN('trend-feed'), { method: 'POST', headers: { Authorization: `Bearer ${s.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
         const d = await r.json()
-        if (alive) { setItems(d.items || []); writeTrendCache(d.items || []) }  // 백그라운드 갱신 + 캐시 저장
+        if (alive) { setItems(d.items || []); setFbItems(d.fastbench_items || []); setFbCountSrv(typeof d.fastbench_count === 'number' ? d.fastbench_count : null); writeTrendCache(d.items || [], d.fastbench_items || [], d.fastbench_count) }  // 백그라운드 갱신 + 캐시 저장
       } catch { if (alive && !cached) setErr('트렌드를 불러오지 못했어요.') }
       finally { if (alive) setLoading(false) }
     })()
@@ -139,8 +141,8 @@ export default function Trend() {
   const now = Date.now()
   const FB_SCORE = 12
   const fbScore = (it) => ((Number(it.comment_count) || 0) * 1000 + (Number(it.like_count) || 0) * 50 + (Number(it.view_count) || 0)) / Math.max(Number(it.follower_count) || 0, 1000)
-  const fbCount = items.filter((it) => it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && fbScore(it) >= FB_SCORE).length
-  const list = items
+  const fbCount = fbCountSrv != null ? fbCountSrv : items.filter((it) => it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && fbScore(it) >= FB_SCORE).length
+  const list = (fastBench && Array.isArray(fbItems) && fbItems.length ? fbItems : items)
     .filter((it) => {
       const win = fastBench ? 2 * 86400000 : (range === 0 ? Infinity : range * 86400000)
       return win === Infinity ? true : (it.taken_at && now - new Date(it.taken_at).getTime() <= win)
@@ -168,7 +170,7 @@ export default function Trend() {
 
   const fbQual = (it) => !!it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && fbScore(it) >= FB_SCORE
   const gateOn = previewLock || (!isPaid && !isAdmin)
-  const lockedCount = gateOn ? list.filter(fbQual).length : 0
+  const lockedCount = gateOn ? (fbCountSrv != null ? fbCountSrv : list.filter(fbQual).length) : 0
 
   return (
     <div className="min-h-screen">
