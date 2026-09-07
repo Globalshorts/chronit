@@ -15,6 +15,7 @@ import SiteNav from '../components/SiteNav'
 import SourcingBeforeAfter from '../components/SourcingBeforeAfter'
 import HomeAnalysisShowcase from '../components/HomeAnalysisShowcase'
 import Reveal from '../components/Reveal'
+import RevealStagger from '../components/RevealStagger'
 import NicknameModal from '../components/NicknameModal'
 import TimeLossCalculator from '../components/TimeLossCalculator'
 import { supabase } from '../lib/supabase'
@@ -615,7 +616,7 @@ const Home = () => {
             <h2 className="text-3xl font-bold text-white md:text-4xl">이미 사용하는 크리에이터</h2>
             <p className="mt-3 text-base text-white/45 md:text-lg">실제 사용자의 기록입니다.</p>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <RevealStagger className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             {[
               { name: '쇼핑 크리에이터 K', text: '영상 찾는 게 늘 힘들었는데, 그게 해결됐어요.' },
               { name: '쇼핑 크리에이터 C', text: '제품 사용해보니 영상 모아주는 게 너무 편해요.' },
@@ -628,7 +629,7 @@ const Home = () => {
                 <div className="mt-4 text-sm font-semibold text-white/45">{name}</div>
               </div>
             ))}
-          </div>
+          </RevealStagger>
         </Reveal>
       </section>
 
@@ -637,7 +638,7 @@ const Home = () => {
           <div className="mb-12 text-center">
             <h2 className="text-3xl font-bold text-white md:text-4xl">자주 묻는 질문</h2>
           </div>
-          <div className="space-y-4">
+          <RevealStagger className="space-y-4">
             {[
               { q: '어떤 플랫폼의 소스를 찾아주나요?', a: '샤오훙슈·틱톡·인스타 등에서 지금 반응이 좋은 소스를 찾아냅니다. 국내에 아직 알려지지 않은 소스도 먼저 발견할 수 있습니다.' },
               { q: '분석은 뭘 알려주나요?', a: '영상이 왜 통했는지 — 훅(첫 3초)·셀링포인트·구성 흐름을 짚어냅니다. 그대로 벤치마크해 내 영상에 적용할 수 있습니다.' },
@@ -654,7 +655,7 @@ const Home = () => {
                 </div>
               </div>
             ))}
-          </div>
+          </RevealStagger>
         </Reveal>
       </section>
 
