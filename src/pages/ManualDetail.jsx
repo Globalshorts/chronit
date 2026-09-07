@@ -106,8 +106,8 @@ const StartSteps = ({ md }) => {
  )
  })}
  <div className="rounded-3xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-5 text-center md:p-6">
- <p className="text-base font-bold text-gray-900 md:text-lg"> 정말 이게 전부예요!</p>
- <p className="mt-1.5 text-sm text-gray-500 md:text-base">영상 길이·목소리·자막은 처음에 한 번만 정해두면 다음부터 자동이에요. 잘 모르겠으면 그대로 둬도 괜찮아요.</p>
+ <p className="text-base font-bold text-gray-900 md:text-lg"> 이게 전부입니다.</p>
+ <p className="mt-1.5 text-sm text-gray-500 md:text-base">영상 길이·목소리·자막은 처음에 한 번만 정해두면 다음부터 자동입니다. 잘 모르겠으면 그대로 두어도 괜찮습니다.</p>
  </div>
  </div>
  )
@@ -217,31 +217,31 @@ const StepGroup = ({ group, onImageClick }) => {
 const SECTIONS = {
  start: {
  title: '3단계 빠른 시작',
- callout: '링크나 키워드를 넣으면 잘 터진 숏폼을 찾아주고, AI가 분석해줘요. 아래 3단계를 확인하세요.',
+ callout: '링크나 키워드를 넣으면 터진 릴스를 찾아 AI가 분석합니다. 아래 세 단계를 확인하세요.',
  type: 'markdown',
  content: startMd,
  },
  search: {
  title: '검색 vs 채널 분석',
- callout: '관련 클립 검색과 채널 분석, 언제 무엇을 쓰면 좋은지 정리했어요.',
+ callout: '관련 클립 검색과 채널 분석, 언제 무엇을 쓰면 좋은지 정리했습니다.',
  type: 'markdown',
  content: searchMd,
  },
  trend: {
  title: '실시간 트렌드',
- callout: '팔로워 2만 미만 계정이 최근 터뜨린 쇼핑 숏폼을 모아보는 곳이에요.',
+ callout: '팔로워 2만 미만 계정이 최근 터뜨린 쇼핑 릴스를 모아 보는 곳입니다.',
  type: 'markdown',
  content: trendMd,
  },
  credits: {
  title: '요금제 · 이용권',
- callout: '분석 1회 = 이용권 1개. 요금제와 환불 규정을 정리했어요.',
+ callout: '분석 1회 = 이용권 1개. 요금제와 환불 규정을 정리했습니다.',
  type: 'markdown',
  content: creditsMd,
  },
  app: {
  title: '앱으로 설치해 쓰기',
- callout: '홈 화면에 추가하면 일반 앱처럼 바로 실행돼요. (앱스토어 설치 불필요)',
+ callout: '홈 화면에 추가하면 일반 앱처럼 바로 실행됩니다. (앱스토어 설치 불필요)',
  type: 'markdown',
  content: webappMd,
  },
@@ -308,7 +308,6 @@ const ManualDetail = () => {
 
  {/* 히어로 */}
  <section className="relative px-5 pt-32 pb-10 md:px-8 md:pt-44 md:pb-12">
- <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_60%,transparent_100%)]" />
  <div className="relative z-10 mx-auto max-w-3xl">
  <Link to="/manual" className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition-colors hover:text-[#0064FF]">
  <ArrowLeft size={16} /> 사용 방법 목록
@@ -331,7 +330,7 @@ const ManualDetail = () => {
  {section === 'app' && (
  <div className="mb-6 rounded-3xl border-2 border-[#0064FF]/40 bg-gradient-to-br from-[#0064FF]/10 to-[#0064FF]/5 p-6 text-center md:p-7">
  <h3 className="text-xl font-bold text-gray-900 md:text-2xl">지금 홈 화면에 추가하기</h3>
- <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">버튼을 누르면 설치 안내가 떠요. 앱스토어 없이 아이콘 하나로 끝.</p>
+ <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">버튼을 누르면 설치 안내가 나타납니다. 앱스토어 없이 아이콘 하나로 끝.</p>
  <button onClick={() => window.dispatchEvent(new Event('chronit:open-install'))}
  className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0064FF] px-7 py-3.5 text-base font-bold text-white shadow-md shadow-black/5 transition-all hover:gap-3">
  앱 설치하기
@@ -367,7 +366,7 @@ const ManualDetail = () => {
  <span className="inline-block rounded-full bg-[#0064FF] px-3 py-1 text-xs font-bold text-white">바로 시작</span>
  <h3 className="mt-3 text-xl font-bold leading-snug text-gray-900 md:text-2xl">지금 바로 소재 찾아보기 </h3>
  <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">
- 링크나 키워드만 넣으면 잘 터진 숏폼을 찾아줘요. <b className="text-[#0064FF]">가입은 무료</b>, 매월 이용권 5개를 드려요.
+ 링크나 키워드만 넣으면 터진 릴스를 찾아냅니다. <b className="text-[#0064FF]">가입은 무료</b>, 매월 이용권 5개를 제공합니다.
  </p>
  <span className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-bold text-white shadow-md shadow-black/5 transition-all group-hover:gap-3">
  리서치 열기 <ArrowRight size={18} />

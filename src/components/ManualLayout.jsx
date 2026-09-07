@@ -38,12 +38,12 @@ const makeMdComponents = (onImageClick) => ({
   strong: (p) => <strong className="font-bold text-gray-900 [overflow-wrap:anywhere]" {...p} />,
   em:     (p) => <em className="italic text-slate-600" {...p} />,
   blockquote: (p) => (
-    <blockquote className="my-3 rounded-r-xl border-l-4 border-yellow-400 bg-yellow-50 py-2 pr-4 pl-4 text-sm leading-relaxed text-yellow-800 [overflow-wrap:anywhere] md:text-base" {...p} />
+    <blockquote className="my-3 rounded-r-xl border-l-4 border-amber-400/60 bg-amber-400/10 py-2.5 pr-4 pl-4 text-sm leading-relaxed text-white/80 [overflow-wrap:anywhere] md:text-base" {...p} />
   ),
   code: ({ inline, ...p }) =>
     inline
       ? <code className="rounded bg-[#0064FF]/10 px-1.5 py-0.5 font-mono text-sm text-[#0064FF] border border-[#0064FF]/15" {...p} />
-      : <code className="block rounded-xl bg-gray-50 p-4 font-mono text-sm text-slate-700" {...p} />,
+      : <code className="block rounded-xl bg-white/[0.05] p-4 font-mono text-sm text-white/80" {...p} />,
   pre: (p) => <pre className="my-3 overflow-x-auto rounded-2xl border border-gray-200 bg-gray-50 p-4" {...p} />,
   table: (p) => (
     <div className="my-3 overflow-x-auto rounded-xl border border-gray-200">
