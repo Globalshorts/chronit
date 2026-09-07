@@ -100,7 +100,7 @@ export default function HomeAnalysisShowcase() {
                   <div key={cl.shortcode} ref={(el) => (thumbRefs.current[i] = el)}
                     className={`relative aspect-[9/14] overflow-hidden rounded-lg border transition-all duration-300 ${step === 0 && i === pick && cursor.click ? 'scale-[1.05] border-[#0064FF] ring-2 ring-[#0064FF]/50' : 'border-white/10'}`}>
                     <img src={cl.thumb_url} alt={cl.owner} className="h-full w-full object-cover" />
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent p-1 pt-4"><div className="truncate text-[8px] font-bold text-white">@{cl.owner}</div></div>
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent p-1 pt-4"><div className="truncate text-[8px] font-bold text-white"><span className="select-none blur-[2.5px]">@{cl.owner}</span></div></div>
                     {cl.velocity != null && <div className="absolute right-0.5 top-0.5 rounded bg-black/60 px-1 text-[7px] font-bold text-[#7DA2FF]">↑{Math.round(cl.velocity)}</div>}
                   </div>
                 ))}
@@ -113,7 +113,7 @@ export default function HomeAnalysisShowcase() {
               <div className="mb-3 flex items-center gap-2">
                 <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#0064FF]/20 text-[#7DA2FF]"><Sparkles size={14} /></span>
                 <span className="text-[14px] font-bold text-white">터짐 분석</span>
-                <span className="ml-auto min-w-0 truncate text-[12px] text-white/45">“{a.hook || ''}” · @{c.owner}</span>
+                <span className="ml-auto min-w-0 truncate text-[12px] text-white/45">“{a.hook || ''}” · <span className="select-none blur-[3px]">@{c.owner}</span></span>
               </div>
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <div>
@@ -175,6 +175,7 @@ export default function HomeAnalysisShowcase() {
             </div>
           </div>
         </div>
+        <p className="mt-3 text-center text-[11px] text-white/30">실제 트렌드 검색 결과 예시 · 계정명은 비공개 처리</p>
       </div>
     </section>
   )
