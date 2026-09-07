@@ -14,12 +14,12 @@ void main(){
   vec2 q=p*3.0 + vec2(t,0.0);
   float billow=fbm(q + fbm(q*0.6 + t*0.3)*1.3);
   float clouds=smoothstep(0.46,0.86,billow);
-  vec3 skyTop=vec3(0.66,0.79,1.0);
-  vec3 skyBot=vec3(0.82,0.82,1.0);
+  vec3 skyTop=vec3(0.055,0.065,0.105);
+  vec3 skyBot=vec3(0.02,0.022,0.035);
   vec3 sky=mix(skyBot,skyTop,uv.y);
-  sky=mix(sky, vec3(0.52,0.70,1.0), 0.4);
-  vec3 cloud=vec3(1.0);
-  vec3 col=mix(sky, cloud, clouds);
+  sky=mix(sky, vec3(0.03,0.09,0.22), 0.22);
+  vec3 cloud=vec3(0.11,0.14,0.22);
+  vec3 col=mix(sky, cloud, clouds*0.5);
   gl_FragColor=vec4(col,1.0);
 }`
 
@@ -30,7 +30,7 @@ export default function BlobBackground() {
     if (!canvas) return
     let gl
     try { gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl') } catch { gl = null }
-    if (!gl) { canvas.style.background = 'radial-gradient(60vw 44vw at 20% 10%, rgba(0,100,255,.35), transparent 60%), radial-gradient(56vw 44vw at 85% 90%, rgba(124,92,255,.3), transparent 60%), #f4f5f7'; return }
+    if (!gl) { canvas.style.background = 'radial-gradient(60vw 44vw at 20% 10%, rgba(0,100,255,.14), transparent 60%), radial-gradient(56vw 44vw at 85% 90%, rgba(124,92,255,.10), transparent 60%), #0A0B0F'; return }
     const vsh = gl.createShader(gl.VERTEX_SHADER)
     gl.shaderSource(vsh, 'attribute vec2 a;void main(){gl_Position=vec4(a,0.0,1.0);}'); gl.compileShader(vsh)
     const fsh = gl.createShader(gl.FRAGMENT_SHADER)
