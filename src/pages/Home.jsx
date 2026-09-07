@@ -573,7 +573,7 @@ const Home = () => {
           {!user && (<>
             <p className="hero-shimmer mb-6 text-[11px] font-semibold uppercase tracking-[0.32em]">Research · Analyze · Remix</p>
             <h1 className="mb-6 text-[2.4rem] font-semibold leading-[1.16] tracking-tight text-white break-keep md:text-[3.7rem]">
-              터지는 쇼핑 릴스엔 <span className="text-[#A9C0FF]">이유</span>가 있습니다
+              터지는 쇼핑 릴스엔<br /><span className="text-[#A9C0FF]">이유</span>가 있습니다
             </h1>
             <p className="mx-auto mb-10 max-w-md text-[15px] font-normal leading-relaxed text-white/45 break-keep md:text-base">
               릴스·틱톡으로 파는 크리에이터를 위한 소재 리서치 AI.<br />터진 영상을 찾아 분석하고, 내 상품 영상으로 복제하세요.
