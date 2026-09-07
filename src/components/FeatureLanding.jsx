@@ -21,7 +21,7 @@ export default function FeatureLanding({ active, eyebrow, badge, title, sub, ben
           <h1 className="text-[2.2rem] font-semibold leading-[1.2] tracking-tight text-white md:text-[3.2rem]">{title}</h1>
           <p className="mx-auto mt-5 max-w-xl text-[15px] leading-relaxed text-white/50 md:text-base">{sub}</p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link to={ctaTo} className="rounded-full bg-white px-7 py-3.5 text-base font-semibold text-[#0A0B0F] transition hover:bg-white/90">{ctaText}</Link>
+            <Link to={ctaTo} className="rounded-full bg-[#ffffff] px-7 py-3.5 text-base font-semibold text-[#0A0B0F] transition hover:bg-[#e9edf5]">{ctaText}</Link>
             {altTo && <Link to={altTo} className="rounded-full border border-white/15 px-6 py-3.5 text-base font-semibold text-white/80 transition hover:border-white/40">{altText}</Link>}
           </div>
         </div>

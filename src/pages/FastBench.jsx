@@ -18,7 +18,7 @@ export default function FastBench() {
         { title: '급상승 감지', desc: '확산 속도가 튀어오르는 초기 구간을 포착합니다.' },
         { title: '선점 리스트 제공', desc: '곧 터질 소재를 먼저 확보해 남보다 앞서 제작합니다.' },
       ]}
-      ctaTo="/register" ctaText="무료로 시작하기"
+      ctaTo="/pricing" ctaText="요금제 보기"
       altTo="/trend" altText="트렌드에서 보기"
     />
   )
