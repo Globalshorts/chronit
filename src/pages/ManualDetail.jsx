@@ -4,407 +4,401 @@ import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { ManualHeader, ManualFooter, Markdown, Lightbox, parseFaq } from '../components/ManualLayout'
 import PwaInstall from '../components/PwaInstall'
 
-import usageMd      from '../content/usage.md?raw'
-import webappMd     from '../content/webapp.md?raw'
-import creditsMd    from '../content/credits.md?raw'
-import revenueMd    from '../content/revenue.md?raw'
-import tipsMd       from '../content/tips.md?raw'
-import faqMd        from '../content/faq.md?raw'
-import startMd      from '../content/quickstart.md?raw'
-import searchMd     from '../content/search-guide.md?raw'
-import trendMd      from '../content/trend-guide.md?raw'
+import usageMd from '../content/usage.md?raw'
+import webappMd from '../content/webapp.md?raw'
+import creditsMd from '../content/credits.md?raw'
+import revenueMd from '../content/revenue.md?raw'
+import tipsMd from '../content/tips.md?raw'
+import faqMd from '../content/faq.md?raw'
+import startMd from '../content/quickstart.md?raw'
+import searchMd from '../content/search-guide.md?raw'
+import trendMd from '../content/trend-guide.md?raw'
 
 /* ── tips.md 파서 ── */
 function parseTips(md) {
-  const lines = md.split('\n')
-  const items = []
-  let current = null
-  for (const line of lines) {
-    const match = line.match(/^##\s+(.+)$/)
-    if (match) {
-      if (current) items.push(current)
-      current = { title: match[1].trim(), body: '' }
-    } else if (current) {
-      current.body += line + '\n'
-    }
-  }
-  if (current) items.push(current)
-  return items.map(i => ({ ...i, body: i.body.trim() }))
+ const lines = md.split('\n')
+ const items = []
+ let current = null
+ for (const line of lines) {
+ const match = line.match(/^##\s+(.+)$/)
+ if (match) {
+ if (current) items.push(current)
+ current = { title: match[1].trim(), body: '' }
+ } else if (current) {
+ current.body += line + '\n'
+ }
+ }
+ if (current) items.push(current)
+ return items.map(i => ({ ...i, body: i.body.trim() }))
 }
 
 /* ── 팁 카드 색상 ── */
 const TIP_COLORS = [
-  { border: 'border-[#0064FF]/30',   accent: 'bg-[#0064FF]',   light: 'bg-[#0064FF]/15 text-[#0064FF]' },
-  { border: 'border-[#0064FF]/30', accent: 'bg-[#0064FF]', light: 'bg-[#0064FF]/15 text-[#0064FF]' },
-  { border: 'border-[#0064FF]/30',   accent: 'bg-[#0064FF]',   light: 'bg-[#0064FF]/15 text-[#0064FF]' },
-  { border: 'border-green-200',  accent: 'bg-green-500',  light: 'bg-green-100 text-green-600' },
-  { border: 'border-yellow-200', accent: 'bg-yellow-500', light: 'bg-yellow-100 text-yellow-600' },
-  { border: 'border-orange-200', accent: 'bg-orange-500', light: 'bg-orange-100 text-orange-600' },
-  { border: 'border-pink-200',   accent: 'bg-pink-500',   light: 'bg-pink-100 text-pink-600' },
+ { border: 'border-[#0064FF]/30', accent: 'bg-[#0064FF]', light: 'bg-[#0064FF]/15 text-[#0064FF]' },
+ { border: 'border-[#0064FF]/30', accent: 'bg-[#0064FF]', light: 'bg-[#0064FF]/15 text-[#0064FF]' },
+ { border: 'border-[#0064FF]/30', accent: 'bg-[#0064FF]', light: 'bg-[#0064FF]/15 text-[#0064FF]' },
+ { border: 'border-green-200', accent: 'bg-green-500', light: 'bg-green-100 text-green-600' },
+ { border: 'border-yellow-200', accent: 'bg-yellow-500', light: 'bg-yellow-100 text-yellow-600' },
+ { border: 'border-orange-200', accent: 'bg-orange-500', light: 'bg-orange-100 text-orange-600' },
+ { border: 'border-pink-200', accent: 'bg-pink-500', light: 'bg-pink-100 text-pink-600' },
 ]
 
 /* ── 팁 카드 컴포넌트 ── */
 const TipsCards = ({ md }) => {
-  const tips = useMemo(() => parseTips(md), [md])
-  return (
-    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-      {tips.map((tip, i) => {
-        const c = TIP_COLORS[i % TIP_COLORS.length]
-        return (
-          <div key={i} className={`relative overflow-hidden rounded-2xl border bg-white shadow-sm ${c.border}`}>
-            {/* 상단 컬러 라인 */}
-            <div className={`h-1 w-full ${c.accent}`} />
-            <div className="p-5 md:p-6">
-              {/* 번호 배지 */}
-              <span className={`mb-3 inline-block rounded-full px-3 py-1 text-xs font-bold ${c.light}`}>
-                {tip.title.match(/^[①②③④⑤⑥⑦⑧⑨⑩]/)?.[0] ?? `#${i+1}`}
-              </span>
-              <h3 className="mb-3 text-base font-bold leading-snug text-gray-900 md:text-lg">
-                {tip.title.replace(/^[①②③④⑤⑥⑦⑧⑨⑩]\s*/, '')}
-              </h3>
-              <p className="text-sm leading-[1.9] text-slate-600 [overflow-wrap:anywhere] md:text-base whitespace-pre-line">
-                {tip.body}
-              </p>
-            </div>
-          </div>
-        )
-      })}
-    </div>
-  )
+ const tips = useMemo(() => parseTips(md), [md])
+ return (
+ <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+ {tips.map((tip, i) => {
+ const c = TIP_COLORS[i % TIP_COLORS.length]
+ return (
+ <div key={i} className={`relative overflow-hidden rounded-2xl border bg-white shadow-sm ${c.border}`}>
+ {/* 상단 컬러 라인 */}
+ <div className={`h-1 w-full ${c.accent}`} />
+ <div className="p-5 md:p-6">
+ {/* 번호 배지 */}
+ <span className={`mb-3 inline-block rounded-full px-3 py-1 text-xs font-bold ${c.light}`}>
+ {tip.title.match(/^[①②③④⑤⑥⑦⑧⑨⑩]/)?.[0] ?? `#${i+1}`}
+ </span>
+ <h3 className="mb-3 text-base font-bold leading-snug text-gray-900 md:text-lg">
+ {tip.title.replace(/^[①②③④⑤⑥⑦⑧⑨⑩]\s*/, '')}
+ </h3>
+ <p className="text-sm leading-[1.9] text-slate-600 [overflow-wrap:anywhere] md:text-base whitespace-pre-line">
+ {tip.body}
+ </p>
+ </div>
+ </div>
+ )
+ })}
+ </div>
+ )
 }
 
 /* ── 시작하기 STEP 카드 ── */
 const fmtInline = (s) => s
-  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-  .replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold text-[#0064FF]">$1</strong>')
+ .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+ .replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold text-[#0064FF]">$1</strong>')
 
 const StartSteps = ({ md }) => {
-  const steps = useMemo(() => parseTips(md), [md])
-  return (
-    <div className="space-y-4 md:space-y-5">
-      {steps.map((step, i) => {
-        const num = String(i + 1).padStart(2, '0')
-        const title = step.title.replace(/^STEP\s*\d+\s*[·.]\s*/i, '')
-        const bullets = step.body.split('\n').map(l => l.trim()).filter(l => l.startsWith('-')).map(l => l.replace(/^-\s*/, ''))
-        return (
-          <div key={i} className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm md:p-7">
-            <div className="flex items-start gap-4 md:gap-5">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#0064FF] text-lg font-bold text-white shadow-md shadow-black/5 md:h-14 md:w-14 md:text-xl">{num}</div>
-              <div className="min-w-0 flex-1 pt-1">
-                <h3 className="mb-4 text-lg font-bold leading-snug text-gray-900 md:text-xl">{title}</h3>
-                <ul className="space-y-3">
-                  {bullets.map((b, j) => (
-                    <li key={j} className="flex items-start gap-3 text-base leading-relaxed text-gray-700 md:text-lg">
-                      <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#0064FF]/15 text-[11px] font-bold text-[#0064FF]">✓</span>
-                      <span className="[overflow-wrap:anywhere]" dangerouslySetInnerHTML={{ __html: fmtInline(b) }} />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        )
-      })}
-      <div className="rounded-3xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-5 text-center md:p-6">
-        <p className="text-base font-bold text-gray-900 md:text-lg">🎉 정말 이게 전부예요!</p>
-        <p className="mt-1.5 text-sm text-gray-500 md:text-base">영상 길이·목소리·자막은 처음에 한 번만 정해두면 다음부터 자동이에요. 잘 모르겠으면 그대로 둬도 괜찮아요.</p>
-      </div>
-    </div>
-  )
+ const steps = useMemo(() => parseTips(md), [md])
+ return (
+ <div className="space-y-4 md:space-y-5">
+ {steps.map((step, i) => {
+ const num = String(i + 1).padStart(2, '0')
+ const title = step.title.replace(/^STEP\s*\d+\s*[·.]\s*/i, '')
+ const bullets = step.body.split('\n').map(l => l.trim()).filter(l => l.startsWith('-')).map(l => l.replace(/^-\s*/, ''))
+ return (
+ <div key={i} className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm md:p-7">
+ <div className="flex items-start gap-4 md:gap-5">
+ <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#0064FF] text-lg font-bold text-white shadow-md shadow-black/5 md:h-14 md:w-14 md:text-xl">{num}</div>
+ <div className="min-w-0 flex-1 pt-1">
+ <h3 className="mb-4 text-lg font-bold leading-snug text-gray-900 md:text-xl">{title}</h3>
+ <ul className="space-y-3">
+ {bullets.map((b, j) => (
+ <li key={j} className="flex items-start gap-3 text-base leading-relaxed text-gray-700 md:text-lg">
+ <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#0064FF]/15 text-[11px] font-bold text-[#0064FF]">✓</span>
+ <span className="[overflow-wrap:anywhere]" dangerouslySetInnerHTML={{ __html: fmtInline(b) }} />
+ </li>
+ ))}
+ </ul>
+ </div>
+ </div>
+ </div>
+ )
+ })}
+ <div className="rounded-3xl border border-[#0064FF]/30 bg-[#0064FF]/5 p-5 text-center md:p-6">
+ <p className="text-base font-bold text-gray-900 md:text-lg"> 정말 이게 전부예요!</p>
+ <p className="mt-1.5 text-sm text-gray-500 md:text-base">영상 길이·목소리·자막은 처음에 한 번만 정해두면 다음부터 자동이에요. 잘 모르겠으면 그대로 둬도 괜찮아요.</p>
+ </div>
+ </div>
+ )
 }
 
 /* ── 사진 가이드 (스타일·자동화 세팅) ── */
 const GUIDE_STEPS = [
-  { group: '처음 한 번만 — 세팅', once: true, collapsible: true, defaultCollapsed: true },
-  { img: '/guide/02-menu-v3.jpg', title: '① 스타일 탭 열기', desc: "영상 만드는 화면에서 왼쪽 위 **☰ 메뉴 → 스타일**을 열어요. 위에 **🔍 스타일 찾기**와 **⚙️ 자동화 세팅**이 있어요.", note: "잘 모르겠으면 이 세팅은 **건너뛰고** 기본값으로 바로 시작해도 돼요." },
-  { img: '/guide/03-style.jpg', title: '② 스타일 찾기 — 따라 할 영상 등록', desc: "**🔍 스타일 찾기**에 따라 하고 싶은 영상(인스타·틱톡) 링크를 넣고 **분석 시작**을 누르면, 그 말투·구성이 내 스타일로 저장돼요." },
-  { img: '/guide/04-setup-length.jpg', title: '③ 자동화 세팅 — 길이·목소리·자막', desc: "**⚙️ 자동화 세팅**에서 **영상 길이**(잘 모르면 15초), **목소리**(미리듣기 가능), **자막 모양**을 한 번 정해두면 다음부터 자동이에요.", note: "전부 **기본값 그대로 둬도** 예쁘게 나와요." },
-  { group: '영상 만들 때마다 — 이것만 반복!', once: false },
-  { img: '/guide/08-link.jpg', title: '① 새 프로젝트 + 쇼핑 링크 분석', desc: "**＋ 새 프로젝트**를 누르고, 준비한 **상품 영상을 올리거나 링크**를 넣은 뒤 **분석 시작**을 눌러요. 잠깐 기다리면 상품을 분석해줘요.", note: "**프로젝트**는 영상 한 편을 만드는 작업 공간이에요 (영상 하나 = 프로젝트 하나)." },
-  { img: '/guide/09-clips.jpg', title: '② 클립 담고 → 자동 생성', desc: "찾아준 클립 중 마음에 드는 걸 **담기** → **자동 생성**을 누르고 내용 확인 후 **진행**! 보통 **1~5분**이면 완성돼요." },
-  { img: '/guide/11-addlink.jpg', title: '③ 완성되면 → 🔗 내 링크에 추가', desc: "영상이 완성되면 **생성 내역**에서 **🔗 내 링크에 추가**를 눌러요.", note: "**내 링크 페이지** = 만든 영상을 쿠팡 링크와 함께 모아 공유하는 나만의 페이지예요." },
-  { img: '/guide/12-mylink.jpg', title: '④ 카드 완성 → 내 주소 공유', desc: "카드에 **쿠팡 링크**를 넣고 **＋ 페이지에 표시**. 맨 위 **내 주소**를 복사해 인스타 프로필에 붙이면 끝!", note: "이미지는 자동으로 뽑혀요 — 별로면 **🔄 다른 컷 / 📷 업로드**로 변경." },
+ { group: '처음 한 번만 — 세팅', once: true, collapsible: true, defaultCollapsed: true },
+ { img: '/guide/02-menu-v3.jpg', title: '① 스타일 탭 열기', desc: "영상 만드는 화면에서 왼쪽 위 **메뉴 → 스타일**을 열어요. 위에 **스타일 찾기**와 **자동화 세팅**이 있어요.", note: "잘 모르겠으면 이 세팅은 **건너뛰고** 기본값으로 바로 시작해도 돼요." },
+ { img: '/guide/03-style.jpg', title: '② 스타일 찾기 — 따라 할 영상 등록', desc: "**스타일 찾기**에 따라 하고 싶은 영상(인스타·틱톡) 링크를 넣고 **분석 시작**을 누르면, 그 말투·구성이 내 스타일로 저장돼요." },
+ { img: '/guide/04-setup-length.jpg', title: '③ 자동화 세팅 — 길이·목소리·자막', desc: "**자동화 세팅**에서 **영상 길이**(잘 모르면 15초), **목소리**(미리듣기 가능), **자막 모양**을 한 번 정해두면 다음부터 자동이에요.", note: "전부 **기본값 그대로 둬도** 예쁘게 나와요." },
+ { group: '영상 만들 때마다 — 이것만 반복!', once: false },
+ { img: '/guide/08-link.jpg', title: '① 새 프로젝트 + 쇼핑 링크 분석', desc: "**＋ 새 프로젝트**를 누르고, 준비한 **상품 영상을 올리거나 링크**를 넣은 뒤 **분석 시작**을 눌러요. 잠깐 기다리면 상품을 분석해줘요.", note: "**프로젝트**는 영상 한 편을 만드는 작업 공간이에요 (영상 하나 = 프로젝트 하나)." },
+ { img: '/guide/09-clips.jpg', title: '② 클립 담고 자동 생성', desc: "찾아준 클립 중 마음에 드는 걸 **담기 → 자동 생성**을 누르고 내용 확인 후 **진행**! 보통 **1~5분**이면 완성돼요." },
+ { img: '/guide/11-addlink.jpg', title: '③ 완성되면 내 링크에 추가', desc: "영상이 완성되면 **생성 내역**에서 **내 링크에 추가**를 눌러요.", note: "**내 링크 페이지** = 만든 영상을 쿠팡 링크와 함께 모아 공유하는 나만의 페이지예요." },
+ { img: '/guide/12-mylink.jpg', title: '④ 카드 완성 내 주소 공유', desc: "카드에 **쿠팡 링크**를 넣고 **＋ 페이지에 표시**. 맨 위 **내 주소**를 복사해 인스타 프로필에 붙이면 끝!", note: "이미지는 자동으로 뽑혀요 — 별로면 **다른 컷 / 업로드**로 변경." },
 ]
 
 const GuideWalkthrough = ({ steps, onImageClick }) => {
-  // group 마커 기준으로 묶기
-  const groups = []
-  let cur = null
-  steps.forEach((s) => {
-    if (s.group) { cur = { group: s.group, once: s.once, items: [] }; groups.push(cur) }
-    else if (cur) cur.items.push(s)
-    else { cur = { group: '', once: false, items: [s] }; groups.push(cur) }
-  })
-  return (
-    <div className="space-y-8">
-      <div className="rounded-2xl border border-[#0064FF]/30 bg-[#0064FF]/5 px-5 py-4">
-        <p className="mb-2.5 text-sm font-bold text-gray-500">핵심은 이게 다예요</p>
-        <div className="flex flex-wrap items-center gap-2 text-sm font-bold text-gray-900">
-          <span className="rounded-lg border border-gray-200 bg-white px-3 py-1.5">쇼핑 링크 넣기</span>
-          <span className="text-[#0064FF]">→</span>
-          <span className="rounded-lg border border-gray-200 bg-white px-3 py-1.5">자동 생성</span>
-          <span className="text-[#0064FF]">→</span>
-          <span className="rounded-lg border border-gray-200 bg-white px-3 py-1.5">내 링크에 공유</span>
-        </div>
-      </div>
-      {groups.map((g, gi) => <StepGroup key={gi} group={g} onImageClick={onImageClick} />)}
-    </div>
-  )
+ // group 마커 기준으로 묶기
+ const groups = []
+ let cur = null
+ steps.forEach((s) => {
+ if (s.group) { cur = { group: s.group, once: s.once, items: [] }; groups.push(cur) }
+ else if (cur) cur.items.push(s)
+ else { cur = { group: '', once: false, items: [s] }; groups.push(cur) }
+ })
+ return (
+ <div className="space-y-8">
+ <div className="rounded-2xl border border-[#0064FF]/30 bg-[#0064FF]/5 px-5 py-4">
+ <p className="mb-2.5 text-sm font-bold text-gray-500">핵심은 이게 다예요</p>
+ <div className="flex flex-wrap items-center gap-2 text-sm font-bold text-gray-900">
+ <span className="rounded-lg border border-gray-200 bg-white px-3 py-1.5">쇼핑 링크 넣기</span>
+ <span className="text-[#0064FF]"></span>
+ <span className="rounded-lg border border-gray-200 bg-white px-3 py-1.5">자동 생성</span>
+ <span className="text-[#0064FF]"></span>
+ <span className="rounded-lg border border-gray-200 bg-white px-3 py-1.5">내 링크에 공유</span>
+ </div>
+ </div>
+ {groups.map((g, gi) => <StepGroup key={gi} group={g} onImageClick={onImageClick} />)}
+ </div>
+ )
 }
 
 const StepGroup = ({ group, onImageClick }) => {
-  const [idx, setIdx] = useState(0)
-  const [open, setOpen] = useState(!group.defaultCollapsed)
-  const items = group.items
-  const total = items.length
-  const s = items[Math.min(idx, total - 1)]
-  const badge = (
-    <span className={`rounded-full px-3 py-1 text-xs font-bold ${group.once ? 'bg-[#0064FF]/15 text-[#0064FF]' : 'bg-amber-100 text-amber-700'}`}>
-      {group.once ? '처음 한 번만' : '매번 반복'}
-    </span>
-  )
-  return (
-    <div>
-      {group.group && (group.collapsible ? (
-        <button onClick={() => setOpen((o) => !o)} className="mb-3 flex w-full flex-wrap items-center gap-2.5 text-left">
-          {badge}
-          <h2 className="text-lg font-bold text-gray-900 md:text-xl">{group.group}</h2>
-          <span className="ml-auto rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-500">{open ? '접기 ▲' : '펼치기 ▼'}</span>
-        </button>
-      ) : (
-        <div className="mb-3 flex flex-wrap items-center gap-2.5">
-          {badge}
-          <h2 className="text-lg font-bold text-gray-900 md:text-xl">{group.group}</h2>
-        </div>
-      ))}
-      {open && (
-      <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
-        <div className="p-5 md:p-6">
-          <p className="mb-1.5 text-xs font-bold text-gray-400">{idx + 1} / {total}</p>
-          <h3 className="mb-2 text-base font-bold leading-snug text-gray-900 md:text-lg" dangerouslySetInnerHTML={{ __html: fmtInline(s.title) }} />
-          <p className="text-sm leading-[1.85] text-slate-600 md:text-base" dangerouslySetInnerHTML={{ __html: fmtInline(s.desc) }} />
-          {s.note && (
-            <div className="mt-3 rounded-xl bg-[#0064FF]/8 px-4 py-3 text-sm leading-[1.8] text-gray-700" dangerouslySetInnerHTML={{ __html: '💡 ' + fmtInline(s.note) }} />
-          )}
-        </div>
-        {s.img && (
-          <button onClick={() => onImageClick({ src: s.img, alt: s.title })} className="block w-full border-t border-gray-100 bg-gray-50 p-3">
-            <img src={s.img} alt={s.title} loading="lazy" className="mx-auto w-full max-w-[340px] rounded-xl border border-gray-200" />
-          </button>
-        )}
-        <div className="flex items-center justify-between gap-3 border-t border-gray-100 px-5 py-3">
-          <button onClick={() => setIdx((i) => Math.max(0, i - 1))} disabled={idx === 0}
-            className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-bold text-gray-600 disabled:opacity-30">← 이전</button>
-          <div className="flex flex-wrap justify-center gap-1.5">
-            {items.map((_, i) => (
-              <button key={i} onClick={() => setIdx(i)} aria-label={`${i + 1}단계`}
-                className={`h-2 w-2 rounded-full transition ${i === idx ? 'bg-[#0064FF]' : 'bg-gray-300 hover:bg-gray-400'}`} />
-            ))}
-          </div>
-          {idx < total - 1 ? (
-            <button onClick={() => setIdx((i) => Math.min(total - 1, i + 1))}
-              className="rounded-xl bg-[#0064FF] px-4 py-2 text-sm font-bold text-white">다음 →</button>
-          ) : (
-            <span className="rounded-xl bg-[#0064FF]/10 px-4 py-2 text-sm font-bold text-[#0064FF]">완료 ✓</span>
-          )}
-        </div>
-      </div>
-      )}
-    </div>
-  )
+ const [idx, setIdx] = useState(0)
+ const [open, setOpen] = useState(!group.defaultCollapsed)
+ const items = group.items
+ const total = items.length
+ const s = items[Math.min(idx, total - 1)]
+ const badge = (
+ <span className={`rounded-full px-3 py-1 text-xs font-bold ${group.once ? 'bg-[#0064FF]/15 text-[#0064FF]' : 'bg-amber-100 text-amber-700'}`}>
+ {group.once ? '처음 한 번만' : '매번 반복'}
+ </span>
+ )
+ return (
+ <div>
+ {group.group && (group.collapsible ? (
+ <button onClick={() => setOpen((o) => !o)} className="mb-3 flex w-full flex-wrap items-center gap-2.5 text-left">
+ {badge}
+ <h2 className="text-lg font-bold text-gray-900 md:text-xl">{group.group}</h2>
+ <span className="ml-auto rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-500">{open ? '접기 ▲' : '펼치기 ▼'}</span>
+ </button>
+ ) : (
+ <div className="mb-3 flex flex-wrap items-center gap-2.5">
+ {badge}
+ <h2 className="text-lg font-bold text-gray-900 md:text-xl">{group.group}</h2>
+ </div>
+ ))}
+ {open && (
+ <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
+ <div className="p-5 md:p-6">
+ <p className="mb-1.5 text-xs font-bold text-gray-400">{idx + 1} / {total}</p>
+ <h3 className="mb-2 text-base font-bold leading-snug text-gray-900 md:text-lg" dangerouslySetInnerHTML={{ __html: fmtInline(s.title) }} />
+ <p className="text-sm leading-[1.85] text-slate-600 md:text-base" dangerouslySetInnerHTML={{ __html: fmtInline(s.desc) }} />
+ {s.note && (
+ <div className="mt-3 rounded-xl bg-[#0064FF]/8 px-4 py-3 text-sm leading-[1.8] text-gray-700" dangerouslySetInnerHTML={{ __html: '' + fmtInline(s.note) }} />
+ )}
+ </div>
+ {s.img && (
+ <button onClick={() => onImageClick({ src: s.img, alt: s.title })} className="block w-full border-t border-gray-100 bg-gray-50 p-3">
+ <img src={s.img} alt={s.title} loading="lazy" className="mx-auto w-full max-w-[340px] rounded-xl border border-gray-200" />
+ </button>
+ )}
+ <div className="flex items-center justify-between gap-3 border-t border-gray-100 px-5 py-3">
+ <button onClick={() => setIdx((i) => Math.max(0, i - 1))} disabled={idx === 0}
+ className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-bold text-gray-600 disabled:opacity-30"> 이전</button>
+ <div className="flex flex-wrap justify-center gap-1.5">
+ {items.map((_, i) => (
+ <button key={i} onClick={() => setIdx(i)} aria-label={`${i + 1}단계`}
+ className={`h-2 w-2 rounded-full transition ${i === idx ? 'bg-[#0064FF]' : 'bg-gray-300 hover:bg-gray-400'}`} />
+ ))}
+ </div>
+ {idx < total - 1 ? (
+ <button onClick={() => setIdx((i) => Math.min(total - 1, i + 1))}
+ className="rounded-xl bg-[#0064FF] px-4 py-2 text-sm font-bold text-white">다음 </button>
+ ) : (
+ <span className="rounded-xl bg-[#0064FF]/10 px-4 py-2 text-sm font-bold text-[#0064FF]">완료 ✓</span>
+ )}
+ </div>
+ </div>
+ )}
+ </div>
+ )
 }
 
 const SECTIONS = {
-  start: {
-    emoji: '⚡',
-    title: '3단계 빠른 시작',
-    callout: '링크나 키워드를 넣으면 잘 터진 숏폼을 찾아주고, AI가 분석해줘요. 아래 3단계를 확인하세요.',
-    type: 'markdown',
-    content: startMd,
-  },
-  search: {
-    emoji: '🔍',
-    title: '검색 vs 채널 분석',
-    callout: '관련 클립 검색과 채널 분석, 언제 무엇을 쓰면 좋은지 정리했어요.',
-    type: 'markdown',
-    content: searchMd,
-  },
-  trend: {
-    emoji: '🔥',
-    title: '실시간 트렌드',
-    callout: '팔로워 2만 미만 계정이 최근 터뜨린 쇼핑 숏폼을 모아보는 곳이에요.',
-    type: 'markdown',
-    content: trendMd,
-  },
-  credits: {
-    emoji: '🪙',
-    title: '요금제 · 이용권',
-    callout: '분석 1회 = 이용권 1개. 요금제와 환불 규정을 정리했어요.',
-    type: 'markdown',
-    content: creditsMd,
-  },
-  app: {
-    emoji: '📱',
-    title: '앱으로 설치해 쓰기',
-    callout: '홈 화면에 추가하면 일반 앱처럼 바로 실행돼요. (앱스토어 설치 불필요)',
-    type: 'markdown',
-    content: webappMd,
-  },
-  faq: {
-    emoji: '❓',
-    title: '자주 묻는 질문',
-    callout: null,
-    type: 'faq',
-    content: faqMd,
-  },
+ start: {
+ title: '3단계 빠른 시작',
+ callout: '링크나 키워드를 넣으면 잘 터진 숏폼을 찾아주고, AI가 분석해줘요. 아래 3단계를 확인하세요.',
+ type: 'markdown',
+ content: startMd,
+ },
+ search: {
+ title: '검색 vs 채널 분석',
+ callout: '관련 클립 검색과 채널 분석, 언제 무엇을 쓰면 좋은지 정리했어요.',
+ type: 'markdown',
+ content: searchMd,
+ },
+ trend: {
+ title: '실시간 트렌드',
+ callout: '팔로워 2만 미만 계정이 최근 터뜨린 쇼핑 숏폼을 모아보는 곳이에요.',
+ type: 'markdown',
+ content: trendMd,
+ },
+ credits: {
+ title: '요금제 · 이용권',
+ callout: '분석 1회 = 이용권 1개. 요금제와 환불 규정을 정리했어요.',
+ type: 'markdown',
+ content: creditsMd,
+ },
+ app: {
+ title: '앱으로 설치해 쓰기',
+ callout: '홈 화면에 추가하면 일반 앱처럼 바로 실행돼요. (앱스토어 설치 불필요)',
+ type: 'markdown',
+ content: webappMd,
+ },
+ faq: {
+ title: '자주 묻는 질문',
+ callout: null,
+ type: 'faq',
+ content: faqMd,
+ },
 }
 
 /* ── FAQ 아이템 ── */
 const FaqItem = ({ question, answer, onImageClick }) => {
-  const [open, setOpen] = useState(false)
-  return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-      <button
-        onClick={() => setOpen(v => !v)}
-        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-gray-50"
-      >
-        <span className="text-base font-bold text-gray-900 md:text-lg">Q. {question}</span>
-        <span className="shrink-0 text-[#0064FF] text-sm transition-transform duration-200" style={{ transform: open ? 'rotate(90deg)' : 'rotate(0deg)' }}>▶</span>
-      </button>
-      <div className="grid transition-all duration-200 ease-in-out" style={{ gridTemplateRows: open ? '1fr' : '0fr' }}>
-        <div className="overflow-hidden">
-          <div className="border-t border-gray-100 px-5 pb-4 pt-3">
-            <Markdown onImageClick={onImageClick}>{answer}</Markdown>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+ const [open, setOpen] = useState(false)
+ return (
+ <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+ <button
+ onClick={() => setOpen(v => !v)}
+ className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-gray-50"
+ >
+ <span className="text-base font-bold text-gray-900 md:text-lg">Q. {question}</span>
+ <span className="shrink-0 text-[#0064FF] text-sm transition-transform duration-200" style={{ transform: open ? 'rotate(90deg)' : 'rotate(0deg)' }}>▶</span>
+ </button>
+ <div className="grid transition-all duration-200 ease-in-out" style={{ gridTemplateRows: open ? '1fr' : '0fr' }}>
+ <div className="overflow-hidden">
+ <div className="border-t border-gray-100 px-5 pb-4 pt-3">
+ <Markdown onImageClick={onImageClick}>{answer}</Markdown>
+ </div>
+ </div>
+ </div>
+ </div>
+ )
 }
 
 const ManualDetail = () => {
-  const { section } = useParams()
-  const { pathname } = useLocation()
-  const [lightbox, setLightbox] = useState(null)
-  const data = SECTIONS[section]
+ const { section } = useParams()
+ const { pathname } = useLocation()
+ const [lightbox, setLightbox] = useState(null)
+ const data = SECTIONS[section]
 
-  const faqItems = useMemo(() => (data?.type === 'faq' ? parseFaq(data.content) : []), [data])
+ const faqItems = useMemo(() => (data?.type === 'faq' ? parseFaq(data.content) : []), [data])
 
-  useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') setLightbox(null) }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [])
+ useEffect(() => {
+ const handler = (e) => { if (e.key === 'Escape') setLightbox(null) }
+ window.addEventListener('keydown', handler)
+ return () => window.removeEventListener('keydown', handler)
+ }, [])
 
-  if (!data) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-white text-gray-900">
-        <div className="text-center">
-          <p className="mb-4 text-xl">페이지를 찾을 수 없습니다.</p>
-          <Link to="/manual" className="text-[#0064FF] underline">사용 방법으로 돌아가기</Link>
-        </div>
-      </div>
-    )
-  }
+ if (!data) {
+ return (
+ <div className="flex min-h-screen items-center justify-center bg-white text-gray-900">
+ <div className="text-center">
+ <p className="mb-4 text-xl">페이지를 찾을 수 없습니다.</p>
+ <Link to="/manual" className="text-[#0064FF] underline">사용 방법으로 돌아가기</Link>
+ </div>
+ </div>
+ )
+ }
 
-  return (
-    <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans text-gray-900 selection:bg-[#0064FF]/30">
-      {lightbox && <Lightbox src={lightbox.src} alt={lightbox.alt} onClose={() => setLightbox(null)} />}
-      <ManualHeader currentPath={pathname} />
+ return (
+ <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans text-gray-900 selection:bg-[#0064FF]/30">
+ {lightbox && <Lightbox src={lightbox.src} alt={lightbox.alt} onClose={() => setLightbox(null)} />}
+ <ManualHeader currentPath={pathname} />
 
-      {/* 히어로 */}
-      <section className="relative px-5 pt-32 pb-10 md:px-8 md:pt-44 md:pb-12">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_60%,transparent_100%)]" />
-        <div className="relative z-10 mx-auto max-w-3xl">
-          <Link to="/manual" className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition-colors hover:text-[#0064FF]">
-            <ArrowLeft size={16} /> 사용 방법 목록
-          </Link>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 md:text-5xl">
-            <span className="mr-3">{data.emoji}</span>{data.title}
-          </h1>
-        </div>
-      </section>
+ {/* 히어로 */}
+ <section className="relative px-5 pt-32 pb-10 md:px-8 md:pt-44 md:pb-12">
+ <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_60%,transparent_100%)]" />
+ <div className="relative z-10 mx-auto max-w-3xl">
+ <Link to="/manual" className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition-colors hover:text-[#0064FF]">
+ <ArrowLeft size={16} /> 사용 방법 목록
+ </Link>
+ <h1 className="text-3xl font-bold tracking-tight text-gray-900 md:text-5xl">
+ {data.title}
+ </h1>
+ </div>
+ </section>
 
-      {/* 본문 */}
-      <section className="px-5 pb-24 md:px-8">
-        <div className="mx-auto max-w-3xl">
-          {data.callout && (
-            <div className="mb-6 flex items-center gap-2 rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/10 px-4 py-3 text-sm font-semibold text-[#0064FF] md:text-base">
-              <span>📌</span> {data.callout}
-            </div>
-          )}
+ {/* 본문 */}
+ <section className="px-5 pb-24 md:px-8">
+ <div className="mx-auto max-w-3xl">
+ {data.callout && (
+ <div className="mb-6 flex items-center gap-2 rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/10 px-4 py-3 text-sm font-semibold text-[#0064FF] md:text-base">
+ {data.callout}
+ </div>
+ )}
 
-          {section === 'app' && (
-            <div className="mb-6 rounded-3xl border-2 border-[#0064FF]/40 bg-gradient-to-br from-[#0064FF]/10 to-[#0064FF]/5 p-6 text-center md:p-7">
-              <h3 className="text-xl font-bold text-gray-900 md:text-2xl">지금 홈 화면에 추가하기</h3>
-              <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">버튼을 누르면 설치 안내가 떠요. 앱스토어 없이 아이콘 하나로 끝.</p>
-              <button onClick={() => window.dispatchEvent(new Event('chronit:open-install'))}
-                className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0064FF] px-7 py-3.5 text-base font-bold text-white shadow-md shadow-black/5 transition-all hover:gap-3">
-                📲 앱 설치하기
-              </button>
-            </div>
-          )}
-          {data.type === 'markdown' && (
-            <Markdown onImageClick={setLightbox}>{data.content}</Markdown>
-          )}
+ {section === 'app' && (
+ <div className="mb-6 rounded-3xl border-2 border-[#0064FF]/40 bg-gradient-to-br from-[#0064FF]/10 to-[#0064FF]/5 p-6 text-center md:p-7">
+ <h3 className="text-xl font-bold text-gray-900 md:text-2xl">지금 홈 화면에 추가하기</h3>
+ <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">버튼을 누르면 설치 안내가 떠요. 앱스토어 없이 아이콘 하나로 끝.</p>
+ <button onClick={() => window.dispatchEvent(new Event('chronit:open-install'))}
+ className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0064FF] px-7 py-3.5 text-base font-bold text-white shadow-md shadow-black/5 transition-all hover:gap-3">
+ 앱 설치하기
+ </button>
+ </div>
+ )}
+ {data.type === 'markdown' && (
+ <Markdown onImageClick={setLightbox}>{data.content}</Markdown>
+ )}
 
-          {data.type === 'steps' && (
-            <StartSteps md={data.content} />
-          )}
+ {data.type === 'steps' && (
+ <StartSteps md={data.content} />
+ )}
 
-          {data.type === 'guide' && (
-            <GuideWalkthrough steps={data.content} onImageClick={setLightbox} />
-          )}
+ {data.type === 'guide' && (
+ <GuideWalkthrough steps={data.content} onImageClick={setLightbox} />
+ )}
 
-          {data.type === 'tips' && (
-            <TipsCards md={data.content} />
-          )}
+ {data.type === 'tips' && (
+ <TipsCards md={data.content} />
+ )}
 
-          {data.type === 'faq' && (
-            <div className="space-y-2">
-              {faqItems.map((item, i) => (
-                <FaqItem key={i} question={item.question} answer={item.answer} onImageClick={setLightbox} />
-              ))}
-            </div>
-          )}
+ {data.type === 'faq' && (
+ <div className="space-y-2">
+ {faqItems.map((item, i) => (
+ <FaqItem key={i} question={item.question} answer={item.answer} onImageClick={setLightbox} />
+ ))}
+ </div>
+ )}
 
-          {section === 'start' && (
-            <Link to="/finds" className="group mt-8 block overflow-hidden rounded-3xl border-2 border-[#0064FF]/40 bg-gradient-to-br from-[#0064FF]/12 to-[#0064FF]/5 p-6 transition-all hover:-translate-y-0.5 hover:border-[#0064FF] hover:shadow-xl md:p-7">
-              <span className="inline-block rounded-full bg-[#0064FF] px-3 py-1 text-xs font-bold text-white">바로 시작</span>
-              <h3 className="mt-3 text-xl font-bold leading-snug text-gray-900 md:text-2xl">지금 바로 소재 찾아보기 🔍</h3>
-              <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">
-                링크나 키워드만 넣으면 잘 터진 숏폼을 찾아줘요. <b className="text-[#0064FF]">가입은 무료</b>, 매월 이용권 5개를 드려요.
-              </p>
-              <span className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-bold text-white shadow-md shadow-black/5 transition-all group-hover:gap-3">
-                Finds 열기 <ArrowRight size={18} />
-              </span>
-            </Link>
-          )}
-          {section === 'revenue' && (
-            <div className="mt-10 rounded-3xl border-2 border-[#0064FF]/40 bg-gradient-to-br from-[#0064FF]/12 to-[#0064FF]/5 p-7 text-center md:p-8">
-              <h3 className="text-xl font-bold text-gray-900 md:text-2xl">이제 직접 만들어 볼까요?</h3>
-              <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">
-                상품 영상만 준비하면 돼요. <b className="text-[#0064FF]">가입은 무료</b>, 구글 로그인이면 바로 시작할 수 있어요.
-              </p>
-              <Link to="/generate" className="group mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0064FF] px-8 py-4 text-lg font-bold text-white shadow-md shadow-black/5 transition-all hover:bg-[#0052D6]">
-                무료 체험 <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
-              </Link>
-            </div>
-          )}
-        </div>
-      </section>
-      <section className="px-5 pb-16 md:px-8">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
-          <Link to="/manual" className="group inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition-all hover:border-[#0064FF] hover:text-[#0064FF]">
-            <ArrowLeft size={16} /> 목록으로
-          </Link>
-        </div>
-      </section>
+ {section === 'start' && (
+ <Link to="/finds" className="group mt-8 block overflow-hidden rounded-3xl border-2 border-[#0064FF]/40 bg-gradient-to-br from-[#0064FF]/12 to-[#0064FF]/5 p-6 transition-all hover:-translate-y-0.5 hover:border-[#0064FF] hover:shadow-xl md:p-7">
+ <span className="inline-block rounded-full bg-[#0064FF] px-3 py-1 text-xs font-bold text-white">바로 시작</span>
+ <h3 className="mt-3 text-xl font-bold leading-snug text-gray-900 md:text-2xl">지금 바로 소재 찾아보기 </h3>
+ <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">
+ 링크나 키워드만 넣으면 잘 터진 숏폼을 찾아줘요. <b className="text-[#0064FF]">가입은 무료</b>, 매월 이용권 5개를 드려요.
+ </p>
+ <span className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-bold text-white shadow-md shadow-black/5 transition-all group-hover:gap-3">
+ Finds 열기 <ArrowRight size={18} />
+ </span>
+ </Link>
+ )}
+ {section === 'revenue' && (
+ <div className="mt-10 rounded-3xl border-2 border-[#0064FF]/40 bg-gradient-to-br from-[#0064FF]/12 to-[#0064FF]/5 p-7 text-center md:p-8">
+ <h3 className="text-xl font-bold text-gray-900 md:text-2xl">이제 직접 만들어 볼까요?</h3>
+ <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">
+ 상품 영상만 준비하면 돼요. <b className="text-[#0064FF]">가입은 무료</b>, 구글 로그인이면 바로 시작할 수 있어요.
+ </p>
+ <Link to="/generate" className="group mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0064FF] px-8 py-4 text-lg font-bold text-white shadow-md shadow-black/5 transition-all hover:bg-[#0052D6]">
+ 무료 체험 <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
+ </Link>
+ </div>
+ )}
+ </div>
+ </section>
+ <section className="px-5 pb-16 md:px-8">
+ <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
+ <Link to="/manual" className="group inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition-all hover:border-[#0064FF] hover:text-[#0064FF]">
+ <ArrowLeft size={16} /> 목록으로
+ </Link>
+ </div>
+ </section>
 
-      <PwaInstall />
-      <ManualFooter />
-    </div>
-  )
+ <PwaInstall />
+ <ManualFooter />
+ </div>
+ )
 }
 
 export default ManualDetail

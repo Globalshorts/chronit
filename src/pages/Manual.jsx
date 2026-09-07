@@ -5,7 +5,6 @@ import { ManualHeader, ManualFooter } from '../components/ManualLayout'
 const CARDS = [
   {
     to: '/manual/start',
-    emoji: '⚡',
     title: '3단계 빠른 시작',
     desc: '링크·키워드 넣고\n검색부터 분석까지',
     color: 'border-white/10 hover:border-[#0064FF]/50',
@@ -14,7 +13,6 @@ const CARDS = [
   },
   {
     to: '/manual/search',
-    emoji: '🔍',
     title: '검색 vs 채널 분석',
     desc: '관련 클립 검색과\n채널 분석, 언제 뭘 쓰나',
     color: 'border-white/10 hover:border-[#0064FF]/50',
@@ -23,7 +21,6 @@ const CARDS = [
   },
   {
     to: '/manual/trend',
-    emoji: '🔥',
     title: '실시간 트렌드',
     desc: '잘 뜬 쇼핑 숏폼을\n한곳에 모아보기',
     color: 'border-white/10 hover:border-[#0064FF]/50',
@@ -32,7 +29,6 @@ const CARDS = [
   },
   {
     to: '/manual/credits',
-    emoji: '🪙',
     title: '요금제 · 이용권',
     desc: '분석 1회 = 이용권 1개\n요금제·환불 안내',
     color: 'border-white/10 hover:border-[#0064FF]/50',
@@ -41,7 +37,6 @@ const CARDS = [
   },
   {
     to: '/manual/app',
-    emoji: '📱',
     title: '앱으로 설치해 쓰기',
     desc: '휴대폰 홈 화면에 추가해\n앱처럼 사용하기',
     color: 'border-white/10 hover:border-[#0064FF]/50',
@@ -50,7 +45,6 @@ const CARDS = [
   },
   {
     to: '/manual/faq',
-    emoji: '❓',
     title: '자주 묻는 질문',
     desc: '막힐 때 바로 찾는\n답변 모음',
     color: 'border-white/10 hover:border-[#0064FF]/50',
@@ -90,7 +84,6 @@ const Manual = () => {
                   {card.badge}
                 </span>
               )}
-              <span className="text-3xl">{card.emoji}</span>
               <div>
                 <h2 className="text-lg font-bold text-gray-900">{card.title}</h2>
                 <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-slate-500">{card.desc}</p>
