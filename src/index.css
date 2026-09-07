@@ -142,6 +142,7 @@ button.bg-white{
 .bg-gray-100,.bg-slate-100{background:rgba(255,255,255,.06) !important}
 .bg-gray-200,.bg-slate-200{background:rgba(255,255,255,.10) !important}
 .bg-gray-900,.bg-slate-900,.bg-black{background:rgba(255,255,255,.08) !important}
+.hover\:bg-gray-50:hover,.hover\:bg-gray-100:hover,.hover\:bg-slate-50:hover,.hover\:bg-slate-100:hover{ background:rgba(255,255,255,.06) !important }
 .divide-gray-100>:not([hidden])~:not([hidden]),.divide-gray-200>:not([hidden])~:not([hidden]),.divide-slate-100>:not([hidden])~:not([hidden]){border-color:rgba(255,255,255,.10) !important}
 /* 움직이는 브랜드 그라데이션 배경 (shadergradient 느낌, 무의존성) */
 .sg-bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}

@@ -43,7 +43,7 @@ const SiteNav = ({ active = null, light = false }) => (
             <div className="flex min-w-[150px] flex-col gap-0.5 rounded-2xl border border-gray-200 bg-white p-2 shadow-xl shadow-black/5">
               {menu.items.map(([to, label]) => (
                 <NavLink key={to} to={to}
-                  className={`rounded-xl px-4 py-2.5 text-sm transition-colors hover:bg-gray-50 hover:text-[#0064FF] ${active === to ? 'text-[#0064FF]' : 'text-gray-600'}`}>
+                  className={`rounded-xl px-4 py-2.5 text-sm transition-colors hover:bg-white/[0.06] hover:text-white ${active === to ? 'text-[#0064FF]' : 'text-white/60'}`}>
                   {label}
                 </NavLink>
               ))}
