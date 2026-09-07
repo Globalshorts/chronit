@@ -131,7 +131,7 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
         if (!s) { if (alive) { setErr('로그인이 필요합니다'); setLoading(false) } return }
         let uNiche = '', uPersona = ''
         try { const { data: pf } = await supabase.from('profiles').select('niche,persona').eq('id', s.user.id).maybeSingle(); uNiche = pf?.niche || ''; uPersona = pf?.persona || '' } catch { /* noop */ }
-        const cacheKey = String(clip.video_id || clip.page_url || clip.title || '').slice(0, 280) + '|' + uNiche + '|v7'
+        const cacheKey = String(clip.video_id || clip.page_url || clip.title || '').slice(0, 280) + '|' + uNiche + '|v9'
         try { const { data: cached } = await supabase.rpc('get_analyze_cache_rpc', { p_key: cacheKey }); if (cached && cached.ok) { if (alive) { setResult(cached); try { onAnalyzed && onAnalyzed() } catch { /* noop */ } setLoading(false) } return } } catch { /* noop */ }
         const r = await fetch(FN('analyze-clip'), {
           method: 'POST',
@@ -225,54 +225,54 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
           ) : err ? (
             <div className="flex items-center gap-1.5 text-red-500"><AlertTriangle size={14} />{err}</div>
           ) : result ? (
-            <div className="text-[15px] leading-relaxed text-slate-600 md:grid md:grid-cols-2 md:gap-7">
+            <div className="text-base leading-relaxed text-slate-700 md:grid md:grid-cols-2 md:gap-7">
               <div className="space-y-5">
                 <div>
-                  <div className="mb-2 text-sm font-bold text-slate-700">터짐 점수 3축</div>
+                  <div className="mb-2 text-[15px] font-bold text-slate-800">터짐 점수 3축</div>
                   {[{ label: '참여', val: engScore, kind: '측정' }, { label: '훅 (첫 3초)', val: result.hook_score, kind: '진단' }, { label: '페이오프 (결말)', val: result.payoff_score, kind: '진단' }].map((b) => (
                     <div key={b.label} className="mb-3">
-                      <div className="flex justify-between text-[13px] text-slate-500"><span>{b.label} <span className={b.kind === '측정' ? 'text-[#0064FF]' : 'text-slate-400'}>({b.kind})</span></span><span className="text-sm font-bold text-slate-700">{b.val == null ? '—' : b.val}</span></div>
+                      <div className="flex justify-between text-sm text-slate-600"><span>{b.label} <span className={b.kind === '측정' ? 'text-[#0064FF]' : 'text-slate-500'}>({b.kind})</span></span><span className="text-[15px] font-bold text-slate-800">{b.val == null ? '—' : b.val}</span></div>
                       <div className="mt-1 h-2.5 rounded-full bg-slate-200"><div className="h-2.5 rounded-full bg-[#0064FF]" style={{ width: `${b.val == null ? 0 : b.val}%` }} /></div>
                     </div>
                   ))}
                 </div>
                 {ageHours != null && (
                   <div>
-                    <div className="mb-1.5 flex items-center gap-1.5 text-sm font-bold text-slate-700">확산 속도 <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">진단</span></div>
+                    <div className="mb-1.5 flex items-center gap-1.5 text-[15px] font-bold text-slate-800">확산 속도 <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">진단</span></div>
                     <svg viewBox="0 0 100 40" className="h-24 w-full" preserveAspectRatio="none"><path d={velPath.area} fill="rgba(0,100,255,0.12)" /><path d={velPath.line} fill="none" stroke="#0064FF" strokeWidth="2.5" vectorEffect="non-scaling-stroke" /></svg>
-                    <div className="mt-1 flex justify-between text-[12px] text-slate-400"><span>업로드</span><span>{fmt(clip.views)} 조회 · {Math.round(ageHours)}h</span></div>
-                    {clip.velocity != null && <div className="mt-1.5 text-[13px] text-slate-500">실측 확산 속도 <span className="font-bold text-[#0064FF]">{clip.velocity}</span> 댓글/시간 <span className="text-[#0064FF]">(측정)</span></div>}
+                    <div className="mt-1 flex justify-between text-[13px] text-slate-500"><span>업로드</span><span>{fmt(clip.views)} 조회 · {Math.round(ageHours)}h</span></div>
+                    {clip.velocity != null && <div className="mt-1.5 text-sm text-slate-600">실측 확산 속도 <span className="font-bold text-[#0064FF]">{clip.velocity}</span> 댓글/시간 <span className="text-[#0064FF]">(측정)</span></div>}
                   </div>
                 )}
                 {ageHours != null && (
                   <div>
-                    <div className="mb-2 flex items-center gap-1.5 text-sm font-bold text-slate-700">포화도 <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">진단</span></div>
+                    <div className="mb-2 flex items-center gap-1.5 text-[15px] font-bold text-slate-800">포화도 <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">진단</span></div>
                     <div className="flex gap-1.5">
                       {['확산 초기', '확산 중', '포화 근접'].map((sName, idx) => (
                         <div key={sName} className="flex-1 text-center">
                           <div className={`h-2.5 rounded-full ${idx === satStage ? 'bg-[#0064FF]' : 'bg-slate-200'}`} />
-                          <div className={`mt-1.5 text-[12px] ${idx === satStage ? 'font-bold text-[#0064FF]' : 'text-slate-400'}`}>{sName}</div>
+                          <div className={`mt-1.5 text-[13px] ${idx === satStage ? 'font-bold text-[#0064FF]' : 'text-slate-500'}`}>{sName}</div>
                         </div>
                       ))}
                     </div>
-                    <div className="mt-2 text-[13px] text-slate-500">{satMsg}</div>
+                    <div className="mt-2 text-sm text-slate-600">{satMsg}</div>
                   </div>
                 )}
                 {result.comment_analyzed > 0 && (
                   <div>
-                    <div className="mb-2 flex items-center gap-1.5 text-sm font-bold text-slate-700">댓글 분석 <span className="font-normal text-slate-400">샘플 {result.comment_analyzed}개</span> <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">진단</span></div>
+                    <div className="mb-2 flex items-center gap-1.5 text-[15px] font-bold text-slate-800">댓글 분석 <span className="font-normal text-slate-500">샘플 {result.comment_analyzed}개</span> <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">진단</span></div>
                     <div className="flex items-center gap-4">
                       <svg viewBox="0 0 40 40" className="h-28 w-28 shrink-0 -rotate-90">
                         {(() => { const C = 2 * Math.PI * 14; const segs = [['구매의도', result.comment_sentiment?.purchase_intent || 0, '#0064FF'], ['긍정', result.comment_sentiment?.positive || 0, '#22C55E'], ['질문', result.comment_sentiment?.question || 0, '#F59E0B'], ['불만', result.comment_sentiment?.complaint || 0, '#EF4444']]; const tot = segs.reduce((a, b) => a + b[1], 0) || 100; let acc = 0; return segs.map(([n, v, col]) => { const frac = v / tot; const el = <circle key={n} cx="20" cy="20" r="14" fill="none" stroke={col} strokeWidth="8" strokeDasharray={`${(frac * C).toFixed(2)} ${C.toFixed(2)}`} strokeDashoffset={`${(-acc * C).toFixed(2)}`} />; acc += frac; return el }) })()}
                       </svg>
-                      <div className="text-sm leading-7 text-slate-600">
+                      <div className="text-[15px] leading-8 font-medium text-slate-700">
                         <div><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: '#0064FF' }} />구매의도 {result.comment_sentiment?.purchase_intent || 0}%</div>
                         <div><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: '#22C55E' }} />긍정 {result.comment_sentiment?.positive || 0}%</div>
                         <div><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: '#F59E0B' }} />질문 {result.comment_sentiment?.question || 0}%</div>
                         <div><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: '#EF4444' }} />불만 {result.comment_sentiment?.complaint || 0}%</div>
                       </div>
                     </div>
-                    {(result.comment_samples || []).length > 0 && <div className="mt-2 space-y-1">{result.comment_samples.map((c, idx) => <div key={idx} className="truncate text-[13px] text-slate-500">“{c}”</div>)}</div>}
+                    {(result.comment_samples || []).length > 0 && <div className="mt-2 space-y-1">{result.comment_samples.map((c, idx) => <div key={idx} className="truncate text-sm text-slate-600">“{c}”</div>)}</div>}
                   </div>
                 )}
               </div>
@@ -289,44 +289,44 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
                   </div>
                 )}
                 <div className="rounded-xl bg-slate-50 px-3.5 py-3">
-                  <div className="text-[12px] font-bold text-[#0064FF]">훅 · 첫 3초</div>
+                  <div className="text-[13px] font-bold text-[#0064FF]">훅 · 첫 3초</div>
                   <div className="mt-1 font-medium text-slate-800">{result.hook || '—'}</div>
-                  {result.hook_why && <div className="mt-1 text-[13px] leading-relaxed text-slate-500">{result.hook_why}</div>}
+                  {result.hook_why && <div className="mt-1 text-sm leading-relaxed text-slate-600">{result.hook_why}</div>}
                 </div>
                 <div className="rounded-xl bg-slate-50 px-3.5 py-3">
-                  <div className="text-[12px] font-bold text-slate-400">셀링포인트</div>
-                  <ul className="mt-1 list-disc space-y-1 pl-5 text-slate-800">{(result.selling_points || []).length ? result.selling_points.map((sp, idx) => <li key={idx}>{sp}</li>) : <li className="text-slate-400">—</li>}</ul>
+                  <div className="text-[13px] font-bold text-slate-600">셀링포인트</div>
+                  <ul className="mt-1 list-disc space-y-1 pl-5 text-slate-800">{(result.selling_points || []).length ? result.selling_points.map((sp, idx) => <li key={idx}>{sp}</li>) : <li className="text-slate-500">—</li>}</ul>
                 </div>
                 {result.structure && (
                   <div className="rounded-xl bg-slate-50 px-3.5 py-3">
-                    <div className="text-[12px] font-bold text-slate-400">구성·흐름</div>
+                    <div className="text-[13px] font-bold text-slate-600">구성·흐름</div>
                     <div className="mt-1 leading-relaxed text-slate-800">{result.structure}</div>
                   </div>
                 )}
                 <div className="rounded-xl bg-slate-50 px-3.5 py-3">
-                  <div className="text-[12px] font-bold text-slate-400">구도·편집</div>
+                  <div className="text-[13px] font-bold text-slate-600">구도·편집</div>
                   <div className="mt-1 leading-relaxed text-slate-800">{result.composition || '—'}</div>
                 </div>
                 {result.target && (
                   <div className="rounded-xl bg-slate-50 px-3.5 py-3">
-                    <div className="text-[12px] font-bold text-slate-400">타깃</div>
+                    <div className="text-[13px] font-bold text-slate-600">타깃</div>
                     <div className="mt-1 leading-relaxed text-slate-800">{result.target}</div>
                   </div>
                 )}
                 {(result.hashtags || []).length > 0 && (
                   <div>
-                    <div className="mb-1 flex items-center gap-1.5 text-sm font-bold text-slate-700">추천 해시태그 <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">진단</span></div>
-                    <div className="flex flex-wrap gap-1.5">{result.hashtags.map((h, idx) => <span key={idx} className="rounded-full bg-slate-100 px-2.5 py-1 text-[13px] text-slate-600">{h}</span>)}</div>
+                    <div className="mb-1 flex items-center gap-1.5 text-[15px] font-bold text-slate-800">추천 해시태그 <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">진단</span></div>
+                    <div className="flex flex-wrap gap-1.5">{result.hashtags.map((h, idx) => <span key={idx} className="rounded-full bg-slate-100 px-2.5 py-1 text-sm text-slate-600">{h}</span>)}</div>
                   </div>
                 )}
                 {result.remix && (result.remix.hook_ideas?.length || result.remix.edit_script?.length) ? (
                   <div className="rounded-lg border border-[#0064FF]/20 bg-[#0064FF]/5 p-3">
                     <div className="mb-2 flex items-center gap-1 text-sm font-extrabold text-[#0064FF]"><Sparkles size={14} />2차 창작 가이드 (편집 중심)</div>
-                    {result.remix.hook_ideas?.length > 0 && <div className="mb-2"><span className="text-[13px] font-bold text-slate-700">내 상품용 훅</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-[13px]">{result.remix.hook_ideas.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
-                    {result.remix.edit_script?.length > 0 && <div className="mb-2"><span className="text-[13px] font-bold text-slate-700">편집 컷 구성</span><ul className="mt-0.5 list-decimal space-y-0.5 pl-5 text-[13px]">{result.remix.edit_script.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
-                    {result.remix.selling_map?.length > 0 && <div className="mb-2"><span className="text-[13px] font-bold text-slate-700">셀링포인트 매핑</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-[13px]">{result.remix.selling_map.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
-                    {result.remix.differentiation?.length > 0 && <div className="mb-2"><span className="text-[13px] font-bold text-slate-700">차별화 포인트</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-[13px]">{result.remix.differentiation.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
-                    {result.remix.edit_checklist?.length > 0 && <div><span className="text-[13px] font-bold text-slate-700">편집 체크리스트</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-[13px]">{result.remix.edit_checklist.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
+                    {result.remix.hook_ideas?.length > 0 && <div className="mb-2"><span className="text-[15px] font-bold text-slate-800">내 상품용 훅</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-sm">{result.remix.hook_ideas.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
+                    {result.remix.edit_script?.length > 0 && <div className="mb-2"><span className="text-[15px] font-bold text-slate-800">편집 컷 구성</span><ul className="mt-0.5 list-decimal space-y-0.5 pl-5 text-sm">{result.remix.edit_script.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
+                    {result.remix.selling_map?.length > 0 && <div className="mb-2"><span className="text-[15px] font-bold text-slate-800">셀링포인트 매핑</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-sm">{result.remix.selling_map.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
+                    {result.remix.differentiation?.length > 0 && <div className="mb-2"><span className="text-[15px] font-bold text-slate-800">차별화 포인트</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-sm">{result.remix.differentiation.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
+                    {result.remix.edit_checklist?.length > 0 && <div><span className="text-[15px] font-bold text-slate-800">편집 체크리스트</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-sm">{result.remix.edit_checklist.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
                   </div>
                 ) : null}
                 {!result.used_image && <div className="text-[11px] text-slate-300">※ 썸네일 미확보 — 제목 기반 분석</div>}
