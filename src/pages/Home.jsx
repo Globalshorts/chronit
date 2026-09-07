@@ -143,7 +143,6 @@ const Home = () => {
   const [heroPersona, setHeroPersona] = useState(2)
   const [heroQuery, setHeroQuery] = useState('')
   const [phIdx, setPhIdx] = useState(0)
-  useEffect(() => { const t = setInterval(() => setPhIdx((i) => (i + 1) % HERO_PH.length), 2600); return () => clearInterval(t) }, [])
   useEffect(() => { supabase.rpc('public_stats_rpc').then(({ data }) => { if (data) setStats(data) }) }, [])
   const PAINS = [
     { label: '프리랜서 고용', cost: '편당 1.5만원' },
@@ -542,9 +541,8 @@ const Home = () => {
       {/* ── Hero ── */}
       <section className="relative overflow-hidden bg-[#0A0B0F] px-5 pt-32 pb-24 md:px-8 md:pt-40 md:pb-32">
         <div aria-hidden className="pointer-events-none absolute inset-0">
-          <div className="absolute left-1/2 top-[-12%] h-[460px] w-[760px] -translate-x-1/2 rounded-full bg-[#0064FF]/25 blur-[130px]" />
-          <div className="absolute right-[6%] bottom-[8%] h-[300px] w-[420px] rounded-full bg-[#06B6D4]/12 blur-[120px]" />
-          <div className="absolute inset-0 opacity-[0.04] [background-image:linear-gradient(#fff_1px,transparent_1px),linear-gradient(90deg,#fff_1px,transparent_1px)] [background-size:44px_44px]" />
+          <div className="absolute left-1/2 top-[2%] h-[520px] w-[820px] -translate-x-1/2 rounded-full bg-[#0064FF]/[0.08] blur-[170px]" />
+          <div className="absolute inset-0 opacity-[0.025] [background-image:linear-gradient(#fff_1px,transparent_1px),linear-gradient(90deg,#fff_1px,transparent_1px)] [background-size:56px_56px]" />
         </div>
         <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-b from-transparent to-white" />
 
@@ -573,59 +571,24 @@ const Home = () => {
             </div>
           )}
           {!user && (<>
-            <p className="mb-5 text-[11px] font-bold uppercase tracking-[0.28em] text-white/40">Research → Analyze → Remix · 쇼핑 숏폼 소싱 AI</p>
-            <h1 className="mb-6 text-4xl font-extrabold leading-[1.12] tracking-tight text-white break-keep md:text-6xl">
-              지금 <span className="bg-gradient-to-r from-[#3B82F6] to-[#22D3EE] bg-clip-text text-transparent">터지는 소스</span>를<br />찾고 · 분석하고 · 복제하세요
+            <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.32em] text-white/30">Research · Analyze · Remix</p>
+            <h1 className="mb-6 text-[2.1rem] font-semibold leading-[1.28] tracking-tight text-white break-keep md:text-[3.4rem] md:leading-[1.25]">
+              터지는 소스를 찾고,<br />왜 터졌는지 <span className="text-[#A9C0FF]">분석</span>하고, 복제하다
             </h1>
-            <p className="mx-auto mb-8 max-w-md text-[15px] font-medium leading-relaxed text-white/55 break-keep">
-              릴스·틱톡 쇼핑 크리에이터를 위한 리서치 AI<br />막 터진 소재를 찾고, 왜 터졌는지 분석하고, 2차 창작까지
+            <p className="mx-auto mb-10 max-w-md text-[15px] font-normal leading-relaxed text-white/45 break-keep md:text-base">
+              릴스·틱톡 쇼핑 크리에이터를 위한 리서치 AI.<br />감이 아니라 데이터로, 다음 소재를 준비하세요.
             </p>
-            <div className="w-full max-w-xl">
-              <div className="flex items-center gap-2 rounded-2xl border border-white/12 bg-white/[0.06] p-2 pl-5 shadow-[0_10px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl">
-                <Search size={18} className="shrink-0 text-white/40" />
-                <input value={heroQuery} onChange={(e) => setHeroQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && heroSubmit()} placeholder={HERO_PH[phIdx]}
-                  className="hero-search-input min-w-0 flex-1 bg-transparent py-3 text-[15px] outline-none" />
-                <button onClick={heroSubmit} aria-label="검색"
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(140deg,#2A7BFF,#0064FF)] text-white transition hover:brightness-110 active:scale-95">
-                  <ArrowRight size={18} />
-                </button>
-              </div>
-            </div>
-            <div className="mt-5 flex flex-wrap justify-center gap-2">
-              {HERO_PERSONAS.map((p, i) => (
-                <button key={i} onClick={() => setHeroPersona(i)}
-                  className={`rounded-full px-4 py-1.5 text-[13px] font-bold transition ${heroPersona === i ? 'bg-[#0064FF] text-white shadow-lg shadow-[#0064FF]/30' : 'border border-white/15 bg-white/5 text-white/65 hover:border-white/40 hover:text-white'}`}>
-                  {p.tab}
-                </button>
-              ))}
-            </div>
-            <div className="mt-4 w-full max-w-xl rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left backdrop-blur-md">
-              <p className="text-sm font-bold text-white">{HERO_PERSONAS[heroPersona].title}</p>
-              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {HERO_PERSONAS[heroPersona].benefits.map((b, j) => (
-                  <div key={j} className="flex items-start gap-1.5 rounded-xl bg-white/[0.04] px-3 py-2.5">
-                    <Check size={15} className="mt-0.5 shrink-0 text-[#22D3EE]" />
-                    <span className="text-[13px] font-medium text-white/75 break-keep">{b}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="mt-7 flex w-full max-w-md flex-col items-center gap-3">
+            <div className="flex w-full max-w-sm flex-col items-center gap-4">
               <button onClick={handleFinds}
-                className="w-full rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-[#0064FF]/25 transition-all hover:brightness-110 active:scale-[0.98]">
-                무료로 소스 발굴 시작 →
+                className="w-full rounded-full bg-white px-8 py-4 text-base font-semibold text-[#0A0B0F] transition-all hover:bg-white/90 active:scale-[0.99]">
+                무료로 시작하기
               </button>
+              <p className="text-[13px] font-normal text-white/35">카드 등록 없이 · 월 5회 무료</p>
               {spots != null && spots > 0 && (
-                <p className="flex items-center gap-1.5 text-sm font-bold text-white/60">
-                  <Users size={14} className="text-[#22D3EE]" /> 이미 <span className="text-white">{spots.toLocaleString('ko-KR')}</span>명의 크리에이터가 함께해요
+                <p className="mt-4 flex items-center gap-1.5 text-[13px] font-normal text-white/40">
+                  <Users size={13} className="text-white/40" /> 이미 <span className="font-semibold text-white/70">{spots.toLocaleString('ko-KR')}</span>명의 크리에이터가 함께합니다
                 </p>
               )}
-              {stats?.clips ? (
-                <p className="text-xs text-white/35 break-keep">
-                  <Search size={12} className="mr-1 inline align-[-1px]" />
-                  지금까지 <span className="font-bold text-white/55">{Number(stats.clips).toLocaleString('ko-KR')}개</span> 클립 발굴 · 큐레이터 <span className="font-bold text-white/55">{Number(stats.curators).toLocaleString('ko-KR')}곳</span> 추적 중
-                </p>
-              ) : null}
             </div>
           </>)}
         </div>
