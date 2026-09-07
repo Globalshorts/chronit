@@ -99,6 +99,13 @@ function HomeScarcity({ spots }) {
 const wonFmt = (n) => Number(n || 0).toLocaleString('ko-KR')
 const pctOff = (list, sale) => (list > 0 ? Math.round((list - sale) / list * 100) : 0)
 
+const HERO_PERSONAS = [
+  { tab: '공구·제휴', title: '판매로 이어지는 소재를 복제하세요', benefits: ['지금 터진 쇼핑 소재 실시간', '왜 터졌는지 훅·셀링포인트 분석', '확산 전 선점 (패스트벤치)', '내 니치 소재만 필터'] },
+  { tab: '브랜드 SNS', title: '매일 올릴 콘텐츠, 고갈 없이', benefits: ['소재 아이디어 무한 공급', '경쟁 계정 레퍼런스 벤치마크', '니치 트렌드 모니터링', '콘텐츠 기획 시간 단축'] },
+  { tab: '릴스·틱톡', title: '남들보다 먼저, 2차 창작으로', benefits: ['유사 소재 레퍼런스 확보', '터짐 속도로 타이밍 판단', '2차 창작 편집 가이드', '매일 새 소스 갱신'] },
+  { tab: '부업·입문', title: '뭐 올릴지, 여기서 끝', benefits: ['막막함 즉시 해결', '감이 아니라 데이터로', '무료 월 5회로 체험', '쉬운 3단계'] },
+]
+
 const Home = () => {
   const [scrolled, setScrolled] = useState(false)
   const [paymentOpen, setPaymentOpen] = useState(false)
@@ -126,6 +133,7 @@ const Home = () => {
   const [spots, setSpots] = useState(null)
   const [stats, setStats] = useState(null)
   const [badgeIdx, setBadgeIdx] = useState(0)
+  const [heroPersona, setHeroPersona] = useState(2)
   useEffect(() => { supabase.rpc('public_stats_rpc').then(({ data }) => { if (data) setStats(data) }) }, [])
   const PAINS = [
     { label: '프리랜서 고용', cost: '편당 1.5만원' },
@@ -551,23 +559,28 @@ const Home = () => {
             <h1 className="mb-5 text-4xl font-bold leading-[1.15] tracking-tight text-gray-900 break-keep md:text-6xl">
               <span className="bg-gradient-to-r from-[#0064FF] to-[#06B6D4] bg-clip-text text-transparent">터지는 소스</span>를<br />찾으세요
             </h1>
-            <div className="mx-auto mb-9 grid max-w-md grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-2 text-left">
-              <div className="flex-1 rounded-2xl border border-gray-100 bg-gray-50 p-3.5">
-                <p className="mb-2 text-[11px] font-bold text-gray-400">지금까지</p>
-                <div key={badgeIdx} className="tip-fade flex items-start gap-1.5">
-                  <span className="mt-0.5 font-bold text-red-500">✗</span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-bold text-gray-700">{curPain.label}</span>
-                    <span className="block text-xs font-semibold text-gray-400">{curPain.cost}</span>
-                  </span>
-                </div>
+            <p className="mx-auto mb-6 max-w-md text-[15px] font-medium leading-relaxed text-gray-500 break-keep">
+              릴스·틱톡 쇼핑 크리에이터를 위한 소재 발굴 AI<br />지금 막 터진 걸 찾고, 2차 창작용 레퍼런스까지
+            </p>
+
+            <div className="mx-auto mb-8 w-full max-w-lg text-left">
+              <div className="mb-3 flex flex-wrap justify-center gap-1.5">
+                {HERO_PERSONAS.map((p, i) => (
+                  <button key={i} onClick={() => setHeroPersona(i)}
+                    className={`rounded-full px-3.5 py-1.5 text-[13px] font-bold transition ${heroPersona === i ? 'bg-[#0064FF] text-white' : 'border border-gray-200 bg-white text-gray-500 hover:border-[#0064FF]'}`}>
+                    {p.tab}
+                  </button>
+                ))}
               </div>
-              <div className="flex items-center text-[11px] font-extrabold text-gray-300">VS</div>
-              <div className="flex-1 rounded-2xl border border-[#0064FF]/30 bg-[#0064FF]/10 p-3.5">
-                <p className="mb-2 text-[11px] font-bold text-[#0064FF]">크로닛</p>
-                <div className="flex items-start gap-1.5">
-                  <span className="mt-0.5 font-bold text-[#0064FF]">✓</span>
-                  <span className="text-sm font-bold text-[#0064FF]">지금 막 터진 소재를 바로</span>
+              <div className="rounded-2xl border border-gray-200 bg-white p-4">
+                <p className="text-sm font-bold text-gray-900">{HERO_PERSONAS[heroPersona].title}</p>
+                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {HERO_PERSONAS[heroPersona].benefits.map((b, j) => (
+                    <div key={j} className="flex items-start gap-1.5 rounded-xl bg-gray-50 px-3 py-2.5">
+                      <span className="mt-0.5 shrink-0 font-bold text-[#0064FF]">✓</span>
+                      <span className="text-[13px] font-medium text-gray-700 break-keep">{b}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
