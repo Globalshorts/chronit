@@ -127,7 +127,7 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
         if (!s) { if (alive) { setErr('로그인이 필요합니다'); setLoading(false) } return }
         let uNiche = '', uPersona = ''
         try { const { data: pf } = await supabase.from('profiles').select('niche,persona').eq('id', s.user.id).maybeSingle(); uNiche = pf?.niche || ''; uPersona = pf?.persona || '' } catch { /* noop */ }
-        const cacheKey = String(clip.video_id || clip.page_url || clip.title || '').slice(0, 280) + '|' + uNiche
+        const cacheKey = String(clip.video_id || clip.page_url || clip.title || '').slice(0, 280) + '|' + uNiche + '|v5'
         try { const { data: cached } = await supabase.rpc('get_analyze_cache_rpc', { p_key: cacheKey }); if (cached && cached.ok) { if (alive) { setResult(cached); try { onAnalyzed && onAnalyzed() } catch { /* noop */ } setLoading(false) } return } } catch { /* noop */ }
         const r = await fetch(FN('analyze-clip'), {
           method: 'POST',
@@ -136,7 +136,7 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
         })
         const d = await r.json()
         if (!alive) return
-        if (d.ok) { setResult(d); try { onAnalyzed && onAnalyzed() } catch { /* noop */ } try { await supabase.rpc('set_analyze_cache_rpc', { p_key: cacheKey, p_result: d }) } catch { /* noop */ } } else setErr(d.error || '분석에 실패했어요.')
+        if (d.ok) { setResult(d); try { onAnalyzed && onAnalyzed() } catch { /* noop */ } if (d.hook) { try { await supabase.rpc('set_analyze_cache_rpc', { p_key: cacheKey, p_result: d }) } catch { /* noop */ } } } else setErr(d.error || '분석에 실패했어요.')
       } catch { if (alive) setErr('분석 중 오류가 발생했어요.') }
       finally { if (alive) setLoading(false) }
     })()
