@@ -314,7 +314,7 @@ const PaymentModal = ({ open, onClose, defaultPlan = 'pro', initialCode = null, 
         {!isFreedays && (
         <div className="mb-6">
           <p className="mb-1 text-sm font-bold tracking-widest text-gray-500 uppercase">요금제 선택</p>
-          <p className="mb-3 text-xs font-medium text-gray-400">Finds 이용권 · 소스 발굴과 분석에 쓰여요 (영상 편집 기능 아님)</p>
+          <p className="mb-3 text-xs font-medium text-gray-400">리서치 이용권 · 소스 발굴과 분석에 쓰여요 (영상 편집 기능 아님)</p>
           <div className="grid grid-cols-3 gap-2">
             {['starter','pro','master'].map((key) => {
               const p = plans[key]

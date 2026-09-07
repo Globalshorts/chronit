@@ -189,11 +189,11 @@ const MyPage = () => {
           </div>
         </div>
 
-        {/* Finds 이용권 */}
+        {/* 리서치 이용권 */}
         <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
           <div className="flex items-center justify-between">
             <div>
-              <div className="flex items-center gap-1 text-xs text-slate-400"><Sparkles size={13} /> Finds 이용권</div>
+              <div className="flex items-center gap-1 text-xs text-slate-400"><Sparkles size={13} /> 리서치 이용권</div>
               <div className="mt-1 text-2xl font-bold text-gray-800">{wallet ? wallet.finds_balance.toLocaleString() : '…'}</div>
               <div className="mt-0.5 text-[11px] text-slate-400">{PLAN_LABEL[wallet?.plan] || '무료'}{wallet?.sub_active ? ' 구독' : ''}</div>
             </div>

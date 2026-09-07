@@ -102,7 +102,7 @@ function FindCard({ clip, onAnalyze }) {
 export function ackAnalyzeCost(balance) {
   try { if (sessionStorage.getItem('finds_analyze_ack')) return true } catch { /* noop */ }
   const bal = balance != null ? `\n남은 이용권: ${balance}개` : ''
-  const ok = window.confirm(`분석 1회에 Finds 이용권 1개가 차감돼요.${bal}\n(이미 분석한 소스는 다시 열어도 무료예요)\n\n계속할까요?`)
+  const ok = window.confirm(`분석 1회에 이용권 1개가 차감돼요.${bal}\n(이미 분석한 소스는 다시 열어도 무료예요)\n\n계속할까요?`)
   if (ok) { try { sessionStorage.setItem('finds_analyze_ack', '1') } catch { /* noop */ } }
   return ok
 }
@@ -663,7 +663,7 @@ export default function Finds() {
         <header className="mb-6">
           <div className="flex items-center gap-2 text-[#0064FF]">
             <Flame size={22} />
-            <h1 className="text-2xl font-extrabold text-slate-900">Finds — 트렌드·벤치마크 리서치</h1>
+            <h1 className="text-2xl font-extrabold text-slate-900">Research — 트렌드·벤치마크 리서치</h1>
           </div>
           <p className="mt-2 text-sm text-slate-500">
             잘 나가는 쇼핑 숏폼을 분석해 유사·벤치마크 소스를 찾아줍니다. <b>리서치·벤치마킹 목적</b>이며,

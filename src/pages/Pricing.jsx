@@ -82,7 +82,7 @@ export default function Pricing() {
                 <p className="mt-1 text-sm text-gray-400">먼저 써보기</p>
                 <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-gray-900">₩0</span></div>
                 <p className="mt-3 text-sm leading-relaxed text-gray-500">매월 이용권 5개</p>
-                <button onClick={() => (user ? nav('/finds') : setAuthOpen(true))} className="mt-6 w-full rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-[#0064FF] hover:text-[#0064FF]">무료로 시작</button>
+                <button onClick={() => (user ? nav('/research') : setAuthOpen(true))} className="mt-6 w-full rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-[#0064FF] hover:text-[#0064FF]">무료로 시작</button>
               </div>
               {SUBS.map((p) => (
                 <div key={p.name} onClick={() => buy('sub', annual ? 'annual' : 'monthly')} className={cardCls(p.hot)}>

@@ -304,7 +304,7 @@ export default function Trend() {
                     ) : (
                       <div className="flex gap-1.5">
                         <button onClick={() => handleAnalyze(clip)} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Sparkles size={12} />분석</button>
-                        <button onClick={() => { window.location.href = '/finds?url=' + encodeURIComponent(it.url) }} className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-slate-200 py-1.5 text-xs font-bold text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]">소스 찾기</button>
+                        <button onClick={() => { window.location.href = '/research?url=' + encodeURIComponent(it.url) }} className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-slate-200 py-1.5 text-xs font-bold text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]">소스 찾기</button>
                       </div>
                     )}
                   </div>
@@ -317,7 +317,7 @@ export default function Trend() {
         )}
       </div>
       {modalClip && <AnalyzeModal clip={modalClip} onClose={() => setModalClip(null)} />}
-      {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onSource={() => { window.location.href = '/finds?url=' + encodeURIComponent(playClip.page_url) }} onAnalyze={() => { setPlayClip(null); handleAnalyze(playClip) }} />}
+      {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onSource={() => { window.location.href = '/research?url=' + encodeURIComponent(playClip.page_url) }} onAnalyze={() => { setPlayClip(null); handleAnalyze(playClip) }} />}
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
       <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
       <div className="h-16 md:hidden" />
