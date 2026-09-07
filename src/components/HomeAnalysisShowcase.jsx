@@ -142,12 +142,16 @@ export default function HomeAnalysisShowcase() {
             </div>
           </div>
           <div aria-hidden
-            className={`absolute inset-0 flex flex-col items-center justify-center rounded-3xl border border-white/10 bg-[#0c0d11]/92 text-center backdrop-blur-sm transition-opacity duration-500 ${revealed ? 'pointer-events-none opacity-0' : 'opacity-100'}`}>
-            <span className="absolute left-4 top-4 rounded-full bg-[#0064FF] px-2.5 py-1 text-[11px] font-bold text-white">확산 가속</span>
-            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#0064FF] text-white shadow-lg shadow-[#0064FF]/30"><Play size={26} fill="currentColor" /></span>
-            <span className="mt-4 text-[15px] font-bold text-white">무선 변기 청소 브러시</span>
-            <span className="mt-1 text-[12px] text-white/55">@clean.home · 조회 92.4만 · 좋아요 5.1만</span>
-            <span className="mt-4 text-[13px] font-semibold text-[#7DA2FF]">자동 분석 중</span>
+            className={`absolute inset-0 flex flex-col items-center justify-center rounded-3xl border border-white/10 bg-[#0b0c10]/95 backdrop-blur-sm transition-opacity duration-500 ${revealed ? 'pointer-events-none opacity-0' : 'opacity-100'}`}>
+            <div className="relative aspect-[9/16] w-[160px] overflow-hidden rounded-2xl border border-white/15 shadow-2xl" style={{ background: 'linear-gradient(155deg,#20304f 0%,#0d1424 58%,#0a0d16 100%)' }}>
+              <span className="absolute left-2 top-2 z-10 rounded-full bg-[#0064FF] px-2 py-0.5 text-[10px] font-bold text-white">확산 가속</span>
+              <div className="absolute inset-0 flex items-center justify-center"><span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-[#0a0d16]"><Play size={18} fill="currentColor" /></span></div>
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2.5 text-left">
+                <div className="text-[14px] font-extrabold leading-tight text-white">손 안 대고<br />변기 싹</div>
+                <div className="mt-1 text-[10px] font-medium text-white/70">@clean.home · 조회 92.4만</div>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center gap-1.5 text-[12px] font-semibold text-[#7DA2FF]"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#7DA2FF]" />분석 불러오는 중</div>
           </div>
         </div>
       </div>
