@@ -56,7 +56,7 @@ export default function Pricing() {
           </div>
 
           <div className="relative mx-auto mt-8 mb-2 flex max-w-sm rounded-xl bg-gray-100 p-1 text-sm font-bold">
-            <span aria-hidden className="absolute left-1 top-1 bottom-1 w-[calc(33.333%-0.25rem)] rounded-lg bg-white shadow-sm transition-transform duration-300 ease-out" style={{ transform: `translateX(${priceTab === 'annual' ? '100%' : priceTab === 'pack' ? '200%' : '0%'})` }} />
+            <span aria-hidden className="absolute left-1 top-1 bottom-1 w-[calc(33.333%-0.25rem)] rounded-lg bg-white/15 shadow-none transition-transform duration-300 ease-out" style={{ transform: `translateX(${priceTab === 'annual' ? '100%' : priceTab === 'pack' ? '200%' : '0%'})` }} />
             <button onClick={() => setPriceTab('monthly')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${priceTab === 'monthly' ? 'text-[#0064FF]' : 'text-gray-500'}`}>월간</button>
             <button onClick={() => setPriceTab('annual')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${priceTab === 'annual' ? 'text-[#0064FF]' : 'text-gray-500'}`}>연간</button>
             <button onClick={() => setPriceTab('pack')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${priceTab === 'pack' ? 'text-[#0064FF]' : 'text-gray-500'}`}>단건팩</button>
