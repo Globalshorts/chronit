@@ -115,6 +115,10 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
   const [result, setResult] = useState(null)
   const [err, setErr] = useState('')
   const engScore = (() => { const v = Number(clip.views) || 0, l = Number(clip.likes) || 0, c = Number(clip.comments) || 0; return v > 0 ? Math.max(0, Math.min(100, Math.round(((l + c * 3) / v) * 800))) : null })()
+  const ageHours = clip.taken_at ? Math.max(0.5, (Date.now() - new Date(clip.taken_at).getTime()) / 3600000) : null
+  const velPath = (() => { const N = 24, W = 100, H = 40; const pts = []; for (let i = 0; i <= N; i++) { const t = i / N; const sm = t * t * t * (t * (t * 6 - 15) + 10); pts.push([(i / N) * W, H - sm * (H - 3) - 1.5]) } const line = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' '); return { line, area: line + ` L${W},${H} L0,${H} Z` } })()
+  const satStage = ageHours == null ? 0 : (ageHours < 48 ? 0 : ageHours < 120 ? 1 : 2)
+  const satMsg = satStage === 0 ? '지금 선점 가능 — 확산 초기 구간이에요' : satStage === 1 ? '확산 중 — 아직 따라갈 만해요' : '포화 근접 — 차별화가 필요해요'
 
   // 모달 오픈 시 analyze-clip 호출 → 훅/셀링포인트/구도 생성
   // TODO(과금): 최초 분석 시 이용권 -1 (나중 별도 적용)
@@ -243,6 +247,28 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
                   </div>
                 ))}
               </div>
+              {ageHours != null && (
+                <div>
+                  <div className="mb-1 flex items-center gap-1.5 text-xs font-bold text-slate-700">확산 속도 <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">추정</span></div>
+                  <svg viewBox="0 0 100 40" className="h-14 w-full" preserveAspectRatio="none"><path d={velPath.area} fill="rgba(0,100,255,0.12)" /><path d={velPath.line} fill="none" stroke="#0064FF" strokeWidth="2" vectorEffect="non-scaling-stroke" /></svg>
+                  <div className="mt-0.5 flex justify-between text-[10px] text-slate-400"><span>업로드</span><span>{fmt(clip.views)} 조회 · {Math.round(ageHours)}h</span></div>
+                  {clip.velocity != null && <div className="mt-1 text-[11px] text-slate-500">실측 확산 속도 <span className="font-bold text-[#0064FF]">{clip.velocity}</span> 댓글/시간 <span className="text-[#0064FF]">(측정)</span></div>}
+                </div>
+              )}
+              {ageHours != null && (
+                <div>
+                  <div className="mb-1 flex items-center gap-1.5 text-xs font-bold text-slate-700">포화도 <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">진단</span></div>
+                  <div className="flex gap-1">
+                    {['확산 초기', '확산 중', '포화 근접'].map((sName, i) => (
+                      <div key={sName} className="flex-1 text-center">
+                        <div className={`h-1.5 rounded-full ${i === satStage ? 'bg-[#0064FF]' : 'bg-slate-200'}`} />
+                        <div className={`mt-1 text-[10px] ${i === satStage ? 'font-bold text-[#0064FF]' : 'text-slate-400'}`}>{sName}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-1.5 text-[11px] text-slate-500">{satMsg}</div>
+                </div>
+              )}
               <div>
                 <span className="font-bold text-slate-700">훅 (첫 3초)</span> · {result.hook || '—'}
                 {result.hook_why && <span className="mt-0.5 block text-xs text-slate-400">{result.hook_why}</span>}
