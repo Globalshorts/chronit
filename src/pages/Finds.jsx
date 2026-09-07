@@ -288,11 +288,31 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
                     </ul>
                   </div>
                 )}
-                <div><span className="font-bold text-slate-700">훅 (첫 3초)</span> · {result.hook || '—'}{result.hook_why && <span className="mt-0.5 block text-[13px] text-slate-400">{result.hook_why}</span>}</div>
-                <div><span className="font-bold text-slate-700">셀링포인트</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5">{(result.selling_points || []).length ? result.selling_points.map((sp, idx) => <li key={idx}>{sp}</li>) : <li className="text-slate-400">—</li>}</ul></div>
-                {result.structure && <div><span className="font-bold text-slate-700">구성·흐름</span> · {result.structure}</div>}
-                <div><span className="font-bold text-slate-700">구도·편집</span> · {result.composition || '—'}</div>
-                {result.target && <div><span className="font-bold text-slate-700">타깃</span> · {result.target}</div>}
+                <div className="rounded-xl bg-slate-50 px-3.5 py-3">
+                  <div className="text-[12px] font-bold text-[#0064FF]">훅 · 첫 3초</div>
+                  <div className="mt-1 font-medium text-slate-800">{result.hook || '—'}</div>
+                  {result.hook_why && <div className="mt-1 text-[13px] leading-relaxed text-slate-500">{result.hook_why}</div>}
+                </div>
+                <div className="rounded-xl bg-slate-50 px-3.5 py-3">
+                  <div className="text-[12px] font-bold text-slate-400">셀링포인트</div>
+                  <ul className="mt-1 list-disc space-y-1 pl-5 text-slate-800">{(result.selling_points || []).length ? result.selling_points.map((sp, idx) => <li key={idx}>{sp}</li>) : <li className="text-slate-400">—</li>}</ul>
+                </div>
+                {result.structure && (
+                  <div className="rounded-xl bg-slate-50 px-3.5 py-3">
+                    <div className="text-[12px] font-bold text-slate-400">구성·흐름</div>
+                    <div className="mt-1 leading-relaxed text-slate-800">{result.structure}</div>
+                  </div>
+                )}
+                <div className="rounded-xl bg-slate-50 px-3.5 py-3">
+                  <div className="text-[12px] font-bold text-slate-400">구도·편집</div>
+                  <div className="mt-1 leading-relaxed text-slate-800">{result.composition || '—'}</div>
+                </div>
+                {result.target && (
+                  <div className="rounded-xl bg-slate-50 px-3.5 py-3">
+                    <div className="text-[12px] font-bold text-slate-400">타깃</div>
+                    <div className="mt-1 leading-relaxed text-slate-800">{result.target}</div>
+                  </div>
+                )}
                 {(result.hashtags || []).length > 0 && (
                   <div>
                     <div className="mb-1 flex items-center gap-1.5 text-sm font-bold text-slate-700">추천 해시태그 <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">진단</span></div>
