@@ -119,8 +119,8 @@ input:not([type=checkbox]):not([type=radio]):not([type=range]), textarea, select
   border-color: rgba(20,40,90,.18) !important;
   box-shadow: inset 0 1px 2px rgba(20,40,90,.05) !important;
 }
-.hero-search-input{ background:transparent !important; border:0 !important; box-shadow:none !important; color:#fff !important; }
-.hero-search-input::placeholder{ color:rgba(255,255,255,.42) !important; }
+input.hero-search-input:not([type=checkbox]):not([type=radio]):not([type=range]){ background:transparent !important; border:0 !important; box-shadow:none !important; color:#fff !important; }
+input.hero-search-input::placeholder{ color:rgba(255,255,255,.42) !important; }
 button.bg-white, a.bg-white{
   background:#ffffff !important;
   -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
