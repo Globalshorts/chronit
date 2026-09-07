@@ -20,14 +20,14 @@ const NavLink = ({ to, children, className }) =>
     ? <a href={to} className={className}>{children}</a>
     : <Link to={to} className={className}>{children}</Link>
 
-const SiteNav = ({ active = null }) => (
-  <nav className="hidden items-center gap-9 text-base font-bold tracking-wide text-slate-500 md:flex">
+const SiteNav = ({ active = null, light = false }) => (
+  <nav className={`hidden items-center gap-9 text-base font-bold tracking-wide md:flex ${light ? 'text-white/70' : 'text-slate-500'}`}>
     {SITE_MENUS.map(menu => {
       if (menu.to) {
         const flatActive = menu.to === active || menu.to.replace('/#', '/') === active
         return (
           <NavLink key={menu.key} to={menu.to}
-            className={`uppercase transition-colors ${flatActive ? 'text-[#0064FF]' : 'hover:text-[#0064FF]'}`}>
+            className={`uppercase transition-colors ${flatActive ? 'text-[#0064FF]' : (light ? 'hover:text-white' : 'hover:text-[#0064FF]')}`}>
             {menu.label}
           </NavLink>
         )

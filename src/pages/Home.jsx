@@ -106,6 +106,13 @@ const HERO_PERSONAS = [
   { tab: '부업·입문', title: '뭐 올릴지, 여기서 끝', benefits: ['막막함 즉시 해결', '감이 아니라 데이터로', '무료 월 5회로 체험', '쉬운 3단계'] },
 ]
 
+const HERO_PH = [
+  '경쟁 계정 @handle 을 붙여보세요',
+  '지금 터지는 주방·살림템 소재 찾기',
+  '이 릴스는 왜 터졌을까 — 링크 붙여넣기',
+  '내 니치 트렌드 실시간으로 보기',
+]
+
 const Home = () => {
   const [scrolled, setScrolled] = useState(false)
   const [paymentOpen, setPaymentOpen] = useState(false)
@@ -134,6 +141,9 @@ const Home = () => {
   const [stats, setStats] = useState(null)
   const [badgeIdx, setBadgeIdx] = useState(0)
   const [heroPersona, setHeroPersona] = useState(2)
+  const [heroQuery, setHeroQuery] = useState('')
+  const [phIdx, setPhIdx] = useState(0)
+  useEffect(() => { const t = setInterval(() => setPhIdx((i) => (i + 1) % HERO_PH.length), 2600); return () => clearInterval(t) }, [])
   useEffect(() => { supabase.rpc('public_stats_rpc').then(({ data }) => { if (data) setStats(data) }) }, [])
   const PAINS = [
     { label: '프리랜서 고용', cost: '편당 1.5만원' },
@@ -208,6 +218,7 @@ const Home = () => {
     if (user) { window.location.href = '/trend'; return }
     setShowAuthModal(true)
   }
+  const heroSubmit = () => { const q = heroQuery.trim(); if (user) { window.location.href = q ? '/finds?q=' + encodeURIComponent(q) : '/trend' } else { setShowAuthModal(true) } }
   const handleBuy = (tab = 'sub', period = 'monthly') => {
     setBuyTab(tab); setBuyPeriod(period)
     if (user && !user.is_anonymous) { setBuyOpen(true); return }
@@ -438,9 +449,9 @@ const Home = () => {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
           <a href="/" className="flex min-w-0 items-center gap-2 md:gap-3">
             <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-9 w-9 shrink-0 md:h-10 md:w-10" />
-            <h1 className="hidden md:block text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">Chronit</h1>
+            <h1 className={`hidden md:block text-2xl font-bold tracking-tight md:text-3xl ${scrolled ? 'text-gray-900' : 'text-white'}`}>Chronit</h1>
           </a>
-          <SiteNav />
+          <SiteNav light={!scrolled} />
           <div className="flex shrink-0 items-center gap-2">
             <div className="hidden md:flex items-center gap-2">
               {user ? (
@@ -461,7 +472,7 @@ const Home = () => {
                 </>
               ) : (
                 <button onClick={() => setShowAuthModal(true)}
-                  className="rounded-full border-2 border-gray-300 px-5 py-2 text-base font-bold text-gray-700 transition-all hover:border-gray-400">
+                  className={`rounded-full border-2 px-5 py-2 text-base font-bold transition-all ${scrolled ? 'border-gray-300 text-gray-700 hover:border-gray-400' : 'border-white/30 text-white hover:border-white/60'}`}>
                   로그인
                 </button>
               )}
@@ -476,7 +487,7 @@ const Home = () => {
               {user ? 'Finds' : '무료 체험'}
             </button>
             <button onClick={() => setMenuOpen((v) => !v)} aria-label="메뉴"
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 text-gray-700 transition-all hover:border-gray-400 md:hidden">
+              className={`flex h-11 w-11 items-center justify-center rounded-full border transition-all md:hidden ${scrolled ? 'border-gray-300 text-gray-700 hover:border-gray-400' : 'border-white/30 text-white hover:border-white/60'}`}>
               {menuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
@@ -529,84 +540,94 @@ const Home = () => {
       </div>
 
       {/* ── Hero ── */}
-      <section className="relative px-5 pt-32 pb-16 md:px-8 md:pt-40 md:pb-24">
-        <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
-          <div className="flex w-full flex-col items-center">
-            {user && (
-              <div className="mb-8 w-full max-w-xl rounded-2xl border-2 border-[#0064FF]/30 bg-white px-6 py-6 text-center shadow-sm">
-                <p className="text-xl font-bold text-gray-900">돌아오셨어요{nickname ? `, ${nickname}님` : ''}</p>
-                <p className="mt-1 mb-5 text-sm font-bold text-gray-500">오늘 뜨는 소스, 보러 갈까요?</p>
-                {isExistingRender ? (
-                  <div className="mx-auto flex w-full max-w-md gap-2">
-                    <button onClick={handleFinds}
-                      className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-4 text-base font-bold text-white shadow-lg shadow-black/5 transition-all hover:brightness-95 active:scale-[0.98]">
-                      시작하기 <ArrowRight size={18} />
-                    </button>
-                    <Link to="/generate"
-                      className="flex flex-1 flex-col items-center justify-center rounded-2xl border-2 border-amber-300 bg-amber-50/60 px-4 py-3 text-base font-bold leading-tight text-amber-700 transition hover:bg-amber-100 active:scale-[0.98]">
-                      편집 작업실 <span className="mt-0.5 text-[11px] font-bold text-amber-500">9/14 종료 예정</span>
-                    </Link>
-                  </div>
-                ) : (
-                  <button onClick={handleFinds}
-                    className="mx-auto flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-black/5 transition-all hover:brightness-95 active:scale-[0.98]">
-                    시작하기 <ArrowRight size={20} />
-                  </button>
-                )}
-              </div>
-            )}
-            {!user && (<>
-            <h1 className="mb-5 text-4xl font-bold leading-[1.15] tracking-tight text-gray-900 break-keep md:text-6xl">
-              <span className="bg-gradient-to-r from-[#0064FF] to-[#06B6D4] bg-clip-text text-transparent">터지는 소스</span>를<br />찾으세요
-            </h1>
-            <p className="mx-auto mb-6 max-w-md text-[15px] font-medium leading-relaxed text-gray-500 break-keep">
-              릴스·틱톡 쇼핑 크리에이터를 위한 소재 발굴 AI<br />지금 막 터진 걸 찾고, 2차 창작용 레퍼런스까지
-            </p>
+      <section className="relative overflow-hidden bg-[#0A0B0F] px-5 pt-32 pb-24 md:px-8 md:pt-40 md:pb-32">
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <div className="absolute left-1/2 top-[-12%] h-[460px] w-[760px] -translate-x-1/2 rounded-full bg-[#0064FF]/25 blur-[130px]" />
+          <div className="absolute right-[6%] bottom-[8%] h-[300px] w-[420px] rounded-full bg-[#06B6D4]/12 blur-[120px]" />
+          <div className="absolute inset-0 opacity-[0.04] [background-image:linear-gradient(#fff_1px,transparent_1px),linear-gradient(90deg,#fff_1px,transparent_1px)] [background-size:44px_44px]" />
+        </div>
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-b from-transparent to-white" />
 
-            <div className="mx-auto mb-8 w-full max-w-lg text-left">
-              <div className="mb-3 flex flex-wrap justify-center gap-1.5">
-                {HERO_PERSONAS.map((p, i) => (
-                  <button key={i} onClick={() => setHeroPersona(i)}
-                    className={`rounded-full px-3.5 py-1.5 text-[13px] font-bold transition ${heroPersona === i ? 'bg-[#0064FF] text-white' : 'border border-gray-200 bg-white text-gray-500 hover:border-[#0064FF]'}`}>
-                    {p.tab}
+        <div className="relative mx-auto flex max-w-3xl flex-col items-center text-center">
+          {user && (
+            <div className="mb-2 w-full max-w-xl rounded-2xl border border-white/12 bg-white/[0.06] px-6 py-6 text-center shadow-[0_10px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+              <p className="text-xl font-bold text-white">돌아오셨어요{nickname ? `, ${nickname}님` : ''}</p>
+              <p className="mt-1 mb-5 text-sm font-bold text-white/50">오늘 뜨는 소스, 보러 갈까요?</p>
+              {isExistingRender ? (
+                <div className="mx-auto flex w-full max-w-md gap-2">
+                  <button onClick={handleFinds}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-4 text-base font-bold text-white shadow-lg shadow-[#0064FF]/25 transition-all hover:brightness-110 active:scale-[0.98]">
+                    시작하기 <ArrowRight size={18} />
                   </button>
-                ))}
-              </div>
-              <div className="rounded-2xl border border-gray-200 bg-white p-4">
-                <p className="text-sm font-bold text-gray-900">{HERO_PERSONAS[heroPersona].title}</p>
-                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {HERO_PERSONAS[heroPersona].benefits.map((b, j) => (
-                    <div key={j} className="flex items-start gap-1.5 rounded-xl bg-gray-50 px-3 py-2.5">
-                      <span className="mt-0.5 shrink-0 font-bold text-[#0064FF]">✓</span>
-                      <span className="text-[13px] font-medium text-gray-700 break-keep">{b}</span>
-                    </div>
-                  ))}
+                  <Link to="/generate"
+                    className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-amber-300/40 bg-amber-400/10 px-4 py-3 text-base font-bold leading-tight text-amber-300 transition hover:bg-amber-400/20 active:scale-[0.98]">
+                    편집 작업실 <span className="mt-0.5 text-[11px] font-bold text-amber-400/70">9/14 종료 예정</span>
+                  </Link>
                 </div>
+              ) : (
+                <button onClick={handleFinds}
+                  className="mx-auto flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-[#0064FF]/25 transition-all hover:brightness-110 active:scale-[0.98]">
+                  시작하기 <ArrowRight size={20} />
+                </button>
+              )}
+            </div>
+          )}
+          {!user && (<>
+            <p className="mb-5 text-[11px] font-bold uppercase tracking-[0.28em] text-white/40">Research → Analyze → Remix · 쇼핑 숏폼 소싱 AI</p>
+            <h1 className="mb-6 text-4xl font-extrabold leading-[1.12] tracking-tight text-white break-keep md:text-6xl">
+              지금 <span className="bg-gradient-to-r from-[#3B82F6] to-[#22D3EE] bg-clip-text text-transparent">터지는 소스</span>를<br />찾고 · 분석하고 · 복제하세요
+            </h1>
+            <p className="mx-auto mb-8 max-w-md text-[15px] font-medium leading-relaxed text-white/55 break-keep">
+              릴스·틱톡 쇼핑 크리에이터를 위한 리서치 AI<br />막 터진 소재를 찾고, 왜 터졌는지 분석하고, 2차 창작까지
+            </p>
+            <div className="w-full max-w-xl">
+              <div className="flex items-center gap-2 rounded-2xl border border-white/12 bg-white/[0.06] p-2 pl-5 shadow-[0_10px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+                <Search size={18} className="shrink-0 text-white/40" />
+                <input value={heroQuery} onChange={(e) => setHeroQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && heroSubmit()} placeholder={HERO_PH[phIdx]}
+                  className="min-w-0 flex-1 bg-transparent py-3 text-[15px] text-white placeholder-white/40 outline-none" />
+                <button onClick={heroSubmit} aria-label="검색"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(140deg,#2A7BFF,#0064FF)] text-white transition hover:brightness-110 active:scale-95">
+                  <ArrowRight size={18} />
+                </button>
               </div>
             </div>
-            </>)}
-
-            {!user && (
-              <div className="flex w-full max-w-md flex-col items-center gap-2">
-                <button onClick={handleFinds}
-                  className="w-full rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-black/5 transition-all hover:brightness-95 active:scale-[0.98]">
-                  소스 발굴 시작 →
+            <div className="mt-5 flex flex-wrap justify-center gap-2">
+              {HERO_PERSONAS.map((p, i) => (
+                <button key={i} onClick={() => setHeroPersona(i)}
+                  className={`rounded-full px-4 py-1.5 text-[13px] font-bold transition ${heroPersona === i ? 'bg-[#0064FF] text-white shadow-lg shadow-[#0064FF]/30' : 'border border-white/15 bg-white/5 text-white/65 hover:border-white/40 hover:text-white'}`}>
+                  {p.tab}
                 </button>
-                <Link to="/finds" className="text-sm font-medium text-gray-400 transition-colors hover:text-[#0064FF]">바로 검색하기 →</Link>
-                {spots != null && spots > 0 && (
-                  <p className="mt-2 flex items-center gap-1.5 text-sm font-bold text-gray-700">
-                    <Users size={14} className="text-[#0064FF]" /> 이미 <span className="text-[#0064FF]">{spots.toLocaleString('ko-KR')}</span>명의 크리에이터가 함께해요
-                  </p>
-                )}
-                {stats?.clips ? (
-                  <p className="mt-2 text-xs text-gray-400 break-keep">
-                    <Search size={12} className="mr-1 inline align-[-1px]" />
-                    지금까지 <span className="font-bold text-gray-500">{Number(stats.clips).toLocaleString('ko-KR')}개</span> 클립 발굴 · 큐레이터 <span className="font-bold text-gray-500">{Number(stats.curators).toLocaleString('ko-KR')}곳</span> 추적 중
-                  </p>
-                ) : null}
+              ))}
+            </div>
+            <div className="mt-4 w-full max-w-xl rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left backdrop-blur-md">
+              <p className="text-sm font-bold text-white">{HERO_PERSONAS[heroPersona].title}</p>
+              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {HERO_PERSONAS[heroPersona].benefits.map((b, j) => (
+                  <div key={j} className="flex items-start gap-1.5 rounded-xl bg-white/[0.04] px-3 py-2.5">
+                    <Check size={15} className="mt-0.5 shrink-0 text-[#22D3EE]" />
+                    <span className="text-[13px] font-medium text-white/75 break-keep">{b}</span>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
+            </div>
+            <div className="mt-7 flex w-full max-w-md flex-col items-center gap-3">
+              <button onClick={handleFinds}
+                className="w-full rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-[#0064FF]/25 transition-all hover:brightness-110 active:scale-[0.98]">
+                무료로 소스 발굴 시작 →
+              </button>
+              {spots != null && spots > 0 && (
+                <p className="flex items-center gap-1.5 text-sm font-bold text-white/60">
+                  <Users size={14} className="text-[#22D3EE]" /> 이미 <span className="text-white">{spots.toLocaleString('ko-KR')}</span>명의 크리에이터가 함께해요
+                </p>
+              )}
+              {stats?.clips ? (
+                <p className="text-xs text-white/35 break-keep">
+                  <Search size={12} className="mr-1 inline align-[-1px]" />
+                  지금까지 <span className="font-bold text-white/55">{Number(stats.clips).toLocaleString('ko-KR')}개</span> 클립 발굴 · 큐레이터 <span className="font-bold text-white/55">{Number(stats.curators).toLocaleString('ko-KR')}곳</span> 추적 중
+                </p>
+              ) : null}
+            </div>
+          </>)}
         </div>
       </section>
 
