@@ -43,26 +43,22 @@ export default function HomeAnalysisShowcase() {
           3초 훅, 확산 속도, 댓글 반응까지 — 이 소재가 왜 통했는지 한 화면에서 분석합니다.
         </p>
 
-        <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-[minmax(0,320px)_1fr] md:items-stretch">
-          <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
-            <video src="/demo1.mp4" autoPlay loop muted playsInline preload="metadata"
-              className="h-[360px] w-full object-cover md:h-full" style={{ background: '#15161a' }} />
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent p-4 pt-10">
-              <div className="text-[15px] font-bold text-white">무선 변기 청소 브러시</div>
-              <div className="mt-0.5 text-[12px] text-white/60">@clean.home · Instagram</div>
-              <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-[12px] font-medium text-white/85">
-                <span>조회 92.4만</span><span>좋아요 5.1만</span><span>댓글 1,240</span>
+        <div className="mx-auto mt-12 max-w-4xl rounded-3xl border border-white/10 bg-white/[0.03] p-6 md:p-8">
+          <div className="flex flex-wrap items-start gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[15px] font-bold text-white">무선 변기 청소 브러시</span>
+                <span className="rounded-full bg-[#0064FF] px-2 py-0.5 text-[10px] font-bold text-white">확산 가속</span>
               </div>
+              <div className="mt-0.5 text-[12px] text-white/50">@clean.home · Instagram · 조회 92.4만 · 좋아요 5.1만 · 댓글 1,240</div>
             </div>
-            <div className="absolute left-3 top-3 rounded-full bg-[#0064FF] px-2.5 py-1 text-[11px] font-bold text-white">확산 가속</div>
-          </div>
-
-          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 md:p-7">
-            <div className="mb-5 flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#0064FF]/20 text-[#7DA2FF]"><Sparkles size={14} /></span>
-              <span className="text-[15px] font-bold text-white">벤치마크 분석</span>
-              <span className="ml-auto text-[12px] text-white/40">18회 실측</span>
+              <span className="text-[13px] font-bold text-white/80">벤치마크 분석</span>
+              <span className="text-[12px] text-white/40">· 18회 실측</span>
             </div>
+          </div>
+          <div className="my-5 h-px w-full bg-white/10" />
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="space-y-5">
@@ -128,7 +124,6 @@ export default function HomeAnalysisShowcase() {
               </div>
             </div>
           </div>
-        </div>
       </div>
     </section>
   )
