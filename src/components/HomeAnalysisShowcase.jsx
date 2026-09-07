@@ -16,6 +16,21 @@ export default function HomeAnalysisShowcase() {
     return () => io.disconnect()
   }, [])
 
+  useEffect(() => {
+    if (!inView) return
+    let alive = true, t
+    const cycle = () => {
+      setRevealed(false)
+      t = setTimeout(() => {
+        if (!alive) return
+        setRevealed(true)
+        t = setTimeout(() => { if (alive) cycle() }, 6000)
+      }, 1700)
+    }
+    cycle()
+    return () => { alive = false; clearTimeout(t) }
+  }, [inView])
+
   const axes = [
     { label: '참여', kind: '측정', val: 88 },
     { label: '훅 · 첫 3초', kind: '진단', val: 92 },
@@ -126,14 +141,14 @@ export default function HomeAnalysisShowcase() {
               </div>
             </div>
           </div>
-          <button type="button" onClick={() => setRevealed(true)} aria-label="분석 보기"
+          <div aria-hidden
             className={`absolute inset-0 flex flex-col items-center justify-center rounded-3xl border border-white/10 bg-[#0c0d11]/92 text-center backdrop-blur-sm transition-opacity duration-500 ${revealed ? 'pointer-events-none opacity-0' : 'opacity-100'}`}>
             <span className="absolute left-4 top-4 rounded-full bg-[#0064FF] px-2.5 py-1 text-[11px] font-bold text-white">확산 가속</span>
             <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#0064FF] text-white shadow-lg shadow-[#0064FF]/30"><Play size={26} fill="currentColor" /></span>
             <span className="mt-4 text-[15px] font-bold text-white">무선 변기 청소 브러시</span>
             <span className="mt-1 text-[12px] text-white/55">@clean.home · 조회 92.4만 · 좋아요 5.1만</span>
-            <span className="mt-4 text-[13px] font-semibold text-[#7DA2FF]">분석 보기 →</span>
-          </button>
+            <span className="mt-4 text-[13px] font-semibold text-[#7DA2FF]">자동 분석 중</span>
+          </div>
         </div>
       </div>
     </section>
