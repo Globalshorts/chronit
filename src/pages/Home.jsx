@@ -597,68 +597,16 @@ const Home = () => {
       {/* ── 제품 쇼케이스: 실제 분석 화면 ── */}
       {!user && <HomeAnalysisShowcase />}
 
-      {/* ── 작동 방식 3스텝 ── */}
-      <section className="px-5 pt-14 pb-2 md:px-8 md:pt-20">
-        <Reveal className="mx-auto max-w-4xl">
-          <div className="mb-10 text-center">
-            <h2 className="text-3xl font-bold text-white md:text-4xl">세 단계로 끝납니다</h2>
-            <p className="mt-3 text-base text-white/45 md:text-lg">매일 무엇을 올릴지, 고민을 덜어냅니다.</p>
+      {/* ── 실데이터 통계 스트립 ── */}
+      {stats?.clips ? (
+        <section id="features" style={{ scrollMarginTop: '120px' }} className="px-5 pb-10 md:px-8">
+          <div className="mx-auto grid max-w-3xl grid-cols-3 divide-x divide-white/10 rounded-2xl border border-white/10 bg-white/[0.04] py-6 text-center">
+            <div><div className="text-2xl font-bold text-white md:text-3xl">{Number(stats.clips).toLocaleString('ko-KR')}</div><div className="mt-1 text-xs text-white/35">발굴한 소스</div></div>
+            <div><div className="text-2xl font-bold text-white md:text-3xl">{Number(stats.curators).toLocaleString('ko-KR')}</div><div className="mt-1 text-xs text-white/35">추적 중인 큐레이터</div></div>
+            <div><div className="text-2xl font-bold text-white md:text-3xl">매일</div><div className="mt-1 text-xs text-white/35">새 소스 갱신</div></div>
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {[
-              { n: '1', Icon: Flame, title: '실시간 터짐 포착', desc: '작은 계정에서 막 터진 쇼핑 소재를 실시간으로 포착합니다.' },
-              { n: '2', Icon: Filter, title: '내 니치로 선별', desc: '카테고리·팔로워·지역 필터로 필요한 소재만 선별합니다.' },
-              { n: '3', Icon: Zap, title: '확산 전 선점', desc: '남들이 따라오기 전에 먼저 제작해 조회수를 선점합니다.' },
-            ].map(({ n, Icon, title, desc }) => (
-              <div key={n} className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-none">
-                <div className="mb-4 flex items-center justify-between">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0064FF]/[0.08] text-[#0064FF]"><Icon size={20} strokeWidth={2.1} /></div>
-                  <span className="text-2xl font-bold text-white/15">{n}</span>
-                </div>
-                <h3 className="mb-1.5 text-lg font-semibold text-white">{title}</h3>
-                <p className="text-sm leading-relaxed text-white/45">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </Reveal>
-      </section>
-
-
-      {/* ── 왜 Finds인가 ── */}
-      <section id="features" style={{ scrollMarginTop: '200px' }} className="px-5 py-16 md:px-8 md:py-24">
-        <Reveal className="mx-auto max-w-5xl">
-          <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold text-white md:text-4xl">소재 발굴의 기준을 바꿉니다</h2>
-            <p className="mt-3 text-base text-white/45 md:text-lg">크로닛 도입 전과 후.</p>
-          </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-              <div className="mb-4 inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/45">크로닛 전</div>
-              <ul className="space-y-3 text-[15px] text-white/45">
-                <li className="flex gap-2"><span className="text-white/20">—</span> 소스 하나 찾는 데 하루 1~2시간</li>
-                <li className="flex gap-2"><span className="text-white/20">—</span> 외주 맡기면 1건에 1~2만원</li>
-                <li className="flex gap-2"><span className="text-white/20">—</span> 감으로 올려서 조회수 복불복</li>
-              </ul>
-            </div>
-            <div className="rounded-2xl border-2 border-[#0064FF] bg-white/[0.04] p-6">
-              <div className="mb-4 inline-flex items-center rounded-full bg-[#0064FF]/10 px-3 py-1 text-xs font-semibold text-[#0064FF]">크로닛 후</div>
-              <ul className="space-y-3 text-[15px] font-medium text-white">
-                <li className="flex gap-2"><Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-[#0064FF]" /> 지금 막 터진 소재를 실시간으로</li>
-                <li className="flex gap-2"><Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-[#0064FF]" /> 월 9,900원부터, 외주 없이 직접</li>
-                <li className="flex gap-2"><Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-[#0064FF]" /> 남들보다 먼저, 확산 전에 선점</li>
-              </ul>
-            </div>
-          </div>
-          <SourcingBeforeAfter />
-          {stats?.clips ? (
-            <div className="mt-8 grid grid-cols-3 divide-x divide-white/10 rounded-2xl border border-white/10 bg-white/[0.04] py-6 text-center">
-              <div><div className="text-2xl font-bold text-white md:text-3xl">{Number(stats.clips).toLocaleString('ko-KR')}</div><div className="mt-1 text-xs text-white/35">발굴한 소스</div></div>
-              <div><div className="text-2xl font-bold text-white md:text-3xl">{Number(stats.curators).toLocaleString('ko-KR')}</div><div className="mt-1 text-xs text-white/35">추적 중인 큐레이터</div></div>
-              <div><div className="text-2xl font-bold text-white md:text-3xl">매일</div><div className="mt-1 text-xs text-white/35">새 소스 갱신</div></div>
-            </div>
-          ) : null}
-        </Reveal>
-      </section>
+        </section>
+      ) : null}
 
       {/* ── 실사용 후기 ── */}
       <section className="px-5 py-16 md:px-8 md:py-20">
