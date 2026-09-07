@@ -35,8 +35,8 @@ const CouponBar = ({ codeFromUrl, onApply }) => {
     return (
       <div className="mx-auto mb-10 flex max-w-sm items-center gap-3 rounded-2xl border-2 border-[#0064FF]/30 bg-[#0064FF]/10 px-5 py-3">
         <Gift size={16} className="shrink-0 text-[#0064FF]" />
-        <span className="text-base font-bold text-gray-700">코드 <strong className="text-gray-900">{codeFromUrl}</strong> 적용됨</span>
-        <button onClick={() => { onApply(null); sessionStorage.removeItem('chronit_code') }} className="ml-auto text-gray-400 hover:text-gray-700"><X size={14} /></button>
+        <span className="text-base font-bold text-white/70">코드 <strong className="text-white">{codeFromUrl}</strong> 적용됨</span>
+        <button onClick={() => { onApply(null); sessionStorage.removeItem('chronit_code') }} className="ml-auto text-white/35 hover:text-white/70"><X size={14} /></button>
       </div>
     )
   }
@@ -50,7 +50,7 @@ const CouponBar = ({ codeFromUrl, onApply }) => {
           onChange={(e) => { setInput(e.target.value.toUpperCase()); setStatus(null) }}
           onKeyDown={(e) => e.key === 'Enter' && handleApply()}
           placeholder="쿠폰 / 할인 코드 (있으면 입력)"
-          className="flex-1 rounded-2xl border-2 border-gray-300 bg-white px-5 py-4 text-base font-bold text-gray-900 placeholder-gray-400 outline-none transition-all focus:border-[#0064FF] focus:ring-4 focus:ring-[#0064FF]/15"
+          className="flex-1 rounded-2xl border-2 border-white/15 bg-white/[0.04] px-5 py-4 text-base font-bold text-white placeholder-gray-400 outline-none transition-all focus:border-[#0064FF] focus:ring-4 focus:ring-[#0064FF]/15"
         />
         <button onClick={handleApply}
           className="rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-6 py-4 text-base font-bold text-white transition-all hover:brightness-95 active:scale-[0.98]">
@@ -65,7 +65,7 @@ const CouponBar = ({ codeFromUrl, onApply }) => {
 
 const statusCfg = {
   active:  { label: '진행중',      cls: 'bg-[#0064FF]/12 text-[#0064FF] border-[#0064FF]/30', dot: true },
-  ended:   { label: '종료됨',      cls: 'bg-gray-100 text-gray-500 border-gray-200', dot: false },
+  ended:   { label: '종료됨',      cls: 'bg-white/[0.06] text-white/45 border-white/10', dot: false },
   winner:  { label: '당첨자 발표', cls: 'bg-[#FFB800]/15 text-[#b07d00] border-[#FFB800]/40', dot: false },
 }
 const EventBadge = ({ status, label }) => {
@@ -88,9 +88,9 @@ function HomeScarcity({ spots }) {
     <div className="mx-auto mb-6 max-w-md rounded-2xl border-2 border-[#FF5A5F]/30 bg-[#FFF5F5] px-5 py-4">
       <div className="mb-2 flex items-center justify-between text-sm font-bold">
         <span className="text-[#FF5A5F]">선착순 100명 무료</span>
-        <span className="text-gray-500">현재 {spots}명 신청</span>
+        <span className="text-white/45">현재 {spots}명 신청</span>
       </div>
-      <div className="h-2.5 w-full overflow-hidden rounded-full bg-white">
+      <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/[0.04]">
         <div className="h-full rounded-full transition-all" style={{ width: pct + '%', background: '#FF5A5F' }} />
       </div>
     </div>
@@ -407,7 +407,7 @@ const Home = () => {
   const bannerH = bannerCount * 44
 
   return (
-    <div className="min-h-screen overflow-x-hidden font-sans break-keep text-gray-900 selection:bg-[#0064FF]/20" style={{ paddingTop: bannerH ? `${bannerH}px` : undefined }}>
+    <div className="min-h-screen overflow-x-hidden bg-[#0A0B0F] font-sans break-keep text-white/90 selection:bg-[#0064FF]/30" style={{ paddingTop: bannerH ? `${bannerH}px` : undefined }}>
       {/* 추천인 코드 배너 */}
       {refFromUrl && (
         <div className="fixed top-0 right-0 left-0 z-[61] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-3 text-sm font-bold text-white shadow-md">
@@ -444,11 +444,11 @@ const Home = () => {
       )}
 
       {/* Header */}
-      <header style={{ top: `${bannerH}px` }} className={`fixed right-0 left-0 z-50 border-b transition-[background-color,border-color,padding] duration-300 ${scrolled ? 'border-white/60 bg-white/55 py-3 backdrop-blur-md' : 'border-transparent bg-transparent py-4 md:py-5'}`}>
+      <header style={{ top: `${bannerH}px` }} className={`fixed right-0 left-0 z-50 border-b transition-[background-color,border-color,padding] duration-300 ${scrolled ? 'border-white/10 bg-[#0A0B0F]/85 py-3 backdrop-blur-md' : 'border-transparent bg-transparent py-4 md:py-5'}`}>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
           <a href="/" className="flex min-w-0 items-center gap-2 md:gap-3">
             <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-9 w-9 shrink-0 md:h-10 md:w-10" />
-            <h1 className={`hidden md:block text-2xl font-bold tracking-tight md:text-3xl ${scrolled ? 'text-gray-900' : 'text-white'}`}>Chronit</h1>
+            <h1 className={`hidden md:block text-2xl font-bold tracking-tight md:text-3xl ${scrolled ? 'text-white' : 'text-white'}`}>Chronit</h1>
           </a>
           <SiteNav light={!scrolled} />
           <div className="flex shrink-0 items-center gap-2">
@@ -456,7 +456,7 @@ const Home = () => {
               {user ? (
                 <>
                   {nickname ? (
-                    <Link to="/me" className="flex items-center gap-1.5 rounded-full bg-gray-900 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] active:scale-[0.98]">
+                    <Link to="/me" className="flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] active:scale-[0.98]">
                       <User size={16} /> <span className="max-w-[110px] truncate">{nickname}</span>
                     </Link>
                   ) : (
@@ -465,13 +465,13 @@ const Home = () => {
                     </button>
                   )}
                   <button onClick={() => supabase.auth.signOut()} title="로그아웃"
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 text-gray-500 transition-all hover:border-gray-400 hover:text-gray-800">
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/45 transition-all hover:border-white/30 hover:text-white/85">
                     <LogOut size={15} />
                   </button>
                 </>
               ) : (
                 <button onClick={() => setShowAuthModal(true)}
-                  className={`rounded-full border-2 px-5 py-2 text-base font-bold transition-all ${scrolled ? 'border-gray-300 text-gray-700 hover:border-gray-400' : 'border-white/30 text-white hover:border-white/60'}`}>
+                  className={`rounded-full border-2 px-5 py-2 text-base font-bold transition-all ${scrolled ? 'border-white/15 text-white/70 hover:border-white/30' : 'border-white/30 text-white hover:border-white/60'}`}>
                   로그인
                 </button>
               )}
@@ -486,7 +486,7 @@ const Home = () => {
               {user ? 'Finds' : '무료 체험'}
             </button>
             <button onClick={() => setMenuOpen((v) => !v)} aria-label="메뉴"
-              className={`flex h-11 w-11 items-center justify-center rounded-full border transition-all md:hidden ${scrolled ? 'border-gray-300 text-gray-700 hover:border-gray-400' : 'border-white/30 text-white hover:border-white/60'}`}>
+              className={`flex h-11 w-11 items-center justify-center rounded-full border transition-all md:hidden ${scrolled ? 'border-white/15 text-white/70 hover:border-white/30' : 'border-white/30 text-white hover:border-white/60'}`}>
               {menuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
@@ -495,19 +495,19 @@ const Home = () => {
 
       {/* 모바일 메뉴 */}
       <div className={`fixed top-0 left-0 right-0 z-40 transform transition-all duration-300 ease-in-out md:hidden ${menuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`} style={{ paddingTop: `${bannerH + 76}px` }}>
-        <div className="border-b border-gray-200 bg-white px-6 py-6 shadow-lg overflow-y-auto overscroll-contain" style={{ maxHeight: `calc(100dvh - ${bannerH + 76}px)` }}>
-          <nav className="flex flex-col gap-1 text-lg font-bold text-gray-700">
+        <div className="border-b border-white/10 bg-[#0A0B0F] px-6 py-6 shadow-lg overflow-y-auto overscroll-contain" style={{ maxHeight: `calc(100dvh - ${bannerH + 76}px)` }}>
+          <nav className="flex flex-col gap-1 text-lg font-bold text-white/70">
             <Link to="/finds" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 font-semibold text-[#0064FF] transition-colors hover:bg-[#0064FF]/5">Finds — 터지는 영상 찾기</Link>
             <Link to="/trend" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 font-semibold text-[#0064FF] transition-colors hover:bg-[#0064FF]/5">실시간 트렌드</Link>
-            <Link to="/manual" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#0064FF]">사용 방법</Link>
-            <Link to="/me" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#0064FF]">마이페이지</Link>
-            <a href="#pricing" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-gray-50 hover:text-[#0064FF]">가격 안내</a>
+            <Link to="/manual" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-white/[0.03] hover:text-[#0064FF]">사용 방법</Link>
+            <Link to="/me" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-white/[0.03] hover:text-[#0064FF]">마이페이지</Link>
+            <a href="#pricing" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-white/[0.03] hover:text-[#0064FF]">가격 안내</a>
           </nav>
-          <div className="mt-4 border-t border-gray-200 pt-4 flex flex-col gap-2">
+          <div className="mt-4 border-t border-white/10 pt-4 flex flex-col gap-2">
             {user ? (
               <>
                 {nickname ? (
-                  <Link to="/me" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-3.5 text-lg font-bold text-white transition-colors hover:bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)]">
+                  <Link to="/me" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-xl bg-white/10 px-4 py-3.5 text-lg font-bold text-white transition-colors hover:bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)]">
                     <User size={18} /> {nickname} <span className="ml-auto text-sm font-medium text-white/70">마이페이지 →</span>
                   </Link>
                 ) : (
@@ -515,15 +515,15 @@ const Home = () => {
                     <User size={18} /> 닉네임 설정하기
                   </button>
                 )}
-                <p className="px-4 pb-1 text-xs text-gray-400">{user.email}</p>
+                <p className="px-4 pb-1 text-xs text-white/35">{user.email}</p>
                 <button onClick={() => { supabase.auth.signOut(); setMenuOpen(false) }}
-                  className="flex w-full items-center gap-2 rounded-xl px-4 py-3.5 text-lg font-bold text-gray-600 transition-colors hover:bg-gray-50">
+                  className="flex w-full items-center gap-2 rounded-xl px-4 py-3.5 text-lg font-bold text-white/60 transition-colors hover:bg-white/[0.03]">
                   <LogOut size={18} /> 로그아웃
                 </button>
               </>
             ) : (
               <button onClick={() => { setShowAuthModal(true); setMenuOpen(false) }}
-                className="w-full rounded-xl border-2 border-gray-300 px-4 py-3.5 text-lg font-bold text-gray-700 transition-colors hover:bg-gray-50">
+                className="w-full rounded-xl border-2 border-white/15 px-4 py-3.5 text-lg font-bold text-white/70 transition-colors hover:bg-white/[0.03]">
                 로그인
               </button>
             )}
@@ -544,7 +544,6 @@ const Home = () => {
           <div className="absolute left-1/2 top-[2%] h-[520px] w-[820px] -translate-x-1/2 rounded-full bg-[#0064FF]/[0.08] blur-[170px]" />
           <div className="absolute inset-0 opacity-[0.025] [background-image:linear-gradient(#fff_1px,transparent_1px),linear-gradient(90deg,#fff_1px,transparent_1px)] [background-size:56px_56px]" />
         </div>
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-b from-transparent to-white" />
 
         <div className="relative mx-auto flex max-w-3xl flex-col items-center text-center">
           {user && (
@@ -598,22 +597,22 @@ const Home = () => {
       <section className="px-5 pt-14 pb-2 md:px-8 md:pt-20">
         <Reveal className="mx-auto max-w-4xl">
           <div className="mb-10 text-center">
-            <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">3단계면 끝나요</h2>
-            <p className="mt-3 text-base text-gray-500 md:text-lg">매일 뭐 올릴지, 여기서 끝.</p>
+            <h2 className="text-3xl font-bold text-white md:text-4xl">세 단계로 끝납니다</h2>
+            <p className="mt-3 text-base text-white/45 md:text-lg">매일 무엇을 올릴지, 고민을 덜어냅니다.</p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {[
-              { n: '1', Icon: Flame, title: '실시간 터짐 포착', desc: '작은 계정에서 막 터진 쇼핑 소재를 실시간으로 잡아드려요.' },
-              { n: '2', Icon: Filter, title: '내 니치로 선별', desc: '카테고리·팔로워·지역 필터로 원하는 소재만 추려요.' },
-              { n: '3', Icon: Zap, title: '확산 전 선점', desc: '남들이 따라하기 전에 먼저 제작해 조회수를 선점해요.' },
+              { n: '1', Icon: Flame, title: '실시간 터짐 포착', desc: '작은 계정에서 막 터진 쇼핑 소재를 실시간으로 포착합니다.' },
+              { n: '2', Icon: Filter, title: '내 니치로 선별', desc: '카테고리·팔로워·지역 필터로 필요한 소재만 선별합니다.' },
+              { n: '3', Icon: Zap, title: '확산 전 선점', desc: '남들이 따라오기 전에 먼저 제작해 조회수를 선점합니다.' },
             ].map(({ n, Icon, title, desc }) => (
-              <div key={n} className="rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">
+              <div key={n} className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-none">
                 <div className="mb-4 flex items-center justify-between">
                   <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0064FF]/[0.08] text-[#0064FF]"><Icon size={20} strokeWidth={2.1} /></div>
-                  <span className="text-2xl font-bold text-gray-200">{n}</span>
+                  <span className="text-2xl font-bold text-white/15">{n}</span>
                 </div>
-                <h3 className="mb-1.5 text-lg font-semibold text-gray-900">{title}</h3>
-                <p className="text-sm leading-relaxed text-gray-500">{desc}</p>
+                <h3 className="mb-1.5 text-lg font-semibold text-white">{title}</h3>
+                <p className="text-sm leading-relaxed text-white/45">{desc}</p>
               </div>
             ))}
           </div>
@@ -625,21 +624,21 @@ const Home = () => {
       <section id="features" style={{ scrollMarginTop: '200px' }} className="px-5 py-16 md:px-8 md:py-24">
         <Reveal className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">소재 찾기, 이렇게 바뀌어요</h2>
-            <p className="mt-3 text-base text-gray-500 md:text-lg">쇼핑 크리에이터의 하루 — 크로닛 전과 후.</p>
+            <h2 className="text-3xl font-bold text-white md:text-4xl">소재 발굴의 기준을 바꿉니다</h2>
+            <p className="mt-3 text-base text-white/45 md:text-lg">크로닛 도입 전과 후.</p>
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-6">
-              <div className="mb-4 inline-flex items-center rounded-full bg-gray-200 px-3 py-1 text-xs font-semibold text-gray-500">크로닛 전</div>
-              <ul className="space-y-3 text-[15px] text-gray-500">
-                <li className="flex gap-2"><span className="text-gray-300">—</span> 소스 하나 찾는 데 하루 1~2시간</li>
-                <li className="flex gap-2"><span className="text-gray-300">—</span> 외주 맡기면 1건에 1~2만원</li>
-                <li className="flex gap-2"><span className="text-gray-300">—</span> 감으로 올려서 조회수 복불복</li>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+              <div className="mb-4 inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/45">크로닛 전</div>
+              <ul className="space-y-3 text-[15px] text-white/45">
+                <li className="flex gap-2"><span className="text-white/20">—</span> 소스 하나 찾는 데 하루 1~2시간</li>
+                <li className="flex gap-2"><span className="text-white/20">—</span> 외주 맡기면 1건에 1~2만원</li>
+                <li className="flex gap-2"><span className="text-white/20">—</span> 감으로 올려서 조회수 복불복</li>
               </ul>
             </div>
-            <div className="rounded-2xl border-2 border-[#0064FF] bg-white p-6">
+            <div className="rounded-2xl border-2 border-[#0064FF] bg-white/[0.04] p-6">
               <div className="mb-4 inline-flex items-center rounded-full bg-[#0064FF]/10 px-3 py-1 text-xs font-semibold text-[#0064FF]">크로닛 후</div>
-              <ul className="space-y-3 text-[15px] font-medium text-gray-900">
+              <ul className="space-y-3 text-[15px] font-medium text-white">
                 <li className="flex gap-2"><Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-[#0064FF]" /> 지금 막 터진 소재를 실시간으로</li>
                 <li className="flex gap-2"><Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-[#0064FF]" /> 월 9,900원부터, 외주 없이 직접</li>
                 <li className="flex gap-2"><Check size={18} strokeWidth={2.5} className="mt-0.5 shrink-0 text-[#0064FF]" /> 남들보다 먼저, 확산 전에 선점</li>
@@ -648,10 +647,10 @@ const Home = () => {
           </div>
           <SourcingBeforeAfter />
           {stats?.clips ? (
-            <div className="mt-8 grid grid-cols-3 divide-x divide-gray-100 rounded-2xl border border-gray-100 bg-white py-6 text-center">
-              <div><div className="text-2xl font-bold text-gray-900 md:text-3xl">{Number(stats.clips).toLocaleString('ko-KR')}</div><div className="mt-1 text-xs text-gray-400">발굴한 소스</div></div>
-              <div><div className="text-2xl font-bold text-gray-900 md:text-3xl">{Number(stats.curators).toLocaleString('ko-KR')}</div><div className="mt-1 text-xs text-gray-400">추적 중인 큐레이터</div></div>
-              <div><div className="text-2xl font-bold text-gray-900 md:text-3xl">매일</div><div className="mt-1 text-xs text-gray-400">새 소스 갱신</div></div>
+            <div className="mt-8 grid grid-cols-3 divide-x divide-white/10 rounded-2xl border border-white/10 bg-white/[0.04] py-6 text-center">
+              <div><div className="text-2xl font-bold text-white md:text-3xl">{Number(stats.clips).toLocaleString('ko-KR')}</div><div className="mt-1 text-xs text-white/35">발굴한 소스</div></div>
+              <div><div className="text-2xl font-bold text-white md:text-3xl">{Number(stats.curators).toLocaleString('ko-KR')}</div><div className="mt-1 text-xs text-white/35">추적 중인 큐레이터</div></div>
+              <div><div className="text-2xl font-bold text-white md:text-3xl">매일</div><div className="mt-1 text-xs text-white/35">새 소스 갱신</div></div>
             </div>
           ) : null}
         </Reveal>
@@ -661,8 +660,8 @@ const Home = () => {
       <section className="px-5 py-16 md:px-8 md:py-20">
         <Reveal className="mx-auto max-w-4xl">
           <div className="mb-10 text-center">
-            <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">먼저 써본 크리에이터들</h2>
-            <p className="mt-3 text-base text-gray-500 md:text-lg">진짜 사용자들이 남긴 이야기예요.</p>
+            <h2 className="text-3xl font-bold text-white md:text-4xl">이미 사용하는 크리에이터</h2>
+            <p className="mt-3 text-base text-white/45 md:text-lg">실제 사용자의 기록입니다.</p>
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             {[
@@ -671,10 +670,10 @@ const Home = () => {
               { name: '쇼핑 크리에이터 S', text: '아주 획기적입니다. 굿굿굿 정말 굿입니다.' },
               { name: '쇼핑 크리에이터 R', text: '와… 대박입니다. 안 쓸 수가 없어요.' },
             ].map(({ name, text }) => (
-              <div key={name} className="flex flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">
+              <div key={name} className="flex flex-col rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-none">
                 <div className="mb-3 text-sm tracking-wide text-[#0064FF]">★★★★★</div>
-                <p className="flex-1 text-[15px] leading-relaxed text-gray-800">“{text}”</p>
-                <div className="mt-4 text-sm font-semibold text-gray-500">{name}</div>
+                <p className="flex-1 text-[15px] leading-relaxed text-white/85">“{text}”</p>
+                <div className="mt-4 text-sm font-semibold text-white/45">{name}</div>
               </div>
             ))}
           </div>
@@ -684,22 +683,22 @@ const Home = () => {
       <section id="faq" className="px-5 py-16 md:px-8 md:py-20">
         <Reveal className="mx-auto max-w-2xl">
           <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">많이 물어보시는 것들</h2>
+            <h2 className="text-3xl font-bold text-white md:text-4xl">자주 묻는 질문</h2>
           </div>
           <div className="space-y-4">
             {[
-              { q: '어떤 플랫폼의 소스를 찾아주나요?', a: '샤오훙슈·틱톡·인스타 등에서 지금 반응이 좋은 소스를 찾아드려요. 국내에 아직 안 알려진 소스도 먼저 발견할 수 있어요.' },
-              { q: '분석은 뭘 알려주나요?', a: '영상이 왜 통했는지 — 훅(첫 3초)·셀링포인트·구성 흐름을 짚어드려요. 그대로 벤치마크해 내 영상에 적용할 수 있어요.' },
-              { q: '이용권은 어떻게 쓰이나요?', a: '분석하기 1회에 이용권 1개가 쓰여요. 검색과 트렌드 보기는 무료이고, 무료 회원도 매월 이용권 5개를 받아 먼저 써볼 수 있어요.' },
+              { q: '어떤 플랫폼의 소스를 찾아주나요?', a: '샤오훙슈·틱톡·인스타 등에서 지금 반응이 좋은 소스를 찾아냅니다. 국내에 아직 알려지지 않은 소스도 먼저 발견할 수 있습니다.' },
+              { q: '분석은 뭘 알려주나요?', a: '영상이 왜 통했는지 — 훅(첫 3초)·셀링포인트·구성 흐름을 짚어냅니다. 그대로 벤치마크해 내 영상에 적용할 수 있습니다.' },
+              { q: '이용권은 어떻게 쓰이나요?', a: '분석 1회에 이용권 1개가 사용됩니다. 검색과 트렌드 열람은 무료이며, 무료 회원에게도 매월 이용권 5개를 제공합니다.' },
             ].map(({ q, a }) => (
-              <div key={q} className="rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)] md:p-7">
+              <div key={q} className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-none md:p-7">
                 <div className="mb-3 flex items-start gap-3">
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0064FF] text-sm font-semibold text-white">Q</span>
-                  <p className="pt-0.5 text-lg font-bold text-gray-900">{q}</p>
+                  <p className="pt-0.5 text-lg font-bold text-white">{q}</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-bold text-gray-500">A</span>
-                  <p className="pt-0.5 text-base leading-relaxed text-gray-600">{a}</p>
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-sm font-bold text-white/45">A</span>
+                  <p className="pt-0.5 text-base leading-relaxed text-white/60">{a}</p>
                 </div>
               </div>
             ))}
@@ -711,14 +710,14 @@ const Home = () => {
       <section id="pricing" style={{ scrollMarginTop: '120px' }} className="px-5 py-16 md:px-8 md:py-24">
         <Reveal className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">필요한 만큼만</h2>
-            <p className="mt-3 text-base text-gray-500 md:text-lg">가입하면 무료 이용권을 드려요. 더 필요하면 구독하세요.</p>
+            <h2 className="text-3xl font-bold text-white md:text-4xl">필요한 만큼만</h2>
+            <p className="mt-3 text-base text-white/45 md:text-lg">가입 시 무료 이용권을 제공합니다. 필요에 따라 구독하세요.</p>
           </div>
-          <div className="relative mx-auto mb-2 flex max-w-sm rounded-xl bg-gray-100 p-1 text-sm font-bold">
-            <span aria-hidden className="absolute left-1 top-1 bottom-1 w-[calc(33.333%-0.25rem)] rounded-lg bg-white shadow-sm transition-transform duration-300 ease-out" style={{ transform: `translateX(${priceTab === 'annual' ? '100%' : priceTab === 'pack' ? '200%' : '0%'})` }} />
-            <button onClick={() => setPriceTab('monthly')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${priceTab === 'monthly' ? 'text-[#0064FF]' : 'text-gray-500'}`}>월간</button>
-            <button onClick={() => setPriceTab('annual')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${priceTab === 'annual' ? 'text-[#0064FF]' : 'text-gray-500'}`}>연간</button>
-            <button onClick={() => setPriceTab('pack')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${priceTab === 'pack' ? 'text-[#0064FF]' : 'text-gray-500'}`}>단건팩</button>
+          <div className="relative mx-auto mb-2 flex max-w-sm rounded-xl bg-white/[0.06] p-1 text-sm font-bold">
+            <span aria-hidden className="absolute left-1 top-1 bottom-1 w-[calc(33.333%-0.25rem)] rounded-lg bg-white/15 shadow-none transition-transform duration-300 ease-out" style={{ transform: `translateX(${priceTab === 'annual' ? '100%' : priceTab === 'pack' ? '200%' : '0%'})` }} />
+            <button onClick={() => setPriceTab('monthly')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${priceTab === 'monthly' ? 'text-[#0064FF]' : 'text-white/45'}`}>월간</button>
+            <button onClick={() => setPriceTab('annual')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${priceTab === 'annual' ? 'text-[#0064FF]' : 'text-white/45'}`}>연간</button>
+            <button onClick={() => setPriceTab('pack')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${priceTab === 'pack' ? 'text-[#0064FF]' : 'text-white/45'}`}>단건팩</button>
           </div>
           <p className="mb-6 text-center text-xs font-semibold text-[#0064FF]">{priceTab === 'annual' ? '연간 결제로 3개월 무료' : priceTab === 'pack' ? '필요할 때만 1회 결제' : '매월 자동 충전 · 언제든 해지'}</p>
 
@@ -726,26 +725,26 @@ const Home = () => {
             <>
               <div className="mx-auto grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
                 {[{ credits: 10, price: 4900 }, { credits: 30, price: 12900, hot: true }, { credits: 100, price: 34900 }].map((p) => (
-                  <div key={p.credits} className={`flex flex-col rounded-2xl bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)] ${p.hot ? 'border-2 border-[#0064FF]' : 'border border-gray-100'}`}>
-                    <div className="flex items-center gap-2"><h4 className="text-lg font-semibold text-gray-900">이용권 {p.credits}개</h4>{p.hot && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0064FF]">인기</span>}</div>
-                    <p className="mt-1 text-sm text-gray-400">1회 결제 · 유효 12개월</p>
-                    <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-gray-900">₩{p.price.toLocaleString('ko-KR')}</span></div>
+                  <div key={p.credits} className={`flex flex-col rounded-2xl bg-white/[0.04] p-6 shadow-none ${p.hot ? 'border-2 border-[#0064FF]' : 'border border-white/10'}`}>
+                    <div className="flex items-center gap-2"><h4 className="text-lg font-semibold text-white">이용권 {p.credits}개</h4>{p.hot && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0064FF]">인기</span>}</div>
+                    <p className="mt-1 text-sm text-white/35">1회 결제 · 유효 12개월</p>
+                    <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-white">₩{p.price.toLocaleString('ko-KR')}</span></div>
                     <div className="mt-2.5 inline-flex items-center rounded-full bg-[#0064FF]/10 px-3 py-1 text-sm font-extrabold text-[#0064FF]">개당 약 {(Math.round(p.price / p.credits / 10) * 10).toLocaleString('ko-KR')}원</div>
-                    <button onClick={() => handleBuy('pack', 'monthly')} className={`mt-6 w-full rounded-xl py-2.5 text-sm font-semibold transition ${p.hot ? 'bg-[#0064FF] text-white hover:brightness-95' : 'border border-gray-200 text-gray-700 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>구매하기</button>
+                    <button onClick={() => handleBuy('pack', 'monthly')} className={`mt-6 w-full rounded-xl py-2.5 text-sm font-semibold transition ${p.hot ? 'bg-[#0064FF] text-white hover:brightness-95' : 'border border-white/10 text-white/70 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>구매하기</button>
                   </div>
                 ))}
               </div>
-              <p className="mt-6 text-center text-sm text-gray-400">단건팩은 <span className="font-semibold text-gray-600">소진식</span>이에요 · 유효기간 12개월, 매월 초기화 없음</p>
+              <p className="mt-6 text-center text-sm text-white/35">단건팩은 <span className="font-semibold text-white/60">소진식</span>입니다 · 유효기간 12개월, 매월 초기화 없음</p>
             </>
           ) : (
             <>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                <div className="flex flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)]">
-                  <h4 className="text-lg font-semibold text-gray-900">무료</h4>
-                  <p className="mt-1 text-sm text-gray-400">먼저 써보기</p>
-                  <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-gray-900">₩0</span></div>
-                  <p className="mt-3 text-sm leading-relaxed text-gray-500">매월 이용권 5개</p>
-                  <button onClick={handleFinds} className="mt-6 w-full rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-[#0064FF] hover:text-[#0064FF]">무료로 시작</button>
+                <div className="flex flex-col rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-none">
+                  <h4 className="text-lg font-semibold text-white">무료</h4>
+                  <p className="mt-1 text-sm text-white/35">먼저 써보기</p>
+                  <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-white">₩0</span></div>
+                  <p className="mt-3 text-sm leading-relaxed text-white/45">매월 이용권 5개</p>
+                  <button onClick={handleFinds} className="mt-6 w-full rounded-xl border border-white/10 py-2.5 text-sm font-semibold text-white/70 transition hover:border-[#0064FF] hover:text-[#0064FF]">무료로 시작</button>
                 </div>
                 {[
                   { name: '스탠다드', credits: 30, price: 9900, feats: ['월 30회 소재 분석·소스 추출', '실시간 트렌드 무제한'] },
@@ -754,37 +753,37 @@ const Home = () => {
                 ].map((p) => {
                   const annual = priceTab === 'annual'
                   return (
-                    <div key={p.name} onClick={() => handleBuy('sub', annual ? 'annual' : 'monthly')} className={`flex cursor-pointer flex-col rounded-2xl bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_22px_48px_rgba(20,40,90,0.18)] ${p.hot ? 'border-2 border-[#0064FF]' : 'border border-gray-100'}`}>
+                    <div key={p.name} onClick={() => handleBuy('sub', annual ? 'annual' : 'monthly')} className={`flex cursor-pointer flex-col rounded-2xl bg-white/[0.04] p-6 shadow-none transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_22px_48px_rgba(20,40,90,0.18)] ${p.hot ? 'border-2 border-[#0064FF]' : 'border border-white/10'}`}>
                       <div className="flex items-center gap-2">
-                        <h4 className="text-lg font-semibold text-gray-900">{p.name}</h4>
+                        <h4 className="text-lg font-semibold text-white">{p.name}</h4>
                         {p.hot && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0064FF]">인기</span>}
                       </div>
-                      <p className="mt-1 text-sm text-gray-400">월 {p.credits}회 분석·소스</p>
+                      <p className="mt-1 text-sm text-white/35">월 {p.credits}회 분석·소스</p>
                       {annual ? (
                         <div className="mt-4">
-                          <div className="flex items-baseline gap-1"><span className="text-3xl font-bold text-[#0064FF]">₩{(p.price * 9).toLocaleString('ko-KR')}</span><span className="text-sm text-gray-400">/ 년</span></div>
-                          <div className="mt-0.5 text-xs text-gray-400"><span className="line-through">₩{(p.price * 12).toLocaleString('ko-KR')}</span> · 3개월 무료</div>
+                          <div className="flex items-baseline gap-1"><span className="text-3xl font-bold text-[#0064FF]">₩{(p.price * 9).toLocaleString('ko-KR')}</span><span className="text-sm text-white/35">/ 년</span></div>
+                          <div className="mt-0.5 text-xs text-white/35"><span className="line-through">₩{(p.price * 12).toLocaleString('ko-KR')}</span> · 3개월 무료</div>
                         </div>
                       ) : firstEligible ? (
                         <div className="mt-4">
-                          <div className="flex items-baseline gap-1"><span className="text-3xl font-bold text-[#0064FF]">₩{(Math.floor(p.price * 0.5 / 100) * 100).toLocaleString('ko-KR')}</span><span className="text-sm text-gray-400">첫 달</span></div>
-                          <div className="mt-0.5 text-xs text-gray-400">이후 ₩{p.price.toLocaleString('ko-KR')}/월</div>
+                          <div className="flex items-baseline gap-1"><span className="text-3xl font-bold text-[#0064FF]">₩{(Math.floor(p.price * 0.5 / 100) * 100).toLocaleString('ko-KR')}</span><span className="text-sm text-white/35">첫 달</span></div>
+                          <div className="mt-0.5 text-xs text-white/35">이후 ₩{p.price.toLocaleString('ko-KR')}/월</div>
                         </div>
                       ) : (
-                        <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-gray-900">₩{p.price.toLocaleString('ko-KR')}</span><span className="text-sm text-gray-400">/ 월</span></div>
+                        <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-white">₩{p.price.toLocaleString('ko-KR')}</span><span className="text-sm text-white/35">/ 월</span></div>
                       )}
                       <div className="mt-2.5 inline-flex items-center rounded-full bg-[#0064FF]/10 px-3 py-1 text-sm font-extrabold text-[#0064FF]">하루 약 {(annual ? Math.round(p.price * 9 / 365 / 10) * 10 : Math.round(p.price / 30 / 10) * 10).toLocaleString('ko-KR')}원</div>
                       <ul className="mt-4 space-y-1.5 text-left">
                         {p.feats.map((f) => (
-                          <li key={f} className="flex items-start gap-1.5 text-sm text-gray-600"><span className="mt-0.5 shrink-0 font-bold text-[#0064FF]">✓</span><span className="break-keep">{f}</span></li>
+                          <li key={f} className="flex items-start gap-1.5 text-sm text-white/60"><span className="mt-0.5 shrink-0 font-bold text-[#0064FF]">✓</span><span className="break-keep">{f}</span></li>
                         ))}
                       </ul>
-                      <button onClick={() => handleBuy('sub', annual ? 'annual' : 'monthly')} className={`mt-6 w-full rounded-xl py-2.5 text-sm font-semibold transition ${p.hot ? 'bg-[#0064FF] text-white hover:brightness-95' : 'border border-gray-200 text-gray-700 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>시작하기</button>
+                      <button onClick={() => handleBuy('sub', annual ? 'annual' : 'monthly')} className={`mt-6 w-full rounded-xl py-2.5 text-sm font-semibold transition ${p.hot ? 'bg-[#0064FF] text-white hover:brightness-95' : 'border border-white/10 text-white/70 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>시작하기</button>
                     </div>
                   )
                 })}
               </div>
-              <p className="mt-6 text-center text-sm text-gray-400">이용권은 <span className="font-semibold text-gray-600">매월 초기화</span>돼요 · 남은 이용권은 이월·누적되지 않아요.{priceTab === 'annual' ? ' 연간도 매월 자동 충전돼요.' : ''}</p>
+              <p className="mt-6 text-center text-sm text-white/35">이용권은 <span className="font-semibold text-white/60">매월 초기화</span>됩니다 · 남은 이용권은 이월·누적되지 않습니다.{priceTab === 'annual' ? ' 연간도 매월 자동 충전됩니다.' : ''}</p>
             </>
           )}
         </Reveal>
@@ -794,30 +793,30 @@ const Home = () => {
       {events.length > 0 && (
         <section id="events" className="px-5 py-12 md:px-8">
           <div className="mx-auto max-w-4xl">
-            <h2 className="mb-8 text-2xl font-bold tracking-tight text-gray-900">이벤트</h2>
-            <div className="mb-1 flex border-b border-gray-200">
+            <h2 className="mb-8 text-2xl font-bold tracking-tight text-white">이벤트</h2>
+            <div className="mb-1 flex border-b border-white/10">
               {[
                 { key: 'active', label: '진행중인 이벤트' },
                 { key: 'ended',  label: '종료된 이벤트' },
                 { key: 'winner', label: '당첨자 발표' },
               ].map(tab => (
                 <button key={tab.key} onClick={() => setEventTab(tab.key)}
-                  className={`px-5 py-3 text-sm font-bold transition-colors border-b-2 -mb-px ${eventTab === tab.key ? 'border-[#0064FF] text-[#0064FF]' : 'border-transparent text-gray-400 hover:text-gray-600'}`}>
+                  className={`px-5 py-3 text-sm font-bold transition-colors border-b-2 -mb-px ${eventTab === tab.key ? 'border-[#0064FF] text-[#0064FF]' : 'border-transparent text-white/35 hover:text-white/60'}`}>
                   {tab.label}
-                  <span className="ml-1.5 rounded-full bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">{events.filter(e => e.status === tab.key).length}</span>
+                  <span className="ml-1.5 rounded-full bg-white/[0.06] px-1.5 py-0.5 text-xs text-white/45">{events.filter(e => e.status === tab.key).length}</span>
                 </button>
               ))}
             </div>
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-white/10">
               {events.filter(e => e.status === eventTab).length === 0 ? (
-                <p className="py-12 text-center text-sm text-gray-400">해당 이벤트가 없습니다</p>
+                <p className="py-12 text-center text-sm text-white/35">해당 이벤트가 없습니다</p>
               ) : (
                 events.filter(e => e.status === eventTab).map(ev => (
                   <Link key={ev.id} to={`/events/${ev.id}`}
-                    className="flex w-full items-center gap-4 px-2 py-4 text-left transition-colors hover:bg-gray-50">
+                    className="flex w-full items-center gap-4 px-2 py-4 text-left transition-colors hover:bg-white/[0.03]">
                     <EventBadge status={ev.status} label={ev.label} />
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-800">{ev.title}</span>
-                    <span className="shrink-0 text-xs text-gray-400">
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-white/85">{ev.title}</span>
+                    <span className="shrink-0 text-xs text-white/35">
                       {new Date(ev.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '')}
                     </span>
                   </Link>
@@ -829,19 +828,19 @@ const Home = () => {
       )}
 
       {/* Footer */}
-      <Footer user={user} />
+      <Footer user={user} dark />
 
       <style>{`
         .event-content img { max-width:100%; border-radius:8px; margin:0.5em 0; }
         .event-content p { margin:0.6em 0; line-height:1.8; }
-        .event-content h1 { font-size:1.6em; font-weight:800; margin:0.8em 0 0.4em; color:#111827; }
-        .event-content h2 { font-size:1.3em; font-weight:700; margin:0.8em 0 0.4em; color:#111827; }
-        .event-content h3 { font-size:1.1em; font-weight:700; margin:0.6em 0 0.3em; color:#111827; }
+        .event-content h1 { font-size:1.6em; font-weight:800; margin:0.8em 0 0.4em; color:#e6e7eb; }
+        .event-content h2 { font-size:1.3em; font-weight:700; margin:0.8em 0 0.4em; color:#e6e7eb; }
+        .event-content h3 { font-size:1.1em; font-weight:700; margin:0.6em 0 0.3em; color:#e6e7eb; }
         .event-content ul, .event-content ol { padding-left:1.5em; margin:0.5em 0; }
         .event-content li { margin:0.3em 0; }
         .event-content blockquote { border-left:3px solid #0064FF; padding-left:1em; color:#6b7280; margin:0.6em 0; }
         .event-content a { color:#0064FF; text-decoration:underline; }
-        .event-content strong { color:#111827; font-weight:700; }
+        .event-content strong { color:#e6e7eb; font-weight:700; }
         @keyframes badge-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
         .badge-pulse { animation: badge-pulse 2s ease-in-out infinite; }
         html { scroll-behavior: smooth; }
@@ -915,8 +914,8 @@ const DemoCarousel = () => {
   return (
     <section ref={sectionRef} className="px-5 pt-16 pb-10 md:pt-20 md:pb-16">
       <div className="mb-10 text-center md:mb-14">
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900 md:text-4xl">이렇게 만들어져요</h2>
-        <p className="mt-3 text-lg text-gray-500">실제로 크로닛이 만든 영상이에요</p>
+        <h2 className="text-2xl font-bold tracking-tight text-white md:text-4xl">이렇게 만들어집니다</h2>
+        <p className="mt-3 text-lg text-white/45">크로닛이 실제로 만든 영상입니다.</p>
       </div>
       <div className="relative flex items-center justify-center select-none" style={{ height: 'min(72vw, 560px)' }}
         onMouseDown={onMouseDown} onMouseUp={onMouseUp} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
@@ -937,23 +936,23 @@ const DemoCarousel = () => {
                 cursor: isCenter ? 'default' : 'pointer', pointerEvents: visible ? 'auto' : 'none' }}>
               <div style={{ width: 'min(52vw, 280px)', aspectRatio: '9/16', borderRadius: '1.5rem', overflow: 'hidden',
                 boxShadow: isCenter ? '0 30px 60px -10px rgba(0,0,0,0.25), 0 4px 6px rgba(0,0,0,0.08)' : '0 10px 30px -5px rgba(0,0,0,0.15)',
-                transition: 'box-shadow 0.5s ease', border: '1px solid rgba(0,0,0,0.06)' }}>
+                transition: 'box-shadow 0.5s ease', border: '1px solid rgba(255,255,255,0.08)' }}>
                 <video ref={el => { videoRefs.current[vidIdx] = el }} src={inView ? src : undefined} muted loop playsInline autoPlay={isCenter} preload="metadata"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', background: '#f3f4f6' }} />
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', background: '#15161a' }} />
               </div>
             </div>
           )
         })}
       </div>
       <div className="mt-8 flex items-center justify-center gap-6">
-        <button onClick={prev} className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-700 shadow transition-all hover:border-[#0064FF] hover:text-[#0064FF] active:scale-[0.98]">{"<"}</button>
+        <button onClick={prev} className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-white/15 bg-white/[0.04] text-white/70 shadow transition-all hover:border-[#0064FF] hover:text-[#0064FF] active:scale-[0.98]">{"<"}</button>
         <div className="flex gap-2">
           {videos.map((_, i) => (
             <button key={i} onClick={() => setActive(i)} className="h-1.5 rounded-full transition-all duration-300"
               style={{ width: i === active ? '24px' : '6px', background: i === active ? '#0064FF' : '#d1d5db' }} />
           ))}
         </div>
-        <button onClick={next} className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-700 shadow transition-all hover:border-[#0064FF] hover:text-[#0064FF] active:scale-[0.98]">{">"}</button>
+        <button onClick={next} className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-white/15 bg-white/[0.04] text-white/70 shadow transition-all hover:border-[#0064FF] hover:text-[#0064FF] active:scale-[0.98]">{">"}</button>
       </div>
     </section>
   )
