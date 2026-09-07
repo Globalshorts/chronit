@@ -225,100 +225,92 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
           ) : err ? (
             <div className="flex items-center gap-1.5 text-red-500"><AlertTriangle size={14} />{err}</div>
           ) : result ? (
-            <div className="space-y-2.5 text-slate-600 md:space-y-0 md:columns-2 md:gap-x-6 md:[&>div]:mb-3 md:[&>div]:break-inside-avoid">
-              {(result.key_takeaways || []).length > 0 && (
-                <div className="rounded-lg border border-orange-200 bg-orange-50/60 p-2.5">
-                  <div className="mb-1.5 flex items-center gap-1 text-xs font-extrabold text-orange-700"><Sparkles size={12} />핵심 벤치마크 포인트</div>
-                  <ul className="space-y-1.5">
-                    {result.key_takeaways.map((k, i) => (
-                      <li key={i} className="leading-relaxed">
-                        <mark className="rounded-[3px] bg-orange-200/80 px-1 py-0.5 font-semibold text-slate-800 [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{k}</mark>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              <div>
-                <div className="mb-1.5 flex items-center gap-1.5 text-xs font-bold text-slate-700">터짐 점수 3축</div>
-                {[{ label: '참여', val: engScore, kind: '측정' }, { label: '훅 (첫 3초)', val: result.hook_score, kind: '진단' }, { label: '페이오프 (결말)', val: result.payoff_score, kind: '진단' }].map((b) => (
-                  <div key={b.label} className="mb-1.5">
-                    <div className="flex justify-between text-[11px] text-slate-500"><span>{b.label} <span className={b.kind === '측정' ? 'text-[#0064FF]' : 'text-slate-400'}>({b.kind})</span></span><span className="font-bold text-slate-700">{b.val == null ? '—' : b.val}</span></div>
-                    <div className="mt-0.5 h-1.5 rounded-full bg-slate-200"><div className="h-1.5 rounded-full bg-[#0064FF]" style={{ width: `${b.val == null ? 0 : b.val}%` }} /></div>
-                  </div>
-                ))}
-              </div>
-              {ageHours != null && (
+            <div className="text-[15px] leading-relaxed text-slate-600 md:grid md:grid-cols-2 md:gap-7">
+              <div className="space-y-5">
                 <div>
-                  <div className="mb-1 flex items-center gap-1.5 text-xs font-bold text-slate-700">확산 속도 <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">진단</span></div>
-                  <svg viewBox="0 0 100 40" className="h-14 w-full" preserveAspectRatio="none"><path d={velPath.area} fill="rgba(0,100,255,0.12)" /><path d={velPath.line} fill="none" stroke="#0064FF" strokeWidth="2" vectorEffect="non-scaling-stroke" /></svg>
-                  <div className="mt-0.5 flex justify-between text-[10px] text-slate-400"><span>업로드</span><span>{fmt(clip.views)} 조회 · {Math.round(ageHours)}h</span></div>
-                  {clip.velocity != null && <div className="mt-1 text-[11px] text-slate-500">실측 확산 속도 <span className="font-bold text-[#0064FF]">{clip.velocity}</span> 댓글/시간 <span className="text-[#0064FF]">(측정)</span></div>}
-                </div>
-              )}
-              {ageHours != null && (
-                <div>
-                  <div className="mb-1 flex items-center gap-1.5 text-xs font-bold text-slate-700">포화도 <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">진단</span></div>
-                  <div className="flex gap-1">
-                    {['확산 초기', '확산 중', '포화 근접'].map((sName, i) => (
-                      <div key={sName} className="flex-1 text-center">
-                        <div className={`h-1.5 rounded-full ${i === satStage ? 'bg-[#0064FF]' : 'bg-slate-200'}`} />
-                        <div className={`mt-1 text-[10px] ${i === satStage ? 'font-bold text-[#0064FF]' : 'text-slate-400'}`}>{sName}</div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-1.5 text-[11px] text-slate-500">{satMsg}</div>
-                </div>
-              )}
-              {result.comment_analyzed > 0 && (
-                <div>
-                  <div className="mb-1 flex items-center gap-1.5 text-xs font-bold text-slate-700">댓글 분석 <span className="font-normal text-slate-400">샘플 {result.comment_analyzed}개</span> <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">진단</span></div>
-                  <div className="flex items-center gap-3">
-                    <svg viewBox="0 0 40 40" className="h-20 w-20 -rotate-90">
-                      {(() => { const C = 2 * Math.PI * 14; const segs = [['구매의도', result.comment_sentiment?.purchase_intent || 0, '#0064FF'], ['긍정', result.comment_sentiment?.positive || 0, '#22C55E'], ['질문', result.comment_sentiment?.question || 0, '#F59E0B'], ['불만', result.comment_sentiment?.complaint || 0, '#EF4444']]; const tot = segs.reduce((a, b) => a + b[1], 0) || 100; let acc = 0; return segs.map(([n, v, col]) => { const frac = v / tot; const el = <circle key={n} cx="20" cy="20" r="14" fill="none" stroke={col} strokeWidth="8" strokeDasharray={`${(frac * C).toFixed(2)} ${C.toFixed(2)}`} strokeDashoffset={`${(-acc * C).toFixed(2)}`} />; acc += frac; return el }) })()}
-                    </svg>
-                    <div className="text-[11px] leading-5 text-slate-600">
-                      <div><span className="mr-1 inline-block h-2 w-2 rounded-full align-middle" style={{ background: '#0064FF' }} />구매의도 {result.comment_sentiment?.purchase_intent || 0}%</div>
-                      <div><span className="mr-1 inline-block h-2 w-2 rounded-full align-middle" style={{ background: '#22C55E' }} />긍정 {result.comment_sentiment?.positive || 0}%</div>
-                      <div><span className="mr-1 inline-block h-2 w-2 rounded-full align-middle" style={{ background: '#F59E0B' }} />질문 {result.comment_sentiment?.question || 0}%</div>
-                      <div><span className="mr-1 inline-block h-2 w-2 rounded-full align-middle" style={{ background: '#EF4444' }} />불만 {result.comment_sentiment?.complaint || 0}%</div>
+                  <div className="mb-2 text-sm font-bold text-slate-700">터짐 점수 3축</div>
+                  {[{ label: '참여', val: engScore, kind: '측정' }, { label: '훅 (첫 3초)', val: result.hook_score, kind: '진단' }, { label: '페이오프 (결말)', val: result.payoff_score, kind: '진단' }].map((b) => (
+                    <div key={b.label} className="mb-3">
+                      <div className="flex justify-between text-[13px] text-slate-500"><span>{b.label} <span className={b.kind === '측정' ? 'text-[#0064FF]' : 'text-slate-400'}>({b.kind})</span></span><span className="text-sm font-bold text-slate-700">{b.val == null ? '—' : b.val}</span></div>
+                      <div className="mt-1 h-2.5 rounded-full bg-slate-200"><div className="h-2.5 rounded-full bg-[#0064FF]" style={{ width: `${b.val == null ? 0 : b.val}%` }} /></div>
                     </div>
+                  ))}
+                </div>
+                {ageHours != null && (
+                  <div>
+                    <div className="mb-1.5 flex items-center gap-1.5 text-sm font-bold text-slate-700">확산 속도 <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">진단</span></div>
+                    <svg viewBox="0 0 100 40" className="h-24 w-full" preserveAspectRatio="none"><path d={velPath.area} fill="rgba(0,100,255,0.12)" /><path d={velPath.line} fill="none" stroke="#0064FF" strokeWidth="2.5" vectorEffect="non-scaling-stroke" /></svg>
+                    <div className="mt-1 flex justify-between text-[12px] text-slate-400"><span>업로드</span><span>{fmt(clip.views)} 조회 · {Math.round(ageHours)}h</span></div>
+                    {clip.velocity != null && <div className="mt-1.5 text-[13px] text-slate-500">실측 확산 속도 <span className="font-bold text-[#0064FF]">{clip.velocity}</span> 댓글/시간 <span className="text-[#0064FF]">(측정)</span></div>}
                   </div>
-                  {(result.comment_samples || []).length > 0 && <div className="mt-1.5 space-y-0.5">{result.comment_samples.map((c, i) => <div key={i} className="truncate text-[11px] text-slate-500">“{c}”</div>)}</div>}
-                </div>
-              )}
-              <div>
-                <span className="font-bold text-slate-700">훅 (첫 3초)</span> · {result.hook || '—'}
-                {result.hook_why && <span className="mt-0.5 block text-xs text-slate-400">{result.hook_why}</span>}
+                )}
+                {ageHours != null && (
+                  <div>
+                    <div className="mb-2 flex items-center gap-1.5 text-sm font-bold text-slate-700">포화도 <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">진단</span></div>
+                    <div className="flex gap-1.5">
+                      {['확산 초기', '확산 중', '포화 근접'].map((sName, idx) => (
+                        <div key={sName} className="flex-1 text-center">
+                          <div className={`h-2.5 rounded-full ${idx === satStage ? 'bg-[#0064FF]' : 'bg-slate-200'}`} />
+                          <div className={`mt-1.5 text-[12px] ${idx === satStage ? 'font-bold text-[#0064FF]' : 'text-slate-400'}`}>{sName}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-2 text-[13px] text-slate-500">{satMsg}</div>
+                  </div>
+                )}
+                {result.comment_analyzed > 0 && (
+                  <div>
+                    <div className="mb-2 flex items-center gap-1.5 text-sm font-bold text-slate-700">댓글 분석 <span className="font-normal text-slate-400">샘플 {result.comment_analyzed}개</span> <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">진단</span></div>
+                    <div className="flex items-center gap-4">
+                      <svg viewBox="0 0 40 40" className="h-28 w-28 shrink-0 -rotate-90">
+                        {(() => { const C = 2 * Math.PI * 14; const segs = [['구매의도', result.comment_sentiment?.purchase_intent || 0, '#0064FF'], ['긍정', result.comment_sentiment?.positive || 0, '#22C55E'], ['질문', result.comment_sentiment?.question || 0, '#F59E0B'], ['불만', result.comment_sentiment?.complaint || 0, '#EF4444']]; const tot = segs.reduce((a, b) => a + b[1], 0) || 100; let acc = 0; return segs.map(([n, v, col]) => { const frac = v / tot; const el = <circle key={n} cx="20" cy="20" r="14" fill="none" stroke={col} strokeWidth="8" strokeDasharray={`${(frac * C).toFixed(2)} ${C.toFixed(2)}`} strokeDashoffset={`${(-acc * C).toFixed(2)}`} />; acc += frac; return el }) })()}
+                      </svg>
+                      <div className="text-sm leading-7 text-slate-600">
+                        <div><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: '#0064FF' }} />구매의도 {result.comment_sentiment?.purchase_intent || 0}%</div>
+                        <div><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: '#22C55E' }} />긍정 {result.comment_sentiment?.positive || 0}%</div>
+                        <div><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: '#F59E0B' }} />질문 {result.comment_sentiment?.question || 0}%</div>
+                        <div><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: '#EF4444' }} />불만 {result.comment_sentiment?.complaint || 0}%</div>
+                      </div>
+                    </div>
+                    {(result.comment_samples || []).length > 0 && <div className="mt-2 space-y-1">{result.comment_samples.map((c, idx) => <div key={idx} className="truncate text-[13px] text-slate-500">“{c}”</div>)}</div>}
+                  </div>
+                )}
               </div>
-              <div>
-                <span className="font-bold text-slate-700">셀링포인트</span>
-                <ul className="mt-0.5 list-disc space-y-0.5 pl-5">
-                  {(result.selling_points || []).length ? result.selling_points.map((sp, i) => <li key={i}>{sp}</li>) : <li className="text-slate-400">—</li>}
-                </ul>
+
+              <div className="mt-6 space-y-3.5 md:mt-0">
+                {(result.key_takeaways || []).length > 0 && (
+                  <div className="rounded-lg border border-orange-200 bg-orange-50/60 p-3">
+                    <div className="mb-1.5 flex items-center gap-1 text-sm font-extrabold text-orange-700"><Sparkles size={14} />핵심 벤치마크 포인트</div>
+                    <ul className="space-y-1.5">
+                      {result.key_takeaways.map((k, idx) => (
+                        <li key={idx} className="leading-relaxed"><mark className="rounded-[3px] bg-orange-200/80 px-1 py-0.5 font-semibold text-slate-800 [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{k}</mark></li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <div><span className="font-bold text-slate-700">훅 (첫 3초)</span> · {result.hook || '—'}{result.hook_why && <span className="mt-0.5 block text-[13px] text-slate-400">{result.hook_why}</span>}</div>
+                <div><span className="font-bold text-slate-700">셀링포인트</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5">{(result.selling_points || []).length ? result.selling_points.map((sp, idx) => <li key={idx}>{sp}</li>) : <li className="text-slate-400">—</li>}</ul></div>
+                {result.structure && <div><span className="font-bold text-slate-700">구성·흐름</span> · {result.structure}</div>}
+                <div><span className="font-bold text-slate-700">구도·편집</span> · {result.composition || '—'}</div>
+                {result.target && <div><span className="font-bold text-slate-700">타깃</span> · {result.target}</div>}
+                {(result.hashtags || []).length > 0 && (
+                  <div>
+                    <div className="mb-1 flex items-center gap-1.5 text-sm font-bold text-slate-700">추천 해시태그 <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">진단</span></div>
+                    <div className="flex flex-wrap gap-1.5">{result.hashtags.map((h, idx) => <span key={idx} className="rounded-full bg-slate-100 px-2.5 py-1 text-[13px] text-slate-600">{h}</span>)}</div>
+                  </div>
+                )}
+                {result.remix && (result.remix.hook_ideas?.length || result.remix.edit_script?.length) ? (
+                  <div className="rounded-lg border border-[#0064FF]/20 bg-[#0064FF]/5 p-3">
+                    <div className="mb-2 flex items-center gap-1 text-sm font-extrabold text-[#0064FF]"><Sparkles size={14} />2차 창작 가이드 (편집 중심)</div>
+                    {result.remix.hook_ideas?.length > 0 && <div className="mb-2"><span className="text-[13px] font-bold text-slate-700">내 상품용 훅</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-[13px]">{result.remix.hook_ideas.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
+                    {result.remix.edit_script?.length > 0 && <div className="mb-2"><span className="text-[13px] font-bold text-slate-700">편집 컷 구성</span><ul className="mt-0.5 list-decimal space-y-0.5 pl-5 text-[13px]">{result.remix.edit_script.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
+                    {result.remix.selling_map?.length > 0 && <div className="mb-2"><span className="text-[13px] font-bold text-slate-700">셀링포인트 매핑</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-[13px]">{result.remix.selling_map.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
+                    {result.remix.differentiation?.length > 0 && <div className="mb-2"><span className="text-[13px] font-bold text-slate-700">차별화 포인트</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-[13px]">{result.remix.differentiation.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
+                    {result.remix.edit_checklist?.length > 0 && <div><span className="text-[13px] font-bold text-slate-700">편집 체크리스트</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-[13px]">{result.remix.edit_checklist.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
+                  </div>
+                ) : null}
+                {!result.used_image && <div className="text-[11px] text-slate-300">※ 썸네일 미확보 — 제목 기반 분석</div>}
               </div>
-              {result.structure && <div><span className="font-bold text-slate-700">구성·흐름</span> · {result.structure}</div>}
-              <div><span className="font-bold text-slate-700">구도·편집</span> · {result.composition || '—'}</div>
-              {result.target && <div><span className="font-bold text-slate-700">타깃</span> · {result.target}</div>}
-              {result.apply_tip && (
-                <div className="rounded-lg bg-amber-50 p-2 text-xs leading-relaxed"><span className="font-bold text-amber-700">💡 적용 팁</span> · {result.apply_tip}</div>
-              )}
-              {(result.hashtags || []).length > 0 && (
-                <div>
-                  <div className="mb-1 flex items-center gap-1.5 text-xs font-bold text-slate-700">추천 해시태그 <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">진단</span></div>
-                  <div className="flex flex-wrap gap-1.5">{result.hashtags.map((h, i) => <span key={i} className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{h}</span>)}</div>
-                </div>
-              )}
-              {result.remix && (result.remix.hook_ideas?.length || result.remix.edit_script?.length) ? (
-                <div className="rounded-lg border border-[#0064FF]/20 bg-[#0064FF]/5 p-2.5">
-                  <div className="mb-1.5 flex items-center gap-1 text-xs font-extrabold text-[#0064FF]"><Sparkles size={12} />2차 창작 가이드 (편집 중심)</div>
-                  {result.remix.hook_ideas?.length > 0 && <div className="mb-1.5"><span className="text-xs font-bold text-slate-700">내 상품용 훅</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-xs">{result.remix.hook_ideas.map((x, i) => <li key={i}>{x}</li>)}</ul></div>}
-                  {result.remix.edit_script?.length > 0 && <div className="mb-1.5"><span className="text-xs font-bold text-slate-700">편집 컷 구성</span><ul className="mt-0.5 list-decimal space-y-0.5 pl-5 text-xs">{result.remix.edit_script.map((x, i) => <li key={i}>{x}</li>)}</ul></div>}
-                  {result.remix.selling_map?.length > 0 && <div className="mb-1.5"><span className="text-xs font-bold text-slate-700">셀링포인트 매핑</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-xs">{result.remix.selling_map.map((x, i) => <li key={i}>{x}</li>)}</ul></div>}
-                  {result.remix.differentiation?.length > 0 && <div className="mb-1.5"><span className="text-xs font-bold text-slate-700">차별화 포인트</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-xs">{result.remix.differentiation.map((x, i) => <li key={i}>{x}</li>)}</ul></div>}
-                  {result.remix.edit_checklist?.length > 0 && <div><span className="text-xs font-bold text-slate-700">편집 체크리스트</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-xs">{result.remix.edit_checklist.map((x, i) => <li key={i}>{x}</li>)}</ul></div>}
-                </div>
-              ) : null}
-              {!result.used_image && <div className="text-[10px] text-slate-300">※ 썸네일 미확보 — 제목 기반 분석</div>}
             </div>
           ) : null}
         </div>
