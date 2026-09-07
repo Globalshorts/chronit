@@ -584,7 +584,7 @@ const Home = () => {
               <div className="flex items-center gap-2 rounded-2xl border border-white/12 bg-white/[0.06] p-2 pl-5 shadow-[0_10px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl">
                 <Search size={18} className="shrink-0 text-white/40" />
                 <input value={heroQuery} onChange={(e) => setHeroQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && heroSubmit()} placeholder={HERO_PH[phIdx]}
-                  className="min-w-0 flex-1 bg-transparent py-3 text-[15px] text-white placeholder-white/40 outline-none" />
+                  className="hero-search-input min-w-0 flex-1 bg-transparent py-3 text-[15px] outline-none" />
                 <button onClick={heroSubmit} aria-label="검색"
                   className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(140deg,#2A7BFF,#0064FF)] text-white transition hover:brightness-110 active:scale-95">
                   <ArrowRight size={18} />
