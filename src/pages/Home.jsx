@@ -571,9 +571,9 @@ const Home = () => {
             </div>
           )}
           {!user && (<>
-            <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.32em] text-white/30">Research · Analyze · Remix</p>
-            <h1 className="mb-6 text-[2.1rem] font-semibold leading-[1.28] tracking-tight text-white break-keep md:text-[3.4rem] md:leading-[1.25]">
-              터지는 소스를 찾고,<br />왜 터졌는지 <span className="text-[#A9C0FF]">분석</span>하고, 복제하다
+            <p className="hero-shimmer mb-6 text-[11px] font-semibold uppercase tracking-[0.32em]">Research · Analyze · Remix</p>
+            <h1 className="mb-6 text-[2.4rem] font-semibold leading-[1.16] tracking-tight text-white break-keep md:text-[3.7rem]">
+              터진 소재를 <span className="text-[#A9C0FF]">남보다 먼저</span>
             </h1>
             <p className="mx-auto mb-10 max-w-md text-[15px] font-normal leading-relaxed text-white/45 break-keep md:text-base">
               릴스·틱톡 쇼핑 크리에이터를 위한 리서치 AI.<br />감이 아니라 데이터로, 다음 소재를 준비하세요.

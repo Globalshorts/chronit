@@ -157,3 +157,14 @@ button.bg-white{
 .text-gray-300, .text-slate-300 { color:#6b7a90 !important; }
 .text-gray-400, .text-slate-400 { color:#57667e !important; }
 .text-gray-500, .text-slate-500 { color:#44536b !important; }
+
+/* 히어로 라벨 — 움직이는 화이트 그라데이션(시머) */
+.hero-shimmer{
+  background: linear-gradient(90deg, rgba(255,255,255,.28) 0%, #ffffff 50%, rgba(255,255,255,.28) 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  animation: heroShimmer 3.2s linear infinite;
+}
+@keyframes heroShimmer{ 0%{background-position: 220% 0} 100%{background-position: -220% 0} }
+@media (prefers-reduced-motion: reduce){ .hero-shimmer{ animation: none; } }
