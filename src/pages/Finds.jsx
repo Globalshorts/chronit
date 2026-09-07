@@ -181,7 +181,7 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="max-h-[92vh] w-full max-w-md md:max-w-5xl overflow-y-auto rounded-2xl bg-white p-5 md:p-7 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-start justify-between gap-3">
           <h3 className="text-base font-extrabold text-slate-900">벤치마크 분석</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-700"><X size={20} /></button>
@@ -225,7 +225,7 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
           ) : err ? (
             <div className="flex items-center gap-1.5 text-red-500"><AlertTriangle size={14} />{err}</div>
           ) : result ? (
-            <div className="space-y-2.5 text-slate-600">
+            <div className="space-y-2.5 text-slate-600 md:space-y-0 md:columns-2 md:gap-x-6 md:[&>div]:mb-3 md:[&>div]:break-inside-avoid">
               {(result.key_takeaways || []).length > 0 && (
                 <div className="rounded-lg border border-orange-200 bg-orange-50/60 p-2.5">
                   <div className="mb-1.5 flex items-center gap-1 text-xs font-extrabold text-orange-700"><Sparkles size={12} />핵심 벤치마크 포인트</div>
@@ -249,7 +249,7 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
               </div>
               {ageHours != null && (
                 <div>
-                  <div className="mb-1 flex items-center gap-1.5 text-xs font-bold text-slate-700">확산 속도 <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">추정</span></div>
+                  <div className="mb-1 flex items-center gap-1.5 text-xs font-bold text-slate-700">확산 속도 <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">진단</span></div>
                   <svg viewBox="0 0 100 40" className="h-14 w-full" preserveAspectRatio="none"><path d={velPath.area} fill="rgba(0,100,255,0.12)" /><path d={velPath.line} fill="none" stroke="#0064FF" strokeWidth="2" vectorEffect="non-scaling-stroke" /></svg>
                   <div className="mt-0.5 flex justify-between text-[10px] text-slate-400"><span>업로드</span><span>{fmt(clip.views)} 조회 · {Math.round(ageHours)}h</span></div>
                   {clip.velocity != null && <div className="mt-1 text-[11px] text-slate-500">실측 확산 속도 <span className="font-bold text-[#0064FF]">{clip.velocity}</span> 댓글/시간 <span className="text-[#0064FF]">(측정)</span></div>}
