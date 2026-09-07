@@ -34,7 +34,7 @@ const PAID_PLANS = new Set(["starter", "pro", "master", "pkg6"]);
 const DM_CAPS: Record<string, number> = { starter: 1, pro: 3, master: 5, pkg6: 3 };
 
 function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan, onHistory, activeView, onViewChange, userRole }: { onMenuClick?: () => void; onInvite?: () => void; session?: any; balance?: number|null; daysLeft?: number|null; userPlan?: string|null; onHistory?: () => void; activeView?: string; onViewChange?: (v:string)=>void; userRole?: string }) {
-  const ICON = `${SB}/storage/v1/object/public/assets/icon.png`;
+  const ICON = "/cn-white.svg";
   const [menuOpen, setMenuOpen] = useState(false);
   const [nick, setNick] = useState("");
   useEffect(() => {
