@@ -181,7 +181,7 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div className="max-h-[92vh] w-full max-w-md md:max-w-5xl overflow-y-auto rounded-2xl bg-white p-5 md:p-7 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="max-h-[92vh] w-full max-w-md md:max-w-5xl overflow-y-auto rounded-2xl bg-white p-5 pb-28 md:p-7 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-start justify-between gap-3">
           <h3 className="text-base font-extrabold text-slate-900">벤치마크 분석</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-700"><X size={20} /></button>
