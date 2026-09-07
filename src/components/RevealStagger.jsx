@@ -9,8 +9,8 @@ export default function RevealStagger({ children, className = '', step = 100, as
     if (!el) return
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { setShown(true); return }
     const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => { if (e.isIntersecting) { setShown(true); io.disconnect() } })
-    }, { threshold: 0.1, rootMargin: '0px 0px -8% 0px' })
+      entries.forEach((e) => setShown(e.isIntersecting))
+    }, { threshold: 0.12, rootMargin: '0px 0px -12% 0px' })
     io.observe(el)
     return () => io.disconnect()
   }, [])

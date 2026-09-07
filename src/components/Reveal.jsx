@@ -9,7 +9,7 @@ export default function Reveal({ children, className = '', delay = 0, as: Tag = 
     if (!el) return
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { setShown(true); return }
     const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => { if (e.isIntersecting) { setShown(true); io.disconnect() } })
+      entries.forEach((e) => setShown(e.isIntersecting))
     }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' })
     io.observe(el)
     return () => io.disconnect()
