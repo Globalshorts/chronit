@@ -663,7 +663,7 @@ export default function Finds() {
         <header className="mb-6">
           <div className="flex items-center gap-2 text-[#0064FF]">
             <Flame size={22} />
-            <h1 className="text-2xl font-extrabold text-slate-900">Research — 트렌드·벤치마크 리서치</h1>
+            <h1 className="text-2xl font-extrabold text-slate-900">리서치 — 트렌드·벤치마크 분석</h1>
           </div>
           <p className="mt-2 text-sm text-slate-500">
             잘 나가는 쇼핑 숏폼을 분석해 유사·벤치마크 소스를 찾아줍니다. <b>리서치·벤치마킹 목적</b>이며,

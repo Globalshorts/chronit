@@ -370,7 +370,7 @@ const ManualDetail = () => {
  링크나 키워드만 넣으면 잘 터진 숏폼을 찾아줘요. <b className="text-[#0064FF]">가입은 무료</b>, 매월 이용권 5개를 드려요.
  </p>
  <span className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-bold text-white shadow-md shadow-black/5 transition-all group-hover:gap-3">
- Research 열기 <ArrowRight size={18} />
+ 리서치 열기 <ArrowRight size={18} />
  </span>
  </Link>
  )}

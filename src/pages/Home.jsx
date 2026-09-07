@@ -484,7 +484,7 @@ const Home = () => {
             {/* 모바일 상단 시작하기 CTA (햄버거에 가려지지 않게 상시 노출) */}
             <button onClick={handleFinds}
               className="rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-md shadow-black/5 transition-all active:scale-[0.98] md:hidden">
-              {user ? 'Research' : '무료 체험'}
+              {user ? '리서치' : '무료 체험'}
             </button>
             <button onClick={() => setMenuOpen((v) => !v)} aria-label="메뉴"
               className={`flex h-11 w-11 items-center justify-center rounded-full border transition-all md:hidden ${scrolled ? 'border-white/15 text-white/70 hover:border-white/30' : 'border-white/30 text-white hover:border-white/60'}`}>
@@ -498,7 +498,7 @@ const Home = () => {
       <div className={`fixed top-0 left-0 right-0 z-40 transform transition-all duration-300 ease-in-out md:hidden ${menuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`} style={{ paddingTop: `${bannerH + 76}px` }}>
         <div className="border-b border-white/10 bg-[#0A0B0F] px-6 py-6 shadow-lg overflow-y-auto overscroll-contain" style={{ maxHeight: `calc(100dvh - ${bannerH + 76}px)` }}>
           <nav className="flex flex-col gap-1 text-lg font-bold text-white/70">
-            <Link to="/research" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 font-semibold text-[#0064FF] transition-colors hover:bg-[#0064FF]/5">Research — 터지는 소재 찾기</Link>
+            <Link to="/research" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 font-semibold text-[#0064FF] transition-colors hover:bg-[#0064FF]/5">리서치 — 터지는 소재 찾기</Link>
             <Link to="/trend" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 font-semibold text-[#0064FF] transition-colors hover:bg-[#0064FF]/5">실시간 트렌드</Link>
             <Link to="/manual" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-white/[0.03] hover:text-[#0064FF]">사용 방법</Link>
             <Link to="/me" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-white/[0.03] hover:text-[#0064FF]">마이페이지</Link>

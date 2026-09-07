@@ -3,7 +3,7 @@ import { Sparkles, Flame, User } from 'lucide-react'
 
 // 모바일 하단 탭 — Finds ↔ 트렌드 ↔ 마이 빠른 전환 (md+에서는 SiteNav 사용)
 const TABS = [
-  { to: '/research', label: 'Research', icon: Sparkles },
+  { to: '/research', label: '리서치', icon: Sparkles },
   { to: '/trend', label: '트렌드', icon: Flame },
   { to: '/me', label: '마이', icon: User },
 ]
