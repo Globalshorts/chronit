@@ -11,6 +11,8 @@ import { AnalysisProvider } from './context/analysis'
 import VideoGenerator from './pages/VideoGenerator'
 import Finds from './pages/Finds'
 import Trend from './pages/Trend'
+import FastBench from './pages/FastBench'
+import ChannelAnalysis from './pages/ChannelAnalysis'
 import Home from './pages/Home'
 import Landing from './pages/Landing'
 import Register from './pages/Register'
@@ -115,6 +117,8 @@ const App = () => {
       <Route path="/research" element={<Finds />} />
       <Route path="/finds" element={<Navigate to="/research" replace />} />
       <Route path="/trend" element={<Trend />} />
+      <Route path="/fastbench" element={<FastBench />} />
+      <Route path="/channel-analysis" element={<ChannelAnalysis />} />
       <Route path="/links" element={<LinksManager />} />
       <Route path="/board" element={<Board />} />
       <Route path="/board/write" element={<BoardWrite />} />
