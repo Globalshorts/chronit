@@ -45,8 +45,8 @@ export default function HomeAnalysisShowcase() {
 
         <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-[minmax(0,320px)_1fr] md:items-stretch">
           <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
-            <video src="/finds/finds_after.mp4" autoPlay loop muted playsInline preload="metadata"
-              className="h-full w-full object-cover" style={{ aspectRatio: '9 / 16', background: '#15161a' }} />
+            <video src="/demo1.mp4" autoPlay loop muted playsInline preload="metadata"
+              className="h-[360px] w-full object-cover md:h-full" style={{ background: '#15161a' }} />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent p-4 pt-10">
               <div className="text-[15px] font-bold text-white">밀폐 밥솥 정리대</div>
               <div className="mt-0.5 text-[12px] text-white/60">@kitchen.deco · Instagram</div>
