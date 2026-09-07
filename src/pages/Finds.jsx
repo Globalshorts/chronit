@@ -131,12 +131,12 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
         if (!s) { if (alive) { setErr('로그인이 필요합니다'); setLoading(false) } return }
         let uNiche = '', uPersona = ''
         try { const { data: pf } = await supabase.from('profiles').select('niche,persona').eq('id', s.user.id).maybeSingle(); uNiche = pf?.niche || ''; uPersona = pf?.persona || '' } catch { /* noop */ }
-        const cacheKey = String(clip.video_id || clip.page_url || clip.title || '').slice(0, 280) + '|' + uNiche + '|v5'
+        const cacheKey = String(clip.video_id || clip.page_url || clip.title || '').slice(0, 280) + '|' + uNiche + '|v7'
         try { const { data: cached } = await supabase.rpc('get_analyze_cache_rpc', { p_key: cacheKey }); if (cached && cached.ok) { if (alive) { setResult(cached); try { onAnalyzed && onAnalyzed() } catch { /* noop */ } setLoading(false) } return } } catch { /* noop */ }
         const r = await fetch(FN('analyze-clip'), {
           method: 'POST',
           headers: { Authorization: `Bearer ${s.access_token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: clip.title, source: clip.source, thumbnail_url: clip.thumbnail_url, niche: uNiche, persona: uPersona }),
+          body: JSON.stringify({ title: clip.title, source: clip.source, thumbnail_url: clip.thumbnail_url, niche: uNiche, persona: uPersona, video_id: clip.video_id }),
         })
         const d = await r.json()
         if (!alive) return
@@ -267,6 +267,23 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
                     ))}
                   </div>
                   <div className="mt-1.5 text-[11px] text-slate-500">{satMsg}</div>
+                </div>
+              )}
+              {result.comment_analyzed > 0 && (
+                <div>
+                  <div className="mb-1 flex items-center gap-1.5 text-xs font-bold text-slate-700">댓글 분석 <span className="font-normal text-slate-400">샘플 {result.comment_analyzed}개</span> <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">진단</span></div>
+                  <div className="flex items-center gap-3">
+                    <svg viewBox="0 0 40 40" className="h-20 w-20 -rotate-90">
+                      {(() => { const C = 2 * Math.PI * 14; const segs = [['구매의도', result.comment_sentiment?.purchase_intent || 0, '#0064FF'], ['긍정', result.comment_sentiment?.positive || 0, '#22C55E'], ['질문', result.comment_sentiment?.question || 0, '#F59E0B'], ['불만', result.comment_sentiment?.complaint || 0, '#EF4444']]; const tot = segs.reduce((a, b) => a + b[1], 0) || 100; let acc = 0; return segs.map(([n, v, col]) => { const frac = v / tot; const el = <circle key={n} cx="20" cy="20" r="14" fill="none" stroke={col} strokeWidth="8" strokeDasharray={`${(frac * C).toFixed(2)} ${C.toFixed(2)}`} strokeDashoffset={`${(-acc * C).toFixed(2)}`} />; acc += frac; return el }) })()}
+                    </svg>
+                    <div className="text-[11px] leading-5 text-slate-600">
+                      <div><span className="mr-1 inline-block h-2 w-2 rounded-full align-middle" style={{ background: '#0064FF' }} />구매의도 {result.comment_sentiment?.purchase_intent || 0}%</div>
+                      <div><span className="mr-1 inline-block h-2 w-2 rounded-full align-middle" style={{ background: '#22C55E' }} />긍정 {result.comment_sentiment?.positive || 0}%</div>
+                      <div><span className="mr-1 inline-block h-2 w-2 rounded-full align-middle" style={{ background: '#F59E0B' }} />질문 {result.comment_sentiment?.question || 0}%</div>
+                      <div><span className="mr-1 inline-block h-2 w-2 rounded-full align-middle" style={{ background: '#EF4444' }} />불만 {result.comment_sentiment?.complaint || 0}%</div>
+                    </div>
+                  </div>
+                  {(result.comment_samples || []).length > 0 && <div className="mt-1.5 space-y-0.5">{result.comment_samples.map((c, i) => <div key={i} className="truncate text-[11px] text-slate-500">“{c}”</div>)}</div>}
                 </div>
               )}
               <div>
