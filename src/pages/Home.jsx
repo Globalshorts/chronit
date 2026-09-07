@@ -764,9 +764,9 @@ const Home = () => {
                   <button onClick={handleFinds} className="mt-6 w-full rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-[#0064FF] hover:text-[#0064FF]">무료로 시작</button>
                 </div>
                 {[
-                  { name: '스탠다드', credits: 30, price: 9900 },
-                  { name: '프로', credits: 100, price: 19900, hot: true },
-                  { name: '비즈니스', credits: 300, price: 29900 },
+                  { name: '스탠다드', credits: 30, price: 9900, feats: ['월 30회 소재 분석·소스 추출', '실시간 트렌드 무제한'] },
+                  { name: '프로', credits: 100, price: 19900, hot: true, feats: ['월 100회 소재 분석·소스 추출', '실시간 트렌드 무제한', '패스트벤치 선점 리스트'] },
+                  { name: '비즈니스', credits: 300, price: 29900, feats: ['월 300회 소재 분석·소스 추출', '패스트벤치 선점 리스트', '니치 알림', '개인화 큐레이션'] },
                 ].map((p) => {
                   const annual = priceTab === 'annual'
                   return (
@@ -775,7 +775,7 @@ const Home = () => {
                         <h4 className="text-lg font-semibold text-gray-900">{p.name}</h4>
                         {p.hot && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0064FF]">인기</span>}
                       </div>
-                      <p className="mt-1 text-sm text-gray-400">월 {p.credits}회 분석</p>
+                      <p className="mt-1 text-sm text-gray-400">월 {p.credits}회 분석·소스</p>
                       {annual ? (
                         <div className="mt-4">
                           <div className="flex items-baseline gap-1"><span className="text-3xl font-bold text-[#0064FF]">₩{(p.price * 9).toLocaleString('ko-KR')}</span><span className="text-sm text-gray-400">/ 년</span></div>
@@ -790,6 +790,11 @@ const Home = () => {
                         <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-gray-900">₩{p.price.toLocaleString('ko-KR')}</span><span className="text-sm text-gray-400">/ 월</span></div>
                       )}
                       <div className="mt-2.5 inline-flex items-center rounded-full bg-[#0064FF]/10 px-3 py-1 text-sm font-extrabold text-[#0064FF]">하루 약 {(annual ? Math.round(p.price * 9 / 365 / 10) * 10 : Math.round(p.price / 30 / 10) * 10).toLocaleString('ko-KR')}원</div>
+                      <ul className="mt-4 space-y-1.5 text-left">
+                        {p.feats.map((f) => (
+                          <li key={f} className="flex items-start gap-1.5 text-sm text-gray-600"><span className="mt-0.5 shrink-0 font-bold text-[#0064FF]">✓</span><span className="break-keep">{f}</span></li>
+                        ))}
+                      </ul>
                       <button onClick={() => handleBuy('sub', annual ? 'annual' : 'monthly')} className={`mt-6 w-full rounded-xl py-2.5 text-sm font-semibold transition ${p.hot ? 'bg-[#0064FF] text-white hover:brightness-95' : 'border border-gray-200 text-gray-700 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>시작하기</button>
                     </div>
                   )
