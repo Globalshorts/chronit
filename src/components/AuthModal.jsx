@@ -66,7 +66,7 @@ const AuthModal = ({ open, onClose, referralCode }) => {
         </button>
 
         <div className="mb-8 text-center">
-          <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="mx-auto mb-4 h-12 w-12" />
+          <img src="/cn-white.svg" alt="Chronit" className="mx-auto mb-4 h-12 w-12" />
           <h3 className="text-xl font-bold text-gray-900">로그인</h3>
         </div>
 

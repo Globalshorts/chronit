@@ -42,7 +42,7 @@ const Footer = ({ dark = false, user = null }) => {
         <div className="max-w-md">
           <div className="mb-5 flex items-center gap-3">
             <img
-              src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png"
+              src="/cn-white.svg"
               alt="Chronit"
               className="h-9 w-9"
             />

@@ -1721,7 +1721,7 @@ export default function VideoGenerator() {
   // ── Auth 화면 ────────────────────────────────────────────
   if (authLoading) return (
     <div className="flex items-center justify-center min-h-screen bg-[#FAFAF8]">
-      <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-16 w-16 animate-pulse" />
+      <img src="/cn-white.svg" alt="Chronit" className="h-16 w-16 animate-pulse" />
     </div>
   );
   if (!session || (session.user as any)?.is_anonymous) return (

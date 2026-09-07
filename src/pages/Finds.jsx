@@ -649,7 +649,7 @@ export default function Finds() {
       <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
           <Link to="/" className="flex items-center gap-2">
-            <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-8 w-8" />
+            <img src="/cn-white.svg" alt="Chronit" className="h-8 w-8" />
             <span className="text-lg font-extrabold text-slate-900">Chronit</span>
           </Link>
           <SiteNav />

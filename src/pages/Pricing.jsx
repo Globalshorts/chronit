@@ -39,7 +39,7 @@ export default function Pricing() {
       <header className="fixed inset-x-0 top-0 z-50 border-b border-white/60 bg-white/55 py-3 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
           <a href="/" className="flex min-w-0 items-center gap-1 md:gap-1.5">
-            <img src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png" alt="Chronit" className="h-9 w-9 shrink-0 md:h-10 md:w-10" />
+            <img src="/cn-white.svg" alt="Chronit" className="h-9 w-9 shrink-0 md:h-10 md:w-10" />
             <h1 className="hidden md:block text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">Chronit</h1>
           </a>
           <SiteNav active="/pricing" />

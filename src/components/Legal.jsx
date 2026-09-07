@@ -29,7 +29,7 @@ const Legal = ({ title, subtitle, markdown }) => {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
           <Link to="/" className="flex min-w-0 items-center gap-2 md:gap-3">
             <img
-              src="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png"
+              src="/cn-white.svg"
               alt="Chronit"
               className="h-8 w-8 shrink-0 md:h-10 md:w-10"
             />

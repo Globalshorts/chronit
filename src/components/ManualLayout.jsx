@@ -7,7 +7,7 @@ import { X } from 'lucide-react'
 import CommunityHeader from './CommunityHeader'
 import Footer from './Footer'
 
-const ICON = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png'
+const ICON = '/cn-white.svg'
 
 /* ── 헤더 (사이트 공통) ── */
 export const ManualHeader = () => <CommunityHeader active="manual" />

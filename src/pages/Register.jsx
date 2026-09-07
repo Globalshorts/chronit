@@ -4,7 +4,7 @@ import { CheckCircle2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { getFp } from '../lib/fp'
 
-const ICON = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/assets/icon.png'
+const ICON = '/cn-white.svg'
 const SOURCE_OPTIONS = ['유튜브', '인스타그램', '지인 추천', '블로그·카페', '검색(구글·네이버)', '기타']
 const PERSONA_OPTIONS = ['공구·제휴 크리에이터', '브랜드·쇼핑몰 SNS 운영', '릴스·틱톡 쇼핑 크리에이터', '부업·N잡 (막 시작)', '콘텐츠 대행사·편집자', '기타']
 const NICHE_OPTIONS = ['뷰티·화장품', '패션·의류', '리빙·홈·주방', '잡화·소품', '푸드·식품', '육아·키즈', '헬스·건강', '반려동물', '디지털·가전', '기타']
