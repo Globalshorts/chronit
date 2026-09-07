@@ -29,7 +29,7 @@ export default function HomeAnalysisShowcase() {
   const donut = [['구매의도', 34, BLUE], ['긍정', 41, '#22C55E'], ['질문', 18, '#F59E0B'], ['불만', 7, '#EF4444']]
   const C = 2 * Math.PI * 14
   const takeaways = [
-    '3초 훅 “이거 하나면 서랍이 두 배” — 즉각적인 이득 제시',
+    '3초 훅 “손 안 대고 변기 싹” — 즉각적인 이득 제시',
     '댓글 34%가 구매의도 — 링크 요청이 집중됨',
     '확산 가속 구간 — 지금이 2차 창작 선점 타이밍',
   ]
@@ -48,8 +48,8 @@ export default function HomeAnalysisShowcase() {
             <video src="/demo1.mp4" autoPlay loop muted playsInline preload="metadata"
               className="h-[360px] w-full object-cover md:h-full" style={{ background: '#15161a' }} />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent p-4 pt-10">
-              <div className="text-[15px] font-bold text-white">밀폐 밥솥 정리대</div>
-              <div className="mt-0.5 text-[12px] text-white/60">@kitchen.deco · Instagram</div>
+              <div className="text-[15px] font-bold text-white">무선 변기 청소 브러시</div>
+              <div className="mt-0.5 text-[12px] text-white/60">@clean.home · Instagram</div>
               <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-[12px] font-medium text-white/85">
                 <span>조회 92.4만</span><span>좋아요 5.1만</span><span>댓글 1,240</span>
               </div>
