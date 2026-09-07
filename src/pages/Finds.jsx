@@ -114,11 +114,39 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
   const [loading, setLoading] = useState(true)
   const [result, setResult] = useState(null)
   const [err, setErr] = useState('')
+  const [sat, setSat] = useState(null)
   const engScore = (() => { const v = Number(clip.views) || 0, l = Number(clip.likes) || 0, c = Number(clip.comments) || 0; return v > 0 ? Math.max(0, Math.min(100, Math.round(((l + c * 3) / v) * 800))) : null })()
   const ageHours = clip.taken_at ? Math.max(0.5, (Date.now() - new Date(clip.taken_at).getTime()) / 3600000) : null
-  const velPath = (() => { const N = 24, W = 100, H = 40; const pts = []; for (let i = 0; i <= N; i++) { const t = i / N; const sm = t * t * t * (t * (t * 6 - 15) + 10); pts.push([(i / N) * W, H - sm * (H - 3) - 1.5]) } const line = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' '); return { line, area: line + ` L${W},${H} L0,${H} Z` } })()
-  const satStage = ageHours == null ? 0 : (ageHours < 48 ? 0 : ageHours < 120 ? 1 : 2)
-  const satMsg = satStage === 0 ? '지금 선점 가능 — 확산 초기 구간이에요' : satStage === 1 ? '확산 중 — 아직 따라갈 만해요' : '포화 근접 — 차별화가 필요해요'
+  const velModeled = (() => { const N = 24, W = 100, H = 40; const pts = []; for (let i = 0; i <= N; i++) { const t = i / N; const sm = t * t * t * (t * (t * 6 - 15) + 10); pts.push([(i / N) * W, H - sm * (H - 3) - 1.5]) } const line = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' '); return { line, area: line + ` L${W},${H} L0,${H} Z` } })()
+  const satReal = (() => {
+    const snaps = Array.isArray(sat?.snapshots) ? sat.snapshots : []
+    const density = sat?.density ?? null
+    const series = []
+    for (let i = 0; i < snaps.length; i++) {
+      let v = snaps[i].velocity
+      if (v == null && i > 0) { const dh = (Number(snaps[i].t) - Number(snaps[i - 1].t)) / 3600; if (dh >= 0.25) v = (snaps[i].comment_count - snaps[i - 1].comment_count) / dh }
+      series.push({ v: v == null ? null : Math.max(0, v) })
+    }
+    const vv = series.map((x) => x.v).filter((v) => v != null)
+    if (vv.length < 2) return { ready: false, density }
+    const peak = Math.max(...vv, 0.01)
+    const W = 100, H = 40, n = series.length
+    const pts = series.map((x, i) => { const px = n === 1 ? 0 : (i / (n - 1)) * W; const val = x.v == null ? 0 : x.v; const py = H - (val / peak) * (H - 3) - 1.5; return [px, py] })
+    const line = pts.map((pp, i) => `${i ? 'L' : 'M'}${pp[0].toFixed(1)},${pp[1].toFixed(1)}`).join(' ')
+    const path = { line, area: line + ` L${W},${H} L0,${H} Z` }
+    const recent = vv.slice(-2).reduce((x, y) => x + y, 0) / Math.min(2, vv.length)
+    const early = vv.slice(0, 2).reduce((x, y) => x + y, 0) / Math.min(2, vv.length)
+    const ratio = early > 0 ? recent / early : (recent > 0 ? 2 : 1)
+    const stage = ratio >= 1.1 ? 0 : ratio >= 0.6 ? 1 : 2
+    const trend = stage === 0 ? '가속' : stage === 1 ? '유지' : '둔화'
+    return { ready: true, density, path, stage, trend, recentV: Math.round(recent * 10) / 10, points: vv.length }
+  })()
+  const measured = satReal.ready
+  const velPath = measured ? satReal.path : velModeled
+  const satStage = measured ? satReal.stage : (ageHours == null ? 0 : ageHours < 48 ? 0 : ageHours < 120 ? 1 : 2)
+  const satMsg = measured
+    ? (satStage === 0 ? `확산 가속 중 — 지금 선점 타이밍 (댓글 ${satReal.recentV}/시간)` : satStage === 1 ? `확산 유지 중 — 아직 따라갈 만해요 (댓글 ${satReal.recentV}/시간)` : '확산 둔화 — 포화 신호, 차별화가 필요해요')
+    : (satStage === 0 ? '지금 선점 가능 — 확산 초기 구간이에요' : satStage === 1 ? '확산 중 — 아직 따라갈 만해요' : '포화 근접 — 차별화가 필요해요')
 
   // 모달 오픈 시 analyze-clip 호출 → 훅/셀링포인트/구도 생성
   // TODO(과금): 최초 분석 시 이용권 -1 (나중 별도 적용)
@@ -143,6 +171,17 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
         if (d.ok) { setResult(d); try { onAnalyzed && onAnalyzed() } catch { /* noop */ } if (d.hook) { try { await supabase.rpc('set_analyze_cache_rpc', { p_key: cacheKey, p_result: d }) } catch { /* noop */ } } } else setErr(d.error || '분석에 실패했어요.')
       } catch { if (alive) setErr('분석 중 오류가 발생했어요.') }
       finally { if (alive) setLoading(false) }
+    })()
+    return () => { alive = false }
+  }, [clip])
+
+  // 실측 확산 스냅샷 조회 (트렌드 소재)
+  useEffect(() => {
+    let alive = true
+    const sc = clip.video_id
+    if (!sc) { setSat(null); return }
+    ;(async () => {
+      try { const { data } = await supabase.rpc('get_clip_saturation_rpc', { p_shortcode: sc }); if (alive) setSat(data || null) } catch { if (alive) setSat(null) }
     })()
     return () => { alive = false }
   }, [clip])
@@ -238,15 +277,15 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
                 </div>
                 {ageHours != null && (
                   <div>
-                    <div className="mb-1.5 flex items-center gap-1.5 text-[15px] font-bold text-slate-800">확산 속도 <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">진단</span></div>
+                    <div className="mb-1.5 flex items-center gap-1.5 text-[15px] font-bold text-slate-800">확산 속도 <span className={`rounded-full border px-1.5 py-0.5 text-[10px] font-bold ${measured ? 'border-[#0064FF]/40 bg-[#0064FF]/10 text-[#0064FF]' : 'border-slate-300 text-slate-600'}`}>{measured ? '측정' : '진단'}</span></div>
                     <svg viewBox="0 0 100 40" className="h-24 w-full" preserveAspectRatio="none"><path d={velPath.area} fill="rgba(0,100,255,0.12)" /><path d={velPath.line} fill="none" stroke="#0064FF" strokeWidth="2.5" vectorEffect="non-scaling-stroke" /></svg>
-                    <div className="mt-1 flex justify-between text-[13px] text-slate-500"><span>업로드</span><span>{fmt(clip.views)} 조회 · {Math.round(ageHours)}h</span></div>
+                    <div className="mt-1 flex justify-between text-[13px] text-slate-500"><span>{measured ? `${satReal.points}회 실측` : '업로드'}</span><span>{fmt(clip.views)} 조회 · {Math.round(ageHours)}h</span></div>
                     {clip.velocity != null && <div className="mt-1.5 text-sm text-slate-600">실측 확산 속도 <span className="font-bold text-[#0064FF]">{clip.velocity}</span> 댓글/시간 <span className="text-[#0064FF]">(측정)</span></div>}
                   </div>
                 )}
                 {ageHours != null && (
                   <div>
-                    <div className="mb-2 flex items-center gap-1.5 text-[15px] font-bold text-slate-800">포화도 <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">진단</span></div>
+                    <div className="mb-2 flex items-center gap-1.5 text-[15px] font-bold text-slate-800">포화도 <span className={`rounded-full border px-1.5 py-0.5 text-[10px] font-bold ${measured ? 'border-[#0064FF]/40 bg-[#0064FF]/10 text-[#0064FF]' : 'border-slate-300 text-slate-600'}`}>{measured ? '측정' : '진단'}</span></div>
                     <div className="flex gap-1.5">
                       {['확산 초기', '확산 중', '포화 근접'].map((sName, idx) => (
                         <div key={sName} className="flex-1 text-center">
@@ -256,6 +295,7 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
                       ))}
                     </div>
                     <div className="mt-2 text-sm text-slate-600">{satMsg}</div>
+                    {satReal.density != null && satReal.density > 1 && <div className="mt-1 text-[13px] text-slate-500">같은 시기 터진 유사 소재 <span className="font-bold text-slate-700">{satReal.density}개</span> 포착</div>}
                   </div>
                 )}
                 {result.comment_analyzed > 0 && (
