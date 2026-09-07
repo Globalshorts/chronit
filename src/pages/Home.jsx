@@ -13,6 +13,7 @@ import TermsModal from '../components/TermsModal'
 import Footer from '../components/Footer'
 import SiteNav from '../components/SiteNav'
 import SourcingBeforeAfter from '../components/SourcingBeforeAfter'
+import HomeAnalysisShowcase from '../components/HomeAnalysisShowcase'
 import Reveal from '../components/Reveal'
 import NicknameModal from '../components/NicknameModal'
 import TimeLossCalculator from '../components/TimeLossCalculator'
@@ -592,6 +593,9 @@ const Home = () => {
           </>)}
         </div>
       </section>
+
+      {/* ── 제품 쇼케이스: 실제 분석 화면 ── */}
+      {!user && <HomeAnalysisShowcase />}
 
       {/* ── 작동 방식 3스텝 ── */}
       <section className="px-5 pt-14 pb-2 md:px-8 md:pt-20">
