@@ -295,7 +295,6 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
                       ))}
                     </div>
                     <div className="mt-2 text-sm text-slate-600">{satMsg}</div>
-                    {satReal.density != null && satReal.density > 1 && <div className="mt-1 text-[13px] text-slate-500">같은 시기 터진 유사 소재 <span className="font-bold text-slate-700">{satReal.density}개</span> 포착</div>}
                   </div>
                 )}
                 {result.comment_analyzed > 0 && (
