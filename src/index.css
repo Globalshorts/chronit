@@ -92,46 +92,63 @@ h1, h2 {
 @media(min-width:768px){.chronit-genbar{bottom:24px}}
 
 
-/* ── glass-redesign (LIGHT glass) ── */
-html, body { background: #f4f5f7; }
+/* ── glass-redesign (DARK glass · 전역 다크 테마) ── */
+html, body { background: #0A0B0F; }
 #root { background: transparent; }
 .bg-white{
-  background: linear-gradient(150deg, rgba(255,255,255,.5), rgba(255,255,255,.34)) !important;
+  background: linear-gradient(150deg, rgba(255,255,255,.06), rgba(255,255,255,.03)) !important;
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
-  border-color: rgba(255,255,255,.8) !important;
-  box-shadow: 0 18px 44px rgba(20,40,90,.18), 0 3px 10px rgba(20,40,90,.08), inset 0 1px 0 rgba(255,255,255,.9) !important;
+  border-color: rgba(255,255,255,.10) !important;
+  box-shadow: 0 20px 48px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05) !important;
 }
-.bg-\[\#FAFAF8\], .bg-gray-50 { background: transparent !important; }
-.glass{position:relative;border-radius:22px;border:1px solid rgba(255,255,255,.8);
-  background:linear-gradient(150deg,rgba(255,255,255,.62),rgba(255,255,255,.4));
+.bg-\[\#FAFAF8\], .bg-gray-50, .bg-slate-50 { background: rgba(255,255,255,.03) !important; }
+.glass{position:relative;border-radius:22px;border:1px solid rgba(255,255,255,.10);
+  background:linear-gradient(150deg,rgba(255,255,255,.06),rgba(255,255,255,.03));
   -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
-  box-shadow:0 18px 44px rgba(20,40,90,.18), 0 3px 10px rgba(20,40,90,.08), inset 0 1px 0 rgba(255,255,255,.9);}
+  box-shadow:0 20px 48px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05);}
 .bg-white\/95, .bg-white\/90, .bg-white\/80 {
-  background: rgba(255,255,255,.6) !important;
+  background: rgba(16,18,24,.85) !important;
   -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
-  border-color: rgba(255,255,255,.7) !important;
+  border-color: rgba(255,255,255,.10) !important;
 }
-.bg-slate-50 { background: transparent !important; }
-input:not([type=checkbox]):not([type=radio]):not([type=range]), textarea, select{
-  background:#ffffff !important;
+input:not([type=checkbox]):not([type=radio]):not([type=range]):not(.hero-search-input), textarea, select{
+  background: rgba(255,255,255,.05) !important;
   -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
-  border-color: rgba(20,40,90,.18) !important;
-  box-shadow: inset 0 1px 2px rgba(20,40,90,.05) !important;
+  border-color: rgba(255,255,255,.14) !important;
+  color:#f4f6fb !important;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.25) !important;
 }
+input::placeholder, textarea::placeholder{ color: rgba(255,255,255,.38) !important; }
 input.hero-search-input:not([type=checkbox]):not([type=radio]):not([type=range]){ background:transparent !important; border:0 !important; box-shadow:none !important; color:#fff !important; }
 input.hero-search-input::placeholder{ color:rgba(255,255,255,.42) !important; }
 button.bg-white, a.bg-white{
   background:#ffffff !important;
   -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
-  box-shadow:none !important; border-color: rgba(20,40,90,.14) !important;
+  box-shadow:none !important; border-color: rgba(255,255,255,.14) !important;
+  color:#0A0B0F !important;
 }
+/* Tailwind 회색 유틸 → 전역 다크 remap */
+.text-gray-900,.text-slate-900,.text-black{color:#f4f6fb !important}
+.text-gray-800,.text-slate-800{color:rgba(255,255,255,.85) !important}
+.text-gray-700,.text-slate-700{color:rgba(255,255,255,.72) !important}
+.text-gray-600,.text-slate-600{color:rgba(255,255,255,.60) !important}
+.text-gray-500,.text-slate-500{color:rgba(255,255,255,.46) !important}
+.text-gray-400,.text-slate-400{color:rgba(255,255,255,.36) !important}
+.text-gray-300,.text-slate-300{color:rgba(255,255,255,.24) !important}
+.text-gray-200,.text-slate-200{color:rgba(255,255,255,.16) !important}
+.border-gray-100,.border-gray-200,.border-slate-100,.border-slate-200{border-color:rgba(255,255,255,.10) !important}
+.border-gray-300,.border-slate-300{border-color:rgba(255,255,255,.16) !important}
+.bg-gray-100,.bg-slate-100{background:rgba(255,255,255,.06) !important}
+.bg-gray-200,.bg-slate-200{background:rgba(255,255,255,.10) !important}
+.bg-gray-900,.bg-slate-900,.bg-black{background:rgba(255,255,255,.08) !important}
+.divide-gray-100>:not([hidden])~:not([hidden]),.divide-gray-200>:not([hidden])~:not([hidden]),.divide-slate-100>:not([hidden])~:not([hidden]){border-color:rgba(255,255,255,.10) !important}
 /* 움직이는 브랜드 그라데이션 배경 (shadergradient 느낌, 무의존성) */
 .sg-bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
 .sg{position:absolute;border-radius:50%;filter:blur(58px);will-change:transform}
-.sg1{width:62vw;height:62vw;left:-10vw;top:-14vh;background:radial-gradient(circle at 42% 42%, rgba(0,100,255,.55), transparent 68%);animation:sgm1 26s ease-in-out infinite}
-.sg2{width:56vw;height:56vw;right:-12vw;bottom:-16vh;background:radial-gradient(circle at 55% 55%, rgba(124,92,255,.5), transparent 68%);animation:sgm2 32s ease-in-out infinite}
-.sg3{width:42vw;height:42vw;left:44vw;top:34vh;background:radial-gradient(circle at 50% 50%, rgba(34,211,238,.34), transparent 68%);animation:sgm3 30s ease-in-out infinite}
+.sg1{width:62vw;height:62vw;left:-10vw;top:-14vh;background:radial-gradient(circle at 42% 42%, rgba(0,100,255,.16), transparent 68%);animation:sgm1 26s ease-in-out infinite}
+.sg2{width:56vw;height:56vw;right:-12vw;bottom:-16vh;background:radial-gradient(circle at 55% 55%, rgba(124,92,255,.12), transparent 68%);animation:sgm2 32s ease-in-out infinite}
+.sg3{width:42vw;height:42vw;left:44vw;top:34vh;background:radial-gradient(circle at 50% 50%, rgba(34,211,238,.08), transparent 68%);animation:sgm3 30s ease-in-out infinite}
 @keyframes sgm1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(11vw,8vh) scale(1.16)}}
 @keyframes sgm2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-13vw,-7vh) scale(1.12)}}
 @keyframes sgm3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-9vw,11vh) scale(1.22)}}
