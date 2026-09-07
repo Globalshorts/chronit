@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Sparkles, Search, Scissors } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import Reveal from './Reveal'
 
 const BLUE = '#0064FF'
 const fmt = (n) => { n = Number(n) || 0; return n >= 10000 ? (n / 10000).toFixed(n >= 100000 ? 0 : 1) + '만' : n.toLocaleString('ko-KR') }
@@ -70,7 +71,7 @@ export default function HomeAnalysisShowcase() {
 
   return (
     <section ref={rootRef} className="px-5 py-20 md:px-8 md:py-28">
-      <div className="mx-auto max-w-4xl">
+      <Reveal className="mx-auto max-w-4xl">
         <div className="mb-4 text-center text-[11px] font-semibold uppercase tracking-[0.28em] text-white/30">Research → Analyze → Remix</div>
         <h2 className="text-center text-3xl font-bold leading-tight text-white break-keep md:text-[2.5rem]">왜 터졌는지, 어떻게 복제할지</h2>
         <p className="mx-auto mt-4 max-w-xl text-center text-[15px] leading-relaxed text-white/50 break-keep md:text-base">실제로 터진 쇼핑 릴을 골라 훅·확산 속도·2차 창작 편집 가이드까지 한 번에.</p>
@@ -176,7 +177,7 @@ export default function HomeAnalysisShowcase() {
           </div>
         </div>
         <p className="mt-3 text-center text-[11px] text-white/30">실제 트렌드 검색 결과 예시 · 계정명은 비공개 처리</p>
-      </div>
+      </Reveal>
     </section>
   )
 }

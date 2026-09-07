@@ -601,11 +601,11 @@ const Home = () => {
       {/* ── 실데이터 통계 스트립 ── */}
       {stats?.clips ? (
         <section id="features" style={{ scrollMarginTop: '120px' }} className="px-5 pb-10 md:px-8">
-          <div className="mx-auto grid max-w-3xl grid-cols-3 divide-x divide-white/10 rounded-2xl border border-white/10 bg-white/[0.04] py-6 text-center">
+          <Reveal className="mx-auto grid max-w-3xl grid-cols-3 divide-x divide-white/10 rounded-2xl border border-white/10 bg-white/[0.04] py-6 text-center">
             <div><div className="text-2xl font-bold text-white md:text-3xl">{Number(stats.clips).toLocaleString('ko-KR')}</div><div className="mt-1 text-xs text-white/35">발굴한 소스</div></div>
             <div><div className="text-2xl font-bold text-white md:text-3xl">{Number(stats.curators).toLocaleString('ko-KR')}</div><div className="mt-1 text-xs text-white/35">추적 중인 큐레이터</div></div>
             <div><div className="text-2xl font-bold text-white md:text-3xl">매일</div><div className="mt-1 text-xs text-white/35">새 소스 갱신</div></div>
-          </div>
+          </Reveal>
         </section>
       ) : null}
 
