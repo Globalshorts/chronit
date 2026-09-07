@@ -114,6 +114,7 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
   const [loading, setLoading] = useState(true)
   const [result, setResult] = useState(null)
   const [err, setErr] = useState('')
+  const engScore = (() => { const v = Number(clip.views) || 0, l = Number(clip.likes) || 0, c = Number(clip.comments) || 0; return v > 0 ? Math.max(0, Math.min(100, Math.round(((l + c * 3) / v) * 800))) : null })()
 
   // 모달 오픈 시 analyze-clip 호출 → 훅/셀링포인트/구도 생성
   // TODO(과금): 최초 분석 시 이용권 -1 (나중 별도 적용)
@@ -124,10 +125,12 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
       try {
         const { data: { session: s } } = await supabase.auth.getSession()
         if (!s) { if (alive) { setErr('로그인이 필요합니다'); setLoading(false) } return }
+        let uNiche = '', uPersona = ''
+        try { const { data: pf } = await supabase.from('profiles').select('niche,persona').eq('id', s.user.id).maybeSingle(); uNiche = pf?.niche || ''; uPersona = pf?.persona || '' } catch { /* noop */ }
         const r = await fetch(FN('analyze-clip'), {
           method: 'POST',
           headers: { Authorization: `Bearer ${s.access_token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: clip.title, source: clip.source, thumbnail_url: clip.thumbnail_url }),
+          body: JSON.stringify({ title: clip.title, source: clip.source, thumbnail_url: clip.thumbnail_url, niche: uNiche, persona: uPersona }),
         })
         const d = await r.json()
         if (!alive) return
@@ -230,6 +233,15 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
                 </div>
               )}
               <div>
+                <div className="mb-1.5 flex items-center gap-1.5 text-xs font-bold text-slate-700">터짐 점수 3축</div>
+                {[{ label: '참여', val: engScore, kind: '측정' }, { label: '훅 (첫 3초)', val: result.hook_score, kind: '진단' }, { label: '페이오프 (결말)', val: result.payoff_score, kind: '진단' }].map((b) => (
+                  <div key={b.label} className="mb-1.5">
+                    <div className="flex justify-between text-[11px] text-slate-500"><span>{b.label} <span className={b.kind === '측정' ? 'text-[#0064FF]' : 'text-slate-400'}>({b.kind})</span></span><span className="font-bold text-slate-700">{b.val == null ? '—' : b.val}</span></div>
+                    <div className="mt-0.5 h-1.5 rounded-full bg-slate-200"><div className="h-1.5 rounded-full bg-[#0064FF]" style={{ width: `${b.val == null ? 0 : b.val}%` }} /></div>
+                  </div>
+                ))}
+              </div>
+              <div>
                 <span className="font-bold text-slate-700">훅 (첫 3초)</span> · {result.hook || '—'}
                 {result.hook_why && <span className="mt-0.5 block text-xs text-slate-400">{result.hook_why}</span>}
               </div>
@@ -245,6 +257,22 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
               {result.apply_tip && (
                 <div className="rounded-lg bg-amber-50 p-2 text-xs leading-relaxed"><span className="font-bold text-amber-700">💡 적용 팁</span> · {result.apply_tip}</div>
               )}
+              {(result.hashtags || []).length > 0 && (
+                <div>
+                  <div className="mb-1 flex items-center gap-1.5 text-xs font-bold text-slate-700">추천 해시태그 <span className="rounded-full border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">진단</span></div>
+                  <div className="flex flex-wrap gap-1.5">{result.hashtags.map((h, i) => <span key={i} className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{h}</span>)}</div>
+                </div>
+              )}
+              {result.remix && (result.remix.hook_ideas?.length || result.remix.edit_script?.length) ? (
+                <div className="rounded-lg border border-[#0064FF]/20 bg-[#0064FF]/5 p-2.5">
+                  <div className="mb-1.5 flex items-center gap-1 text-xs font-extrabold text-[#0064FF]"><Sparkles size={12} />2차 창작 가이드 (편집 중심)</div>
+                  {result.remix.hook_ideas?.length > 0 && <div className="mb-1.5"><span className="text-xs font-bold text-slate-700">내 상품용 훅</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-xs">{result.remix.hook_ideas.map((x, i) => <li key={i}>{x}</li>)}</ul></div>}
+                  {result.remix.edit_script?.length > 0 && <div className="mb-1.5"><span className="text-xs font-bold text-slate-700">편집 컷 구성</span><ul className="mt-0.5 list-decimal space-y-0.5 pl-5 text-xs">{result.remix.edit_script.map((x, i) => <li key={i}>{x}</li>)}</ul></div>}
+                  {result.remix.selling_map?.length > 0 && <div className="mb-1.5"><span className="text-xs font-bold text-slate-700">셀링포인트 매핑</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-xs">{result.remix.selling_map.map((x, i) => <li key={i}>{x}</li>)}</ul></div>}
+                  {result.remix.differentiation?.length > 0 && <div className="mb-1.5"><span className="text-xs font-bold text-slate-700">차별화 포인트</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-xs">{result.remix.differentiation.map((x, i) => <li key={i}>{x}</li>)}</ul></div>}
+                  {result.remix.edit_checklist?.length > 0 && <div><span className="text-xs font-bold text-slate-700">편집 체크리스트</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-xs">{result.remix.edit_checklist.map((x, i) => <li key={i}>{x}</li>)}</ul></div>}
+                </div>
+              ) : null}
               {!result.used_image && <div className="text-[10px] text-slate-300">※ 썸네일 미확보 — 제목 기반 분석</div>}
             </div>
           ) : null}
