@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import {
   Clock, CheckCircle2, MessageCircle, ArrowRight, Users,
   Film, TrendingDown, LogOut, Gift, Menu, X, Play, User,
-  Search, Captions, Mic, Scissors, Palette, Zap, Sparkles, Check, Flame, Filter,
+  Search, Captions, Mic, Scissors, Palette, Zap, Sparkles, Check, Flame, Filter, Download,
 } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import Footer from '../components/Footer'
@@ -16,6 +16,7 @@ const FindsPricing = lazy(() => import('../components/FindsPricing'))
 const AuthModal = lazy(() => import('../components/AuthModal'))
 const TermsModal = lazy(() => import('../components/TermsModal'))
 const NicknameModal = lazy(() => import('../components/NicknameModal'))
+const PwaInstall = lazy(() => import('../components/PwaInstall'))
 import ProblemSolution from '../components/ProblemSolution'
 import HomeAnalysisShowcase from '../components/HomeAnalysisShowcase'
 
@@ -510,6 +511,7 @@ const Home = () => {
             <Link to="/manual" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-white/[0.03] hover:text-[#0064FF]">사용 방법</Link>
             <Link to="/me" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-white/[0.03] hover:text-[#0064FF]">마이페이지</Link>
             <a href="#pricing" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-white/[0.03] hover:text-[#0064FF]">가격 안내</a>
+            <button onClick={() => { setMenuOpen(false); window.dispatchEvent(new Event('chronit:open-install')) }} className="flex items-center gap-2 rounded-xl px-4 py-4 text-left transition-colors hover:bg-white/[0.03] hover:text-[#0064FF]"><Download size={18} className="text-[#0064FF]" /> 앱 설치</button>
           </nav>
           <div className="mt-4 border-t border-white/10 pt-4 flex flex-col gap-2">
             {user ? (
@@ -822,6 +824,7 @@ const Home = () => {
         initialCode={codeFromUrl}
         autoBilling
       />}
+      <PwaInstall />
       </Suspense>)}
     </div>
   )
