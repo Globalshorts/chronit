@@ -15,6 +15,7 @@ import SiteNav from '../components/SiteNav'
 import SourcingBeforeAfter from '../components/SourcingBeforeAfter'
 import HomeAnalysisShowcase from '../components/HomeAnalysisShowcase'
 import BeforeAfter from '../components/BeforeAfter'
+import PainSection from '../components/PainSection'
 import Reveal from '../components/Reveal'
 import RevealStagger from '../components/RevealStagger'
 import NicknameModal from '../components/NicknameModal'
@@ -595,6 +596,9 @@ const Home = () => {
           </>)}
         </div>
       </section>
+
+      {/* ── 문제 3카드 ── */}
+      {!user && <PainSection />}
 
       {/* ── Before / After ── */}
       {!user && <BeforeAfter />}

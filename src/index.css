@@ -170,3 +170,8 @@ button.bg-white{
 }
 @keyframes heroShimmer{ from{ background-position: 0% 0 } to{ background-position: -200% 0 } }
 @media (prefers-reduced-motion: reduce){ .hero-shimmer{ animation: none; } }
+
+/* 옆에서 슬라이드 등장 */
+.slide-rev{ opacity:0; transform: translateX(64px); transition: opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1); will-change: opacity, transform; }
+.slide-rev.slide-in{ opacity:1; transform:none; }
+@media (prefers-reduced-motion: reduce){ .slide-rev{ opacity:1 !important; transform:none !important; } }

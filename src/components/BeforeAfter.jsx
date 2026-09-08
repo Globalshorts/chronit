@@ -26,11 +26,9 @@ export default function BeforeAfter() {
             <div className="absolute inset-0 bg-gradient-to-t from-[#0a0b0f] via-[#0a0b0f]/80 to-[#0a0b0f]/30" />
             <div className="absolute inset-0 flex flex-col p-6">
               <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[12px] font-bold text-white/70">크로닛 없이</span>
-              <div className="mt-auto space-y-2">
-                {['밤새 릴스만 스크롤 — 뭘 올릴지 막막', '레퍼런스 외주 편당 1~2만원', '감으로 올려 조회수는 복불복'].map((t) => (
-                  <div key={t} className="flex items-start gap-2 text-[14px] text-white/80"><span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-red-400" />{t}</div>
-                ))}
-                <div className="flex items-baseline gap-2 pt-2"><span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">소재 찾기</span><span className="text-2xl font-bold text-red-300 md:text-3xl">하루 1~2시간</span></div>
+              <div className="mt-auto">
+                <div className="text-[14px] text-white/70">감으로, 흩어진 채</div>
+                <div className="mt-1 flex items-baseline gap-2"><span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">소재 찾기</span><span className="text-2xl font-bold text-red-300 md:text-3xl">하루 1~2시간</span></div>
               </div>
             </div>
           </div>
