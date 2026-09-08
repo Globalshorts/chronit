@@ -15,13 +15,14 @@ export async function initPosthog() {
   try {
     const mod = await import('posthog-js')
     posthog = mod.default || mod
+    const isMobile = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 767px)').matches
     posthog.init(KEY, {
       api_host: HOST,
       capture_pageview: true,
       capture_pageleave: true,
-      autocapture: true,
+      autocapture: !isMobile,                 // 모바일은 자동캡처도 최소화
       person_profiles: 'identified_only',
-      disable_session_recording: false,
+      disable_session_recording: isMobile,    // 모바일: rrweb 녹화 OFF (메인스레드 보호)
       session_recording: {
         maskAllInputs: true,
         maskInputFn: (text, el) => { try { if (el && el.getAttribute && el.getAttribute('data-ph-search') === '1') return text } catch { /* noop */ } return '*'.repeat((text || '').length) },
@@ -29,7 +30,7 @@ export async function initPosthog() {
         recordCrossOriginIframes: false,
       },
     })
-    try { posthog.startSessionRecording() } catch {}
+    try { if (!isMobile) posthog.startSessionRecording() } catch {}
     ready = true
     if (pendingUid) { try { posthog.identify(pendingUid) } catch {} ; pendingUid = null }
   } catch { /* noop */ }
