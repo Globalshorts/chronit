@@ -15,19 +15,23 @@ export default function InstallButton() {
   const [bottomPx, setBottomPx] = useState(16)
   const loc = useLocation()
 
-  // 하단 탭바(FindsBottomNav)가 있는 페이지에선 그 위로 올림
+  // 하단 탭바(FindsBottomNav)가 있는 페이지에선 그 위로 올림. 탭바는 lazy 라우트라 나타날 때 감지 필요.
   useEffect(() => {
     if (typeof window === 'undefined') return
+    let raf = 0
     const recalc = () => {
       try {
         const nav = document.querySelector('[data-app-bottom-nav]')
-        const visible = nav && getComputedStyle(nav).display !== 'none' && nav.offsetHeight > 0
-        setBottomPx(visible ? nav.offsetHeight + 12 : 16)
+        const shown = nav && getComputedStyle(nav).display !== 'none' && nav.offsetHeight > 0
+        setBottomPx(shown ? nav.offsetHeight + 12 : 16)
       } catch { setBottomPx(16) }
     }
-    const t = setTimeout(recalc, 60)   // 라우트 렌더 후 측정
-    window.addEventListener('resize', recalc)
-    return () => { clearTimeout(t); window.removeEventListener('resize', recalc) }
+    const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(recalc) }
+    schedule()
+    const mo = new MutationObserver(schedule)
+    try { mo.observe(document.body, { childList: true, subtree: true }) } catch {}
+    window.addEventListener('resize', schedule)
+    return () => { try { mo.disconnect() } catch {}; cancelAnimationFrame(raf); window.removeEventListener('resize', schedule) }
   }, [loc.pathname])
 
   useEffect(() => {
