@@ -51,7 +51,7 @@ export default function ProblemSolution() {
           {PAINS.map((p) => (
             <div key={p.tag} className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
               <div className="relative aspect-[4/3] overflow-hidden">
-                <img src={p.img} alt={p.tag} className="h-full w-full object-cover" />
+                <img src={p.img} alt={p.tag} fetchpriority="high" decoding="async" className="h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0c0d11] via-[#0c0d11]/20 to-transparent" />
                 <span className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-bold text-white/85 backdrop-blur-sm">{p.tag}</span>
               </div>
