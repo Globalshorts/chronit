@@ -99,11 +99,12 @@ const App = () => {
     }
     const onVis = () => {
       if (document.hidden) return
-      if (updateReady) { try { window.location.reload() } catch {} ; return }
+      if (updateReady) { try { const u = new URL(window.location.href); u.searchParams.set('_r', Date.now().toString()); window.location.replace(u.toString()) } catch { try { window.location.reload() } catch {} } ; return }
       check()
     }
     const iv = setInterval(check, 3 * 60 * 1000)
     const t = setTimeout(check, 20000)
+    check()  // 로드 직후 즉시 1회 확인 (옛 번들 빠르게 탈출)
     document.addEventListener('visibilitychange', onVis)
     window.addEventListener('focus', onVis)
     return () => { clearInterval(iv); clearTimeout(t); document.removeEventListener('visibilitychange', onVis); window.removeEventListener('focus', onVis) }
