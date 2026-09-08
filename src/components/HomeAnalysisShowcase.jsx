@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Sparkles, Search, Scissors } from 'lucide-react'
-import { supabase } from '../lib/supabase'
+import SHOWCASE from '../data/homeShowcase.json'
 import Reveal from './Reveal'
 
 const BLUE = '#0064FF'
@@ -12,7 +12,7 @@ export default function HomeAnalysisShowcase() {
   const winRef = useRef(null)
   const thumbRefs = useRef([])
   const [inView, setInView] = useState(false)
-  const [clips, setClips] = useState([])
+  const [clips] = useState(SHOWCASE)
   const [pick, setPick] = useState(0)
   const [step, setStep] = useState(0)
   const [cursor, setCursor] = useState({ x: 60, y: 40, click: false })
@@ -25,11 +25,6 @@ export default function HomeAnalysisShowcase() {
     const onVis = () => { if (document.hidden) setInView(false) }
     document.addEventListener('visibilitychange', onVis)
     return () => { io.disconnect(); document.removeEventListener('visibilitychange', onVis) }
-  }, [])
-  useEffect(() => {
-    let alive = true
-    supabase.rpc('get_home_showcase_rpc').then(({ data }) => { if (alive && Array.isArray(data)) setClips(data.slice(0, 5)) }).catch(() => {})
-    return () => { alive = false }
   }, [])
   useEffect(() => {
     if (!inView || !clips.length) return
