@@ -14,6 +14,8 @@ export default function ProblemSolution() {
   const baRef = useRef(null)
 
   useEffect(() => {
+    // 모바일: gsap 불필요 — 패널은 CSS 기본값으로 항상 표시(숨김 애니메이션 없음)
+    if (typeof window === 'undefined' || !window.matchMedia('(min-width: 768px)').matches) return
     let mounted = true
     let revert = null
     Promise.all([import('gsap'), import('gsap/ScrollTrigger')]).then(([g, st]) => {
@@ -22,35 +24,18 @@ export default function ProblemSolution() {
       const ScrollTrigger = st.ScrollTrigger || st.default
       gsap.registerPlugin(ScrollTrigger)
       const mm = gsap.matchMedia()
-    // 데스크톱: 핀(GSAP) 대신 CSS sticky로 고정 → 네이티브라 진입/이탈 툭 끊김 없음. 전환은 scrub.
-    mm.add('(min-width: 768px)', () => {
-      gsap.set(painRef.current, { xPercent: 0, autoAlpha: 1 })
-      gsap.set(baRef.current, { xPercent: -40, autoAlpha: 0 })
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: trigRef.current,
-          start: 'top top',
-          end: 'bottom bottom',
-          scrub: 1,
-        },
-      })
-      tl.to({}, { duration: 0.5 })                                          // 페인 유지
-      tl.to(painRef.current, { xPercent: 36, autoAlpha: 0, ease: 'power1.in', duration: 0.5 })
-      tl.fromTo(baRef.current, { xPercent: -40, autoAlpha: 0 }, { xPercent: 0, autoAlpha: 1, ease: 'power1.out', duration: 0.6 })
-      tl.to({}, { duration: 0.6 })                                          // 비포애프터 유지
-      return () => { if (tl.scrollTrigger) tl.scrollTrigger.kill(); tl.kill() }
-    })
-    // 모바일: 정적 스택 + 각 패널 페이드+슬라이드업 등장
-    mm.add('(max-width: 767px)', () => {
-      gsap.set([painRef.current, baRef.current], { clearProps: 'all' })
-      const trs = [painRef.current, baRef.current].map((el) =>
-        gsap.from(el, {
-          autoAlpha: 0, y: 40, duration: 0.6, ease: 'power2.out',
-          scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none reverse' },
+      // 데스크톱: CSS sticky로 고정 + scrub 순차 전환(겹침 없음)
+      mm.add('(min-width: 768px)', () => {
+        gsap.set(painRef.current, { xPercent: 0, autoAlpha: 1 })
+        gsap.set(baRef.current, { xPercent: -40, autoAlpha: 0 })
+        const tl = gsap.timeline({
+          scrollTrigger: { trigger: trigRef.current, start: 'top top', end: 'bottom bottom', scrub: 1 },
         })
-      )
-      return () => trs.forEach((t) => { t.scrollTrigger && t.scrollTrigger.kill(); t.kill() })
-    })
+        tl.to({}, { duration: 0.5 })
+        tl.to(painRef.current, { xPercent: 36, autoAlpha: 0, ease: 'power1.in', duration: 0.5 })
+        tl.fromTo(baRef.current, { xPercent: -40, autoAlpha: 0 }, { xPercent: 0, autoAlpha: 1, ease: 'power1.out', duration: 0.6 })
+        tl.to({}, { duration: 0.6 })
+      })
       revert = () => mm.revert()
     })
     return () => { mounted = false; if (revert) revert() }
@@ -66,7 +51,7 @@ export default function ProblemSolution() {
           {PAINS.map((p) => (
             <div key={p.tag} className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
               <div className="relative aspect-[4/3] overflow-hidden">
-                <img src={p.img} alt={p.tag} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                <img src={p.img} alt={p.tag} className="h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0c0d11] via-[#0c0d11]/20 to-transparent" />
                 <span className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-bold text-white/85 backdrop-blur-sm">{p.tag}</span>
               </div>
@@ -86,7 +71,7 @@ export default function ProblemSolution() {
         <p className="mx-auto mt-4 max-w-xl text-center text-[15px] leading-relaxed text-white/50 break-keep md:text-base">막막하게 스크롤하던 소재 찾기가, 몇 분이면 끝나는 리서치로 바뀝니다.</p>
         <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2">
           <div className="relative overflow-hidden rounded-3xl border border-white/10">
-            <img src="/ba-before.jpg" alt="크로닛 없이" loading="lazy" decoding="async" className="h-full min-h-[320px] w-full object-cover grayscale" />
+            <img src="/ba-before.jpg" alt="크로닛 없이" className="h-full min-h-[320px] w-full object-cover grayscale" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0a0b0f] via-[#0a0b0f]/80 to-[#0a0b0f]/30" />
             <div className="absolute inset-0 flex flex-col p-6">
               <span className="w-fit rounded-full bg-white/10 px-3 py-1 text-[12px] font-bold text-white/70">크로닛 없이</span>
