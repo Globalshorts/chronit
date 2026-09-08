@@ -89,25 +89,28 @@ const App = () => {
     const mine = curSrc()
     if (!mine) return
     let updateReady = false
+    let checking = false
+    const goLatest = () => { try { const u = new URL(window.location.href); u.searchParams.set('_r', Date.now().toString()); window.location.replace(u.toString()) } catch { try { window.location.reload() } catch {} } }
+    // 새 빌드가 배포됐는지만 조용히 확인(백그라운드). 렌더/로드는 막지 않음.
     const check = async () => {
-      if (updateReady || document.hidden) return
+      if (updateReady || checking || document.hidden) return
+      checking = true
       try {
         const html = await fetch('/?_v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '')
         const m = html.match(/\/assets\/(index-[A-Za-z0-9_]+\.js)/)
         if (m && m[1] && m[1] !== mine) updateReady = true
-      } catch {}
+      } catch {} finally { checking = false }
     }
-    const onVis = () => {
+    // 앱에 들어올 때(포커스/복귀)마다 확인 → 새 빌드일 때만 즉시 최신으로 교체. 같으면 아무것도 안 함(빠름).
+    const onEnter = async () => {
       if (document.hidden) return
-      if (updateReady) { try { const u = new URL(window.location.href); u.searchParams.set('_r', Date.now().toString()); window.location.replace(u.toString()) } catch { try { window.location.reload() } catch {} } ; return }
-      check()
+      if (!updateReady) await check()
+      if (updateReady) goLatest()
     }
     const iv = setInterval(check, 3 * 60 * 1000)
-    const t = setTimeout(check, 20000)
-    check()  // 로드 직후 즉시 1회 확인 (옛 번들 빠르게 탈출)
-    document.addEventListener('visibilitychange', onVis)
-    window.addEventListener('focus', onVis)
-    return () => { clearInterval(iv); clearTimeout(t); document.removeEventListener('visibilitychange', onVis); window.removeEventListener('focus', onVis) }
+    document.addEventListener('visibilitychange', onEnter)
+    window.addEventListener('focus', onEnter)
+    return () => { clearInterval(iv); document.removeEventListener('visibilitychange', onEnter); window.removeEventListener('focus', onEnter) }
   }, [])
   return (
   <BrowserRouter>
