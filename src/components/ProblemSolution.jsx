@@ -70,25 +70,25 @@ export default function ProblemSolution() {
         <div className="mb-3 text-center text-[11px] font-semibold uppercase tracking-[0.28em] text-white/30">Before / After</div>
         <h2 className="text-center text-3xl font-bold leading-tight text-white break-keep md:text-[2.5rem]">감으로 찾던 소재, 이제 데이터로</h2>
         <p className="mx-auto mt-4 max-w-xl text-center text-[15px] leading-relaxed text-white/50 break-keep md:text-base">막막하게 스크롤하던 소재 찾기가, 몇 분이면 끝나는 리서치로 바뀝니다.</p>
-        <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2">
-          <div className="relative overflow-hidden rounded-3xl border border-white/10">
-            <img src="/ba-before.webp" alt="크로닛 없이" className="h-full min-h-[320px] w-full object-cover grayscale" />
+        <div className="mt-8 grid grid-cols-2 gap-3 md:mt-10 md:gap-5">
+          <div className="relative overflow-hidden rounded-2xl border border-white/10 md:rounded-3xl">
+            <img src="/ba-before.webp" alt="크로닛 없이" className="h-full min-h-[190px] w-full object-cover grayscale md:min-h-[320px]" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0a0b0f] via-[#0a0b0f]/80 to-[#0a0b0f]/30" />
-            <div className="absolute inset-0 flex flex-col p-6">
-              <span className="w-fit rounded-full bg-white/10 px-3 py-1 text-[12px] font-bold text-white/70">크로닛 없이</span>
-              <div className="mt-auto"><div className="text-[14px] text-white/70">감으로, 흩어진 채</div><div className="mt-1 flex items-baseline gap-2"><span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">소재 찾기</span><span className="text-2xl font-bold text-red-300 md:text-3xl">하루 1~2시간</span></div></div>
+            <div className="absolute inset-0 flex flex-col p-4 md:p-6">
+              <span className="w-fit rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] font-bold text-white/70 md:px-3 md:py-1 md:text-[12px]">크로닛 없이</span>
+              <div className="mt-auto"><div className="text-[12px] text-white/70 md:text-[14px]">감으로, 흩어진 채</div><div className="mt-1 md:flex md:items-baseline md:gap-2"><span className="block text-[10px] font-semibold uppercase tracking-wider text-white/40 md:text-[11px]">소재 찾기</span><span className="text-xl font-bold text-red-300 md:text-3xl">하루 1~2시간</span></div></div>
             </div>
           </div>
-          <div className="relative overflow-hidden rounded-3xl border border-[#0064FF]/30 bg-[linear-gradient(160deg,#0f1a33,#0a0d16)]">
+          <div className="relative overflow-hidden rounded-2xl border border-[#0064FF]/30 bg-[linear-gradient(160deg,#0f1a33,#0a0d16)] md:rounded-3xl">
             <div aria-hidden className="pointer-events-none absolute right-[-10%] top-[-20%] h-64 w-64 rounded-full bg-[#0064FF]/20 blur-3xl" />
-            <div className="relative flex min-h-[320px] flex-col p-6">
-              <span className="w-fit rounded-full bg-[#0064FF] px-3 py-1 text-[12px] font-bold text-white"><span className="mr-1 inline-block align-[-1px]"><Sparkles size={12} className="inline" /></span>크로닛과 함께</span>
-              <div className="mt-4 space-y-2">
+            <div className="relative flex min-h-[190px] flex-col p-4 md:min-h-[320px] md:p-6">
+              <span className="w-fit rounded-full bg-[#0064FF] px-2.5 py-0.5 text-[11px] font-bold text-white md:px-3 md:py-1 md:text-[12px]"><span className="mr-1 inline-block align-[-1px]"><Sparkles size={12} className="inline" /></span>크로닛과 함께</span>
+              <div className="mt-4 hidden space-y-2 md:block">
                 {['터진 소재를 실시간으로', '왜 통했는지 데이터로 진단', '내 상품 영상용 2차 창작 가이드'].map((t) => (
                   <div key={t} className="flex items-start gap-2 text-[14px] text-white/85"><Check size={15} className="mt-0.5 shrink-0 text-[#22D3EE]" />{t}</div>
                 ))}
               </div>
-              <div className="mt-auto flex items-baseline gap-2 pt-4"><span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">소재 찾기</span><span className="text-2xl font-bold text-[#7DA2FF] md:text-3xl">단 3분</span></div>
+              <div className="mt-auto pt-4 md:flex md:items-baseline md:gap-2"><span className="block text-[10px] font-semibold uppercase tracking-wider text-white/40 md:text-[11px]">소재 찾기</span><span className="text-xl font-bold text-[#7DA2FF] md:text-3xl">단 3분</span></div>
             </div>
           </div>
         </div>

@@ -38,8 +38,8 @@ export default function HomeAnalysisShowcase() {
         if (el && w) { const r = el.getBoundingClientRect(), wr = w.getBoundingClientRect(); setCursor({ x: r.left - wr.left + r.width / 2, y: r.top - wr.top + r.height / 2, click: false }) }
         await wait(950); if (!alive) break
         setCursor((c) => ({ ...c, click: true })); await wait(240); setCursor((c) => ({ ...c, click: false }))
-        setStep(1); await wait(4000); if (!alive) break
-        setStep(2); await wait(4200); if (!alive) break
+        setStep(1); await wait(2000); if (!alive) break
+        setStep(2); await wait(2000); if (!alive) break
         p = (p + 1) % clips.length
       }
     }
