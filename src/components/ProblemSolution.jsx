@@ -3,9 +3,9 @@ import { Sparkles, Check, ArrowRight } from 'lucide-react'
 // gsap은 첫 페인트 이후 동적 로드 (홈 임계 번들에서 제외)
 
 const PAINS = [
-  { img: '/pain/scroll.webp', tag: '무한 스크롤', line: '뭘 올릴지 몰라 피드만 하루 1~2시간' },
-  { img: '/pain/cost.webp', tag: '외주 비용', line: '레퍼런스 외주는 편당 1~2만원' },
-  { img: '/pain/luck.webp', tag: '감으로 복불복', line: '감으로 올려 조회수는 복불복' },
+  { img: '/pain/scroll.webp', lqip: 'data:image/webp;base64,UklGRjwBAABXRUJQVlA4WAoAAAAIAAAAFwAAEQAAVlA4IHQAAADQBACdASoYABIAPu1srVEppaQiqAqpMB2JQBYdgiBnMfsLBi08aopGnyGIub5bFAD+wyMrD+ss8v78k9nsRY7sjBRNiHvma0dokC0sTrCuXgnAZmVu14tMaY3lJa+Xch55KG705XqMWOD3Qb63ovXUNingAEVYSUaiAAAASUkqAAgAAAAGABIBAwABAAAAAAAAABoBBQABAAAAdAAAABsBBQABAAAAfAAAACgBAwABAAAAAQAAADsBAgAeAAAAVgAAAGmHBAABAAAAhAAAAAAAAABLQVJPTElOQSBHUkFCT1dTS0EKS0FCT09NUElDUwAAAAAAAQAAAAAAAAABAAAAAgACoAQAAQAAACADAAADoAQAAQAAAFgCAAAAAAAA', tag: '무한 스크롤', line: '뭘 올릴지 몰라 피드만 하루 1~2시간' },
+  { img: '/pain/cost.webp', lqip: 'data:image/webp;base64,UklGRk4BAABXRUJQVlA4WAoAAAAIAAAAFwAAEQAAVlA4IIYAAADQBACdASoYABIAPu1osFAppaSiqAqpMB2JYwC7AAt3J4IK2jjqTCpr8oMF0Yj7oAD+6VsSd4q8lssD2G1M6GOkwC+U2ESS6rAuFGAt9+M0oWJntN4a1/1i88Besitu/awmh7cFYwCJdcT0dxZ0eEJJgc954y2L4Q8Bbp8bMp5mUnjBZwAAAEVYSUaiAAAASUkqAAgAAAAGABIBAwABAAAAAAAAABoBBQABAAAAdAAAABsBBQABAAAAfAAAACgBAwABAAAAAQAAADsBAgAeAAAAVgAAAGmHBAABAAAAhAAAAAAAAABLQVJPTElOQSBHUkFCT1dTS0EKS0FCT09NUElDUwAAAAAAAQAAAAAAAAABAAAAAgACoAQAAQAAACADAAADoAQAAQAAAFgCAAAAAAAA', tag: '외주 비용', line: '레퍼런스 외주는 편당 1~2만원' },
+  { img: '/pain/luck.webp', lqip: 'data:image/webp;base64,UklGRhgBAABXRUJQVlA4WAoAAAAIAAAAFwAAEQAAVlA4IHoAAADQBACdASoYABIAPu1krU+ppSQiMBgIATAdiWMAxkAQntan/Td8HAeegIK0TQgGQAD92wO2+6ay+wQT9TbSmc0KdZkWop9UOQ8oGy9r0ofp8m677Rmogu2j3UEyBxgqYHa3/Ia/T/hJ1ThERudpdKVIp8k31VEr73AAAEVYSUZ4AAAASUkqAAgAAAAFABIBAwABAAAAAAAAABoBBQABAAAASgAAABsBBQABAAAAUgAAACgBAwABAAAAAQAAAGmHBAABAAAAWgAAAAAAAAAAAAAAAQAAAAAAAAABAAAAAgACoAQAAQAAACADAAADoAQAAQAAAFgCAAAAAAAA', tag: '감으로 복불복', line: '감으로 올려 조회수는 복불복' },
 ]
 
 export default function ProblemSolution() {
@@ -51,7 +51,7 @@ export default function ProblemSolution() {
           {PAINS.map((p) => (
             <div key={p.tag} className="flex overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] md:block md:rounded-3xl">
               {/* 모바일: 좌측 작은 정사각 썸네일 / 데스크톱: 상단 4:3 */}
-              <div className="relative aspect-square w-28 shrink-0 overflow-hidden md:aspect-[4/3] md:w-full">
+              <div className="relative aspect-square w-28 shrink-0 overflow-hidden bg-cover bg-center md:aspect-[4/3] md:w-full" style={{ backgroundImage: `url(${p.lqip})` }}>
                 <img src={p.img} alt={p.tag} fetchpriority="high" decoding="async" className="h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0c0d11] via-[#0c0d11]/20 to-transparent" />
                 <span className="absolute left-2 top-2 rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-bold text-white/85 backdrop-blur-sm md:left-3 md:top-3 md:px-2.5 md:py-1 md:text-[11px]">{p.tag}</span>
