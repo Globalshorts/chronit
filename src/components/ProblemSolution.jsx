@@ -37,6 +37,17 @@ export default function ProblemSolution() {
       })
       return () => { st.kill(); tl.kill() }
     })
+    // 모바일: 핀 대신 각 패널을 스크롤 시 페이드+슬라이드업으로 등장
+    mm.add('(max-width: 767px)', () => {
+      gsap.set([painRef.current, baRef.current], { clearProps: 'all' })
+      const trs = [painRef.current, baRef.current].map((el) =>
+        gsap.from(el, {
+          autoAlpha: 0, y: 44, duration: 0.7, ease: 'power2.out',
+          scrollTrigger: { trigger: el, start: 'top 82%', toggleActions: 'play none none reverse' },
+        })
+      )
+      return () => trs.forEach((t) => { t.scrollTrigger && t.scrollTrigger.kill(); t.kill() })
+    })
     return () => mm.revert()
   }, [])
 
