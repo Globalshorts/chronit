@@ -113,7 +113,7 @@ export default function HomeAnalysisShowcase() {
                 {clips.map((cl, i) => (
                   <div key={cl.shortcode} ref={(el) => (thumbRefs.current[i] = el)}
                     className={`relative aspect-[9/14] overflow-hidden rounded-lg border transition-all duration-300 ${step === 0 && i === pick && cursor.click ? 'scale-[1.05] border-[#0064FF] ring-2 ring-[#0064FF]/50' : 'border-white/10'}`}>
-                    <img src={`/showcase/${cl.shortcode}.jpg`} alt={cl.owner} className="h-full w-full object-cover" />
+                    <img src={`/showcase/${cl.shortcode}.webp`} alt={cl.owner} className="h-full w-full object-cover" />
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent p-1 pt-4"><div className="truncate text-[8px] font-bold text-white"><span className="select-none blur-[2.5px]">@{cl.owner}</span></div></div>
                     {cl.velocity != null && <div className="absolute right-0.5 top-0.5 rounded bg-black/60 px-1 text-[7px] font-bold text-[#7DA2FF]">↑{Math.round(cl.velocity)}</div>}
                   </div>

@@ -894,7 +894,7 @@ const DemoCarousel = () => {
               <div style={{ width: 'min(52vw, 280px)', aspectRatio: '9/16', borderRadius: '1.5rem', overflow: 'hidden',
                 boxShadow: isCenter ? '0 30px 60px -10px rgba(0,0,0,0.25), 0 4px 6px rgba(0,0,0,0.08)' : '0 10px 30px -5px rgba(0,0,0,0.15)',
                 transition: 'box-shadow 0.5s ease', border: '1px solid rgba(255,255,255,0.08)' }}>
-                <video ref={el => { videoRefs.current[vidIdx] = el }} poster={('/posters/' + src.slice(1)).replace('.mp4', '.jpg')} src={inView && absOff <= 1 ? src : undefined} muted loop playsInline autoPlay={isCenter} preload={isCenter ? 'auto' : 'none'}
+                <video ref={el => { videoRefs.current[vidIdx] = el }} poster={('/posters/' + src.slice(1)).replace('.mp4', '.webp')} src={inView && absOff <= 1 ? src : undefined} muted loop playsInline autoPlay={isCenter} preload={isCenter ? 'auto' : 'none'}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', background: '#15161a' }} />
               </div>
             </div>

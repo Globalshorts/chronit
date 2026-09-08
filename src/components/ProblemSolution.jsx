@@ -3,9 +3,9 @@ import { Sparkles, Check } from 'lucide-react'
 // gsap은 첫 페인트 이후 동적 로드 (홈 임계 번들에서 제외)
 
 const PAINS = [
-  { img: '/pain/scroll.jpg', tag: '무한 스크롤', line: '뭘 올릴지 몰라 피드만 하루 1~2시간' },
-  { img: '/pain/cost.jpg', tag: '외주 비용', line: '레퍼런스 외주는 편당 1~2만원' },
-  { img: '/pain/luck.jpg', tag: '감으로 복불복', line: '감으로 올려 조회수는 복불복' },
+  { img: '/pain/scroll.webp', tag: '무한 스크롤', line: '뭘 올릴지 몰라 피드만 하루 1~2시간' },
+  { img: '/pain/cost.webp', tag: '외주 비용', line: '레퍼런스 외주는 편당 1~2만원' },
+  { img: '/pain/luck.webp', tag: '감으로 복불복', line: '감으로 올려 조회수는 복불복' },
 ]
 
 export default function ProblemSolution() {
@@ -71,7 +71,7 @@ export default function ProblemSolution() {
         <p className="mx-auto mt-4 max-w-xl text-center text-[15px] leading-relaxed text-white/50 break-keep md:text-base">막막하게 스크롤하던 소재 찾기가, 몇 분이면 끝나는 리서치로 바뀝니다.</p>
         <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2">
           <div className="relative overflow-hidden rounded-3xl border border-white/10">
-            <img src="/ba-before.jpg" alt="크로닛 없이" className="h-full min-h-[320px] w-full object-cover grayscale" />
+            <img src="/ba-before.webp" alt="크로닛 없이" className="h-full min-h-[320px] w-full object-cover grayscale" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0a0b0f] via-[#0a0b0f]/80 to-[#0a0b0f]/30" />
             <div className="absolute inset-0 flex flex-col p-6">
               <span className="w-fit rounded-full bg-white/10 px-3 py-1 text-[12px] font-bold text-white/70">크로닛 없이</span>
