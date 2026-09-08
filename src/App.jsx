@@ -83,37 +83,9 @@ const App = () => {
     })
     return () => { try { sub.subscription.unsubscribe() } catch {} }
   }, [])
-  // ★ 자동 업데이트: 새 번들이 배포되면 탭 복귀 시 자동 새로고침 (모바일이 옛 번들 무는 문제 방지) ★
-  useEffect(() => {
-    const curSrc = () => { try { const el = document.querySelector('script[type="module"][src*="/assets/"]'); return el ? el.src.split('/').pop() : '' } catch { return '' } }
-    const mine = curSrc()
-    if (!mine) return
-    let updateReady = false
-    let checking = false
-    const goLatest = () => { try { const u = new URL(window.location.href); u.searchParams.set('_r', Date.now().toString()); window.location.replace(u.toString()) } catch { try { window.location.reload() } catch {} } }
-    // 새 빌드가 배포됐는지만 조용히 확인(백그라운드). 렌더/로드는 막지 않음.
-    const check = async () => {
-      if (updateReady || checking || document.hidden) return
-      checking = true
-      try {
-        const html = await fetch('/?_v=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '')
-        const m = html.match(/\/assets\/(index-[A-Za-z0-9_]+\.js)/)
-        if (m && m[1] && m[1] !== mine) updateReady = true
-      } catch {} finally { checking = false }
-    }
-    // 실제 '앱 복귀'(백그라운드 → 복귀) 때만 확인 → 새 빌드면 교체.
-    // 초기 로드/일반 포커스에선 절대 재접속하지 않음(이중 로드 방지).
-    let wasHidden = false
-    const onVis = async () => {
-      if (document.hidden) { wasHidden = true; return }
-      if (!wasHidden) return
-      wasHidden = false
-      await check()
-      if (updateReady) goLatest()
-    }
-    document.addEventListener('visibilitychange', onVis)
-    return () => { document.removeEventListener('visibilitychange', onVis) }
-  }, [])
+  // 자동 재접속(강제 새로고침) 비활성화 — must-revalidate 헤더가 다음 접속에 최신본을 보장하므로 불필요.
+  // (매 접속마다 재로딩되는 문제 방지)
+
   return (
   <BrowserRouter>
     <AnalysisProvider>
