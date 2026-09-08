@@ -176,11 +176,17 @@
           var x = document.getElementsByTagName('script')[0]
           if (x.parentNode) x.parentNode.insertBefore(s, x)
         }
-        if (document.readyState === 'complete') l()
-        else {
-          w.addEventListener('DOMContentLoaded', l)
-          w.addEventListener('load', l)
+        // 초기 렌더 메인스레드 보호: load 이후 유휴시간 또는 첫 사용자 상호작용에 로드
+        function deferCh() {
+          if (w.__chLoaded) return; w.__chLoaded = true
+          var kick = function () { l() }
+          var t = setTimeout(kick, 4500)
+          var once = function () { clearTimeout(t); kick(); rm() }
+          function rm() { ['scroll','touchstart','click','keydown','mousemove'].forEach(function(e){ w.removeEventListener(e, once) }) }
+          ;['scroll','touchstart','click','keydown','mousemove'].forEach(function(e){ w.addEventListener(e, once, { passive: true, once: true }) })
         }
+        if (document.readyState === 'complete') deferCh()
+        else w.addEventListener('load', deferCh)
       })()
       ChannelIO('boot', {
         pluginKey: '5efe3bed-3b08-450e-a971-d261e702d11b',

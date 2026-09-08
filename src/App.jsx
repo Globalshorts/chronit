@@ -2,6 +2,7 @@ import { useEffect, lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { AnalysisProvider } from './context/analysis'
 import ErrorBoundary from './components/ErrorBoundary'
+import Home from './pages/Home'
 import BlobBackground from './components/BlobBackground'
 import ErrorReportModal from './components/ErrorReportModal'
 import OnboardingSurveyGate from './components/OnboardingSurveyGate'
@@ -21,7 +22,6 @@ const lazyRetry = (factory) => lazy(() => factory().catch((err) => {
 }))
 
 const AdminFab = lazyRetry(() => import('./components/AdminFab'))
-const Home = lazyRetry(() => import('./pages/Home'))
 const VideoGenerator = lazyRetry(() => import('./pages/VideoGenerator'))
 const Finds = lazyRetry(() => import('./pages/Finds'))
 const Trend = lazyRetry(() => import('./pages/Trend'))
@@ -62,7 +62,9 @@ const ScrollToTop = () => {
 }
 
 const RouteFallback = () => (
-  <div style={{ minHeight: '60vh' }} aria-hidden="true" />
+  <div style={{ minHeight: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }} aria-hidden="true">
+    <div style={{ width: 26, height: 26, border: '2.5px solid rgba(255,255,255,.15)', borderTopColor: '#4d7cff', borderRadius: '50%', animation: 'bootspin .8s linear infinite' }} />
+  </div>
 )
 
 const App = () => {
