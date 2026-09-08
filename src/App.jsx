@@ -72,8 +72,11 @@ const App = () => {
   useEffect(() => {
     const el = document.getElementById('ssg-shell')
     if (el) {
-      const st = el.scrollTop || 0
-      requestAnimationFrame(() => requestAnimationFrame(() => { try { if (st) window.scrollTo(0, st); el.remove() } catch {} }))
+      try { const st = el.scrollTop || 0; if (st) window.scrollTo(0, st) } catch {}
+      document.documentElement.classList.add('app-ready')  // CSS로 셸 즉시 숨김(안정적)
+      setTimeout(() => { try { el.remove() } catch {} }, 600)  // 이후 DOM 정리
+    } else {
+      document.documentElement.classList.add('app-ready')
     }
   }, [])
   useEffect(() => { installGlobalErrorCapture(); try { sessionStorage.removeItem('chr_chunk_reload') } catch {} }, [])
