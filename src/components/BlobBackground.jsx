@@ -35,7 +35,8 @@ export default function BlobBackground() {
     // 모바일 / 저사양 / 모션 최소화 선호 → WebGL 루프 없이 정적 그라디언트
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const isMobile = window.matchMedia && window.matchMedia('(max-width: 767px)').matches
-    if (reduce || isMobile) { canvas.style.background = STATIC_BG; return }
+    // 모바일/저모션: 캔버스 자체를 숨김 — 배경은 body CSS 그라디언트가 담당(fixed 캔버스 스크롤 부하 제거)
+    if (reduce || isMobile) { canvas.style.display = 'none'; return }
 
     let gl
     try { gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl') } catch { gl = null }
