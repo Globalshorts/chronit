@@ -413,10 +413,12 @@ const Home = () => {
   const bannerH = bannerCount * 44
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#0A0B0F] font-sans break-keep text-white/90 selection:bg-[#0064FF]/30" style={{ paddingTop: bannerH ? `${bannerH}px` : undefined }}>
+    <div className="min-h-screen overflow-x-hidden bg-[#0A0B0F] font-sans break-keep text-white/90 selection:bg-[#0064FF]/30">
+      {/* sticky 상단바(배너+헤더) — iOS fixed 위치 튐 방지 */}
+      <div className="sticky top-0 z-50">
       {/* 추천인 코드 배너 */}
       {refFromUrl && (
-        <div className="fixed top-0 right-0 left-0 z-[61] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-3 text-sm font-bold text-white shadow-md">
+        <div className="z-[61] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-3 text-sm font-bold text-white shadow-md">
           <Gift size={15} />
           <span>추천 코드 <strong>{refFromUrl}</strong> 적용됨!</span>
           <button onClick={() => { setRefFromUrl(null); sessionStorage.removeItem('chronit_ref') }} className="ml-2 opacity-80 hover:opacity-100"><X size={14} /></button>
@@ -425,7 +427,7 @@ const Home = () => {
 
       {/* 할인 코드 배너 */}
       {codeFromUrl && (
-        <div className={`fixed right-0 left-0 z-[60] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[#FFB800] px-4 py-3 text-sm font-bold text-[#5b4200] shadow-md ${refFromUrl ? 'top-11' : 'top-0'}`}>
+        <div className="z-[60] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[#FFB800] px-4 py-3 text-sm font-bold text-[#5b4200] shadow-md">
           <span>코드 <strong>{codeFromUrl}</strong> 감지됨 — 가입하면 자동으로 적용됩니다</span>
           <button onClick={() => { setCodeFromUrl(null); sessionStorage.removeItem('chronit_code') }} className="ml-2 opacity-70 hover:opacity-100"><X size={14} /></button>
         </div>
@@ -434,8 +436,7 @@ const Home = () => {
       {/* 진행중인 이벤트 배너 */}
       {eventBannerOn && (
         <div
-          className="fixed right-0 left-0 z-[59] flex items-center justify-center overflow-hidden whitespace-nowrap bg-[linear-gradient(90deg,#0A1F3D_0%,#123C7A_50%,#0A1F3D_100%)] px-4 py-3 text-sm text-white cursor-pointer"
-          style={{ top: `${((refFromUrl ? 1 : 0) + (codeFromUrl ? 1 : 0)) * 44}px` }}
+          className="z-[59] flex items-center justify-center overflow-hidden whitespace-nowrap bg-[linear-gradient(90deg,#0A1F3D_0%,#123C7A_50%,#0A1F3D_100%)] px-4 py-3 text-sm text-white cursor-pointer"
           onClick={() => { window.location.href = '/events' }}
         >
           <div className="flex items-center gap-2.5">
@@ -450,7 +451,7 @@ const Home = () => {
       )}
 
       {/* Header */}
-      <header style={{ top: `${bannerH}px` }} className={`fixed right-0 left-0 z-50 border-b transition-[background-color,border-color,padding] duration-300 ${scrolled ? 'border-white/10 bg-[#0A0B0F]/85 py-3 backdrop-blur-md' : 'border-transparent bg-transparent py-4 md:py-5'}`}>
+      <header className={`relative z-50 border-b transition-[background-color,border-color,padding] duration-300 ${scrolled ? 'border-white/10 bg-[#0A0B0F]/85 py-3 backdrop-blur-md' : 'border-transparent bg-transparent py-4 md:py-5'}`}>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
           <a href="/" className="flex min-w-0 items-center gap-2 md:gap-3">
             <img src="/cn-white.svg" alt="Chronit" className="h-9 w-9 shrink-0 md:h-10 md:w-10" />
@@ -498,6 +499,7 @@ const Home = () => {
           </div>
         </div>
       </header>
+      </div>
 
       {/* 모바일 메뉴 */}
       <div className={`fixed top-0 left-0 right-0 z-40 transform transition-all duration-300 ease-in-out md:hidden ${menuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`} style={{ paddingTop: `${bannerH + 76}px` }}>
