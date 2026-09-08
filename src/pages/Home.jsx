@@ -17,7 +17,7 @@ const AuthModal = lazy(() => import('../components/AuthModal'))
 const TermsModal = lazy(() => import('../components/TermsModal'))
 const NicknameModal = lazy(() => import('../components/NicknameModal'))
 import ProblemSolution from '../components/ProblemSolution'
-const HomeAnalysisShowcase = lazy(() => import('../components/HomeAnalysisShowcase'))
+import HomeAnalysisShowcase from '../components/HomeAnalysisShowcase'
 
 const GREEN = '#0064FF'
 const CLIENT = typeof window !== 'undefined'
@@ -605,7 +605,7 @@ const Home = () => {
       {!user && <ProblemSolution />}
 
       {/* ── 제품 쇼케이스: 실제 분석 화면 ── */}
-      {!user && <Suspense fallback={<div className="min-h-[560px] md:min-h-[600px]" aria-hidden="true" />}><HomeAnalysisShowcase /></Suspense>}
+      {!user && <HomeAnalysisShowcase />}
 
       {/* ── 실데이터 통계 스트립 ── */}
       {stats?.clips ? (
