@@ -19,7 +19,9 @@ import ProblemSolution from '../components/ProblemSolution'
 import HomeAnalysisShowcase from '../components/HomeAnalysisShowcase'
 
 const GREEN = '#0064FF'
-const CLIENT = typeof window !== 'undefined'  // SSR 프리렌더 시 모달 등 클라이언트 전용 렌더 제외
+const CLIENT = typeof window !== 'undefined'
+// 비핵심 데이터 fetch를 첫 페인트 이후로 미룸(대역폭 경쟁 완화)
+const idle = (fn) => { try { if (typeof requestIdleCallback !== 'undefined') return requestIdleCallback(fn, { timeout: 1800 }); } catch {} return setTimeout(fn, 350) }  // SSR 프리렌더 시 모달 등 클라이언트 전용 렌더 제외
 
 /* 가격표 위 쿠폰 입력 바 */
 const CouponBar = ({ codeFromUrl, onApply }) => {
@@ -144,7 +146,7 @@ const Home = () => {
   const [heroPersona, setHeroPersona] = useState(2)
   const [heroQuery, setHeroQuery] = useState('')
   const [phIdx, setPhIdx] = useState(0)
-  useEffect(() => { supabase.rpc('public_stats_rpc').then(({ data }) => { if (data) setStats(data) }) }, [])
+  useEffect(() => { idle(() => supabase.rpc('public_stats_rpc').then(({ data }) => { if (data) setStats(data) })) }, [])
   const PAINS = [
     { label: '프리랜서 고용', cost: '편당 1.5만원' },
     { label: '시트 1,000개', cost: '매일 직접 찾기' },
@@ -157,6 +159,7 @@ const Home = () => {
   }, [PAINS.length])
   const curPain = PAINS[badgeIdx % PAINS.length]
   useEffect(() => {
+    idle(() => {
     supabase.rpc('public_signup_count').then(({ data }) => { if (typeof data === 'number') setSpots(data) })
     supabase.from('plans').select('id, list_price, monthly_price').in('id', ['starter', 'pro', 'master'])
       .then(({ data }) => {
@@ -169,6 +172,7 @@ const Home = () => {
         const o = {}; data.forEach(r => { o[r.key] = Number(r.value) || 0 })
         setPlanPrices(prev => ({ ...prev, pkg6: { list: o.pkg6_list_price || prev.pkg6.list, sale: o.pkg6_sale_price || prev.pkg6.sale } }))
       })
+    })
   }, [])
   const pendingPlanRef = useRef(null)
   const pendingSessionRef = useRef(null)
@@ -224,7 +228,7 @@ const Home = () => {
     if (user && !user.is_anonymous) { setBuyOpen(true); return }
     setShowAuthModal(true)
   }
-  useEffect(() => { supabase.rpc('finds_first_sub_eligible').then(({ data }) => setFirstEligible(data !== false)).catch(() => {}) }, [user])
+  useEffect(() => { idle(() => supabase.rpc('finds_first_sub_eligible').then(({ data }) => setFirstEligible(data !== false)).catch(() => {})) }, [user])
   const isExistingRender = !!(user && user.created_at && new Date(user.created_at) < new Date('2026-08-12T00:00:00Z'))
 
   const handleTermsAgree = async (marketing = false) => {
@@ -389,8 +393,8 @@ const Home = () => {
   }, [])
 
   useEffect(() => {
-    supabase.from('events').select('*').order('created_at', { ascending: false })
-      .then(({ data }) => { if (data) setEvents(data) })
+    idle(() => supabase.from('events').select('*').order('created_at', { ascending: false })
+      .then(({ data }) => { if (data) setEvents(data) }))
   }, [])
 
   useEffect(() => {
