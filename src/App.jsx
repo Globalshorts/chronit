@@ -6,6 +6,8 @@ import Home from './pages/Home'
 import BlobBackground from './components/BlobBackground'
 import ErrorReportModal from './components/ErrorReportModal'
 import OnboardingSurveyGate from './components/OnboardingSurveyGate'
+import InstallButton from './components/InstallButton'
+const PwaInstallGlobal = lazy(() => import('./components/PwaInstall'))
 import { installGlobalErrorCapture } from './lib/errorReport'
 import { supabase } from './lib/supabase'
 import { trackSignupIfNew } from './lib/trackSignup'
@@ -95,6 +97,8 @@ const App = () => {
     <ErrorReportModal />
     <OnboardingSurveyGate />
     <Suspense fallback={null}><AdminFab /></Suspense>
+    <Suspense fallback={null}><PwaInstallGlobal /></Suspense>
+    <InstallButton />
     <ErrorBoundary>
     <Suspense fallback={<RouteFallback />}>
     <Routes>

@@ -394,7 +394,7 @@ const ManualDetail = () => {
  </div>
  </section>
 
- <PwaInstall />
+
  <ManualFooter />
  </div>
  )

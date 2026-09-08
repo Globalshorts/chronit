@@ -6,7 +6,6 @@ import {
 } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import Footer from '../components/Footer'
-import InstallButton from '../components/InstallButton'
 import SiteNav from '../components/SiteNav'
 import Reveal from '../components/Reveal'
 import RevealStagger from '../components/RevealStagger'
@@ -17,7 +16,6 @@ const FindsPricing = lazy(() => import('../components/FindsPricing'))
 const AuthModal = lazy(() => import('../components/AuthModal'))
 const TermsModal = lazy(() => import('../components/TermsModal'))
 const NicknameModal = lazy(() => import('../components/NicknameModal'))
-const PwaInstall = lazy(() => import('../components/PwaInstall'))
 import ProblemSolution from '../components/ProblemSolution'
 import HomeAnalysisShowcase from '../components/HomeAnalysisShowcase'
 
@@ -825,9 +823,7 @@ const Home = () => {
         initialCode={codeFromUrl}
         autoBilling
       />}
-      <PwaInstall />
       </Suspense>)}
-      {CLIENT && <InstallButton user={user} />}
     </div>
   )
 }

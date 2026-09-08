@@ -2102,7 +2102,7 @@ export default function VideoGenerator() {
         <button onClick={() => setShowDemo(true)} className="fixed bottom-32 left-4 z-40 flex items-center gap-1 rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-3.5 py-2 text-xs font-bold text-white shadow-lg hover:brightness-95 active:scale-[0.98]">▶ 30초만에 크로닛 이해하기</button>
       )}
       {showDemo && <QuickDemo onClose={() => setShowDemo(false)} />}
-      <PwaInstall />
+
       <CreditMissionsModal open={showInvite} onClose={() => setShowInvite(false)} session={session} onCredited={loadBalance} />
       {creditWall && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm" onClick={()=>setCreditWall(null)}>
