@@ -560,7 +560,6 @@ const Home = () => {
           {user && (
             <div className="mb-2 w-full max-w-xl rounded-2xl border border-white/12 bg-white/[0.06] glass-c px-6 py-6 text-center shadow-[0_10px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl">
               <p className="text-xl font-bold text-white">돌아오셨어요{nickname ? `, ${nickname}님` : ''}</p>
-              <p className="mt-1 mb-5 text-sm font-bold text-white/50">오늘 뜨는 소스, 보러 갈까요?</p>
               {isExistingRender ? (
                 <div className="mx-auto flex w-full max-w-md gap-2">
                   <button onClick={handleFinds}
