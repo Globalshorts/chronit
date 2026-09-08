@@ -198,7 +198,7 @@ export default function Trend() {
               {showHelp && (
                 <div className="absolute left-0 top-7 z-50 w-64 rounded-xl border border-slate-200 bg-white p-3 text-xs font-medium leading-relaxed text-slate-600 shadow-xl" onClick={() => setShowHelp(false)}>
                   <div className="mb-0.5 font-bold text-slate-800">선정 기준</div>
-                  최근 <b className="text-slate-800">반응이 잘 터진</b>(댓글·조회수 높은) 쇼핑 숏폼을 모아드려요. 위 <b className="text-slate-800">팔로워</b> 범위로 원하는 계정 규모만 골라 볼 수 있어요.
+                  최근 <b className="text-slate-800">반응이 터진</b>(댓글·조회수 높은) 쇼핑 릴스를 모읍니다. 위 <b className="text-slate-800">팔로워</b> 범위로 원하는 계정 규모만 골라 볼 수 있습니다.
                 </div>
               )}
             </div>

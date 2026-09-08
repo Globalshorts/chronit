@@ -229,7 +229,7 @@ const SECTIONS = {
  },
  trend: {
  title: '실시간 트렌드',
- callout: '팔로워 2만 미만 계정이 최근 터뜨린 쇼핑 릴스를 모아 보는 곳입니다.',
+ callout: '최근 반응이 터진 쇼핑 릴스를 모아 보는 곳입니다. 팔로워 규모로 필터링할 수 있습니다.',
  type: 'markdown',
  content: trendMd,
  },
