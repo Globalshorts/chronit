@@ -28,8 +28,6 @@ export default function HomeAnalysisShowcase() {
   }, [])
   useEffect(() => {
     if (!inView || !clips.length) return
-    // 모바일: 자동재생 OFF — 연속 모션이 스크롤 끊김을 유발. 단계 탭으로 사용자가 전환.
-    if (window.matchMedia && window.matchMedia('(max-width: 767px)').matches) { setPick(0); setStep(0); return }
     let alive = true; const timers = []
     const wait = (ms) => new Promise((r) => timers.push(setTimeout(r, ms)))
     const run = async () => {

@@ -47,15 +47,16 @@ export default function ProblemSolution() {
         <div className="mb-3 text-center text-[11px] font-semibold uppercase tracking-[0.28em] text-white/30">The Problem</div>
         <h2 className="text-center text-3xl font-bold leading-tight text-white break-keep md:text-[2.5rem]">매일 이렇게 소재를 찾고 있진 않나요?</h2>
         <p className="mx-auto mt-4 max-w-xl text-center text-[15px] leading-relaxed text-white/50 break-keep md:text-base">쇼핑 크리에이터의 하루 — 시간도, 돈도, 확신도 새어 나갑니다.</p>
-        <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
+        <div className="mt-8 grid grid-cols-1 gap-3 md:mt-10 md:grid-cols-3 md:gap-5">
           {PAINS.map((p) => (
-            <div key={p.tag} className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
-              <div className="relative aspect-[4/3] overflow-hidden">
+            <div key={p.tag} className="flex overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] md:block md:rounded-3xl">
+              {/* 모바일: 좌측 작은 정사각 썸네일 / 데스크톱: 상단 4:3 */}
+              <div className="relative aspect-square w-28 shrink-0 overflow-hidden md:aspect-[4/3] md:w-full">
                 <img src={p.img} alt={p.tag} fetchpriority="high" decoding="async" className="h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0c0d11] via-[#0c0d11]/20 to-transparent" />
-                <span className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-bold text-white/85 backdrop-blur-sm">{p.tag}</span>
+                <span className="absolute left-2 top-2 rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-bold text-white/85 backdrop-blur-sm md:left-3 md:top-3 md:px-2.5 md:py-1 md:text-[11px]">{p.tag}</span>
               </div>
-              <div className="p-5"><p className="flex items-start gap-2 text-[15px] leading-relaxed text-white/75"><span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-red-400" />{p.line}</p></div>
+              <div className="flex flex-1 items-center p-4 md:p-5"><p className="flex items-start gap-2 text-[14px] leading-relaxed text-white/75 md:text-[15px]"><span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-red-400" />{p.line}</p></div>
             </div>
           ))}
         </div>
