@@ -21,15 +21,21 @@ export default function ProblemSolution() {
     const mm = gsap.matchMedia()
     mm.add('(min-width: 768px)', () => {
       gsap.set(painRef.current, { xPercent: 0, autoAlpha: 1 })
-      gsap.set(baRef.current, { xPercent: -100, autoAlpha: 0 })
-      const tl = gsap.timeline({
-        scrollTrigger: { trigger: trigRef.current, start: 'top top', end: '+=1900', scrub: 0.6, pin: pinRef.current, anticipatePin: 1 },
+      gsap.set(baRef.current, { autoAlpha: 0 })
+      // 스크럽이 아니라 '자체 속도로 한 번 재생'되는 타임라인 → 중간 겹침 프레임 없음
+      const tl = gsap.timeline({ paused: true, defaults: { ease: 'power2.inOut' } })
+      tl.to(painRef.current, { xPercent: 22, autoAlpha: 0, duration: 0.4, ease: 'power2.in' })
+      tl.fromTo(baRef.current, { xPercent: -40, autoAlpha: 0 }, { xPercent: 0, autoAlpha: 1, duration: 0.55, ease: 'power3.out' })
+      const st = ScrollTrigger.create({
+        trigger: trigRef.current,
+        start: 'top top',
+        end: '+=650',
+        pin: pinRef.current,
+        anticipatePin: 1,
+        onEnter: () => tl.play(),
+        onLeaveBack: () => tl.reverse(),
       })
-      tl.to({}, { duration: 0.9 })
-      // 페인을 먼저 완전히 내보낸 뒤(autoAlpha 0) 비포애프터가 들어오도록 순차 처리 → 겹침 없음
-      tl.to(painRef.current, { xPercent: 45, autoAlpha: 0, ease: 'power2.in', duration: 0.5 })
-      tl.fromTo(baRef.current, { xPercent: -45, autoAlpha: 0 }, { xPercent: 0, autoAlpha: 1, ease: 'power2.out', duration: 0.5 })
-      tl.to({}, { duration: 1.0 })
+      return () => { st.kill(); tl.kill() }
     })
     return () => mm.revert()
   }, [])
