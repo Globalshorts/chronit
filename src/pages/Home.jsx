@@ -558,7 +558,7 @@ const Home = () => {
 
         <div className="relative mx-auto flex max-w-3xl flex-col items-center text-center">
           {user && (
-            <div className="mb-2 w-full max-w-xl rounded-2xl border border-white/12 bg-white/[0.06] px-6 py-6 text-center shadow-[0_10px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+            <div className="mb-2 w-full max-w-xl rounded-2xl border border-white/12 bg-white/[0.06] glass-c px-6 py-6 text-center shadow-[0_10px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl">
               <p className="text-xl font-bold text-white">돌아오셨어요{nickname ? `, ${nickname}님` : ''}</p>
               <p className="mt-1 mb-5 text-sm font-bold text-white/50">오늘 뜨는 소스, 보러 갈까요?</p>
               {isExistingRender ? (
@@ -613,7 +613,7 @@ const Home = () => {
       {/* ── 실데이터 통계 스트립 ── */}
       {stats?.clips ? (
         <section id="features" style={{ scrollMarginTop: '120px' }} className="px-5 pb-10 md:px-8">
-          <Reveal className="mx-auto grid max-w-3xl grid-cols-3 divide-x divide-white/10 rounded-2xl border border-white/10 bg-white/[0.04] py-6 text-center">
+          <Reveal className="mx-auto grid max-w-3xl grid-cols-3 divide-x divide-white/10 rounded-2xl border border-white/10 bg-white/[0.04] glass-c py-6 text-center">
             <div><div className="text-2xl font-bold text-white md:text-3xl">{Number(stats.clips).toLocaleString('ko-KR')}</div><div className="mt-1 text-xs text-white/35">발굴한 소스</div></div>
             <div><div className="text-2xl font-bold text-white md:text-3xl">{Number(stats.curators).toLocaleString('ko-KR')}</div><div className="mt-1 text-xs text-white/35">추적 중인 큐레이터</div></div>
             <div><div className="text-2xl font-bold text-white md:text-3xl">매일</div><div className="mt-1 text-xs text-white/35">새 소스 갱신</div></div>
@@ -635,7 +635,7 @@ const Home = () => {
               { name: '쇼핑 크리에이터 S', text: '아주 획기적입니다. 굿굿굿 정말 굿입니다.' },
               { name: '쇼핑 크리에이터 R', text: '와… 대박입니다. 안 쓸 수가 없어요.' },
             ].map(({ name, text }) => (
-              <div key={name} className="flex flex-col rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-none">
+              <div key={name} className="flex flex-col rounded-2xl border border-white/10 bg-white/[0.04] glass-c p-6 shadow-none">
                 <div className="mb-3 text-sm tracking-wide text-[#0064FF]">★★★★★</div>
                 <p className="flex-1 text-[15px] leading-relaxed text-white/85">“{text}”</p>
                 <div className="mt-4 text-sm font-semibold text-white/45">{name}</div>
@@ -656,7 +656,7 @@ const Home = () => {
               { q: '분석은 뭘 알려주나요?', a: '영상이 왜 통했는지 — 훅(첫 3초)·셀링포인트·구성 흐름을 짚어냅니다. 그대로 벤치마크해 내 영상에 적용할 수 있습니다.' },
               { q: '이용권은 어떻게 쓰이나요?', a: '분석 1회에 이용권 1개가 사용됩니다. 검색과 트렌드 열람은 무료이며, 무료 회원에게도 매월 이용권 5개를 제공합니다.' },
             ].map(({ q, a }) => (
-              <div key={q} className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-none md:p-7">
+              <div key={q} className="rounded-2xl border border-white/10 bg-white/[0.04] glass-c p-6 shadow-none md:p-7">
                 <div className="mb-3 flex items-start gap-3">
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0064FF] text-sm font-semibold text-white">Q</span>
                   <p className="pt-0.5 text-lg font-bold text-white">{q}</p>
@@ -704,7 +704,7 @@ const Home = () => {
           ) : (
             <>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                <div className="flex flex-col rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-none">
+                <div className="flex flex-col rounded-2xl border border-white/10 bg-white/[0.04] glass-c p-6 shadow-none">
                   <h4 className="text-lg font-semibold text-white">무료</h4>
                   <p className="mt-1 text-sm text-white/35">먼저 써보기</p>
                   <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-white">₩0</span></div>
