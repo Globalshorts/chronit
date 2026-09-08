@@ -1,9 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Sparkles, Check } from 'lucide-react'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-
-gsap.registerPlugin(ScrollTrigger)
+// gsap은 첫 페인트 이후 동적 로드 (홈 임계 번들에서 제외)
 
 const PAINS = [
   { img: '/pain/scroll.jpg', tag: '무한 스크롤', line: '뭘 올릴지 몰라 피드만 하루 1~2시간' },
@@ -17,7 +14,14 @@ export default function ProblemSolution() {
   const baRef = useRef(null)
 
   useEffect(() => {
-    const mm = gsap.matchMedia()
+    let mounted = true
+    let revert = null
+    Promise.all([import('gsap'), import('gsap/ScrollTrigger')]).then(([g, st]) => {
+      if (!mounted) return
+      const gsap = g.gsap || g.default
+      const ScrollTrigger = st.ScrollTrigger || st.default
+      gsap.registerPlugin(ScrollTrigger)
+      const mm = gsap.matchMedia()
     // 데스크톱: 핀(GSAP) 대신 CSS sticky로 고정 → 네이티브라 진입/이탈 툭 끊김 없음. 전환은 scrub.
     mm.add('(min-width: 768px)', () => {
       gsap.set(painRef.current, { xPercent: 0, autoAlpha: 1 })
@@ -47,7 +51,9 @@ export default function ProblemSolution() {
       )
       return () => trs.forEach((t) => { t.scrollTrigger && t.scrollTrigger.kill(); t.kill() })
     })
-    return () => mm.revert()
+      revert = () => mm.revert()
+    })
+    return () => { mounted = false; if (revert) revert() }
   }, [])
 
   const Pain = (

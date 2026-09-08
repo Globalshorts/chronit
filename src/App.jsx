@@ -4,7 +4,6 @@ import { AnalysisProvider } from './context/analysis'
 import ErrorBoundary from './components/ErrorBoundary'
 import BlobBackground from './components/BlobBackground'
 import ErrorReportModal from './components/ErrorReportModal'
-import AdminFab from './components/AdminFab'
 import OnboardingSurveyGate from './components/OnboardingSurveyGate'
 import { installGlobalErrorCapture } from './lib/errorReport'
 import { supabase } from './lib/supabase'
@@ -21,6 +20,7 @@ const lazyRetry = (factory) => lazy(() => factory().catch((err) => {
   throw err
 }))
 
+const AdminFab = lazyRetry(() => import('./components/AdminFab'))
 const Home = lazyRetry(() => import('./pages/Home'))
 const VideoGenerator = lazyRetry(() => import('./pages/VideoGenerator'))
 const Finds = lazyRetry(() => import('./pages/Finds'))
@@ -114,7 +114,7 @@ const App = () => {
     <ScrollToTop />
     <ErrorReportModal />
     <OnboardingSurveyGate />
-    <AdminFab />
+    <Suspense fallback={null}><AdminFab /></Suspense>
     <ErrorBoundary>
     <Suspense fallback={<RouteFallback />}>
     <Routes>
