@@ -1,20 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import {
   Clock, CheckCircle2, MessageCircle, ArrowRight, Users,
   Film, TrendingDown, LogOut, Gift, Menu, X, Play, User,
   Search, Captions, Mic, Scissors, Palette, Zap, Sparkles, Check, Flame, Filter,
 } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
-import PaymentModal from '../components/PaymentModal'
-import FindsPricing from '../components/FindsPricing'
-import AuthModal from '../components/AuthModal'
-import TermsModal from '../components/TermsModal'
 import Footer from '../components/Footer'
 import SiteNav from '../components/SiteNav'
 import Reveal from '../components/Reveal'
 import RevealStagger from '../components/RevealStagger'
-import NicknameModal from '../components/NicknameModal'
 import { supabase } from '../lib/supabase'
+// 모달들: 열릴 때만 로드(엔트리 경량화)
+const PaymentModal = lazy(() => import('../components/PaymentModal'))
+const FindsPricing = lazy(() => import('../components/FindsPricing'))
+const AuthModal = lazy(() => import('../components/AuthModal'))
+const TermsModal = lazy(() => import('../components/TermsModal'))
+const NicknameModal = lazy(() => import('../components/NicknameModal'))
 import ProblemSolution from '../components/ProblemSolution'
 import HomeAnalysisShowcase from '../components/HomeAnalysisShowcase'
 
@@ -806,20 +807,20 @@ const Home = () => {
         body { -webkit-font-smoothing: antialiased; }
       `}</style>
 
-      {CLIENT && (<>
-      <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} referralCode={refFromUrl} />
-      <FindsPricing open={buyOpen} onClose={() => setBuyOpen(false)} defaultTab={buyTab} defaultPeriod={buyPeriod} />
-      <TermsModal open={showTermsModal} onAgree={handleTermsAgree} onClose={() => setShowTermsModal(false)} />
-      <NicknameModal open={nickOpen} required={nickRequired} onClose={handleNicknameClose} onDone={handleNicknameDone} />
-      <PaymentModal
-        key={selectedPlan + (paymentOpen ? '-open' : '-closed')}
-        open={paymentOpen}
+      {CLIENT && (<Suspense fallback={null}>
+      {showAuthModal && <AuthModal open onClose={() => setShowAuthModal(false)} referralCode={refFromUrl} />}
+      {buyOpen && <FindsPricing open onClose={() => setBuyOpen(false)} defaultTab={buyTab} defaultPeriod={buyPeriod} />}
+      {showTermsModal && <TermsModal open onAgree={handleTermsAgree} onClose={() => setShowTermsModal(false)} />}
+      {nickOpen && <NicknameModal open required={nickRequired} onClose={handleNicknameClose} onDone={handleNicknameDone} />}
+      {paymentOpen && <PaymentModal
+        key={selectedPlan + '-open'}
+        open
         onClose={() => setPaymentOpen(false)}
         defaultPlan={selectedPlan}
         initialCode={codeFromUrl}
         autoBilling
-      />
-      </>)}
+      />}
+      </Suspense>)}
     </div>
   )
 }

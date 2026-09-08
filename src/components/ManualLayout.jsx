@@ -1,9 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import { Link } from 'react-router-dom'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import rehypeRaw from 'rehype-raw'
 import { X } from 'lucide-react'
+const Md = lazy(() => import('./Md'))
 import CommunityHeader from './CommunityHeader'
 import Footer from './Footer'
 
@@ -66,9 +64,7 @@ const makeMdComponents = (onImageClick) => ({
 })
 
 export const Markdown = ({ children, onImageClick }) => (
-  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={makeMdComponents(onImageClick)}>
-    {children}
-  </ReactMarkdown>
+  <Suspense fallback={null}><Md raw components={makeMdComponents(onImageClick)}>{children}</Md></Suspense>
 )
 
 /* ── FAQ 파서 ── */

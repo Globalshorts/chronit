@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import { Link } from 'react-router-dom'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
 import { ArrowLeft, FileText } from 'lucide-react'
+const Md = lazy(() => import('./Md'))
 import Footer from './Footer'
 
 /**
@@ -59,9 +58,7 @@ const Legal = ({ title, subtitle, markdown }) => {
 
       <section className="px-5 pb-24 md:px-8 md:pb-32">
         <div className="mx-auto max-w-4xl rounded-3xl border border-white/10 bg-white/[0.02] p-6 md:p-12">
-          <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
-            {markdown}
-          </ReactMarkdown>
+          <Suspense fallback={null}><Md components={mdComponents}>{markdown}</Md></Suspense>
         </div>
       </section>
 

@@ -1,10 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, Megaphone } from 'lucide-react'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import rehypeRaw from 'rehype-raw'
 import { supabase } from '../lib/supabase'
+const Md = lazy(() => import('../components/Md'))
 
 const statusCfg = {
   active: { label: '진행중',      cls: 'bg-[#0064FF]/15 text-[#0064FF] border-[#0064FF]/30',  dot: true  },
@@ -107,7 +105,7 @@ const EventDetail = () => {
 
             {/* 본문 */}
             <div className="event-post">
-              <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{event.content || ''}</ReactMarkdown>
+              <Suspense fallback={null}><Md raw>{event.content || ''}</Md></Suspense>
             </div>
 
             {/* CTA */}
