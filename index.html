@@ -9,6 +9,9 @@
       /* JS 실행 전 즉시 표시되는 로고 스플래시 */
       #boot-splash{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0a0b0f;z-index:0}
       #boot-splash img{opacity:.5}
+      /* SSG 셸: 프리렌더된 홈을 즉시 표시(고정 오버레이). React가 #root에 렌더되면 제거됨 */
+      #ssg-shell{position:fixed;inset:0;z-index:5;overflow-y:auto;overflow-x:hidden;background:#0a0b0f;-webkit-overflow-scrolling:touch}
+      #ssg-shell:empty{display:none}
       body{background-image:radial-gradient(60vw 44vw at 20% 8%, rgba(0,100,255,.12), transparent 60%), radial-gradient(56vw 44vw at 85% 92%, rgba(124,92,255,.09), transparent 60%);background-repeat:no-repeat}
     </style>
 
@@ -154,6 +157,7 @@
       <p>링크나 키워드만 넣으면 잘 터진 쇼핑 숏폼 소스를 찾아주고, AI가 훅·구성·셀링포인트를 분석해줍니다. 실시간 트렌드와 채널 벤치마킹까지, 쇼핑 크리에이터를 위한 소스 발굴·분석 도구예요.</p>
       <p><a href="/manual">사용 방법</a> · <a href="/events">이벤트</a></p>
     </noscript>
+    <div id="ssg-shell"><!--SSG--></div>
     <div id="root">
       <div id="boot-splash">
         <img src="/cn-white.svg" alt="Chronit" width="56" height="45" />

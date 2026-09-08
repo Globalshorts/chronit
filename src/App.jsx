@@ -68,6 +68,14 @@ const RouteFallback = () => (
 )
 
 const App = () => {
+  // SSG 셸 제거: React가 #root에 렌더된 뒤 프리렌더 오버레이를 걷어냄(다음 프레임에)
+  useEffect(() => {
+    const el = document.getElementById('ssg-shell')
+    if (el) {
+      const st = el.scrollTop || 0
+      requestAnimationFrame(() => requestAnimationFrame(() => { try { if (st) window.scrollTo(0, st); el.remove() } catch {} }))
+    }
+  }, [])
   useEffect(() => { installGlobalErrorCapture(); try { sessionStorage.removeItem('chr_chunk_reload') } catch {} }, [])
   useEffect(() => {
     const GA = 'G-Y46H5BMZ2X'

@@ -9,11 +9,10 @@ try {
   const html = mod.render()
   if (!html || html.length < 5000) throw new Error('SSR html too short: ' + (html ? html.length : 0))
   let index = fs.readFileSync('dist/index.html', 'utf8')
-  const re = /<div id="boot-splash">[\s\S]*?<\/div>/
-  if (!re.test(index)) throw new Error('boot-splash marker not found')
-  index = index.replace(re, html)
+  if (!index.includes('<!--SSG-->')) throw new Error('SSG marker not found')
+  index = index.replace('<!--SSG-->', html)
   fs.writeFileSync('dist/index.html', index)
-  console.log('[prerender] OK — injected', html.length, 'chars')
+  console.log('[prerender] OK — injected', html.length, 'chars into #ssg-shell')
 } catch (e) {
   console.error('[prerender] SKIPPED (fallback to splash):', e.message)
 }

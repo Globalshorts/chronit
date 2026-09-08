@@ -25,21 +25,8 @@ const _startPH = () => { try { initPosthog() } catch {} }
 if ('requestIdleCallback' in window) requestIdleCallback(_startPH, { timeout: 4000 })
 else setTimeout(_startPH, 2500)
 
-// 앱 CSS(비차단)가 적용된 뒤 렌더 → 무스타일 깜빡임 방지. 안전 폴백 포함.
-function whenCssReady(cb) {
-  try {
-    const links = Array.from(document.querySelectorAll('link[rel="preload"][as="style"], link[rel="stylesheet"]'))
-      .filter((l) => /\/assets\/index-.*\.css/.test(l.href || ''))
-    const ready = () => links.length === 0 || links.some((l) => { try { return !!l.sheet } catch { return false } })
-    if (ready()) return cb()
-    let done = false
-    const fire = () => { if (!done) { done = true; cb() } }
-    links.forEach((l) => l.addEventListener('load', () => { if (ready()) fire() }, { once: true }))
-    setTimeout(fire, 2000)
-  } catch { cb() }
-}
-whenCssReady(() => createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />
   </StrictMode>,
-))
+)
