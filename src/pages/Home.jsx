@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import Footer from '../components/Footer'
+import InstallButton from '../components/InstallButton'
 import SiteNav from '../components/SiteNav'
 import Reveal from '../components/Reveal'
 import RevealStagger from '../components/RevealStagger'
@@ -826,6 +827,7 @@ const Home = () => {
       />}
       <PwaInstall />
       </Suspense>)}
+      {CLIENT && <InstallButton user={user} />}
     </div>
   )
 }
