@@ -101,16 +101,18 @@ const App = () => {
         if (m && m[1] && m[1] !== mine) updateReady = true
       } catch {} finally { checking = false }
     }
-    // 앱에 들어올 때(포커스/복귀)마다 확인 → 새 빌드일 때만 즉시 최신으로 교체. 같으면 아무것도 안 함(빠름).
-    const onEnter = async () => {
-      if (document.hidden) return
-      if (!updateReady) await check()
+    // 실제 '앱 복귀'(백그라운드 → 복귀) 때만 확인 → 새 빌드면 교체.
+    // 초기 로드/일반 포커스에선 절대 재접속하지 않음(이중 로드 방지).
+    let wasHidden = false
+    const onVis = async () => {
+      if (document.hidden) { wasHidden = true; return }
+      if (!wasHidden) return
+      wasHidden = false
+      await check()
       if (updateReady) goLatest()
     }
-    const iv = setInterval(check, 3 * 60 * 1000)
-    document.addEventListener('visibilitychange', onEnter)
-    window.addEventListener('focus', onEnter)
-    return () => { clearInterval(iv); document.removeEventListener('visibilitychange', onEnter); window.removeEventListener('focus', onEnter) }
+    document.addEventListener('visibilitychange', onVis)
+    return () => { document.removeEventListener('visibilitychange', onVis) }
   }, [])
   return (
   <BrowserRouter>
