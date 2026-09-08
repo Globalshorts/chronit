@@ -52,7 +52,7 @@ export default function ProblemSolution() {
             <div key={p.tag} className="flex overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] md:block md:rounded-3xl">
               {/* 모바일: 좌측 작은 정사각 썸네일 / 데스크톱: 상단 4:3 */}
               <div className="relative aspect-square w-28 shrink-0 overflow-hidden bg-cover bg-center md:aspect-[4/3] md:w-full" style={{ backgroundImage: `url(${p.lqip})` }}>
-                <img src={p.img} alt={p.tag} fetchpriority="high" decoding="async" className="h-full w-full object-cover" />
+                <img src={p.img} alt={p.tag} fetchPriority="high" decoding="async" className="h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0c0d11] via-[#0c0d11]/20 to-transparent" />
                 <span className="absolute left-2 top-2 rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-bold text-white/85 backdrop-blur-sm md:left-3 md:top-3 md:px-2.5 md:py-1 md:text-[11px]">{p.tag}</span>
               </div>

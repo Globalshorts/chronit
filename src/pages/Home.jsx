@@ -19,6 +19,7 @@ import ProblemSolution from '../components/ProblemSolution'
 import HomeAnalysisShowcase from '../components/HomeAnalysisShowcase'
 
 const GREEN = '#0064FF'
+const CLIENT = typeof window !== 'undefined'  // SSR 프리렌더 시 모달 등 클라이언트 전용 렌더 제외
 
 /* 가격표 위 쿠폰 입력 바 */
 const CouponBar = ({ codeFromUrl, onApply }) => {
@@ -801,6 +802,7 @@ const Home = () => {
         body { -webkit-font-smoothing: antialiased; }
       `}</style>
 
+      {CLIENT && (<>
       <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} referralCode={refFromUrl} />
       <FindsPricing open={buyOpen} onClose={() => setBuyOpen(false)} defaultTab={buyTab} defaultPeriod={buyPeriod} />
       <TermsModal open={showTermsModal} onAgree={handleTermsAgree} onClose={() => setShowTermsModal(false)} />
@@ -813,6 +815,7 @@ const Home = () => {
         initialCode={codeFromUrl}
         autoBilling
       />
+      </>)}
     </div>
   )
 }
