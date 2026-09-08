@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import HeaderInstallBtn from '../components/HeaderInstallBtn'
 import { Navigate, Link, useNavigate } from 'react-router-dom'
 import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, HelpCircle, Zap, Lock, Crown, X, Play } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -182,6 +183,7 @@ export default function Trend() {
           </Link>
           <SiteNav />
           <div className="flex items-center gap-2">
+            <HeaderInstallBtn />
             <Link to="/" className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-bold text-slate-600 transition-colors hover:border-slate-400">홈</Link>
             {isReal && <Link to="/me" className="rounded-full bg-slate-900 px-3 py-1.5 text-sm font-bold text-white">마이</Link>}
           </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import HeaderInstallBtn from '../components/HeaderInstallBtn'
 import { Navigate, Link, useNavigate } from 'react-router-dom'
 import { Search, Loader2, AlertTriangle, Flame, Eye, Heart, MessageCircle, Sparkles, X, Copy, Check, Download } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -654,6 +655,7 @@ export default function Finds() {
           </Link>
           <SiteNav />
           <div className="flex items-center gap-2">
+            <HeaderInstallBtn />
             <Link to="/" className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-bold text-slate-600 transition-colors hover:border-slate-400">홈</Link>
             {session && <Link to="/me" className="rounded-full bg-slate-900 px-3 py-1.5 text-sm font-bold text-white">마이</Link>}
           </div>

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import Footer from '../components/Footer'
+import HeaderInstallBtn from '../components/HeaderInstallBtn'
 import SiteNav from '../components/SiteNav'
 import Reveal from '../components/Reveal'
 import RevealStagger from '../components/RevealStagger'
@@ -459,6 +460,7 @@ const Home = () => {
           </a>
           <SiteNav light={!scrolled} />
           <div className="flex shrink-0 items-center gap-2">
+            <HeaderInstallBtn light />
             <div className="hidden md:flex items-center gap-2">
               {user ? (
                 <>
