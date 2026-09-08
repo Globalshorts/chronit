@@ -21,21 +21,23 @@ export default function ProblemSolution() {
     const mm = gsap.matchMedia()
     mm.add('(min-width: 768px)', () => {
       gsap.set(painRef.current, { xPercent: 0, autoAlpha: 1 })
-      gsap.set(baRef.current, { autoAlpha: 0 })
-      // 스크럽이 아니라 '자체 속도로 한 번 재생'되는 타임라인 → 중간 겹침 프레임 없음
-      const tl = gsap.timeline({ paused: true, defaults: { ease: 'power2.inOut' } })
-      tl.to(painRef.current, { xPercent: 22, autoAlpha: 0, duration: 0.4, ease: 'power2.in' })
-      tl.fromTo(baRef.current, { xPercent: -40, autoAlpha: 0 }, { xPercent: 0, autoAlpha: 1, duration: 0.55, ease: 'power3.out' })
-      const st = ScrollTrigger.create({
-        trigger: trigRef.current,
-        start: 'top top',
-        end: '+=650',
-        pin: pinRef.current,
-        anticipatePin: 1,
-        onEnter: () => tl.play(),
-        onLeaveBack: () => tl.reverse(),
+      gsap.set(baRef.current, { xPercent: -40, autoAlpha: 0 })
+      // 스크롤에 묶인(scrub) 타임라인 — 핀 구간 내내 스크롤에 반응해 매끄럽게, 순차 배치로 겹침 없음
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: trigRef.current,
+          start: 'top top',
+          end: '+=1300',
+          scrub: 1,
+          pin: pinRef.current,
+          anticipatePin: 1,
+        },
       })
-      return () => { st.kill(); tl.kill() }
+      tl.to({}, { duration: 0.55 })                                        // 페인 잠깐 유지
+      tl.to(painRef.current, { xPercent: 38, autoAlpha: 0, ease: 'power1.in', duration: 0.5 })
+      tl.fromTo(baRef.current, { xPercent: -40, autoAlpha: 0 }, { xPercent: 0, autoAlpha: 1, ease: 'power1.out', duration: 0.6 })
+      tl.to({}, { duration: 0.9 })                                         // 비포애프터 유지
+      return () => { if (tl.scrollTrigger) tl.scrollTrigger.kill(); tl.kill() }
     })
     // 모바일: 핀 대신 각 패널을 스크롤 시 페이드+슬라이드업으로 등장
     mm.add('(max-width: 767px)', () => {
