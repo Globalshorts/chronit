@@ -67,8 +67,8 @@ export default function PwaInstall() {
         ) : isIOS ? (
           <ol className="space-y-3.5 text-sm text-gray-700">
             <li className="flex items-center gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-900 text-xs font-bold text-white">1</span> 하단 <Share size={16} className="inline" /> <b>공유</b> 버튼을 누르세요</li>
-            <li className="flex items-center gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-900 text-xs font-bold text-white">2</span> <b>'홈 화면에 추가'</b> <Plus size={15} className="inline" /> 를 선택하세요</li>
-            <li className="flex items-center gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-900 text-xs font-bold text-white">3</span> 우측 상단 <b>'추가'</b>를 누르면 끝!</li>
+            <li className="flex items-center gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-900 text-xs font-bold text-white">2</span> 목록에서 <b>'더보기'</b>를 누르세요 (아래로 스크롤)</li>
+            <li className="flex items-center gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-900 text-xs font-bold text-white">3</span> <b>'홈 화면에 추가'</b> <Plus size={15} className="inline" /> → <b>'추가'</b></li>
           </ol>
         ) : (
           <p className="text-center text-sm text-gray-600">브라우저 메뉴(⋮)에서 <b>'앱 설치'</b> 또는 <b>'홈 화면에 추가'</b>를 눌러주세요.</p>
