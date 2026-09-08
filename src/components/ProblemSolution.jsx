@@ -1,6 +1,4 @@
-import { useEffect, useRef } from 'react'
 import { Sparkles, Check, ArrowRight } from 'lucide-react'
-// gsap은 첫 페인트 이후 동적 로드 (홈 임계 번들에서 제외)
 
 const PAINS = [
   { img: '/pain/scroll.webp', lqip: 'data:image/webp;base64,UklGRjwBAABXRUJQVlA4WAoAAAAIAAAAFwAAEQAAVlA4IHQAAADQBACdASoYABIAPu1srVEppaQiqAqpMB2JQBYdgiBnMfsLBi08aopGnyGIub5bFAD+wyMrD+ss8v78k9nsRY7sjBRNiHvma0dokC0sTrCuXgnAZmVu14tMaY3lJa+Xch55KG705XqMWOD3Qb63ovXUNingAEVYSUaiAAAASUkqAAgAAAAGABIBAwABAAAAAAAAABoBBQABAAAAdAAAABsBBQABAAAAfAAAACgBAwABAAAAAQAAADsBAgAeAAAAVgAAAGmHBAABAAAAhAAAAAAAAABLQVJPTElOQSBHUkFCT1dTS0EKS0FCT09NUElDUwAAAAAAAQAAAAAAAAABAAAAAgACoAQAAQAAACADAAADoAQAAQAAAFgCAAAAAAAA', tag: '무한 스크롤', line: '뭘 올릴지 몰라 피드만 하루 1~2시간' },
@@ -9,40 +7,8 @@ const PAINS = [
 ]
 
 export default function ProblemSolution() {
-  const trigRef = useRef(null)
-  const painRef = useRef(null)
-  const baRef = useRef(null)
-
-  useEffect(() => {
-    // 모바일: gsap 불필요 — 패널은 CSS 기본값으로 항상 표시(숨김 애니메이션 없음)
-    if (typeof window === 'undefined' || !window.matchMedia('(min-width: 768px)').matches) return
-    let mounted = true
-    let revert = null
-    Promise.all([import('gsap'), import('gsap/ScrollTrigger')]).then(([g, st]) => {
-      if (!mounted) return
-      const gsap = g.gsap || g.default
-      const ScrollTrigger = st.ScrollTrigger || st.default
-      gsap.registerPlugin(ScrollTrigger)
-      const mm = gsap.matchMedia()
-      // 데스크톱: CSS sticky로 고정 + scrub 순차 전환(겹침 없음)
-      mm.add('(min-width: 768px)', () => {
-        gsap.set(painRef.current, { xPercent: 0, autoAlpha: 1 })
-        gsap.set(baRef.current, { xPercent: -40, autoAlpha: 0 })
-        const tl = gsap.timeline({
-          scrollTrigger: { trigger: trigRef.current, start: 'top top', end: 'bottom bottom', scrub: 1 },
-        })
-        tl.to({}, { duration: 0.5 })
-        tl.to(painRef.current, { xPercent: 36, autoAlpha: 0, ease: 'power1.in', duration: 0.5 })
-        tl.fromTo(baRef.current, { xPercent: -40, autoAlpha: 0 }, { xPercent: 0, autoAlpha: 1, ease: 'power1.out', duration: 0.6 })
-        tl.to({}, { duration: 0.6 })
-      })
-      revert = () => mm.revert()
-    })
-    return () => { mounted = false; if (revert) revert() }
-  }, [])
-
   const Pain = (
-    <div ref={painRef} className="w-full px-5 py-16 md:absolute md:inset-0 md:flex md:flex-col md:justify-center md:py-0">
+    <div className="w-full px-5 py-14 md:py-20">
       <div className="mx-auto w-full max-w-5xl">
         <div className="mb-3 text-center text-[11px] font-semibold uppercase tracking-[0.28em] text-white/30">The Problem</div>
         <h2 className="text-center text-3xl font-bold leading-tight text-white break-keep md:text-[2.5rem]">매일 이렇게 소재를 찾고 있진 않나요?</h2>
@@ -65,7 +31,7 @@ export default function ProblemSolution() {
   )
 
   const BA = (
-    <div ref={baRef} className="w-full px-5 py-16 md:absolute md:inset-0 md:flex md:flex-col md:justify-center md:py-0">
+    <div className="w-full px-5 pb-16 pt-2 md:pb-24 md:pt-4">
       <div className="mx-auto w-full max-w-5xl">
         <div className="mb-3 text-center text-[11px] font-semibold uppercase tracking-[0.28em] text-white/30">Before / After</div>
         <h2 className="text-center text-3xl font-bold leading-tight text-white break-keep md:text-[2.5rem]">감으로 찾던 소재, 이제 데이터로</h2>
@@ -107,11 +73,9 @@ export default function ProblemSolution() {
   )
 
   return (
-    <section ref={trigRef} className="relative md:h-[200vh]">
-      <div className="relative overflow-hidden md:sticky md:top-0 md:flex md:h-screen md:items-center">
-        {Pain}
-        {BA}
-      </div>
+    <section className="relative">
+      {Pain}
+      {BA}
     </section>
   )
 }
