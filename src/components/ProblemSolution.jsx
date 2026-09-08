@@ -25,9 +25,10 @@ export default function ProblemSolution() {
       const tl = gsap.timeline({
         scrollTrigger: { trigger: trigRef.current, start: 'top top', end: '+=1900', scrub: 0.6, pin: pinRef.current, anticipatePin: 1 },
       })
-      tl.to({}, { duration: 0.8 })
-      tl.to(painRef.current, { xPercent: 55, autoAlpha: 0, ease: 'power2.in', duration: 0.6 })
-      tl.fromTo(baRef.current, { xPercent: -100, autoAlpha: 0 }, { xPercent: 0, autoAlpha: 1, ease: 'power2.out', duration: 0.6 }, '<')
+      tl.to({}, { duration: 0.9 })
+      // 페인을 먼저 완전히 내보낸 뒤(autoAlpha 0) 비포애프터가 들어오도록 순차 처리 → 겹침 없음
+      tl.to(painRef.current, { xPercent: 45, autoAlpha: 0, ease: 'power2.in', duration: 0.5 })
+      tl.fromTo(baRef.current, { xPercent: -45, autoAlpha: 0 }, { xPercent: 0, autoAlpha: 1, ease: 'power2.out', duration: 0.5 })
       tl.to({}, { duration: 1.0 })
     })
     return () => mm.revert()
