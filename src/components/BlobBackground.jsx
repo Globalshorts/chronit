@@ -1,11 +1,14 @@
 import { useEffect, useRef } from 'react'
 
-const FRAG = `precision highp float;
+const STATIC_BG =
+  'radial-gradient(60vw 44vw at 20% 8%, rgba(0,100,255,.13), transparent 60%), radial-gradient(56vw 44vw at 85% 92%, rgba(124,92,255,.10), transparent 60%), linear-gradient(180deg,#0b0d13,#0a0b0f)'
+
+const FRAG = `precision mediump float;
 uniform vec2 u_res; uniform float u_t;
 float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float noise(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.0-2.0*f);
   return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),u.x),mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),u.x),u.y);}
-float fbm(vec2 p){float v=0.0,a=0.5;for(int i=0;i<5;i++){v+=a*noise(p);p*=2.0;a*=0.5;}return v;}
+float fbm(vec2 p){float v=0.0,a=0.5;for(int i=0;i<3;i++){v+=a*noise(p);p*=2.0;a*=0.5;}return v;}
 void main(){
   vec2 uv=gl_FragCoord.xy/u_res.xy;
   float asp=u_res.x/u_res.y;
@@ -28,9 +31,16 @@ export default function BlobBackground() {
   useEffect(() => {
     const canvas = cvs.current
     if (!canvas) return
+
+    // 모바일 / 저사양 / 모션 최소화 선호 → WebGL 루프 없이 정적 그라디언트
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const isMobile = window.matchMedia && window.matchMedia('(max-width: 767px)').matches
+    if (reduce || isMobile) { canvas.style.background = STATIC_BG; return }
+
     let gl
     try { gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl') } catch { gl = null }
-    if (!gl) { canvas.style.background = 'radial-gradient(60vw 44vw at 20% 10%, rgba(0,100,255,.14), transparent 60%), radial-gradient(56vw 44vw at 85% 90%, rgba(124,92,255,.10), transparent 60%), #0A0B0F'; return }
+    if (!gl) { canvas.style.background = STATIC_BG; return }
+
     const vsh = gl.createShader(gl.VERTEX_SHADER)
     gl.shaderSource(vsh, 'attribute vec2 a;void main(){gl_Position=vec4(a,0.0,1.0);}'); gl.compileShader(vsh)
     const fsh = gl.createShader(gl.FRAGMENT_SHADER)
@@ -42,12 +52,36 @@ export default function BlobBackground() {
     const uRes = gl.getUniformLocation(prog, 'u_res'), uT = gl.getUniformLocation(prog, 'u_t')
     const resize = () => { const s = 0.5; canvas.width = Math.max(2, Math.floor(innerWidth * s)); canvas.height = Math.max(2, Math.floor(innerHeight * s)); gl.viewport(0, 0, canvas.width, canvas.height) }
     resize(); addEventListener('resize', resize)
-    let raf, last = 0, t0 = performance.now(), running = true
-    const loop = (now) => { if (!running) return; if (now - last > 33) { last = now; gl.uniform2f(uRes, canvas.width, canvas.height); gl.uniform1f(uT, (now - t0) / 1000); gl.drawArrays(gl.TRIANGLES, 0, 3) } raf = requestAnimationFrame(loop) }
-    raf = requestAnimationFrame(loop)
-    const onVis = () => { running = !document.hidden; if (running) raf = requestAnimationFrame(loop) }
+
+    let raf = 0, last = 0, t0 = performance.now()
+    let paused = false          // 첫 화면 벗어나면 정지(배경이 콘텐츠에 가려짐)
+    let hidden = false          // 탭 비활성
+    const active = () => !paused && !hidden
+    const frame = (now) => {
+      raf = 0
+      if (!active()) return
+      if (now - last > 45) {    // ~22fps
+        last = now
+        gl.uniform2f(uRes, canvas.width, canvas.height)
+        gl.uniform1f(uT, (now - t0) / 1000)
+        gl.drawArrays(gl.TRIANGLES, 0, 3)
+      }
+      raf = requestAnimationFrame(frame)
+    }
+    const kick = () => { if (active() && !raf) raf = requestAnimationFrame(frame) }
+
+    const onScroll = () => { const p = window.scrollY > innerHeight * 1.25; if (p !== paused) { paused = p; kick() } }
+    const onVis = () => { hidden = document.hidden; kick() }
+    addEventListener('scroll', onScroll, { passive: true })
     document.addEventListener('visibilitychange', onVis)
-    return () => { running = false; cancelAnimationFrame(raf); removeEventListener('resize', resize); document.removeEventListener('visibilitychange', onVis) }
+    kick()
+
+    return () => {
+      paused = true; if (raf) cancelAnimationFrame(raf)
+      removeEventListener('resize', resize)
+      removeEventListener('scroll', onScroll)
+      document.removeEventListener('visibilitychange', onVis)
+    }
   }, [])
   return <canvas ref={cvs} aria-hidden="true" style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', zIndex: 0, pointerEvents: 'none' }} />
 }
