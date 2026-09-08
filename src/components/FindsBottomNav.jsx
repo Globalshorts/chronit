@@ -11,7 +11,7 @@ const TABS = [
 export default function FindsBottomNav() {
   const { pathname } = useLocation()
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 flex border-t border-slate-200 bg-white/95 backdrop-blur md:hidden"
+    <nav data-app-bottom-nav className="fixed inset-x-0 bottom-0 z-50 flex border-t border-slate-200 bg-white/95 backdrop-blur md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       {TABS.map(({ to, label, icon: Icon }) => {
         const active = pathname === to || pathname.startsWith(to + '/')

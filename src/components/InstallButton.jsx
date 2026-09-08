@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { Download, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
@@ -11,6 +12,23 @@ const AUTO_PROMPT_MIN = 2  // 로그인 후 자동 팝업까지 대기(분)
 // 전역 렌더: 모든 페이지에서 브라우저 유저에게 노출(설치 완료=standalone이면 숨김)
 export default function InstallButton() {
   const [visible, setVisible] = useState(false)
+  const [bottomPx, setBottomPx] = useState(16)
+  const loc = useLocation()
+
+  // 하단 탭바(FindsBottomNav)가 있는 페이지에선 그 위로 올림
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const recalc = () => {
+      try {
+        const nav = document.querySelector('[data-app-bottom-nav]')
+        const visible = nav && getComputedStyle(nav).display !== 'none' && nav.offsetHeight > 0
+        setBottomPx(visible ? nav.offsetHeight + 12 : 16)
+      } catch { setBottomPx(16) }
+    }
+    const t = setTimeout(recalc, 60)   // 라우트 렌더 후 측정
+    window.addEventListener('resize', recalc)
+    return () => { clearTimeout(t); window.removeEventListener('resize', recalc) }
+  }, [loc.pathname])
 
   useEffect(() => {
     if (typeof window === 'undefined' || isStandalone()) return
@@ -47,7 +65,8 @@ export default function InstallButton() {
     <button
       onClick={() => window.dispatchEvent(new Event('chronit:open-install'))}
       aria-label="앱 설치"
-      className="fixed bottom-4 left-4 z-[120] flex items-center gap-1.5 rounded-full bg-[#0064FF] px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#0064FF]/30 transition-transform active:scale-[0.97] md:bottom-5 md:left-5"
+      style={{ bottom: `${bottomPx}px` }}
+      className="fixed left-4 z-[120] flex items-center gap-1.5 rounded-full bg-[#0064FF] px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#0064FF]/30 transition-[bottom] duration-200 active:scale-[0.97] md:left-5"
     >
       <Download size={16} /> 앱 설치
       <span
