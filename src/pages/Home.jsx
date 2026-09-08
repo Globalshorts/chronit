@@ -14,6 +14,7 @@ import Footer from '../components/Footer'
 import SiteNav from '../components/SiteNav'
 import SourcingBeforeAfter from '../components/SourcingBeforeAfter'
 import HomeAnalysisShowcase from '../components/HomeAnalysisShowcase'
+import BeforeAfter from '../components/BeforeAfter'
 import Reveal from '../components/Reveal'
 import RevealStagger from '../components/RevealStagger'
 import NicknameModal from '../components/NicknameModal'
@@ -594,6 +595,9 @@ const Home = () => {
           </>)}
         </div>
       </section>
+
+      {/* ── Before / After ── */}
+      {!user && <BeforeAfter />}
 
       {/* ── 제품 쇼케이스: 실제 분석 화면 ── */}
       {!user && <HomeAnalysisShowcase />}
