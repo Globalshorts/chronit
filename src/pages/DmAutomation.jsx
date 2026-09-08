@@ -142,49 +142,49 @@ export default function DmAutomation({ userPlan, userRole }) {
     return '특정 게시물' + (m ? ` · ${mediaOptLabel(m).slice(0, 24)}` : '')
   }
 
-  if (loading) return <div className="py-16 text-center text-gray-500">불러오는 중…</div>
-  if (!user) return <div className="py-16 text-center text-gray-500">로그인이 필요해요.</div>
+  if (loading) return <div className="py-16 text-center text-white/50">불러오는 중…</div>
+  if (!user) return <div className="py-16 text-center text-white/50">로그인이 필요해요.</div>
 
-  const inputCls = "w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#0064FF] focus:ring-1 focus:ring-[#0064FF] transition"
+  const inputCls = "w-full rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-[#0064FF] focus:ring-1 focus:ring-[#0064FF] transition"
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#EEF2F9] via-[#F5F6FA] to-[#FAFAF8]">
+    <div className="min-h-screen bg-[#0a0b0f]">
     <div className="mx-auto w-full max-w-2xl px-4 py-6">
-      <h1 className="mb-1 flex items-center gap-2 text-xl font-bold text-gray-900"><MessageCircle size={22} className="text-[#0064FF]" /> 인스타 댓글 자동 DM</h1>
-      <p className="mb-5 text-sm text-gray-500">내 인스타를 연결하고, 특정 키워드 댓글에 자동으로 DM(링크)을 보내세요. 계정은 여러 개 연결할 수 있어요.</p>
+      <h1 className="mb-1 flex items-center gap-2 text-xl font-bold text-white"><MessageCircle size={22} className="text-[#0064FF]" /> 인스타 댓글 자동 DM</h1>
+      <p className="mb-5 text-sm text-white/50">내 인스타를 연결하고, 특정 키워드 댓글에 자동으로 DM(링크)을 보내세요. 계정은 여러 개 연결할 수 있어요.</p>
       {msg && <div className="mb-4 rounded-xl border border-[#0064FF]/20 bg-[#0064FF]/5 px-4 py-2.5 text-sm font-medium text-[#0052D6]">{msg}</div>}
 
       {/* 1. 계정 연결 (다계정) */}
-      <div className="mb-5 rounded-2xl border border-gray-200 p-4">
-        <p className="mb-3 flex items-center justify-between text-sm font-bold text-gray-700"><span>1. 인스타 계정 연결</span><span className="text-xs font-bold text-gray-400">{conns.length}/{maxAccounts} 계정</span></p>
+      <div className="mb-5 rounded-2xl border border-white/10 p-4">
+        <p className="mb-3 flex items-center justify-between text-sm font-bold text-white/80"><span>1. 인스타 계정 연결</span><span className="text-xs font-bold text-white/40">{conns.length}/{maxAccounts} 계정</span></p>
         {conns.length > 0 ? (
           <div className="flex flex-col gap-2">
             {conns.map((c) => {
               const on = c.ig_user_id === activeIg
               return (
                 <div key={c.id}
-                  className={`flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 transition ${on ? 'border-[#0064FF] bg-[#0064FF]/5' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
+                  className={`flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 transition ${on ? 'border-[#0064FF] bg-[#0064FF]/5' : 'border-white/10 bg-white/[0.05] hover:border-white/15'}`}>
                   <button onClick={() => setActiveIg(c.ig_user_id)} className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
-                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${on ? 'bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white' : 'bg-gray-100 text-gray-400'}`}>
+                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${on ? 'bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white' : 'bg-white/10 text-white/40'}`}>
                       {on ? <Check size={16} strokeWidth={3} /> : <AtSign size={16} />}
                     </span>
                     <span className="min-w-0">
-                      <span className="block truncate text-sm font-bold text-gray-900">@{c.ig_username || c.ig_user_id}</span>
-                      <span className={`block text-xs ${c.status === 'active' ? 'text-emerald-500' : 'text-gray-400'}`}>{c.status === 'active' ? '연결됨' : c.status}{on ? ' · 선택됨' : ''}</span>
+                      <span className="block truncate text-sm font-bold text-white">@{c.ig_username || c.ig_user_id}</span>
+                      <span className={`block text-xs ${c.status === 'active' ? 'text-emerald-500' : 'text-white/40'}`}>{c.status === 'active' ? '연결됨' : c.status}{on ? ' · 선택됨' : ''}</span>
                     </span>
                   </button>
                   <button onClick={() => disconnect(c)} title="연결 해제"
-                    className="shrink-0 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-bold text-gray-400 hover:border-red-200 hover:text-red-500 transition"><Trash2 size={13} /></button>
+                    className="shrink-0 rounded-lg border border-white/10 bg-white/[0.05] px-2.5 py-1.5 text-xs font-bold text-white/40 hover:border-red-200 hover:text-red-500 transition"><Trash2 size={13} /></button>
                 </div>
               )
             })}
             {conns.length < maxAccounts ? (
               <a href={igAuthUrl}
-                className="mt-1 flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-gray-300 px-3 py-2.5 text-sm font-bold text-gray-500 hover:border-[#0064FF] hover:text-[#0064FF] transition">
+                className="mt-1 flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-white/15 px-3 py-2.5 text-sm font-bold text-white/50 hover:border-[#0064FF] hover:text-[#0064FF] transition">
                 <Plus size={15} strokeWidth={2.5} /> 계정 추가 연결
               </a>
             ) : (
-              <p className="mt-1 rounded-xl bg-gray-50 px-3 py-2.5 text-center text-xs text-gray-400">현재 요금제 최대 {maxAccounts}개 연결됨 · 더 필요하면 상위 요금제로 업그레이드</p>
+              <p className="mt-1 rounded-xl bg-white/[0.03] px-3 py-2.5 text-center text-xs text-white/40">현재 요금제 최대 {maxAccounts}개 연결됨 · 더 필요하면 상위 요금제로 업그레이드</p>
             )}
           </div>
         ) : (
@@ -197,21 +197,21 @@ export default function DmAutomation({ userPlan, userRole }) {
       </div>
 
       {/* 2. 규칙 (선택 계정 기준) */}
-      <div className={`mb-5 rounded-2xl border border-gray-200 p-4 ${conn ? '' : 'opacity-50'}`}>
-        <p className="mb-3 text-sm font-bold text-gray-700">2. 자동 DM 규칙{conn ? ` · @${conn.ig_username || conn.ig_user_id}` : ''}</p>
+      <div className={`mb-5 rounded-2xl border border-white/10 p-4 ${conn ? '' : 'opacity-50'}`}>
+        <p className="mb-3 text-sm font-bold text-white/80">2. 자동 DM 규칙{conn ? ` · @${conn.ig_username || conn.ig_user_id}` : ''}</p>
         <div className="mb-3 flex flex-col gap-2">
           <input value={kw} onChange={(e) => setKw(e.target.value)} placeholder="트리거 키워드 (비우면 모든 댓글에 DM)" disabled={!conn} className={inputCls} />
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">적용 게시물</label>
+            <label className="mb-1 block text-xs font-medium text-white/50">적용 게시물</label>
             <select value={mediaId} onChange={(e) => setMediaId(e.target.value)} disabled={!conn} className={inputCls}>
               <option value="">전체 게시물 (모든 게시물에 적용)</option>
               {media.map((m) => (<option key={m.id} value={m.id}>{mediaOptLabel(m)}</option>))}
             </select>
-            {conn && !media.length && <p className="mt-1 text-[11px] text-gray-400">게시물을 불러오는 중이거나 없어요. 전체 게시물로도 바로 쓸 수 있어요.</p>}
+            {conn && !media.length && <p className="mt-1 text-[11px] text-white/40">게시물을 불러오는 중이거나 없어요. 전체 게시물로도 바로 쓸 수 있어요.</p>}
           </div>
           <textarea value={dm} onChange={(e) => setDm(e.target.value)} rows={3} disabled={!conn}
             placeholder="보낼 DM 문구 (예: 아래 링크에서 확인하세요! https://…)" className={`${inputCls} resize-none`} />
-          <label className="flex items-center gap-2 text-sm text-gray-600">
+          <label className="flex items-center gap-2 text-sm text-white/70">
             <input type="checkbox" checked={pub} onChange={(e) => setPub(e.target.checked)} disabled={!conn} className="h-4 w-4 rounded" />
             공개 답글도 남기기 ("방금 DM 보냈어요")
           </label>
@@ -221,34 +221,34 @@ export default function DmAutomation({ userPlan, userRole }) {
           </button>
         </div>
         {rules.map((r) => (
-          <div key={r.id} className="flex items-start justify-between gap-3 border-t border-gray-100 py-2.5">
+          <div key={r.id} className="flex items-start justify-between gap-3 border-t border-white/10 py-2.5">
             <div className="min-w-0">
-              <p className="text-sm font-bold text-gray-900">{r.keyword ? `"${r.keyword}" 댓글` : '모든 댓글'} → DM</p>
+              <p className="text-sm font-bold text-white">{r.keyword ? `"${r.keyword}" 댓글` : '모든 댓글'} → DM</p>
               <p className="my-0.5 flex items-center gap-1 text-xs font-bold text-[#8B5CF6]">
                 {r.media_id ? <Target size={11} /> : <FileText size={11} />} {scopeLabel(r.media_id)}
               </p>
-              <p className="whitespace-pre-wrap break-all text-xs text-gray-500">{r.dm_text}</p>
+              <p className="whitespace-pre-wrap break-all text-xs text-white/50">{r.dm_text}</p>
             </div>
             <div className="flex shrink-0 gap-1.5">
               <button onClick={() => toggleRule(r)}
-                className={`rounded-lg border px-2.5 py-1.5 text-xs font-bold transition ${r.active ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-gray-200 bg-white text-gray-400'}`}>{r.active ? 'ON' : 'OFF'}</button>
+                className={`rounded-lg border px-2.5 py-1.5 text-xs font-bold transition ${r.active ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-400' : 'border-white/10 bg-white/[0.05] text-white/40'}`}>{r.active ? 'ON' : 'OFF'}</button>
               <button onClick={() => delRule(r)}
-                className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-bold text-red-500 hover:border-red-200 transition"><Trash2 size={13} /></button>
+                className="rounded-lg border border-white/10 bg-white/[0.05] px-2.5 py-1.5 text-xs font-bold text-red-500 hover:border-red-200 transition"><Trash2 size={13} /></button>
             </div>
           </div>
         ))}
-        {conn && !rules.length && <p className="py-2 text-center text-sm text-gray-400">아직 규칙이 없어요. 위에서 추가해 주세요.</p>}
+        {conn && !rules.length && <p className="py-2 text-center text-sm text-white/40">아직 규칙이 없어요. 위에서 추가해 주세요.</p>}
       </div>
 
       {/* 3. 로그 (선택 계정 기준) */}
-      <div className="rounded-2xl border border-gray-200 p-4">
-        <p className="mb-3 flex items-center gap-1.5 text-sm font-bold text-gray-700"><Send size={14} className="text-[#0064FF]" /> 최근 자동 DM 발송{conn ? ` · @${conn.ig_username || conn.ig_user_id}` : ''}</p>
+      <div className="rounded-2xl border border-white/10 p-4">
+        <p className="mb-3 flex items-center gap-1.5 text-sm font-bold text-white/80"><Send size={14} className="text-[#0064FF]" /> 최근 자동 DM 발송{conn ? ` · @${conn.ig_username || conn.ig_user_id}` : ''}</p>
         {logs.length ? logs.map((l) => (
-          <div key={l.id} className="flex items-center justify-between gap-2 border-t border-gray-100 py-2 text-sm">
-            <span className="min-w-0 truncate text-gray-700">@{l.commenter_username || '?'} · "{l.matched_keyword}"</span>
+          <div key={l.id} className="flex items-center justify-between gap-2 border-t border-white/10 py-2 text-sm">
+            <span className="min-w-0 truncate text-white/80">@{l.commenter_username || '?'} · "{l.matched_keyword}"</span>
             <span className={`shrink-0 font-bold ${l.dm_status >= 200 && l.dm_status < 300 ? 'text-emerald-500' : 'text-red-500'}`}>{l.dm_status >= 200 && l.dm_status < 300 ? 'DM 전송됨' : '실패'}</span>
           </div>
-        )) : <p className="py-2 text-center text-sm text-gray-400">아직 발송 내역이 없어요.</p>}
+        )) : <p className="py-2 text-center text-sm text-white/40">아직 발송 내역이 없어요.</p>}
       </div>
     </div>
     </div>

@@ -1941,30 +1941,30 @@ export default function VideoGenerator() {
       {packInfoMsg && (<div className="fixed top-6 left-1/2 -translate-x-1/2 z-[140] rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-5 py-3 text-sm font-bold text-white shadow-2xl">🎨 {packInfoMsg}</div>)}
       {noticeOpen && noticePost && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={closeNotice}>
-          <div className="relative flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="flex items-start justify-between gap-3 border-b border-gray-100 px-6 py-4">
-              <p className="text-lg font-bold leading-snug text-gray-900">{noticePost.title}</p>
-              <button onClick={closeNotice} aria-label="닫기" className="mt-0.5 shrink-0 text-xl leading-none text-gray-400 hover:text-gray-700"><X size={18} /></button>
+          <div className="relative flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl border border-white/10 bg-[#111319] shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3 border-b border-white/10 px-6 py-4">
+              <p className="text-lg font-bold leading-snug text-white">{noticePost.title}</p>
+              <button onClick={closeNotice} aria-label="닫기" className="mt-0.5 shrink-0 text-xl leading-none text-white/40 hover:text-white/80"><X size={18} /></button>
             </div>
             <style>{`
-              .chronit-notice-body { color:#374151; font-size:15px; line-height:1.85; word-break:keep-all; }
+              .chronit-notice-body { color:rgba(255,255,255,.74); font-size:15px; line-height:1.85; word-break:keep-all; }
               .chronit-notice-body > :first-child { margin-top:0; }
-              .chronit-notice-body h1,.chronit-notice-body h2 { font-size:1.2rem; font-weight:800; color:#111827; margin:1.4em 0 .5em; line-height:1.35; }
-              .chronit-notice-body h3 { font-size:1.08rem; font-weight:800; color:#111827; margin:1.25em 0 .45em; }
+              .chronit-notice-body h1,.chronit-notice-body h2 { font-size:1.2rem; font-weight:800; color:#fff; margin:1.4em 0 .5em; line-height:1.35; }
+              .chronit-notice-body h3 { font-size:1.08rem; font-weight:800; color:#fff; margin:1.25em 0 .45em; }
               .chronit-notice-body p { margin:0 0 1.05em; }
               .chronit-notice-body ul,.chronit-notice-body ol { margin:0 0 1.05em; padding-left:1.4em; }
               .chronit-notice-body ul { list-style:disc; }
               .chronit-notice-body ol { list-style:decimal; }
               .chronit-notice-body li { margin:.4em 0; }
-              .chronit-notice-body strong,.chronit-notice-body b { font-weight:700; color:#111827; }
-              .chronit-notice-body a { color:#0064FF; text-decoration:underline; }
+              .chronit-notice-body strong,.chronit-notice-body b { font-weight:700; color:#fff; }
+              .chronit-notice-body a { color:#7DA2FF; text-decoration:underline; }
               .chronit-notice-body img { max-width:100%; border-radius:.6rem; margin:.6em 0; }
-              .chronit-notice-body blockquote { border-left:3px solid rgba(0,100,255,.25); padding-left:.9em; color:#4b5563; margin:0 0 1.05em; }
+              .chronit-notice-body blockquote { border-left:3px solid rgba(125,162,255,.4); padding-left:.9em; color:rgba(255,255,255,.55); margin:0 0 1.05em; }
             `}</style>
             <div className="chronit-notice-body overflow-y-auto px-6 py-6"
               dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(noticePost.body || "") }} />
-            <div className="flex items-center justify-between gap-2 border-t border-gray-100 px-6 py-3.5">
-              <label className="flex cursor-pointer items-center gap-2 text-xs text-gray-500">
+            <div className="flex items-center justify-between gap-2 border-t border-white/10 px-6 py-3.5">
+              <label className="flex cursor-pointer items-center gap-2 text-xs text-white/50">
                 <input type="checkbox" checked={noticeHideDay} onChange={e => setNoticeHideDay(e.target.checked)} className="h-4 w-4 rounded" />
                 하루 동안 보지 않기
               </label>
