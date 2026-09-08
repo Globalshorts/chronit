@@ -33,6 +33,8 @@ export default function HomeAnalysisShowcase() {
   }, [])
   useEffect(() => {
     if (!inView || !clips.length) return
+    // 모바일: 자동재생 OFF — 연속 모션이 스크롤 끊김을 유발. 단계 탭으로 사용자가 전환.
+    if (window.matchMedia && window.matchMedia('(max-width: 767px)').matches) { setPick(0); setStep(0); return }
     let alive = true; const timers = []
     const wait = (ms) => new Promise((r) => timers.push(setTimeout(r, ms)))
     const run = async () => {
@@ -92,7 +94,7 @@ export default function HomeAnalysisShowcase() {
         <div className="mx-auto mt-9 flex max-w-xl items-center justify-center gap-1.5 md:gap-2">
           {STEPS.map((s, i) => (
             <div key={s} className="flex items-center gap-1.5 md:gap-2">
-              <div className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[11px] font-bold transition-all md:px-3 md:text-[12px] ${i === step ? 'bg-[#0064FF] text-white' : 'bg-white/[0.06] text-white/45'}`}>
+              <div onClick={() => setStep(i)} role="button" className={`flex cursor-pointer items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[11px] font-bold transition-all md:px-3 md:text-[12px] ${i === step ? 'bg-[#0064FF] text-white' : 'bg-white/[0.06] text-white/45'}`}>
                 <span className={`flex h-4 w-4 items-center justify-center rounded-full text-[9px] ${i === step ? 'bg-white/25' : 'bg-white/10'}`}>{i + 1}</span>{s}
               </div>
               {i < STEPS.length - 1 && <span className="text-white/20">→</span>}
