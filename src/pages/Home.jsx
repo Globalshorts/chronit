@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, lazy, Suspense } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   Clock, CheckCircle2, MessageCircle, ArrowRight, Users,
   Film, TrendingDown, LogOut, Gift, Menu, X, Play, User,
@@ -18,9 +18,8 @@ import RevealStagger from '../components/RevealStagger'
 import NicknameModal from '../components/NicknameModal'
 import TimeLossCalculator from '../components/TimeLossCalculator'
 import { supabase } from '../lib/supabase'
-
-const ProblemSolution = lazy(() => import('../components/ProblemSolution'))
-const HomeAnalysisShowcase = lazy(() => import('../components/HomeAnalysisShowcase'))
+import ProblemSolution from '../components/ProblemSolution'
+import HomeAnalysisShowcase from '../components/HomeAnalysisShowcase'
 
 const GREEN = '#0064FF'
 
@@ -598,10 +597,10 @@ const Home = () => {
       </section>
 
       {/* ── 문제 → 해결(핀 고정 가로 전환) ── */}
-      {!user && <Suspense fallback={<div className="min-h-[60vh]" aria-hidden="true" />}><ProblemSolution /></Suspense>}
+      {!user && <ProblemSolution />}
 
       {/* ── 제품 쇼케이스: 실제 분석 화면 ── */}
-      {!user && <Suspense fallback={<div className="min-h-[70vh]" aria-hidden="true" />}><HomeAnalysisShowcase /></Suspense>}
+      {!user && <HomeAnalysisShowcase />}
 
       {/* ── 실데이터 통계 스트립 ── */}
       {stats?.clips ? (

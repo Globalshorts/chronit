@@ -19,8 +19,12 @@ export default function HomeAnalysisShowcase() {
 
   useEffect(() => {
     const el = rootRef.current; if (!el) return
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setInView(true); io.disconnect() } }, { threshold: 0.25 })
-    io.observe(el); return () => io.disconnect()
+    // 화면 안에 있을 때만 데모 재생 (벗어나면 inView=false → 루프/리렌더 정지) — 모바일 상시 CPU 방지
+    const io = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { threshold: 0.15 })
+    io.observe(el)
+    const onVis = () => { if (document.hidden) setInView(false) }
+    document.addEventListener('visibilitychange', onVis)
+    return () => { io.disconnect(); document.removeEventListener('visibilitychange', onVis) }
   }, [])
   useEffect(() => {
     let alive = true
@@ -48,7 +52,16 @@ export default function HomeAnalysisShowcase() {
     return () => { alive = false; timers.forEach(clearTimeout) }
   }, [inView, clips.length])
 
-  if (!clips.length) return <section ref={rootRef} className="h-2" />
+  if (!clips.length) return (
+    <section ref={rootRef} className="px-5 py-20 md:px-8 md:py-28">
+      <div className="mx-auto max-w-4xl">
+        <div className="mb-4 text-center text-[11px] font-semibold uppercase tracking-[0.28em] text-white/30">Research → Analyze → Remix</div>
+        <h2 className="text-center text-3xl font-bold leading-tight text-white break-keep md:text-[2.5rem]">왜 터졌는지, 어떻게 복제할지</h2>
+        <p className="mx-auto mt-4 max-w-xl text-center text-[15px] leading-relaxed text-white/50 break-keep md:text-base">실제로 터진 쇼핑 릴을 골라 훅·확산 속도·2차 창작 편집 가이드까지 한 번에.</p>
+        <div className="mx-auto mt-9 h-[520px] max-w-4xl animate-pulse rounded-2xl border border-white/10 bg-white/[0.04] md:h-[440px]" />
+      </div>
+    </section>
+  )
 
   const c = clips[Math.min(pick, clips.length - 1)]
   const a = c.analysis || {}

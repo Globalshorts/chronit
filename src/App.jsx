@@ -12,32 +12,41 @@ import { trackSignupIfNew } from './lib/trackSignup'
 import { phIdentify, phReset } from './lib/posthog'
 
 // ── 라우트별 코드 스플리팅 (홈 진입 시 앱 전체가 아니라 필요한 청크만 로드) ──
-const Home = lazy(() => import('./pages/Home'))
-const VideoGenerator = lazy(() => import('./pages/VideoGenerator'))
-const Finds = lazy(() => import('./pages/Finds'))
-const Trend = lazy(() => import('./pages/Trend'))
-const FastBench = lazy(() => import('./pages/FastBench'))
-const ChannelAnalysis = lazy(() => import('./pages/ChannelAnalysis'))
-const Landing = lazy(() => import('./pages/Landing'))
-const Register = lazy(() => import('./pages/Register'))
-const Manual = lazy(() => import('./pages/Manual'))
-const ManualDetail = lazy(() => import('./pages/ManualDetail'))
-const Events = lazy(() => import('./pages/Events'))
-const EventDetail = lazy(() => import('./pages/EventDetail'))
-const EventWrite = lazy(() => import('./pages/EventWrite'))
-const Terms = lazy(() => import('./pages/Terms'))
-const Privacy = lazy(() => import('./pages/Privacy'))
-const Admin = lazy(() => import('./pages/Admin'))
-const LinkPage = lazy(() => import('./pages/LinkPage'))
-const LinksManager = lazy(() => import('./pages/LinksManager'))
-const Board = lazy(() => import('./pages/Board'))
-const BoardWrite = lazy(() => import('./pages/BoardWrite'))
-const BoardPost = lazy(() => import('./pages/BoardPost'))
-const MyPage = lazy(() => import('./pages/MyPage'))
-const Pricing = lazy(() => import('./pages/Pricing'))
-const UserProfile = lazy(() => import('./pages/UserProfile'))
-const DmAutomation = lazy(() => import('./pages/DmAutomation'))
-const PaymentResult = lazy(() => import('./pages/PaymentResult'))
+// 청크 로드 실패(배포 갱신으로 옛 해시 요청 등) 시 1회 새로고침해 최신 청크를 받음 → 빈 화면 방지
+const lazyRetry = (factory) => lazy(() => factory().catch((err) => {
+  try {
+    const k = 'chr_chunk_reload'
+    if (!sessionStorage.getItem(k)) { sessionStorage.setItem(k, '1'); window.location.reload(); return new Promise(() => {}) }
+  } catch {}
+  throw err
+}))
+
+const Home = lazyRetry(() => import('./pages/Home'))
+const VideoGenerator = lazyRetry(() => import('./pages/VideoGenerator'))
+const Finds = lazyRetry(() => import('./pages/Finds'))
+const Trend = lazyRetry(() => import('./pages/Trend'))
+const FastBench = lazyRetry(() => import('./pages/FastBench'))
+const ChannelAnalysis = lazyRetry(() => import('./pages/ChannelAnalysis'))
+const Landing = lazyRetry(() => import('./pages/Landing'))
+const Register = lazyRetry(() => import('./pages/Register'))
+const Manual = lazyRetry(() => import('./pages/Manual'))
+const ManualDetail = lazyRetry(() => import('./pages/ManualDetail'))
+const Events = lazyRetry(() => import('./pages/Events'))
+const EventDetail = lazyRetry(() => import('./pages/EventDetail'))
+const EventWrite = lazyRetry(() => import('./pages/EventWrite'))
+const Terms = lazyRetry(() => import('./pages/Terms'))
+const Privacy = lazyRetry(() => import('./pages/Privacy'))
+const Admin = lazyRetry(() => import('./pages/Admin'))
+const LinkPage = lazyRetry(() => import('./pages/LinkPage'))
+const LinksManager = lazyRetry(() => import('./pages/LinksManager'))
+const Board = lazyRetry(() => import('./pages/Board'))
+const BoardWrite = lazyRetry(() => import('./pages/BoardWrite'))
+const BoardPost = lazyRetry(() => import('./pages/BoardPost'))
+const MyPage = lazyRetry(() => import('./pages/MyPage'))
+const Pricing = lazyRetry(() => import('./pages/Pricing'))
+const UserProfile = lazyRetry(() => import('./pages/UserProfile'))
+const DmAutomation = lazyRetry(() => import('./pages/DmAutomation'))
+const PaymentResult = lazyRetry(() => import('./pages/PaymentResult'))
 
 // 렌더(편집) 종료 게이트 — 2026-09-15 0시(KST)부터 작업실 진입 차단, Research로 리다이렉트
 const RENDER_CLOSE = new Date('2026-09-15T00:00:00+09:00').getTime()
@@ -57,7 +66,7 @@ const RouteFallback = () => (
 )
 
 const App = () => {
-  useEffect(() => { installGlobalErrorCapture() }, [])
+  useEffect(() => { installGlobalErrorCapture(); try { sessionStorage.removeItem('chr_chunk_reload') } catch {} }, [])
   useEffect(() => {
     const GA = 'G-Y46H5BMZ2X'
     const setUid = (session) => {
