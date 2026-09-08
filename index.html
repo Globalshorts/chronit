@@ -96,8 +96,9 @@
       gtag('js', new Date());
       gtag('config', 'G-Y46H5BMZ2X');
     </script>
-    <!-- Meta Pixel Code -->
+    <!-- Meta Pixel Code (지연 로드: 초기 페인트/대역폭 보호) -->
     <script>
+      window.addEventListener('load', function(){ setTimeout(function(){
       !function(f,b,e,v,n,t,s)
       {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
       n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -108,6 +109,7 @@
       'https://connect.facebook.net/en_US/fbevents.js');
       fbq('init', '1771376617642791');
       fbq('track', 'PageView');
+      }, 1200); });
     </script>
     <noscript><img height="1" width="1" style="display:none"
       src="https://www.facebook.com/tr?id=1771376617642791&ev=PageView&noscript=1"
@@ -118,10 +120,14 @@
     <link rel="dns-prefetch" href="https://oxygqtbdpnxxcgzwdlzi.supabase.co">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Gowun+Dodum&family=Jua&family=Nanum+Gothic:wght@400;700;800&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" rel="stylesheet">
-    <!-- 번들 한글 폰트 (자막/썸네일 프리뷰용, 출력 폰트와 family명 일치) -->
-    <link href="/fonts/_bundled.css" rel="stylesheet">
+    <!-- 본문 폰트(Pretendard): 비차단 로드 → 첫 페인트 막지 않음 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" media="print" onload="this.media='all'">
+    <!-- 자막/썸네일 프리뷰 전용 폰트(홈 불필요): 비차단 로드 -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Gowun+Dodum&family=Jua&family=Nanum+Gothic:wght@400;700;800&family=Noto+Sans+KR:wght@400;700;900&display=swap" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/fonts/_bundled.css" media="print" onload="this.media='all'">
+    <noscript>
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+    </noscript>
     <style id="chronit-ch-nudge">
     /* 하단 자동생성 바와 채널톡 런처 겹침 방지 — 모바일에서 런처를 위로 */
     @media (max-width: 700px) {
@@ -135,7 +141,13 @@
       <p>링크나 키워드만 넣으면 잘 터진 쇼핑 숏폼 소스를 찾아주고, AI가 훅·구성·셀링포인트를 분석해줍니다. 실시간 트렌드와 채널 벤치마킹까지, 쇼핑 크리에이터를 위한 소스 발굴·분석 도구예요.</p>
       <p><a href="/manual">사용 방법</a> · <a href="/events">이벤트</a></p>
     </noscript>
-    <div id="root"></div>
+    <div id="root">
+      <div id="boot-splash" style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#0a0b0f;z-index:0">
+        <svg width="46" height="46" viewBox="0 0 24 24" fill="none" style="opacity:.92"><path d="M4 7 L12 3 L20 7 L20 17 L12 21 L4 17 Z" stroke="#ffffff" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.5 10.5 L12 8.5 L15.5 10.5 M8.5 13.5 L12 15.5 L15.5 13.5" stroke="#4d7cff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div style="width:26px;height:26px;border:2.5px solid rgba(255,255,255,.15);border-top-color:#4d7cff;border-radius:50%;animation:bootspin .8s linear infinite"></div>
+      </div>
+      <style>@keyframes bootspin{to{transform:rotate(360deg)}}</style>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
     <!-- Channel Talk -->
     <script>

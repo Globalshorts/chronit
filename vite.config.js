@@ -2,7 +2,6 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-// manualChunks 없이 라우트 단위 lazy 분할만 사용 (rolldown 공통코드 오배치 방지).
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
@@ -10,6 +9,10 @@ export default defineConfig({
       output: {
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
+        // 아이콘(lucide)만 한 청크로 묶어 다수의 소청크 워터폴 제거. 나머지는 Rollup 기본.
+        manualChunks(id) {
+          if (id.includes('node_modules') && id.includes('lucide-react')) return 'icons'
+        },
       },
     },
   },
