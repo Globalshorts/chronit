@@ -1,39 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom'
-
-// 렌더(편집) 종료 게이트 — 2026-09-15 0시(KST)부터 작업실 진입 차단, Finds로 리다이렉트
-const RENDER_CLOSE = new Date('2026-09-15T00:00:00+09:00').getTime()
-function GenerateGate() {
-  if (Date.now() >= RENDER_CLOSE) return <Navigate to="/research" replace />
-  return <VideoGenerator />
-}
 import { AnalysisProvider } from './context/analysis'
-import VideoGenerator from './pages/VideoGenerator'
-import Finds from './pages/Finds'
-import Trend from './pages/Trend'
-import FastBench from './pages/FastBench'
-import ChannelAnalysis from './pages/ChannelAnalysis'
-import Home from './pages/Home'
-import Landing from './pages/Landing'
-import Register from './pages/Register'
-import Manual from './pages/Manual'
-import ManualDetail from './pages/ManualDetail'
-import Events from './pages/Events'
-import EventDetail from './pages/EventDetail'
-import EventWrite from './pages/EventWrite'
-import Terms from './pages/Terms'
-import Privacy from './pages/Privacy'
-import Admin from './pages/Admin'
-import LinkPage from './pages/LinkPage'
-import LinksManager from './pages/LinksManager'
-import Board from './pages/Board'
-import BoardWrite from './pages/BoardWrite'
-import BoardPost from './pages/BoardPost'
-import MyPage from './pages/MyPage'
-import Pricing from './pages/Pricing'
-import UserProfile from './pages/UserProfile'
-import DmAutomation from './pages/DmAutomation'
-import PaymentResult from './pages/PaymentResult'
 import ErrorBoundary from './components/ErrorBoundary'
 import BlobBackground from './components/BlobBackground'
 import ErrorReportModal from './components/ErrorReportModal'
@@ -44,11 +11,50 @@ import { supabase } from './lib/supabase'
 import { trackSignupIfNew } from './lib/trackSignup'
 import { phIdentify, phReset } from './lib/posthog'
 
+// ── 라우트별 코드 스플리팅 (홈 진입 시 앱 전체가 아니라 필요한 청크만 로드) ──
+const Home = lazy(() => import('./pages/Home'))
+const VideoGenerator = lazy(() => import('./pages/VideoGenerator'))
+const Finds = lazy(() => import('./pages/Finds'))
+const Trend = lazy(() => import('./pages/Trend'))
+const FastBench = lazy(() => import('./pages/FastBench'))
+const ChannelAnalysis = lazy(() => import('./pages/ChannelAnalysis'))
+const Landing = lazy(() => import('./pages/Landing'))
+const Register = lazy(() => import('./pages/Register'))
+const Manual = lazy(() => import('./pages/Manual'))
+const ManualDetail = lazy(() => import('./pages/ManualDetail'))
+const Events = lazy(() => import('./pages/Events'))
+const EventDetail = lazy(() => import('./pages/EventDetail'))
+const EventWrite = lazy(() => import('./pages/EventWrite'))
+const Terms = lazy(() => import('./pages/Terms'))
+const Privacy = lazy(() => import('./pages/Privacy'))
+const Admin = lazy(() => import('./pages/Admin'))
+const LinkPage = lazy(() => import('./pages/LinkPage'))
+const LinksManager = lazy(() => import('./pages/LinksManager'))
+const Board = lazy(() => import('./pages/Board'))
+const BoardWrite = lazy(() => import('./pages/BoardWrite'))
+const BoardPost = lazy(() => import('./pages/BoardPost'))
+const MyPage = lazy(() => import('./pages/MyPage'))
+const Pricing = lazy(() => import('./pages/Pricing'))
+const UserProfile = lazy(() => import('./pages/UserProfile'))
+const DmAutomation = lazy(() => import('./pages/DmAutomation'))
+const PaymentResult = lazy(() => import('./pages/PaymentResult'))
+
+// 렌더(편집) 종료 게이트 — 2026-09-15 0시(KST)부터 작업실 진입 차단, Research로 리다이렉트
+const RENDER_CLOSE = new Date('2026-09-15T00:00:00+09:00').getTime()
+function GenerateGate() {
+  if (Date.now() >= RENDER_CLOSE) return <Navigate to="/research" replace />
+  return <VideoGenerator />
+}
+
 const ScrollToTop = () => {
   const { pathname } = useLocation()
   useEffect(() => { if (!window.location.hash) window.scrollTo(0, 0) }, [pathname])
   return null
 }
+
+const RouteFallback = () => (
+  <div style={{ minHeight: '60vh' }} aria-hidden="true" />
+)
 
 const App = () => {
   useEffect(() => { installGlobalErrorCapture() }, [])
@@ -101,6 +107,7 @@ const App = () => {
     <OnboardingSurveyGate />
     <AdminFab />
     <ErrorBoundary>
+    <Suspense fallback={<RouteFallback />}>
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/start" element={<Landing />} />
@@ -131,6 +138,7 @@ const App = () => {
       <Route path="/payments/success" element={<PaymentResult />} />
       <Route path="/payments/fail" element={<PaymentResult fail />} />
     </Routes>
+    </Suspense>
     </ErrorBoundary>
     </div>
     </AnalysisProvider>

@@ -20,7 +20,10 @@ try {
   }
 } catch { /* noop */ }
 
-initPosthog()
+// 분석 초기화는 첫 페인트 이후로 지연 (초기 로드/렌더 블로킹 방지)
+const _startPH = () => { try { initPosthog() } catch {} }
+if ('requestIdleCallback' in window) requestIdleCallback(_startPH, { timeout: 4000 })
+else setTimeout(_startPH, 2500)
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
