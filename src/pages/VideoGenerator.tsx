@@ -113,11 +113,11 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
         </div>
       </nav>
     </header>
-    <nav className="sticky top-16 z-30 hidden gap-2 overflow-x-auto border-b border-gray-200 bg-white/95 px-3 py-2 backdrop-blur-xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <nav className={`sticky top-16 z-30 hidden gap-2 overflow-x-auto border-b px-3 py-2 backdrop-blur-xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${activeView==='dm' ? 'border-white/10 bg-[#0c0d11]/95' : 'border-gray-200 bg-white/95'}`}>
       {VIEW_TABS.map((t: any) => (
         <button key={t.v} disabled={t.locked}
           onClick={() => onViewChange && onViewChange(t.v)}
-          className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors ${activeView === t.v ? "bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white" : "bg-gray-100 text-gray-600"} ${t.locked ? "opacity-50 cursor-not-allowed" : ""}`}>
+          className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors ${activeView === t.v ? "bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white" : (activeView==='dm' ? "bg-white/10 text-white/60" : "bg-gray-100 text-gray-600")} ${t.locked ? "opacity-50 cursor-not-allowed" : ""}`}>
           {t.label}{t.locked && <span className="ml-1 text-[9px] text-gray-400">오픈예정</span>}
         </button>
       ))}
@@ -138,7 +138,7 @@ function MobileBottomNav({ activeView, onViewChange, userRole, userPlan }: { act
     { v: "settings", label: "내정보", Icon: User },
   ];
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-gray-200 bg-white/95 backdrop-blur-xl md:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+    <nav className={`fixed inset-x-0 bottom-0 z-40 flex border-t backdrop-blur-xl md:hidden ${activeView==='dm' ? 'border-white/10 bg-[#0c0d11]/95' : 'border-gray-200 bg-white/95'}`} style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
       {items.map(({ v, label, Icon, locked }: any) => {
         const on = activeView === v;
         return (
@@ -174,12 +174,12 @@ function AppTabBar({ activeView, onViewChange, userRole, userPlan }: { activeVie
     ...(isPartner ? [{ v: "partner", label: "파트너스", icon: "📊" }] : []),
   ];
   return (
-    <div className="hidden md:block shrink-0 border-b border-gray-200 bg-[#FAFAF8]">
+    <div className={`hidden md:block shrink-0 border-b ${activeView==='dm' ? 'border-white/10 bg-[#0c0d11]' : 'border-gray-200 bg-[#FAFAF8]'}`}>
       <div className="flex items-center gap-1 overflow-x-auto px-4 py-2 md:px-6">
         {TABS.map(({ v, label, icon, locked }: any) => (
           <button key={v} disabled={locked}
             onClick={() => onViewChange(v)}
-            className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition ${activeView === v ? "bg-[#0064FF]/15 text-[#0064FF]" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"} ${locked ? "opacity-50 cursor-not-allowed" : ""}`}>
+            className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition ${activeView === v ? (activeView==='dm' ? "bg-[#0064FF]/25 text-[#7DA2FF]" : "bg-[#0064FF]/15 text-[#0064FF]") : (activeView==='dm' ? "text-white/55 hover:bg-white/10 hover:text-white" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900")} ${locked ? "opacity-50 cursor-not-allowed" : ""}`}>
             {icon && <span>{icon}</span>}
             <span>{label}</span>
             {locked && <span className="ml-0.5 rounded bg-gray-200 px-1 text-[9px] text-gray-500">오픈예정</span>}
@@ -1788,7 +1788,7 @@ export default function VideoGenerator() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#EEF2F9] via-[#F5F6FA] to-[#FAFAF8] text-gray-900">
+    <div className={`flex flex-col min-h-screen ${activeView==='dm' ? 'bg-[#0a0b0f] text-white' : 'bg-gradient-to-b from-[#EEF2F9] via-[#F5F6FA] to-[#FAFAF8] text-gray-900'}`}>
       {/* ── 저작권 동의 모달 (매번) ── */}
       {consentAsk && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
@@ -2139,7 +2139,7 @@ export default function VideoGenerator() {
       {/* ── 메인 콘텐츠 ── */}
       <div className="flex-1 min-w-0 flex flex-col">
         {activeView !== "generator" && (
-          <div className="mx-auto w-full max-w-5xl flex-1 overflow-y-auto px-4 md:px-8 py-5 md:py-6 pb-20 md:pb-6">
+          <div className={`mx-auto w-full flex-1 overflow-y-auto pb-20 md:pb-6 ${activeView==='dm' ? 'bg-[#0a0b0f]' : 'max-w-5xl px-4 md:px-8 py-5 md:py-6'}`}>
             {activeView === "trends" && (
               <div className="max-w-5xl mx-auto">
                 <h2 className="mb-1 text-xl font-bold text-gray-900">🔥 오늘의 트렌드</h2>
