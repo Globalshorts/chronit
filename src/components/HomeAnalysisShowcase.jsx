@@ -34,15 +34,14 @@ export default function HomeAnalysisShowcase() {
     const wait = (ms) => new Promise((r) => timers.push(setTimeout(r, ms)))
     const run = async () => {
       let p = 0
+      setPick(0); setStep(0)
       while (alive) {
-        setPick(p); setStep(0); await wait(700)
-        const el = thumbRefs.current[p], w = winRef.current
-        if (el && w) { const r = el.getBoundingClientRect(), wr = w.getBoundingClientRect(); setCursor({ x: r.left - wr.left + r.width / 2, y: r.top - wr.top + r.height / 2, click: false }) }
-        await wait(950); if (!alive) break
-        setCursor((c) => ({ ...c, click: true })); await wait(240); setCursor((c) => ({ ...c, click: false }))
-        setStep(1); await wait(2000); if (!alive) break
-        setStep(2); await wait(2000); if (!alive) break
+        setStep(0); await wait(1200); if (!alive) break          // 발굴: 현재 릴 정지
+        setStep(1); await wait(2000); if (!alive) break          // 터짐 분석
+        setStep(2); await wait(2000); if (!alive) break          // 2차 창작 가이드
+        setStep(0); await wait(750); if (!alive) break           // 발굴로 복귀 (이전 릴 그대로)
         p = (p + 1) % clips.length
+        setPick(p); await wait(1050); if (!alive) break          // 다음 릴로 코버플로우 슬라이드 (눈에 보이게)
       }
     }
     run()
