@@ -183,3 +183,19 @@ button.bg-white{
 @media (min-width: 768px) {
   .glass-c { backdrop-filter: blur(9px) saturate(1.3); -webkit-backdrop-filter: blur(9px) saturate(1.3); }
 }
+
+/* 컬러 라이트 틴트(-50) & 잔여 밝은 배경 → 다크 테마용 remap (generate 등 라이트 잔재 정리) */
+html .bg-blue-50{background:rgba(59,130,246,.14)!important}
+html .bg-amber-50{background:rgba(245,158,11,.14)!important}
+html .bg-emerald-50{background:rgba(16,185,129,.14)!important}
+html .bg-red-50{background:rgba(239,68,68,.14)!important}
+html .bg-yellow-50{background:rgba(234,179,8,.14)!important}
+html .bg-\[\#FAFDFB\]{background:rgba(255,255,255,.05)!important}
+html .border-amber-200,html .border-amber-300{border-color:rgba(245,158,11,.30)!important}
+html .border-emerald-200{border-color:rgba(16,185,129,.30)!important}
+html .border-red-200{border-color:rgba(239,68,68,.30)!important}
+html .border-blue-200{border-color:rgba(59,130,246,.30)!important}
+html .text-blue-700,html .text-blue-800{color:#93c5fd!important}
+html .text-amber-700,html .text-amber-800{color:#fcd34d!important}
+html .text-emerald-600,html .text-emerald-700{color:#6ee7b7!important}
+html .text-red-600,html .text-red-700{color:#fca5a5!important}
