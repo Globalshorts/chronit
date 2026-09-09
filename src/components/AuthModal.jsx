@@ -70,32 +70,6 @@ const AuthModal = ({ open, onClose, referralCode }) => {
           <h3 className="text-xl font-bold text-gray-900">로그인</h3>
         </div>
 
-        {inApp && (
-          <div className="mb-5 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800">
-            인앱 브라우저(네이버·인스타·카톡 등)에서는 <b>구글 로그인이 제한</b>돼요.<br />
-            아래 <b>카카오로 계속하기</b>를 쓰거나, 외부 브라우저에서 열어주세요.
-            <div className="mt-3 flex gap-2">
-              {isAndroid && (
-                <button
-                  onClick={openExternal}
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2 text-xs font-bold text-white active:scale-[0.98]"
-                >
-                  <ExternalLink size={13} /> Chrome에서 열기
-                </button>
-              )}
-              <button
-                onClick={copyLink}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-amber-400 bg-white px-3 py-2 text-xs font-bold text-amber-700 active:scale-[0.98]"
-              >
-                {copied ? (<><Check size={13} /> 복사됨</>) : (<><Copy size={13} /> 주소 복사</>)}
-              </button>
-            </div>
-            {!isAndroid && (
-              <p className="mt-2 text-xs">복사한 주소를 Safari에 붙여넣거나, 우측 상단 <b>⋯ → 기본 브라우저로 열기</b></p>
-            )}
-          </div>
-        )}
-
         {referralCode && (
           <div className="mb-5 flex items-center gap-2 rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/10 px-4 py-3">
             <Gift size={15} className="shrink-0 text-[#0064FF]" />
@@ -130,9 +104,6 @@ const AuthModal = ({ open, onClose, referralCode }) => {
             </svg>
             Google로 계속하기
           </button>
-          {inApp && (
-            <p className="text-center text-xs text-gray-400">구글은 인앱에서 막힐 수 있어요 — 카카오를 권장해요</p>
-          )}
         </div>
 
         <div className="mt-4 border-t border-gray-100 pt-3 text-center">
