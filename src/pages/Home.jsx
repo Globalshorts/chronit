@@ -11,6 +11,7 @@ import SiteNav from '../components/SiteNav'
 import Reveal from '../components/Reveal'
 import RevealStagger from '../components/RevealStagger'
 import { supabase } from '../lib/supabase'
+import { phCapture } from '../lib/posthog'
 // 모달들: 열릴 때만 로드(엔트리 경량화)
 const PaymentModal = lazy(() => import('../components/PaymentModal'))
 const FindsPricing = lazy(() => import('../components/FindsPricing'))
@@ -216,13 +217,15 @@ const Home = () => {
   // 시작하기/무료로 시작하기 — 로그인 시 트렌드로, 아니면 로그인
   // 가입 전 맛보기: 로그아웃도 로그인 모달 없이 /research(익명 피드)로 → 깊은 분석에서만 가입 유도
   const handleStart = () => {
+    phCapture('cta_clicked', { location: 'primary' })
     window.location.href = user ? '/trend' : '/research'
   }
 
   const handleFinds = () => {
+    phCapture('cta_clicked', { location: 'finds' })
     window.location.href = user ? '/trend' : '/research'
   }
-  const heroSubmit = () => { const q = heroQuery.trim(); window.location.href = q ? '/research?q=' + encodeURIComponent(q) : (user ? '/trend' : '/research') }
+  const heroSubmit = () => { const q = heroQuery.trim(); phCapture('cta_clicked', { location: 'hero', has_query: !!q }); window.location.href = q ? '/research?q=' + encodeURIComponent(q) : (user ? '/trend' : '/research') }
   const handleBuy = (tab = 'sub', period = 'monthly') => {
     setBuyTab(tab); setBuyPeriod(period)
     if (user && !user.is_anonymous) { setBuyOpen(true); return }

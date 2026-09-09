@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { CheckCircle2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { phCapture } from '../lib/posthog'
 import { getFp } from '../lib/fp'
 
 const ICON = '/cn-white.svg'
@@ -98,7 +99,8 @@ const Register = () => {
         try { await supabase.rpc('auto_nickname_rpc', { p_base: baseName }) } catch { /* noop */ }
       }
       if (!prof?.terms_agreed_at) setStep(STEP.TERMS)
-      else { try { await supabase.rpc('complete_onboarding_rpc') } catch { /* noop */ } window.location.href = '/trend'; return }
+      else { try { await supabase.rpc('complete_onboarding_rpc') } catch { /* noop */ }
+    try { phCapture('signup_completed') } catch { /* noop */ } window.location.href = '/trend'; return }
       setLoading(false)
     })()
   }, [])
@@ -106,6 +108,7 @@ const Register = () => {
   const finish = async () => {
     setSaving(true)
     try { await supabase.rpc('complete_onboarding_rpc') } catch { /* noop */ }
+    try { phCapture('signup_completed') } catch { /* noop */ }
     window.location.href = '/trend'
   }
 
@@ -122,6 +125,7 @@ const Register = () => {
     try { await supabase.rpc('auto_nickname_rpc', { p_base: baseName }) } catch { /* noop */ }
     // 유입경로 설문은 첫 영상 완료 후 앱에서 물어봄 — 여기서 막지 않고 바로 앱으로.
     try { await supabase.rpc('complete_onboarding_rpc') } catch { /* noop */ }
+    try { phCapture('signup_completed') } catch { /* noop */ }
     window.location.href = '/trend'
   }
 

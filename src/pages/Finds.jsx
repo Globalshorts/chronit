@@ -3,6 +3,7 @@ import HeaderInstallBtn from '../components/HeaderInstallBtn'
 import { Navigate, Link, useNavigate } from 'react-router-dom'
 import { Search, Loader2, AlertTriangle, Flame, Eye, Heart, MessageCircle, Sparkles, X, Copy, Check, Download } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { phCapture } from '../lib/posthog'
 import { FEATURES } from '../config/features'
 import AuthModal from '../components/AuthModal'
 import ReferralCTA from '../components/ReferralCTA'
@@ -457,6 +458,7 @@ export default function Finds() {
   const srchTargetRef = useRef(8)
   const { startChannel, channelLoading, channelResult, reopenChannel } = useAnalysis()
   const [clips, setClips] = useState([])
+  useEffect(() => { phCapture('research_viewed') }, [])
   const [searching, setSearching] = useState(false)
   const [error, setError] = useState('')
   const [modalClip, setModalClip] = useState(null)
@@ -507,7 +509,8 @@ export default function Finds() {
 
   const handleAnalyze = async (clip) => {
     // 익명은 분석(유료) 불가 — 진짜 로그인 필요. (검색은 익명 OK)
-    if (!session || session.user?.is_anonymous) { setError('로그인하면 분석할 수 있어요'); return }
+    if (!session || session.user?.is_anonymous) { phCapture('auth_gate_viewed', { source: 'analyze' }); setError('로그인하면 분석할 수 있어요'); return }
+    phCapture('analysis_clicked', {})
     if (analyzedIds.includes(clip.video_id)) { setModalClip(clip); return }
     if (!ackAnalyzeCost(balance)) return
     const { data } = await supabase.rpc('use_finds_credit_rpc')
@@ -602,6 +605,7 @@ export default function Finds() {
       // 지표 필드 정규화(있으면 사용)
       setSrchStage('정리 중'); srchTargetRef.current = 95
       setClips(finalClips.map((c) => ({ ...c, views: c.views ?? c.view_count ?? c.play_count, likes: c.likes ?? c.like_count ?? c.digg_count, comments: c.comments ?? c.comment_count ?? c.comments_count })))
+      try { phCapture('search_succeeded', { count: finalClips.length }) } catch { /* noop */ }
       try { sessionStorage.setItem('finds_cache', JSON.stringify({ q: su, clips: finalClips, ts: Date.now() })) } catch { /* noop */ }
 
       const kwForRelated = isUrl ? (searchArgs.keyword || '') : su
@@ -765,7 +769,7 @@ export default function Finds() {
         )}
       </div>
 
-      {modalClip && <AnalyzeModal clip={modalClip} onAnalyzed={() => { fbPending.current = true }} onClose={() => { setModalClip(null); try { if (fbPending.current && !fbShown.current && !localStorage.getItem('chronit_finds_fb_done')) { fbPending.current = false; fbShown.current = true; setTimeout(() => setFbOpen(true), 500) } } catch { /* noop */ } }} />}
+      {modalClip && <AnalyzeModal clip={modalClip} onAnalyzed={() => { fbPending.current = true; try { phCapture('analysis_completed') } catch { /* noop */ } }} onClose={() => { setModalClip(null); try { if (fbPending.current && !fbShown.current && !localStorage.getItem('chronit_finds_fb_done')) { fbPending.current = false; fbShown.current = true; setTimeout(() => setFbOpen(true), 500) } } catch { /* noop */ } }} />}
       {fbOpen && <FindsFeedbackModal onClose={() => setFbOpen(false)} />}
       <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
