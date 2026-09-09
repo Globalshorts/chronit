@@ -199,3 +199,14 @@ html .text-blue-700,html .text-blue-800{color:#93c5fd!important}
 html .text-amber-700,html .text-amber-800{color:#fcd34d!important}
 html .text-emerald-600,html .text-emerald-700{color:#6ee7b7!important}
 html .text-red-600,html .text-red-700{color:#fca5a5!important}
+
+/* 네이티브 select 드롭다운 옵션 가독성 (다크 배경에 다크 글자로 안 보이던 문제) */
+select option, select optgroup {
+  background-color: #151821 !important;
+  color: #f4f6fb !important;
+}
+select option:disabled { color: rgba(244,246,251,.45) !important; }
+select option:checked, select option:hover {
+  background-color: #0064FF !important;
+  color: #ffffff !important;
+}
