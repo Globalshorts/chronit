@@ -37,4 +37,4 @@ export async function initPosthog() {
 }
 export function phIdentify(uid) { try { if (!uid) return; if (ready && posthog) posthog.identify(uid); else pendingUid = uid } catch {} }
 export function phReset() { try { pendingUid = null; if (ready && posthog) posthog.reset() } catch {} }
-export function phCapture(event, props) { try { if (ready && posthog && event) posthog.capture(event, props || {}) } catch {} }
+export function phCapture(event, props, opts) { try { if (ready && posthog && event) posthog.capture(event, props || {}, opts) } catch {} }
