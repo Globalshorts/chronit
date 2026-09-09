@@ -23,11 +23,9 @@ const SignupSurveyModal = ({ open, hasSource = false, onDone }) => {
   useEffect(() => { if (open) setPage(hasSource ? 2 : 1) }, [open, hasSource])
   if (!open) return null
 
-  const chooseSource = async (src) => {
-    setSaving(true)
-    try { await supabase.rpc('set_signup_source_rpc', { p_source: src }) } catch { /* noop */ }
-    setSaving(false)
-    setPage(2)
+  const chooseSource = (src) => {
+    setPage(2)                                                          // 즉시 다음 단계로 (네트워크 대기 없음)
+    supabase.rpc('set_signup_source_rpc', { p_source: src }).catch(() => {}) // 저장은 백그라운드
   }
 
   const finish = async () => {
@@ -47,8 +45,8 @@ const SignupSurveyModal = ({ open, hasSource = false, onDone }) => {
   const selCls = 'mt-2 w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm font-bold text-gray-900 outline-none focus:border-[#0064FF]'
 
   return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
-      <div className="w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl">
+    <div className="fixed inset-0 z-[90] flex items-start justify-center overflow-y-auto bg-black/60 px-4 py-6 backdrop-blur-sm sm:items-center">
+      <div className="my-auto max-h-[92dvh] w-full max-w-sm overflow-y-auto rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl">
         {!hasSource && (
           <div className="mb-4 flex items-center justify-center gap-1.5">
             <span className={`h-1.5 rounded-full transition-all ${page === 1 ? 'w-6 bg-[#0064FF]' : 'w-1.5 bg-gray-300'}`} />
@@ -62,8 +60,8 @@ const SignupSurveyModal = ({ open, hasSource = false, onDone }) => {
             <p className="mt-1 text-center text-sm text-gray-500">더 나은 서비스를 위해 참고할게요 🙏</p>
             <div className="mt-5 grid grid-cols-2 gap-2.5">
               {SOURCE_OPTIONS.map(opt => (
-                <button key={opt} disabled={saving} onClick={() => chooseSource(opt)}
-                  className="rounded-xl border border-gray-200 bg-[#FAFAF8] px-3 py-3 text-sm font-bold text-gray-800 transition hover:border-[#0064FF] hover:text-[#0064FF] active:scale-[0.98] disabled:opacity-50">
+                <button key={opt} onClick={() => chooseSource(opt)}
+                  className="rounded-xl border border-gray-200 bg-[#FAFAF8] px-3 py-3 text-sm font-bold text-gray-800 transition hover:border-[#0064FF] hover:text-[#0064FF] active:scale-[0.98]">
                   {opt}
                 </button>
               ))}
@@ -81,7 +79,7 @@ const SignupSurveyModal = ({ open, hasSource = false, onDone }) => {
                 {PERSONA_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
               </select>
               {persona === '기타' && (
-                <input value={personaOther} onChange={e => setPersonaOther(e.target.value)} maxLength={40}
+                <input value={personaOther} onChange={e => setPersonaOther(e.target.value)} maxLength={40} autoFocus
                   placeholder="직접 입력해주세요"
                   className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 outline-none focus:border-[#0064FF]" />
               )}
@@ -94,7 +92,7 @@ const SignupSurveyModal = ({ open, hasSource = false, onDone }) => {
                 {NICHE_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
               </select>
               {niche === '기타' && (
-                <input value={nicheOther} onChange={e => setNicheOther(e.target.value)} maxLength={40}
+                <input value={nicheOther} onChange={e => setNicheOther(e.target.value)} maxLength={40} autoFocus
                   placeholder="직접 입력해주세요"
                   className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 outline-none focus:border-[#0064FF]" />
               )}
