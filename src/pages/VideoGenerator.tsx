@@ -10,7 +10,7 @@
  */
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus, Gift, ChevronDown, Pencil, Eye, MessageCircle, User, MessageSquare, Receipt, LogOut, Heart, Zap, Lightbulb, PenTool, Shield, Palette, Upload, ShoppingCart, ChevronUp, Save, X, Home, Flame, History, Link2, Download, Copy, Check, Trash2, Clock, Loader2, Smartphone, Settings, Ticket, Monitor } from "lucide-react";
+import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus, Gift, ChevronDown, Pencil, Eye, MessageCircle, User, MessageSquare, Receipt, LogOut, Heart, Zap, Lightbulb, PenTool, Shield, Palette, Upload, ShoppingCart, ChevronUp, Save, X, Home, History, Link2, Download, Copy, Check, Trash2, Clock, Loader2, Smartphone, Settings, Ticket, Monitor } from "lucide-react";
 import DOMPurify from "dompurify";
 import { supabase } from "../lib/supabase";
 import { getFp } from "../lib/fp";
@@ -53,7 +53,6 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
     } catch { setCanInstall(true); }
   }, []);
   const VIEW_TABS = [
-    ...(FEATURES.trendFeed ? [{ v: "trends", label: "트렌드" }] : []),
     { v: "generator", label: "프로젝트" },
     { v: "history", label: "생성 내역" },
     { v: "product-search", label: "내 링크" },
@@ -131,7 +130,6 @@ function MobileBottomNav({ activeView, onViewChange, userRole, userPlan }: { act
   const isPartner = userRole === "partner" || userRole === "super_admin";
   const items: any[] = [
     { v: "generator", label: "홈", Icon: Home },
-    { v: "trends", label: "트렌드", Icon: Flame },
     { v: "history", label: "내역", Icon: History },
     { v: "product-search", label: "링크", Icon: Link2 },
     { v: "dm", label: "DM", Icon: MessageCircle, locked: !isPartner },
@@ -165,7 +163,6 @@ function AppTabBar({ activeView, onViewChange, userRole, userPlan }: { activeVie
   const isPartner = userRole === "partner" || userRole === "super_admin";
   const isAdmin = userRole === "super_admin";
   const TABS: any[] = [
-    ...(FEATURES.trendFeed ? [{ v: "trends", label: "오늘의 트렌드", icon: "🔥" }] : []),
     { v: "generator", label: "프로젝트" },
     { v: "history", label: "생성 내역" },
     { v: "product-search", label: "내 링크" },
@@ -574,7 +571,7 @@ export default function VideoGenerator() {
   const [userRole, setUserRole]     = useState<string>("user");
   const [activeView, setActiveView] = useState(() => {
     // 유효한 탭 값만 허용 — 옛/이상 값이면 프로젝트(generator)로 폴백(빈 화면 방지)
-    const VALID_VIEWS = ["trends", "generator", "history", "product-search", "settings", "partner", "admin", "dm"];
+    const VALID_VIEWS = ["generator", "history", "product-search", "settings", "partner", "admin", "dm"];
     try {
       // URL ?view= 딥링크 우선 (예: /generate?view=trends → 트렌드 탭 바로 열기)
       const urlView = new URLSearchParams(window.location.search).get("view");
@@ -2140,48 +2137,6 @@ export default function VideoGenerator() {
       <div className="flex-1 min-w-0 flex flex-col">
         {activeView !== "generator" && (
           <div className={`mx-auto w-full flex-1 overflow-y-auto pb-20 md:pb-6 max-w-5xl px-4 md:px-8 py-5 md:py-6`}>
-            {activeView === "trends" && (
-              <div className="max-w-5xl mx-auto">
-                <h2 className="mb-1 text-xl font-bold text-gray-900">🔥 오늘의 트렌드</h2>
-                <p className="mb-4 text-sm text-gray-500">쇼핑 릴스를 매일 서버에서 자동 수집해요. 조회수·좋아요·댓글 순으로 정렬해 볼 수 있어요. 카드를 누르면 그 영상으로 바로 제작 흐름으로 넘어가요.</p>
-                {trendNote && <p className="mb-3 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">{trendNote}</p>}
-                {trendNeedsSetup && (session?.user?.email || "").toLowerCase() === "pv2066pv@gmail.com" && (
-                  <div className="mb-4 max-w-md space-y-2 rounded-xl border border-amber-300 bg-amber-50 p-3">
-                    <p className="text-xs font-bold text-amber-700">🔑 Apify 토큰 연결 <span className="font-normal text-amber-500">· 주인 전용 · 한 번만</span></p>
-                    <input type="password" value={apifyTok} onChange={e => setApifyTok(e.target.value)} placeholder="apify_api_..."
-                      className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm outline-none focus:border-amber-500" />
-                    <button onClick={saveApifyToken} disabled={savingTok || !apifyTok.trim()}
-                      className="w-full rounded-lg bg-amber-500 py-2 text-sm font-bold text-white hover:bg-amber-600 disabled:opacity-40 transition">{savingTok ? "저장 중…" : "토큰 저장"}</button>
-                  </div>
-                )}
-                {trendLoading && !trendItems.length && (
-                  <div className="flex flex-col items-center gap-2 py-12">
-                    <span className="h-7 w-7 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
-                    <span className="text-xs text-gray-400">처음 불러올 땐 1~2분 걸려요…</span>
-                  </div>
-                )}
-                <div className="mb-3 flex items-center gap-1.5">
-                  <span className="mr-1 text-xs font-bold text-gray-400">정렬</span>
-                  {([["recent","🆕 최신"],["view","▶ 조회수"],["like","❤️ 좋아요"],["comment","💬 댓글"]] as const).map(([k,label]) => (
-                    <button key={k} onClick={() => setTrendSort(k as any)}
-                      className={`rounded-full px-3 py-1 text-xs font-bold transition ${trendSort===k ? "bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>{label}</button>
-                  ))}
-                </div>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                  {(() => {
-                    const cutoff = Date.now() - 7 * 86400000; // 최근 7일
-                    const isComp = (c: string) => /top ?\d|베스트|순위|랭킹|모음|총정리|\d+ ?가지|\d+ ?위/i.test(c || ""); // TOP5·모음 등 컴필레이션
-                    const within = trendItems.filter((it: any) => it.taken_at && new Date(it.taken_at).getTime() >= cutoff);
-                    const single = within;
-                    const base = single.length >= 5 ? single : within; // 단일상품이 너무 적으면 전체(최근)
-                    const shown = (base.length ? base : trendItems)
-                      .slice()
-                      .sort((a: any, b: any) => { if (trendSort==="recent") return (new Date(b.taken_at||0).getTime())-(new Date(a.taken_at||0).getTime()); const mk = trendSort==="view"?"view_count":trendSort==="like"?"like_count":"comment_count"; return (Number(b[mk])||0)-(Number(a[mk])||0); }); // 유저 선택 정렬
-                    return shown.map((it: any) => (<TrendCard key={it.shortcode} item={it} onAdd={() => trendAdd(it)} onAnalyze={() => trendAnalyze(it)} />));
-                  })()}
-                </div>
-              </div>
-            )}
             {activeView === "history" && (
               <>
                 <h2 className="mb-6 flex items-center gap-2 text-xl font-bold text-gray-900"><Film size={22} className="text-[#0064FF]" /> 생성 내역</h2>
@@ -3935,7 +3890,6 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
   const isAdmin = userRole === "super_admin";
   const GROUPS = [
     { title: "자주 쓰는 메뉴", items: [
-      ...(FEATURES.trendFeed ? [{ v: "trends", label: "오늘의 트렌드", icon: "🔥" }] : []),
       { v: "generator",      label: "프로젝트" },
       { v: "history",        label: "생성 내역" },
       { v: "product-search", label: "내 링크" },
