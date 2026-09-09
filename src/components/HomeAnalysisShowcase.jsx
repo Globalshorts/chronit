@@ -52,7 +52,7 @@ export default function HomeAnalysisShowcase() {
     <section ref={rootRef} className="px-5 py-20 md:px-8 md:py-28">
       <div className="mx-auto max-w-4xl">
         <div className="mb-4 text-center text-[11px] font-semibold uppercase tracking-[0.28em] text-white/30">Research → Analyze → Remix</div>
-        <h2 className="text-center text-3xl font-bold leading-tight text-white break-keep md:text-[2.5rem]">왜 터졌는지, 어떻게 복제할지</h2>
+        <h2 className="text-center text-3xl font-bold leading-tight text-white break-keep md:text-[2.5rem]">왜 터졌는지, 어떻게 내 걸로 만들지</h2>
         <p className="mx-auto mt-4 max-w-xl text-center text-[15px] leading-relaxed text-white/50 break-keep md:text-base">실제로 터진 쇼핑 릴을 골라 훅·확산 속도·2차 창작 편집 가이드까지 한 번에.</p>
         <div className="mx-auto mt-9 h-[520px] max-w-4xl animate-pulse rounded-2xl border border-white/10 bg-white/[0.04] md:h-[440px]" />
       </div>
@@ -82,7 +82,7 @@ export default function HomeAnalysisShowcase() {
     <section ref={rootRef} className="px-5 py-20 md:px-8 md:py-28">
       <Reveal className="mx-auto max-w-4xl">
         <div className="mb-4 text-center text-[11px] font-semibold uppercase tracking-[0.28em] text-white/30">Research → Analyze → Remix</div>
-        <h2 className="text-center text-3xl font-bold leading-tight text-white break-keep md:text-[2.5rem]">왜 터졌는지, 어떻게 복제할지</h2>
+        <h2 className="text-center text-3xl font-bold leading-tight text-white break-keep md:text-[2.5rem]">왜 터졌는지, 어떻게 내 걸로 만들지</h2>
         <p className="mx-auto mt-4 max-w-xl text-center text-[15px] leading-relaxed text-white/50 break-keep md:text-base">실제로 터진 쇼핑 릴을 골라 훅·확산 속도·2차 창작 편집 가이드까지 한 번에.</p>
 
         <div className="mx-auto mt-9 flex max-w-xl items-center justify-center gap-1.5 md:gap-2">
@@ -172,7 +172,7 @@ export default function HomeAnalysisShowcase() {
               <div className="mb-3 flex items-center gap-2">
                 <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#0064FF]/20 text-[#7DA2FF]"><Scissors size={14} /></span>
                 <span className="text-[14px] font-bold text-white">2차 창작 가이드</span>
-                <span className="ml-auto text-[12px] text-white/40">내 상품 영상으로 복제</span>
+                <span className="ml-auto text-[12px] text-white/40">내 상품 기획으로 재해석</span>
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-3">

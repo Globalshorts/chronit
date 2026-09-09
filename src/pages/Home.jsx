@@ -106,7 +106,7 @@ const wonFmt = (n) => Number(n || 0).toLocaleString('ko-KR')
 const pctOff = (list, sale) => (list > 0 ? Math.round((list - sale) / list * 100) : 0)
 
 const HERO_PERSONAS = [
-  { tab: '공구·제휴', title: '판매로 이어지는 소재를 복제하세요', benefits: ['지금 터진 쇼핑 소재 실시간', '왜 터졌는지 훅·셀링포인트 분석', '확산 전 선점 (패스트벤치)', '내 니치 소재만 필터'] },
+  { tab: '공구·제휴', title: '반응한 소재로 내 상품 기획을 만드세요', benefits: ['지금 터진 쇼핑 소재 실시간', '왜 터졌는지 훅·셀링포인트 분석', '확산 전 선점 (패스트벤치)', '내 니치 소재만 필터'] },
   { tab: '브랜드 SNS', title: '매일 올릴 콘텐츠, 고갈 없이', benefits: ['소재 아이디어 무한 공급', '경쟁 계정 레퍼런스 벤치마크', '니치 트렌드 모니터링', '콘텐츠 기획 시간 단축'] },
   { tab: '릴스·틱톡', title: '남들보다 먼저, 2차 창작으로', benefits: ['유사 소재 레퍼런스 확보', '터짐 속도로 타이밍 판단', '2차 창작 편집 가이드', '매일 새 소스 갱신'] },
   { tab: '부업·입문', title: '뭐 올릴지, 여기서 끝', benefits: ['막막함 즉시 해결', '감이 아니라 데이터로', '무료 월 5회로 체험', '쉬운 3단계'] },
@@ -583,15 +583,15 @@ const Home = () => {
           {!user && (<>
             <p className="hero-shimmer mb-6 text-[11px] font-semibold uppercase tracking-[0.32em]">Research · Analyze · Remix</p>
             <h1 className="mb-6 text-[2.4rem] font-semibold leading-[1.16] tracking-tight text-white break-keep md:text-[3.7rem]">
-              터지는 쇼핑 릴스엔<br /><span className="text-[#A9C0FF]">이유</span>가 있습니다
+              오늘 반응한 쇼핑 숏폼,<br />내 <span className="text-[#A9C0FF]">다음 영상 기획</span>으로.
             </h1>
             <p className="mx-auto mb-10 max-w-md text-[15px] font-normal leading-relaxed text-white/45 break-keep md:text-base">
-              릴스·틱톡으로 파는 크리에이터를 위한 소재 리서치 AI.<br />터진 영상을 찾아 분석하고, 내 상품 영상으로 복제하세요.
+              릴스·틱톡에서 반응한 소재를 찾고, 첫 3초 훅·셀링포인트·컷 구성을 분석해<br />내 상품에 맞는 기획안으로 바꿔보세요.
             </p>
             <div className="flex w-full max-w-sm flex-col items-center gap-4">
               <button onClick={handleFinds}
                 className="w-full rounded-full bg-white px-8 py-4 text-base font-semibold text-[#0A0B0F] transition-all hover:bg-white/90 active:scale-[0.99]">
-                무료로 시작하기
+                지금 반응한 소재 무료로 보기
               </button>
               <p className="text-[13px] font-normal text-white/35">카드 등록 없이 · 월 5회 무료</p>
               {spots != null && spots > 0 && (
