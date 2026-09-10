@@ -451,8 +451,6 @@ export default function Trend() {
       {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onSource={() => { window.location.href = '/research?url=' + encodeURIComponent(playClip.page_url) }} onAnalyze={() => { setPlayClip(null); handleAnalyze(playClip) }} />}
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
       <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
-      <div className="h-16 md:hidden" />
-      <FindsBottomNav />
     </div>
   )
 }

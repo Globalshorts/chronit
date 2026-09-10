@@ -261,8 +261,6 @@ const MyPage = () => {
 
       <FindsPricing open={payOpen} onClose={() => { setPayOpen(false); if (user) load(user.id) }} />
       <NicknameModal open={nickOpen} onClose={() => setNickOpen(false)} onDone={(n) => { setNickOpen(false); setProfile(p => ({ ...p, nickname: n })) }} />
-      <div className="h-16 md:hidden" />
-      <FindsBottomNav />
       <Footer />
     </div>
   )

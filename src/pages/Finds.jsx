@@ -773,8 +773,6 @@ export default function Finds() {
       {fbOpen && <FindsFeedbackModal onClose={() => setFbOpen(false)} />}
       <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
-      <div className="h-16 md:hidden" />
-      <FindsBottomNav />
     </div>
   )
 }
