@@ -7,8 +7,8 @@ import BlobBackground from './components/BlobBackground'
 import ErrorReportModal from './components/ErrorReportModal'
 import OnboardingSurveyGate from './components/OnboardingSurveyGate'
 import InstallButton from './components/InstallButton'
+import AppShell from './components/AppShell'
 const PwaInstallGlobal = lazy(() => import('./components/PwaInstall'))
-const AppShell = lazy(() => import('./components/AppShell'))
 import { installGlobalErrorCapture } from './lib/errorReport'
 import { supabase } from './lib/supabase'
 import { trackSignupIfNew } from './lib/trackSignup'
