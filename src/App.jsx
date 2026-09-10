@@ -8,6 +8,7 @@ import ErrorReportModal from './components/ErrorReportModal'
 import OnboardingSurveyGate from './components/OnboardingSurveyGate'
 import InstallButton from './components/InstallButton'
 const PwaInstallGlobal = lazy(() => import('./components/PwaInstall'))
+const AppShell = lazy(() => import('./components/AppShell'))
 import { installGlobalErrorCapture } from './lib/errorReport'
 import { supabase } from './lib/supabase'
 import { trackSignupIfNew } from './lib/trackSignup'
@@ -115,10 +116,13 @@ const App = () => {
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/admin" element={<Admin />} />
       <Route path="/generate" element={<GenerateGate />} />
-      <Route path="/research" element={<Finds />} />
+      <Route element={<AppShell />}>
+        <Route path="/trend" element={<Trend />} />
+        <Route path="/research" element={<Finds />} />
+        <Route path="/saved" element={<SavedBoard />} />
+        <Route path="/me" element={<MyPage />} />
+      </Route>
       <Route path="/finds" element={<Navigate to="/research" replace />} />
-      <Route path="/trend" element={<Trend />} />
-      <Route path="/saved" element={<SavedBoard />} />
       <Route path="/fastbench" element={<FastBench />} />
       <Route path="/channel-analysis" element={<ChannelAnalysis />} />
       <Route path="/links" element={<LinksManager />} />
@@ -126,7 +130,6 @@ const App = () => {
       <Route path="/board/write" element={<BoardWrite />} />
       <Route path="/board/u/:id" element={<UserProfile />} />
       <Route path="/board/:id" element={<BoardPost />} />
-      <Route path="/me" element={<MyPage />} />
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/u/:handle" element={<LinkPage />} />
       <Route path="/dm" element={<DmAutomation />} />
