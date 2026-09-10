@@ -374,6 +374,9 @@ export default function Trend() {
                       <div role="button" onClick={() => setPlayClip(clip)} className="relative aspect-[9/16] w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-slate-200 sm:w-full">
                         <TrendThumb url={it.thumbnail_url} />
                         <div className="absolute left-1 top-1 rounded bg-black/60 px-1 text-[10px] font-bold text-white">#{i + 1}</div>
+                        <button onClick={(e) => { e.stopPropagation(); toggleSave(it) }} aria-label="이번 주 소재로 저장" className="absolute bottom-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur transition hover:bg-black/75">
+                          <Bookmark size={12} className={saved ? 'fill-emerald-400 text-emerald-400' : ''} />
+                        </button>
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="mb-1 flex flex-wrap gap-1">
@@ -383,7 +386,7 @@ export default function Trend() {
                         <div className="mb-2 line-clamp-2 text-[12px] font-medium text-slate-700">{it.caption || '(설명 없음)'}</div>
                         <div className="flex gap-1.5">
                           <button onClick={() => handleAnalyze(clip)} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-[11px] font-bold text-white transition hover:brightness-95"><Sparkles size={11} />분석</button>
-                          <button onClick={() => toggleSave(it)} className={`flex flex-1 items-center justify-center gap-1 rounded-lg border py-1.5 text-[11px] font-bold transition ${saved ? 'border-emerald-300 bg-emerald-50 text-emerald-600' : 'border-slate-200 text-slate-600 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{saved ? '✓ 저장됨' : '이번 주 소재로 저장'}</button>
+                          <button onClick={() => { window.location.href = '/research?url=' + encodeURIComponent(it.url) }} className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-slate-200 py-1.5 text-[11px] font-bold text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]">소스 찾기</button>
                         </div>
                       </div>
                     </div>
