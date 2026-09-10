@@ -5,6 +5,9 @@ import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, Help
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
 
+const CATS = ['전체','뷰티','패션','리빙','푸드','육아','헬스','반려','디지털','잡화']
+const NICHE_TO_CAT = { '뷰티·화장품':'뷰티','패션·의류':'패션','리빙·홈·주방':'리빙','잡화·소품':'잡화','푸드·식품':'푸드','육아·키즈':'육아','헬스·건강':'헬스','반려동물':'반려','디지털·가전':'디지털' }
+
 const NICHE_KW = {
   '뷰티·화장품': ['뷰티','화장','메이크업','스킨','코스메','립','파운데','세럼','선크림','쿠션','클렌징'],
   '패션·의류': ['패션','옷','코디','스타일','원피스','니트','자켓','데일리룩','아우터','청바지'],
@@ -88,7 +91,8 @@ export default function Trend() {
   const [preview, setPreview] = useState([])
   const [previewCount, setPreviewCount] = useState(0)
   const [myNiche, setMyNiche] = useState(() => { try { return localStorage.getItem('chr_niche') || '' } catch { return '' } })
-  const [nicheFirst, setNicheFirst] = useState(true)
+  const [selCat, setSelCat] = useState(() => { try { return NICHE_TO_CAT[localStorage.getItem('chr_niche') || ''] || '전체' } catch { return '전체' } })
+  const [showAdv, setShowAdv] = useState(false)
   const toggleSave = async (it) => {
     const sc = it.shortcode; const has = savedPicks.includes(sc)
     if (!has) { try { phCapture('trend_saved', { shortcode: sc }) } catch { /* noop */ } }
@@ -166,7 +170,7 @@ export default function Trend() {
     return () => { alive = false }
   }, [session])
 
-  useEffect(() => { if (!isReal) return; try { phCapture('trend_feed_viewed') } catch { /* noop */ }; supabase.from('saved_trends').select('shortcode').then(({ data }) => { if (Array.isArray(data)) setSavedPicks(data.map((r) => r.shortcode)) }); supabase.from('profiles').select('niche').maybeSingle().then(({ data }) => { const n = data && data.niche; if (n && !/전체/.test(n) && NICHE_KW[n]) { setMyNiche(n); try { localStorage.setItem('chr_niche', n) } catch { /* noop */ } } }) }, [isReal])
+  useEffect(() => { if (!isReal) return; try { phCapture('trend_feed_viewed') } catch { /* noop */ }; supabase.from('saved_trends').select('shortcode').then(({ data }) => { if (Array.isArray(data)) setSavedPicks(data.map((r) => r.shortcode)) }); supabase.from('profiles').select('niche').maybeSingle().then(({ data }) => { const n = data && data.niche; if (n && NICHE_TO_CAT[n]) { setMyNiche(n); setSelCat((c) => c === '전체' ? NICHE_TO_CAT[n] : c); try { localStorage.setItem('chr_niche', n) } catch { /* noop */ } } }) }, [isReal])
   useEffect(() => { if (isReal) return; supabase.rpc('public_trend_preview_rpc', { p_limit: 12 }).then(({ data }) => { if (Array.isArray(data)) setPreview(data) }).catch(() => {}); supabase.rpc('public_trend_count_rpc').then(({ data }) => { if (typeof data === 'number') setPreviewCount(data) }).catch(() => {}) }, [isReal])
 
   if (!FEATURES.trendFeed) return <Navigate to="/" replace />
@@ -195,13 +199,14 @@ export default function Trend() {
       return true
     })
     .filter((it) => !region || regionOf(it) === region)
+    .filter((it) => selCat === '전체' || it.category === selCat)
     .sort((a, b) => {
       if (fastBench) return fbScore(b) - fbScore(a)
       if (sort === 'recent') return new Date(b.taken_at || 0) - new Date(a.taken_at || 0)
       const mk = sort === 'view' ? 'view_count' : sort === 'like' ? 'like_count' : 'comment_count'
       return (Number(b[mk]) || 0) - (Number(a[mk]) || 0)
     })
-  const list = (nicheFirst && NICHE_KW[myNiche]) ? [..._listBase].sort((a, b) => (matchNiche(b) ? 1 : 0) - (matchNiche(a) ? 1 : 0)) : _listBase
+  const list = _listBase
 
   const fbQual = (it) => !!it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && fbScore(it) >= FB_SCORE
   const gateOn = previewLock || (!isPaid && !isAdmin)
@@ -274,20 +279,27 @@ export default function Trend() {
         {isAdmin && <button onClick={() => setPreviewLock((v) => !v)} className={`mb-4 rounded-full px-3 py-1 text-xs font-bold transition ${previewLock ? 'bg-amber-500 text-white' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'}`}>블러 미리보기(관리자) {previewLock ? 'ON' : 'OFF'}</button>}
 
         {isReal && !fastBench && (
-        <div className="mb-5 flex flex-wrap items-center gap-2">
-          {SORTS.map(([k, l]) => (
-            <button key={k} onClick={() => setSort(k)} className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition ${sort === k ? 'bg-[#0064FF] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{l}</button>
-          ))}
-          <span className="mx-1 h-4 w-px bg-slate-200" />
-          {RANGES.map(([k, l, d]) => (
-            <button key={k} onClick={() => setRange(d)} className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition ${range === d ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{l}</button>
-          ))}
-          {NICHE_KW[myNiche] && (<><span className="mx-1 h-4 w-px bg-slate-200" /><button onClick={() => setNicheFirst((v) => !v)} className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition ${nicheFirst ? 'bg-[#0064FF] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF]'}`}>내 {myNiche.split('·')[0]} 우선{nicheFirst ? ' ✓' : ''}</button></>)}
+        <div className="mb-5">
+          <div className="mb-3 flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {CATS.map((c) => (
+              <button key={c} onClick={() => setSelCat(c)} className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-bold transition ${selCat === c ? 'bg-[#0064FF] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{c}</button>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <select value={sort} onChange={(e) => setSort(e.target.value)} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">
+              {SORTS.map(([k, l]) => <option key={k} value={k}>{l}순</option>)}
+            </select>
+            <select value={range} onChange={(e) => setRange(Number(e.target.value))} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">
+              <option value={0}>전체 기간</option>
+              {RANGES.map(([k, l, d]) => <option key={k} value={d}>{l}</option>)}
+            </select>
+            <button onClick={() => setShowAdv((v) => !v)} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-500 hover:border-[#0064FF] hover:text-[#0064FF]">상세 필터 {showAdv ? '▴' : '▾'}</button>
+          </div>
         </div>
         )}
         {fastBench && <p className="mb-3 -mt-2 flex items-center gap-1 text-xs font-semibold text-amber-600"><Crown size={12} /> 먼저 움직이는 크리에이터의 선점 리스트 — 최근 48시간 · 터짐 점수순</p>}
 
-        {isReal && (<div className="mb-5 flex flex-wrap items-center gap-2">
+        {isReal && !fastBench && showAdv && (<div className="mb-5 flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 p-3">
           <span className="text-sm font-bold text-slate-500">지역</span>
           {REGIONS.map(([l, v]) => (
             <button key={l} onClick={() => setRegion(v)} className={`rounded-full px-3 py-1.5 text-sm font-bold transition ${region === v ? 'bg-[#0064FF] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{l}</button>
