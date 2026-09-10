@@ -200,6 +200,7 @@ export default function Trend() {
     })
     .filter((it) => !region || regionOf(it) === region)
     .filter((it) => selCat === '전체' || it.category === selCat)
+    .filter((it) => String(it.video_url || '') !== '')
     .sort((a, b) => {
       if (fastBench) return fbScore(b) - fbScore(a)
       if (sort === 'recent') return new Date(b.taken_at || 0) - new Date(a.taken_at || 0)
