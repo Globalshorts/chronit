@@ -73,6 +73,7 @@ export default function Trend() {
   const [items, setItems] = useState(() => readTrendCache()?.items || [])
   const [savedPicks, setSavedPicks] = useState([])
   const [preview, setPreview] = useState([])
+  const [previewCount, setPreviewCount] = useState(0)
   const toggleSave = async (it) => {
     const sc = it.shortcode; const has = savedPicks.includes(sc)
     setSavedPicks((prev) => has ? prev.filter((x) => x !== sc) : [...prev, sc])
@@ -148,7 +149,7 @@ export default function Trend() {
   }, [session])
 
   useEffect(() => { if (!isReal) return; supabase.from('saved_trends').select('shortcode').then(({ data }) => { if (Array.isArray(data)) setSavedPicks(data.map((r) => r.shortcode)) }) }, [isReal])
-  useEffect(() => { if (isReal) return; supabase.rpc('public_trend_preview_rpc', { p_limit: 12 }).then(({ data }) => { if (Array.isArray(data)) setPreview(data) }).catch(() => {}) }, [isReal])
+  useEffect(() => { if (isReal) return; supabase.rpc('public_trend_preview_rpc', { p_limit: 12 }).then(({ data }) => { if (Array.isArray(data)) setPreview(data) }).catch(() => {}); supabase.rpc('public_trend_count_rpc').then(({ data }) => { if (typeof data === 'number') setPreviewCount(data) }).catch(() => {}) }, [isReal])
 
   if (!FEATURES.trendFeed) return <Navigate to="/" replace />
 
@@ -294,7 +295,7 @@ export default function Trend() {
               {previewPicks.length > 0 && (
                 <div className="mb-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
                   <div className="text-sm font-extrabold text-white">🔥 오늘 먼저 볼 트렌드 3개</div>
-                  <p className="mb-3 mt-0.5 text-xs text-white/50">지금 반응이 빠르게 올라오는 소재. 로그인하면 전체 + 분석까지.</p>
+                  <p className="mb-3 mt-0.5 text-xs text-white/50">지금 반응이 빠르게 올라오는 소재{previewCount ? ` ${previewCount}개` : ''}. 로그인하면 전체 + 분석까지.</p>
                   <div className="grid grid-cols-3 gap-2.5">
                     {previewPicks.map((it, i) => (
                       <div key={it.shortcode || i} role="button" onClick={() => setShowAuth(true)} className="cursor-pointer overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
@@ -313,7 +314,7 @@ export default function Trend() {
               )}
 
               {/* 로그인 CTA — 크게 */}
-              <button onClick={() => setShowAuth(true)} className="mb-5 w-full rounded-xl bg-[#0064FF] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#0064FF]/20 transition hover:brightness-95 active:scale-[0.99]">무료로 가입하고 전체 트렌드 + 분석 보기 →</button>
+              <button onClick={() => setShowAuth(true)} className="mb-5 w-full rounded-xl bg-[#0064FF] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#0064FF]/20 transition hover:brightness-95 active:scale-[0.99]">{previewCount ? `무료로 가입하고 트렌드 ${previewCount}개 전체 보기 →` : '무료로 가입하고 전체 트렌드 + 분석 보기 →'}</button>
 
               {/* 나머지 블러 — 자연스럽게 페이드아웃 */}
               <div className="relative">
@@ -327,7 +328,7 @@ export default function Trend() {
                   ))}
                 </div>
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center">
-                  <button onClick={() => setShowAuth(true)} className="pointer-events-auto rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white/85 backdrop-blur transition hover:bg-white/15">수백 개 더 · 가입하고 전체 보기 →</button>
+                  <button onClick={() => setShowAuth(true)} className="pointer-events-auto rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white/85 backdrop-blur transition hover:bg-white/15">{previewCount ? `+${Math.max(0, previewCount - 3)}개 더 · 가입하고 전체 보기 →` : '가입하고 전체 보기 →'}</button>
                 </div>
               </div>
             </div>
