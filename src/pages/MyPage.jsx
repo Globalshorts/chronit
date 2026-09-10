@@ -4,6 +4,7 @@ import { Film, Pencil, LogOut, Copy, Check, Sparkles, ShieldCheck, Gift, Ticket 
 import FindsPricing from '../components/FindsPricing'
 import CommunityHeader from '../components/CommunityHeader'
 import NicknameModal from '../components/NicknameModal'
+import AuthModal from '../components/AuthModal'
 import Footer from '../components/Footer'
 import FindsBottomNav from '../components/FindsBottomNav'
 import { supabase } from '../lib/supabase'
@@ -12,6 +13,7 @@ import { CAT_LABEL, CAT_CLS, fmtWhen } from './Board'
 const MyPage = () => {
   const nav = useNavigate()
   const [user, setUser] = useState(undefined)
+  const [authOpen, setAuthOpen] = useState(false)
   const [profile, setProfile] = useState(null)
   const [credits, setCredits] = useState(null)
   const [wallet, setWallet] = useState(null)
@@ -99,8 +101,10 @@ const MyPage = () => {
     <div className="min-h-screen font-sans">
       <div className="flex min-h-[70vh] flex-col items-center justify-center gap-4 px-5 text-center">
         <p className="text-lg font-bold">로그인이 필요해요</p>
-        <button onClick={() => nav('/')} className="rounded-full bg-[#0064FF] px-6 py-2.5 font-bold text-white">로그인하러 가기</button>
+        <p className="-mt-2 text-sm text-slate-400">저장한 소재·이용권·내 활동을 보려면 로그인하세요.</p>
+        <button onClick={() => setAuthOpen(true)} className="rounded-full bg-[#0064FF] px-6 py-2.5 font-bold text-white">무료로 로그인 / 가입</button>
       </div>
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
     </div>
   )
 
