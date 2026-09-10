@@ -4,6 +4,7 @@ import { Film, Pencil, LogOut, Copy, Check, Sparkles, ShieldCheck, Gift, Ticket 
 import FindsPricing from '../components/FindsPricing'
 import CommunityHeader from '../components/CommunityHeader'
 import NicknameModal from '../components/NicknameModal'
+import AuthModal from '../components/AuthModal'
 import Footer from '../components/Footer'
 import FindsBottomNav from '../components/FindsBottomNav'
 import { supabase } from '../lib/supabase'
@@ -12,6 +13,7 @@ import { CAT_LABEL, CAT_CLS, fmtWhen } from './Board'
 const MyPage = () => {
   const nav = useNavigate()
   const [user, setUser] = useState(undefined)
+  const [authOpen, setAuthOpen] = useState(false)
   const [profile, setProfile] = useState(null)
   const [credits, setCredits] = useState(null)
   const [wallet, setWallet] = useState(null)
@@ -96,20 +98,21 @@ const MyPage = () => {
   }
 
   if (user === null) return (
-    <div className="min-h-screen bg-[#FAFAF8] font-sans"><CommunityHeader active="me" />
+    <div className="min-h-screen font-sans">
       <div className="flex min-h-[70vh] flex-col items-center justify-center gap-4 px-5 text-center">
         <p className="text-lg font-bold">로그인이 필요해요</p>
-        <button onClick={() => nav('/')} className="rounded-full bg-[#0064FF] px-6 py-2.5 font-bold text-white">로그인하러 가기</button>
+        <p className="-mt-2 text-sm text-slate-400">저장한 소재·이용권·내 활동을 보려면 로그인하세요.</p>
+        <button onClick={() => setAuthOpen(true)} className="rounded-full bg-[#0064FF] px-6 py-2.5 font-bold text-white">무료로 로그인 / 가입</button>
       </div>
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
     </div>
   )
 
   const tabs = [['posts', `내 글 ${posts.length}`], ['comments', `내 댓글 ${comments.length}`]]
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans break-keep text-gray-900">
-      <CommunityHeader active="me" />
-      <section className="mx-auto max-w-2xl px-5 pt-28 pb-24 md:pt-36">
+    <div className="min-h-screen overflow-x-hidden font-sans break-keep text-gray-900">
+      <section className="mx-auto max-w-2xl px-5 pt-8 pb-24 md:pt-10">
         {isAdmin && (
           <Link to="/admin" className="mb-4 flex items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 text-sm font-bold text-white transition hover:bg-[#0064FF] md:hidden">
             <ShieldCheck size={16} /> 관리자 페이지
@@ -262,8 +265,6 @@ const MyPage = () => {
 
       <FindsPricing open={payOpen} onClose={() => { setPayOpen(false); if (user) load(user.id) }} />
       <NicknameModal open={nickOpen} onClose={() => setNickOpen(false)} onDone={(n) => { setNickOpen(false); setProfile(p => ({ ...p, nickname: n })) }} />
-      <div className="h-16 md:hidden" />
-      <FindsBottomNav />
       <Footer />
     </div>
   )

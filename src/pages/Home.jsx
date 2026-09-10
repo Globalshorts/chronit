@@ -218,14 +218,14 @@ const Home = () => {
   // 가입 전 맛보기: 로그아웃도 로그인 모달 없이 /research(익명 피드)로 → 깊은 분석에서만 가입 유도
   const handleStart = () => {
     phCapture('cta_clicked', { location: 'primary' }, { transport: 'sendBeacon' })
-    window.location.href = user ? '/trend' : '/research'
+    window.location.href = '/trend'
   }
 
   const handleFinds = () => {
     phCapture('cta_clicked', { location: 'finds' }, { transport: 'sendBeacon' })
-    window.location.href = user ? '/trend' : '/research'
+    window.location.href = '/trend'
   }
-  const heroSubmit = () => { const q = heroQuery.trim(); phCapture('cta_clicked', { location: 'hero', has_query: !!q }, { transport: 'sendBeacon' }); window.location.href = q ? '/research?q=' + encodeURIComponent(q) : (user ? '/trend' : '/research') }
+  const heroSubmit = () => { const q = heroQuery.trim(); phCapture('cta_clicked', { location: 'hero', has_query: !!q }, { transport: 'sendBeacon' }); window.location.href = q ? '/research?q=' + encodeURIComponent(q) : '/trend' }
   const handleBuy = (tab = 'sub', period = 'monthly') => {
     setBuyTab(tab); setBuyPeriod(period)
     if (user && !user.is_anonymous) { setBuyOpen(true); return }
@@ -308,8 +308,11 @@ const Home = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       const u = (session?.user && !session.user.is_anonymous) ? session.user : null
       setUser(u)
-      // (제거) 로그인 시 /generate 강제 이동 — 결제/광고 랜딩 접근을 막아 비활성화함.
-      //  로그인 상태여도 홈에 머무를 수 있게 함. 앱 진입은 상단 CTA/네비로.
+      // 로그인(온보딩 완료) 유저는 마케팅 랜딩 대신 앱 홈(트렌드)으로. 랜딩 재노출 방지.
+      if (u) {
+        supabase.from('profiles').select('onboarded').eq('id', u.id).maybeSingle()
+          .then(({ data: prof }) => { if (!prof || prof.onboarded !== false) window.location.replace('/trend') })
+      }
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -586,7 +589,7 @@ const Home = () => {
               오늘 반응한 쇼핑 숏폼,<br />내 <span className="text-[#A9C0FF]">다음 영상 기획</span>으로.
             </h1>
             <p className="mx-auto mb-10 max-w-md text-[15px] font-normal leading-relaxed text-white/45 break-keep md:text-base">
-              릴스·틱톡에서 반응한 소재를 찾고, 첫 3초 훅·셀링포인트·컷 구성을 분석해<br />내 상품에 맞는 기획안으로 바꿔보세요.
+              감으로 찍어 망하는 영상은 그만 — 이미 반응이 증명된 소재만 골라,<br />훅·셀링포인트·컷 구성을 분석해 내 상품 기획으로 바꿔보세요.
             </p>
             <div className="flex w-full max-w-sm flex-col items-center gap-4">
               <button onClick={handleFinds}

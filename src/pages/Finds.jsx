@@ -116,7 +116,19 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
   const [loading, setLoading] = useState(true)
   const [result, setResult] = useState(null)
   const [err, setErr] = useState('')
+  const [briefSaved, setBriefSaved] = useState(false)
   const [sat, setSat] = useState(null)
+  const saveBrief = async () => {
+    setBriefSaved(true)
+    try {
+      await supabase.from('saved_briefs').upsert({
+        shortcode: clip.video_id || clip.shortcode || clip.page_url,
+        caption: clip.title || clip.caption, thumbnail_url: clip.thumbnail_url, url: clip.page_url || clip.url,
+        brief: (result && result.remix) || result || {}
+      }, { onConflict: 'user_id,shortcode' })
+      try { phCapture('brief_saved') } catch { /* noop */ }
+    } catch { /* noop */ }
+  }
   const engScore = (() => { const v = Number(clip.views) || 0, l = Number(clip.likes) || 0, c = Number(clip.comments) || 0; return v > 0 ? Math.max(0, Math.min(100, Math.round(((l + c * 3) / v) * 800))) : null })()
   const ageHours = clip.taken_at ? Math.max(0.5, (Date.now() - new Date(clip.taken_at).getTime()) / 3600000) : null
   const velModeled = (() => { const N = 24, W = 100, H = 40; const pts = []; for (let i = 0; i <= N; i++) { const t = i / N; const sm = t * t * t * (t * (t * 6 - 15) + 10); pts.push([(i / N) * W, H - sm * (H - 3) - 1.5]) } const line = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' '); return { line, area: line + ` L${W},${H} L0,${H} Z` } })()
@@ -368,6 +380,7 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
                     {result.remix.selling_map?.length > 0 && <div className="mb-2"><span className="text-[15px] font-bold text-slate-800">셀링포인트 매핑</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-sm">{result.remix.selling_map.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
                     {result.remix.differentiation?.length > 0 && <div className="mb-2"><span className="text-[15px] font-bold text-slate-800">차별화 포인트</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-sm">{result.remix.differentiation.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
                     {result.remix.edit_checklist?.length > 0 && <div><span className="text-[15px] font-bold text-slate-800">편집 체크리스트</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-sm">{result.remix.edit_checklist.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
+                    <button onClick={saveBrief} disabled={briefSaved} className="mt-3 w-full rounded-lg bg-[#0064FF] py-2.5 text-sm font-bold text-white transition hover:brightness-95 disabled:opacity-60">{briefSaved ? '✓ 기획 저장됨 · 소재 보드에서 확인' : '이 기획 저장하기'}</button>
                   </div>
                 ) : null}
                 {!result.used_image && <div className="text-[11px] text-slate-300">※ 썸네일 미확보 — 제목 기반 분석</div>}
@@ -516,6 +529,7 @@ export default function Finds() {
     const { data } = await supabase.rpc('use_finds_credit_rpc')
     if (!data?.ok) { nav('/pricing'); return }
     setBalance(data.balance)
+    supabase.rpc('grant_first_analysis_bonus_rpc').then(({ data: b }) => { if (b?.granted > 0) supabase.rpc('get_my_balance_rpc').then(({ data: bal }) => { if (bal) setBalance(bal.balance ?? 0) }) }).catch(() => {})
     setAnalyzedIds((prev) => [...prev, clip.video_id])
     setModalClip(clip)
   }
@@ -647,24 +661,10 @@ export default function Finds() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div>
       <div className="fixed inset-x-0 top-0 z-[70] h-[3px]">
         {searching && <div className="h-full bg-gradient-to-r from-[#2A7BFF] via-[#0064FF] to-[#7C6BFF] transition-[width] duration-300 ease-out" style={{ width: progress + '%' }} />}
       </div>
-      <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-          <Link to="/" className="flex items-center gap-2">
-            <img src="/cn-white.svg" alt="Chronit" className="h-8 w-8" />
-            <span className="text-lg font-extrabold text-slate-900">Chronit</span>
-          </Link>
-          <SiteNav />
-          <div className="flex items-center gap-2">
-            <HeaderInstallBtn />
-            <Link to="/" className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-bold text-slate-600 transition-colors hover:border-slate-400">홈</Link>
-            {session && <Link to="/me" className="rounded-full bg-slate-900 px-3 py-1.5 text-sm font-bold text-white">마이</Link>}
-          </div>
-        </div>
-      </header>
       <div className="mx-auto max-w-6xl px-4 py-8">
         <header className="mb-6">
           <div className="flex items-center gap-2 text-[#0064FF]">
@@ -773,8 +773,6 @@ export default function Finds() {
       {fbOpen && <FindsFeedbackModal onClose={() => setFbOpen(false)} />}
       <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
-      <div className="h-16 md:hidden" />
-      <FindsBottomNav />
     </div>
   )
 }

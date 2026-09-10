@@ -1,8 +1,24 @@
 import { useState, useEffect } from 'react'
 import HeaderInstallBtn from '../components/HeaderInstallBtn'
 import { Navigate, Link, useNavigate } from 'react-router-dom'
-import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, HelpCircle, Zap, Lock, Crown, X, Play } from 'lucide-react'
+import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, HelpCircle, Zap, Lock, Crown, X, Play, Bookmark } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { phCapture } from '../lib/posthog'
+
+const CATS = ['전체','리빙','육아','푸드','잡화','패션','디지털','뷰티']
+const NICHE_TO_CAT = { '뷰티·화장품':'뷰티','패션·의류':'패션','리빙·홈·주방':'리빙','잡화·소품':'잡화','푸드·식품':'푸드','육아·키즈':'육아','헬스·건강':'헬스','반려동물':'반려','디지털·가전':'디지털' }
+
+const NICHE_KW = {
+  '뷰티·화장품': ['뷰티','화장','메이크업','스킨','코스메','립','파운데','세럼','선크림','쿠션','클렌징'],
+  '패션·의류': ['패션','옷','코디','스타일','원피스','니트','자켓','데일리룩','아우터','청바지'],
+  '리빙·홈·주방': ['리빙','주방','살림','정리','수납','인테리어','키친','청소','생활','주방템'],
+  '잡화·소품': ['잡화','소품','악세','파우치','가방','키링','문구','다이어리'],
+  '푸드·식품': ['푸드','음식','간식','맛집','레시피','다이어트식','건강식','요리'],
+  '육아·키즈': ['육아','아기','키즈','유아','베이비','신생아','장난감','이유식'],
+  '헬스·건강': ['헬스','운동','다이어트','건강','영양','홈트','단백질','스트레칭'],
+  '반려동물': ['강아지','고양이','반려','펫','냥','댕','사료'],
+  '디지털·가전': ['가전','전자','디지털','충전','이어폰','usb','조명','가젯','스마트'],
+}
 import { FEATURES } from '../config/features'
 import SiteNav from '../components/SiteNav'
 import FindsBottomNav from '../components/FindsBottomNav'
@@ -71,6 +87,21 @@ export default function Trend() {
   const nav = useNavigate()
   const [session, setSession] = useState(null)
   const [items, setItems] = useState(() => readTrendCache()?.items || [])
+  const [savedPicks, setSavedPicks] = useState([])
+  const [preview, setPreview] = useState([])
+  const [previewCount, setPreviewCount] = useState(0)
+  const [myNiche, setMyNiche] = useState(() => { try { return localStorage.getItem('chr_niche') || '' } catch { return '' } })
+  const [selCat, setSelCat] = useState(() => { try { return NICHE_TO_CAT[localStorage.getItem('chr_niche') || ''] || '전체' } catch { return '전체' } })
+  const [showAdv, setShowAdv] = useState(false)
+  const toggleSave = async (it) => {
+    const sc = it.shortcode; const has = savedPicks.includes(sc)
+    if (!has) { try { phCapture('trend_saved', { shortcode: sc }) } catch { /* noop */ } }
+    setSavedPicks((prev) => has ? prev.filter((x) => x !== sc) : [...prev, sc])
+    try {
+      if (has) await supabase.from('saved_trends').delete().eq('shortcode', sc)
+      else await supabase.from('saved_trends').insert({ shortcode: sc, caption: it.caption, thumbnail_url: it.thumbnail_url, url: it.url, owner: it.owner, view_count: it.view_count, like_count: it.like_count, comment_count: it.comment_count, velocity: it.velocity, taken_at: it.taken_at })
+    } catch { /* noop */ }
+  }
   const [fbItems, setFbItems] = useState(() => readTrendCache()?.fb || [])
   const [fbCountSrv, setFbCountSrv] = useState(() => { const c = readTrendCache(); return c && typeof c.fbCount === 'number' ? c.fbCount : null })
   const [loading, setLoading] = useState(false)
@@ -94,12 +125,14 @@ export default function Trend() {
 
   const handleAnalyze = async (clip) => {
     const key = clip.page_url || clip.title
+    try { phCapture('trend_item_opened', { source: 'trend' }); phCapture('analysis_clicked', { source: 'trend' }) } catch { /* noop */ }
     if (analyzedIds.includes(key)) { setModalClip(clip); return }
     if (!ackAnalyzeCost(null)) return
     const { data } = await supabase.rpc('use_finds_credit_rpc')
     if (!data?.ok) { nav('/pricing'); return }
     setAnalyzedIds((prev) => [...prev, key])
     setModalClip(clip)
+    supabase.rpc('grant_first_analysis_bonus_rpc').catch(() => {})
   }
 
   useEffect(() => {
@@ -137,13 +170,17 @@ export default function Trend() {
     return () => { alive = false }
   }, [session])
 
+  useEffect(() => { if (!isReal) return; try { phCapture('trend_feed_viewed') } catch { /* noop */ }; supabase.from('saved_trends').select('shortcode').then(({ data }) => { if (Array.isArray(data)) setSavedPicks(data.map((r) => r.shortcode)) }); supabase.from('profiles').select('niche').maybeSingle().then(({ data }) => { const n = data && data.niche; if (n && NICHE_TO_CAT[n]) { setMyNiche(n); setSelCat((c) => c === '전체' ? NICHE_TO_CAT[n] : c); try { localStorage.setItem('chr_niche', n) } catch { /* noop */ } } }) }, [isReal])
+  useEffect(() => { if (isReal) return; supabase.rpc('public_trend_preview_rpc', { p_limit: 12 }).then(({ data }) => { if (Array.isArray(data)) setPreview(data) }).catch(() => {}); supabase.rpc('public_trend_count_rpc').then(({ data }) => { if (typeof data === 'number') setPreviewCount(data) }).catch(() => {}) }, [isReal])
+
   if (!FEATURES.trendFeed) return <Navigate to="/" replace />
 
   const now = Date.now()
   const FB_SCORE = 12
   const fbScore = (it) => ((Number(it.comment_count) || 0) * 1000 + (Number(it.like_count) || 0) * 50 + (Number(it.view_count) || 0)) / Math.max(Number(it.follower_count) || 0, 1000)
   const fbCount = fbCountSrv != null ? fbCountSrv : items.filter((it) => it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && fbScore(it) >= FB_SCORE).length
-  const list = (fastBench && Array.isArray(fbItems) && fbItems.length ? fbItems : items)
+  const matchNiche = (it) => { const kws = NICHE_KW[myNiche]; if (!kws) return false; const t = ((it.caption || '') + ' ' + (it.hashtag || '')).toLowerCase(); return kws.some((k) => t.includes(k)) }
+  const _listBase = (fastBench && Array.isArray(fbItems) && fbItems.length ? fbItems : items)
     .filter((it) => {
       const win = fastBench ? 2 * 86400000 : (range === 0 ? Infinity : range * 86400000)
       return win === Infinity ? true : (it.taken_at && now - new Date(it.taken_at).getTime() <= win)
@@ -162,33 +199,32 @@ export default function Trend() {
       return true
     })
     .filter((it) => !region || regionOf(it) === region)
+    .filter((it) => selCat === '전체' || it.category === selCat)
+    .filter((it) => String(it.video_url || '') !== '')
     .sort((a, b) => {
       if (fastBench) return fbScore(b) - fbScore(a)
       if (sort === 'recent') return new Date(b.taken_at || 0) - new Date(a.taken_at || 0)
       const mk = sort === 'view' ? 'view_count' : sort === 'like' ? 'like_count' : 'comment_count'
       return (Number(b[mk]) || 0) - (Number(a[mk]) || 0)
     })
+  const list = _listBase
 
   const fbQual = (it) => !!it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && fbScore(it) >= FB_SCORE
   const gateOn = previewLock || (!isPaid && !isAdmin)
   const lockedCount = gateOn ? (fbCountSrv != null ? fbCountSrv : list.filter(fbQual).length) : 0
+  const pickScore = (it) => {
+    const vel = Number(it.velocity) || 0
+    const ageDays = it.taken_at ? (now - new Date(it.taken_at).getTime()) / 86400000 : 999
+    const fresh = Math.max(0, 1 - ageDays / 14)                         // 신선도(최근 14일)
+    const views = Number(it.view_count) || 0
+    const engage = views > 0 ? Math.min(1, (Number(it.comment_count) || 0) / views * 400) : 0  // 수요 신호(댓글/조회)
+    const lowSat = views > 0 ? Math.max(0, 1 - Math.min(1, views / 500000)) : 0.5              // 저포화(아직 덜 퍼짐)
+    return vel * 0.5 + fresh * 30 * 0.25 + engage * 30 * 0.15 + lowSat * 30 * 0.1
+  }
+  const todayPicks = [...list].filter((it) => it && it.taken_at && (now - new Date(it.taken_at).getTime() <= 14 * 86400000)).sort((a, b) => pickScore(b) - pickScore(a)).slice(0, 3)
 
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
-          <Link to="/" className="flex items-center gap-2">
-            <img src="/cn-white.svg" alt="Chronit" className="h-8 w-8" />
-            <span className="text-lg font-extrabold text-slate-900">Chronit</span>
-          </Link>
-          <SiteNav />
-          <div className="flex items-center gap-2">
-            <HeaderInstallBtn />
-            <Link to="/" className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-bold text-slate-600 transition-colors hover:border-slate-400">홈</Link>
-            {isReal && <Link to="/me" className="rounded-full bg-slate-900 px-3 py-1.5 text-sm font-bold text-white">마이</Link>}
-          </div>
-        </div>
-      </header>
+    <div>
 
       <div className="mx-auto max-w-5xl px-4 py-8">
         <header className="mb-5">
@@ -219,27 +255,37 @@ export default function Trend() {
           </button>
         )}
 
+        {isReal && (
         <div className="relative mb-5 flex max-w-xs rounded-xl bg-slate-100 p-1 text-sm font-bold">
           <span aria-hidden className="absolute left-1 top-1 bottom-1 w-[calc(50%-0.25rem)] rounded-lg bg-white shadow-sm transition-transform duration-300 ease-out" style={{ transform: fastBench ? 'translateX(100%)' : 'translateX(0)' }} />
           <button onClick={() => setFastBench(false)} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${!fastBench ? 'text-[#0064FF]' : 'text-slate-500'}`}>트렌드</button>
           <button onClick={() => setFastBench(true)} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${fastBench ? 'text-[#0064FF]' : 'text-slate-500'}`}>패스트벤치{fbCount > 0 ? ` ${fbCount}` : ''}</button>
         </div>
+        )}
         {isAdmin && <button onClick={() => setPreviewLock((v) => !v)} className={`mb-4 rounded-full px-3 py-1 text-xs font-bold transition ${previewLock ? 'bg-amber-500 text-white' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'}`}>블러 미리보기(관리자) {previewLock ? 'ON' : 'OFF'}</button>}
 
-        {!fastBench && (
-        <div className="mb-5 flex flex-wrap items-center gap-2">
-          {SORTS.map(([k, l]) => (
-            <button key={k} onClick={() => setSort(k)} className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition ${sort === k ? 'bg-[#0064FF] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{l}</button>
-          ))}
-          <span className="mx-1 h-4 w-px bg-slate-200" />
-          {RANGES.map(([k, l, d]) => (
-            <button key={k} onClick={() => setRange(d)} className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition ${range === d ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{l}</button>
-          ))}
+        {isReal && !fastBench && (
+        <div className="mb-5">
+          <div className="mb-3 flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {CATS.map((c) => (
+              <button key={c} onClick={() => setSelCat(c)} className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-bold transition ${selCat === c ? 'bg-[#0064FF] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{c}</button>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <select value={sort} onChange={(e) => setSort(e.target.value)} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">
+              {SORTS.map(([k, l]) => <option key={k} value={k}>{l}순</option>)}
+            </select>
+            <select value={range} onChange={(e) => setRange(Number(e.target.value))} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">
+              <option value={0}>전체 기간</option>
+              {RANGES.map(([k, l, d]) => <option key={k} value={d}>{l}</option>)}
+            </select>
+            <button onClick={() => setShowAdv((v) => !v)} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-500 hover:border-[#0064FF] hover:text-[#0064FF]">상세 필터 {showAdv ? '▴' : '▾'}</button>
+          </div>
         </div>
         )}
         {fastBench && <p className="mb-3 -mt-2 flex items-center gap-1 text-xs font-semibold text-amber-600"><Crown size={12} /> 먼저 움직이는 크리에이터의 선점 리스트 — 최근 48시간 · 터짐 점수순</p>}
 
-        <div className="mb-5 flex flex-wrap items-center gap-2">
+        {isReal && !fastBench && showAdv && (<div className="mb-5 flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 p-3">
           <span className="text-sm font-bold text-slate-500">지역</span>
           {REGIONS.map(([l, v]) => (
             <button key={l} onClick={() => setRegion(v)} className={`rounded-full px-3 py-1.5 text-sm font-bold transition ${region === v ? 'bg-[#0064FF] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{l}</button>
@@ -256,19 +302,103 @@ export default function Trend() {
             <span className="text-slate-400">~</span>
             <input type="number" inputMode="numeric" value={fMax} onChange={(e) => setFMax(e.target.value)} placeholder="최대" className="w-20 rounded-lg border border-slate-200 px-2 py-1 text-sm" />
           </div>
-        </div>
+        </div>)}
 
         {!isReal ? (
-          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-10 text-center">
-            <p className="font-bold text-slate-600">로그인하면 실시간 트렌드를 볼 수 있어요.</p>
-            <button onClick={() => setShowAuth(true)} className="mt-3 inline-block rounded-full bg-[#0064FF] px-5 py-2 text-sm font-bold text-white">로그인하러 가기</button>
-          </div>
+          (() => {
+            const previewPicks = [...preview].sort((a, b) => pickScore(b) - pickScore(a)).slice(0, 3)
+            const rest = preview.slice(3)
+            return (
+            <div>
+              {/* 오늘 먼저 볼 3개 — 선명하게(훅) */}
+              {previewPicks.length > 0 && (
+                <div className="mb-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                  <div className="flex items-center gap-1.5 text-sm font-extrabold text-white"><Flame size={15} className="text-[#0064FF]" />오늘 먼저 볼 트렌드 3개</div>
+                  <p className="mb-3 mt-0.5 text-xs text-white/50">지금 반응이 빠르게 올라오는 소재{previewCount ? ` ${previewCount}개` : ''}. 로그인하면 전체 + 분석까지.</p>
+                  <div className="grid grid-cols-3 gap-2.5">
+                    {previewPicks.map((it, i) => (
+                      <div key={it.shortcode || i} role="button" onClick={() => setShowAuth(true)} className="cursor-pointer overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
+                        <div className="relative aspect-[9/16] bg-white/5">
+                          {it.thumbnail_url && <TrendThumb url={it.thumbnail_url} />}
+                          {it.velocity != null && <div className="absolute left-1 top-1 rounded bg-[#0064FF] px-1.5 py-0.5 text-[10px] font-bold text-white">↑{Math.round(it.velocity)}</div>}
+                        </div>
+                        <div className="p-2">
+                          <div className="mb-1 flex gap-1.5 text-[10px] text-white/45"><span className="flex items-center gap-0.5"><Eye size={10} />{fmt(it.view_count)}</span><span className="flex items-center gap-0.5"><MessageCircle size={10} />{fmt(it.comment_count)}</span></div>
+                          <div className="mb-2 line-clamp-2 text-[11px] text-white/70">{it.caption || '(설명 없음)'}</div>
+                          <div className="flex flex-col gap-1">
+                            <button onClick={(e) => { e.stopPropagation(); setShowAuth(true) }} className="flex w-full items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-2 text-[11px] font-bold text-white transition hover:brightness-95"><Sparkles size={11} />분석</button>
+                            <button onClick={(e) => { e.stopPropagation(); setShowAuth(true) }} className="flex w-full items-center justify-center rounded-lg border border-white/15 py-2 text-[11px] font-bold text-white/70 transition hover:border-[#0064FF] hover:text-white">소스 찾기</button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 로그인 CTA — 크게 */}
+              <button onClick={() => setShowAuth(true)} className="mb-5 w-full rounded-xl bg-[#0064FF] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#0064FF]/20 transition hover:brightness-95 active:scale-[0.99]">{previewCount ? `무료로 가입하고 트렌드 ${previewCount}개 전체 보기 →` : '무료로 가입하고 전체 트렌드 + 분석 보기 →'}</button>
+
+              {/* 나머지 블러 — 자연스럽게 페이드아웃 */}
+              <div className="relative">
+                <div className="pointer-events-none grid grid-cols-3 gap-3 blur-[6px] sm:grid-cols-4"
+                  style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent)', maskImage: 'linear-gradient(to bottom, black 50%, transparent)' }}>
+                  {(rest.length ? rest.slice(0, 8) : Array.from({ length: 8 })).map((it, i) => (
+                    <div key={(it && it.shortcode) || i} className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
+                      <div className="relative aspect-[9/16] bg-white/5">{it && it.thumbnail_url && <TrendThumb url={it.thumbnail_url} />}</div>
+                      <div className="p-2"><div className="h-3 w-3/4 rounded bg-white/10" /></div>
+                    </div>
+                  ))}
+                </div>
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center">
+                  <button onClick={() => setShowAuth(true)} className="pointer-events-auto rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white/85 backdrop-blur transition hover:bg-white/15">{previewCount ? `+${Math.max(0, previewCount - 3)}개 더 · 가입하고 전체 보기 →` : '가입하고 전체 보기 →'}</button>
+                </div>
+              </div>
+            </div>
+            )
+          })()
         ) : loading ? (
           <div className="flex items-center gap-2 py-10 text-slate-400"><Loader2 size={16} className="animate-spin" />트렌드 불러오는 중…</div>
         ) : err ? (
           <div className="py-10 text-red-500">{err}</div>
         ) : (
           <>
+          {todayPicks.length > 0 && (
+            <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="flex items-center gap-1.5 text-sm font-extrabold text-slate-900"><Flame size={15} className="text-[#0064FF]" />오늘 먼저 볼 트렌드 3개</div>
+              <p className="mb-3 mt-0.5 text-xs text-slate-500">지금 반응이 빠르게 올라오는 소재만 골랐어요. 포화 전에 먼저 선점하세요.</p>
+              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+                {todayPicks.map((it, i) => {
+                  const clip = { title: it.caption, source: 'instagram', thumbnail_url: it.thumbnail_url, author: it.owner, views: it.view_count, likes: it.like_count, comments: it.comment_count, page_url: it.url, video_url: it.video_url, video_id: it.shortcode, taken_at: it.taken_at, velocity: it.velocity }
+                  const vel = Number(it.velocity) || 0
+                  const fresh = it.taken_at && (now - new Date(it.taken_at).getTime() <= 3 * 86400000)
+                  const saved = savedPicks.includes(it.shortcode)
+                  return (
+                    <div key={it.shortcode || i} className="flex gap-2.5 rounded-xl border border-slate-100 bg-slate-50 p-2.5 sm:flex-col">
+                      <div role="button" onClick={() => setPlayClip(clip)} className="relative aspect-[9/16] w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-slate-200 sm:w-full">
+                        <TrendThumb url={it.thumbnail_url} />
+                        <div className="absolute left-1 top-1 rounded bg-black/60 px-1 text-[10px] font-bold text-white">#{i + 1}</div>
+                        <button onClick={(e) => { e.stopPropagation(); toggleSave(it) }} aria-label="이번 주 소재로 저장" className="absolute bottom-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur transition hover:bg-black/75">
+                          <Bookmark size={12} className={saved ? 'fill-emerald-400 text-emerald-400' : ''} />
+                        </button>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-1 flex flex-wrap gap-1">
+                          {vel > 0 && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[10px] font-bold text-[#0064FF]">지금 퍼지는 중 · ↑{Math.round(vel)}</span>}
+                          {(Number(it.view_count) || 0) < 300000 ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">아직 덜 퍼짐 · 선점 기회</span> : fresh ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">최근 등장</span> : null}
+                        </div>
+                        <div className="mb-2 line-clamp-2 text-[12px] font-medium text-slate-700">{it.caption || '(설명 없음)'}</div>
+                        <div className="flex gap-1.5">
+                          <button onClick={() => handleAnalyze(clip)} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-[11px] font-bold text-white transition hover:brightness-95"><Sparkles size={11} />분석</button>
+                          <button onClick={() => { window.location.href = '/research?url=' + encodeURIComponent(it.url) }} className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-slate-200 py-1.5 text-[11px] font-bold text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]">소스 찾기</button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
           {lockedCount > 0 && <p className="mb-3 flex items-start gap-1.5 rounded-xl bg-slate-900 px-3 py-2.5 text-sm font-bold text-white"><Crown size={15} className="mt-0.5 shrink-0 text-amber-400" /><span>지금 막 터진 소재 {lockedCount}개 · <span className="text-amber-300">상위 크리에이터는 지금 보고 있어요.</span> 며칠 뒤 무료로 풀리지만, 그땐 남들이 다 따라한 뒤예요.</span></p>}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {list.map((it, i) => {
@@ -292,6 +422,9 @@ export default function Trend() {
                       <div className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">#{i + 1}</div>
                       {it.taken_at && <div className="absolute right-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">{timeAgo(it.taken_at)}</div>}
                       <div className="absolute inset-0 flex items-center justify-center opacity-90"><div className="flex h-9 w-9 items-center justify-center rounded-full bg-black/45 text-white"><Play size={16} className="ml-0.5" /></div></div>
+                      <button onClick={(e) => { e.stopPropagation(); toggleSave(it) }} aria-label="이번 주 소재로 저장" className="absolute bottom-1.5 right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur transition hover:bg-black/75">
+                        <Bookmark size={14} className={savedPicks.includes(it.shortcode) ? 'fill-emerald-400 text-emerald-400' : ''} />
+                      </button>
                     </div>
                   )}
                   <div className="p-2">
@@ -322,8 +455,6 @@ export default function Trend() {
       {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onSource={() => { window.location.href = '/research?url=' + encodeURIComponent(playClip.page_url) }} onAnalyze={() => { setPlayClip(null); handleAnalyze(playClip) }} />}
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
       <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
-      <div className="h-16 md:hidden" />
-      <FindsBottomNav />
     </div>
   )
 }

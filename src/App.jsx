@@ -7,6 +7,7 @@ import BlobBackground from './components/BlobBackground'
 import ErrorReportModal from './components/ErrorReportModal'
 import OnboardingSurveyGate from './components/OnboardingSurveyGate'
 import InstallButton from './components/InstallButton'
+import AppShell from './components/AppShell'
 const PwaInstallGlobal = lazy(() => import('./components/PwaInstall'))
 import { installGlobalErrorCapture } from './lib/errorReport'
 import { supabase } from './lib/supabase'
@@ -27,6 +28,7 @@ const AdminFab = lazyRetry(() => import('./components/AdminFab'))
 const VideoGenerator = lazyRetry(() => import('./pages/VideoGenerator'))
 const Finds = lazyRetry(() => import('./pages/Finds'))
 const Trend = lazyRetry(() => import('./pages/Trend'))
+const SavedBoard = lazyRetry(() => import('./pages/SavedBoard'))
 const FastBench = lazyRetry(() => import('./pages/FastBench'))
 const ChannelAnalysis = lazyRetry(() => import('./pages/ChannelAnalysis'))
 const Landing = lazyRetry(() => import('./pages/Landing'))
@@ -114,9 +116,14 @@ const App = () => {
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/admin" element={<Admin />} />
       <Route path="/generate" element={<GenerateGate />} />
-      <Route path="/research" element={<Finds />} />
+      <Route element={<AppShell />}>
+        <Route path="/trend" element={<Trend />} />
+        <Route path="/research" element={<Finds />} />
+        <Route path="/saved" element={<SavedBoard />} />
+        <Route path="/me" element={<MyPage />} />
+        <Route path="/pricing" element={<Pricing />} />
+      </Route>
       <Route path="/finds" element={<Navigate to="/research" replace />} />
-      <Route path="/trend" element={<Trend />} />
       <Route path="/fastbench" element={<FastBench />} />
       <Route path="/channel-analysis" element={<ChannelAnalysis />} />
       <Route path="/links" element={<LinksManager />} />
@@ -124,8 +131,6 @@ const App = () => {
       <Route path="/board/write" element={<BoardWrite />} />
       <Route path="/board/u/:id" element={<UserProfile />} />
       <Route path="/board/:id" element={<BoardPost />} />
-      <Route path="/me" element={<MyPage />} />
-      <Route path="/pricing" element={<Pricing />} />
       <Route path="/u/:handle" element={<LinkPage />} />
       <Route path="/dm" element={<DmAutomation />} />
       <Route path="/payments/success" element={<PaymentResult />} />
