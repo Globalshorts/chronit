@@ -323,7 +323,7 @@ export default function Trend() {
                           {it.velocity != null && <div className="absolute left-1 top-1 rounded bg-[#0064FF] px-1.5 py-0.5 text-[10px] font-bold text-white">↑{Math.round(it.velocity)}</div>}
                         </div>
                         <div className="p-2">
-                          <div className="mb-1 flex gap-1.5 text-[10px] text-white/45"><span>👁 {fmt(it.view_count)}</span><span>💬 {fmt(it.comment_count)}</span></div>
+                          <div className="mb-1 flex gap-1.5 text-[10px] text-white/45"><span className="flex items-center gap-0.5"><Eye size={10} />{fmt(it.view_count)}</span><span className="flex items-center gap-0.5"><MessageCircle size={10} />{fmt(it.comment_count)}</span></div>
                           <div className="mb-2 line-clamp-2 text-[11px] text-white/70">{it.caption || '(설명 없음)'}</div>
                           <div className="flex flex-col gap-1">
                             <button onClick={(e) => { e.stopPropagation(); setShowAuth(true) }} className="flex w-full items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-2 text-[11px] font-bold text-white transition hover:brightness-95"><Sparkles size={11} />분석</button>
