@@ -2,7 +2,7 @@ import { supabase } from '../lib/supabase'
 
 // 가입 직후 "카테고리 1-탭" — 강제 설문 X. 피드 개인화용, 건너뛰기 가능, 보상 없음.
 // (보너스 이용권은 '첫 분석 완료' 시 지급 — grant_first_analysis_bonus_rpc)
-const NICHE_OPTIONS = ['뷰티·화장품', '패션·의류', '리빙·홈·주방', '잡화·소품', '푸드·식품', '육아·키즈', '헬스·건강', '반려동물', '디지털·가전', '전체(여러 카테고리)']
+const NICHE_OPTIONS = ['리빙·홈·주방', '육아·키즈', '푸드·식품', '잡화·소품', '패션·의류', '디지털·가전', '뷰티·화장품', '전체(여러 카테고리)']
 
 const SignupSurveyModal = ({ open, onDone, onClose }) => {
   if (!open) return null

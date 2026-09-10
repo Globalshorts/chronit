@@ -5,7 +5,7 @@ import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, Help
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
 
-const CATS = ['전체','뷰티','패션','리빙','푸드','육아','헬스','반려','디지털','잡화']
+const CATS = ['전체','리빙','육아','푸드','잡화','패션','디지털','뷰티']
 const NICHE_TO_CAT = { '뷰티·화장품':'뷰티','패션·의류':'패션','리빙·홈·주방':'리빙','잡화·소품':'잡화','푸드·식품':'푸드','육아·키즈':'육아','헬스·건강':'헬스','반려동물':'반려','디지털·가전':'디지털' }
 
 const NICHE_KW = {
