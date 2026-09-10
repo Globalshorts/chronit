@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { Link, useLocation, Outlet } from 'react-router-dom'
 import { Flame, Search, Bookmark, User, CreditCard, Download } from 'lucide-react'
 
@@ -14,12 +13,6 @@ export default function AppShell({ children }) {
   const loc = useLocation()
   const content = children ?? <Outlet />
   const active = (n) => loc.pathname.startsWith(n.to)
-  // 모바일 인앱 화면: 채널톡 런처/배너가 하단 탭을 가려서 숨김 (데스크톱·랜딩은 유지)
-  useEffect(() => {
-    if (typeof window === 'undefined' || window.innerWidth >= 768) return
-    try { window.ChannelIO && window.ChannelIO('hideChannelButton') } catch { /* noop */ }
-    return () => { try { window.ChannelIO && window.ChannelIO('showChannelButton') } catch { /* noop */ } }
-  }, [])
   const cur = NAV.find(active)
   return (
     <div className="min-h-screen bg-[#0a0b0f] text-white md:flex">
