@@ -516,6 +516,7 @@ export default function Finds() {
     const { data } = await supabase.rpc('use_finds_credit_rpc')
     if (!data?.ok) { nav('/pricing'); return }
     setBalance(data.balance)
+    supabase.rpc('grant_first_analysis_bonus_rpc').then(({ data: b }) => { if (b?.granted > 0) supabase.rpc('get_my_balance_rpc').then(({ data: bal }) => { if (bal) setBalance(bal.balance ?? 0) }) }).catch(() => {})
     setAnalyzedIds((prev) => [...prev, clip.video_id])
     setModalClip(clip)
   }
