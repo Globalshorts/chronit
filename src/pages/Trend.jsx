@@ -4,6 +4,18 @@ import { Navigate, Link, useNavigate } from 'react-router-dom'
 import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, HelpCircle, Zap, Lock, Crown, X, Play } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
+
+const NICHE_KW = {
+  '뷰티·화장품': ['뷰티','화장','메이크업','스킨','코스메','립','파운데','세럼','선크림','쿠션','클렌징'],
+  '패션·의류': ['패션','옷','코디','스타일','원피스','니트','자켓','데일리룩','아우터','청바지'],
+  '리빙·홈·주방': ['리빙','주방','살림','정리','수납','인테리어','키친','청소','생활','주방템'],
+  '잡화·소품': ['잡화','소품','악세','파우치','가방','키링','문구','다이어리'],
+  '푸드·식품': ['푸드','음식','간식','맛집','레시피','다이어트식','건강식','요리'],
+  '육아·키즈': ['육아','아기','키즈','유아','베이비','신생아','장난감','이유식'],
+  '헬스·건강': ['헬스','운동','다이어트','건강','영양','홈트','단백질','스트레칭'],
+  '반려동물': ['강아지','고양이','반려','펫','냥','댕','사료'],
+  '디지털·가전': ['가전','전자','디지털','충전','이어폰','usb','조명','가젯','스마트'],
+}
 import { FEATURES } from '../config/features'
 import SiteNav from '../components/SiteNav'
 import FindsBottomNav from '../components/FindsBottomNav'
@@ -75,6 +87,8 @@ export default function Trend() {
   const [savedPicks, setSavedPicks] = useState([])
   const [preview, setPreview] = useState([])
   const [previewCount, setPreviewCount] = useState(0)
+  const [myNiche, setMyNiche] = useState(() => { try { return localStorage.getItem('chr_niche') || '' } catch { return '' } })
+  const [nicheFirst, setNicheFirst] = useState(true)
   const toggleSave = async (it) => {
     const sc = it.shortcode; const has = savedPicks.includes(sc)
     if (!has) { try { phCapture('trend_saved', { shortcode: sc }) } catch { /* noop */ } }
@@ -152,7 +166,7 @@ export default function Trend() {
     return () => { alive = false }
   }, [session])
 
-  useEffect(() => { if (!isReal) return; try { phCapture('trend_feed_viewed') } catch { /* noop */ }; supabase.from('saved_trends').select('shortcode').then(({ data }) => { if (Array.isArray(data)) setSavedPicks(data.map((r) => r.shortcode)) }) }, [isReal])
+  useEffect(() => { if (!isReal) return; try { phCapture('trend_feed_viewed') } catch { /* noop */ }; supabase.from('saved_trends').select('shortcode').then(({ data }) => { if (Array.isArray(data)) setSavedPicks(data.map((r) => r.shortcode)) }); supabase.from('profiles').select('niche').maybeSingle().then(({ data }) => { const n = data && data.niche; if (n && !/전체/.test(n) && NICHE_KW[n]) { setMyNiche(n); try { localStorage.setItem('chr_niche', n) } catch { /* noop */ } } }) }, [isReal])
   useEffect(() => { if (isReal) return; supabase.rpc('public_trend_preview_rpc', { p_limit: 12 }).then(({ data }) => { if (Array.isArray(data)) setPreview(data) }).catch(() => {}); supabase.rpc('public_trend_count_rpc').then(({ data }) => { if (typeof data === 'number') setPreviewCount(data) }).catch(() => {}) }, [isReal])
 
   if (!FEATURES.trendFeed) return <Navigate to="/" replace />
@@ -161,7 +175,8 @@ export default function Trend() {
   const FB_SCORE = 12
   const fbScore = (it) => ((Number(it.comment_count) || 0) * 1000 + (Number(it.like_count) || 0) * 50 + (Number(it.view_count) || 0)) / Math.max(Number(it.follower_count) || 0, 1000)
   const fbCount = fbCountSrv != null ? fbCountSrv : items.filter((it) => it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && fbScore(it) >= FB_SCORE).length
-  const list = (fastBench && Array.isArray(fbItems) && fbItems.length ? fbItems : items)
+  const matchNiche = (it) => { const kws = NICHE_KW[myNiche]; if (!kws) return false; const t = ((it.caption || '') + ' ' + (it.hashtag || '')).toLowerCase(); return kws.some((k) => t.includes(k)) }
+  const _listBase = (fastBench && Array.isArray(fbItems) && fbItems.length ? fbItems : items)
     .filter((it) => {
       const win = fastBench ? 2 * 86400000 : (range === 0 ? Infinity : range * 86400000)
       return win === Infinity ? true : (it.taken_at && now - new Date(it.taken_at).getTime() <= win)
@@ -186,6 +201,7 @@ export default function Trend() {
       const mk = sort === 'view' ? 'view_count' : sort === 'like' ? 'like_count' : 'comment_count'
       return (Number(b[mk]) || 0) - (Number(a[mk]) || 0)
     })
+  const list = (nicheFirst && NICHE_KW[myNiche]) ? [..._listBase].sort((a, b) => (matchNiche(b) ? 1 : 0) - (matchNiche(a) ? 1 : 0)) : _listBase
 
   const fbQual = (it) => !!it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && fbScore(it) >= FB_SCORE
   const gateOn = previewLock || (!isPaid && !isAdmin)
@@ -266,6 +282,7 @@ export default function Trend() {
           {RANGES.map(([k, l, d]) => (
             <button key={k} onClick={() => setRange(d)} className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition ${range === d ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{l}</button>
           ))}
+          {NICHE_KW[myNiche] && (<><span className="mx-1 h-4 w-px bg-slate-200" /><button onClick={() => setNicheFirst((v) => !v)} className={`rounded-full px-3.5 py-1.5 text-sm font-bold transition ${nicheFirst ? 'bg-[#0064FF] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF]'}`}>내 {myNiche.split('·')[0]} 우선{nicheFirst ? ' ✓' : ''}</button></>)}
         </div>
         )}
         {fastBench && <p className="mb-3 -mt-2 flex items-center gap-1 text-xs font-semibold text-amber-600"><Crown size={12} /> 먼저 움직이는 크리에이터의 선점 리스트 — 최근 48시간 · 터짐 점수순</p>}
