@@ -3,6 +3,7 @@ import HeaderInstallBtn from '../components/HeaderInstallBtn'
 import { Navigate, Link, useNavigate } from 'react-router-dom'
 import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, HelpCircle, Zap, Lock, Crown, X, Play } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { phCapture } from '../lib/posthog'
 import { FEATURES } from '../config/features'
 import SiteNav from '../components/SiteNav'
 import FindsBottomNav from '../components/FindsBottomNav'
@@ -76,6 +77,7 @@ export default function Trend() {
   const [previewCount, setPreviewCount] = useState(0)
   const toggleSave = async (it) => {
     const sc = it.shortcode; const has = savedPicks.includes(sc)
+    if (!has) { try { phCapture('trend_saved', { shortcode: sc }) } catch { /* noop */ } }
     setSavedPicks((prev) => has ? prev.filter((x) => x !== sc) : [...prev, sc])
     try {
       if (has) await supabase.from('saved_trends').delete().eq('shortcode', sc)
@@ -105,6 +107,7 @@ export default function Trend() {
 
   const handleAnalyze = async (clip) => {
     const key = clip.page_url || clip.title
+    try { phCapture('trend_item_opened', { source: 'trend' }); phCapture('analysis_clicked', { source: 'trend' }) } catch { /* noop */ }
     if (analyzedIds.includes(key)) { setModalClip(clip); return }
     if (!ackAnalyzeCost(null)) return
     const { data } = await supabase.rpc('use_finds_credit_rpc')
@@ -149,7 +152,7 @@ export default function Trend() {
     return () => { alive = false }
   }, [session])
 
-  useEffect(() => { if (!isReal) return; supabase.from('saved_trends').select('shortcode').then(({ data }) => { if (Array.isArray(data)) setSavedPicks(data.map((r) => r.shortcode)) }) }, [isReal])
+  useEffect(() => { if (!isReal) return; try { phCapture('trend_feed_viewed') } catch { /* noop */ }; supabase.from('saved_trends').select('shortcode').then(({ data }) => { if (Array.isArray(data)) setSavedPicks(data.map((r) => r.shortcode)) }) }, [isReal])
   useEffect(() => { if (isReal) return; supabase.rpc('public_trend_preview_rpc', { p_limit: 12 }).then(({ data }) => { if (Array.isArray(data)) setPreview(data) }).catch(() => {}); supabase.rpc('public_trend_count_rpc').then(({ data }) => { if (typeof data === 'number') setPreviewCount(data) }).catch(() => {}) }, [isReal])
 
   if (!FEATURES.trendFeed) return <Navigate to="/" replace />
