@@ -71,8 +71,16 @@ export default function Trend() {
   const nav = useNavigate()
   const [session, setSession] = useState(null)
   const [items, setItems] = useState(() => readTrendCache()?.items || [])
-  const [savedPicks, setSavedPicks] = useState(() => { try { return JSON.parse(localStorage.getItem('chr_saved_picks') || '[]') } catch { return [] } })
-  const toggleSave = (sc) => setSavedPicks((prev) => { const nx = prev.includes(sc) ? prev.filter((x) => x !== sc) : [...prev, sc]; try { localStorage.setItem('chr_saved_picks', JSON.stringify(nx)) } catch { /* noop */ } return nx })
+  const [savedPicks, setSavedPicks] = useState([])
+  const [preview, setPreview] = useState([])
+  const toggleSave = async (it) => {
+    const sc = it.shortcode; const has = savedPicks.includes(sc)
+    setSavedPicks((prev) => has ? prev.filter((x) => x !== sc) : [...prev, sc])
+    try {
+      if (has) await supabase.from('saved_trends').delete().eq('shortcode', sc)
+      else await supabase.from('saved_trends').insert({ shortcode: sc, caption: it.caption, thumbnail_url: it.thumbnail_url, url: it.url, owner: it.owner, view_count: it.view_count, like_count: it.like_count, comment_count: it.comment_count, velocity: it.velocity, taken_at: it.taken_at })
+    } catch { /* noop */ }
+  }
   const [fbItems, setFbItems] = useState(() => readTrendCache()?.fb || [])
   const [fbCountSrv, setFbCountSrv] = useState(() => { const c = readTrendCache(); return c && typeof c.fbCount === 'number' ? c.fbCount : null })
   const [loading, setLoading] = useState(false)
@@ -139,6 +147,9 @@ export default function Trend() {
     return () => { alive = false }
   }, [session])
 
+  useEffect(() => { if (!isReal) return; supabase.from('saved_trends').select('shortcode').then(({ data }) => { if (Array.isArray(data)) setSavedPicks(data.map((r) => r.shortcode)) }) }, [isReal])
+  useEffect(() => { if (isReal) return; supabase.rpc('public_trend_preview_rpc', { p_limit: 12 }).then(({ data }) => { if (Array.isArray(data)) setPreview(data) }).catch(() => {}) }, [isReal])
+
   if (!FEATURES.trendFeed) return <Navigate to="/" replace />
 
   const now = Date.now()
@@ -174,7 +185,16 @@ export default function Trend() {
   const fbQual = (it) => !!it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && fbScore(it) >= FB_SCORE
   const gateOn = previewLock || (!isPaid && !isAdmin)
   const lockedCount = gateOn ? (fbCountSrv != null ? fbCountSrv : list.filter(fbQual).length) : 0
-  const todayPicks = [...list].filter((it) => it && it.taken_at).sort((a, b) => (Number(b.velocity) || 0) - (Number(a.velocity) || 0)).slice(0, 3)
+  const pickScore = (it) => {
+    const vel = Number(it.velocity) || 0
+    const ageDays = it.taken_at ? (now - new Date(it.taken_at).getTime()) / 86400000 : 999
+    const fresh = Math.max(0, 1 - ageDays / 14)                         // 신선도(최근 14일)
+    const views = Number(it.view_count) || 0
+    const engage = views > 0 ? Math.min(1, (Number(it.comment_count) || 0) / views * 400) : 0  // 수요 신호(댓글/조회)
+    const lowSat = views > 0 ? Math.max(0, 1 - Math.min(1, views / 500000)) : 0.5              // 저포화(아직 덜 퍼짐)
+    return vel * 0.5 + fresh * 30 * 0.25 + engage * 30 * 0.15 + lowSat * 30 * 0.1
+  }
+  const todayPicks = [...list].filter((it) => it && it.taken_at && (now - new Date(it.taken_at).getTime() <= 14 * 86400000)).sort((a, b) => pickScore(b) - pickScore(a)).slice(0, 3)
 
   return (
     <div className="min-h-screen">
@@ -188,6 +208,7 @@ export default function Trend() {
           <div className="flex items-center gap-2">
             <HeaderInstallBtn />
             <Link to="/" className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-bold text-slate-600 transition-colors hover:border-slate-400">홈</Link>
+            {isReal && <Link to="/saved" className="rounded-full bg-white/10 px-3 py-1.5 text-sm font-bold text-white/80">저장</Link>}
             {isReal && <Link to="/me" className="rounded-full bg-slate-900 px-3 py-1.5 text-sm font-bold text-white">마이</Link>}
           </div>
         </div>
@@ -262,9 +283,23 @@ export default function Trend() {
         </div>
 
         {!isReal ? (
-          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-10 text-center">
-            <p className="font-bold text-slate-600">로그인하면 실시간 트렌드를 볼 수 있어요.</p>
-            <button onClick={() => setShowAuth(true)} className="mt-3 inline-block rounded-full bg-[#0064FF] px-5 py-2 text-sm font-bold text-white">로그인하러 가기</button>
+          <div className="relative">
+            <div className="pointer-events-none grid grid-cols-2 gap-3 blur-[7px] sm:grid-cols-3 lg:grid-cols-4">
+              {(preview.length ? preview : Array.from({ length: 8 })).map((it, i) => (
+                <div key={(it && it.shortcode) || i} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                  <div className="relative aspect-[9/16] bg-slate-100">{it && it.thumbnail_url && <TrendThumb url={it.thumbnail_url} />}</div>
+                  <div className="p-2">
+                    <div className="mb-1 flex gap-2 text-[11px] text-slate-500"><span className="flex items-center gap-0.5"><Eye size={11} />{it ? fmt(it.view_count) : '—'}</span><span className="flex items-center gap-0.5"><Heart size={11} />{it ? fmt(it.like_count) : '—'}</span></div>
+                    <div className="h-3 w-3/4 rounded bg-slate-200" />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-b from-transparent via-[#0a0b0f]/55 to-[#0a0b0f]/92 px-6 text-center">
+              <p className="text-lg font-bold text-white break-keep">지금 반응 오는 쇼핑 소재가<br />실시간으로 올라오고 있어요</p>
+              <p className="text-sm text-white/60 break-keep">무료 가입하면 전체 트렌드 + 분석까지 바로 볼 수 있어요.</p>
+              <button onClick={() => setShowAuth(true)} className="rounded-full bg-[#0064FF] px-6 py-2.5 text-sm font-bold text-white transition hover:brightness-95">무료로 가입하고 전체 보기</button>
+            </div>
           </div>
         ) : loading ? (
           <div className="flex items-center gap-2 py-10 text-slate-400"><Loader2 size={16} className="animate-spin" />트렌드 불러오는 중…</div>
@@ -291,12 +326,12 @@ export default function Trend() {
                       <div className="min-w-0 flex-1">
                         <div className="mb-1 flex flex-wrap gap-1">
                           {vel > 0 && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[10px] font-bold text-[#0064FF]">지금 퍼지는 중 · ↑{Math.round(vel)}</span>}
-                          {fresh && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">최근 등장 · 선점 기회</span>}
+                          {(Number(it.view_count) || 0) < 300000 ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">아직 덜 퍼짐 · 선점 기회</span> : fresh ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">최근 등장</span> : null}
                         </div>
                         <div className="mb-2 line-clamp-2 text-[12px] font-medium text-slate-700">{it.caption || '(설명 없음)'}</div>
                         <div className="flex gap-1.5">
                           <button onClick={() => handleAnalyze(clip)} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-[11px] font-bold text-white transition hover:brightness-95"><Sparkles size={11} />분석</button>
-                          <button onClick={() => toggleSave(it.shortcode)} className={`flex flex-1 items-center justify-center gap-1 rounded-lg border py-1.5 text-[11px] font-bold transition ${saved ? 'border-emerald-300 bg-emerald-50 text-emerald-600' : 'border-slate-200 text-slate-600 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{saved ? '✓ 저장됨' : '이번 주 소재로 저장'}</button>
+                          <button onClick={() => toggleSave(it)} className={`flex flex-1 items-center justify-center gap-1 rounded-lg border py-1.5 text-[11px] font-bold transition ${saved ? 'border-emerald-300 bg-emerald-50 text-emerald-600' : 'border-slate-200 text-slate-600 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{saved ? '✓ 저장됨' : '이번 주 소재로 저장'}</button>
                         </div>
                       </div>
                     </div>

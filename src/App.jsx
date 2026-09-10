@@ -27,6 +27,7 @@ const AdminFab = lazyRetry(() => import('./components/AdminFab'))
 const VideoGenerator = lazyRetry(() => import('./pages/VideoGenerator'))
 const Finds = lazyRetry(() => import('./pages/Finds'))
 const Trend = lazyRetry(() => import('./pages/Trend'))
+const SavedBoard = lazyRetry(() => import('./pages/SavedBoard'))
 const FastBench = lazyRetry(() => import('./pages/FastBench'))
 const ChannelAnalysis = lazyRetry(() => import('./pages/ChannelAnalysis'))
 const Landing = lazyRetry(() => import('./pages/Landing'))
@@ -117,6 +118,7 @@ const App = () => {
       <Route path="/research" element={<Finds />} />
       <Route path="/finds" element={<Navigate to="/research" replace />} />
       <Route path="/trend" element={<Trend />} />
+      <Route path="/saved" element={<SavedBoard />} />
       <Route path="/fastbench" element={<FastBench />} />
       <Route path="/channel-analysis" element={<ChannelAnalysis />} />
       <Route path="/links" element={<LinksManager />} />
