@@ -283,24 +283,53 @@ export default function Trend() {
         </div>
 
         {!isReal ? (
-          <div className="relative">
-            <div className="pointer-events-none grid grid-cols-2 gap-3 blur-[7px] sm:grid-cols-3 lg:grid-cols-4">
-              {(preview.length ? preview : Array.from({ length: 8 })).map((it, i) => (
-                <div key={(it && it.shortcode) || i} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                  <div className="relative aspect-[9/16] bg-slate-100">{it && it.thumbnail_url && <TrendThumb url={it.thumbnail_url} />}</div>
-                  <div className="p-2">
-                    <div className="mb-1 flex gap-2 text-[11px] text-slate-500"><span className="flex items-center gap-0.5"><Eye size={11} />{it ? fmt(it.view_count) : '—'}</span><span className="flex items-center gap-0.5"><Heart size={11} />{it ? fmt(it.like_count) : '—'}</span></div>
-                    <div className="h-3 w-3/4 rounded bg-slate-200" />
+          (() => {
+            const previewPicks = [...preview].sort((a, b) => pickScore(b) - pickScore(a)).slice(0, 3)
+            const rest = preview.slice(3)
+            return (
+            <div>
+              {/* 오늘 먼저 볼 3개 — 선명하게(훅) */}
+              {previewPicks.length > 0 && (
+                <div className="mb-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                  <div className="text-sm font-extrabold text-white">🔥 오늘 먼저 볼 트렌드 3개</div>
+                  <p className="mb-3 mt-0.5 text-xs text-white/50">지금 반응이 빠르게 올라오는 소재. 로그인하면 전체 + 분석까지.</p>
+                  <div className="grid grid-cols-3 gap-2.5">
+                    {previewPicks.map((it, i) => (
+                      <div key={it.shortcode || i} role="button" onClick={() => setShowAuth(true)} className="cursor-pointer overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
+                        <div className="relative aspect-[9/16] bg-white/5">
+                          {it.thumbnail_url && <TrendThumb url={it.thumbnail_url} />}
+                          {it.velocity != null && <div className="absolute left-1 top-1 rounded bg-[#0064FF] px-1.5 py-0.5 text-[10px] font-bold text-white">↑{Math.round(it.velocity)}</div>}
+                        </div>
+                        <div className="p-2">
+                          <div className="mb-1 flex gap-1.5 text-[10px] text-white/45"><span>👁 {fmt(it.view_count)}</span><span>💬 {fmt(it.comment_count)}</span></div>
+                          <div className="line-clamp-2 text-[11px] text-white/70">{it.caption || '(설명 없음)'}</div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
+              )}
+
+              {/* 로그인 CTA — 크게 */}
+              <button onClick={() => setShowAuth(true)} className="mb-5 w-full rounded-xl bg-[#0064FF] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#0064FF]/20 transition hover:brightness-95 active:scale-[0.99]">무료로 가입하고 전체 트렌드 + 분석 보기 →</button>
+
+              {/* 나머지 블러 */}
+              <div className="relative">
+                <div className="pointer-events-none grid grid-cols-2 gap-3 blur-[7px] sm:grid-cols-3 lg:grid-cols-4">
+                  {(rest.length ? rest : Array.from({ length: 8 })).map((it, i) => (
+                    <div key={(it && it.shortcode) || i} className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
+                      <div className="relative aspect-[9/16] bg-white/5">{it && it.thumbnail_url && <TrendThumb url={it.thumbnail_url} />}</div>
+                      <div className="p-2"><div className="h-3 w-3/4 rounded bg-white/10" /></div>
+                    </div>
+                  ))}
+                </div>
+                <div className="absolute inset-0 flex items-start justify-center bg-gradient-to-b from-transparent via-[#0a0b0f]/50 to-[#0a0b0f]/92 pt-10">
+                  <p className="rounded-full bg-black/50 px-4 py-2 text-sm font-bold text-white/80">지금 반응 오는 소재가 더 있어요 · 가입하고 전체 보기</p>
+                </div>
+              </div>
             </div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-b from-transparent via-[#0a0b0f]/55 to-[#0a0b0f]/92 px-6 text-center">
-              <p className="text-lg font-bold text-white break-keep">지금 반응 오는 쇼핑 소재가<br />실시간으로 올라오고 있어요</p>
-              <p className="text-sm text-white/60 break-keep">무료 가입하면 전체 트렌드 + 분석까지 바로 볼 수 있어요.</p>
-              <button onClick={() => setShowAuth(true)} className="rounded-full bg-[#0064FF] px-6 py-2.5 text-sm font-bold text-white transition hover:brightness-95">무료로 가입하고 전체 보기</button>
-            </div>
-          </div>
+            )
+          })()
         ) : loading ? (
           <div className="flex items-center gap-2 py-10 text-slate-400"><Loader2 size={16} className="animate-spin" />트렌드 불러오는 중…</div>
         ) : err ? (
