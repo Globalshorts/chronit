@@ -325,9 +325,9 @@ export default function Trend() {
                         <div className="p-2">
                           <div className="mb-1 flex gap-1.5 text-[10px] text-white/45"><span>👁 {fmt(it.view_count)}</span><span>💬 {fmt(it.comment_count)}</span></div>
                           <div className="mb-2 line-clamp-2 text-[11px] text-white/70">{it.caption || '(설명 없음)'}</div>
-                          <div className="flex gap-1.5">
-                            <button onClick={(e) => { e.stopPropagation(); setShowAuth(true) }} className="flex flex-1 items-center justify-center gap-0.5 rounded-lg bg-[#0064FF] py-1.5 text-[10px] font-bold text-white transition hover:brightness-95"><Sparkles size={10} />분석</button>
-                            <button onClick={(e) => { e.stopPropagation(); setShowAuth(true) }} className="flex flex-1 items-center justify-center rounded-lg border border-white/15 py-1.5 text-[10px] font-bold text-white/70 transition hover:border-[#0064FF] hover:text-white">소스 찾기</button>
+                          <div className="flex flex-col gap-1">
+                            <button onClick={(e) => { e.stopPropagation(); setShowAuth(true) }} className="flex w-full items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-2 text-[11px] font-bold text-white transition hover:brightness-95"><Sparkles size={11} />분석</button>
+                            <button onClick={(e) => { e.stopPropagation(); setShowAuth(true) }} className="flex w-full items-center justify-center rounded-lg border border-white/15 py-2 text-[11px] font-bold text-white/70 transition hover:border-[#0064FF] hover:text-white">소스 찾기</button>
                           </div>
                         </div>
                       </div>
