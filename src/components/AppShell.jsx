@@ -2,17 +2,18 @@ import { Link, useLocation, Outlet } from 'react-router-dom'
 import { Flame, Search, Bookmark, User, CreditCard, Download } from 'lucide-react'
 
 const NAV = [
-  { to: '/trend', label: '트렌드', Icon: Flame },
-  { to: '/research', label: '리서치', Icon: Search },
-  { to: '/saved', label: '소재 보드', Icon: Bookmark },
-  { to: '/me', label: '마이', Icon: User },
-  { to: '/pricing', label: '이용권', Icon: CreditCard },
+  { to: '/trend', label: '트렌드', title: '실시간 트렌드', Icon: Flame },
+  { to: '/research', label: '리서치', title: '리서치', Icon: Search },
+  { to: '/saved', label: '소재 보드', title: '내 소재 보드', Icon: Bookmark },
+  { to: '/me', label: '마이', title: '마이페이지', Icon: User },
+  { to: '/pricing', label: '이용권', title: '이용권 · 요금', Icon: CreditCard },
 ]
 
 export default function AppShell({ children }) {
   const loc = useLocation()
   const content = children ?? <Outlet />
   const active = (n) => loc.pathname.startsWith(n.to)
+  const cur = NAV.find(active)
   return (
     <div className="min-h-screen bg-[#0a0b0f] text-white md:flex">
       {/* 데스크톱 왼쪽 내비 */}
@@ -36,7 +37,16 @@ export default function AppShell({ children }) {
       </aside>
 
       {/* 콘텐츠 */}
-      <div className="min-w-0 flex-1 pb-16 md:pb-0">{content}</div>
+      <div className="min-w-0 flex-1 pb-16 md:pb-0">
+        {/* 모바일 상단 브랜드바 (데스크톱은 사이드바가 대체) */}
+        <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-white/10 bg-[#0a0b0f]/90 px-4 py-3 backdrop-blur md:hidden">
+          <Link to="/trend" className="flex items-center gap-1.5">
+            <img src="/cn-white.svg" alt="Chronit" className="h-6 w-6" />
+          </Link>
+          <span className="text-base font-extrabold">{cur?.title ?? 'Chronit'}</span>
+        </header>
+        {content}
+      </div>
 
       {/* 모바일 하단 탭 */}
       <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-white/10 bg-[#0c0d11]/95 backdrop-blur md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>

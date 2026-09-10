@@ -36,18 +36,7 @@ export default function Pricing() {
 
   return (
     <div className="min-h-screen overflow-x-hidden font-sans break-keep text-gray-900">
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/60 bg-white/55 py-3 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
-          <a href="/" className="flex min-w-0 items-center gap-1 md:gap-1.5">
-            <img src="/cn-white.svg" alt="Chronit" className="h-9 w-9 shrink-0 md:h-10 md:w-10" />
-            <h1 className="hidden md:block text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">Chronit</h1>
-          </a>
-          <SiteNav active="/pricing" />
-          <button onClick={() => (user ? nav('/me') : setAuthOpen(true))} className="shrink-0 rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-5 py-2 text-sm font-bold text-white shadow-md transition hover:brightness-95">{user ? '마이페이지' : '로그인'}</button>
-        </div>
-      </header>
-
-      <section className="px-5 pt-32 pb-20 md:px-8 md:pt-40">
+      <section className="px-5 pt-8 pb-20 md:px-8 md:pt-10">
         <div className="mx-auto max-w-5xl">
           <div className="mb-3 text-center">
             <h1 className="text-3xl font-bold text-gray-900 md:text-5xl">필요한 만큼만</h1>

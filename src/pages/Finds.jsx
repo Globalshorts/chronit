@@ -661,24 +661,10 @@ export default function Finds() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div>
       <div className="fixed inset-x-0 top-0 z-[70] h-[3px]">
         {searching && <div className="h-full bg-gradient-to-r from-[#2A7BFF] via-[#0064FF] to-[#7C6BFF] transition-[width] duration-300 ease-out" style={{ width: progress + '%' }} />}
       </div>
-      <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-          <Link to="/" className="flex items-center gap-2">
-            <img src="/cn-white.svg" alt="Chronit" className="h-8 w-8" />
-            <span className="text-lg font-extrabold text-slate-900">Chronit</span>
-          </Link>
-          <SiteNav />
-          <div className="flex items-center gap-2">
-            <HeaderInstallBtn />
-            <Link to="/" className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-bold text-slate-600 transition-colors hover:border-slate-400">홈</Link>
-            {session && <Link to="/me" className="rounded-full bg-slate-900 px-3 py-1.5 text-sm font-bold text-white">마이</Link>}
-          </div>
-        </div>
-      </header>
       <div className="mx-auto max-w-6xl px-4 py-8">
         <header className="mb-6">
           <div className="flex items-center gap-2 text-[#0064FF]">

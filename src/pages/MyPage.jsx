@@ -96,7 +96,7 @@ const MyPage = () => {
   }
 
   if (user === null) return (
-    <div className="min-h-screen bg-[#FAFAF8] font-sans"><CommunityHeader active="me" />
+    <div className="min-h-screen font-sans">
       <div className="flex min-h-[70vh] flex-col items-center justify-center gap-4 px-5 text-center">
         <p className="text-lg font-bold">로그인이 필요해요</p>
         <button onClick={() => nav('/')} className="rounded-full bg-[#0064FF] px-6 py-2.5 font-bold text-white">로그인하러 가기</button>
@@ -107,9 +107,8 @@ const MyPage = () => {
   const tabs = [['posts', `내 글 ${posts.length}`], ['comments', `내 댓글 ${comments.length}`]]
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans break-keep text-gray-900">
-      <CommunityHeader active="me" />
-      <section className="mx-auto max-w-2xl px-5 pt-28 pb-24 md:pt-36">
+    <div className="min-h-screen overflow-x-hidden font-sans break-keep text-gray-900">
+      <section className="mx-auto max-w-2xl px-5 pt-8 pb-24 md:pt-10">
         {isAdmin && (
           <Link to="/admin" className="mb-4 flex items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 text-sm font-bold text-white transition hover:bg-[#0064FF] md:hidden">
             <ShieldCheck size={16} /> 관리자 페이지

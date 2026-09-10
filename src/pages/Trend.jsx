@@ -224,22 +224,7 @@ export default function Trend() {
   const todayPicks = [...list].filter((it) => it && it.taken_at && (now - new Date(it.taken_at).getTime() <= 14 * 86400000)).sort((a, b) => pickScore(b) - pickScore(a)).slice(0, 3)
 
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
-          <Link to="/" className="flex items-center gap-2">
-            <img src="/cn-white.svg" alt="Chronit" className="h-8 w-8" />
-            <span className="text-lg font-extrabold text-slate-900">Chronit</span>
-          </Link>
-          <SiteNav />
-          <div className="flex items-center gap-2">
-            <HeaderInstallBtn />
-            <Link to="/" className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-bold text-slate-600 transition-colors hover:border-slate-400">홈</Link>
-            {isReal && <Link to="/saved" className="rounded-full bg-white/10 px-3 py-1.5 text-sm font-bold text-white/80">저장</Link>}
-            {isReal && <Link to="/me" className="rounded-full bg-slate-900 px-3 py-1.5 text-sm font-bold text-white">마이</Link>}
-          </div>
-        </div>
-      </header>
+    <div>
 
       <div className="mx-auto max-w-5xl px-4 py-8">
         <header className="mb-5">
