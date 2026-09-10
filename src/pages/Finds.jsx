@@ -116,7 +116,19 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
   const [loading, setLoading] = useState(true)
   const [result, setResult] = useState(null)
   const [err, setErr] = useState('')
+  const [briefSaved, setBriefSaved] = useState(false)
   const [sat, setSat] = useState(null)
+  const saveBrief = async () => {
+    setBriefSaved(true)
+    try {
+      await supabase.from('saved_briefs').upsert({
+        shortcode: clip.video_id || clip.shortcode || clip.page_url,
+        caption: clip.title || clip.caption, thumbnail_url: clip.thumbnail_url, url: clip.page_url || clip.url,
+        brief: (result && result.remix) || result || {}
+      }, { onConflict: 'user_id,shortcode' })
+      try { phCapture('brief_saved') } catch { /* noop */ }
+    } catch { /* noop */ }
+  }
   const engScore = (() => { const v = Number(clip.views) || 0, l = Number(clip.likes) || 0, c = Number(clip.comments) || 0; return v > 0 ? Math.max(0, Math.min(100, Math.round(((l + c * 3) / v) * 800))) : null })()
   const ageHours = clip.taken_at ? Math.max(0.5, (Date.now() - new Date(clip.taken_at).getTime()) / 3600000) : null
   const velModeled = (() => { const N = 24, W = 100, H = 40; const pts = []; for (let i = 0; i <= N; i++) { const t = i / N; const sm = t * t * t * (t * (t * 6 - 15) + 10); pts.push([(i / N) * W, H - sm * (H - 3) - 1.5]) } const line = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' '); return { line, area: line + ` L${W},${H} L0,${H} Z` } })()
@@ -368,6 +380,7 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
                     {result.remix.selling_map?.length > 0 && <div className="mb-2"><span className="text-[15px] font-bold text-slate-800">셀링포인트 매핑</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-sm">{result.remix.selling_map.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
                     {result.remix.differentiation?.length > 0 && <div className="mb-2"><span className="text-[15px] font-bold text-slate-800">차별화 포인트</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-sm">{result.remix.differentiation.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
                     {result.remix.edit_checklist?.length > 0 && <div><span className="text-[15px] font-bold text-slate-800">편집 체크리스트</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-sm">{result.remix.edit_checklist.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
+                    <button onClick={saveBrief} disabled={briefSaved} className="mt-3 w-full rounded-lg bg-[#0064FF] py-2.5 text-sm font-bold text-white transition hover:brightness-95 disabled:opacity-60">{briefSaved ? '✓ 기획 저장됨 · 소재 보드에서 확인' : '이 기획 저장하기'}</button>
                   </div>
                 ) : null}
                 {!result.used_image && <div className="text-[11px] text-slate-300">※ 썸네일 미확보 — 제목 기반 분석</div>}

@@ -8,11 +8,16 @@ const achv = (r) => Math.round((Number(r.published_views) || 0) / Math.max(1, Nu
 
 export default function SavedBoard() {
   const [rows, setRows] = useState(null)
+  const [briefs, setBriefs] = useState(null)
 
   const load = async () => {
-    const { data } = await supabase.from('saved_trends').select('*').order('created_at', { ascending: false })
-    setRows(data || [])
+    const [{ data: t }, { data: b }] = await Promise.all([
+      supabase.from('saved_trends').select('*').order('created_at', { ascending: false }),
+      supabase.from('saved_briefs').select('*').order('created_at', { ascending: false }),
+    ])
+    setRows(t || []); setBriefs(b || [])
   }
+  const removeBrief = async (sc) => { setBriefs((x) => x.filter((z) => z.shortcode !== sc)); try { await supabase.from('saved_briefs').delete().eq('shortcode', sc) } catch { /* noop */ } }
   useEffect(() => { load() }, [])
 
   const remove = async (sc) => { setRows((r) => r.filter((x) => x.shortcode !== sc)); try { await supabase.from('saved_trends').delete().eq('shortcode', sc) } catch { /* noop */ } }
@@ -93,6 +98,25 @@ export default function SavedBoard() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {briefs && briefs.length > 0 && (
+          <div className="mt-8">
+            <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">📝 저장한 기획 <span className="text-sm font-normal text-white/40">{briefs.length}</span></h2>
+            <div className="flex flex-col gap-3">
+              {briefs.map((b) => (
+                <div key={b.id} className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+                  <div className="relative aspect-[9/16] w-16 shrink-0 overflow-hidden rounded-lg bg-white/5">{b.thumbnail_url && <img src={b.thumbnail_url} referrerPolicy="no-referrer" alt="" className="h-full w-full object-cover" />}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-1 line-clamp-1 text-[13px] font-bold text-white/80">{b.caption || '기획'}</div>
+                    {b.brief && Array.isArray(b.brief.hook_ideas) && b.brief.hook_ideas[0] && <div className="mb-1 text-[12px] text-white/55">훅: {b.brief.hook_ideas[0]}</div>}
+                    {b.brief && Array.isArray(b.brief.edit_script) && b.brief.edit_script.length > 0 && <div className="text-[11px] text-white/40 line-clamp-2">컷: {b.brief.edit_script.slice(0, 3).join(" · ")}</div>}
+                    <button onClick={() => removeBrief(b.shortcode)} className="mt-1 text-[11px] font-bold text-white/30 hover:text-red-400">삭제</button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
