@@ -586,7 +586,7 @@ const Home = () => {
               오늘 반응한 쇼핑 숏폼,<br />내 <span className="text-[#A9C0FF]">다음 영상 기획</span>으로.
             </h1>
             <p className="mx-auto mb-10 max-w-md text-[15px] font-normal leading-relaxed text-white/45 break-keep md:text-base">
-              릴스·틱톡에서 반응한 소재를 찾고, 첫 3초 훅·셀링포인트·컷 구성을 분석해<br />내 상품에 맞는 기획안으로 바꿔보세요.
+              감으로 찍어 망하는 영상은 그만 — 이미 반응이 증명된 소재만 골라,<br />훅·셀링포인트·컷 구성을 분석해 내 상품 기획으로 바꿔보세요.
             </p>
             <div className="flex w-full max-w-sm flex-col items-center gap-4">
               <button onClick={handleFinds}

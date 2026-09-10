@@ -131,7 +131,7 @@ export default function HomeAnalysisShowcase() {
               <div className="mt-3 flex items-center justify-center gap-1.5">
                 {clips.map((cl, i) => <span key={cl.shortcode} className={`h-1.5 rounded-full transition-all ${i === pick ? 'w-5 bg-[#0064FF]' : 'w-1.5 bg-white/20'}`} />)}
               </div>
-              <div className="mt-2 text-center text-[12px] text-white/35">막 터진 소재 수백 개 · 매일 자동 갱신</div>
+              <div className="mt-2 text-center text-[12px] text-white/35">지금 반응 오는 소재 수백 개 · 포화 전에 먼저 선점</div>
             </div>
 
             {/* 1 · 분석 */}
