@@ -148,7 +148,10 @@
     <style id="chronit-ch-nudge">
     /* 하단 자동생성 바와 채널톡 런처 겹침 방지 — 모바일에서 런처를 위로 */
     @media (max-width: 700px) {
-      #ch-plugin-launcher, #ch-plugin .launcher, div[class*="launcher"][class*="ch-"] { bottom: 96px !important; }
+      /* 런처: 하단 탭바(약 64px) 위로 */
+      #ch-plugin-launcher, #ch-plugin .launcher, div[class*="launcher"][class*="ch-"] { bottom: 80px !important; }
+      /* 마케팅 가로 배너: 하단 탭바를 가리지 않도록 위로 올림 */
+      #ch-plugin div[class*="banner"], #ch-plugin div[class*="Banner"] { bottom: 72px !important; }
     }
   </style>
 </head>

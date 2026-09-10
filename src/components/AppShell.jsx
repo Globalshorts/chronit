@@ -49,7 +49,7 @@ export default function AppShell({ children }) {
       </div>
 
       {/* 모바일 하단 탭 */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-white/10 bg-[#0c0d11]/95 backdrop-blur md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <nav className="fixed inset-x-0 bottom-0 flex border-t border-white/10 bg-[#0c0d11] md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)', zIndex: 2147483000 }}>
         {NAV.map((n) => (
           <Link key={n.to} to={n.to} className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-bold transition ${active(n) ? 'text-[#0064FF]' : 'text-white/50'}`}>
             <n.Icon size={19} /> {n.label}
