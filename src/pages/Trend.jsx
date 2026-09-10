@@ -313,7 +313,7 @@ export default function Trend() {
               {/* 오늘 먼저 볼 3개 — 선명하게(훅) */}
               {previewPicks.length > 0 && (
                 <div className="mb-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                  <div className="text-sm font-extrabold text-white">🔥 오늘 먼저 볼 트렌드 3개</div>
+                  <div className="flex items-center gap-1.5 text-sm font-extrabold text-white"><Flame size={15} className="text-[#0064FF]" />오늘 먼저 볼 트렌드 3개</div>
                   <p className="mb-3 mt-0.5 text-xs text-white/50">지금 반응이 빠르게 올라오는 소재{previewCount ? ` ${previewCount}개` : ''}. 로그인하면 전체 + 분석까지.</p>
                   <div className="grid grid-cols-3 gap-2.5">
                     {previewPicks.map((it, i) => (
@@ -365,7 +365,7 @@ export default function Trend() {
           <>
           {todayPicks.length > 0 && (
             <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-4">
-              <div className="text-sm font-extrabold text-slate-900">🔥 오늘 먼저 볼 트렌드 3개</div>
+              <div className="flex items-center gap-1.5 text-sm font-extrabold text-slate-900"><Flame size={15} className="text-[#0064FF]" />오늘 먼저 볼 트렌드 3개</div>
               <p className="mb-3 mt-0.5 text-xs text-slate-500">지금 반응이 빠르게 올라오는 소재만 골랐어요. 포화 전에 먼저 선점하세요.</p>
               <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
                 {todayPicks.map((it, i) => {
