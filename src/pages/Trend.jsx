@@ -315,18 +315,19 @@ export default function Trend() {
               {/* 로그인 CTA — 크게 */}
               <button onClick={() => setShowAuth(true)} className="mb-5 w-full rounded-xl bg-[#0064FF] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#0064FF]/20 transition hover:brightness-95 active:scale-[0.99]">무료로 가입하고 전체 트렌드 + 분석 보기 →</button>
 
-              {/* 나머지 블러 */}
+              {/* 나머지 블러 — 자연스럽게 페이드아웃 */}
               <div className="relative">
-                <div className="pointer-events-none grid grid-cols-2 gap-3 blur-[7px] sm:grid-cols-3 lg:grid-cols-4">
-                  {(rest.length ? rest : Array.from({ length: 8 })).map((it, i) => (
+                <div className="pointer-events-none grid grid-cols-3 gap-3 blur-[6px] sm:grid-cols-4"
+                  style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent)', maskImage: 'linear-gradient(to bottom, black 50%, transparent)' }}>
+                  {(rest.length ? rest.slice(0, 8) : Array.from({ length: 8 })).map((it, i) => (
                     <div key={(it && it.shortcode) || i} className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
                       <div className="relative aspect-[9/16] bg-white/5">{it && it.thumbnail_url && <TrendThumb url={it.thumbnail_url} />}</div>
                       <div className="p-2"><div className="h-3 w-3/4 rounded bg-white/10" /></div>
                     </div>
                   ))}
                 </div>
-                <div className="absolute inset-0 flex items-start justify-center bg-gradient-to-b from-transparent via-[#0a0b0f]/50 to-[#0a0b0f]/92 pt-10">
-                  <p className="rounded-full bg-black/50 px-4 py-2 text-sm font-bold text-white/80">지금 반응 오는 소재가 더 있어요 · 가입하고 전체 보기</p>
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center">
+                  <button onClick={() => setShowAuth(true)} className="pointer-events-auto rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white/85 backdrop-blur transition hover:bg-white/15">수백 개 더 · 가입하고 전체 보기 →</button>
                 </div>
               </div>
             </div>
