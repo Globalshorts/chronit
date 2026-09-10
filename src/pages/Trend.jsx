@@ -71,6 +71,8 @@ export default function Trend() {
   const nav = useNavigate()
   const [session, setSession] = useState(null)
   const [items, setItems] = useState(() => readTrendCache()?.items || [])
+  const [savedPicks, setSavedPicks] = useState(() => { try { return JSON.parse(localStorage.getItem('chr_saved_picks') || '[]') } catch { return [] } })
+  const toggleSave = (sc) => setSavedPicks((prev) => { const nx = prev.includes(sc) ? prev.filter((x) => x !== sc) : [...prev, sc]; try { localStorage.setItem('chr_saved_picks', JSON.stringify(nx)) } catch { /* noop */ } return nx })
   const [fbItems, setFbItems] = useState(() => readTrendCache()?.fb || [])
   const [fbCountSrv, setFbCountSrv] = useState(() => { const c = readTrendCache(); return c && typeof c.fbCount === 'number' ? c.fbCount : null })
   const [loading, setLoading] = useState(false)
@@ -172,6 +174,7 @@ export default function Trend() {
   const fbQual = (it) => !!it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && fbScore(it) >= FB_SCORE
   const gateOn = previewLock || (!isPaid && !isAdmin)
   const lockedCount = gateOn ? (fbCountSrv != null ? fbCountSrv : list.filter(fbQual).length) : 0
+  const todayPicks = [...list].filter((it) => it && it.taken_at).sort((a, b) => (Number(b.velocity) || 0) - (Number(a.velocity) || 0)).slice(0, 3)
 
   return (
     <div className="min-h-screen">
@@ -269,6 +272,39 @@ export default function Trend() {
           <div className="py-10 text-red-500">{err}</div>
         ) : (
           <>
+          {todayPicks.length > 0 && (
+            <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="text-sm font-extrabold text-slate-900">🔥 오늘 먼저 볼 트렌드 3개</div>
+              <p className="mb-3 mt-0.5 text-xs text-slate-500">지금 반응이 빠르게 올라오는 소재만 골랐어요. 포화 전에 먼저 선점하세요.</p>
+              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+                {todayPicks.map((it, i) => {
+                  const clip = { title: it.caption, source: 'instagram', thumbnail_url: it.thumbnail_url, author: it.owner, views: it.view_count, likes: it.like_count, comments: it.comment_count, page_url: it.url, video_url: it.video_url, video_id: it.shortcode, taken_at: it.taken_at, velocity: it.velocity }
+                  const vel = Number(it.velocity) || 0
+                  const fresh = it.taken_at && (now - new Date(it.taken_at).getTime() <= 3 * 86400000)
+                  const saved = savedPicks.includes(it.shortcode)
+                  return (
+                    <div key={it.shortcode || i} className="flex gap-2.5 rounded-xl border border-slate-100 bg-slate-50 p-2.5 sm:flex-col">
+                      <div role="button" onClick={() => setPlayClip(clip)} className="relative aspect-[9/16] w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-slate-200 sm:w-full">
+                        <TrendThumb url={it.thumbnail_url} />
+                        <div className="absolute left-1 top-1 rounded bg-black/60 px-1 text-[10px] font-bold text-white">#{i + 1}</div>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-1 flex flex-wrap gap-1">
+                          {vel > 0 && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[10px] font-bold text-[#0064FF]">지금 퍼지는 중 · ↑{Math.round(vel)}</span>}
+                          {fresh && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">최근 등장 · 선점 기회</span>}
+                        </div>
+                        <div className="mb-2 line-clamp-2 text-[12px] font-medium text-slate-700">{it.caption || '(설명 없음)'}</div>
+                        <div className="flex gap-1.5">
+                          <button onClick={() => handleAnalyze(clip)} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-[11px] font-bold text-white transition hover:brightness-95"><Sparkles size={11} />분석</button>
+                          <button onClick={() => toggleSave(it.shortcode)} className={`flex flex-1 items-center justify-center gap-1 rounded-lg border py-1.5 text-[11px] font-bold transition ${saved ? 'border-emerald-300 bg-emerald-50 text-emerald-600' : 'border-slate-200 text-slate-600 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{saved ? '✓ 저장됨' : '이번 주 소재로 저장'}</button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
           {lockedCount > 0 && <p className="mb-3 flex items-start gap-1.5 rounded-xl bg-slate-900 px-3 py-2.5 text-sm font-bold text-white"><Crown size={15} className="mt-0.5 shrink-0 text-amber-400" /><span>지금 막 터진 소재 {lockedCount}개 · <span className="text-amber-300">상위 크리에이터는 지금 보고 있어요.</span> 며칠 뒤 무료로 풀리지만, 그땐 남들이 다 따라한 뒤예요.</span></p>}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {list.map((it, i) => {

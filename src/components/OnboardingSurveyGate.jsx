@@ -19,7 +19,11 @@ const OnboardingSurveyGate = () => {
         if (!session) { if (!dead) setOpen(false); return }
         const { data } = await supabase.rpc('onboarding_state_rpc')
         if (dead) return
-        if (data?.needed) { setHasSource(!!data.has_source); setOpen(true) }
+        if (data?.needed) {
+          let deferred = 0; try { deferred = Number(localStorage.getItem('chr_survey_deferred') || 0) } catch { /* noop */ }
+          if (Date.now() - deferred < 3 * 86400000) { setOpen(false); return }  // 건너뛰면 3일 유예(강제 X)
+          setHasSource(!!data.has_source); setOpen(true)
+        }
         else setOpen(false)
       } catch { /* noop */ }
     }
@@ -28,7 +32,8 @@ const OnboardingSurveyGate = () => {
     return () => { dead = true; try { sub?.subscription?.unsubscribe?.() } catch { /* noop */ } }
   }, [])
 
-  return <SignupSurveyModal open={open} hasSource={hasSource} onDone={() => setOpen(false)} />
+  const defer = () => { try { localStorage.setItem('chr_survey_deferred', String(Date.now())) } catch { /* noop */ } setOpen(false) }
+  return <SignupSurveyModal open={open} hasSource={hasSource} onDone={() => setOpen(false)} onClose={defer} />
 }
 
 export default OnboardingSurveyGate
