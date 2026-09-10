@@ -1,23 +1,23 @@
 import { Link, useLocation, Outlet } from 'react-router-dom'
-import { Home, Flame, Search, Bookmark, User, Download } from 'lucide-react'
+import { Flame, Search, Bookmark, User, CreditCard, Download } from 'lucide-react'
 
 const NAV = [
-  { to: '/', label: '홈', Icon: Home, exact: true },
   { to: '/trend', label: '트렌드', Icon: Flame },
   { to: '/research', label: '리서치', Icon: Search },
   { to: '/saved', label: '소재 보드', Icon: Bookmark },
   { to: '/me', label: '마이', Icon: User },
+  { to: '/pricing', label: '이용권', Icon: CreditCard },
 ]
 
 export default function AppShell({ children }) {
-  const content = children ?? <Outlet />
   const loc = useLocation()
-  const active = (n) => n.exact ? loc.pathname === n.to : loc.pathname.startsWith(n.to)
+  const content = children ?? <Outlet />
+  const active = (n) => loc.pathname.startsWith(n.to)
   return (
     <div className="min-h-screen bg-[#0a0b0f] text-white md:flex">
       {/* 데스크톱 왼쪽 내비 */}
       <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-white/10 bg-[#0c0d11] p-4 md:flex">
-        <Link to="/" className="mb-6 flex items-center gap-2 px-2">
+        <Link to="/trend" className="mb-6 flex items-center gap-2 px-2">
           <img src="/cn-white.svg" alt="Chronit" className="h-7 w-7" />
           <span className="text-lg font-bold tracking-tight">Chronit</span>
         </Link>
@@ -42,7 +42,7 @@ export default function AppShell({ children }) {
       <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-white/10 bg-[#0c0d11]/95 backdrop-blur md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         {NAV.map((n) => (
           <Link key={n.to} to={n.to} className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-bold transition ${active(n) ? 'text-[#0064FF]' : 'text-white/50'}`}>
-            <n.Icon size={20} /> {n.label}
+            <n.Icon size={19} /> {n.label}
           </Link>
         ))}
       </nav>

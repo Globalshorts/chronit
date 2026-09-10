@@ -308,8 +308,11 @@ const Home = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       const u = (session?.user && !session.user.is_anonymous) ? session.user : null
       setUser(u)
-      // (제거) 로그인 시 /generate 강제 이동 — 결제/광고 랜딩 접근을 막아 비활성화함.
-      //  로그인 상태여도 홈에 머무를 수 있게 함. 앱 진입은 상단 CTA/네비로.
+      // 로그인(온보딩 완료) 유저는 마케팅 랜딩 대신 앱 홈(트렌드)으로. 랜딩 재노출 방지.
+      if (u) {
+        supabase.from('profiles').select('onboarded').eq('id', u.id).maybeSingle()
+          .then(({ data: prof }) => { if (!prof || prof.onboarded !== false) window.location.replace('/trend') })
+      }
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {

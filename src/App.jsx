@@ -121,6 +121,7 @@ const App = () => {
         <Route path="/research" element={<Finds />} />
         <Route path="/saved" element={<SavedBoard />} />
         <Route path="/me" element={<MyPage />} />
+        <Route path="/pricing" element={<Pricing />} />
       </Route>
       <Route path="/finds" element={<Navigate to="/research" replace />} />
       <Route path="/fastbench" element={<FastBench />} />
@@ -130,7 +131,6 @@ const App = () => {
       <Route path="/board/write" element={<BoardWrite />} />
       <Route path="/board/u/:id" element={<UserProfile />} />
       <Route path="/board/:id" element={<BoardPost />} />
-      <Route path="/pricing" element={<Pricing />} />
       <Route path="/u/:handle" element={<LinkPage />} />
       <Route path="/dm" element={<DmAutomation />} />
       <Route path="/payments/success" element={<PaymentResult />} />
