@@ -1,10 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
 import HeaderInstallBtn from '../components/HeaderInstallBtn'
 import { Navigate, Link, useNavigate } from 'react-router-dom'
-import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, HelpCircle, Zap, Lock, Crown, X, Play, Bookmark } from 'lucide-react'
+import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, HelpCircle, Zap, Crown, X, Bookmark } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
 import { fbTrack } from '../lib/fbq'
+import RangeFilter from '../components/RangeFilter'
+import VideoModal from '../components/ReelModal'
+import TrendCard, { TrendThumb } from '../components/TrendCard'
+import { fmtCount as fmt } from '../lib/format'
 
 const CATS = ['전체','리빙','육아','푸드','잡화','패션','디지털','뷰티']
 const NICHE_TO_CAT = { '뷰티·화장품':'뷰티','패션·의류':'패션','리빙·홈·주방':'리빙','잡화·소품':'잡화','푸드·식품':'푸드','육아·키즈':'육아','헬스·건강':'헬스','반려동물':'반려','디지털·가전':'디지털' }
@@ -31,59 +35,21 @@ import FindsPricing from '../components/FindsPricing'
 const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
 const FN = (n) => `${SB}/functions/v1/${n}`
 
-function TrendThumb({ url }) {
-  const [err, setErr] = useState(false)
-  const src = url ? `${SB}/functions/v1/thumbnail-proxy?url=${encodeURIComponent(url)}` : ''
-  if (!src || err) return <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-slate-300"><Flame size={26} /></div>
-  return <img src={src} referrerPolicy="no-referrer" loading="lazy" className="h-full w-full object-cover" onError={() => setErr(true)} />
-}
-const fmt = (n) => { n = Math.max(0, Math.trunc(Number(n) || 0)); return n >= 10000 ? (n / 10000).toFixed(1) + '만' : n >= 1000 ? (n / 1000).toFixed(1) + '천' : String(n) }
-const timeAgo = (ts) => { if (!ts) return ''; const h = Math.floor((Date.now() - new Date(ts).getTime()) / 3600000); if (h < 1) return '방금'; if (h < 24) return `${h}시간 전`; return `${Math.floor(h / 24)}일 전` }
 
 const SORTS = [['view', '조회수'], ['recent', '최신'], ['like', '좋아요'], ['comment', '댓글']]
 const REGIONS = [['전체', ''], ['한국', 'kr'], ['일본', 'jp'], ['미국', 'us']]
 const regionOf = (it) => { const c = `${it.caption || ''} ${it.owner || ''}`; if (/[가-힣]/.test(c)) return 'kr'; if (/[ぁ-ゖァ-ヺ]/.test(c)) return 'jp'; return 'us' }
-const RANGES = [['24h', '24시간', 1], ['7d', '7일', 7]]
-const FOLLOWERS = [['전체', '', ''], ['~1만', '', '10000'], ['1~2만', '10000', '20000'], ['2~3만', '20000', '30000'], ['3~5만', '30000', '50000'], ['5만+', '50000', '']]
-const COMMENT_MINS = [['전체', 0], ['100+', 100], ['500+', 500], ['1000+', 1000]]
+// 슬라이더 눈금 — 값은 기존 필터 로직 그대로 쓴다(게시일=일수, 댓글=최소, 팔로워=구간)
+const DAY_MAX = 31                                   // 31 = 전체 기간(기존 range 0 과 동일)
+const DAY_MARKS = [[1, '1일'], [7, '7일'], [14, '14일'], [DAY_MAX, '전체']]
+const COMMENT_MAX = 2000
+const COMMENT_MARKS = [[0, '전체'], [500, '500'], [1000, '1천'], [COMMENT_MAX, '2천+']]
+const FOLLOWER_MAX = 100000
+const FOLLOWER_MARKS = [[0, '0'], [10000, '1만'], [50000, '5만'], [FOLLOWER_MAX, '10만+']]
+const manFmt = (n) => (n >= 10000 ? `${Math.round((n / 10000) * 10) / 10}만` : n.toLocaleString('ko-KR'))
 const TREND_TTL = 10 * 60 * 1000 // 10분: 이 안이면 재요청 안 함(서버는 최대 24h마다 갱신)
 const readTrendCache = () => { try { const c = JSON.parse(localStorage.getItem('chronit_trend_cache') || 'null'); return (c && Array.isArray(c.items)) ? c : null } catch { return null } }
 const writeTrendCache = (items, fb, fbCount) => { try { localStorage.setItem('chronit_trend_cache', JSON.stringify({ items, fb: fb || [], fbCount: (typeof fbCount === 'number' ? fbCount : null), at: Date.now() })) } catch { /* noop */ } }
-
-function VideoModal({ clip, onClose, onSource, onAnalyze }) {
-  const [src, setSrc] = useState(clip?.video_url || '')
-  const [mode, setMode] = useState(clip?.video_url ? 'video' : 'embed')
-  const [tried, setTried] = useState(false)
-  const onVidError = async () => {
-    if (!tried) {
-      setTried(true)
-      try { const { data } = await supabase.functions.invoke('trend-reel', { body: { shortcode: clip?.video_id } }); if (data?.video_url) { setSrc(data.video_url); return } } catch { /* noop */ }
-    }
-    setMode('embed')
-  }
-  if (!clip) return null
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 p-4" onClick={onClose}>
-      <div className="relative w-full max-w-sm overflow-hidden rounded-2xl bg-black" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute right-2 top-2 z-10 rounded-full bg-black/60 p-1.5 text-white hover:bg-black/80"><X size={18} /></button>
-        {mode === 'video' && src ? (
-          <video key={src} src={src} poster={clip.thumbnail_url} controls autoPlay loop muted playsInline onError={onVidError} className="aspect-[9/16] w-full bg-black object-contain" />
-        ) : (
-          <iframe key="emb" src={`https://www.instagram.com/reel/${clip.video_id}/embed`} title="reel" loading="lazy" allow="autoplay; encrypted-media; clipboard-write" className="aspect-[9/16] w-full border-0 bg-black" />
-        )}
-        <div className="bg-white p-3">
-          <div className="mb-2 flex items-center gap-3 text-xs text-slate-500">
-            <span className="flex items-center gap-0.5"><Eye size={12} />{fmt(clip.views)}</span>
-            <span className="flex items-center gap-0.5"><Heart size={12} />{fmt(clip.likes)}</span>
-            <span className="flex items-center gap-0.5"><MessageCircle size={12} />{fmt(clip.comments)}</span>
-          </div>
-          <button onClick={onSource} className="mb-1.5 flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] py-3 text-sm font-extrabold text-white transition hover:brightness-95"><Sparkles size={16} />이 영상 소스 찾기</button>
-          <button onClick={onAnalyze} className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]">벤치마크 분석</button>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 export default function Trend() {
   const nav = useNavigate()
@@ -287,37 +253,35 @@ export default function Trend() {
             <select value={sort} onChange={(e) => setSort(e.target.value)} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">
               {SORTS.map(([k, l]) => <option key={k} value={k}>{l}순</option>)}
             </select>
-            <select value={range} onChange={(e) => setRange(Number(e.target.value))} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">
-              <option value={0}>전체 기간</option>
-              {RANGES.map(([k, l, d]) => <option key={k} value={d}>{l}</option>)}
-            </select>
             <button onClick={() => setShowAdv((v) => !v)} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-500 hover:border-[#0064FF] hover:text-[#0064FF]">상세 필터 {showAdv ? '▴' : '▾'}</button>
           </div>
         </div>
         )}
         {fastBench && <p className="mb-3 -mt-2 flex items-center gap-1 text-xs font-semibold text-amber-600"><Crown size={12} /> 먼저 움직이는 크리에이터의 선점 리스트 — 최근 48시간 · 터짐 점수순</p>}
 
-        {isReal && !fastBench && showAdv && (<div className="mb-5 flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 p-3">
-          <span className="text-sm font-bold text-slate-500">지역</span>
-          {REGIONS.map(([l, v]) => (
-            <button key={l} onClick={() => setRegion(v)} className={`rounded-full px-3 py-1.5 text-sm font-bold transition ${region === v ? 'bg-[#0064FF] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{l}</button>
-          ))}
-          <span className="mx-1 h-4 w-px bg-slate-200" />
-          <span className="text-sm font-bold text-slate-500">최소 댓글</span>
-          {COMMENT_MINS.map(([l, v]) => (
-            <button key={l} onClick={() => setMinComments(v)} className={`rounded-full px-3 py-1.5 text-sm font-bold transition ${minComments === v ? 'bg-[#0064FF] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{l}</button>
-          ))}
-          <span className="mx-1 h-4 w-px bg-slate-200" />
-          <span className="text-sm font-bold text-slate-500">팔로워</span>
-          {FOLLOWERS.map(([l, lo, hi]) => {
-            const active = String(fMin) === String(lo) && String(fMax) === String(hi)
-            return <button key={l} onClick={() => { setFMin(lo); setFMax(hi) }} className={`rounded-full px-3 py-1.5 text-sm font-bold transition ${active ? 'bg-[#0064FF] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{l}</button>
-          })}
-          <span className="mx-1 h-4 w-px bg-slate-200" />
-          <div className="flex items-center gap-1 text-sm text-slate-500">
-            <input type="number" inputMode="numeric" value={fMin} onChange={(e) => setFMin(e.target.value)} placeholder="최소" className="w-20 rounded-lg border border-slate-200 px-2 py-1 text-sm" />
-            <span className="text-slate-400">~</span>
-            <input type="number" inputMode="numeric" value={fMax} onChange={(e) => setFMax(e.target.value)} placeholder="최대" className="w-20 rounded-lg border border-slate-200 px-2 py-1 text-sm" />
+        {isReal && !fastBench && showAdv && (<div className="mb-5 rounded-xl bg-slate-900 p-4">
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-bold text-white/60">지역</span>
+            {REGIONS.map(([l, v]) => (
+              <button key={l} onClick={() => setRegion(v)} className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${region === v ? 'bg-[#0064FF] text-white' : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'}`}>{l}</button>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-3">
+            <RangeFilter
+              label="게시일" min={1} max={DAY_MAX} step={1} unit="일" infinitySuffix="이하" marks={DAY_MARKS}
+              value={range === 0 ? DAY_MAX : range}
+              onChange={(v) => setRange(v >= DAY_MAX ? 0 : v)}
+            />
+            <RangeFilter
+              label="댓글수" min={0} max={COMMENT_MAX} step={50} unit="개" infinitySuffix="이상" marks={COMMENT_MARKS}
+              value={minComments}
+              onChange={setMinComments}
+            />
+            <RangeFilter
+              label="팔로워" min={0} max={FOLLOWER_MAX} step={1000} infinitySuffix="∞" marks={FOLLOWER_MARKS} formatValue={manFmt}
+              value={[Number(fMin) || 0, fMax ? Number(fMax) : FOLLOWER_MAX]}
+              onChange={([lo, hi]) => { setFMin(lo > 0 ? String(lo) : ''); setFMax(hi < FOLLOWER_MAX ? String(hi) : '') }}
+            />
           </div>
         </div>)}
 
@@ -422,45 +386,16 @@ export default function Trend() {
               const clip = { title: it.caption, source: 'instagram', thumbnail_url: it.thumbnail_url, author: it.owner, views: it.view_count, likes: it.like_count, comments: it.comment_count, page_url: it.url, video_url: it.video_url, video_id: it.shortcode, taken_at: it.taken_at, velocity: it.velocity }
               const locked = gateOn && fbQual(it)
               return (
-                <div key={it.shortcode || i} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                  {locked ? (
-                    <div role="button" onClick={() => nav('/pricing')} className="relative block aspect-[9/16] cursor-pointer bg-slate-100">
-                      <div className="h-full w-full overflow-hidden blur-[12px]"><TrendThumb url={it.thumbnail_url} /></div>
-                      <div className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">#{i + 1}</div>
-                      {it.taken_at && <div className="absolute right-1.5 top-1.5 rounded bg-[#0064FF] px-1.5 py-0.5 text-[10px] font-bold text-white">{timeAgo(it.taken_at)}</div>}
-                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/30 text-white">
-                        <Lock size={20} />
-                        <span className="text-xs font-bold">구독 유저 전용</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div role="button" onClick={() => setPlayClip(clip)} className="relative block aspect-[9/16] cursor-pointer bg-slate-100">
-                      <TrendThumb url={it.thumbnail_url} />
-                      <div className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">#{i + 1}</div>
-                      {it.taken_at && <div className="absolute right-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">{timeAgo(it.taken_at)}</div>}
-                      <div className="absolute inset-0 flex items-center justify-center opacity-90"><div className="flex h-9 w-9 items-center justify-center rounded-full bg-black/45 text-white"><Play size={16} className="ml-0.5" /></div></div>
-                      <button onClick={(e) => { e.stopPropagation(); toggleSave(it) }} aria-label="이번 주 소재로 저장" className="absolute bottom-1.5 right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur transition hover:bg-black/75">
-                        <Bookmark size={14} className={savedPicks.includes(it.shortcode) ? 'fill-emerald-400 text-emerald-400' : ''} />
-                      </button>
-                    </div>
-                  )}
-                  <div className="p-2">
-                    <div className="mb-1.5 flex items-center gap-2 text-[11px] text-slate-500">
-                      <span className="flex items-center gap-0.5"><Eye size={11} />{fmt(it.view_count)}</span>
-                      <span className="flex items-center gap-0.5"><Heart size={11} />{fmt(it.like_count)}</span>
-                      <span className="flex items-center gap-0.5"><MessageCircle size={11} />{fmt(it.comment_count)}</span>
-                    </div>
-                    <div className="mb-1.5 truncate text-[11px] text-slate-400">{locked ? '구독 유저 전용' : `@${it.owner}${it.follower_count ? ` · 팔로워 ${fmt(it.follower_count)}` : ''}`}</div>
-                    {locked ? (
-                      <button onClick={() => nav('/pricing')} className="flex w-full items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Lock size={12} />잠금 해제하고 보기</button>
-                    ) : (
-                      <div className="flex gap-1.5">
-                        <button onClick={() => handleAnalyze(clip)} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Sparkles size={12} />분석</button>
-                        <button onClick={() => { window.location.href = '/research?url=' + encodeURIComponent(it.url) }} className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-slate-200 py-1.5 text-xs font-bold text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]">소스 찾기</button>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <TrendCard
+                  key={it.shortcode || i}
+                  it={it} rank={i + 1} locked={locked}
+                  saved={savedPicks.includes(it.shortcode)}
+                  onPlay={() => setPlayClip(clip)}
+                  onAnalyze={() => handleAnalyze(clip)}
+                  onSource={() => { window.location.href = '/research?url=' + encodeURIComponent(it.url) }}
+                  onToggleSave={() => toggleSave(it)}
+                  onUnlock={() => nav('/pricing')}
+                />
               )
             })}
             {!list.length && <div className="col-span-full p-10 text-center text-sm text-slate-400">{minComments ? `댓글 ${minComments.toLocaleString('ko-KR')}개 이상인 소재가 아직 없어요. 조건을 낮춰보세요.` : (fMin || fMax) ? '이 팔로워 구간은 아직 준비 중이에요. 곧 더 많은 계정을 추가할 예정이에요.' : '해당 기간에 트렌드가 없어요.'}</div>}

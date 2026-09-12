@@ -1,11 +1,11 @@
 import { Link, useLocation, Outlet } from 'react-router-dom'
-import { Flame, Search, Bookmark, User, CreditCard, Download, Shield, Handshake } from 'lucide-react'
+import { Flame, Search, Eye, User, CreditCard, Download, Shield, Handshake } from 'lucide-react'
 import { useMyRole } from '../lib/useIsAdmin'
 
 const NAV = [
   { to: '/trend', label: '트렌드', title: '실시간 트렌드', Icon: Flame },
   { to: '/research', label: '리서치', title: '리서치', Icon: Search },
-  { to: '/saved', label: '소재 보드', title: '내 소재 보드', Icon: Bookmark },
+  { to: '/watchlist', label: '워치리스트', title: '워치리스트', Icon: Eye },
   { to: '/me', label: '마이', title: '마이페이지', Icon: User },
   { to: '/pricing', label: '이용권', title: '이용권 · 요금', Icon: CreditCard },
 ]
