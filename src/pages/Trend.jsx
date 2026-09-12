@@ -37,11 +37,14 @@ const FN = (n) => `${SB}/functions/v1/${n}`
 
 
 const SORTS = [['view', '조회수'], ['recent', '최신'], ['like', '좋아요'], ['comment', '댓글']]
+const FB_SORTS = [['score', '터짐 점수'], ...SORTS]
 const REGIONS = [['전체', ''], ['한국', 'kr'], ['일본', 'jp'], ['미국', 'us']]
 const regionOf = (it) => { const c = `${it.caption || ''} ${it.owner || ''}`; if (/[가-힣]/.test(c)) return 'kr'; if (/[ぁ-ゖァ-ヺ]/.test(c)) return 'jp'; return 'us' }
 // 슬라이더 눈금 — 값은 기존 필터 로직 그대로 쓴다(게시일=일수, 댓글=최소, 팔로워=구간)
 const DAY_MAX = 31                                   // 31 = 전체 기간(기존 range 0 과 동일)
 const DAY_MARKS = [[1, '1일'], [7, '7일'], [14, '14일'], [DAY_MAX, '전체']]
+const FB_DAY_MAX = 2                                 // 패스트벤치 고유 게이트: 최근 2일
+const FB_DAY_MARKS = [[1, '1일'], [FB_DAY_MAX, '2일']]
 const COMMENT_MAX = 2000
 const COMMENT_MARKS = [[0, '전체'], [500, '500'], [1000, '1천'], [COMMENT_MAX, '2천+']]
 const FOLLOWER_MAX = 100000
@@ -60,7 +63,7 @@ export default function Trend() {
   const [previewCount, setPreviewCount] = useState(0)
   const [myNiche, setMyNiche] = useState(() => { try { return localStorage.getItem('chr_niche') || '' } catch { return '' } })
   const [selCat, setSelCat] = useState(() => { try { return NICHE_TO_CAT[localStorage.getItem('chr_niche') || ''] || '전체' } catch { return '전체' } })
-  const [showAdv, setShowAdv] = useState(false)
+  const [showAdv, setShowAdv] = useState(true)   // 슬라이더를 못 찾는다는 피드백 → 기본 펼침
   const toggleSave = async (it) => {
     const sc = it.shortcode; const has = savedPicks.includes(sc)
     if (!has) { try { phCapture('trend_saved', { shortcode: sc }) } catch { /* noop */ } }
@@ -75,6 +78,7 @@ export default function Trend() {
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState('')
   const [sort, setSort] = useState('view')
+  const [fbSort, setFbSort] = useState('score')   // 패스트벤치 기본 정렬 = 터짐 점수
   const [showHelp, setShowHelp] = useState(false)
   const [range, setRange] = useState(7)
   const [fMin, setFMin] = useState('')
@@ -159,7 +163,9 @@ export default function Trend() {
   const matchNiche = (it) => { const kws = NICHE_KW[myNiche]; if (!kws) return false; const t = ((it.caption || '') + ' ' + (it.hashtag || '')).toLowerCase(); return kws.some((k) => t.includes(k)) }
   const _listBase = (fastBench && Array.isArray(fbItems) && fbItems.length ? fbItems : items)
     .filter((it) => {
-      const win = fastBench ? 2 * 86400000 : (range === 0 ? Infinity : range * 86400000)
+      // 게시일 슬라이더. 패스트벤치는 고유 게이트(≤2일)를 유지한 채 슬라이더를 더 좁히는 방향으로만 적용.
+      const userWin = range === 0 ? Infinity : range * 86400000
+      const win = fastBench ? Math.min(2 * 86400000, userWin) : userWin
       return win === Infinity ? true : (it.taken_at && now - new Date(it.taken_at).getTime() <= win)
     })
     .filter((it) => {
@@ -180,9 +186,10 @@ export default function Trend() {
     .filter((it) => selCat === '전체' || it.category === selCat)
     .filter((it) => String(it.video_url || '') !== '')
     .sort((a, b) => {
-      if (fastBench) return fbScore(b) - fbScore(a)
-      if (sort === 'recent') return new Date(b.taken_at || 0) - new Date(a.taken_at || 0)
-      const mk = sort === 'view' ? 'view_count' : sort === 'like' ? 'like_count' : 'comment_count'
+      const s = fastBench ? fbSort : sort
+      if (s === 'score') return fbScore(b) - fbScore(a)
+      if (s === 'recent') return new Date(b.taken_at || 0) - new Date(a.taken_at || 0)
+      const mk = s === 'view' ? 'view_count' : s === 'like' ? 'like_count' : 'comment_count'
       return (Number(b[mk]) || 0) - (Number(a[mk]) || 0)
     })
   const list = _listBase
@@ -242,7 +249,7 @@ export default function Trend() {
         )}
         {isAdmin && <button onClick={() => setPreviewLock((v) => !v)} className={`mb-4 rounded-full px-3 py-1 text-xs font-bold transition ${previewLock ? 'bg-amber-500 text-white' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'}`}>블러 미리보기(관리자) {previewLock ? 'ON' : 'OFF'}</button>}
 
-        {isReal && !fastBench && (
+        {isReal && (
         <div className="mb-5">
           <div className="mb-3 flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {CATS.map((c) => (
@@ -250,16 +257,16 @@ export default function Trend() {
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <select value={sort} onChange={(e) => setSort(e.target.value)} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">
-              {SORTS.map(([k, l]) => <option key={k} value={k}>{l}순</option>)}
+            <select value={fastBench ? fbSort : sort} onChange={(e) => (fastBench ? setFbSort : setSort)(e.target.value)} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">
+              {(fastBench ? FB_SORTS : SORTS).map(([k, l]) => <option key={k} value={k}>{k === 'score' ? l : `${l}순`}</option>)}
             </select>
             <button onClick={() => setShowAdv((v) => !v)} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-500 hover:border-[#0064FF] hover:text-[#0064FF]">상세 필터 {showAdv ? '▴' : '▾'}</button>
           </div>
         </div>
         )}
-        {fastBench && <p className="mb-3 -mt-2 flex items-center gap-1 text-xs font-semibold text-amber-600"><Crown size={12} /> 먼저 움직이는 크리에이터의 선점 리스트 — 최근 48시간 · 터짐 점수순</p>}
+        {fastBench && <p className="mb-3 -mt-2 flex items-center gap-1 text-xs font-semibold text-amber-600"><Crown size={12} /> 먼저 움직이는 크리에이터의 선점 리스트 — 최근 48시간{fbSort === 'score' ? ' · 터짐 점수순' : ''}</p>}
 
-        {isReal && !fastBench && showAdv && (<div className="mb-5 rounded-xl bg-slate-900 p-4">
+        {isReal && showAdv && (<div className="mb-5 rounded-xl bg-slate-900 p-4">
           <div className="mb-4 flex flex-wrap items-center gap-2">
             <span className="text-xs font-bold text-white/60">지역</span>
             {REGIONS.map(([l, v]) => (
@@ -268,9 +275,13 @@ export default function Trend() {
           </div>
           <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-3">
             <RangeFilter
-              label="게시일" min={1} max={DAY_MAX} step={1} unit="일" infinitySuffix="이하" marks={DAY_MARKS}
-              value={range === 0 ? DAY_MAX : range}
-              onChange={(v) => setRange(v >= DAY_MAX ? 0 : v)}
+              label="게시일" min={1} step={1} unit="일" infinitySuffix="이하"
+              max={fastBench ? FB_DAY_MAX : DAY_MAX}
+              marks={fastBench ? FB_DAY_MARKS : DAY_MARKS}
+              value={fastBench
+                ? Math.min(range === 0 ? FB_DAY_MAX : range, FB_DAY_MAX)
+                : (range === 0 ? DAY_MAX : range)}
+              onChange={(v) => setRange(fastBench ? v : (v >= DAY_MAX ? 0 : v))}
             />
             <RangeFilter
               label="댓글수" min={0} max={COMMENT_MAX} step={50} unit="개" infinitySuffix="이상" marks={COMMENT_MARKS}
