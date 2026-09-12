@@ -1,5 +1,6 @@
 import { Link, useLocation, Outlet } from 'react-router-dom'
-import { Flame, Search, Bookmark, User, CreditCard, Download } from 'lucide-react'
+import { Flame, Search, Bookmark, User, CreditCard, Download, Shield } from 'lucide-react'
+import { useIsAdmin } from '../lib/useIsAdmin'
 
 const NAV = [
   { to: '/trend', label: '트렌드', title: '실시간 트렌드', Icon: Flame },
@@ -8,9 +9,12 @@ const NAV = [
   { to: '/me', label: '마이', title: '마이페이지', Icon: User },
   { to: '/pricing', label: '이용권', title: '이용권 · 요금', Icon: CreditCard },
 ]
+// 관리자 전용 — 데스크톱 사이드바에만 노출(모바일 하단 탭에는 넣지 않는다)
+const ADMIN_NAV = { to: '/admin', label: '관리자', title: '관리자', Icon: Shield }
 
 export default function AppShell({ children }) {
   const loc = useLocation()
+  const isAdmin = useIsAdmin()
   const content = children ?? <Outlet />
   const active = (n) => loc.pathname.startsWith(n.to)
   const cur = NAV.find(active)
@@ -28,6 +32,11 @@ export default function AppShell({ children }) {
               <n.Icon size={18} /> {n.label}
             </Link>
           ))}
+          {isAdmin && (
+            <Link to={ADMIN_NAV.to} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition ${active(ADMIN_NAV) ? 'bg-[#0064FF] text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
+              <ADMIN_NAV.Icon size={18} /> {ADMIN_NAV.label}
+            </Link>
+          )}
         </nav>
         <div className="mt-auto border-t border-white/10 pt-3">
           <button onClick={() => window.dispatchEvent(new Event('chronit:open-install'))} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-white/50 hover:bg-white/5 hover:text-white">

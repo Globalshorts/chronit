@@ -24,7 +24,6 @@ const lazyRetry = (factory) => lazy(() => factory().catch((err) => {
   throw err
 }))
 
-const AdminFab = lazyRetry(() => import('./components/AdminFab'))
 const VideoGenerator = lazyRetry(() => import('./pages/VideoGenerator'))
 const Finds = lazyRetry(() => import('./pages/Finds'))
 const Trend = lazyRetry(() => import('./pages/Trend'))
@@ -98,7 +97,6 @@ const App = () => {
     <ScrollToTop />
     <ErrorReportModal />
     <OnboardingSurveyGate />
-    <Suspense fallback={null}><AdminFab /></Suspense>
     <Suspense fallback={null}><PwaInstallGlobal /></Suspense>
     <InstallButton />
     <ErrorBoundary>
