@@ -12,6 +12,7 @@ import Reveal from '../components/Reveal'
 import RevealStagger from '../components/RevealStagger'
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
+import { fbTrack } from '../lib/fbq'
 // 모달들: 열릴 때만 로드(엔트리 경량화)
 const PaymentModal = lazy(() => import('../components/PaymentModal'))
 const FindsPricing = lazy(() => import('../components/FindsPricing'))
@@ -123,7 +124,6 @@ const Home = () => {
   const [scrolled, setScrolled] = useState(false)
   const [paymentOpen, setPaymentOpen] = useState(false)
   const [buyOpen, setBuyOpen] = useState(false)
-  const [firstEligible, setFirstEligible] = useState(true)
   const [priceTab, setPriceTab] = useState('monthly')
   const [buyTab, setBuyTab] = useState('sub')
   const [buyPeriod, setBuyPeriod] = useState('monthly')
@@ -218,11 +218,13 @@ const Home = () => {
   // 가입 전 맛보기: 로그아웃도 로그인 모달 없이 /research(익명 피드)로 → 깊은 분석에서만 가입 유도
   const handleStart = () => {
     phCapture('cta_clicked', { location: 'primary' }, { transport: 'sendBeacon' })
+    fbTrack('Lead', { content_name: 'free_start', location: 'primary' })
     window.location.href = '/trend'
   }
 
   const handleFinds = () => {
     phCapture('cta_clicked', { location: 'finds' }, { transport: 'sendBeacon' })
+    fbTrack('Lead', { content_name: 'free_start', location: 'finds' })
     window.location.href = '/trend'
   }
   const heroSubmit = () => { const q = heroQuery.trim(); phCapture('cta_clicked', { location: 'hero', has_query: !!q }, { transport: 'sendBeacon' }); window.location.href = q ? '/research?q=' + encodeURIComponent(q) : '/trend' }
@@ -231,7 +233,6 @@ const Home = () => {
     if (user && !user.is_anonymous) { setBuyOpen(true); return }
     setShowAuthModal(true)
   }
-  useEffect(() => { idle(() => supabase.rpc('finds_first_sub_eligible').then(({ data }) => setFirstEligible(data !== false)).catch(() => {})) }, [user])
   const isExistingRender = !!(user && user.created_at && new Date(user.created_at) < new Date('2026-08-12T00:00:00Z'))
 
   const handleTermsAgree = async (marketing = false) => {
@@ -731,11 +732,6 @@ const Home = () => {
                         <div className="mt-4">
                           <div className="flex items-baseline gap-1"><span className="text-3xl font-bold text-[#0064FF]">₩{(p.price * 9).toLocaleString('ko-KR')}</span><span className="text-sm text-white/35">/ 년</span></div>
                           <div className="mt-0.5 text-xs text-white/35"><span className="line-through">₩{(p.price * 12).toLocaleString('ko-KR')}</span> · 3개월 무료</div>
-                        </div>
-                      ) : firstEligible ? (
-                        <div className="mt-4">
-                          <div className="flex items-baseline gap-1"><span className="text-3xl font-bold text-[#0064FF]">₩{(Math.floor(p.price * 0.5 / 100) * 100).toLocaleString('ko-KR')}</span><span className="text-sm text-white/35">첫 달</span></div>
-                          <div className="mt-0.5 text-xs text-white/35">이후 ₩{p.price.toLocaleString('ko-KR')}/월</div>
                         </div>
                       ) : (
                         <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-white">₩{p.price.toLocaleString('ko-KR')}</span><span className="text-sm text-white/35">/ 월</span></div>

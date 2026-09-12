@@ -8,6 +8,7 @@ import AuthModal from '../components/AuthModal'
 import Footer from '../components/Footer'
 import FindsBottomNav from '../components/FindsBottomNav'
 import { supabase } from '../lib/supabase'
+import { redeemAnyCode } from '../lib/redeemCode'
 import { CAT_LABEL, CAT_CLS, fmtWhen } from './Board'
 
 const MyPage = () => {
@@ -70,15 +71,12 @@ const MyPage = () => {
     setRedeeming(false)
   }
 
+  // 강사 코드(plan_codes) · 무료체험 쿠폰(coupon_codes) · 프로모 코드(promo_codes) 를 한 칸에서 처리
   const redeemPromo = async () => {
-    const code = promoCode.trim().toUpperCase()
-    if (!code) { setPromoMsg({ ok: false, text: '코드를 입력해주세요' }); return }
     setPromoing(true); setPromoMsg(null)
-    try {
-      const { data } = await supabase.rpc('redeem_promo_rpc', { p_code: code })
-      if (data?.ok) { setPromoMsg({ ok: true, text: `🎉 프로모 코드 적용! 이용권 ${data.credits}개가 지급됐어요` }); setPromoCode(''); if (user) load(user.id) }
-      else setPromoMsg({ ok: false, text: data?.error ?? '적용에 실패했어요' })
-    } catch { setPromoMsg({ ok: false, text: '적용에 실패했어요' }) }
+    const r = await redeemAnyCode(promoCode)
+    setPromoMsg(r)
+    if (r.ok) { setPromoCode(''); if (user) load(user.id) }
     setPromoing(false)
   }
 
@@ -179,11 +177,11 @@ const MyPage = () => {
           </div>
           {/* 프로모 코드 */}
           <div className="rounded-3xl border border-gray-200 bg-white p-5">
-            <p className="mb-1 flex items-center gap-1.5 text-sm font-bold text-gray-800"><Ticket size={15} className="text-[#7C3AED]" /> 프로모 코드</p>
-            <p className="mb-3 text-xs text-slate-500">이벤트·광고 코드 · 보너스 이용권</p>
+            <p className="mb-1 flex items-center gap-1.5 text-sm font-bold text-gray-800"><Ticket size={15} className="text-[#7C3AED]" /> 강사·프로모 코드</p>
+            <p className="mb-3 text-xs text-slate-500">강사·이벤트·광고 코드 (첫 달 무료 / 보너스 이용권)</p>
             <div className="flex gap-2">
               <input value={promoCode} onChange={(e) => setPromoCode(e.target.value.toUpperCase())} onKeyDown={(e) => e.key === 'Enter' && redeemPromo()}
-                placeholder="프로모 코드"
+                placeholder="강사·프로모 코드"
                 className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-2.5 text-base font-bold tracking-widest text-gray-900 outline-none focus:border-[#7C3AED]" />
               <button onClick={redeemPromo} disabled={promoing}
                 className="shrink-0 rounded-xl bg-[#7C3AED] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#6D28D9] disabled:opacity-50">적용</button>

@@ -4,6 +4,7 @@ import { CheckCircle2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
 import { getFp } from '../lib/fp'
+import { redeemAnyCode } from '../lib/redeemCode'
 
 const ICON = '/cn-white.svg'
 const SOURCE_OPTIONS = ['유튜브', '인스타그램', '지인 추천', '블로그·카페', '검색(구글·네이버)', '기타']
@@ -81,13 +82,13 @@ const Register = () => {
         }
       } catch { /* noop */ }
 
-      // 프로 7일 무료체험 코드 자동 적용 (chronit_code / ?code) — 광고 랜딩용
+      // 강사·프로모 코드 자동 적용 (chronit_code / ?code) — plan_codes / coupon_codes / promo_codes 순으로 시도
       try {
         const urlCode = new URLSearchParams(window.location.search).get('code')
         const storedCode = sessionStorage.getItem('chronit_code')
         const promo = (urlCode || storedCode || '').toUpperCase()
         if (promo) {
-          await supabase.rpc('redeem_free_trial_rpc', { p_code: promo })
+          await redeemAnyCode(promo)
           sessionStorage.removeItem('chronit_code')
         }
       } catch { /* noop */ }

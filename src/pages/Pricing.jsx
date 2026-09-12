@@ -5,6 +5,7 @@ import SiteNav from '../components/SiteNav'
 import Footer from '../components/Footer'
 import FindsPricing from '../components/FindsPricing'
 import AuthModal from '../components/AuthModal'
+import { fbTrack } from '../lib/fbq'
 
 const SUBS = [
   { name: '스탠다드', credits: 30, price: 9900, feats: ['월 30회 소재 분석·소스 추출', '실시간 트렌드 무제한'] },
@@ -17,7 +18,6 @@ export default function Pricing() {
   const nav = useNavigate()
   const [user, setUser] = useState(null)
   const [priceTab, setPriceTab] = useState('monthly')
-  const [firstEligible] = useState(true)
   const [buyOpen, setBuyOpen] = useState(false)
   const [buyTab, setBuyTab] = useState('sub')
   const [buyPeriod, setBuyPeriod] = useState('monthly')
@@ -41,7 +41,6 @@ export default function Pricing() {
           <div className="mb-3 text-center">
             <h1 className="text-3xl font-bold text-gray-900 md:text-5xl">필요한 만큼만</h1>
             <p className="mt-4 text-base text-gray-500 md:text-lg">가입하면 무료 이용권을 드려요. 더 필요하면 구독하세요.</p>
-            <p className="mt-2 inline-block rounded-full bg-[#0064FF]/10 px-4 py-1.5 text-sm font-extrabold text-[#0064FF]">🎉 첫 달 반값 — 지금 시작하면 절반 가격</p>
           </div>
 
           <div className="relative mx-auto mt-8 mb-2 flex max-w-sm rounded-xl bg-gray-100 p-1 text-sm font-bold">
@@ -71,7 +70,7 @@ export default function Pricing() {
                 <p className="mt-1 text-sm text-gray-400">먼저 써보기</p>
                 <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-gray-900">₩0</span></div>
                 <p className="mt-3 text-sm leading-relaxed text-gray-500">매월 이용권 5개</p>
-                <button onClick={() => (user ? nav('/research') : setAuthOpen(true))} className="mt-6 w-full rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-[#0064FF] hover:text-[#0064FF]">무료로 시작</button>
+                <button onClick={() => { fbTrack('Lead', { content_name: 'free_start', location: 'pricing' }); if (user) nav('/research'); else setAuthOpen(true) }} className="mt-6 w-full rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-[#0064FF] hover:text-[#0064FF]">무료로 시작</button>
               </div>
               {SUBS.map((p) => (
                 <div key={p.name} onClick={() => buy('sub', annual ? 'annual' : 'monthly')} className={cardCls(p.hot)}>
@@ -82,11 +81,6 @@ export default function Pricing() {
                       <div className="flex items-baseline gap-1"><span className="text-3xl font-bold text-[#0064FF]">₩{(p.price * 9).toLocaleString('ko-KR')}</span><span className="text-sm text-gray-400">/ 년</span></div>
                       <div className="mt-0.5 text-xs text-gray-400"><span className="line-through">₩{(p.price * 12).toLocaleString('ko-KR')}</span> · 3개월 무료</div>
                     </div>
-                  ) : firstEligible ? (
-                    <div className="mt-4">
-                      <div className="flex items-baseline gap-1"><span className="text-3xl font-bold text-[#0064FF]">₩{(Math.floor(p.price * 0.5 / 100) * 100).toLocaleString('ko-KR')}</span><span className="text-sm text-gray-400">첫 달</span></div>
-                      <div className="mt-0.5 text-xs text-gray-400">이후 ₩{p.price.toLocaleString('ko-KR')}/월</div>
-                    </div>
                   ) : (
                     <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-gray-900">₩{p.price.toLocaleString('ko-KR')}</span><span className="text-sm text-gray-400">/ 월</span></div>
                   )}
@@ -96,7 +90,7 @@ export default function Pricing() {
                       <li key={f} className="flex items-start gap-1.5 text-sm text-gray-600"><span className="mt-0.5 shrink-0 font-bold text-[#0064FF]">✓</span><span className="break-keep">{f}</span></li>
                     ))}
                   </ul>
-                  <button className={btnCls(p.hot)}>{firstEligible && !annual ? '첫 달 반값으로 시작' : '시작하기'}</button>
+                  <button className={btnCls(p.hot)}>시작하기</button>
                 </div>
               ))}
             </div>

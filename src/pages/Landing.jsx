@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import AuthModal from '../components/AuthModal'
+import { fbTrack } from '../lib/fbq'
 
 const BLUE = '#3182F6'
 const CAP = 100
@@ -49,6 +50,7 @@ export default function Landing() {
 
   const start = () => {
     try { window.gtag?.('event', 'cta_click', { page: 'start', logged_in: !!session }) } catch {}
+    fbTrack('Lead', { content_name: 'free_start', location: 'landing' })
     if (session) window.location.href = '/trend'; else setAuthOpen(true)
   }
   // ── 가입 전 체험(무료 미리보기) ──

@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import HeaderInstallBtn from '../components/HeaderInstallBtn'
 import { Navigate, Link, useNavigate } from 'react-router-dom'
 import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, HelpCircle, Zap, Lock, Crown, X, Play, Bookmark } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
+import { fbTrack } from '../lib/fbq'
 
 const CATS = ['전체','리빙','육아','푸드','잡화','패션','디지털','뷰티']
 const NICHE_TO_CAT = { '뷰티·화장품':'뷰티','패션·의류':'패션','리빙·홈·주방':'리빙','잡화·소품':'잡화','푸드·식품':'푸드','육아·키즈':'육아','헬스·건강':'헬스','반려동물':'반려','디지털·가전':'디지털' }
@@ -44,6 +45,7 @@ const REGIONS = [['전체', ''], ['한국', 'kr'], ['일본', 'jp'], ['미국', 
 const regionOf = (it) => { const c = `${it.caption || ''} ${it.owner || ''}`; if (/[가-힣]/.test(c)) return 'kr'; if (/[ぁ-ゖァ-ヺ]/.test(c)) return 'jp'; return 'us' }
 const RANGES = [['24h', '24시간', 1], ['7d', '7일', 7]]
 const FOLLOWERS = [['전체', '', ''], ['~1만', '', '10000'], ['1~2만', '10000', '20000'], ['2~3만', '20000', '30000'], ['3~5만', '30000', '50000'], ['5만+', '50000', '']]
+const COMMENT_MINS = [['전체', 0], ['100+', 100], ['500+', 500], ['1000+', 1000]]
 const TREND_TTL = 10 * 60 * 1000 // 10분: 이 안이면 재요청 안 함(서버는 최대 24h마다 갱신)
 const readTrendCache = () => { try { const c = JSON.parse(localStorage.getItem('chronit_trend_cache') || 'null'); return (c && Array.isArray(c.items)) ? c : null } catch { return null } }
 const writeTrendCache = (items, fb, fbCount) => { try { localStorage.setItem('chronit_trend_cache', JSON.stringify({ items, fb: fb || [], fbCount: (typeof fbCount === 'number' ? fbCount : null), at: Date.now() })) } catch { /* noop */ } }
@@ -112,6 +114,7 @@ export default function Trend() {
   const [fMin, setFMin] = useState('')
   const [fMax, setFMax] = useState('')
   const [region, setRegion] = useState('')
+  const [minComments, setMinComments] = useState(0)
   const [fastBench, setFastBench] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isPaid, setIsPaid] = useState(false)
@@ -134,6 +137,14 @@ export default function Trend() {
     setModalClip(clip)
     supabase.rpc('grant_first_analysis_bonus_rpc').catch(() => {})
   }
+
+  // 메타 픽셀 전환: /trend 도달 1회 (로그인 여부 무관)
+  const vcSent = useRef(false)
+  useEffect(() => {
+    if (vcSent.current) return
+    vcSent.current = true
+    fbTrack('ViewContent', { content_name: 'trend_feed', content_category: 'trend' })
+  }, [])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
@@ -198,6 +209,7 @@ export default function Trend() {
       if (hi && fc > hi) return false
       return true
     })
+    .filter((it) => !minComments || (Number(it.comment_count) || 0) >= minComments)
     .filter((it) => !region || regionOf(it) === region)
     .filter((it) => selCat === '전체' || it.category === selCat)
     .filter((it) => String(it.video_url || '') !== '')
@@ -289,6 +301,11 @@ export default function Trend() {
           <span className="text-sm font-bold text-slate-500">지역</span>
           {REGIONS.map(([l, v]) => (
             <button key={l} onClick={() => setRegion(v)} className={`rounded-full px-3 py-1.5 text-sm font-bold transition ${region === v ? 'bg-[#0064FF] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{l}</button>
+          ))}
+          <span className="mx-1 h-4 w-px bg-slate-200" />
+          <span className="text-sm font-bold text-slate-500">최소 댓글</span>
+          {COMMENT_MINS.map(([l, v]) => (
+            <button key={l} onClick={() => setMinComments(v)} className={`rounded-full px-3 py-1.5 text-sm font-bold transition ${minComments === v ? 'bg-[#0064FF] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{l}</button>
           ))}
           <span className="mx-1 h-4 w-px bg-slate-200" />
           <span className="text-sm font-bold text-slate-500">팔로워</span>
@@ -446,7 +463,7 @@ export default function Trend() {
                 </div>
               )
             })}
-            {!list.length && <div className="col-span-full p-10 text-center text-sm text-slate-400">{(fMin || fMax) ? '이 팔로워 구간은 아직 준비 중이에요. 곧 더 많은 계정을 추가할 예정이에요.' : '해당 기간에 트렌드가 없어요.'}</div>}
+            {!list.length && <div className="col-span-full p-10 text-center text-sm text-slate-400">{minComments ? `댓글 ${minComments.toLocaleString('ko-KR')}개 이상인 소재가 아직 없어요. 조건을 낮춰보세요.` : (fMin || fMax) ? '이 팔로워 구간은 아직 준비 중이에요. 곧 더 많은 계정을 추가할 예정이에요.' : '해당 기간에 트렌드가 없어요.'}</div>}
           </div>
           </>
         )}
