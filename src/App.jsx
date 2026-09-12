@@ -112,7 +112,6 @@ const App = () => {
       <Route path="/events/:id" element={<EventDetail />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/privacy" element={<Privacy />} />
-      <Route path="/admin" element={<Admin />} />
       <Route path="/generate" element={<GenerateGate />} />
       <Route element={<AppShell />}>
         <Route path="/trend" element={<Trend />} />
@@ -120,6 +119,7 @@ const App = () => {
         <Route path="/saved" element={<SavedBoard />} />
         <Route path="/me" element={<MyPage />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/admin" element={<Admin />} />
       </Route>
       <Route path="/finds" element={<Navigate to="/research" replace />} />
       <Route path="/fastbench" element={<FastBench />} />

@@ -427,17 +427,15 @@ const Admin = () => {
     { key: 'trends', label: '트렌드 계정' },
     { key: 'errors', label: '오류 로그' },
   ]
+  // 브랜드바·홈·로그아웃은 AppShell 사이드바가 담당 — 여기선 페이지 제목 + 탭만 둔다.
   return (
     <div className="min-h-screen bg-[#FAFAF8] text-gray-900">
-      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2"><ShieldCheck size={18} className="text-[#0064FF]" /><h1 className="text-base font-bold">Chronit 관리</h1></div>
-          <div className="flex items-center gap-1.5 text-sm">
-            <Link to="/" className="rounded-lg border border-gray-200 px-3 py-1.5 font-bold text-gray-600 transition hover:text-[#0064FF]">홈</Link>
-            <button onClick={() => supabase.auth.signOut()} className="rounded-lg border border-gray-200 px-3 py-1.5 font-bold text-gray-600 transition hover:text-red-500">로그아웃</button>
-          </div>
+      <div className="mx-auto max-w-6xl px-4 py-6">
+        <div className="flex items-center gap-2 text-[#0064FF]">
+          <ShieldCheck size={20} />
+          <h1 className="text-2xl font-extrabold text-gray-900">관리자</h1>
         </div>
-        <div className="mx-auto flex max-w-6xl gap-1 px-4">
+        <div className="mb-5 mt-4 flex gap-1 border-b border-gray-200">
           {TABS.map((t) => (
             <button key={t.key} onClick={() => setTab(t.key)}
               className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-bold transition ${tab === t.key ? 'border-[#0064FF] text-[#0064FF]' : 'border-transparent text-gray-400 hover:text-gray-900'}`}>
@@ -445,12 +443,10 @@ const Admin = () => {
             </button>
           ))}
         </div>
-      </header>
-      <main className="mx-auto max-w-6xl px-4 py-6">
         {tab === 'manage' && <AdminManage session={session} />}
         {tab === 'trends' && <TrendAccountsPanel />}
         {tab === 'errors' && <ErrorReportsPanel />}
-      </main>
+      </div>
     </div>
   )
 }

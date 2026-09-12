@@ -17,7 +17,8 @@ export default function AppShell({ children }) {
   const isAdmin = useIsAdmin()
   const content = children ?? <Outlet />
   const active = (n) => loc.pathname.startsWith(n.to)
-  const cur = NAV.find(active)
+  // 모바일 상단 타이틀 — /admin 은 하단 탭에 없지만 제목은 제대로 보이게
+  const cur = NAV.find(active) ?? (active(ADMIN_NAV) ? ADMIN_NAV : undefined)
   return (
     <div className="min-h-screen bg-[#0a0b0f] text-white md:flex">
       {/* 데스크톱 왼쪽 내비 */}
