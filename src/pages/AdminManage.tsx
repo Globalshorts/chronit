@@ -1,6 +1,7 @@
 import React from 'react'
 import { supabase } from '../lib/supabase'
 import { X } from 'lucide-react'
+import { GRANT_PLANS, FINDS_PLANS, planLabel, normalizePlan } from '../lib/planLabels'
 
 const SB = "https://oxygqtbdpnxxcgzwdlzi.supabase.co";
 const FN = (n: string) => `${SB}/functions/v1/${n}`;
@@ -199,16 +200,92 @@ function ProvBadge({ p }: { p?: string }) {
   if (v === "google") return <span title="구글" className="mr-1.5 inline-flex h-4 w-4 items-center justify-center rounded-[4px] bg-white ring-1 ring-gray-300 align-middle text-[9px] font-bold text-[#4285F4]">G</span>;
   return null;
 }
+// ── 관리자: 파트너 코드 발급 ──
+// coupon_codes(type='free_days') 를 파트너 이메일에 연결해 발급한다.
+// 이 코드를 쓴 유저는 redeem_free_trial_rpc → redeem_teacher_code_rpc 로 파트너에 매핑되어
+// /partner 페이지의 '내 코드로 들어온 사람' 목록에 잡힌다.
+function PartnerCodePanel({ users, supabase, onDone }: { users:any[]; supabase:any; onDone:()=>void }) {
+  const [code, setCode]   = React.useState("");
+  const [email, setEmail] = React.useState("");
+  const [days, setDays]   = React.useState("30");
+  const [maxUses, setMaxUses] = React.useState("");
+  const [expires, setExpires] = React.useState("");
+  const [makePartner, setMakePartner] = React.useState(true);
+  const [busy, setBusy]   = React.useState(false);
+  const [msg, setMsg]     = React.useState<{ok:boolean;text:string}|null>(null);
+
+  const target = users.find((u:any)=>String(u.email||"").toLowerCase() === email.trim().toLowerCase());
+
+  const issue = async () => {
+    const c = code.trim().toUpperCase();
+    const em = email.trim().toLowerCase();
+    const d = Math.floor(Number(days) || 0);
+    if (!c) { setMsg({ok:false,text:"코드를 입력하세요"}); return; }
+    if (!em) { setMsg({ok:false,text:"파트너 이메일을 입력하세요"}); return; }
+    if (d <= 0) { setMsg({ok:false,text:"무료 일수를 1 이상으로 입력하세요"}); return; }
+    const mu = maxUses.trim() ? Math.floor(Number(maxUses)) : null;
+    if (mu !== null && (!Number.isFinite(mu) || mu <= 0)) { setMsg({ok:false,text:"인원 상한을 올바르게 입력하세요"}); return; }
+    if (makePartner && !target) { setMsg({ok:false,text:`${em} 계정을 찾을 수 없어요 (가입 후 파트너 지정 가능)`}); return; }
+
+    setBusy(true); setMsg(null);
+    const { error } = await supabase.from("coupon_codes").insert({
+      code: c, type: "free_days", value: d, owner_email: em,
+      max_uses: mu, expires_at: expires ? new Date(expires + "T23:59:59").toISOString() : null,
+      plan_discounts: null, allowed_plans: null,
+    });
+    if (error) {
+      setBusy(false);
+      setMsg({ok:false,text:"발급 실패: "+error.message+(error.code==="23505"?" (이미 있는 코드)":"")});
+      return;
+    }
+    let extra = "";
+    if (makePartner && target) {
+      const { data, error: rErr } = await supabase.rpc("set_user_role_rpc", { p_target_user_id: target.user_id, p_new_role: "partner" });
+      extra = (rErr || data?.ok === false) ? ` · 권한 변경 실패(${rErr?.message || data?.error || ""})` : " · 파트너 권한 지정 완료";
+    }
+    setBusy(false);
+    setMsg({ok:true,text:`코드 ${c} 발급 완료 — ${em} · ${d}일 무료${mu?` · 최대 ${mu}명`:""}${extra}`});
+    setCode("");
+    onDone();
+  };
+
+  const inputCls = "rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#0064FF]";
+  return (
+    <div className="rounded-2xl bg-white border border-[#0064FF]/30 p-4 mb-5">
+      <p className="text-sm font-bold text-gray-800">🎟 파트너 코드 발급</p>
+      <p className="mt-0.5 mb-3 text-[11px] text-gray-400">코드를 쓴 유저에게 무료 기간이 적용되고, 그 유저가 이 파트너 목록에 잡혀요.</p>
+      <div className="flex flex-wrap items-center gap-2">
+        <input value={code} onChange={e=>setCode(e.target.value.toUpperCase())} placeholder="코드 (예: KIM2026)" className={inputCls+" w-40 font-bold tracking-widest"} />
+        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="파트너 이메일" className={inputCls+" w-56"} />
+        <input type="number" min={1} value={days} onChange={e=>setDays(e.target.value)} placeholder="무료 일수" className={inputCls+" w-28"} />
+        <input type="number" min={1} value={maxUses} onChange={e=>setMaxUses(e.target.value)} placeholder="인원 상한(선택)" className={inputCls+" w-36"} />
+        <input type="date" value={expires} onChange={e=>setExpires(e.target.value)} className={inputCls+" w-40"} />
+        <button onClick={issue} disabled={busy}
+          className="rounded-lg bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-xs font-bold text-white hover:brightness-95 disabled:opacity-40">
+          {busy ? "발급 중…" : "＋ 코드 발급"}
+        </button>
+      </div>
+      <label className="mt-2.5 flex items-center gap-2 text-xs text-gray-600">
+        <input type="checkbox" checked={makePartner} onChange={e=>setMakePartner(e.target.checked)} />
+        이 이메일 계정의 권한을 <b className="text-[#0064FF]">파트너</b>로 지정 (좌측 &lsquo;파트너&rsquo; 탭이 열려요)
+        {email.trim() && (target
+          ? <span className="text-gray-400">· 계정 확인됨{target.role==="partner" ? " (이미 파트너)" : ""}</span>
+          : <span className="text-red-400">· 해당 이메일 계정 없음</span>)}
+      </label>
+      {msg && <p className={`mt-2 text-xs font-bold ${msg.ok ? "text-[#0064FF]" : "text-red-500"}`}>{msg.text}</p>}
+    </div>
+  );
+}
+
 function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
   const [users, setUsers]   = React.useState<any[]>([]);
   const [planMax, setPlanMax] = React.useState<Record<string,number>>({});
-  const [plans, setPlans]   = React.useState<any[]>([]);
   const [q, setQ]           = React.useState("");
   const [stFilter, setStFilter] = React.useState("all");
   const [plFilter, setPlFilter] = React.useState("all");
   const [mkFilter, setMkFilter] = React.useState("all");
   const [sel, setSel]       = React.useState<string>("");
-  const [planSel, setPlanSel] = React.useState("pro");
+  const [planSel, setPlanSel] = React.useState("finds100");
   const [days, setDays]     = React.useState("30");
   const [amt, setAmt]       = React.useState("100");
   const [creditKind, setCreditKind] = React.useState<"finds"|"render">("finds");
@@ -248,8 +325,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
       if (ss?.ok) { setSrcStats(Array.isArray(ss.stats)?ss.stats:[]); setSrcTotal(ss.total||0); }
     } catch {}
     try {
-      const { data: pl } = await supabase.from("plans").select("id,name,max_credits").order("sort_order");
-      setPlans(pl ?? []);
+      const { data: pl } = await supabase.from("plans").select("id,max_credits").order("sort_order");
       const m:Record<string,number> = {}; (pl??[]).forEach((p:any)=>m[p.id]=p.max_credits); setPlanMax(m);
     } catch {}
     setLoading(false);
@@ -268,6 +344,8 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
     return true;
   });
   const provStats = users.reduce((a: any, u: any) => { const v = (u.provider || "").toLowerCase(); const k = v === "google" ? "google" : v === "kakao" ? "kakao" : "etc"; a[k] = (a[k] || 0) + 1; return a; }, { google: 0, kakao: 0, etc: 0 });
+  // 현재 플랜(free/finds30/finds100/finds300) 기준 집계 · 레거시 플랜은 '기타'로 흡수
+  const planCount = users.reduce((a:any,u:any)=>{ const k = normalizePlan(u.plan); a[k] = (a[k]||0)+1; return a; }, { free:0, finds30:0, finds100:0, finds300:0, legacy:0 });
   const mkCnt = users.filter((u:any)=>u.marketing_consent).length;
   const copyMktEmails = async () => {
     const list = filtered.filter((u:any)=>u.marketing_consent).map((u:any)=>u.email).filter(Boolean);
@@ -283,15 +361,30 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
     try { const r = await fn(); if (r?.error && !r?.ok) setMsg("실패: "+(r.error.message||r.error)); else if (r?.data?.ok===false) setMsg("실패: "+r.data.error); else { setMsg(okMsg); await load(); } }
     catch(e){ setMsg("실패: "+String(e)); }
   };
+  // Finds 플랜(finds30/100/300)은 admin_grant_subscription_rpc 가 못 다루므로
+  // toss-confirm 의 grant() 와 동일하게 grant_finds_sub_rpc 로 분기한다.
+  // admin_grant_plan_rpc(관리자 검사 포함 래퍼)가 DB에 있으면 그걸 먼저 쓰고,
+  // 없으면(마이그레이션 전) 클라이언트에서 분기한다.
+  const grantRpc = async () => {
+    const days_ = Number(days) || 30;
+    const amount = payAmt.trim() ? (Number(payAmt) || 0) : null;
+    const w = await supabase.rpc("admin_grant_plan_rpc", { p_target_user_id: sel, p_plan: planSel, p_days: days_, p_amount: amount });
+    const missing = w?.error && /PGRST202|does not exist|Could not find the function/i.test(String(w.error.message || w.error.code || ""));
+    if (!missing) return w;
+    if (FINDS_PLANS.includes(planSel)) {
+      return supabase.rpc("grant_finds_sub_rpc", { p_user: sel, p_plan: planSel, p_days: days_, p_amount: amount, p_period: "monthly" });
+    }
+    return supabase.rpc("admin_grant_subscription_rpc", { p_target_user_id: sel, p_plan: planSel, p_days: days_, p_amount: amount });
+  };
   const grant = async () => {
     if (!sel) { setMsg("회원을 먼저 선택하세요"); return; }
     setMsg("처리 중...");
     try {
-      const r = await supabase.rpc("admin_grant_subscription_rpc",{ p_target_user_id:sel, p_plan:planSel, p_days:Number(days)||30, p_amount: payAmt.trim() ? (Number(payAmt)||0) : null });
+      const r = await grantRpc();
       if (r?.error) { setMsg("실패: "+r.error.message); return; }
       if (r?.data?.ok === false) { setMsg("실패: "+r.data.error); return; }
       const acc = r?.data?.accrual;
-      let m = r?.data?.note ? ("구독 부여 완료 · " + r.data.note) : "구독 부여/연장 완료";
+      let m = r?.data?.note ? (`${planLabel(planSel)} 부여 완료 · ` + r.data.note) : `${planLabel(planSel)} 구독 부여/연장 완료`;
       if (acc?.action === "accrued") m += ` · 파트너 적립 +₩${Number(acc.amount||0).toLocaleString()} (${acc.partner})`;
       else if (payAmt.trim() && acc?.action === "no_partner") m += " · (파트너 매핑 없음 — 적립 안 됨)";
       else if (payAmt.trim() && (acc?.action === "zero_rate" || acc?.action === "zero_fixed")) m += " · (파트너 요율 0 — 적립 안 됨)";
@@ -434,7 +527,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
     <div>
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm font-bold text-gray-900">👑 구독 관리</p>
-        <div className="text-xs text-gray-500">전체 {users.length} · 무료 {users.filter(u=>!u.plan||u.plan==="free").length} · 스타터 {users.filter(u=>u.plan==="starter").length} · <span className="text-[#0064FF]">프로 {users.filter(u=>u.plan==="pro").length}</span> · <span className="text-purple-500">마스터 {users.filter(u=>u.plan==="master").length}</span>
+        <div className="text-xs text-gray-500">전체 {users.length} · 무료 {planCount.free} · 스탠다드 {planCount.finds30} · <span className="text-[#0064FF]">프로 {planCount.finds100}</span> · <span className="text-purple-500">비즈니스 {planCount.finds300}</span>{planCount.legacy > 0 && <span className="text-gray-400"> · 기타 {planCount.legacy}</span>}
           <button onClick={load} className="ml-3 rounded-lg border border-gray-200 px-2 py-1 hover:bg-gray-100">새로고침</button>
         </div>
       </div>
@@ -463,7 +556,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
         <select value={stFilter} onChange={e=>setStFilter(e.target.value)} className="rounded-xl bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none">
           <option value="all">상태 전체</option><option value="active">유효</option><option value="expired">만료</option></select>
         <select value={plFilter} onChange={e=>setPlFilter(e.target.value)} className="rounded-xl bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none">
-          <option value="all">플랜 전체</option>{plans.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>
+          <option value="all">플랜 전체</option>{GRANT_PLANS.map(([v,label])=><option key={v} value={v}>{label}</option>)}</select>
         <select value={mkFilter} onChange={e=>setMkFilter(e.target.value)} className="rounded-xl bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none">
           <option value="all">마케팅 전체</option><option value="yes">동의함</option><option value="no">미동의</option></select>
       </div>
@@ -486,21 +579,23 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
             : filtered.map(u=>{
               const max = (planMax[u.plan] ?? 0) + (u.bonus_credits||0); const left = max - (u.credits_used||0); const evA = (u.event_expires_at && new Date(u.event_expires_at).getTime() > now && (u.event_credits||0) > 0) ? (u.event_credits||0) : 0; const act = isActive(u);
               return (
-                <tr key={u.user_id} onClick={()=>{setSel(u.user_id); setRoleSel(u.role||"user"); if(u.plan)setPlanSel(u.plan); setActOpen(true);}}
+                <tr key={u.user_id} onClick={()=>{setSel(u.user_id); setRoleSel(u.role||"user"); if(u.plan && GRANT_PLANS.some(([v])=>v===u.plan))setPlanSel(u.plan); setActOpen(true);}}
                   className={`border-b border-gray-200/50 cursor-pointer ${sel===u.user_id?"bg-[#0064FF]/10":"hover:bg-gray-100/40"}`}>
                   <td className="px-3 py-2.5 text-gray-700 truncate max-w-[200px]"><ProvBadge p={u.provider} />{u.email}</td><td className="px-3 py-2.5 text-gray-700 truncate max-w-[120px]">{u.nickname||"-"}</td>
                   <td className="px-3 py-2.5">{u.role==="super_admin"?<span className="text-yellow-400 font-bold">👑 관리자</span>:u.role==="partner"?<span className="text-[#0064FF]">파트너</span>:<span className="text-gray-400">일반</span>}</td>
-                  <td className="px-3 py-2.5 text-gray-700 capitalize">{u.plan||"-"}</td>
+                  <td className="px-3 py-2.5 text-gray-700">{planLabel(u.plan)}</td>
                   <td className="px-3 py-2.5 text-gray-400">{fmt(u.expires_at)}</td><td className="px-3 py-2.5 text-gray-400">{u.created_at?fmt(u.created_at):"-"}</td>
                   <td className="px-3 py-2.5">{u.marketing_consent?<span className="text-[#0064FF] font-bold">동의</span>:<span className="text-gray-300">-</span>}</td>
                   <td className="px-3 py-2.5 text-right text-gray-700">{left.toLocaleString()} / {max.toLocaleString()}{evA>0 && <span className="ml-1 font-bold text-[#0064FF]">+{evA}체험</span>}</td>
-                  <td className="px-3 py-2.5 text-right">{(u.render_credits||0) > 0 ? <span className="font-bold text-amber-600">{(u.render_credits||0).toLocaleString()}</span> : <span className="text-gray-300">-</span>}</td><td className="px-3 py-2.5 text-center"><button onClick={e=>{e.stopPropagation(); setSel(u.user_id); setRoleSel(u.role||"user"); if(u.plan)setPlanSel(u.plan); setActOpen(true);}} title="회원 관리" className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[#0064FF]/10 text-[#0064FF] font-bold hover:bg-[#0064FF] hover:text-white transition">+</button></td>
+                  <td className="px-3 py-2.5 text-right">{(u.render_credits||0) > 0 ? <span className="font-bold text-amber-600">{(u.render_credits||0).toLocaleString()}</span> : <span className="text-gray-300">-</span>}</td><td className="px-3 py-2.5 text-center"><button onClick={e=>{e.stopPropagation(); setSel(u.user_id); setRoleSel(u.role||"user"); if(u.plan && GRANT_PLANS.some(([v])=>v===u.plan))setPlanSel(u.plan); setActOpen(true);}} title="회원 관리" className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[#0064FF]/10 text-[#0064FF] font-bold hover:bg-[#0064FF] hover:text-white transition">+</button></td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
+
+      <PartnerCodePanel users={users} supabase={supabase} onDone={load} />
 
       {/* 액션 영역 */}
       <div className="space-y-3">
@@ -521,7 +616,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
           <p className="text-xs text-gray-500 mb-2">구독 부여 / 수정 {selUser && <span className="text-[#0064FF]">— {selUser.email}</span>}</p>
           <div className="flex flex-wrap items-center gap-2">
             <select value={planSel} onChange={e=>setPlanSel(e.target.value)} className="rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none">
-              {plans.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>
+              {GRANT_PLANS.map(([v,label])=><option key={v} value={v}>{label}</option>)}</select>
             <input value={days} onChange={e=>setDays(e.target.value)} className="w-28 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none" placeholder="기간(일)" />
             <input value={payAmt} onChange={e=>setPayAmt(e.target.value)} className="w-36 rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none" placeholder="결제금액(정산용·선택)" />
             <Btn onClick={grant} color="bg-[linear-gradient(140deg,#22C55E_0%,#16A34A_55%,#15803D_100%)] hover:brightness-95">✓ 구독 부여/연장</Btn>

@@ -9,6 +9,7 @@ import Footer from '../components/Footer'
 import FindsBottomNav from '../components/FindsBottomNav'
 import { supabase } from '../lib/supabase'
 import { redeemAnyCode } from '../lib/redeemCode'
+import { PLAN_LABEL } from '../lib/planLabels'
 import { CAT_LABEL, CAT_CLS, fmtWhen } from './Board'
 
 const MyPage = () => {
@@ -80,7 +81,6 @@ const MyPage = () => {
     setPromoing(false)
   }
 
-  const PLAN_LABEL = { free: '무료', finds30: '스탠다드', finds100: '프로', finds300: '비즈니스' }
   const fmtDate = (d) => d ? new Date(d).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }) : ''
   const openPay = () => setPayOpen(true)
   const isExistingRender = profile?.created_at && new Date(profile.created_at) < new Date('2026-08-12T00:00:00Z')

@@ -1,6 +1,6 @@
 import { Link, useLocation, Outlet } from 'react-router-dom'
-import { Flame, Search, Bookmark, User, CreditCard, Download, Shield } from 'lucide-react'
-import { useIsAdmin } from '../lib/useIsAdmin'
+import { Flame, Search, Bookmark, User, CreditCard, Download, Shield, Handshake } from 'lucide-react'
+import { useMyRole } from '../lib/useIsAdmin'
 
 const NAV = [
   { to: '/trend', label: '트렌드', title: '실시간 트렌드', Icon: Flame },
@@ -9,16 +9,19 @@ const NAV = [
   { to: '/me', label: '마이', title: '마이페이지', Icon: User },
   { to: '/pricing', label: '이용권', title: '이용권 · 요금', Icon: CreditCard },
 ]
-// 관리자 전용 — 데스크톱 사이드바에만 노출(모바일 하단 탭에는 넣지 않는다)
+// 역할 전용 탭 — 데스크톱 사이드바에만 노출(모바일 하단 탭에는 넣지 않는다)
 const ADMIN_NAV = { to: '/admin', label: '관리자', title: '관리자', Icon: Shield }
+const PARTNER_NAV = { to: '/partner', label: '파트너', title: '파트너', Icon: Handshake }
 
 export default function AppShell({ children }) {
   const loc = useLocation()
-  const isAdmin = useIsAdmin()
+  const role = useMyRole()
   const content = children ?? <Outlet />
   const active = (n) => loc.pathname.startsWith(n.to)
-  // 모바일 상단 타이틀 — /admin 은 하단 탭에 없지만 제목은 제대로 보이게
-  const cur = NAV.find(active) ?? (active(ADMIN_NAV) ? ADMIN_NAV : undefined)
+  // 역할별 추가 탭: super_admin → 관리자, partner → 파트너
+  const roleNav = role === 'super_admin' ? ADMIN_NAV : role === 'partner' ? PARTNER_NAV : null
+  // 모바일 상단 타이틀 — 역할 탭은 하단 탭에 없지만 제목은 제대로 보이게
+  const cur = NAV.find(active) ?? [ADMIN_NAV, PARTNER_NAV].find(active)
   return (
     <div className="min-h-screen bg-[#0a0b0f] text-white md:flex">
       {/* 데스크톱 왼쪽 내비 */}
@@ -33,9 +36,9 @@ export default function AppShell({ children }) {
               <n.Icon size={18} /> {n.label}
             </Link>
           ))}
-          {isAdmin && (
-            <Link to={ADMIN_NAV.to} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition ${active(ADMIN_NAV) ? 'bg-[#0064FF] text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
-              <ADMIN_NAV.Icon size={18} /> {ADMIN_NAV.label}
+          {roleNav && (
+            <Link to={roleNav.to} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition ${active(roleNav) ? 'bg-[#0064FF] text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
+              <roleNav.Icon size={18} /> {roleNav.label}
             </Link>
           )}
         </nav>

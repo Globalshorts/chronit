@@ -40,6 +40,7 @@ const EventWrite = lazyRetry(() => import('./pages/EventWrite'))
 const Terms = lazyRetry(() => import('./pages/Terms'))
 const Privacy = lazyRetry(() => import('./pages/Privacy'))
 const Admin = lazyRetry(() => import('./pages/Admin'))
+const Partner = lazyRetry(() => import('./pages/Partner'))
 const LinkPage = lazyRetry(() => import('./pages/LinkPage'))
 const LinksManager = lazyRetry(() => import('./pages/LinksManager'))
 const Board = lazyRetry(() => import('./pages/Board'))
@@ -120,6 +121,7 @@ const App = () => {
         <Route path="/me" element={<MyPage />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/partner" element={<Partner />} />
       </Route>
       <Route path="/finds" element={<Navigate to="/research" replace />} />
       <Route path="/fastbench" element={<FastBench />} />
