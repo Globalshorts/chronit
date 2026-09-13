@@ -5,6 +5,7 @@ import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, Help
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
 import { fbTrack } from '../lib/fbq'
+import { useWatchToggle } from '../lib/useWatchToggle'
 import RangeFilter from '../components/RangeFilter'
 import {
   DAY_MAX, DAY_MARKS, FB_DAY_MAX, FB_DAY_MARKS, dayWindowMs,
@@ -53,21 +54,12 @@ export default function Trend() {
   const nav = useNavigate()
   const [session, setSession] = useState(null)
   const [items, setItems] = useState(() => readTrendCache()?.items || [])
-  const [savedPicks, setSavedPicks] = useState([])
   const [preview, setPreview] = useState([])
   const [previewCount, setPreviewCount] = useState(0)
   const [myNiche, setMyNiche] = useState(() => { try { return localStorage.getItem('chr_niche') || '' } catch { return '' } })
   const [selCat, setSelCat] = useState(() => { try { return NICHE_TO_CAT[localStorage.getItem('chr_niche') || ''] || '전체' } catch { return '전체' } })
   const [showAdv, setShowAdv] = useState(true)   // 슬라이더를 못 찾는다는 피드백 → 기본 펼침
-  const toggleSave = async (it) => {
-    const sc = it.shortcode; const has = savedPicks.includes(sc)
-    if (!has) { try { phCapture('trend_saved', { shortcode: sc }) } catch { /* noop */ } }
-    setSavedPicks((prev) => has ? prev.filter((x) => x !== sc) : [...prev, sc])
-    try {
-      if (has) await supabase.from('saved_trends').delete().eq('shortcode', sc)
-      else await supabase.from('saved_trends').insert({ shortcode: sc, caption: it.caption, thumbnail_url: it.thumbnail_url, url: it.url, owner: it.owner, view_count: it.view_count, like_count: it.like_count, comment_count: it.comment_count, velocity: it.velocity, taken_at: it.taken_at })
-    } catch { /* noop */ }
-  }
+  const [limitModal, setLimitModal] = useState(null)
   const [fbItems, setFbItems] = useState(() => readTrendCache()?.fb || [])
   const [fbCountSrv, setFbCountSrv] = useState(() => { const c = readTrendCache(); return c && typeof c.fbCount === 'number' ? c.fbCount : null })
   const [loading, setLoading] = useState(false)
@@ -82,7 +74,7 @@ export default function Trend() {
   const [minComments, setMinComments] = useState(0)
   const [fastBench, setFastBench] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
-  const [isPaid, setIsPaid] = useState(false)
+  const [isProPlus, setIsProPlus] = useState(false)
   const [previewLock, setPreviewLock] = useState(false)
   const [modalClip, setModalClip] = useState(null)
   const [payWall, setPayWall] = useState(false)
@@ -90,6 +82,12 @@ export default function Trend() {
   const [showAuth, setShowAuth] = useState(false)
   const [playClip, setPlayClip] = useState(null)
   const isReal = !!session && session.user?.is_anonymous !== true
+  // 카드의 북마크 = 그 계정을 워치리스트에 담기/빼기
+  const { isWatched, toggle: toggleWatch } = useWatchToggle({
+    enabled: isReal, source: 'trend',
+    onNeedLogin: () => setShowAuth(true),
+    onLimit: (limit) => setLimitModal({ limit }),
+  })
 
   const handleAnalyze = async (clip) => {
     const key = clip.page_url || clip.title
@@ -122,7 +120,8 @@ export default function Trend() {
     if (!u || u.is_anonymous) { setIsAdmin(false); return }
     supabase.from('subscriptions').select('role, plan, expires_at').eq('user_id', u.id).maybeSingle().then(({ data }) => {
       setIsAdmin(data?.role === 'super_admin')
-      setIsPaid(['finds30', 'finds100', 'finds300'].includes(data?.plan) && !!data?.expires_at && new Date(data.expires_at) > new Date())
+      // 패스트벤치는 프로(finds100)·비즈니스(finds300) 전용 — 스탠다드/무료는 블러
+      setIsProPlus(['finds100', 'finds300'].includes(data?.plan) && !!data?.expires_at && new Date(data.expires_at) > new Date())
     })
   }, [session])
 
@@ -146,7 +145,7 @@ export default function Trend() {
     return () => { alive = false }
   }, [session])
 
-  useEffect(() => { if (!isReal) return; try { phCapture('trend_feed_viewed') } catch { /* noop */ }; supabase.from('saved_trends').select('shortcode').then(({ data }) => { if (Array.isArray(data)) setSavedPicks(data.map((r) => r.shortcode)) }); supabase.from('profiles').select('niche').maybeSingle().then(({ data }) => { const n = data && data.niche; if (n && NICHE_TO_CAT[n]) { setMyNiche(n); setSelCat((c) => c === '전체' ? NICHE_TO_CAT[n] : c); try { localStorage.setItem('chr_niche', n) } catch { /* noop */ } } }) }, [isReal])
+  useEffect(() => { if (!isReal) return; try { phCapture('trend_feed_viewed') } catch { /* noop */ }; supabase.from('profiles').select('niche').maybeSingle().then(({ data }) => { const n = data && data.niche; if (n && NICHE_TO_CAT[n]) { setMyNiche(n); setSelCat((c) => c === '전체' ? NICHE_TO_CAT[n] : c); try { localStorage.setItem('chr_niche', n) } catch { /* noop */ } } }) }, [isReal])
   useEffect(() => { if (isReal) return; supabase.rpc('public_trend_preview_rpc', { p_limit: 12 }).then(({ data }) => { if (Array.isArray(data)) setPreview(data) }).catch(() => {}); supabase.rpc('public_trend_count_rpc').then(({ data }) => { if (typeof data === 'number') setPreviewCount(data) }).catch(() => {}) }, [isReal])
 
   if (!FEATURES.trendFeed) return <Navigate to="/" replace />
@@ -189,7 +188,7 @@ export default function Trend() {
   const list = _listBase
 
   const fbQual = (it) => !!it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && fbScore(it) >= FB_SCORE
-  const gateOn = previewLock || (!isPaid && !isAdmin)
+  const gateOn = previewLock || (!isProPlus && !isAdmin)
   const lockedCount = gateOn ? (fbCountSrv != null ? fbCountSrv : list.filter(fbQual).length) : 0
   const pickScore = (it) => {
     const vel = Number(it.velocity) || 0
@@ -356,15 +355,15 @@ export default function Trend() {
                   const clip = { title: it.caption, source: 'instagram', thumbnail_url: it.thumbnail_url, author: it.owner, views: it.view_count, likes: it.like_count, comments: it.comment_count, page_url: it.url, video_url: it.video_url, video_id: it.shortcode, taken_at: it.taken_at, velocity: it.velocity }
                   const vel = Number(it.velocity) || 0
                   const fresh = it.taken_at && (now - new Date(it.taken_at).getTime() <= 3 * 86400000)
-                  const saved = savedPicks.includes(it.shortcode)
+                  const watching = isWatched(it.owner)
                   return (
                     <div key={it.shortcode || i} className="flex gap-2.5 rounded-xl border border-slate-100 bg-slate-50 p-2.5 sm:flex-col">
                       <div role="button" onClick={() => setPlayClip(clip)} className="relative aspect-[9/16] w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-slate-200 sm:w-full">
                         <TrendThumb url={it.thumbnail_url} />
                         <div className="absolute left-1 top-1 rounded bg-black/60 px-1 text-[10px] font-bold text-white">#{i + 1}</div>
                         {/* 피드 카드와 눈에 띄는 정도를 맞춤 (모바일은 썸네일이 64px라 과하지 않게) */}
-                        <button onClick={(e) => { e.stopPropagation(); toggleSave(it) }} aria-label={saved ? '저장 취소' : '이번 주 소재로 저장'} aria-pressed={saved} className="absolute bottom-1 right-1 flex h-9 w-9 items-center justify-center rounded-full bg-black/65 text-white shadow-lg ring-1 ring-white/20 backdrop-blur transition hover:bg-black/85 active:scale-95 sm:bottom-2 sm:right-2 sm:h-12 sm:w-12">
-                          <Bookmark size={20} strokeWidth={2.25} className={saved ? 'fill-emerald-400 text-emerald-400' : ''} />
+                        <button onClick={(e) => { e.stopPropagation(); toggleWatch(it.owner) }} title={watching ? `@${it.owner} 감시 해제` : `@${it.owner} 워치리스트에 추가`} aria-label={watching ? `@${it.owner} 감시 해제` : `@${it.owner} 워치리스트에 추가`} aria-pressed={watching} className="absolute bottom-1 right-1 flex h-9 w-9 items-center justify-center rounded-full bg-black/65 text-white shadow-lg ring-1 ring-white/20 backdrop-blur transition hover:bg-black/85 active:scale-95 sm:bottom-2 sm:right-2 sm:h-12 sm:w-12">
+                          <Bookmark size={20} strokeWidth={2.25} className={watching ? 'fill-emerald-400 text-emerald-400' : ''} />
                         </button>
                       </div>
                       <div className="min-w-0 flex-1">
@@ -384,7 +383,7 @@ export default function Trend() {
               </div>
             </div>
           )}
-          {lockedCount > 0 && <p className="mb-3 flex items-start gap-1.5 rounded-xl bg-slate-900 px-3 py-2.5 text-sm font-bold text-white"><Crown size={15} className="mt-0.5 shrink-0 text-amber-400" /><span>지금 막 터진 소재 {lockedCount}개 · <span className="text-amber-300">상위 크리에이터는 지금 보고 있어요.</span> 며칠 뒤 무료로 풀리지만, 그땐 남들이 다 따라한 뒤예요.</span></p>}
+          {lockedCount > 0 && <p className="mb-3 flex items-start gap-1.5 rounded-xl bg-slate-900 px-3 py-2.5 text-sm font-bold text-white"><Crown size={15} className="mt-0.5 shrink-0 text-amber-400" /><span>지금 막 터진 소재 {lockedCount}개 · <span className="text-amber-300">패스트벤치는 프로 이상 전용이에요.</span> 며칠 뒤 무료로 풀리지만, 그땐 남들이 다 따라한 뒤예요.</span></p>}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {list.map((it, i) => {
               const clip = { title: it.caption, source: 'instagram', thumbnail_url: it.thumbnail_url, author: it.owner, views: it.view_count, likes: it.like_count, comments: it.comment_count, page_url: it.url, video_url: it.video_url, video_id: it.shortcode, taken_at: it.taken_at, velocity: it.velocity }
@@ -393,11 +392,11 @@ export default function Trend() {
                 <TrendCard
                   key={it.shortcode || i}
                   it={it} rank={i + 1} locked={locked}
-                  saved={savedPicks.includes(it.shortcode)}
+                  watching={isWatched(it.owner)}
                   onPlay={() => setPlayClip(clip)}
                   onAnalyze={() => handleAnalyze(clip)}
                   onSource={() => { window.location.href = '/research?url=' + encodeURIComponent(it.url) }}
-                  onToggleSave={() => toggleSave(it)}
+                  onToggleWatch={() => toggleWatch(it.owner)}
                   onUnlock={() => nav('/pricing')}
                 />
               )
@@ -410,6 +409,18 @@ export default function Trend() {
       {modalClip && <AnalyzeModal clip={modalClip} onClose={() => setModalClip(null)} />}
       {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onSource={() => { window.location.href = '/research?url=' + encodeURIComponent(playClip.page_url) }} onAnalyze={() => { setPlayClip(null); handleAnalyze(playClip) }} />}
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
+      {limitModal && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4" onClick={() => setLimitModal(null)}>
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-slate-900" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-2 text-base font-bold">감시 계정 한도 초과</h3>
+            <p className="text-sm leading-relaxed text-slate-600">현재 요금제 감시 한도({limitModal.limit ?? ''}개)를 다 쓰셨어요. 업그레이드하시겠어요?</p>
+            <div className="mt-5 flex gap-2">
+              <button onClick={() => setLimitModal(null)} className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50">나중에</button>
+              <button onClick={() => nav('/pricing')} className="flex-1 rounded-xl bg-[#0064FF] py-2.5 text-sm font-bold text-white hover:brightness-95">업그레이드</button>
+            </div>
+          </div>
+        </div>
+      )}
       <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
     </div>
   )

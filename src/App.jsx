@@ -27,7 +27,6 @@ const lazyRetry = (factory) => lazy(() => factory().catch((err) => {
 const VideoGenerator = lazyRetry(() => import('./pages/VideoGenerator'))
 const Finds = lazyRetry(() => import('./pages/Finds'))
 const Trend = lazyRetry(() => import('./pages/Trend'))
-const SavedBoard = lazyRetry(() => import('./pages/SavedBoard'))
 const Watchlist = lazyRetry(() => import('./pages/Watchlist'))
 const FastBench = lazyRetry(() => import('./pages/FastBench'))
 const ChannelAnalysis = lazyRetry(() => import('./pages/ChannelAnalysis'))
@@ -119,7 +118,6 @@ const App = () => {
         <Route path="/trend" element={<Trend />} />
         <Route path="/research" element={<Finds />} />
         <Route path="/watchlist" element={<Watchlist />} />
-        <Route path="/saved" element={<SavedBoard />} />
         <Route path="/me" element={<MyPage />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/admin" element={<Admin />} />

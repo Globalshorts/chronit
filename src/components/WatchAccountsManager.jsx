@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { X, Search, Trash2, RotateCw, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { X, Search, Trash2, RotateCw, Eye, EyeOff, Loader2, Download } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { fmtCount } from '../lib/format'
 import { statusOf, STATUS_META, fmtWhen } from '../lib/watchAccounts'
@@ -9,7 +9,14 @@ const ROW_CAP = 200   // 한 번에 그리는 최대 행. 넘치면 검색으로
 
 const FILTERS = [['all', '전체'], ['live', '정상'], ['quiet', '조용함'], ['dead', '응답없음'], ['off', '꺼짐']]
 
-export default function WatchAccountsManager({ open, onClose, accounts, feedCounts, onChanged }) {
+// CSV 는 엑셀에서 한글이 깨지지 않게 BOM 을 붙인다. 쉼표·따옴표·줄바꿈은 큰따옴표로 감싸 이스케이프.
+const csvCell = (v) => {
+  const t = v == null ? '' : String(v)
+  return /[",\r\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t
+}
+const ymd = (d) => (d ? new Date(d).toISOString().slice(0, 10) : '')
+
+export default function WatchAccountsManager({ open, onClose, accounts, feedCounts, onChanged, isProPlus = false }) {
   const [q, setQ] = useState('')
   const [filter, setFilter] = useState('all')
   const [sel, setSel] = useState([])
@@ -33,6 +40,28 @@ export default function WatchAccountsManager({ open, onClose, accounts, feedCoun
   const toggleAll = () => setSel(allShownSelected ? [] : shown.map((a) => a.id))
   const toggleOne = (id) => setSel((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
 
+  // CSV 내보내기 — 프로 이상 전용
+  const exportCsv = () => {
+    if (!isProPlus) return
+    const head = ['계정', '이름', '팔로워', '최근 게시물', '수집 건수', '상태', '갱신']
+    const body = rows.map((a) => [
+      '@' + a.username,
+      a.nickname || '',
+      a.follower_count ?? '',
+      ymd(a.last_found_at),
+      feedCounts[a.username] || 0,
+      STATUS_META[statusOf(a)].label,
+      a.active === false ? '꺼짐' : '켜짐',
+    ])
+    const csv = '﻿' + [head, ...body].map((r) => r.map(csvCell).join(',')).join('\r\n')
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `chronit-watchlist-${ymd(Date.now())}.csv`
+    document.body.appendChild(a); a.click(); a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
+
   const run = async (fn) => { setBusy(true); try { await fn() } catch { /* noop */ } setBusy(false); setSel([]); onChanged() }
 
   const removeSelected = () => {
@@ -50,7 +79,14 @@ export default function WatchAccountsManager({ open, onClose, accounts, feedCoun
       <div className="flex max-h-[88vh] w-full max-w-4xl flex-col rounded-2xl border border-white/10 bg-[#0c0d11] p-5" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-base font-bold text-white">감시 계정 관리 <span className="text-white/40">{accounts.length}</span></h3>
-          <button onClick={onClose} className="text-white/40 hover:text-white"><X size={18} /></button>
+          <div className="flex items-center gap-2">
+            <button onClick={exportCsv} disabled={!isProPlus || !rows.length}
+              title={isProPlus ? '표시된 계정을 CSV로 내려받기' : 'CSV 내보내기는 프로 이상 요금제에서 쓸 수 있어요'}
+              className="flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-40">
+              <Download size={13} /> CSV 내보내기
+            </button>
+            <button onClick={onClose} className="text-white/40 hover:text-white"><X size={18} /></button>
+          </div>
         </div>
 
         {/* 검색 + 상태 필터 */}
@@ -129,6 +165,7 @@ export default function WatchAccountsManager({ open, onClose, accounts, feedCoun
         {rows.length > ROW_CAP && (
           <p className="mt-2 text-center text-[11px] text-white/35">{rows.length}개 중 {ROW_CAP}개만 표시했어요 — 검색이나 상태 필터로 좁혀보세요.</p>
         )}
+        {!isProPlus && <p className="mt-2 text-[11px] text-white/35">CSV 내보내기는 <b className="text-white/60">프로 이상</b> 요금제에서 쓸 수 있어요.</p>}
         <p className="mt-2 text-[11px] text-white/35">🔴 응답없음은 갱신에서 자동 제외돼요(이용권 절약). 오타를 고쳤거나 다시 공개됐다면 ‘다시 시도’를 눌러주세요.</p>
       </div>
     </div>

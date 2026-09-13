@@ -16,8 +16,8 @@ export function TrendThumb({ url }) {
 // it: watch_feed / trend-feed 공통 행
 //   shortcode,url,video_url,thumbnail_url,caption,comment_count,like_count,view_count,owner,taken_at,velocity
 export default function TrendCard({
-  it, rank, locked = false, saved = false,
-  onPlay, onAnalyze, onSource, onToggleSave, onUnlock,
+  it, rank, locked = false, watching = false, lockedLabel = '프로 이상 전용',
+  onPlay, onAnalyze, onSource, onToggleWatch, onUnlock,
 }) {
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -28,7 +28,7 @@ export default function TrendCard({
           {it.taken_at && <div className="absolute right-1.5 top-1.5 rounded bg-[#0064FF] px-1.5 py-0.5 text-[10px] font-bold text-white">{timeAgo(it.taken_at)}</div>}
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/30 text-white">
             <Lock size={20} />
-            <span className="text-xs font-bold">구독 유저 전용</span>
+            <span className="text-xs font-bold">{lockedLabel}</span>
           </div>
         </div>
       ) : (
@@ -37,11 +37,13 @@ export default function TrendCard({
           {rank != null && <div className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">#{rank}</div>}
           {it.taken_at && <div className="absolute right-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">{timeAgo(it.taken_at)}</div>}
           <div className="absolute inset-0 flex items-center justify-center opacity-90"><div className="flex h-9 w-9 items-center justify-center rounded-full bg-black/45 text-white"><Play size={16} className="ml-0.5" /></div></div>
-          {onToggleSave && (
-            // 저장 버튼: 잘 안 보인다는 피드백 → 히트영역·아이콘 2배 (28px→56px, 14→28)
-            <button onClick={(e) => { e.stopPropagation(); onToggleSave() }} aria-label={saved ? '저장 취소' : '이번 주 소재로 저장'} aria-pressed={saved}
+          {onToggleWatch && (
+            // 이 계정을 워치리스트에 담기/빼기 (히트영역·아이콘 2배 — 잘 안 보인다는 피드백)
+            <button onClick={(e) => { e.stopPropagation(); onToggleWatch() }}
+              title={watching ? `@${it.owner} 감시 해제` : `@${it.owner} 워치리스트에 추가`}
+              aria-label={watching ? `@${it.owner} 감시 해제` : `@${it.owner} 워치리스트에 추가`} aria-pressed={watching}
               className="absolute bottom-2 right-2 flex h-14 w-14 items-center justify-center rounded-full bg-black/65 text-white shadow-lg ring-1 ring-white/20 backdrop-blur transition hover:bg-black/85 active:scale-95">
-              <Bookmark size={28} strokeWidth={2.25} className={saved ? 'fill-emerald-400 text-emerald-400' : ''} />
+              <Bookmark size={28} strokeWidth={2.25} className={watching ? 'fill-emerald-400 text-emerald-400' : ''} />
             </button>
           )}
         </div>
@@ -52,7 +54,7 @@ export default function TrendCard({
           <span className="flex items-center gap-0.5"><Heart size={11} />{fmtCount(it.like_count)}</span>
           <span className="flex items-center gap-0.5"><MessageCircle size={11} />{fmtCount(it.comment_count)}</span>
         </div>
-        <div className="mb-1.5 truncate text-[11px] text-slate-400">{locked ? '구독 유저 전용' : `@${it.owner}${it.follower_count ? ` · 팔로워 ${fmtCount(it.follower_count)}` : ''}`}</div>
+        <div className="mb-1.5 truncate text-[11px] text-slate-400">{locked ? lockedLabel : `@${it.owner}${it.follower_count ? ` · 팔로워 ${fmtCount(it.follower_count)}` : ''}`}</div>
         {locked ? (
           <button onClick={onUnlock} className="flex w-full items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Lock size={12} />잠금 해제하고 보기</button>
         ) : (

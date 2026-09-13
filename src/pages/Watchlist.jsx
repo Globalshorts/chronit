@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Bookmark, Plus, RefreshCw, Loader2, Sparkles, X, AlertTriangle, Settings2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
@@ -15,6 +15,7 @@ import {
 import {
   parseUsernames, statusOf, scanTargets, creditsFor, fmtWhen, ACCOUNTS_PER_CREDIT,
 } from '../lib/watchAccounts'
+import { useWatchToggle } from '../lib/useWatchToggle'
 import { AnalyzeModal, ackAnalyzeCost } from './Finds'
 import AuthModal from '../components/AuthModal'
 
@@ -57,10 +58,15 @@ export default function Watchlist() {
   const [modalClip, setModalClip] = useState(null)
   const [analyzedIds, setAnalyzedIds] = useState([])
   const [showAuth, setShowAuth] = useState(false)
-  const [savedPicks, setSavedPicks] = useState([])
 
   const isReal = !!session && session.user?.is_anonymous !== true
   const uid = session?.user?.id
+  // 카드의 북마크 = 그 계정을 워치리스트에 담기/빼기
+  const { isWatched, toggle: toggleWatch } = useWatchToggle({
+    enabled: isReal, source: 'watchlist',
+    onNeedLogin: () => setShowAuth(true),
+    onLimit: (limit) => setLimitModal({ limit }),
+  })
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
@@ -104,7 +110,6 @@ export default function Watchlist() {
       await Promise.all([loadAccounts(), loadWallet()])
       if (alive) setLoading(false)
     })()
-    supabase.from('saved_trends').select('shortcode').then(({ data }) => { if (Array.isArray(data)) setSavedPicks(data.map((r) => r.shortcode)) })
     try { phCapture('watchlist_viewed') } catch { /* noop */ }
     return () => { alive = false }
   }, [isReal, loadAccounts, loadWallet])
@@ -220,15 +225,6 @@ export default function Watchlist() {
     await Promise.all([loadAccounts(), loadFeed(), loadWallet()])
   }
 
-  const toggleSave = async (it) => {
-    const sc = it.shortcode; const has = savedPicks.includes(sc)
-    if (!has) { try { phCapture('trend_saved', { shortcode: sc, source: 'watchlist' }) } catch { /* noop */ } }
-    setSavedPicks((prev) => has ? prev.filter((x) => x !== sc) : [...prev, sc])
-    try {
-      if (has) await supabase.from('saved_trends').delete().eq('shortcode', sc)
-      else await supabase.from('saved_trends').insert({ shortcode: sc, caption: it.caption, thumbnail_url: it.thumbnail_url, url: it.url, owner: it.owner, view_count: it.view_count, like_count: it.like_count, comment_count: it.comment_count, velocity: it.velocity, taken_at: it.taken_at })
-    } catch { /* noop */ }
-  }
 
   const handleAnalyze = async (clip) => {
     const key = clip.page_url || clip.title
@@ -276,7 +272,6 @@ export default function Watchlist() {
           </div>
         </div>
         <p className="mt-1 text-sm text-white/50">경쟁 계정을 등록해두고, 새로 올라온 게시물만 모아서 보세요.</p>
-        <Link to="/saved" className="mt-1 inline-block text-xs font-bold text-white/40 underline-offset-2 hover:text-white/70 hover:underline">저장한 소재 보드 →</Link>
       </header>
 
       {/* 요약 한 줄 + 관리 */}
@@ -384,8 +379,8 @@ export default function Watchlist() {
                   onPlay={() => setPlayClip(clip)}
                   onAnalyze={() => handleAnalyze(clip)}
                   onSource={() => { window.location.href = '/research?url=' + encodeURIComponent(it.url) }}
-                  saved={savedPicks.includes(it.shortcode)}
-                  onToggleSave={() => toggleSave(it)}
+                  watching={isWatched(it.owner)}
+                  onToggleWatch={async () => { await toggleWatch(it.owner); loadAccounts() }}
                 />
               )
             })}
@@ -403,7 +398,7 @@ export default function Watchlist() {
 
       <WatchAccountsManager
         open={manageOpen} onClose={() => setManageOpen(false)}
-        accounts={accounts} feedCounts={feedCounts}
+        accounts={accounts} feedCounts={feedCounts} isProPlus={['finds100', 'finds300'].includes(wallet?.plan)}
         onChanged={() => { loadAccounts(); loadFeed() }}
       />
 
