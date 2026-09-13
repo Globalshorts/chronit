@@ -7,6 +7,7 @@ import RangeFilter from '../components/RangeFilter'
 import VideoModal from '../components/ReelModal'
 import TrendCard from '../components/TrendCard'
 import WatchAccountsManager from '../components/WatchAccountsManager'
+import ImportAccountsModal from '../components/ImportAccountsModal'
 import ScanProgress from '../components/ScanProgress'
 import {
   DAY_MAX, DAY_MARKS, dayWindowMs,
@@ -43,6 +44,7 @@ export default function Watchlist() {
   const [accMsg, setAccMsg] = useState(null)
   const [limitModal, setLimitModal] = useState(null)
   const [manageOpen, setManageOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
 
   const [scanning, setScanning] = useState(false)
   const [progress, setProgress] = useState(null)
@@ -118,54 +120,28 @@ export default function Watchlist() {
   // 전체 로딩 스피너는 띄우지 않는다.
   useEffect(() => { if (isReal) loadFeed() }, [isReal, loadFeed])
 
-  // ── 벌크 추가 ──
+  // ── 벌크 추가 — 중복·형식·한도 판정은 서버(watch_bulk_add_rpc)에 맡긴다 ──
   const addBulk = async () => {
     const { valid, invalid } = parseUsernames(bulk)
     if (!valid.length && !invalid.length) { setAccMsg({ ok: false, text: '추가할 계정을 입력해주세요' }); return }
-
-    const existing = new Set(accounts.map((a) => a.username.toLowerCase()))
-    const dupes = valid.filter((u) => existing.has(u.toLowerCase()))
-    let fresh = valid.filter((u) => !existing.has(u.toLowerCase()))
-
-    // 한도를 미리 계산해 넘치는 만큼 잘라낸다 (트리거는 한 행만 걸려도 INSERT 전체를 되돌린다)
-    let overflow = 0
-    if (watchLimit != null) {
-      const room = Math.max(0, watchLimit - accounts.length)
-      if (fresh.length > room) { overflow = fresh.length - room; fresh = fresh.slice(0, room) }
-    }
-    if (!fresh.length) {
-      if (overflow > 0) { setLimitModal({ limit: watchLimit }); return }
-      const extra = invalid.length ? ' · 형식오류 ' + invalid.length + '개' : ''
-      setAccMsg({ ok: false, text: '추가할 새 계정이 없어요 · 중복 ' + dupes.length + '개' + extra })
-      return
-    }
+    if (!valid.length) { setAccMsg({ ok: false, text: `형식이 올바른 계정이 없어요 · ${invalid.length}개 형식오류` }); return }
 
     setAdding(true); setAccMsg(null)
-    let added = 0
-    let hitLimit = false
-    for (let i = 0; i < fresh.length; i += 100) {
-      const batch = fresh.slice(i, i + 100).map((username) => ({ user_id: uid, username }))
-      const { error } = await supabase.from('watch_accounts')
-        .upsert(batch, { onConflict: 'user_id,username', ignoreDuplicates: true })
-      if (error) {
-        if (/watch_limit_reached/.test(error.message || '')) { hitLimit = true; break }
-        setAdding(false)
-        setAccMsg({ ok: false, text: '추가에 실패했어요: ' + error.message })
-        await loadAccounts()
-        return
-      }
-      added += batch.length
-    }
+    const { data, error } = await supabase.rpc('watch_bulk_add_rpc', { p_usernames: valid })
     setAdding(false)
+    if (error || data?.ok === false) {
+      setAccMsg({ ok: false, text: '추가에 실패했어요: ' + (error?.message || data?.error || '') })
+      return
+    }
     setBulk('')
     await loadAccounts()
-
-    if (hitLimit || overflow > 0) { setLimitModal({ limit: watchLimit }); return }
-    const parts = [added + '개 추가']
-    if (dupes.length) parts.push(dupes.length + '개 중복')
-    if (invalid.length) parts.push(invalid.length + '개 형식오류')
+    if (data.over_limit > 0) { setLimitModal({ limit: data.limit }); return }
+    const parts = [`${data.added}개 추가`]
+    if (data.duplicates) parts.push(`${data.duplicates}개 중복`)
+    const badCount = (data.invalid || 0) + invalid.length
+    if (badCount) parts.push(`${badCount}개 형식오류`)
     setAccMsg({ ok: true, text: parts.join(' · ') + ' — 지금 갱신을 눌러 게시물을 불러오세요' })
-    try { phCapture('watchlist_accounts_added', { added }) } catch { /* noop */ }
+    try { phCapture('watchlist_accounts_added', { added: data.added }) } catch { /* noop */ }
   }
 
   // ── 갱신 (커서 루프) ──
@@ -400,7 +376,10 @@ export default function Watchlist() {
         open={manageOpen} onClose={() => setManageOpen(false)}
         accounts={accounts} feedCounts={feedCounts} isProPlus={['finds100', 'finds300'].includes(wallet?.plan)}
         onChanged={() => { loadAccounts(); loadFeed() }}
+        onImport={() => setImportOpen(true)}
       />
+
+      <ImportAccountsModal open={importOpen} onClose={() => setImportOpen(false)} onDone={() => { loadAccounts(); loadWallet() }} />
 
       {limitModal && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4" onClick={() => setLimitModal(null)}>

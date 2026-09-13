@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Film, Pencil, LogOut, Copy, Check, Sparkles, ShieldCheck, Gift, Ticket } from 'lucide-react'
+import { Film, Pencil, LogOut, Copy, Check, Sparkles, ShieldCheck, Gift, Ticket, FileText, Trash2 } from 'lucide-react'
 import FindsPricing from '../components/FindsPricing'
 import CommunityHeader from '../components/CommunityHeader'
 import NicknameModal from '../components/NicknameModal'
@@ -11,6 +11,8 @@ import { supabase } from '../lib/supabase'
 import { redeemAnyCode } from '../lib/redeemCode'
 import { PLAN_LABEL } from '../lib/planLabels'
 import { CAT_LABEL, CAT_CLS, fmtWhen } from './Board'
+import { AnalyzeModal } from './Finds'
+import { TrendThumb } from '../components/TrendCard'
 
 const MyPage = () => {
   const nav = useNavigate()
@@ -33,21 +35,24 @@ const MyPage = () => {
   const [promoCode, setPromoCode] = useState('')
   const [promoMsg, setPromoMsg] = useState(null)
   const [promoing, setPromoing] = useState(false)
+  const [briefs, setBriefs] = useState([])
+  const [openBrief, setOpenBrief] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => { supabase.auth.getSession().then(({ data }) => { const u = data.session?.user; setUser(u && u.is_anonymous !== true ? u : null) }) }, [])
 
   const load = async (uid) => {
-    const [{ data: prof }, { data: bal }, { data: ps }, { data: cs }, { data: refi }] = await Promise.all([
+    const [{ data: prof }, { data: bal }, { data: brf }, { data: ps }, { data: cs }, { data: refi }] = await Promise.all([
       supabase.from('profiles').select('nickname,email,referral_code,created_at').eq('id', uid).maybeSingle(),
       supabase.rpc('get_my_wallet_rpc').single(),
+      supabase.from('saved_briefs').select('*').order('created_at', { ascending: false }),
       supabase.from('board_posts').select('*').eq('user_id', uid).eq('is_deleted', false).order('created_at', { ascending: false }).limit(50),
       supabase.from('board_comments').select('*').eq('user_id', uid).eq('is_deleted', false).order('created_at', { ascending: false }).limit(50),
       supabase.rpc('get_referral_info_rpc', { p_user_id: uid }),
     ])
     setProfile(prof || { email: user?.email })
     setCredits(bal?.finds_balance ?? 0); setWallet(bal || null)
-    setPosts(ps || []); setComments(cs || []); setRefInfo(refi || null)
+    setPosts(ps || []); setComments(cs || []); setRefInfo(refi || null); setBriefs(brf || [])
     const { data: sub } = await supabase.from('subscriptions').select('role').eq('user_id', uid).maybeSingle()
     setIsAdmin(sub?.role === 'super_admin')
   }
@@ -70,6 +75,11 @@ const MyPage = () => {
       else setRedeemMsg({ ok: false, text: data?.error ?? '적용에 실패했어요' })
     } catch { setRedeemMsg({ ok: false, text: '적용에 실패했어요' }) }
     setRedeeming(false)
+  }
+
+  const removeBrief = async (id) => {
+    setBriefs((p) => p.filter((b) => b.id !== id))
+    try { await supabase.from('saved_briefs').delete().eq('id', id) } catch { /* noop */ }
   }
 
   // 강사 코드(plan_codes) · 무료체험 쿠폰(coupon_codes) · 프로모 코드(promo_codes) 를 한 칸에서 처리
@@ -226,6 +236,42 @@ const MyPage = () => {
           </div>
         )}
 
+        {/* 저장한 기획 */}
+        <div className="mt-8">
+          <div className="mb-1 flex items-baseline gap-2">
+            <h2 className="flex items-center gap-1.5 text-base font-bold text-gray-800"><FileText size={16} className="text-[#0064FF]" /> 저장한 기획</h2>
+            <span className="text-sm text-slate-400">{briefs.length}</span>
+          </div>
+          <p className="mb-3 text-xs text-slate-400">저장한 기획은 90일간 보관돼요.</p>
+          {briefs.length === 0 ? (
+            <div className="rounded-2xl border border-gray-200 bg-white px-4 py-8 text-center">
+              <p className="text-sm text-slate-500">아직 저장한 기획이 없어요.</p>
+              <p className="mt-1 text-xs text-slate-400">트렌드에서 소재를 분석한 뒤 ‘이 기획 저장하기’를 눌러보세요.</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {briefs.map((b) => (
+                <div key={b.id} className="flex gap-3 rounded-2xl border border-gray-200 bg-white p-3">
+                  <button onClick={() => setOpenBrief(b)} className="relative aspect-[9/16] w-14 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                    <TrendThumb url={b.thumbnail_url} />
+                  </button>
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <button onClick={() => setOpenBrief(b)} className="min-w-0 text-left">
+                      <div className="line-clamp-2 text-[13px] font-medium text-gray-800">{b.caption || '(설명 없음)'}</div>
+                      <div className="mt-1 text-[11px] text-slate-400">저장일 {fmtDate(b.created_at)}</div>
+                    </button>
+                    <div className="mt-auto flex items-center gap-2 pt-2">
+                      <button onClick={() => setOpenBrief(b)} className="rounded-lg bg-[#0064FF] px-3 py-1.5 text-[11px] font-bold text-white transition hover:brightness-95">기획 보기</button>
+                      {b.url && <a href={b.url} target="_blank" rel="noreferrer" className="rounded-lg border border-gray-200 px-3 py-1.5 text-[11px] font-bold text-slate-500 hover:text-slate-700">원본</a>}
+                      <button onClick={() => removeBrief(b.id)} aria-label="삭제" className="ml-auto rounded-lg p-1.5 text-slate-300 transition hover:text-red-500"><Trash2 size={14} /></button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* 탭 */}
         <div className="mt-8 mb-1 flex border-b border-gray-200">
           {tabs.map(([k, label]) => (
@@ -261,6 +307,13 @@ const MyPage = () => {
         )}
       </section>
 
+      {openBrief && (
+        <AnalyzeModal
+          clip={{ title: openBrief.caption, thumbnail_url: openBrief.thumbnail_url, page_url: openBrief.url, video_id: openBrief.shortcode, source: 'instagram' }}
+          initialResult={openBrief.brief || {}}
+          onClose={() => setOpenBrief(null)}
+        />
+      )}
       <FindsPricing open={payOpen} onClose={() => { setPayOpen(false); if (user) load(user.id) }} />
       <NicknameModal open={nickOpen} onClose={() => setNickOpen(false)} onDone={(n) => { setNickOpen(false); setProfile(p => ({ ...p, nickname: n })) }} />
       <Footer />

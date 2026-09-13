@@ -109,14 +109,14 @@ export function ackAnalyzeCost(balance) {
   return ok
 }
 
-export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
+export function AnalyzeModal({ clip, onClose, onAnalyzed, initialResult = null }) {
   const [copied, setCopied] = useState(false)
   const [dlErr, setDlErr] = useState('')
   const [dling, setDling] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [result, setResult] = useState(null)
+  const [loading, setLoading] = useState(!initialResult)
+  const [result, setResult] = useState(initialResult)
   const [err, setErr] = useState('')
-  const [briefSaved, setBriefSaved] = useState(false)
+  const [briefSaved, setBriefSaved] = useState(!!initialResult)
   const [sat, setSat] = useState(null)
   const saveBrief = async () => {
     setBriefSaved(true)
@@ -124,7 +124,7 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
       await supabase.from('saved_briefs').upsert({
         shortcode: clip.video_id || clip.shortcode || clip.page_url,
         caption: clip.title || clip.caption, thumbnail_url: clip.thumbnail_url, url: clip.page_url || clip.url,
-        brief: (result && result.remix) || result || {}
+        brief: result || {}
       }, { onConflict: 'user_id,shortcode' })
       try { phCapture('brief_saved') } catch { /* noop */ }
     } catch { /* noop */ }
@@ -165,6 +165,7 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
   // 모달 오픈 시 analyze-clip 호출 → 훅/셀링포인트/구도 생성
   // TODO(과금): 최초 분석 시 이용권 -1 (나중 별도 적용)
   useEffect(() => {
+    if (initialResult) return   // 저장해둔 기획을 다시 보는 중 — 재분석하지 않는다(과금·결과변동 방지)
     let alive = true
     ;(async () => {
       setLoading(true); setErr(''); setResult(null)
@@ -187,7 +188,7 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
       finally { if (alive) setLoading(false) }
     })()
     return () => { alive = false }
-  }, [clip])
+  }, [clip, initialResult])
 
   // 실측 확산 스냅샷 조회 (트렌드 소재)
   useEffect(() => {
@@ -380,7 +381,7 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed }) {
                     {result.remix.selling_map?.length > 0 && <div className="mb-2"><span className="text-[15px] font-bold text-slate-800">셀링포인트 매핑</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-sm">{result.remix.selling_map.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
                     {result.remix.differentiation?.length > 0 && <div className="mb-2"><span className="text-[15px] font-bold text-slate-800">차별화 포인트</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-sm">{result.remix.differentiation.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
                     {result.remix.edit_checklist?.length > 0 && <div><span className="text-[15px] font-bold text-slate-800">편집 체크리스트</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-sm">{result.remix.edit_checklist.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
-                    <button onClick={saveBrief} disabled={briefSaved} className="mt-3 w-full rounded-lg bg-[#0064FF] py-2.5 text-sm font-bold text-white transition hover:brightness-95 disabled:opacity-60">{briefSaved ? '✓ 기획 저장됨 · 소재 보드에서 확인' : '이 기획 저장하기'}</button>
+                    <button onClick={saveBrief} disabled={briefSaved} className="mt-3 w-full rounded-lg bg-[#0064FF] py-2.5 text-sm font-bold text-white transition hover:brightness-95 disabled:opacity-60">{briefSaved ? '✓ 기획 저장됨 · 마이페이지에서 확인' : '이 기획 저장하기'}</button>
                   </div>
                 ) : null}
                 {!result.used_image && <div className="text-[11px] text-slate-300">※ 썸네일 미확보 — 제목 기반 분석</div>}

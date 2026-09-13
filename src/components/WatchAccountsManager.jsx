@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { X, Search, Trash2, RotateCw, Eye, EyeOff, Loader2, Download } from 'lucide-react'
+import { X, Search, Trash2, RotateCw, Eye, EyeOff, Loader2, Download, Upload } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { fmtCount } from '../lib/format'
 import { statusOf, STATUS_META, fmtWhen } from '../lib/watchAccounts'
@@ -16,7 +16,7 @@ const csvCell = (v) => {
 }
 const ymd = (d) => (d ? new Date(d).toISOString().slice(0, 10) : '')
 
-export default function WatchAccountsManager({ open, onClose, accounts, feedCounts, onChanged, isProPlus = false }) {
+export default function WatchAccountsManager({ open, onClose, accounts, feedCounts, onChanged, isProPlus = false, onImport }) {
   const [q, setQ] = useState('')
   const [filter, setFilter] = useState('all')
   const [sel, setSel] = useState([])
@@ -53,7 +53,7 @@ export default function WatchAccountsManager({ open, onClose, accounts, feedCoun
       STATUS_META[statusOf(a)].label,
       a.active === false ? '꺼짐' : '켜짐',
     ])
-    const csv = '﻿' + [head, ...body].map((r) => r.map(csvCell).join(',')).join('\r\n')
+    const csv = String.fromCharCode(0xFEFF) + [head, ...body].map((r) => r.map(csvCell).join(',')).join('\r\n')
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }))
     const a = document.createElement('a')
     a.href = url
@@ -80,6 +80,12 @@ export default function WatchAccountsManager({ open, onClose, accounts, feedCoun
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-base font-bold text-white">감시 계정 관리 <span className="text-white/40">{accounts.length}</span></h3>
           <div className="flex items-center gap-2">
+            {onImport && (
+              <button onClick={onImport}
+                className="flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/15">
+                <Upload size={13} /> 불러오기
+              </button>
+            )}
             <button onClick={exportCsv} disabled={!isProPlus || !rows.length}
               title={isProPlus ? '표시된 계정을 CSV로 내려받기' : 'CSV 내보내기는 프로 이상 요금제에서 쓸 수 있어요'}
               className="flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-40">
