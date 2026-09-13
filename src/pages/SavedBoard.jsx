@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { TrendThumb } from '../components/TrendCard'
 import { Sparkles, Trash2, Bookmark, ExternalLink, Plus } from 'lucide-react'
 
 const fmt = (n) => { n = Number(n) || 0; return n >= 10000 ? (n / 10000).toFixed(1) + '만' : n >= 1000 ? (n / 1000).toFixed(1) + '천' : String(n) }
@@ -69,7 +70,7 @@ export default function SavedBoard() {
             {rows.map((r) => (
               <div key={r.shortcode} className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
                 <div className="relative aspect-[9/16] w-20 shrink-0 overflow-hidden rounded-lg bg-white/5">
-                  {r.thumbnail_url && <img src={r.thumbnail_url} referrerPolicy="no-referrer" alt="" className="h-full w-full object-cover" />}
+                  <TrendThumb url={r.thumbnail_url} />
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col">
                   <div className="mb-1 flex flex-wrap gap-1">
@@ -107,7 +108,7 @@ export default function SavedBoard() {
             <div className="flex flex-col gap-3">
               {briefs.map((b) => (
                 <div key={b.id} className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
-                  <div className="relative aspect-[9/16] w-16 shrink-0 overflow-hidden rounded-lg bg-white/5">{b.thumbnail_url && <img src={b.thumbnail_url} referrerPolicy="no-referrer" alt="" className="h-full w-full object-cover" />}</div>
+                  <div className="relative aspect-[9/16] w-16 shrink-0 overflow-hidden rounded-lg bg-white/5"><TrendThumb url={b.thumbnail_url} /></div>
                   <div className="min-w-0 flex-1">
                     <div className="mb-1 line-clamp-1 text-[13px] font-bold text-white/80">{b.caption || '기획'}</div>
                     {b.brief && Array.isArray(b.brief.hook_ideas) && b.brief.hook_ideas[0] && <div className="mb-1 text-[12px] text-white/55">훅: {b.brief.hook_ideas[0]}</div>}
