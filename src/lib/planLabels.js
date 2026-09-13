@@ -27,3 +27,21 @@ export const normalizePlan = (p) => {
 
 // 라벨 조회 — 알 수 없거나 레거시면 '기타'
 export const planLabel = (p) => PLAN_LABEL[p || 'free'] || '기타'
+
+// 요금제 스펙 — 실제 값은 DB(plans)에서 읽고, 이건 DB 응답 전/실패 시 폴백.
+// (가격·이용권·워치리스트 한도를 바꿀 땐 plans 테이블을 고치면 배포 없이 반영된다)
+export const PLAN_SPEC = {
+  finds30:  { price: 9900,  credits: 60,  watch: 100 },
+  finds100: { price: 24900, credits: 180, watch: 300 },
+  finds300: { price: 34900, credits: 300, watch: 500 },
+}
+
+// 플랜별 부가 혜택 (이용권 수·워치리스트 한도는 스펙에서 자동 생성)
+export const PLAN_PERKS = {
+  finds30:  ['실시간 트렌드 무제한'],
+  finds100: ['실시간 트렌드 무제한', '패스트벤치 선점 리스트'],
+  finds300: ['패스트벤치 선점 리스트', '니치 알림', '개인화 큐레이션'],
+}
+
+// 워치리스트 갱신 과금 단위 — 50계정당 이용권 1개
+export const ACCOUNTS_PER_CREDIT = 50

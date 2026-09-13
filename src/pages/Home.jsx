@@ -13,6 +13,8 @@ import RevealStagger from '../components/RevealStagger'
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
 import { fbTrack } from '../lib/fbq'
+import { usePlans } from '../lib/usePlans'
+import { ACCOUNTS_PER_CREDIT } from '../lib/planLabels'
 // 모달들: 열릴 때만 로드(엔트리 경량화)
 const PaymentModal = lazy(() => import('../components/PaymentModal'))
 const FindsPricing = lazy(() => import('../components/FindsPricing'))
@@ -120,7 +122,10 @@ const HERO_PH = [
   '내 니치 트렌드 실시간으로 보기',
 ]
 
+const HOT_PLAN = 'finds100'
+
 const Home = () => {
+  const subs = usePlans()          // 가격·이용권·워치리스트 한도는 plans 테이블에서
   const [scrolled, setScrolled] = useState(false)
   const [paymentOpen, setPaymentOpen] = useState(false)
   const [buyOpen, setBuyOpen] = useState(false)
@@ -715,19 +720,16 @@ const Home = () => {
                   <p className="mt-3 text-sm leading-relaxed text-white/45">매월 이용권 5개</p>
                   <button onClick={handleFinds} className="mt-6 w-full rounded-xl border border-white/10 py-2.5 text-sm font-semibold text-white/70 transition hover:border-[#0064FF] hover:text-[#0064FF]">무료로 시작</button>
                 </div>
-                {[
-                  { name: '스탠다드', credits: 30, price: 9900, feats: ['월 30회 소재 분석·소스 추출', '실시간 트렌드 무제한'] },
-                  { name: '프로', credits: 100, price: 19900, hot: true, feats: ['월 100회 소재 분석·소스 추출', '실시간 트렌드 무제한', '패스트벤치 선점 리스트'] },
-                  { name: '비즈니스', credits: 300, price: 29900, feats: ['월 300회 소재 분석·소스 추출', '패스트벤치 선점 리스트', '니치 알림', '개인화 큐레이션'] },
-                ].map((p) => {
+                {subs.map((p) => {
                   const annual = priceTab === 'annual'
+                  const hot = p.id === HOT_PLAN
                   return (
-                    <div key={p.name} onClick={() => handleBuy('sub', annual ? 'annual' : 'monthly')} className={`flex cursor-pointer flex-col rounded-2xl bg-white/[0.04] p-6 shadow-none transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_22px_48px_rgba(20,40,90,0.18)] ${p.hot ? 'border-2 border-[#0064FF]' : 'border border-white/10'}`}>
+                    <div key={p.id} onClick={() => handleBuy('sub', annual ? 'annual' : 'monthly')} className={`flex cursor-pointer flex-col rounded-2xl bg-white/[0.04] p-6 shadow-none transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_22px_48px_rgba(20,40,90,0.18)] ${hot ? 'border-2 border-[#0064FF]' : 'border border-white/10'}`}>
                       <div className="flex items-center gap-2">
                         <h4 className="text-lg font-semibold text-white">{p.name}</h4>
-                        {p.hot && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0064FF]">인기</span>}
+                        {hot && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0064FF]">인기</span>}
                       </div>
-                      <p className="mt-1 text-sm text-white/35">월 {p.credits}회 분석·소스</p>
+                      <p className="mt-1 text-sm text-white/35">이용권 월 {p.credits.toLocaleString('ko-KR')}개</p>
                       {annual ? (
                         <div className="mt-4">
                           <div className="flex items-baseline gap-1"><span className="text-3xl font-bold text-[#0064FF]">₩{(p.price * 9).toLocaleString('ko-KR')}</span><span className="text-sm text-white/35">/ 년</span></div>
@@ -738,16 +740,17 @@ const Home = () => {
                       )}
                       <div className="mt-2.5 inline-flex items-center rounded-full bg-[#0064FF]/10 px-3 py-1 text-sm font-extrabold text-[#0064FF]">하루 약 {(annual ? Math.round(p.price * 9 / 365 / 10) * 10 : Math.round(p.price / 30 / 10) * 10).toLocaleString('ko-KR')}원</div>
                       <ul className="mt-4 space-y-1.5 text-left">
-                        {p.feats.map((f) => (
+                        {p.perks.map((f) => (
                           <li key={f} className="flex items-start gap-1.5 text-sm text-white/60"><span className="mt-0.5 shrink-0 font-bold text-[#0064FF]">✓</span><span className="break-keep">{f}</span></li>
                         ))}
                       </ul>
-                      <button onClick={() => handleBuy('sub', annual ? 'annual' : 'monthly')} className={`mt-6 w-full rounded-xl py-2.5 text-sm font-semibold transition ${p.hot ? 'bg-[#0064FF] text-white hover:brightness-95' : 'border border-white/10 text-white/70 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>시작하기</button>
+                      <button onClick={() => handleBuy('sub', annual ? 'annual' : 'monthly')} className={`mt-6 w-full rounded-xl py-2.5 text-sm font-semibold transition ${hot ? 'bg-[#0064FF] text-white hover:brightness-95' : 'border border-white/10 text-white/70 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>시작하기</button>
                     </div>
                   )
                 })}
               </div>
               <p className="mt-6 text-center text-sm text-white/35">이용권은 <span className="font-semibold text-white/60">매월 초기화</span>됩니다 · 남은 이용권은 이월·누적되지 않습니다.{priceTab === 'annual' ? ' 연간도 매월 자동 충전됩니다.' : ''}</p>
+              <p className="mt-1.5 text-center text-sm text-white/35">워치리스트 갱신은 <span className="font-semibold text-white/60">{ACCOUNTS_PER_CREDIT}계정당 이용권 1개</span>가 차감됩니다.</p>
             </>
           )}
         </Reveal>

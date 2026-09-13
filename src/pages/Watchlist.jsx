@@ -192,7 +192,7 @@ export default function Watchlist() {
 
         if (r.ok === false) {
           setScanMsg(r.error === 'insufficient'
-            ? { ok: false, text: '크레딧이 부족해요 · 필요 ' + r.need + '개, 보유 ' + r.balance + '개' }
+            ? { ok: false, text: '이용권이 부족해요 · 필요 ' + r.need + '개, 보유 ' + r.balance + '개' }
             : { ok: false, text: '갱신에 실패했어요: ' + (r.error || '알 수 없는 오류') })
           break
         }
@@ -271,7 +271,7 @@ export default function Watchlist() {
           </div>
           <div className="flex items-center gap-2 rounded-full bg-white/5 px-3.5 py-1.5 text-xs">
             <Sparkles size={13} className="text-[#0064FF]" />
-            <span className="text-white/50">보유 크레딧</span>
+            <span className="text-white/50">보유 이용권</span>
             <b className="text-white">{wallet ? Number(wallet.finds_balance || 0).toLocaleString('ko-KR') : '…'}</b>
           </div>
         </div>
@@ -326,7 +326,7 @@ export default function Watchlist() {
             ) : (
               <span className="text-[11px] text-white/45">
                 {deadCount > 0 && !includeDead && <span className="text-white/35">응답없음 {deadCount}개 제외 → </span>}
-                실제 <b className="text-white/70">{targets.length.toLocaleString('ko-KR')}개</b> 갱신 (<b className="text-white/70">{estCredits}크레딧</b>)
+                실제 <b className="text-white/70">{targets.length.toLocaleString('ko-KR')}개</b> 갱신 (<b className="text-white/70">{estCredits}개</b>)
               </span>
             )}
           </div>
@@ -337,12 +337,12 @@ export default function Watchlist() {
                 응답없음 {deadCount}개도 포함해서 갱신
               </label>
             )}
-            <span className="text-[11px] text-white/30">{ACCOUNTS_PER_CREDIT}계정당 1크레딧 · 갱신 시작할 때 한 번만 차감</span>
+            <span className="text-[11px] text-white/30">{ACCOUNTS_PER_CREDIT}계정당 이용권 1개 · 갱신 시작할 때 한 번만 차감</span>
           </div>
           {targets.length >= WARN_OVER && !scanning && (
             <p className="mt-2 flex items-start gap-1.5 text-[11px] text-amber-400/80">
               <AlertTriangle size={12} className="mt-0.5 shrink-0" />
-              계정이 많아 몇 분 이상 걸려요. 끝날 때까지 이 탭을 닫지 마세요 — 중간에 닫으면 크레딧은 차감된 채 일부만 갱신됩니다.
+              계정이 많아 몇 분 이상 걸려요. 끝날 때까지 이 탭을 닫지 마세요 — 중간에 닫으면 이용권은 차감된 채 일부만 갱신됩니다.
             </p>
           )}
           {scanMsg && <p className={`mt-2 text-xs font-bold ${scanMsg.ok ? 'text-emerald-400' : 'text-red-400'}`}>{scanMsg.text}</p>}

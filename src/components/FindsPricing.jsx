@@ -3,15 +3,11 @@ import { supabase } from '../lib/supabase'
 import { X, Ticket } from 'lucide-react'
 import ReferralCTA from './ReferralCTA'
 import { redeemAnyCode } from '../lib/redeemCode'
+import { usePlans } from '../lib/usePlans'
 
 const CK = import.meta.env.VITE_TOSS_CLIENT_KEY || ''
 const BCK = import.meta.env.VITE_TOSS_BILLING_CLIENT_KEY || ''
 
-const SUBS = [
-  { id: 'finds30',  name: '스탠다드', credits: 30,  price: 9900 },
-  { id: 'finds100', name: '프로',     credits: 100, price: 19900 },
-  { id: 'finds300', name: '비즈니스', credits: 300, price: 29900 },
-]
 const PACKS = [
   { id: 'pack10',  credits: 10,  price: 4900 },
   { id: 'pack30',  credits: 30,  price: 12900 },
@@ -32,6 +28,7 @@ function loadToss() {
 }
 
 export default function FindsPricing({ open, onClose, defaultTab = 'sub', defaultPeriod = 'monthly' }) {
+  const SUBS = usePlans()          // 가격·이용권 수는 plans 테이블에서
   const [tab, setTab] = useState(defaultTab)
   const [period, setPeriod] = useState(defaultPeriod)
   const [busy, setBusy] = useState('')
@@ -122,7 +119,7 @@ export default function FindsPricing({ open, onClose, defaultTab = 'sub', defaul
             {SUBS.map((p) => (
               <button key={p.id} disabled={!!busy} onClick={() => buySub(p.id)}
                 className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3 text-left transition hover:border-[#0064FF] disabled:opacity-50">
-                <div><div className="font-bold text-slate-900">{p.name} · 월 {p.credits}개</div><div className="text-xs text-slate-400">{annual ? '매월 자동 충전 · 연 1회 결제' : '매월 자동 충전 · 언제든 해지'}</div></div>
+                <div><div className="font-bold text-slate-900">{p.name} · 이용권 월 {p.credits.toLocaleString('ko-KR')}개</div><div className="text-xs text-slate-400">{annual ? '매월 자동 충전 · 연 1회 결제' : '매월 자동 충전 · 언제든 해지'}</div></div>
                 {annual ? (
                   <div className="text-right">
                     <div className="text-[15px] font-bold text-[#0064FF]">₩{won(p.price * 9)}<span className="text-[11px] font-medium text-slate-400"> /년</span></div>

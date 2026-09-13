@@ -129,7 +129,7 @@ export default function WatchAccountsManager({ open, onClose, accounts, feedCoun
         {rows.length > ROW_CAP && (
           <p className="mt-2 text-center text-[11px] text-white/35">{rows.length}개 중 {ROW_CAP}개만 표시했어요 — 검색이나 상태 필터로 좁혀보세요.</p>
         )}
-        <p className="mt-2 text-[11px] text-white/35">🔴 응답없음은 갱신에서 자동 제외돼요(크레딧 절약). 오타를 고쳤거나 다시 공개됐다면 ‘다시 시도’를 눌러주세요.</p>
+        <p className="mt-2 text-[11px] text-white/35">🔴 응답없음은 갱신에서 자동 제외돼요(이용권 절약). 오타를 고쳤거나 다시 공개됐다면 ‘다시 시도’를 눌러주세요.</p>
       </div>
     </div>
   )

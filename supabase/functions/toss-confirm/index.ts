@@ -1,8 +1,12 @@
+// ⚠️ 이 파일은 배포본의 스냅샷이며 최신이 아닐 수 있다.
+//    현재 배포본에는 Meta CAPI Purchase 전송이 추가돼 있다(여기엔 없음).
+//    수정 전 반드시 `supabase functions download toss-confirm` 으로 최신본을 받아올 것 —
+//    이 파일 그대로 배포하면 CAPI 전송이 사라진다.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
-const SALE: Record<string, number> = { starter: 29000, pro: 49000, master: 79000, finds30: 9900, finds100: 19900, finds300: 29900, pack10: 4900, pack30: 12900, pack100: 34900, render10: 10900, render30: 26900, render60: 49900 };
+const SALE: Record<string, number> = { starter: 29000, pro: 49000, master: 79000, finds30: 9900, finds100: 24900, finds300: 34900, pack10: 4900, pack30: 12900, pack100: 34900, render10: 10900, render30: 26900, render60: 49900 };
 const DAYS: Record<string, number> = { starter: 30, pro: 30, master: 30, pkg6: 180, finds30: 30, finds100: 30, finds300: 30 };
 const PACK: Record<string, number> = { pack10: 10, pack30: 30, pack100: 100 };
 const RENDERPACK: Record<string, number> = { render10: 10, render30: 30, render60: 60 };

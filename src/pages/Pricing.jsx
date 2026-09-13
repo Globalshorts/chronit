@@ -6,16 +6,15 @@ import Footer from '../components/Footer'
 import FindsPricing from '../components/FindsPricing'
 import AuthModal from '../components/AuthModal'
 import { fbTrack } from '../lib/fbq'
+import { usePlans } from '../lib/usePlans'
+import { ACCOUNTS_PER_CREDIT } from '../lib/planLabels'
 
-const SUBS = [
-  { name: '스탠다드', credits: 30, price: 9900, feats: ['월 30회 소재 분석·소스 추출', '실시간 트렌드 무제한'] },
-  { name: '프로', credits: 100, price: 19900, hot: true, feats: ['월 100회 소재 분석·소스 추출', '실시간 트렌드 무제한', '패스트벤치 선점 리스트'] },
-  { name: '비즈니스', credits: 300, price: 29900, feats: ['월 300회 소재 분석·소스 추출', '패스트벤치 선점 리스트', '니치 알림', '개인화 큐레이션'] },
-]
+const HOT = 'finds100'
 const PACKS = [{ credits: 10, price: 4900 }, { credits: 30, price: 12900, hot: true }, { credits: 100, price: 34900 }]
 
 export default function Pricing() {
   const nav = useNavigate()
+  const SUBS = usePlans()          // 가격·이용권·워치리스트 한도는 plans 테이블에서
   const [user, setUser] = useState(null)
   const [priceTab, setPriceTab] = useState('monthly')
   const [buyOpen, setBuyOpen] = useState(false)
@@ -73,9 +72,9 @@ export default function Pricing() {
                 <button onClick={() => { fbTrack('Lead', { content_name: 'free_start', location: 'pricing' }); if (user) nav('/research'); else setAuthOpen(true) }} className="mt-6 w-full rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-[#0064FF] hover:text-[#0064FF]">무료로 시작</button>
               </div>
               {SUBS.map((p) => (
-                <div key={p.name} onClick={() => buy('sub', annual ? 'annual' : 'monthly')} className={cardCls(p.hot)}>
-                  <div className="flex items-center gap-2"><h4 className="text-lg font-semibold text-gray-900">{p.name}</h4>{p.hot && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0064FF]">인기</span>}</div>
-                  <p className="mt-1 text-sm text-gray-400">월 {p.credits}회 분석·소스</p>
+                <div key={p.id} onClick={() => buy('sub', annual ? 'annual' : 'monthly')} className={cardCls(p.id === HOT)}>
+                  <div className="flex items-center gap-2"><h4 className="text-lg font-semibold text-gray-900">{p.name}</h4>{p.id === HOT && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0064FF]">인기</span>}</div>
+                  <p className="mt-1 text-sm text-gray-400">이용권 월 {p.credits.toLocaleString('ko-KR')}개</p>
                   {annual ? (
                     <div className="mt-4">
                       <div className="flex items-baseline gap-1"><span className="text-3xl font-bold text-[#0064FF]">₩{(p.price * 9).toLocaleString('ko-KR')}</span><span className="text-sm text-gray-400">/ 년</span></div>
@@ -86,16 +85,17 @@ export default function Pricing() {
                   )}
                   <div className="mt-2.5 inline-flex items-center rounded-full bg-[#0064FF]/10 px-3 py-1 text-sm font-extrabold text-[#0064FF]">하루 약 {(annual ? Math.round(p.price * 9 / 365 / 10) * 10 : Math.round(p.price / 30 / 10) * 10).toLocaleString('ko-KR')}원</div>
                   <ul className="mt-4 space-y-1.5 text-left">
-                    {p.feats.map((f) => (
+                    {p.perks.map((f) => (
                       <li key={f} className="flex items-start gap-1.5 text-sm text-gray-600"><span className="mt-0.5 shrink-0 font-bold text-[#0064FF]">✓</span><span className="break-keep">{f}</span></li>
                     ))}
                   </ul>
-                  <button className={btnCls(p.hot)}>시작하기</button>
+                  <button className={btnCls(p.id === HOT)}>시작하기</button>
                 </div>
               ))}
             </div>
           )}
           <p className="mt-6 text-center text-sm text-gray-400">이용권은 <span className="font-semibold text-gray-600">매월 초기화</span>돼요 · 남은 이용권은 이월·누적되지 않아요.</p>
+          <p className="mt-1.5 text-center text-sm text-gray-400">워치리스트 갱신은 <span className="font-semibold text-gray-600">{ACCOUNTS_PER_CREDIT}계정당 이용권 1개</span>가 차감돼요.</p>
         </div>
       </section>
 
