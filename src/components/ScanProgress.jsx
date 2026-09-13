@@ -32,9 +32,10 @@ export default function ScanProgress({ cursor = 0, total = 0, chunk = 20, avgMs,
   const toRef = useRef(0)
   const sinceRef = useRef(0)
   const dispRef = useRef(0)
-  const avgRef = useRef(avgMs || DEFAULT_AVG)
-
-  avgRef.current = Math.max(3000, avgMs || DEFAULT_AVG)
+  // 측정 평균은 prop 으로 들어온다. 렌더 중엔 이 값을 쓰고, rAF 루프용으로만 ref 에 복사.
+  const avg = Math.max(3000, avgMs || DEFAULT_AVG)
+  const avgRef = useRef(avg)
+  useEffect(() => { avgRef.current = avg }, [avg])
 
   // 서버 응답이 올 때마다 보간 구간을 다음 청크로 옮긴다
   useEffect(() => {
@@ -69,7 +70,7 @@ export default function ScanProgress({ cursor = 0, total = 0, chunk = 20, avgMs,
   }, [recent])
 
   const remainChunks = Math.max(0, Math.ceil((total - cursor) / Math.max(1, chunk)))
-  const eta = etaText(remainChunks * avgRef.current)
+  const eta = etaText(remainChunks * avg)
   const nowAccount = recent.length ? recent[Math.min(rollIdx, recent.length - 1)] : null
 
   return (
