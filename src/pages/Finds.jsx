@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import HeaderInstallBtn from '../components/HeaderInstallBtn'
 import { Navigate, Link, useNavigate } from 'react-router-dom'
-import { Search, Loader2, AlertTriangle, Flame, Eye, Heart, MessageCircle, Sparkles, X, Copy, Check, Download } from 'lucide-react'
+import { Search, Loader2, AlertTriangle, Flame, Eye, Heart, MessageCircle, Sparkles, X, Copy, Check, Download, Bookmark } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
 import { FEATURES } from '../config/features'
@@ -259,6 +259,16 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed, initialResult = null }
           </>
         )}
 
+        {/* 기획 저장 — HD 다운로드 바로 아래. 분석 결과가 나온 뒤에만,
+           저장본을 다시 보는 중(initialResult)이면 숨긴다 */}
+        {result && !initialResult && (
+          <button onClick={saveBrief} disabled={briefSaved}
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-[#0064FF]/30 bg-[#0064FF]/5 py-3 text-sm font-bold text-[#0064FF] transition hover:bg-[#0064FF]/10 disabled:opacity-60">
+            <Bookmark size={16} className={briefSaved ? 'fill-[#0064FF]' : ''} />
+            {briefSaved ? '기획 저장됨 · 마이페이지에서 확인' : '이 기획 저장하기'}
+          </button>
+        )}
+
         {clip.page_url && (
           <div className="mt-4">
             <div className="mb-1 text-xs font-bold text-slate-500">출처</div>
@@ -381,7 +391,6 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed, initialResult = null }
                     {result.remix.selling_map?.length > 0 && <div className="mb-2"><span className="text-[15px] font-bold text-slate-800">셀링포인트 매핑</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-sm">{result.remix.selling_map.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
                     {result.remix.differentiation?.length > 0 && <div className="mb-2"><span className="text-[15px] font-bold text-slate-800">차별화 포인트</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-sm">{result.remix.differentiation.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
                     {result.remix.edit_checklist?.length > 0 && <div><span className="text-[15px] font-bold text-slate-800">편집 체크리스트</span><ul className="mt-0.5 list-disc space-y-0.5 pl-5 text-sm">{result.remix.edit_checklist.map((x, idx) => <li key={idx}>{x}</li>)}</ul></div>}
-                    <button onClick={saveBrief} disabled={briefSaved} className="mt-3 w-full rounded-lg bg-[#0064FF] py-2.5 text-sm font-bold text-white transition hover:brightness-95 disabled:opacity-60">{briefSaved ? '✓ 기획 저장됨 · 마이페이지에서 확인' : '이 기획 저장하기'}</button>
                   </div>
                 ) : null}
                 {!result.used_image && <div className="text-[11px] text-slate-300">※ 썸네일 미확보 — 제목 기반 분석</div>}
