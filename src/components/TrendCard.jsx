@@ -38,8 +38,10 @@ export default function TrendCard({
           {it.taken_at && <div className="absolute right-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">{timeAgo(it.taken_at)}</div>}
           <div className="absolute inset-0 flex items-center justify-center opacity-90"><div className="flex h-9 w-9 items-center justify-center rounded-full bg-black/45 text-white"><Play size={16} className="ml-0.5" /></div></div>
           {onToggleSave && (
-            <button onClick={(e) => { e.stopPropagation(); onToggleSave() }} aria-label="이번 주 소재로 저장" className="absolute bottom-1.5 right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur transition hover:bg-black/75">
-              <Bookmark size={14} className={saved ? 'fill-emerald-400 text-emerald-400' : ''} />
+            // 저장 버튼: 잘 안 보인다는 피드백 → 히트영역·아이콘 2배 (28px→56px, 14→28)
+            <button onClick={(e) => { e.stopPropagation(); onToggleSave() }} aria-label={saved ? '저장 취소' : '이번 주 소재로 저장'} aria-pressed={saved}
+              className="absolute bottom-2 right-2 flex h-14 w-14 items-center justify-center rounded-full bg-black/65 text-white shadow-lg ring-1 ring-white/20 backdrop-blur transition hover:bg-black/85 active:scale-95">
+              <Bookmark size={28} strokeWidth={2.25} className={saved ? 'fill-emerald-400 text-emerald-400' : ''} />
             </button>
           )}
         </div>

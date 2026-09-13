@@ -6,6 +6,10 @@ import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
 import { fbTrack } from '../lib/fbq'
 import RangeFilter from '../components/RangeFilter'
+import {
+  DAY_MAX, DAY_MARKS, FB_DAY_MAX, FB_DAY_MARKS, dayWindowMs,
+  COMMENT_MAX, COMMENT_MARKS, FOLLOWER_MAX, FOLLOWER_MARKS, manFmt,
+} from '../lib/filterConfig'
 import VideoModal from '../components/ReelModal'
 import TrendCard, { TrendThumb } from '../components/TrendCard'
 import { fmtCount as fmt } from '../lib/format'
@@ -40,16 +44,7 @@ const SORTS = [['view', '조회수'], ['recent', '최신'], ['like', '좋아요'
 const FB_SORTS = [['score', '터짐 점수'], ...SORTS]
 const REGIONS = [['전체', ''], ['한국', 'kr'], ['일본', 'jp'], ['미국', 'us']]
 const regionOf = (it) => { const c = `${it.caption || ''} ${it.owner || ''}`; if (/[가-힣]/.test(c)) return 'kr'; if (/[ぁ-ゖァ-ヺ]/.test(c)) return 'jp'; return 'us' }
-// 슬라이더 눈금 — 값은 기존 필터 로직 그대로 쓴다(게시일=일수, 댓글=최소, 팔로워=구간)
-const DAY_MAX = 31                                   // 31 = 전체 기간(기존 range 0 과 동일)
-const DAY_MARKS = [[1, '1일'], [7, '7일'], [14, '14일'], [DAY_MAX, '전체']]
-const FB_DAY_MAX = 2                                 // 패스트벤치 고유 게이트: 최근 2일
-const FB_DAY_MARKS = [[1, '1일'], [FB_DAY_MAX, '2일']]
-const COMMENT_MAX = 2000
-const COMMENT_MARKS = [[0, '전체'], [500, '500'], [1000, '1천'], [COMMENT_MAX, '2천+']]
-const FOLLOWER_MAX = 100000
-const FOLLOWER_MARKS = [[0, '0'], [10000, '1만'], [50000, '5만'], [FOLLOWER_MAX, '10만+']]
-const manFmt = (n) => (n >= 10000 ? `${Math.round((n / 10000) * 10) / 10}만` : n.toLocaleString('ko-KR'))
+
 const TREND_TTL = 10 * 60 * 1000 // 10분: 이 안이면 재요청 안 함(서버는 최대 24h마다 갱신)
 const readTrendCache = () => { try { const c = JSON.parse(localStorage.getItem('chronit_trend_cache') || 'null'); return (c && Array.isArray(c.items)) ? c : null } catch { return null } }
 const writeTrendCache = (items, fb, fbCount) => { try { localStorage.setItem('chronit_trend_cache', JSON.stringify({ items, fb: fb || [], fbCount: (typeof fbCount === 'number' ? fbCount : null), at: Date.now() })) } catch { /* noop */ } }
@@ -80,7 +75,7 @@ export default function Trend() {
   const [sort, setSort] = useState('view')
   const [fbSort, setFbSort] = useState('score')   // 패스트벤치 기본 정렬 = 터짐 점수
   const [showHelp, setShowHelp] = useState(false)
-  const [range, setRange] = useState(7)
+  const [range, setRange] = useState(DAY_MAX)
   const [fMin, setFMin] = useState('')
   const [fMax, setFMax] = useState('')
   const [region, setRegion] = useState('')
@@ -164,9 +159,8 @@ export default function Trend() {
   const _listBase = (fastBench && Array.isArray(fbItems) && fbItems.length ? fbItems : items)
     .filter((it) => {
       // 게시일 슬라이더. 패스트벤치는 고유 게이트(≤2일)를 유지한 채 슬라이더를 더 좁히는 방향으로만 적용.
-      const userWin = range === 0 ? Infinity : range * 86400000
-      const win = fastBench ? Math.min(2 * 86400000, userWin) : userWin
-      return win === Infinity ? true : (it.taken_at && now - new Date(it.taken_at).getTime() <= win)
+      const win = dayWindowMs(range, fastBench ? FB_DAY_MAX : DAY_MAX)
+      return it.taken_at && now - new Date(it.taken_at).getTime() <= win
     })
     .filter((it) => {
       if (!fastBench) return true
@@ -275,13 +269,11 @@ export default function Trend() {
           </div>
           <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-3">
             <RangeFilter
-              label="게시일" min={1} step={1} unit="일" infinitySuffix="이하"
+              label="게시일" min={1} step={1} unit="일" infinitySuffix="이하" allAtMax={false}
               max={fastBench ? FB_DAY_MAX : DAY_MAX}
               marks={fastBench ? FB_DAY_MARKS : DAY_MARKS}
-              value={fastBench
-                ? Math.min(range === 0 ? FB_DAY_MAX : range, FB_DAY_MAX)
-                : (range === 0 ? DAY_MAX : range)}
-              onChange={(v) => setRange(fastBench ? v : (v >= DAY_MAX ? 0 : v))}
+              value={Math.min(range, fastBench ? FB_DAY_MAX : DAY_MAX)}
+              onChange={setRange}
             />
             <RangeFilter
               label="댓글수" min={0} max={COMMENT_MAX} step={50} unit="개" infinitySuffix="이상" marks={COMMENT_MARKS}

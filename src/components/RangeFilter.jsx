@@ -14,6 +14,7 @@ const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
 export default function RangeFilter({
   label, min = 0, max = 100, step = 1, value, onChange,
   marks, unit = '', infinitySuffix = '∞', formatValue, className = '',
+  allAtMax = true,   // 상한에 닿았을 때 '전체'로 표기할지. false 면 '{max}{unit} 이하'
 }) {
   const trackRef = useRef(null)
   const [drag, setDrag] = useState(null)   // 'lo' | 'hi' | 'one'
@@ -38,7 +39,7 @@ export default function RangeFilter({
         : `${fmtN(hi)}${unit}`
       return `${fmtN(lo)}${unit} ~ ${hiText}`
     }
-    if (isUpper) return hi >= max ? '전체' : `${fmtN(hi)}${unit} 이하`
+    if (isUpper) return hi >= max && allAtMax ? '전체' : `${fmtN(hi)}${unit} 이하`
     if (hi <= min) return '전체'
     return hi >= max && infinitySuffix === '∞' ? `${fmtN(max)}${unit}+` : `${fmtN(hi)}${unit} 이상`
   })()

@@ -7,6 +7,10 @@ import RangeFilter from '../components/RangeFilter'
 import VideoModal from '../components/ReelModal'
 import TrendCard from '../components/TrendCard'
 import { fmtCount } from '../lib/format'
+import {
+  DAY_MAX, DAY_MARKS, dayWindowMs,
+  COMMENT_MAX, COMMENT_MARKS, VIEW_MAX, VIEW_MARKS, manFmt,
+} from '../lib/filterConfig'
 import { AnalyzeModal, ackAnalyzeCost } from './Finds'
 import AuthModal from '../components/AuthModal'
 
@@ -14,13 +18,6 @@ const SB_URL = import.meta.env.VITE_SUPABASE_URL || 'https://oxygqtbdpnxxcgzwdlz
 const ACCOUNTS_PER_CREDIT = 50                 // 50계정 갱신 = 1크레딧 (서버 CREDIT_PER 와 동일)
 
 const SORTS = [['comment', '댓글수'], ['view', '조회수'], ['like', '좋아요'], ['recent', '최신']]
-const DAY_MAX = 8                              // 서버가 최근 7일치만 저장 → 8 = 전체
-const DAY_MARKS = [[1, '1일'], [3, '3일'], [7, '7일'], [DAY_MAX, '전체']]
-const COMMENT_MAX = 2000
-const COMMENT_MARKS = [[0, '전체'], [500, '500'], [1000, '1천'], [COMMENT_MAX, '2천+']]
-const VIEW_MAX = 1000000
-const VIEW_MARKS = [[0, '전체'], [100000, '10만'], [500000, '50만'], [VIEW_MAX, '100만+']]
-const manFmt = (n) => (n >= 10000 ? `${Math.round((n / 10000) * 10) / 10}만` : n.toLocaleString('ko-KR'))
 
 // '@handle' / 프로필 URL / 아이디 → username
 const parseUsername = (raw) => {
@@ -56,6 +53,7 @@ export default function Watchlist() {
   const [modalClip, setModalClip] = useState(null)
   const [analyzedIds, setAnalyzedIds] = useState([])
   const [showAuth, setShowAuth] = useState(false)
+  const [savedPicks, setSavedPicks] = useState([])
 
   const isReal = !!session && session.user?.is_anonymous !== true
   const uid = session?.user?.id
@@ -80,6 +78,7 @@ export default function Watchlist() {
     setAccounts(a.data || [])
     setFeed(f.data || [])
     setLoading(false)
+    supabase.from('saved_trends').select('shortcode').then(({ data }) => { if (Array.isArray(data)) setSavedPicks(data.map((r) => r.shortcode)) })
   }, [uid])
 
   useEffect(() => {
@@ -153,6 +152,17 @@ export default function Watchlist() {
     load(); loadWallet()
   }
 
+  // 저장(북마크) — 트렌드와 같은 saved_trends 로 담긴다(소재 보드에서 확인)
+  const toggleSave = async (it) => {
+    const sc = it.shortcode; const has = savedPicks.includes(sc)
+    if (!has) { try { phCapture('trend_saved', { shortcode: sc, source: 'watchlist' }) } catch { /* noop */ } }
+    setSavedPicks((prev) => has ? prev.filter((x) => x !== sc) : [...prev, sc])
+    try {
+      if (has) await supabase.from('saved_trends').delete().eq('shortcode', sc)
+      else await supabase.from('saved_trends').insert({ shortcode: sc, caption: it.caption, thumbnail_url: it.thumbnail_url, url: it.url, owner: it.owner, view_count: it.view_count, like_count: it.like_count, comment_count: it.comment_count, velocity: it.velocity, taken_at: it.taken_at })
+    } catch { /* noop */ }
+  }
+
   // ── (c) 분석 ──
   const handleAnalyze = async (clip) => {
     const key = clip.page_url || clip.title
@@ -168,7 +178,7 @@ export default function Watchlist() {
 
   const now = Date.now()
   const list = feed
-    .filter((it) => days >= DAY_MAX ? true : (it.taken_at && now - new Date(it.taken_at).getTime() <= days * 86400000))
+    .filter((it) => it.taken_at && now - new Date(it.taken_at).getTime() <= dayWindowMs(days))
     .filter((it) => !minComments || (Number(it.comment_count) || 0) >= minComments)
     .filter((it) => !minViews || (Number(it.view_count) || 0) >= minViews)
     .sort((a, b) => {
@@ -275,7 +285,7 @@ export default function Watchlist() {
           ))}
         </div>
         <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-3">
-          <RangeFilter label="게시일" min={1} max={DAY_MAX} step={1} unit="일" infinitySuffix="이하" marks={DAY_MARKS} value={days} onChange={setDays} />
+          <RangeFilter label="게시일" min={1} max={DAY_MAX} step={1} unit="일" infinitySuffix="이하" allAtMax={false} marks={DAY_MARKS} value={days} onChange={setDays} />
           <RangeFilter label="댓글수" min={0} max={COMMENT_MAX} step={50} unit="개" infinitySuffix="이상" marks={COMMENT_MARKS} value={minComments} onChange={setMinComments} />
           <RangeFilter label="조회수" min={0} max={VIEW_MAX} step={10000} infinitySuffix="이상" marks={VIEW_MARKS} formatValue={manFmt} value={minViews} onChange={setMinViews} />
         </div>
@@ -300,6 +310,8 @@ export default function Watchlist() {
                 onPlay={() => setPlayClip(clip)}
                 onAnalyze={() => handleAnalyze(clip)}
                 onSource={() => { window.location.href = '/research?url=' + encodeURIComponent(it.url) }}
+                saved={savedPicks.includes(it.shortcode)}
+                onToggleSave={() => toggleSave(it)}
               />
             )
           })}
