@@ -1,4 +1,17 @@
 {
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "chronit.vercel.app"
+        }
+      ],
+      "destination": "https://chronit.kr/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/u/:handle",
