@@ -210,3 +210,7 @@ select option:checked, select option:hover {
   background-color: #0064FF !important;
   color: #ffffff !important;
 }
+
+/* 워치리스트 갱신 진행바 shimmer — 청크 응답 사이에도 살아있다는 신호 */
+@keyframes chr-shimmer { 0% { transform: translateX(-120%) } 100% { transform: translateX(420%) } }
+.chr-shimmer { animation: chr-shimmer 1.5s linear infinite; }

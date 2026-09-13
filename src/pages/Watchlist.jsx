@@ -7,6 +7,7 @@ import RangeFilter from '../components/RangeFilter'
 import VideoModal from '../components/ReelModal'
 import TrendCard from '../components/TrendCard'
 import WatchAccountsManager from '../components/WatchAccountsManager'
+import ScanProgress from '../components/ScanProgress'
 import {
   DAY_MAX, DAY_MARKS, dayWindowMs,
   COMMENT_MAX, COMMENT_MARKS, VIEW_MAX, VIEW_MARKS, manFmt,
@@ -23,7 +24,8 @@ const SORTS = [['comment', '댓글수'], ['view', '조회수'], ['like', '좋아
 const SORT_COL = { comment: 'comment_count', view: 'view_count', like: 'like_count', recent: 'taken_at' }
 // 1000계정이면 watch_feed 가 수천 행이라 전부 받으면 수십MB — 서버에서 정렬·상한을 걸고 받는다.
 const FEED_LIMIT = 600
-const CHUNK_HINT = 40   // watch-scan 이 한 번에 처리하는 계정 수
+const SCAN_CHUNK = 20      // watch-scan CHUNK — 진행바 보간 구간 계산에 쓴다
+const WARN_OVER = 300      // 이 이상이면 탭 이탈 경고(동시 10개 병렬이라 그 아래는 금방 끝남)
 
 export default function Watchlist() {
   const nav = useNavigate()
@@ -169,13 +171,19 @@ export default function Watchlist() {
 
   const scan = async () => {
     if (scanning || !targets.length) return
-    setScanning(true); setScanMsg(null); setProgress({ cursor: 0, total: targets.length })
+    setScanning(true); setScanMsg(null)
+    setProgress({ cursor: 0, total: targets.length, avgMs: null, recent: [], hits: 0 })
     try {
       const { data: { session: s } } = await supabase.auth.getSession()
       const accessToken = s?.access_token
       let cursor = 0
+      let totalHits = 0
+      let totalFailed = 0
+      const durations = []
       let r
       do {
+        const t0 = performance.now()
+        const from = cursor
         r = await fetch(SB_URL + '/functions/v1/watch-scan', {
           method: 'POST',
           headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
@@ -188,14 +196,22 @@ export default function Watchlist() {
             : { ok: false, text: '갱신에 실패했어요: ' + (r.error || '알 수 없는 오류') })
           break
         }
-        setProgress({ cursor: r.cursor, total: r.total })
+
+        // 청크 소요를 평균내 남은 시간 추정 + 보간 속도에 사용
+        durations.push(performance.now() - t0)
+        const avgMs = durations.reduce((a, b) => a + b, 0) / durations.length
+        totalHits += r.hits ?? 0
+        totalFailed += r.failed ?? 0
+        // 서버 스캔 순서(active + fail 필터 + added_at 오름차순)는 targets 와 같다
+        const recent = targets.slice(from, r.cursor).map((a) => a.username)
+        setProgress({ cursor: r.cursor, total: r.total, avgMs, recent, hits: totalHits })
         cursor = r.cursor
       } while (!r.done)
 
       if (r?.ok !== false) {
-        const fail = r.failed ? ' · 응답없음 ' + r.failed + '개' : ''
-        setScanMsg({ ok: true, text: '갱신 완료 — 계정 ' + r.total + '개 · 게시물 ' + (r.hits ?? 0) + '건' + fail })
-        try { phCapture('watchlist_scanned', { accounts: r.total }) } catch { /* noop */ }
+        const fail = totalFailed ? ' · 응답없음 ' + totalFailed + '개' : ''
+        setScanMsg({ ok: true, text: '완료 — 계정 ' + r.total + '개 · 새 소재 ' + totalHits + '건' + fail })
+        try { phCapture('watchlist_scanned', { accounts: r.total, hits: totalHits }) } catch { /* noop */ }
       }
     } catch (e) {
       setScanMsg({ ok: false, text: '갱신에 실패했어요: ' + String(e?.message || e) })
@@ -303,12 +319,10 @@ export default function Watchlist() {
               {scanning ? '갱신 중…' : '지금 갱신'}
             </button>
             {scanning && progress ? (
-              <div className="min-w-[200px] flex-1">
-                <div className="mb-1 text-[11px] font-bold text-white/60">갱신 중 {progress.cursor}/{progress.total}</div>
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-black">
-                  <div className="h-full rounded-full bg-[#0064FF] transition-all" style={{ width: `${Math.round((progress.cursor / Math.max(1, progress.total)) * 100)}%` }} />
-                </div>
-              </div>
+              <ScanProgress
+                cursor={progress.cursor} total={progress.total} chunk={SCAN_CHUNK}
+                avgMs={progress.avgMs} recent={progress.recent} hits={progress.hits}
+              />
             ) : (
               <span className="text-[11px] text-white/45">
                 {deadCount > 0 && !includeDead && <span className="text-white/35">응답없음 {deadCount}개 제외 → </span>}
@@ -325,7 +339,7 @@ export default function Watchlist() {
             )}
             <span className="text-[11px] text-white/30">{ACCOUNTS_PER_CREDIT}계정당 1크레딧 · 갱신 시작할 때 한 번만 차감</span>
           </div>
-          {targets.length > CHUNK_HINT * 3 && !scanning && (
+          {targets.length >= WARN_OVER && !scanning && (
             <p className="mt-2 flex items-start gap-1.5 text-[11px] text-amber-400/80">
               <AlertTriangle size={12} className="mt-0.5 shrink-0" />
               계정이 많아 몇 분 이상 걸려요. 끝날 때까지 이 탭을 닫지 마세요 — 중간에 닫으면 크레딧은 차감된 채 일부만 갱신됩니다.
