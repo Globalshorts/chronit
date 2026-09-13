@@ -564,21 +564,21 @@ const Home = () => {
         <div className="relative mx-auto flex max-w-3xl flex-col items-center text-center">
           {user && (
             <div className="mb-2 w-full max-w-xl rounded-2xl border border-white/12 bg-white/[0.06] glass-c px-6 py-6 text-center shadow-[0_10px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl">
-              <p className="text-xl font-bold text-white">돌아오셨어요{nickname ? `, ${nickname}님` : ''}</p>
+              <p className="mb-6 text-xl font-bold text-white">돌아오셨어요{nickname ? `, ${nickname}님` : ''}</p>
               {isExistingRender ? (
-                <div className="mx-auto flex w-full max-w-md gap-2">
+                <div className="mx-auto flex w-full max-w-md gap-2.5">
                   <button onClick={handleFinds}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-4 text-base font-bold text-white shadow-lg shadow-[#0064FF]/25 transition-all hover:brightness-110 active:scale-[0.98]">
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-white px-4 py-4 text-base font-semibold text-[#0A0B0F] transition-all hover:bg-white/90 active:scale-[0.98]">
                     시작하기 <ArrowRight size={18} />
                   </button>
                   <Link to="/generate"
-                    className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-amber-300/40 bg-amber-400/10 px-4 py-3 text-base font-bold leading-tight text-amber-300 transition hover:bg-amber-400/20 active:scale-[0.98]">
-                    편집 작업실 <span className="mt-0.5 text-[11px] font-bold text-amber-400/70">9/14 종료 예정</span>
+                    className="flex flex-1 flex-col items-center justify-center rounded-full border border-[#A9C0FF]/25 bg-[#0064FF]/10 px-4 py-3 text-base font-semibold leading-tight text-[#A9C0FF] transition hover:border-[#A9C0FF]/40 hover:bg-[#0064FF]/16 active:scale-[0.98]">
+                    편집 작업실 <span className="mt-0.5 text-[11px] font-medium text-[#A9C0FF]/55">9/14 종료 예정</span>
                   </Link>
                 </div>
               ) : (
                 <button onClick={handleFinds}
-                  className="mx-auto flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-[#0064FF]/25 transition-all hover:brightness-110 active:scale-[0.98]">
+                  className="mx-auto flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-lg font-semibold text-[#0A0B0F] transition-all hover:bg-white/90 active:scale-[0.98]">
                   시작하기 <ArrowRight size={20} />
                 </button>
               )}

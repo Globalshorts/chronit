@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, Plus, RefreshCw, Loader2, Sparkles, X, AlertTriangle, Settings2 } from 'lucide-react'
+import { Bookmark, Plus, RefreshCw, Loader2, Sparkles, X, AlertTriangle, Settings2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
 import RangeFilter from '../components/RangeFilter'
@@ -252,7 +252,7 @@ export default function Watchlist() {
   if (!isReal) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-16 text-center">
-        <Eye size={28} className="mx-auto mb-3 text-[#0064FF]" />
+        <Bookmark size={28} className="mx-auto mb-3 text-[#0064FF]" />
         <p className="text-lg font-bold text-white">워치리스트는 로그인 후 이용할 수 있어요</p>
         <p className="mt-1 text-sm text-white/50">경쟁 계정을 등록해두면 새 게시물을 한 화면에서 볼 수 있어요.</p>
         <button onClick={() => setShowAuth(true)} className="mt-5 rounded-full bg-[#0064FF] px-6 py-2.5 text-sm font-bold text-white">무료로 로그인 / 가입</button>
@@ -266,7 +266,7 @@ export default function Watchlist() {
       <header className="mb-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-[#0064FF]">
-            <Eye size={22} />
+            <Bookmark size={22} />
             <h1 className="text-2xl font-extrabold text-white">워치리스트</h1>
           </div>
           <div className="flex items-center gap-2 rounded-full bg-white/5 px-3.5 py-1.5 text-xs">
