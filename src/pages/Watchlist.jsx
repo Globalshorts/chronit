@@ -1,48 +1,50 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, Plus, Trash2, RefreshCw, Loader2, Sparkles, X, AlertTriangle } from 'lucide-react'
+import { Eye, Plus, RefreshCw, Loader2, Sparkles, X, AlertTriangle, Settings2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
 import RangeFilter from '../components/RangeFilter'
 import VideoModal from '../components/ReelModal'
 import TrendCard from '../components/TrendCard'
-import { fmtCount } from '../lib/format'
+import WatchAccountsManager from '../components/WatchAccountsManager'
 import {
   DAY_MAX, DAY_MARKS, dayWindowMs,
   COMMENT_MAX, COMMENT_MARKS, VIEW_MAX, VIEW_MARKS, manFmt,
 } from '../lib/filterConfig'
+import {
+  parseUsernames, statusOf, scanTargets, creditsFor, fmtWhen, ACCOUNTS_PER_CREDIT,
+} from '../lib/watchAccounts'
 import { AnalyzeModal, ackAnalyzeCost } from './Finds'
 import AuthModal from '../components/AuthModal'
 
 const SB_URL = import.meta.env.VITE_SUPABASE_URL || 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
-const ACCOUNTS_PER_CREDIT = 50                 // 50계정 갱신 = 1크레딧 (서버 CREDIT_PER 와 동일)
 
 const SORTS = [['comment', '댓글수'], ['view', '조회수'], ['like', '좋아요'], ['recent', '최신']]
-
-// '@handle' / 프로필 URL / 아이디 → username
-const parseUsername = (raw) => {
-  let s = String(raw || '').trim()
-  const m = s.match(/instagram\.com\/([^/?#\s]+)/i)
-  if (m) s = m[1]
-  return s.replace(/^@/, '').replace(/\/+$/, '').trim()
-}
+const SORT_COL = { comment: 'comment_count', view: 'view_count', like: 'like_count', recent: 'taken_at' }
+// 1000계정이면 watch_feed 가 수천 행이라 전부 받으면 수십MB — 서버에서 정렬·상한을 걸고 받는다.
+const FEED_LIMIT = 600
+const CHUNK_HINT = 40   // watch-scan 이 한 번에 처리하는 계정 수
 
 export default function Watchlist() {
   const nav = useNavigate()
   const [session, setSession] = useState(null)
   const [accounts, setAccounts] = useState([])
   const [feed, setFeed] = useState([])
+  const [feedCounts, setFeedCounts] = useState({})
   const [wallet, setWallet] = useState(null)
+  const [watchLimit, setWatchLimit] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  const [input, setInput] = useState('')
+  const [bulk, setBulk] = useState('')
   const [adding, setAdding] = useState(false)
   const [accMsg, setAccMsg] = useState(null)
-  const [limitModal, setLimitModal] = useState(null)   // 초과 시 { limit }
+  const [limitModal, setLimitModal] = useState(null)
+  const [manageOpen, setManageOpen] = useState(false)
 
   const [scanning, setScanning] = useState(false)
-  const [progress, setProgress] = useState(null)       // { cursor, total }
+  const [progress, setProgress] = useState(null)
   const [scanMsg, setScanMsg] = useState(null)
+  const [includeDead, setIncludeDead] = useState(false)
 
   const [sort, setSort] = useState('comment')
   const [days, setDays] = useState(DAY_MAX)
@@ -64,77 +66,126 @@ export default function Watchlist() {
     return () => { try { sub.subscription.unsubscribe() } catch { /* noop */ } }
   }, [])
 
-  const loadWallet = useCallback(() => {
-    supabase.rpc('get_my_wallet_rpc').then(({ data }) => setWallet(data || null)).catch(() => {})
+  const loadWallet = useCallback(async () => {
+    const { data } = await supabase.rpc('get_my_wallet_rpc')
+    setWallet(data || null)
+    const plan = data?.plan || 'free'
+    const { data: p } = await supabase.from('plans').select('watch_limit').eq('id', plan).maybeSingle()
+    setWatchLimit(p?.watch_limit ?? null)
   }, [])
 
-  const load = useCallback(async () => {
+  // 계정 목록 + 계정별 수집 건수(owner 컬럼만 받아 가볍게 집계)
+  const loadAccounts = useCallback(async () => {
     if (!uid) return
-    setLoading(true)
-    const [a, f] = await Promise.all([
+    const [a, c] = await Promise.all([
       supabase.from('watch_accounts').select('*').eq('user_id', uid).order('added_at', { ascending: true }),
-      supabase.from('watch_feed').select('*').eq('user_id', uid),
+      supabase.from('watch_feed').select('owner').eq('user_id', uid),
     ])
     setAccounts(a.data || [])
-    setFeed(f.data || [])
-    setLoading(false)
-    supabase.from('saved_trends').select('shortcode').then(({ data }) => { if (Array.isArray(data)) setSavedPicks(data.map((r) => r.shortcode)) })
+    const m = {}
+    ;(c.data || []).forEach((r) => { m[r.owner] = (m[r.owner] || 0) + 1 })
+    setFeedCounts(m)
   }, [uid])
+
+  const loadFeed = useCallback(async () => {
+    if (!uid) return
+    const { data } = await supabase.from('watch_feed').select('*').eq('user_id', uid)
+      .order(SORT_COL[sort], { ascending: false }).limit(FEED_LIMIT)
+    setFeed(data || [])
+  }, [uid, sort])
 
   useEffect(() => {
     if (!isReal) { setLoading(false); return }
-    load(); loadWallet()
+    let alive = true
+    ;(async () => {
+      setLoading(true)
+      await Promise.all([loadAccounts(), loadWallet()])
+      if (alive) setLoading(false)
+    })()
+    supabase.from('saved_trends').select('shortcode').then(({ data }) => { if (Array.isArray(data)) setSavedPicks(data.map((r) => r.shortcode)) })
     try { phCapture('watchlist_viewed') } catch { /* noop */ }
-  }, [isReal, load, loadWallet])
+    return () => { alive = false }
+  }, [isReal, loadAccounts, loadWallet])
 
-  // ── (a) 계정 추가/삭제 ──
-  const addAccount = async () => {
-    const username = parseUsername(input)
-    if (!username) { setAccMsg({ ok: false, text: '인스타 계정 아이디를 입력해주세요' }); return }
-    if (accounts.some((a) => a.username.toLowerCase() === username.toLowerCase())) {
-      setAccMsg({ ok: false, text: `@${username} 은 이미 추가돼 있어요` }); return
+  // 피드는 따로 — 정렬을 바꾸면 서버에서 다시 받되(상한 600 안에서 정확한 순서 보장)
+  // 전체 로딩 스피너는 띄우지 않는다.
+  useEffect(() => { if (isReal) loadFeed() }, [isReal, loadFeed])
+
+  // ── 벌크 추가 ──
+  const addBulk = async () => {
+    const { valid, invalid } = parseUsernames(bulk)
+    if (!valid.length && !invalid.length) { setAccMsg({ ok: false, text: '추가할 계정을 입력해주세요' }); return }
+
+    const existing = new Set(accounts.map((a) => a.username.toLowerCase()))
+    const dupes = valid.filter((u) => existing.has(u.toLowerCase()))
+    let fresh = valid.filter((u) => !existing.has(u.toLowerCase()))
+
+    // 한도를 미리 계산해 넘치는 만큼 잘라낸다 (트리거는 한 행만 걸려도 INSERT 전체를 되돌린다)
+    let overflow = 0
+    if (watchLimit != null) {
+      const room = Math.max(0, watchLimit - accounts.length)
+      if (fresh.length > room) { overflow = fresh.length - room; fresh = fresh.slice(0, room) }
     }
-    setAdding(true); setAccMsg(null)
-    // ig_user_id·팔로워는 갱신(watch-scan) 때 서버가 채운다
-    const { error } = await supabase.from('watch_accounts').insert({ user_id: uid, username })
-    setAdding(false)
-    if (error) {
-      const m = String(error.message || '').match(/watch_limit_reached:(\d+)/)
-      if (m) { setLimitModal({ limit: Number(m[1]) }); return }
-      setAccMsg({ ok: false, text: '추가에 실패했어요: ' + error.message })
+    if (!fresh.length) {
+      if (overflow > 0) { setLimitModal({ limit: watchLimit }); return }
+      const extra = invalid.length ? ' · 형식오류 ' + invalid.length + '개' : ''
+      setAccMsg({ ok: false, text: '추가할 새 계정이 없어요 · 중복 ' + dupes.length + '개' + extra })
       return
     }
-    setInput(''); setAccMsg({ ok: true, text: `@${username} 추가됨 — '지금 갱신'을 눌러 게시물을 불러오세요` })
-    load()
+
+    setAdding(true); setAccMsg(null)
+    let added = 0
+    let hitLimit = false
+    for (let i = 0; i < fresh.length; i += 100) {
+      const batch = fresh.slice(i, i + 100).map((username) => ({ user_id: uid, username }))
+      const { error } = await supabase.from('watch_accounts')
+        .upsert(batch, { onConflict: 'user_id,username', ignoreDuplicates: true })
+      if (error) {
+        if (/watch_limit_reached/.test(error.message || '')) { hitLimit = true; break }
+        setAdding(false)
+        setAccMsg({ ok: false, text: '추가에 실패했어요: ' + error.message })
+        await loadAccounts()
+        return
+      }
+      added += batch.length
+    }
+    setAdding(false)
+    setBulk('')
+    await loadAccounts()
+
+    if (hitLimit || overflow > 0) { setLimitModal({ limit: watchLimit }); return }
+    const parts = [added + '개 추가']
+    if (dupes.length) parts.push(dupes.length + '개 중복')
+    if (invalid.length) parts.push(invalid.length + '개 형식오류')
+    setAccMsg({ ok: true, text: parts.join(' · ') + ' — 지금 갱신을 눌러 게시물을 불러오세요' })
+    try { phCapture('watchlist_accounts_added', { added }) } catch { /* noop */ }
   }
 
-  const removeAccount = async (row) => {
-    setAccounts((prev) => prev.filter((a) => a.id !== row.id))
-    try { await supabase.from('watch_accounts').delete().eq('id', row.id) } catch { /* noop */ }
-  }
+  // ── 갱신 (커서 루프) ──
+  const targets = scanTargets(accounts, includeDead)
+  const deadCount = accounts.filter((a) => a.active !== false && statusOf(a) === 'dead').length
+  const estCredits = creditsFor(targets.length)
+  const lastScan = accounts.reduce((m, a) => (a.last_checked_at && (!m || a.last_checked_at > m) ? a.last_checked_at : m), null)
 
-  // ── (b) 지금 갱신 — 커서 루프 ──
   const scan = async () => {
-    if (scanning || !accounts.length) return
-    setScanning(true); setScanMsg(null); setProgress({ cursor: 0, total: accounts.length })
+    if (scanning || !targets.length) return
+    setScanning(true); setScanMsg(null); setProgress({ cursor: 0, total: targets.length })
     try {
       const { data: { session: s } } = await supabase.auth.getSession()
       const accessToken = s?.access_token
       let cursor = 0
       let r
       do {
-        r = await fetch(`${SB_URL}/functions/v1/watch-scan`, {
+        r = await fetch(SB_URL + '/functions/v1/watch-scan', {
           method: 'POST',
-          headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cursor }),
+          headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cursor, include_dead: includeDead }),
         }).then((x) => x.json())
 
         if (r.ok === false) {
-          if (r.error === 'insufficient') {
-            setScanMsg({ ok: false, text: `크레딧이 부족해요. ${r.need}개 필요, 보유 ${r.balance}개` })
-          } else {
-            setScanMsg({ ok: false, text: '갱신에 실패했어요: ' + (r.error || '알 수 없는 오류') })
-          }
+          setScanMsg(r.error === 'insufficient'
+            ? { ok: false, text: '크레딧이 부족해요 · 필요 ' + r.need + '개, 보유 ' + r.balance + '개' }
+            : { ok: false, text: '갱신에 실패했어요: ' + (r.error || '알 수 없는 오류') })
           break
         }
         setProgress({ cursor: r.cursor, total: r.total })
@@ -142,17 +193,17 @@ export default function Watchlist() {
       } while (!r.done)
 
       if (r?.ok !== false) {
-        setScanMsg({ ok: true, text: `갱신 완료 — 계정 ${r.total}개 · 게시물 ${r.hits ?? 0}건` })
+        const fail = r.failed ? ' · 응답없음 ' + r.failed + '개' : ''
+        setScanMsg({ ok: true, text: '갱신 완료 — 계정 ' + r.total + '개 · 게시물 ' + (r.hits ?? 0) + '건' + fail })
         try { phCapture('watchlist_scanned', { accounts: r.total }) } catch { /* noop */ }
       }
     } catch (e) {
       setScanMsg({ ok: false, text: '갱신에 실패했어요: ' + String(e?.message || e) })
     }
     setScanning(false); setProgress(null)
-    load(); loadWallet()
+    await Promise.all([loadAccounts(), loadFeed(), loadWallet()])
   }
 
-  // 저장(북마크) — 트렌드와 같은 saved_trends 로 담긴다(소재 보드에서 확인)
   const toggleSave = async (it) => {
     const sc = it.shortcode; const has = savedPicks.includes(sc)
     if (!has) { try { phCapture('trend_saved', { shortcode: sc, source: 'watchlist' }) } catch { /* noop */ } }
@@ -163,7 +214,6 @@ export default function Watchlist() {
     } catch { /* noop */ }
   }
 
-  // ── (c) 분석 ──
   const handleAnalyze = async (clip) => {
     const key = clip.page_url || clip.title
     try { phCapture('analysis_clicked', { source: 'watchlist' }) } catch { /* noop */ }
@@ -177,17 +227,11 @@ export default function Watchlist() {
   }
 
   const now = Date.now()
+  // 서버에서 이미 정렬돼 오므로 여기선 슬라이더 조건만 거른다
   const list = feed
     .filter((it) => it.taken_at && now - new Date(it.taken_at).getTime() <= dayWindowMs(days))
     .filter((it) => !minComments || (Number(it.comment_count) || 0) >= minComments)
     .filter((it) => !minViews || (Number(it.view_count) || 0) >= minViews)
-    .sort((a, b) => {
-      if (sort === 'recent') return new Date(b.taken_at || 0) - new Date(a.taken_at || 0)
-      const mk = sort === 'view' ? 'view_count' : sort === 'like' ? 'like_count' : 'comment_count'
-      return (Number(b[mk]) || 0) - (Number(a[mk]) || 0)
-    })
-
-  const estCredits = Math.ceil(accounts.length / ACCOUNTS_PER_CREDIT)
 
   if (!isReal) {
     return (
@@ -209,7 +253,6 @@ export default function Watchlist() {
             <Eye size={22} />
             <h1 className="text-2xl font-extrabold text-white">워치리스트</h1>
           </div>
-          {/* (d) 보유 크레딧 */}
           <div className="flex items-center gap-2 rounded-full bg-white/5 px-3.5 py-1.5 text-xs">
             <Sparkles size={13} className="text-[#0064FF]" />
             <span className="text-white/50">보유 크레딧</span>
@@ -220,63 +263,79 @@ export default function Watchlist() {
         <Link to="/saved" className="mt-1 inline-block text-xs font-bold text-white/40 underline-offset-2 hover:text-white/70 hover:underline">저장한 소재 보드 →</Link>
       </header>
 
-      {/* (a) 계정 관리 */}
+      {/* 요약 한 줄 + 관리 */}
       <section className="mb-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-        <div className="mb-3 flex items-baseline justify-between">
-          <h2 className="text-sm font-bold text-white">감시 계정 <span className="text-white/40">{accounts.length}</span></h2>
-          {accounts.length > 0 && <span className="text-[11px] text-white/35">이번 갱신 예상 {estCredits}크레딧</span>}
-        </div>
-        <div className="flex gap-2">
-          <input
-            value={input}
-            onChange={(e) => { setInput(e.target.value); setAccMsg(null) }}
-            onKeyDown={(e) => e.key === 'Enter' && addAccount()}
-            placeholder="@아이디 · instagram.com/아이디 · 아이디"
-            className="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/40 px-3.5 py-2.5 text-sm text-white placeholder-white/25 outline-none focus:border-[#0064FF]"
-          />
-          <button onClick={addAccount} disabled={adding}
-            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-[#0064FF] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-95 disabled:opacity-40">
-            <Plus size={15} /> 추가
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-white/60">
+            감시 <b className="text-white">{accounts.length.toLocaleString('ko-KR')}</b>
+            {watchLimit != null && <span className="text-white/35">/{watchLimit.toLocaleString('ko-KR')}</span>}
+            <span className="mx-2 text-white/20">·</span>
+            최근 갱신 <b className="text-white/80">{lastScan ? fmtWhen(lastScan) : '없음'}</b>
+            {deadCount > 0 && (<><span className="mx-2 text-white/20">·</span><b className="text-red-400">응답없음 {deadCount}</b></>)}
+          </p>
+          <button onClick={() => setManageOpen(true)} disabled={!accounts.length}
+            className="flex items-center gap-1.5 rounded-xl bg-white/10 px-3.5 py-2 text-sm font-bold text-white transition hover:bg-white/15 disabled:opacity-40">
+            <Settings2 size={15} /> 관리
           </button>
         </div>
-        {accMsg && <p className={`mt-2 text-xs font-bold ${accMsg.ok ? 'text-emerald-400' : 'text-red-400'}`}>{accMsg.text}</p>}
 
-        {accounts.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {accounts.map((a) => (
-              <span key={a.id} className="group flex items-center gap-1.5 rounded-full bg-white/[0.06] py-1 pl-3 pr-1.5 text-xs font-bold text-white/75">
-                @{a.username}
-                {a.follower_count ? <span className="font-medium text-white/30">{fmtCount(a.follower_count)}</span> : null}
-                <button onClick={() => removeAccount(a)} aria-label={`@${a.username} 삭제`}
-                  className="flex h-5 w-5 items-center justify-center rounded-full text-white/30 transition hover:bg-red-500/20 hover:text-red-400">
-                  <Trash2 size={11} />
-                </button>
-              </span>
-            ))}
+        {/* 벌크 추가 */}
+        <div className="mt-4 border-t border-white/10 pt-4">
+          <label className="mb-2 block text-xs font-bold text-white/60">계정 추가 <span className="font-medium text-white/30">— 한 줄에 하나씩, @·URL·아이디 모두 인식</span></label>
+          <textarea value={bulk} onChange={(e) => { setBulk(e.target.value); setAccMsg(null) }} rows={3}
+            placeholder={'dally._home\n@home.sential\nhttps://www.instagram.com/loden.studios/'}
+            className="w-full rounded-xl border border-white/10 bg-black/40 px-3.5 py-2.5 text-sm text-white placeholder-white/25 outline-none focus:border-[#0064FF]" />
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <button onClick={addBulk} disabled={adding || !bulk.trim()}
+              className="flex items-center gap-1.5 rounded-xl bg-[#0064FF] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95 disabled:opacity-40">
+              {adding ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />} {adding ? '추가 중…' : '추가'}
+            </button>
+            {accMsg && <span className={`text-xs font-bold ${accMsg.ok ? 'text-emerald-400' : 'text-red-400'}`}>{accMsg.text}</span>}
           </div>
-        )}
-
-        {/* (b) 갱신 */}
-        <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-white/10 pt-3">
-          <button onClick={scan} disabled={scanning || !accounts.length}
-            className="flex items-center gap-1.5 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-white/15 disabled:opacity-40">
-            {scanning ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />}
-            {scanning ? '갱신 중…' : '지금 갱신'}
-          </button>
-          {scanning && progress && (
-            <div className="min-w-[180px] flex-1">
-              <div className="mb-1 text-[11px] font-bold text-white/60">갱신 중 {progress.cursor}/{progress.total}</div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-black">
-                <div className="h-full rounded-full bg-[#0064FF] transition-all" style={{ width: `${Math.round((progress.cursor / Math.max(1, progress.total)) * 100)}%` }} />
-              </div>
-            </div>
-          )}
-          {!scanning && <span className="text-[11px] text-white/35">{ACCOUNTS_PER_CREDIT}계정당 1크레딧 · 갱신 시작할 때 한 번만 차감돼요</span>}
         </div>
-        {scanMsg && <p className={`mt-2 text-xs font-bold ${scanMsg.ok ? 'text-emerald-400' : 'text-red-400'}`}>{scanMsg.text}</p>}
+
+        {/* 갱신 */}
+        <div className="mt-4 border-t border-white/10 pt-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <button onClick={scan} disabled={scanning || !targets.length}
+              className="flex items-center gap-1.5 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-white/15 disabled:opacity-40">
+              {scanning ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />}
+              {scanning ? '갱신 중…' : '지금 갱신'}
+            </button>
+            {scanning && progress ? (
+              <div className="min-w-[200px] flex-1">
+                <div className="mb-1 text-[11px] font-bold text-white/60">갱신 중 {progress.cursor}/{progress.total}</div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-black">
+                  <div className="h-full rounded-full bg-[#0064FF] transition-all" style={{ width: `${Math.round((progress.cursor / Math.max(1, progress.total)) * 100)}%` }} />
+                </div>
+              </div>
+            ) : (
+              <span className="text-[11px] text-white/45">
+                {deadCount > 0 && !includeDead && <span className="text-white/35">응답없음 {deadCount}개 제외 → </span>}
+                실제 <b className="text-white/70">{targets.length.toLocaleString('ko-KR')}개</b> 갱신 (<b className="text-white/70">{estCredits}크레딧</b>)
+              </span>
+            )}
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            {deadCount > 0 && (
+              <label className="flex cursor-pointer items-center gap-1.5 text-[11px] text-white/45">
+                <input type="checkbox" checked={includeDead} onChange={(e) => setIncludeDead(e.target.checked)} disabled={scanning} />
+                응답없음 {deadCount}개도 포함해서 갱신
+              </label>
+            )}
+            <span className="text-[11px] text-white/30">{ACCOUNTS_PER_CREDIT}계정당 1크레딧 · 갱신 시작할 때 한 번만 차감</span>
+          </div>
+          {targets.length > CHUNK_HINT * 3 && !scanning && (
+            <p className="mt-2 flex items-start gap-1.5 text-[11px] text-amber-400/80">
+              <AlertTriangle size={12} className="mt-0.5 shrink-0" />
+              계정이 많아 몇 분 이상 걸려요. 끝날 때까지 이 탭을 닫지 마세요 — 중간에 닫으면 크레딧은 차감된 채 일부만 갱신됩니다.
+            </p>
+          )}
+          {scanMsg && <p className={`mt-2 text-xs font-bold ${scanMsg.ok ? 'text-emerald-400' : 'text-red-400'}`}>{scanMsg.text}</p>}
+        </div>
       </section>
 
-      {/* (c) 필터 + 피드 */}
+      {/* 필터 */}
       <section className="mb-4 rounded-2xl bg-slate-900 p-4">
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <span className="text-xs font-bold text-white/60">정렬</span>
@@ -300,38 +359,48 @@ export default function Watchlist() {
           <p className="mt-1 text-sm text-white/45">경쟁 계정·벤치마크 계정을 등록하면 새 게시물을 모아서 보여드려요.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {list.map((it, i) => {
-            const clip = { title: it.caption, source: 'instagram', thumbnail_url: it.thumbnail_url, author: it.owner, views: it.view_count, likes: it.like_count, comments: it.comment_count, page_url: it.url, video_url: it.video_url, video_id: it.shortcode, taken_at: it.taken_at, velocity: it.velocity }
-            return (
-              <TrendCard
-                key={it.shortcode || i}
-                it={it} rank={i + 1}
-                onPlay={() => setPlayClip(clip)}
-                onAnalyze={() => handleAnalyze(clip)}
-                onSource={() => { window.location.href = '/research?url=' + encodeURIComponent(it.url) }}
-                saved={savedPicks.includes(it.shortcode)}
-                onToggleSave={() => toggleSave(it)}
-              />
-            )
-          })}
-          {!list.length && (
-            <div className="col-span-full p-10 text-center text-sm text-white/40">
-              {feed.length ? '조건에 맞는 게시물이 없어요. 필터를 낮춰보세요.' : '아직 불러온 게시물이 없어요. ‘지금 갱신’을 눌러주세요.'}
-            </div>
+        <>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {list.map((it, i) => {
+              const clip = { title: it.caption, source: 'instagram', thumbnail_url: it.thumbnail_url, author: it.owner, views: it.view_count, likes: it.like_count, comments: it.comment_count, page_url: it.url, video_url: it.video_url, video_id: it.shortcode, taken_at: it.taken_at, velocity: it.velocity }
+              return (
+                <TrendCard
+                  key={it.shortcode || i}
+                  it={it} rank={i + 1}
+                  onPlay={() => setPlayClip(clip)}
+                  onAnalyze={() => handleAnalyze(clip)}
+                  onSource={() => { window.location.href = '/research?url=' + encodeURIComponent(it.url) }}
+                  saved={savedPicks.includes(it.shortcode)}
+                  onToggleSave={() => toggleSave(it)}
+                />
+              )
+            })}
+            {!list.length && (
+              <div className="col-span-full p-10 text-center text-sm text-white/40">
+                {feed.length ? '조건에 맞는 게시물이 없어요. 필터를 낮춰보세요.' : '아직 불러온 게시물이 없어요. 지금 갱신을 눌러주세요.'}
+              </div>
+            )}
+          </div>
+          {feed.length >= FEED_LIMIT && (
+            <p className="mt-4 text-center text-[11px] text-white/30">정렬 기준 상위 {FEED_LIMIT}건만 보여드려요 — 필터로 좁혀보세요.</p>
           )}
-        </div>
+        </>
       )}
 
-      {/* 저장 한도 초과 */}
+      <WatchAccountsManager
+        open={manageOpen} onClose={() => setManageOpen(false)}
+        accounts={accounts} feedCounts={feedCounts}
+        onChanged={() => { loadAccounts(); loadFeed() }}
+      />
+
       {limitModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4" onClick={() => setLimitModal(null)}>
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4" onClick={() => setLimitModal(null)}>
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-slate-900" onClick={(e) => e.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
               <h3 className="flex items-center gap-1.5 text-base font-bold"><AlertTriangle size={17} className="text-amber-500" /> 계정 한도 초과</h3>
               <button onClick={() => setLimitModal(null)} className="text-slate-400 hover:text-slate-700"><X size={18} /></button>
             </div>
-            <p className="text-sm leading-relaxed text-slate-600">현재 요금제는 계정 {limitModal.limit}개까지예요. 업그레이드하시겠어요?</p>
+            <p className="text-sm leading-relaxed text-slate-600">현재 요금제는 계정 {limitModal.limit ?? ''}개까지예요. 한도까지만 추가했어요. 업그레이드하시겠어요?</p>
             <div className="mt-5 flex gap-2">
               <button onClick={() => setLimitModal(null)} className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50">나중에</button>
               <button onClick={() => nav('/pricing')} className="flex-1 rounded-xl bg-[#0064FF] py-2.5 text-sm font-bold text-white hover:brightness-95">업그레이드</button>
