@@ -362,8 +362,9 @@ export default function Trend() {
                       <div role="button" onClick={() => setPlayClip(clip)} className="relative aspect-[9/16] w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-slate-200 sm:w-full">
                         <TrendThumb url={it.thumbnail_url} />
                         <div className="absolute left-1 top-1 rounded bg-black/60 px-1 text-[10px] font-bold text-white">#{i + 1}</div>
-                        <button onClick={(e) => { e.stopPropagation(); toggleSave(it) }} aria-label="이번 주 소재로 저장" className="absolute bottom-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur transition hover:bg-black/75">
-                          <Bookmark size={12} className={saved ? 'fill-emerald-400 text-emerald-400' : ''} />
+                        {/* 피드 카드와 눈에 띄는 정도를 맞춤 (모바일은 썸네일이 64px라 과하지 않게) */}
+                        <button onClick={(e) => { e.stopPropagation(); toggleSave(it) }} aria-label={saved ? '저장 취소' : '이번 주 소재로 저장'} aria-pressed={saved} className="absolute bottom-1 right-1 flex h-9 w-9 items-center justify-center rounded-full bg-black/65 text-white shadow-lg ring-1 ring-white/20 backdrop-blur transition hover:bg-black/85 active:scale-95 sm:bottom-2 sm:right-2 sm:h-12 sm:w-12">
+                          <Bookmark size={20} strokeWidth={2.25} className={saved ? 'fill-emerald-400 text-emerald-400' : ''} />
                         </button>
                       </div>
                       <div className="min-w-0 flex-1">
