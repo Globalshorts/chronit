@@ -58,6 +58,8 @@ const Register = () => {
             p_landing: a.landing || '', p_ref: a.ref || '',
             p_source: a.source || '', p_medium: a.medium || '',
             p_campaign: a.campaign || '', p_content: a.content || '',
+            // 7개 인자를 모두 넘겨야 오버로드가 확정된다(6개만 주면 PostgREST 가 함수를 못 고름)
+            p_landing_at: a.t ? new Date(a.t).toISOString() : null,
           })
           try { localStorage.setItem('chronit_acq_stamped', '1') } catch {}
         }

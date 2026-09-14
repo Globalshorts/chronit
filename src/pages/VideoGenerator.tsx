@@ -860,7 +860,7 @@ export default function VideoGenerator() {
       const raw = localStorage.getItem("chronit_acq");
       if (!raw) return;
       const a = JSON.parse(raw);
-      supabase.rpc("set_acquisition_rpc", { p_landing: a.landing || "", p_ref: a.ref || "", p_source: a.source || "", p_medium: a.medium || "", p_campaign: a.campaign || "", p_content: a.content || "" }).then(
+      supabase.rpc("set_acquisition_rpc", { p_landing: a.landing || "", p_ref: a.ref || "", p_source: a.source || "", p_medium: a.medium || "", p_campaign: a.campaign || "", p_content: a.content || "", p_landing_at: a.t ? new Date(a.t).toISOString() : null }).then(
         () => { try { localStorage.setItem("chronit_acq_stamped", "1"); } catch {} },
         () => {}
       );

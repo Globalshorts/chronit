@@ -6,6 +6,7 @@ import Footer from '../components/Footer'
 import FindsPricing from '../components/FindsPricing'
 import AuthModal from '../components/AuthModal'
 import { fbTrack } from '../lib/fbq'
+import { phCapture } from '../lib/posthog'
 import { usePlans } from '../lib/usePlans'
 import { ACCOUNTS_PER_CREDIT } from '../lib/planLabels'
 
@@ -23,6 +24,7 @@ export default function Pricing() {
   const [authOpen, setAuthOpen] = useState(false)
 
   useEffect(() => { supabase.auth.getSession().then(({ data }) => { const u = data.session?.user; setUser(u && u.is_anonymous !== true ? u : null) }) }, [])
+  useEffect(() => { try { phCapture('pricing_viewed') } catch { /* noop */ } }, [])
 
   const buy = (tab, period) => {
     setBuyTab(tab); setBuyPeriod(period)

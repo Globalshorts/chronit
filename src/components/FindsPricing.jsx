@@ -4,6 +4,7 @@ import { X, Ticket } from 'lucide-react'
 import ReferralCTA from './ReferralCTA'
 import { redeemAnyCode } from '../lib/redeemCode'
 import { usePlans } from '../lib/usePlans'
+import { phCapture } from '../lib/posthog'
 
 const CK = import.meta.env.VITE_TOSS_CLIENT_KEY || ''
 const BCK = import.meta.env.VITE_TOSS_BILLING_CLIENT_KEY || ''
@@ -64,6 +65,9 @@ export default function FindsPricing({ open, onClose, defaultTab = 'sub', defaul
       const user = ses?.session?.user
       if (!user || user.is_anonymous) { setMsg('로그인이 필요해요'); setBusy(''); return }
       if (!BCK) { setMsg('결제 설정 준비 중이에요'); setBusy(''); return }
+      const sub = SUBS.find((x) => x.id === planId)
+      const amount = sub ? (annual ? sub.price * 9 : sub.price) : null
+      try { phCapture('checkout_started', { plan: planId, amount, period: annual ? 'annual' : 'monthly' }) } catch { /* noop */ }
       await loadToss()
       const payment = window.TossPayments(BCK).payment({ customerKey: user.id })
       await payment.requestBillingAuth({
@@ -81,6 +85,7 @@ export default function FindsPricing({ open, onClose, defaultTab = 'sub', defaul
       const user = ses?.session?.user
       if (!user || user.is_anonymous) { setMsg('로그인이 필요해요'); setBusy(''); return }
       if (!CK) { setMsg('결제 설정 준비 중이에요'); setBusy(''); return }
+      try { phCapture('checkout_started', { plan: pk.id, amount: pk.price, period: 'onetime' }) } catch { /* noop */ }
       await loadToss()
       const payment = window.TossPayments(CK).payment({ customerKey: user.id })
       await payment.requestPayment({

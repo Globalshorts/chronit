@@ -10,8 +10,8 @@ const flush = () => {
   if (typeof window === 'undefined') return
   if (window.fbq) {
     while (queue.length) {
-      const [event, params] = queue.shift()
-      try { window.fbq('track', event, params) } catch { /* noop */ }
+      const [event, params, opts] = queue.shift()
+      try { window.fbq('track', event, params, opts) } catch { /* noop */ }
     }
   }
   if (!queue.length || Date.now() - startedAt > WAIT_MS) {
@@ -20,11 +20,12 @@ const flush = () => {
   }
 }
 
-export function fbTrack(event, params) {
+// opts 는 메타의 4번째 인자 — { eventID } 를 넘기면 서버(CAPI) 이벤트와 중복 제거된다.
+export function fbTrack(event, params, opts) {
   try {
     if (typeof window === 'undefined' || !event) return
-    if (window.fbq) { window.fbq('track', event, params); return }
-    queue.push([event, params])
+    if (window.fbq) { window.fbq('track', event, params, opts); return }
+    queue.push([event, params, opts])
     if (!timer) timer = setInterval(flush, 300)
   } catch { /* noop */ }
 }
