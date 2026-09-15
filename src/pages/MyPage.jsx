@@ -242,7 +242,7 @@ const MyPage = () => {
               {briefs.map((b) => (
                 <div key={b.id} className="flex gap-3 rounded-2xl border border-gray-200 bg-white p-3">
                   <button onClick={() => setOpenBrief(b)} className="relative aspect-[9/16] w-14 shrink-0 overflow-hidden rounded-lg bg-gray-100">
-                    <TrendThumb url={b.thumbnail_url} />
+                    <TrendThumb url={b.thumbnail_url} sc={b.shortcode} />
                   </button>
                   <div className="flex min-w-0 flex-1 flex-col">
                     <button onClick={() => setOpenBrief(b)} className="min-w-0 text-left">

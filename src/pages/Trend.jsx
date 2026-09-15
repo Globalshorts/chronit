@@ -302,7 +302,7 @@ export default function Trend() {
                     {previewPicks.map((it, i) => (
                       <div key={it.shortcode || i} role="button" onClick={() => setShowAuth(true)} className="cursor-pointer overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
                         <div className="relative aspect-[9/16] bg-white/5">
-                          {it.thumbnail_url && <TrendThumb url={it.thumbnail_url} />}
+                          {it.thumbnail_url && <TrendThumb url={it.thumbnail_url} sc={it.shortcode} />}
                           {it.velocity != null && <div className="absolute left-1 top-1 rounded bg-[#0064FF] px-1.5 py-0.5 text-[10px] font-bold text-white">↑{Math.round(it.velocity)}</div>}
                         </div>
                         <div className="p-2">
@@ -328,7 +328,7 @@ export default function Trend() {
                   style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent)', maskImage: 'linear-gradient(to bottom, black 50%, transparent)' }}>
                   {(rest.length ? rest.slice(0, 8) : Array.from({ length: 8 })).map((it, i) => (
                     <div key={(it && it.shortcode) || i} className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
-                      <div className="relative aspect-[9/16] bg-white/5">{it && it.thumbnail_url && <TrendThumb url={it.thumbnail_url} />}</div>
+                      <div className="relative aspect-[9/16] bg-white/5">{it && it.thumbnail_url && <TrendThumb url={it.thumbnail_url} sc={it.shortcode} />}</div>
                       <div className="p-2"><div className="h-3 w-3/4 rounded bg-white/10" /></div>
                     </div>
                   ))}
@@ -359,7 +359,7 @@ export default function Trend() {
                   return (
                     <div key={it.shortcode || i} className="flex gap-2.5 rounded-xl border border-slate-100 bg-slate-50 p-2.5 sm:flex-col">
                       <div role="button" onClick={() => setPlayClip(clip)} className="relative aspect-[9/16] w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-slate-200 sm:w-full">
-                        <TrendThumb url={it.thumbnail_url} />
+                        <TrendThumb url={it.thumbnail_url} sc={it.shortcode} />
                         <div className="absolute left-1 top-1 rounded bg-black/60 px-1 text-[10px] font-bold text-white">#{i + 1}</div>
                         {/* 피드 카드와 눈에 띄는 정도를 맞춤 (모바일은 썸네일이 64px라 과하지 않게) */}
                         <button onClick={(e) => { e.stopPropagation(); toggleWatch(it.owner) }} title={watching ? `@${it.owner} 감시 해제` : `@${it.owner} 워치리스트에 추가`} aria-label={watching ? `@${it.owner} 감시 해제` : `@${it.owner} 워치리스트에 추가`} aria-pressed={watching} className="absolute bottom-1 right-1 flex h-9 w-9 items-center justify-center rounded-full bg-black/65 text-white shadow-lg ring-1 ring-white/20 backdrop-blur transition hover:bg-black/85 active:scale-95 sm:bottom-2 sm:right-2 sm:h-12 sm:w-12">
