@@ -101,7 +101,7 @@ const BoardWrite = () => {
         <CommunityHeader active="board" />
         <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-5 text-center">
           <p className="text-lg font-bold">로그인이 필요해요</p>
-          <button onClick={() => nav('/generate')} className="rounded-full bg-[#0064FF] px-6 py-2.5 font-bold text-white">로그인하러 가기</button>
+          <button onClick={() => nav('/trend')} className="rounded-full bg-[#0064FF] px-6 py-2.5 font-bold text-white">로그인하러 가기</button>
         </div>
       </div>
     )

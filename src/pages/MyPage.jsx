@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Film, Pencil, LogOut, Copy, Check, Sparkles, ShieldCheck, Gift, Ticket, FileText, Trash2 } from 'lucide-react'
+import { Pencil, LogOut, Copy, Check, Sparkles, ShieldCheck, Gift, Ticket, FileText, Trash2 } from 'lucide-react'
 import FindsPricing from '../components/FindsPricing'
 import CommunityHeader from '../components/CommunityHeader'
 import NicknameModal from '../components/NicknameModal'
@@ -93,7 +93,6 @@ const MyPage = () => {
 
   const fmtDate = (d) => d ? new Date(d).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }) : ''
   const openPay = () => setPayOpen(true)
-  const isExistingRender = profile?.created_at && new Date(profile.created_at) < new Date('2026-08-12T00:00:00Z')
   const cancelSub = async () => {
     if (!window.confirm('구독을 취소할까요? 남은 기간까지는 계속 이용할 수 있고, 다음 결제부터 청구되지 않아요.')) return
     setCanceling(true)
@@ -225,16 +224,6 @@ const MyPage = () => {
           </div>
         )}
 
-        {/* 영상 편집 종료 안내 — 기존 유저만 */}
-        {isExistingRender && (
-          <div className="mt-3 flex items-center justify-between rounded-2xl border border-amber-200 bg-amber-50/60 px-4 py-3">
-            <div>
-              <div className="flex items-center gap-1 text-sm font-bold text-amber-800"><Film size={14} /> 영상 편집 · 9/14 종료 예정</div>
-              <div className="text-xs text-amber-600">9/14까지 기존과 동일하게 이용할 수 있어요.</div>
-            </div>
-            <Link to="/generate" className="shrink-0 rounded-full border border-amber-300 px-3.5 py-1.5 text-xs font-bold text-amber-700 transition hover:bg-amber-100">작업실 열기</Link>
-          </div>
-        )}
 
         {/* 저장한 기획 */}
         <div className="mt-8">

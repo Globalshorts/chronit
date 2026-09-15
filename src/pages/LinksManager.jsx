@@ -473,7 +473,7 @@ export default function LinksManager() {
       <div className="mx-auto w-full max-w-2xl">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-900">내 링크 페이지</h1>
-          <a href="/generate" className="text-sm font-bold text-gray-500 hover:text-[#0064FF]">← 영상 만들기</a>
+          <a href="/trend" className="text-sm font-bold text-gray-500 hover:text-[#0064FF]">← 크로닛으로</a>
         </div>
         <LinkPageManager session={session} />
       </div>

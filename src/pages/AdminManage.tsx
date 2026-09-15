@@ -523,7 +523,7 @@ function AdminSubsTab({ session, supabase }: { session:any; supabase:any }) {
             <Btn onClick={()=>credit("sub")} color="bg-[linear-gradient(140deg,#FB923C_0%,#EA580C_55%,#C2410C_100%)] hover:brightness-95">－ 차감 (잔량 감소)</Btn>
             <Btn onClick={()=>credit("reset")} color="bg-gray-200 hover:bg-gray-300">{creditKind==="render"?"🔄 렌더 잔량 0으로":"🔄 사용량 0으로 초기화"}</Btn>
           </div>
-          <p className="mt-2 text-[11px] text-gray-400">{creditKind==="render"?"렌더(편집) 이용권을 직접 증감합니다. 9/14 종료 예정 기능입니다.":"Finds 이용권(보너스 잔량)을 증감합니다."}</p>
+          <p className="mt-2 text-[11px] text-gray-400">{creditKind==="render"?"렌더(편집) 이용권을 직접 증감합니다. 9/14로 종료된 기능입니다.":"Finds 이용권(보너스 잔량)을 증감합니다."}</p>
         </div>
         <div className="rounded-2xl bg-white border border-gray-200 p-4">
           <p className="text-xs text-gray-500 mb-2">권한 변경 (파트너/관리자 지정)</p>

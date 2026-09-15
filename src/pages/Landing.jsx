@@ -116,8 +116,8 @@ export default function Landing() {
 
 
         <div className="mt-7 rounded-2xl border border-[#0064FF]/25 bg-[#F7FAFF] px-4 py-3">
-          <p className="text-[15px] font-bold text-[#191F28]">🎁 로그인만 하면 <span style={{ color: BLUE }}>무료 영상 2개</span></p>
-          <p className="mt-0.5 text-xs text-gray-500">카드 없이 · 카카오 3초 · 바로 만들기</p>
+          <p className="text-[15px] font-bold text-[#191F28]">🎁 로그인만 하면 <span style={{ color: BLUE }}>매월 무료 이용권 5개</span></p>
+          <p className="mt-0.5 text-xs text-gray-500">카드 없이 · 카카오 3초 · 바로 시작</p>
         </div>
 
         <button onClick={start}

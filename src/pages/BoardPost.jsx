@@ -31,7 +31,7 @@ const BoardPost = () => {
   const submitReport = async (reason) => {
     const t = reportTarget
     setReportTarget(null)
-    if (!user) { nav('/generate'); return }
+    if (!user) { nav('/trend'); return }
     const { data, error } = await supabase.rpc('report_content_rpc', { p_target_type: t.type, p_target_id: t.id, p_reason: reason })
     if (error || !data?.ok) { setToast(data?.error || '신고할 수 없어요'); }
     else if (data.already) { setToast('이미 신고한 게시물이에요'); }
@@ -69,7 +69,7 @@ const BoardPost = () => {
   }, [user, post, id])
 
   const toggleLike = async () => {
-    if (!user) { nav('/generate'); return }
+    if (!user) { nav('/trend'); return }
     const { data, error } = await supabase.rpc('board_toggle_like_rpc', { p_post_id: Number(id) })
     if (error || !data?.ok) return
     setLiked(data.liked)
@@ -77,7 +77,7 @@ const BoardPost = () => {
   }
 
   const submitComment = async () => {
-    if (!user) { nav('/generate'); return }
+    if (!user) { nav('/trend'); return }
     setErr(''); setPosting(true)
     const { data, error } = await supabase.functions.invoke('board-submit', { body: { kind: 'comment', post_id: Number(id), body: text } })
     setPosting(false)

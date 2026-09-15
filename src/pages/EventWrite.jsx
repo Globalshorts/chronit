@@ -129,7 +129,7 @@ const EventWrite = () => {
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-bold text-slate-600">버튼 링크 (선택)</label>
-              <input value={ctaUrl} onChange={e => setCtaUrl(e.target.value)} placeholder="https://chronit.kr/generate" className={inputCls} />
+              <input value={ctaUrl} onChange={e => setCtaUrl(e.target.value)} placeholder="https://chronit.kr/trend" className={inputCls} />
             </div>
           </div>
 
