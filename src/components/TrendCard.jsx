@@ -9,7 +9,11 @@ const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
 // 안 넘기면 URL 해시로 돌아가는데, IG URL 서명이 갱신될 때마다 새 파일이 쌓인다.
 export function TrendThumb({ url, sc }) {
   const [err, setErr] = useState(false)
-  const src = url ? `${SB}/functions/v1/thumbnail-proxy?url=${encodeURIComponent(url)}${sc ? `&sc=${encodeURIComponent(sc)}` : ''}` : ''
+  // 이미 우리 스토리지에 캐시된 URL 은 프록시를 거치지 않는다 — 거치면 같은 사진이
+  // post/{sc}.jpg 로 한 번 더 복사되고, 불필요한 함수 호출이 한 번 더 난다.
+  const src = !url ? '' : url.includes('/storage/v1/object/public/')
+    ? url
+    : `${SB}/functions/v1/thumbnail-proxy?url=${encodeURIComponent(url)}${sc ? `&sc=${encodeURIComponent(sc)}` : ''}`
   if (!src || err) return <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-slate-300"><Flame size={26} /></div>
   return <img src={src} referrerPolicy="no-referrer" loading="lazy" className="h-full w-full object-cover" onError={() => setErr(true)} />
 }
