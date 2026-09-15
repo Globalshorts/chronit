@@ -238,7 +238,6 @@ const Home = () => {
     if (user && !user.is_anonymous) { setBuyOpen(true); return }
     setShowAuthModal(true)
   }
-  const isExistingRender = !!(user && user.created_at && new Date(user.created_at) < new Date('2026-08-12T00:00:00Z'))
 
   const handleTermsAgree = async (marketing = false) => {
     setShowTermsModal(false)
@@ -552,9 +551,6 @@ const Home = () => {
               className="w-full rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-4 text-lg font-bold text-white shadow-md transition-all hover:brightness-95 active:scale-[0.98]">
               {user ? '시작하기 →' : '무료 체험'}
             </button>
-            {isExistingRender && (
-              <Link to="/generate" onClick={() => setMenuOpen(false)} className="w-full rounded-xl border border-amber-300 px-4 py-3 text-center text-sm font-bold text-amber-700 hover:bg-amber-50">편집 작업실 (9/14 종료 예정)</Link>
-            )}
           </div>
         </div>
       </div>
@@ -570,23 +566,10 @@ const Home = () => {
           {user && (
             <div className="mb-2 w-full max-w-xl rounded-2xl border border-white/12 bg-white/[0.06] glass-c px-6 py-6 text-center shadow-[0_10px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl">
               <p className="mb-6 text-xl font-bold text-white">돌아오셨어요{nickname ? `, ${nickname}님` : ''}</p>
-              {isExistingRender ? (
-                <div className="mx-auto flex w-full max-w-md gap-2.5">
-                  <button onClick={handleFinds}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-white px-4 py-4 text-base font-semibold text-[#0A0B0F] transition-all hover:bg-white/90 active:scale-[0.98]">
-                    시작하기 <ArrowRight size={18} />
-                  </button>
-                  <Link to="/generate"
-                    className="flex flex-1 flex-col items-center justify-center rounded-full border border-[#A9C0FF]/25 bg-[#0064FF]/10 px-4 py-3 text-base font-semibold leading-tight text-[#A9C0FF] transition hover:border-[#A9C0FF]/40 hover:bg-[#0064FF]/16 active:scale-[0.98]">
-                    편집 작업실 <span className="mt-0.5 text-[11px] font-medium text-[#A9C0FF]/55">9/14 종료 예정</span>
-                  </Link>
-                </div>
-              ) : (
-                <button onClick={handleFinds}
-                  className="mx-auto flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-lg font-semibold text-[#0A0B0F] transition-all hover:bg-white/90 active:scale-[0.98]">
-                  시작하기 <ArrowRight size={20} />
-                </button>
-              )}
+              <button onClick={handleFinds}
+                className="mx-auto flex w-full max-w-md items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-lg font-semibold text-[#0A0B0F] transition-all hover:bg-white/90 active:scale-[0.98]">
+                시작하기 <ArrowRight size={20} />
+              </button>
             </div>
           )}
           {!user && (<>
