@@ -5,6 +5,7 @@ import ReferralCTA from './ReferralCTA'
 import { redeemAnyCode } from '../lib/redeemCode'
 import { usePlans } from '../lib/usePlans'
 import { phCapture } from '../lib/posthog'
+import { loadToss } from '../lib/tossBilling'
 
 const CK = import.meta.env.VITE_TOSS_CLIENT_KEY || ''
 const BCK = import.meta.env.VITE_TOSS_BILLING_CLIENT_KEY || ''
@@ -17,16 +18,6 @@ const PACKS = [
 const won = (n) => n.toLocaleString('ko-KR')
 const perDay = (price) => Math.round(price / 30 / 10) * 10
 const genOrderId = (plan) => `chr_${plan}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-
-function loadToss() {
-  return new Promise((res) => {
-    if (window.TossPayments) return res()
-    const done = () => res()
-    if (document.getElementById('toss-sdk')) { const t = setInterval(() => { if (window.TossPayments) { clearInterval(t); done() } }, 100); return }
-    const s = document.createElement('script'); s.id = 'toss-sdk'; s.src = 'https://js.tosspayments.com/v2/standard'
-    s.onload = done; document.head.appendChild(s)
-  })
-}
 
 export default function FindsPricing({ open, onClose, defaultTab = 'sub', defaultPeriod = 'monthly' }) {
   const SUBS = usePlans()          // 가격·이용권 수는 plans 테이블에서
@@ -51,6 +42,8 @@ export default function FindsPricing({ open, onClose, defaultTab = 'sub', defaul
     const u = ses?.session?.user
     if (!u || u.is_anonymous) { setCodeMsg({ ok: false, text: '로그인 후 코드를 적용할 수 있어요' }); setCodeBusy(false); return }
     const r = await redeemAnyCode(code)
+    // 무료 체험 코드는 카드 등록이 필수 — 고지 카드가 있는 마이페이지로 넘긴다
+    if (r.trial) { window.location.href = `/me?trial_code=${encodeURIComponent(r.trial.code)}`; return }
     setCodeMsg(r)
     setCodeBusy(false)
     if (r.ok) setTimeout(() => window.location.reload(), 1500)

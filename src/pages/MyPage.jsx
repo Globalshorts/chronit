@@ -8,7 +8,8 @@ import AuthModal from '../components/AuthModal'
 import Footer from '../components/Footer'
 import FindsBottomNav from '../components/FindsBottomNav'
 import { supabase } from '../lib/supabase'
-import { redeemAnyCode } from '../lib/redeemCode'
+import { redeemAnyCode, validateTrialCode } from '../lib/redeemCode'
+import TrialCodeNotice from '../components/TrialCodeNotice'
 import { PLAN_LABEL } from '../lib/planLabels'
 import { CAT_LABEL, CAT_CLS, fmtWhen } from './Board'
 import { AnalyzeModal } from './Finds'
@@ -38,6 +39,9 @@ const MyPage = () => {
   const [briefs, setBriefs] = useState([])
   const [openBrief, setOpenBrief] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isTrial, setIsTrial] = useState(false)
+  const [trial, setTrial] = useState(null)   // { code, plan, days } — 카드 필수 무료 체험 고지
+  const [toast, setToast] = useState('')
 
   useEffect(() => { supabase.auth.getSession().then(({ data }) => { const u = data.session?.user; setUser(u && u.is_anonymous !== true ? u : null) }) }, [])
 
@@ -53,10 +57,35 @@ const MyPage = () => {
     setProfile(prof || { email: user?.email })
     setCredits(bal?.finds_balance ?? 0); setWallet(bal || null)
     setPosts(ps || []); setComments(cs || []); setRefInfo(refi || null); setBriefs(brf || [])
-    const { data: sub } = await supabase.from('subscriptions').select('role').eq('user_id', uid).maybeSingle()
+    const { data: sub } = await supabase.from('subscriptions').select('role,is_trial').eq('user_id', uid).maybeSingle()
     setIsAdmin(sub?.role === 'super_admin')
+    setIsTrial(sub?.is_trial === true)
   }
   useEffect(() => { if (user) load(user.id) }, [user])
+
+  // URL 진입 처리
+  //  ?trial_code=XXX  — 구매 모달·가입에서 넘어온 무료 체험 코드 → 고지 카드 표시
+  //  ?trial=done     — 카드 등록·체험 적용을 마치고 돌아옴 → 지갑 재조회 + 완료 토스트
+  useEffect(() => {
+    if (!user) return
+    const q = new URLSearchParams(window.location.search)
+    const tc = q.get('trial_code')
+    const done = q.get('trial') === 'done'
+    if (!tc && !done) return
+    window.history.replaceState(null, '', window.location.pathname)
+    if (done) {
+      const days = Number(q.get('days')) || 30
+      const name = PLAN_LABEL[q.get('plan')] || '비즈니스'
+      load(user.id)
+      setToast(`${name} ${days}일 무료 적용 완료!`)
+      setTimeout(() => setToast(''), 4000)
+      return
+    }
+    validateTrialCode(tc).then((v) => {
+      if (v.ok) setTrial({ code: v.code, plan: v.plan, days: v.days })
+      else { setPromoCode(tc.toUpperCase()); setPromoMsg({ ok: false, text: v.error }) }
+    })
+  }, [user])
 
   const copyRef = () => {
     const code = profile?.referral_code
@@ -82,11 +111,14 @@ const MyPage = () => {
     try { await supabase.from('saved_briefs').delete().eq('id', id) } catch { /* noop */ }
   }
 
-  // 강사 코드(plan_codes) · 무료체험 쿠폰(coupon_codes) · 프로모 코드(promo_codes) 를 한 칸에서 처리
+  // 강사·프로모 코드를 한 칸에서 처리. 무료 체험 코드(coupon_codes free_days)는 즉시 지급하지 않고
+  // 고지 카드 → 카드 등록 흐름으로 넘긴다(redeemAnyCode 가 { trial } 로 돌려줌).
   const redeemPromo = async () => {
     setPromoing(true); setPromoMsg(null)
+    setTrial(null)
     const r = await redeemAnyCode(promoCode)
-    setPromoMsg(r)
+    if (r.trial) { setTrial(r.trial); setPromoMsg(null) }
+    else setPromoMsg(r)
     if (r.ok) { setPromoCode(''); if (user) load(user.id) }
     setPromoing(false)
   }
@@ -198,6 +230,7 @@ const MyPage = () => {
             {promoMsg && <p className={`mt-2 text-sm font-medium ${promoMsg.ok ? 'text-green-600' : 'text-red-500'}`}>{promoMsg.text}</p>}
           </div>
         </div>
+        <TrialCodeNotice trial={trial} onClose={() => setTrial(null)} />
 
         {/* 리서치 이용권 */}
         <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
@@ -205,7 +238,9 @@ const MyPage = () => {
             <div>
               <div className="flex items-center gap-1 text-xs text-slate-400"><Sparkles size={13} /> 리서치 이용권</div>
               <div className="mt-1 text-2xl font-bold text-gray-800">{wallet ? wallet.finds_balance.toLocaleString() : '…'}</div>
-              <div className="mt-0.5 text-[11px] text-slate-400">{PLAN_LABEL[wallet?.plan] || '무료'}{wallet?.sub_active ? ' 구독' : ''}</div>
+              <div className="mt-0.5 text-[11px] text-slate-400">{wallet?.sub_active
+                ? `${PLAN_LABEL[wallet.plan]} · 이용권 ${wallet.finds_balance.toLocaleString()} · ${wallet.days_left}일 남음`
+                : (PLAN_LABEL[wallet?.plan] || '무료')}</div>
             </div>
             <button onClick={openPay} className="shrink-0 rounded-xl bg-[#0064FF] px-5 py-2.5 text-sm font-bold text-white transition hover:brightness-95">구매</button>
           </div>
@@ -215,8 +250,10 @@ const MyPage = () => {
         {wallet?.sub_active && (
           <div className="mt-3 flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3">
             <div>
-              <div className="text-sm font-bold text-gray-800">{PLAN_LABEL[wallet.plan]} 구독</div>
-              <div className="text-xs text-slate-400">{wallet.auto_renew ? `다음 결제 ${fmtDate(wallet.expires_at)}` : `${wallet.days_left}일 남음 · 자동결제 해지됨`}</div>
+              <div className="text-sm font-bold text-gray-800">{PLAN_LABEL[wallet.plan]} {isTrial ? '무료 체험 중' : '구독'}</div>
+              <div className="text-xs text-slate-400">{wallet.auto_renew
+                ? (isTrial ? `${fmtDate(wallet.expires_at)} 첫 자동결제 · 그 전에 해지하면 청구되지 않아요` : `다음 결제 ${fmtDate(wallet.expires_at)}`)
+                : `${wallet.days_left}일 남음 · 자동결제 해지됨`}</div>
             </div>
             {wallet.auto_renew && (
               <button onClick={cancelSub} disabled={canceling} className="shrink-0 rounded-full border border-gray-300 px-3.5 py-1.5 text-xs font-bold text-gray-500 transition hover:border-red-300 hover:text-red-500 disabled:opacity-50">구독 취소</button>
@@ -302,6 +339,9 @@ const MyPage = () => {
           initialResult={openBrief.brief || {}}
           onClose={() => setOpenBrief(null)}
         />
+      )}
+      {toast && (
+        <div role="status" className="fixed left-1/2 top-6 z-[80] -translate-x-1/2 rounded-full px-5 py-3 text-sm font-bold text-white shadow-xl" style={{ background: '#7C3AED' }}>{toast}</div>
       )}
       <FindsPricing open={payOpen} onClose={() => { setPayOpen(false); if (user) load(user.id) }} />
       <NicknameModal open={nickOpen} onClose={() => setNickOpen(false)} onDone={(n) => { setNickOpen(false); setProfile(p => ({ ...p, nickname: n })) }} />

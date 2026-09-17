@@ -29,13 +29,37 @@ export default function PaymentResult({ fail = false }) {
     const run = async () => {
       const type = params.get('type')
       const mode = type === 'billing' ? 'billing' : 'confirm'
+      // 카드 필수 무료 체험: 카드만 등록하고 청구는 체험 종료 후 갱신 크론이 한다
+      const trial = mode === 'billing' && params.get('trial') === '1'
+      const code = params.get('code') || ''
       const body = mode === 'billing'
-        ? { mode: 'billing', authKey: params.get('authKey'), customerKey: params.get('customerKey'), plan: params.get('plan'), period: params.get('period') || 'monthly' }
+        ? { mode: 'billing', authKey: params.get('authKey'), customerKey: params.get('customerKey'), plan: params.get('plan'), period: params.get('period') || 'monthly', ...(trial ? { trial: true, code } : {}) }
         : { mode: 'confirm', paymentKey: params.get('paymentKey'), orderId: params.get('orderId'), amount: Number(params.get('amount') || 0) }
       try {
-        const { data, error } = await supabase.functions.invoke('toss-confirm', { body })
+        // 토스 창에서 돌아온 직후라 세션 복원을 기다린 뒤 토큰을 명시적으로 싣는다
+        const { data: ses } = await supabase.auth.getSession()
+        const token = ses?.session?.access_token
+        const res = await supabase.functions.invoke('toss-confirm', { body, headers: token ? { Authorization: `Bearer ${token}` } : undefined })
+        let data = res.data
+        const error = res.error
+        // 4xx 응답이면 invoke 는 data 를 비우고 일반 메시지만 준다 — 본문의 실제 사유를 꺼낸다
+        if (error && !data && typeof error.context?.json === 'function') {
+          try { data = await error.context.json() } catch { /* noop */ }
+        }
         if (error || data?.error || data?.ok === false) {
           setState('fail'); setMsg(data?.error || error?.message || '결제 확인에 실패했어요.')
+          return
+        }
+
+        if (data?.mode === 'trial') {
+          const plan = data.plan || params.get('plan') || 'finds300'
+          const days = Number(data.days) || 30
+          // 강사 인원 매핑·기록 — 강사 코드가 아니면 ok:false 가 정상이라 결과는 보지 않는다
+          try { await supabase.rpc('redeem_teacher_code_rpc', { p_code: code }) } catch { /* best-effort */ }
+          // 체험은 결제가 아니므로 purchase / Meta Purchase 는 보내지 않는다
+          try { phCapture('trial_started', { plan, days, code }) } catch { /* noop */ }
+          fbTrack('StartTrial', { currency: 'KRW', value: 0, content_name: plan })
+          window.location.replace(`/me?trial=done&plan=${encodeURIComponent(plan)}&days=${days}`)
           return
         }
         setState('success'); setMsg(data?.message || '결제가 완료되었어요.')
@@ -62,7 +86,7 @@ export default function PaymentResult({ fail = false }) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#FAFAF8] px-6 text-center font-sans">
       <div className="w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-8 shadow-xl">
-        {state === 'loading' && <p className="text-lg font-bold text-gray-700">결제를 확인하고 있어요…</p>}
+        {state === 'loading' && <p className="text-lg font-bold text-gray-700">{params.get('trial') === '1' ? '카드 등록을 확인하고 있어요…' : '결제를 확인하고 있어요…'}</p>}
         {state === 'success' && (
           <>
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#0064FF]/10 text-2xl">✅</div>
@@ -76,7 +100,7 @@ export default function PaymentResult({ fail = false }) {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-2xl">⚠️</div>
             <h1 className="text-xl font-bold text-gray-900">결제 실패</h1>
             <p className="mt-2 text-sm text-gray-600">{msg}</p>
-            <Link to="/pricing" className="mt-6 inline-block w-full rounded-2xl border border-gray-200 py-3.5 text-base font-bold text-gray-800">돌아가기</Link>
+            <Link to={params.get('from') === 'trial' || params.get('trial') === '1' ? '/me' : '/pricing'} className="mt-6 inline-block w-full rounded-2xl border border-gray-200 py-3.5 text-base font-bold text-gray-800">돌아가기</Link>
           </>
         )}
       </div>

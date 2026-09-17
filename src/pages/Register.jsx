@@ -7,6 +7,15 @@ import { getFp } from '../lib/fp'
 import { redeemAnyCode } from '../lib/redeemCode'
 
 const ICON = '/cn-white.svg'
+// 가입 직후 목적지 — 무료 체험 코드로 들어왔으면 카드 등록 고지가 있는 마이페이지로
+const afterSignupUrl = () => {
+  try {
+    const tc = sessionStorage.getItem('chronit_trial_code')
+    if (tc) { sessionStorage.removeItem('chronit_trial_code'); return `/me?trial_code=${encodeURIComponent(tc)}` }
+  } catch { /* noop */ }
+  return '/trend'
+}
+
 const SOURCE_OPTIONS = ['유튜브', '인스타그램', '지인 추천', '블로그·카페', '검색(구글·네이버)', '기타']
 const PERSONA_OPTIONS = ['공구·제휴 크리에이터', '브랜드·쇼핑몰 SNS 운영', '릴스·틱톡 쇼핑 크리에이터', '부업·N잡 (막 시작)', '콘텐츠 대행사·편집자', '기타']
 const NICHE_OPTIONS = ['뷰티·화장품', '패션·의류', '리빙·홈·주방', '잡화·소품', '푸드·식품', '육아·키즈', '헬스·건강', '반려동물', '디지털·가전', '기타']
@@ -90,8 +99,10 @@ const Register = () => {
         const storedCode = sessionStorage.getItem('chronit_code')
         const promo = (urlCode || storedCode || '').toUpperCase()
         if (promo) {
-          await redeemAnyCode(promo)
+          const r = await redeemAnyCode(promo)
           sessionStorage.removeItem('chronit_code')
+          // 무료 체험 코드는 카드 등록 후 시작 — 온보딩을 마치면 트렌드 대신 마이페이지 고지 카드로 보낸다
+          if (r?.trial) sessionStorage.setItem('chronit_trial_code', r.trial.code)
         }
       } catch { /* noop */ }
 
@@ -103,7 +114,7 @@ const Register = () => {
       }
       if (!prof?.terms_agreed_at) setStep(STEP.TERMS)
       else { try { await supabase.rpc('complete_onboarding_rpc') } catch { /* noop */ }
-    try { phCapture('signup_completed', {}, { transport: 'sendBeacon' }) } catch { /* noop */ } window.location.href = '/trend'; return }
+    try { phCapture('signup_completed', {}, { transport: 'sendBeacon' }) } catch { /* noop */ } window.location.href = afterSignupUrl(); return }
       setLoading(false)
     })()
   }, [])
@@ -112,7 +123,7 @@ const Register = () => {
     setSaving(true)
     try { await supabase.rpc('complete_onboarding_rpc') } catch { /* noop */ }
     try { phCapture('signup_completed', {}, { transport: 'sendBeacon' }) } catch { /* noop */ }
-    window.location.href = '/trend'
+    window.location.href = afterSignupUrl()
   }
 
   // ── 각 스텝 핸들러 ──
@@ -129,7 +140,7 @@ const Register = () => {
     // 유입경로 설문은 첫 영상 완료 후 앱에서 물어봄 — 여기서 막지 않고 바로 앱으로.
     try { await supabase.rpc('complete_onboarding_rpc') } catch { /* noop */ }
     try { phCapture('signup_completed', {}, { transport: 'sendBeacon' }) } catch { /* noop */ }
-    window.location.href = '/trend'
+    window.location.href = afterSignupUrl()
   }
 
   const submitNick = async () => {
