@@ -12,7 +12,9 @@ import ScanProgress from '../components/ScanProgress'
 import {
   DAY_MAX, DAY_MARKS, dayWindowMs,
   COMMENT_MAX, COMMENT_MARKS, VIEW_MAX, VIEW_MARKS, manFmt,
+  isCarousel, viewRankOf, feedClip,
 } from '../lib/filterConfig'
+import PostTypeToggle from '../components/PostTypeToggle'
 import {
   parseUsernames, statusOf, scanTargets, creditsFor, fmtWhen, ACCOUNTS_PER_CREDIT,
 } from '../lib/watchAccounts'
@@ -55,6 +57,7 @@ export default function Watchlist() {
   const [days, setDays] = useState(DAY_MAX)
   const [minComments, setMinComments] = useState(0)
   const [minViews, setMinViews] = useState(0)
+  const [postType, setPostType] = useState('all')   // all | reel | carousel
 
   const [playClip, setPlayClip] = useState(null)
   const [modalClip, setModalClip] = useState(null)
@@ -97,12 +100,17 @@ export default function Watchlist() {
     setFeedCounts(m)
   }, [uid])
 
+  // 캐러셀만 볼 때 조회수순은 의미가 없어(전부 0) 좋아요순으로 바꿔 적용한다
+  const effSort = postType === 'carousel' && sort === 'view' ? 'like' : sort
+
   const loadFeed = useCallback(async () => {
     if (!uid) return
-    const { data } = await supabase.from('watch_feed').select('*').eq('user_id', uid)
-      .order(SORT_COL[sort], { ascending: false }).limit(FEED_LIMIT)
+    let q = supabase.from('watch_feed').select('*').eq('user_id', uid)
+    // 유형은 서버에서 거른다 — 조회수순 + 상한 600이면 조회수 0인 캐러셀이 상한에 잘려 아예 안 온다
+    if (postType !== 'all') q = q.eq('post_type', postType)
+    const { data } = await q.order(SORT_COL[effSort], { ascending: false }).limit(FEED_LIMIT)
     setFeed(data || [])
-  }, [uid, sort])
+  }, [uid, effSort, postType])
 
   useEffect(() => {
     if (!isReal) { setLoading(false); return }
@@ -168,7 +176,7 @@ export default function Watchlist() {
         r = await fetch(SB_URL + '/functions/v1/watch-scan', {
           method: 'POST',
           headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cursor, include_dead: includeDead }),
+          body: JSON.stringify({ cursor, include_dead: includeDead, include_carousel: true }),
         }).then((x) => x.json())
 
         if (r.ok === false) {
@@ -216,10 +224,15 @@ export default function Watchlist() {
 
   const now = Date.now()
   // 서버에서 이미 정렬돼 오므로 여기선 슬라이더 조건만 거른다
-  const list = feed
+  const filtered = feed
     .filter((it) => it.taken_at && now - new Date(it.taken_at).getTime() <= dayWindowMs(days))
     .filter((it) => !minComments || (Number(it.comment_count) || 0) >= minComments)
-    .filter((it) => !minViews || (Number(it.view_count) || 0) >= minViews)
+    // 조회수 조건은 릴스에만 — 캐러셀은 조회수가 없어서(0) 걸면 전부 사라진다
+    .filter((it) => !minViews || isCarousel(it) || (Number(it.view_count) || 0) >= minViews)
+  // 전체 보기의 조회수순만 다시 정렬: 서버 순서로는 캐러셀(조회수 0)이 전부 맨 뒤로 몰린다
+  const list = postType === 'all' && effSort === 'view'
+    ? [...filtered].sort((a, b) => (viewRankOf(b) - viewRankOf(a)) || ((Number(b.comment_count) || 0) - (Number(a.comment_count) || 0)))
+    : filtered
 
   if (!isReal) {
     return (
@@ -322,16 +335,22 @@ export default function Watchlist() {
 
       {/* 필터 */}
       <section className="mb-4 rounded-2xl bg-slate-900 p-4">
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-bold text-white/60">정렬</span>
-          {SORTS.map(([k, l]) => (
-            <button key={k} onClick={() => setSort(k)} className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${sort === k ? 'bg-[#0064FF] text-white' : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'}`}>{l}순</button>
-          ))}
+        <div className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-bold text-white/60">정렬</span>
+            {SORTS.filter(([k]) => !(postType === 'carousel' && k === 'view')).map(([k, l]) => (
+              <button key={k} onClick={() => setSort(k)} className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${effSort === k ? 'bg-[#0064FF] text-white' : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'}`}>{l}순</button>
+            ))}
+          </div>
+          <PostTypeToggle value={postType} onChange={setPostType} />
         </div>
-        <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-3">
+        {/* 캐러셀만 볼 땐 조회수 슬라이더가 의미 없어(전부 0) 숨긴다 */}
+        <div className={`grid grid-cols-1 gap-x-6 gap-y-3 ${postType === 'carousel' ? 'sm:grid-cols-2' : 'sm:grid-cols-3'}`}>
           <RangeFilter label="게시일" min={1} max={DAY_MAX} step={1} unit="일" infinitySuffix="이하" allAtMax={false} marks={DAY_MARKS} value={days} onChange={setDays} />
           <RangeFilter label="댓글수" min={0} max={COMMENT_MAX} step={50} unit="개" infinitySuffix="이상" marks={COMMENT_MARKS} value={minComments} onChange={setMinComments} />
-          <RangeFilter label="조회수" min={0} max={VIEW_MAX} step={10000} infinitySuffix="이상" marks={VIEW_MARKS} formatValue={manFmt} value={minViews} onChange={setMinViews} />
+          {postType !== 'carousel' && (
+            <RangeFilter label="조회수" min={0} max={VIEW_MAX} step={10000} infinitySuffix="이상" marks={VIEW_MARKS} formatValue={manFmt} value={minViews} onChange={setMinViews} />
+          )}
         </div>
       </section>
 
@@ -347,7 +366,7 @@ export default function Watchlist() {
         <>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {list.map((it, i) => {
-              const clip = { title: it.caption, source: 'instagram', thumbnail_url: it.thumbnail_url, author: it.owner, views: it.view_count, likes: it.like_count, comments: it.comment_count, page_url: it.url, video_url: it.video_url, video_id: it.shortcode, taken_at: it.taken_at, velocity: it.velocity }
+              const clip = feedClip(it)
               return (
                 <TrendCard
                   key={it.shortcode || i}
@@ -362,7 +381,9 @@ export default function Watchlist() {
             })}
             {!list.length && (
               <div className="col-span-full p-10 text-center text-sm text-white/40">
-                {feed.length ? '조건에 맞는 게시물이 없어요. 필터를 낮춰보세요.' : '아직 불러온 게시물이 없어요. 지금 갱신을 눌러주세요.'}
+                {feed.length ? '조건에 맞는 게시물이 없어요. 필터를 낮춰보세요.'
+                  : postType === 'carousel' ? '아직 불러온 캐러셀이 없어요. 지금 갱신을 눌러주세요.'
+                  : '아직 불러온 게시물이 없어요. 지금 갱신을 눌러주세요.'}
               </div>
             )}
           </div>

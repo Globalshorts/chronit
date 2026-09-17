@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Flame, Eye, Heart, MessageCircle, Sparkles, Lock, Play, Bookmark } from 'lucide-react'
+import { Flame, Eye, Heart, MessageCircle, Sparkles, Lock, Play, Bookmark, Layers, ExternalLink } from 'lucide-react'
 import { fmtCount, timeAgo } from '../lib/format'
+import { isCarousel, coverOf, imagesOf, openPost } from '../lib/filterConfig'
 
 // 트렌드 피드 카드 — 트렌드/워치리스트 공용.
 const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
@@ -21,15 +22,19 @@ export function TrendThumb({ url, sc }) {
 
 // it: watch_feed / trend-feed 공통 행
 //   shortcode,url,video_url,thumbnail_url,caption,comment_count,like_count,view_count,owner,taken_at,velocity
+//   post_type('reel'|'carousel'), images[] (캐러셀 이미지, 릴스는 [])
 export default function TrendCard({
   it, rank, locked = false, watching = false, lockedLabel = '프로 이상 전용',
   onPlay, onAnalyze, onSource, onToggleWatch, onUnlock,
 }) {
+  const carousel = isCarousel(it)
+  const cover = coverOf(it)
+  const count = imagesOf(it).length
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
       {locked ? (
         <div role="button" onClick={onUnlock} className="relative block aspect-[9/16] cursor-pointer bg-slate-100">
-          <div className="h-full w-full overflow-hidden blur-[12px]"><TrendThumb url={it.thumbnail_url} sc={it.shortcode} /></div>
+          <div className="h-full w-full overflow-hidden blur-[12px]"><TrendThumb url={cover} sc={it.shortcode} /></div>
           {rank != null && <div className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">#{rank}</div>}
           {it.taken_at && <div className="absolute right-1.5 top-1.5 rounded bg-[#0064FF] px-1.5 py-0.5 text-[10px] font-bold text-white">{timeAgo(it.taken_at)}</div>}
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/30 text-white">
@@ -38,11 +43,24 @@ export default function TrendCard({
           </div>
         </div>
       ) : (
-        <div role="button" onClick={onPlay} className="relative block aspect-[9/16] cursor-pointer bg-slate-100">
-          <TrendThumb url={it.thumbnail_url} sc={it.shortcode} />
+        <div role="button" onClick={carousel ? () => openPost(it.url) : onPlay}
+          aria-label={carousel ? `@${it.owner} 캐러셀 게시물 인스타그램에서 보기` : undefined}
+          className="relative block aspect-[9/16] cursor-pointer bg-slate-100">
+          <TrendThumb url={cover} sc={it.shortcode} />
           {rank != null && <div className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">#{rank}</div>}
           {it.taken_at && <div className="absolute right-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">{timeAgo(it.taken_at)}</div>}
-          <div className="absolute inset-0 flex items-center justify-center opacity-90"><div className="flex h-9 w-9 items-center justify-center rounded-full bg-black/45 text-white"><Play size={16} className="ml-0.5" /></div></div>
+          <div className="absolute inset-0 flex items-center justify-center opacity-90">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-black/45 text-white">
+              {carousel ? <ExternalLink size={15} /> : <Play size={16} className="ml-0.5" />}
+            </div>
+          </div>
+          {carousel && (
+            // 여러 장 게시물 표시 — 장수만 보여주고 넘겨보기는 인스타에서.
+            // (카드 안에서 모든 장을 띄우면 장마다 썸네일 프록시·스토리지 쓰기가 늘어난다)
+            <div className="absolute bottom-2 left-2 flex items-center gap-1 rounded-md bg-black/65 px-1.5 py-1 text-[11px] font-bold text-white backdrop-blur">
+              <Layers size={12} />{count > 0 ? `${count}장` : '캐러셀'}
+            </div>
+          )}
           {onToggleWatch && (
             // 이 계정을 워치리스트에 담기/빼기 (히트영역·아이콘 2배 — 잘 안 보인다는 피드백)
             <button onClick={(e) => { e.stopPropagation(); onToggleWatch() }}
@@ -56,7 +74,7 @@ export default function TrendCard({
       )}
       <div className="p-2">
         <div className="mb-1.5 flex items-center gap-2 text-[11px] text-slate-500">
-          <span className="flex items-center gap-0.5"><Eye size={11} />{fmtCount(it.view_count)}</span>
+          {!carousel && <span className="flex items-center gap-0.5"><Eye size={11} />{fmtCount(it.view_count)}</span>}
           <span className="flex items-center gap-0.5"><Heart size={11} />{fmtCount(it.like_count)}</span>
           <span className="flex items-center gap-0.5"><MessageCircle size={11} />{fmtCount(it.comment_count)}</span>
         </div>
