@@ -6,11 +6,14 @@ import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
 import { fbTrack } from '../lib/fbq'
 import { useWatchToggle } from '../lib/useWatchToggle'
+import { useProPlus } from '../lib/useProPlus'
 import RangeFilter from '../components/RangeFilter'
 import {
   DAY_MAX, DAY_MARKS, FB_DAY_MAX, FB_DAY_MARKS, dayWindowMs,
   COMMENT_MAX, COMMENT_MARKS, FOLLOWER_MAX, FOLLOWER_MARKS, manFmt,
+  isCarousel, matchPostType, coverOf, viewRankOf, feedClip, openPost,
 } from '../lib/filterConfig'
+import PostTypeToggle from '../components/PostTypeToggle'
 import VideoModal from '../components/ReelModal'
 import TrendCard, { TrendThumb } from '../components/TrendCard'
 import { fmtCount as fmt } from '../lib/format'
@@ -72,9 +75,8 @@ export default function Trend() {
   const [fMax, setFMax] = useState('')
   const [region, setRegion] = useState('')
   const [minComments, setMinComments] = useState(0)
+  const [postType, setPostType] = useState('all')   // all | reel | carousel — 트렌드·패스트벤치 공용
   const [fastBench, setFastBench] = useState(false)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [isProPlus, setIsProPlus] = useState(false)
   const [previewLock, setPreviewLock] = useState(false)
   const [modalClip, setModalClip] = useState(null)
   const [payWall, setPayWall] = useState(false)
@@ -82,6 +84,8 @@ export default function Trend() {
   const [showAuth, setShowAuth] = useState(false)
   const [playClip, setPlayClip] = useState(null)
   const isReal = !!session && session.user?.is_anonymous !== true
+  // 패스트벤치는 프로(finds100)·비즈니스(finds300) 전용 — 스탠다드/무료는 블러 (샤오홍슈 참고검색과 같은 기준)
+  const { isProPlus, isAdmin } = useProPlus(session)
   // 카드의 북마크 = 그 계정을 워치리스트에 담기/빼기
   const { isWatched, toggle: toggleWatch } = useWatchToggle({
     enabled: isReal, source: 'trend',
@@ -116,16 +120,6 @@ export default function Trend() {
   }, [])
 
   useEffect(() => {
-    const u = session?.user
-    if (!u || u.is_anonymous) { setIsAdmin(false); return }
-    supabase.from('subscriptions').select('role, plan, expires_at').eq('user_id', u.id).maybeSingle().then(({ data }) => {
-      setIsAdmin(data?.role === 'super_admin')
-      // 패스트벤치는 프로(finds100)·비즈니스(finds300) 전용 — 스탠다드/무료는 블러
-      setIsProPlus(['finds100', 'finds300'].includes(data?.plan) && !!data?.expires_at && new Date(data.expires_at) > new Date())
-    })
-  }, [session])
-
-  useEffect(() => {
     if (!isReal) return
     const cached = readTrendCache()
     if (cached) { setItems(cached.items); setFbItems(cached.fb || []); if (typeof cached.fbCount === 'number') setFbCountSrv(cached.fbCount) }                       // 캐시 있으면 즉시 표시(스피너 없음)
@@ -155,6 +149,10 @@ export default function Trend() {
   const fbScore = (it) => ((Number(it.comment_count) || 0) * 1000 + (Number(it.like_count) || 0) * 50 + (Number(it.view_count) || 0)) / Math.max(Number(it.follower_count) || 0, 1000)
   const fbCount = fbCountSrv != null ? fbCountSrv : items.filter((it) => it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && fbScore(it) >= FB_SCORE).length
   const matchNiche = (it) => { const kws = NICHE_KW[myNiche]; if (!kws) return false; const t = ((it.caption || '') + ' ' + (it.hashtag || '')).toLowerCase(); return kws.some((k) => t.includes(k)) }
+  // 캐러셀만 볼 때 조회수순은 의미가 없어(전부 0) 좋아요순으로 바꿔 적용한다
+  const rawSort = fastBench ? fbSort : sort
+  const effSort = postType === 'carousel' && rawSort === 'view' ? 'like' : rawSort
+  const sortOptions = (fastBench ? FB_SORTS : SORTS).filter(([k]) => !(postType === 'carousel' && k === 'view'))
   const _listBase = (fastBench && Array.isArray(fbItems) && fbItems.length ? fbItems : items)
     .filter((it) => {
       // 게시일 슬라이더. 패스트벤치는 고유 게이트(≤2일)를 유지한 채 슬라이더를 더 좁히는 방향으로만 적용.
@@ -177,12 +175,16 @@ export default function Trend() {
     .filter((it) => !minComments || (Number(it.comment_count) || 0) >= minComments)
     .filter((it) => !region || regionOf(it) === region)
     .filter((it) => selCat === '전체' || it.category === selCat)
-    .filter((it) => String(it.video_url || '') !== '')
+    .filter((it) => matchPostType(it, postType))
+    // 영상 없는 행은 깨진 릴스라 뺀다 — 캐러셀은 원래 영상이 없으니 예외
+    .filter((it) => isCarousel(it) || String(it.video_url || '') !== '')
     .sort((a, b) => {
-      const s = fastBench ? fbSort : sort
+      const s = effSort
       if (s === 'score') return fbScore(b) - fbScore(a)
       if (s === 'recent') return new Date(b.taken_at || 0) - new Date(a.taken_at || 0)
-      const mk = s === 'view' ? 'view_count' : s === 'like' ? 'like_count' : 'comment_count'
+      // 조회수순: 캐러셀은 조회수가 0이라 좋아요 수로 비교 (동률이면 댓글수)
+      if (s === 'view') return (viewRankOf(b) - viewRankOf(a)) || ((Number(b.comment_count) || 0) - (Number(a.comment_count) || 0))
+      const mk = s === 'like' ? 'like_count' : 'comment_count'
       return (Number(b[mk]) || 0) - (Number(a[mk]) || 0)
     })
   const list = _listBase
@@ -250,21 +252,25 @@ export default function Trend() {
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <select value={fastBench ? fbSort : sort} onChange={(e) => (fastBench ? setFbSort : setSort)(e.target.value)} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">
-              {(fastBench ? FB_SORTS : SORTS).map(([k, l]) => <option key={k} value={k}>{k === 'score' ? l : `${l}순`}</option>)}
+            <select value={effSort} onChange={(e) => (fastBench ? setFbSort : setSort)(e.target.value)} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">
+              {sortOptions.map(([k, l]) => <option key={k} value={k}>{k === 'score' ? l : `${l}순`}</option>)}
             </select>
-            <button onClick={() => setShowAdv((v) => !v)} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-500 hover:border-[#0064FF] hover:text-[#0064FF]">상세 필터 {showAdv ? '▴' : '▾'}</button>
+            {/* 패널을 접어도 유형 필터가 걸려 있다는 걸 버튼에 남긴다 */}
+            <button onClick={() => setShowAdv((v) => !v)} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-500 hover:border-[#0064FF] hover:text-[#0064FF]">상세 필터{!showAdv && postType !== 'all' ? ` · ${postType === 'carousel' ? '캐러셀' : '릴스'}` : ''} {showAdv ? '▴' : '▾'}</button>
           </div>
         </div>
         )}
         {fastBench && <p className="mb-3 -mt-2 flex items-center gap-1 text-xs font-semibold text-amber-600"><Crown size={12} /> 먼저 움직이는 크리에이터의 선점 리스트 — 최근 48시간{fbSort === 'score' ? ' · 터짐 점수순' : ''}</p>}
 
         {isReal && showAdv && (<div className="mb-5 rounded-xl bg-slate-900 p-4">
-          <div className="mb-4 flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold text-white/60">지역</span>
-            {REGIONS.map(([l, v]) => (
-              <button key={l} onClick={() => setRegion(v)} className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${region === v ? 'bg-[#0064FF] text-white' : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'}`}>{l}</button>
-            ))}
+          <div className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-bold text-white/60">지역</span>
+              {REGIONS.map(([l, v]) => (
+                <button key={l} onClick={() => setRegion(v)} className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${region === v ? 'bg-[#0064FF] text-white' : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'}`}>{l}</button>
+              ))}
+            </div>
+            <PostTypeToggle value={postType} onChange={setPostType} />
           </div>
           <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-3">
             <RangeFilter
@@ -302,7 +308,7 @@ export default function Trend() {
                     {previewPicks.map((it, i) => (
                       <div key={it.shortcode || i} role="button" onClick={() => setShowAuth(true)} className="cursor-pointer overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
                         <div className="relative aspect-[9/16] bg-white/5">
-                          {it.thumbnail_url && <TrendThumb url={it.thumbnail_url} sc={it.shortcode} />}
+                          {coverOf(it) && <TrendThumb url={coverOf(it)} sc={it.shortcode} />}
                           {it.velocity != null && <div className="absolute left-1 top-1 rounded bg-[#0064FF] px-1.5 py-0.5 text-[10px] font-bold text-white">↑{Math.round(it.velocity)}</div>}
                         </div>
                         <div className="p-2">
@@ -328,7 +334,7 @@ export default function Trend() {
                   style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent)', maskImage: 'linear-gradient(to bottom, black 50%, transparent)' }}>
                   {(rest.length ? rest.slice(0, 8) : Array.from({ length: 8 })).map((it, i) => (
                     <div key={(it && it.shortcode) || i} className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
-                      <div className="relative aspect-[9/16] bg-white/5">{it && it.thumbnail_url && <TrendThumb url={it.thumbnail_url} sc={it.shortcode} />}</div>
+                      <div className="relative aspect-[9/16] bg-white/5">{it && coverOf(it) && <TrendThumb url={coverOf(it)} sc={it.shortcode} />}</div>
                       <div className="p-2"><div className="h-3 w-3/4 rounded bg-white/10" /></div>
                     </div>
                   ))}
@@ -352,14 +358,15 @@ export default function Trend() {
               <p className="mb-3 mt-0.5 text-xs text-slate-500">지금 반응이 빠르게 올라오는 소재만 골랐어요. 포화 전에 먼저 선점하세요.</p>
               <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
                 {todayPicks.map((it, i) => {
-                  const clip = { title: it.caption, source: 'instagram', thumbnail_url: it.thumbnail_url, author: it.owner, views: it.view_count, likes: it.like_count, comments: it.comment_count, page_url: it.url, video_url: it.video_url, video_id: it.shortcode, taken_at: it.taken_at, velocity: it.velocity }
+                  const clip = feedClip(it)
+                  const carousel = isCarousel(it)
                   const vel = Number(it.velocity) || 0
                   const fresh = it.taken_at && (now - new Date(it.taken_at).getTime() <= 3 * 86400000)
                   const watching = isWatched(it.owner)
                   return (
                     <div key={it.shortcode || i} className="flex gap-2.5 rounded-xl border border-slate-100 bg-slate-50 p-2.5 sm:flex-col">
-                      <div role="button" onClick={() => setPlayClip(clip)} className="relative aspect-[9/16] w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-slate-200 sm:w-full">
-                        <TrendThumb url={it.thumbnail_url} sc={it.shortcode} />
+                      <div role="button" onClick={() => (carousel ? openPost(it.url) : setPlayClip(clip))} className="relative aspect-[9/16] w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-slate-200 sm:w-full">
+                        <TrendThumb url={coverOf(it)} sc={it.shortcode} />
                         <div className="absolute left-1 top-1 rounded bg-black/60 px-1 text-[10px] font-bold text-white">#{i + 1}</div>
                         {/* 피드 카드와 눈에 띄는 정도를 맞춤 (모바일은 썸네일이 64px라 과하지 않게) */}
                         <button onClick={(e) => { e.stopPropagation(); toggleWatch(it.owner) }} title={watching ? `@${it.owner} 감시 해제` : `@${it.owner} 워치리스트에 추가`} aria-label={watching ? `@${it.owner} 감시 해제` : `@${it.owner} 워치리스트에 추가`} aria-pressed={watching} className="absolute bottom-1 right-1 flex h-9 w-9 items-center justify-center rounded-full bg-black/65 text-white shadow-lg ring-1 ring-white/20 backdrop-blur transition hover:bg-black/85 active:scale-95 sm:bottom-2 sm:right-2 sm:h-12 sm:w-12">
@@ -369,7 +376,7 @@ export default function Trend() {
                       <div className="min-w-0 flex-1">
                         <div className="mb-1 flex flex-wrap gap-1">
                           {vel > 0 && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[10px] font-bold text-[#0064FF]">지금 퍼지는 중 · ↑{Math.round(vel)}</span>}
-                          {(Number(it.view_count) || 0) < 300000 ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">아직 덜 퍼짐 · 선점 기회</span> : fresh ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">최근 등장</span> : null}
+                          {!carousel && (Number(it.view_count) || 0) < 300000 ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">아직 덜 퍼짐 · 선점 기회</span> : fresh ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">최근 등장</span> : null}
                         </div>
                         <div className="mb-2 line-clamp-2 text-[12px] font-medium text-slate-700">{it.caption || '(설명 없음)'}</div>
                         <div className="flex gap-1.5">
@@ -386,7 +393,7 @@ export default function Trend() {
           {lockedCount > 0 && <p className="mb-3 flex items-start gap-1.5 rounded-xl bg-slate-900 px-3 py-2.5 text-sm font-bold text-white"><Crown size={15} className="mt-0.5 shrink-0 text-amber-400" /><span>지금 막 터진 소재 {lockedCount}개 · <span className="text-amber-300">패스트벤치는 프로 이상 전용이에요.</span> 며칠 뒤 무료로 풀리지만, 그땐 남들이 다 따라한 뒤예요.</span></p>}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {list.map((it, i) => {
-              const clip = { title: it.caption, source: 'instagram', thumbnail_url: it.thumbnail_url, author: it.owner, views: it.view_count, likes: it.like_count, comments: it.comment_count, page_url: it.url, video_url: it.video_url, video_id: it.shortcode, taken_at: it.taken_at, velocity: it.velocity }
+              const clip = feedClip(it)
               const locked = gateOn && fbQual(it)
               return (
                 <TrendCard
@@ -401,7 +408,7 @@ export default function Trend() {
                 />
               )
             })}
-            {!list.length && <div className="col-span-full p-10 text-center text-sm text-slate-400">{minComments ? `댓글 ${minComments.toLocaleString('ko-KR')}개 이상인 소재가 아직 없어요. 조건을 낮춰보세요.` : (fMin || fMax) ? '이 팔로워 구간은 아직 준비 중이에요. 곧 더 많은 계정을 추가할 예정이에요.' : '해당 기간에 트렌드가 없어요.'}</div>}
+            {!list.length && <div className="col-span-full p-10 text-center text-sm text-slate-400">{postType === 'carousel' ? '조건에 맞는 캐러셀이 아직 없어요.' : minComments ? `댓글 ${minComments.toLocaleString('ko-KR')}개 이상인 소재가 아직 없어요. 조건을 낮춰보세요.` : (fMin || fMax) ? '이 팔로워 구간은 아직 준비 중이에요. 곧 더 많은 계정을 추가할 예정이에요.' : '해당 기간에 트렌드가 없어요.'}</div>}
           </div>
           </>
         )}
