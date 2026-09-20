@@ -129,12 +129,11 @@ export default function QuestPanel({ open, onClose, onClaimed }) {
       if (error || !data?.ok) {
         setProofMsg({ ok: false, text: data?.error || '제출하지 못했어요' })
       } else {
-        setProofMsg({ ok: true, text: `검토 후 반영돼요 · 이용권 ${data.reward}개를 먼저 드렸어요` })
+        // 제출 시점엔 지급되지 않는다(관리자 승인 또는 24시간 자동 지급) → 잔액을 미리 올리지 않는다
+        setProofMsg({ ok: true, text: data.message || '검토 후 승인되면 지급돼요. 24시간 내 미검토 시 자동 지급됩니다.' })
         setUrl(''); setNote(''); setConsent(false)
-        setBalance((b) => (b == null ? b : b + Number(data.reward || 0)))
         try { phCapture('success_proof_submitted', { platform }) } catch { /* noop */ }
-        onClaimed?.(data.reward)
-        load()   // 주간 '성과인증 1건'이 자동 달성으로 바뀐다
+        load()   // 주간 '성과인증 1건'이 달성으로 바뀐다
       }
     } catch { setProofMsg({ ok: false, text: '제출하지 못했어요' }) }
     setSending(false)
@@ -144,7 +143,7 @@ export default function QuestPanel({ open, onClose, onClaimed }) {
 
   return (
     <div className="fixed inset-0 z-[90] flex items-start justify-center overflow-y-auto bg-black/70 px-4 py-6 backdrop-blur-sm sm:items-center" onClick={onClose}>
-      <div className="my-auto w-full max-w-md rounded-3xl border border-white/10 p-5 shadow-2xl" style={{ background: '#14161c' }} onClick={(e) => e.stopPropagation()}>
+      <div className="my-auto w-full max-w-md rounded-3xl border border-white/10 p-5 shadow-2xl md:max-w-3xl" style={{ background: '#14161c' }} onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
           <h3 className="flex items-center gap-1.5 text-base font-bold text-white">
             <Trophy size={17} className="text-amber-400" /> 미션
@@ -164,6 +163,8 @@ export default function QuestPanel({ open, onClose, onClaimed }) {
           <p className={`mb-3 rounded-lg px-3 py-2 text-xs font-bold ${msg.ok ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>{msg.text}</p>
         )}
 
+        {/* PC 에서는 일회성 / 주간을 좌우로 — 모바일은 그대로 세로 스택 */}
+        <div className="md:grid md:grid-cols-2 md:items-start md:gap-4">
         {loading ? (
           <div className="flex items-center gap-2 py-8 text-sm text-white/40"><Loader2 size={15} className="animate-spin" />불러오는 중…</div>
         ) : !quests.length ? (
@@ -198,7 +199,7 @@ export default function QuestPanel({ open, onClose, onClaimed }) {
 
         {/* 이번 주 미션 — 매주 월요일 리셋 */}
         {weekly.length > 0 && (
-          <div className="mt-5">
+          <div className="mt-5 md:mt-0">
             <div className="mb-2 flex items-center gap-1.5">
               <CalendarDays size={14} className="text-[#7FB2FF]" />
               <h4 className="text-sm font-bold text-white">이번 주 미션</h4>
@@ -253,12 +254,14 @@ export default function QuestPanel({ open, onClose, onClaimed }) {
             </ul>
           </div>
         )}
+        </div>
 
         {/* 성과 인증 */}
         <div ref={proofRef} className="mt-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
           <p className="text-sm font-bold text-white">크로닛으로 터졌어요!</p>
           <p className="mt-0.5 text-[11px] leading-relaxed text-white/45">
-            크로닛으로 만든 영상 링크를 남겨주시면 검토 후 이용권 3개를 드려요. (7일에 1회)
+            크로닛으로 만든 영상 링크를 남겨주시면 <b className="text-white/70">검토 후 승인 시 이용권 3개</b>를 드려요.
+            24시간 내 미검토면 자동 지급돼요. (7일에 1회)
           </p>
 
           <input value={url} onChange={(e) => { setUrl(e.target.value); setProofMsg(null) }}

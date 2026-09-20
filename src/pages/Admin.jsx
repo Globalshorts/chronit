@@ -6,7 +6,7 @@ import RichEditor from '../components/RichEditor'
 import {
   Megaphone, Save, LogOut, ShieldCheck, Loader, Eye, EyeOff,
   Plus, Pencil, Trash2, ChevronLeft,
-  Film, ChevronUp, ChevronDown, Upload, Gift, Flag, Flame, RefreshCw, AlertTriangle,
+  Film, ChevronUp, ChevronDown, Upload, Gift, Flag, Flame, RefreshCw, AlertTriangle, Trophy,
 } from 'lucide-react'
 
 
@@ -426,6 +426,7 @@ const Admin = () => {
     { key: 'manage', label: '회원·결제' },
     { key: 'trends', label: '트렌드 계정' },
     { key: 'errors', label: '오류 로그' },
+    { key: 'proofs', label: '성과인증' },
   ]
   // 브랜드바·홈·로그아웃은 AppShell 사이드바가 담당 — 여기선 페이지 제목 + 탭만 둔다.
   return (
@@ -446,6 +447,7 @@ const Admin = () => {
         {tab === 'manage' && <AdminManage session={session} />}
         {tab === 'trends' && <TrendAccountsPanel />}
         {tab === 'errors' && <ErrorReportsPanel />}
+        {tab === 'proofs' && <ProofReviewPanel />}
       </div>
     </div>
   )
@@ -600,6 +602,142 @@ const ErrorReportsPanel = () => {
               {it.user_agent && <p className="mt-1 truncate text-[10px] text-gray-500">{it.user_agent}</p>}
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+
+// ── 성과인증 검토 ──
+// 제출은 pending 으로만 쌓이고 지급은 승인 시. 24시간 안에 안 보면 크론이 자동 지급하므로
+// 반려할 생각이면 그 전에 봐야 한다. 링크는 반드시 새 탭으로 열어 본인 게시물인지 확인할 것.
+const PROOF_TABS = [['pending', '검토 대기'], ['approved', '승인'], ['rejected', '반려'], ['all', '전체']]
+const PROOF_STATUS = {
+  pending: { label: '검토 중', cls: 'bg-amber-500/20 text-amber-700' },
+  approved: { label: '승인', cls: 'bg-emerald-500/20 text-emerald-700' },
+  auto_approved: { label: '자동 지급', cls: 'bg-blue-500/20 text-blue-700' },
+  rejected: { label: '반려', cls: 'bg-red-500/20 text-red-700' },
+}
+const hoursSince = (t) => (t ? Math.floor((Date.now() - new Date(t).getTime()) / 3600000) : null)
+
+function ProofReviewPanel() {
+  const [status, setStatus] = useState('pending')
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState('')
+  const [msg, setMsg] = useState(null)
+
+  // 새로고침 버튼·승인/반려 뒤에 쓰는 재조회 (이벤트 핸들러 전용)
+  const load = async (st = status) => {
+    setLoading(true)
+    try {
+      const { data } = await supabase.rpc('admin_list_proofs_rpc', { p_status: st, p_limit: 100 })
+      setItems(data?.ok && Array.isArray(data.items) ? data.items : [])
+      if (data?.ok === false) setMsg({ ok: false, text: data.error || '불러오지 못했어요' })
+    } catch { setItems([]) }
+    setLoading(false)
+  }
+
+  // 탭이 바뀔 때. (setState 가 전부 await 뒤에 오도록 effect 안에서 직접 부른다)
+  useEffect(() => {
+    let dead = false
+    const run = async () => {
+      let list = []
+      let err = null
+      try {
+        const { data } = await supabase.rpc('admin_list_proofs_rpc', { p_status: status, p_limit: 100 })
+        if (data?.ok && Array.isArray(data.items)) list = data.items
+        else if (data?.ok === false) err = data.error || '불러오지 못했어요'
+      } catch { err = '불러오지 못했어요' }
+      if (dead) return
+      setItems(list)
+      setLoading(false)
+      setMsg(err ? { ok: false, text: err } : null)
+    }
+    run()
+    return () => { dead = true }
+  }, [status])
+
+  const review = async (id, action) => {
+    if (busy) return
+    if (action === 'reject' && !window.confirm('반려할까요? 이미 지급됐다면 이용권을 회수합니다.')) return
+    setBusy(id); setMsg(null)
+    try {
+      const { data, error } = await supabase.rpc('admin_review_proof_rpc', { p_id: id, p_action: action })
+      if (error || !data?.ok) setMsg({ ok: false, text: data?.error || '처리하지 못했어요' })
+      else setMsg({ ok: true, text: data.status === 'approved' ? '승인했어요 · 이용권 3개 지급' : '반려했어요' })
+    } catch { setMsg({ ok: false, text: '처리하지 못했어요' }) }
+    setBusy('')
+    load(status)
+  }
+
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white/[0.03] p-8">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <Trophy size={18} className="text-amber-500" />
+        <h2 className="text-base font-bold">성과인증 검토</h2>
+        <span className="text-xs text-gray-400">승인 시 이용권 3개 지급 · 24시간 미검토면 자동 지급</span>
+        <button onClick={() => load(status)} className="ml-auto flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-bold text-gray-600 hover:text-gray-900"><RefreshCw size={13} /> 새로고침</button>
+      </div>
+
+      <div className="mb-4 flex flex-wrap gap-1.5">
+        {PROOF_TABS.map(([k, l]) => (
+          <button key={k} onClick={() => setStatus(k)}
+            className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${status === k ? 'bg-[#0064FF] text-white' : 'bg-gray-100 text-gray-500 hover:text-gray-900'}`}>{l}</button>
+        ))}
+      </div>
+
+      {msg && <p className={`mb-3 rounded-lg px-3 py-2 text-xs font-bold ${msg.ok ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'}`}>{msg.text}</p>}
+
+      {loading ? (
+        <p className="py-10 text-center text-sm text-gray-400">불러오는 중…</p>
+      ) : items.length === 0 ? (
+        <p className="py-10 text-center text-sm text-gray-400">해당하는 성과인증이 없습니다</p>
+      ) : (
+        <div className="flex flex-col gap-2.5">
+          {items.map((it) => {
+            const st = PROOF_STATUS[it.status] || { label: it.status, cls: 'bg-gray-100 text-gray-600' }
+            const hrs = hoursSince(it.submitted_at)
+            const urgent = it.status === 'pending' && hrs != null && hrs >= 20
+            return (
+              <div key={it.id} className={`rounded-xl border p-4 ${urgent ? 'border-amber-300 bg-amber-50/40' : 'border-gray-200 bg-white/[0.02]'}`}>
+                <div className="mb-1.5 flex flex-wrap items-center gap-2 text-xs">
+                  <span className={`rounded-md px-2 py-0.5 font-bold ${st.cls}`}>{st.label}</span>
+                  {it.platform && <span className="rounded-md bg-gray-100 px-2 py-0.5 text-gray-600">{it.platform}</span>}
+                  {it.consent_promote
+                    ? <span className="rounded-md bg-emerald-500/15 px-2 py-0.5 font-bold text-emerald-700">홍보 동의</span>
+                    : <span className="rounded-md bg-gray-100 px-2 py-0.5 text-gray-500">동의 없음</span>}
+                  <span className="text-gray-400">이용권 {it.credits_given ?? 0}</span>
+                  {it.status === 'pending' && hrs != null && (
+                    <span className={urgent ? 'font-bold text-amber-700' : 'text-gray-400'}>제출 {hrs}시간 전{urgent ? ' · 곧 자동 지급' : ''}</span>
+                  )}
+                  <span className="ml-auto text-gray-400">{new Date(it.submitted_at).toLocaleString('ko-KR')}</span>
+                </div>
+
+                <div className="text-sm font-bold text-gray-900">{it.nickname || '(닉네임 없음)'} <span className="font-medium text-gray-400">{it.email}</span></div>
+                {/* 실제 게시물을 직접 확인해야 하므로 새 탭으로 */}
+                <a href={it.url} target="_blank" rel="noopener noreferrer" className="mt-1 block break-all text-sm text-[#0064FF] hover:underline">{it.url}</a>
+                {it.result_note && <p className="mt-1.5 whitespace-pre-wrap text-sm text-gray-600">{it.result_note}</p>}
+                {it.reviewed_at && <p className="mt-1 text-[11px] text-gray-400">검토 {new Date(it.reviewed_at).toLocaleString('ko-KR')}</p>}
+
+                <div className="mt-3 flex gap-2">
+                  {it.status !== 'rejected' && (
+                    <button onClick={() => review(it.id, 'reject')} disabled={!!busy}
+                      className="rounded-lg border border-red-200 px-3.5 py-1.5 text-xs font-bold text-red-600 transition hover:bg-red-50 disabled:opacity-40">
+                      {it.status === 'pending' ? '반려' : '반려(회수)'}
+                    </button>
+                  )}
+                  {it.status === 'pending' && (
+                    <button onClick={() => review(it.id, 'approve')} disabled={!!busy}
+                      className="rounded-lg bg-[#0064FF] px-3.5 py-1.5 text-xs font-bold text-white transition hover:brightness-95 disabled:opacity-40">
+                      승인 · 이용권 3개 지급
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
     </div>
