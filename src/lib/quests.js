@@ -19,3 +19,17 @@ export const sortQuests = (list) =>
 // 지금 받을 수 있는 개수
 export const claimableCount = (list) =>
   (list || []).filter((q) => q.eligible && !q.claimed).length
+
+// ── 주간 미션 (매주 월요일 리셋) ──
+// 키·보상·목표는 서버(get_weekly_missions_rpc)가 준다 — 여기선 문구만.
+export const WEEKLY_META = {
+  w_analyze_3: { title: '이번 주 3회 분석', desc: '소재를 3개 분석해보기' },
+  w_save_1: { title: '이번 주 1개 담기', desc: '마음에 드는 소재 담기' },
+  w_proof_1: { title: '성과인증 1건', desc: '크로닛으로 만든 영상 인증하기' },
+}
+
+export const weeklyLabel = (key) => WEEKLY_META[key] || { title: key, desc: '' }
+
+// 지금 받을 수 있는 주간 미션 수 (자동 지급분은 버튼이 없으니 제외)
+export const weeklyClaimable = (list) =>
+  (list || []).filter((m) => m.done && !m.claimed && !m.auto).length

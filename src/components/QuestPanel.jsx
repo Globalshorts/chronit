@@ -1,14 +1,17 @@
-import { useState, useEffect, useCallback } from 'react'
-import { X, Gift, Check, Loader2, Trophy, Sparkles, AlertTriangle } from 'lucide-react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { X, Gift, Check, Loader2, Trophy, Sparkles, AlertTriangle, CalendarDays, ArrowDown } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
-import { sortQuests, questLabel, claimableCount } from '../lib/quests'
+import { sortQuests, questLabel, claimableCount, weeklyLabel, weeklyClaimable } from '../lib/quests'
 
 const PLATFORMS = ['인스타그램', '틱톡', '유튜브', '기타']
 
 // 미션 패널 — 퀘스트 수령 + 성과 인증. (마이페이지가 아니라 트렌드 상단에서 연다)
 export default function QuestPanel({ open, onClose, onClaimed }) {
   const [quests, setQuests] = useState([])
+  const [weekly, setWeekly] = useState([])
+  const [weekBusy, setWeekBusy] = useState('')
+  const proofRef = useRef(null)
   const [loading, setLoading] = useState(true)
   const [busyKey, setBusyKey] = useState('')
   const [msg, setMsg] = useState(null)
@@ -32,11 +35,17 @@ export default function QuestPanel({ open, onClose, onClaimed }) {
   // 수령/제출 뒤 다시 읽기용 (이벤트 핸들러에서만 호출)
   const load = useCallback(async () => {
     let list = []
+    let wk = []
     try {
       const { data } = await supabase.rpc('get_quests_rpc')
       list = data?.ok ? sortQuests(data.quests) : []
     } catch { /* noop */ }
+    try {
+      const { data } = await supabase.rpc('get_weekly_missions_rpc')
+      wk = data?.ok && Array.isArray(data.missions) ? data.missions : []
+    } catch { /* noop */ }
     setQuests(list)
+    setWeekly(wk)
     setLoading(false)
     loadBalance()
   }, [loadBalance])
@@ -47,10 +56,15 @@ export default function QuestPanel({ open, onClose, onClaimed }) {
     let dead = false
     const run = async () => {
       let list = []
+      let wk = []
       let bal = null
       try {
         const { data } = await supabase.rpc('get_quests_rpc')
         list = data?.ok ? sortQuests(data.quests) : []
+      } catch { /* noop */ }
+      try {
+        const { data } = await supabase.rpc('get_weekly_missions_rpc')
+        wk = data?.ok && Array.isArray(data.missions) ? data.missions : []
       } catch { /* noop */ }
       try {
         const { data } = await supabase.rpc('get_my_balance_rpc')
@@ -58,7 +72,7 @@ export default function QuestPanel({ open, onClose, onClaimed }) {
       } catch { /* noop */ }
       if (dead) return
       setMsg(null); setProofMsg(null)
-      setQuests(list); setBalance(bal); setLoading(false)
+      setQuests(list); setWeekly(wk); setBalance(bal); setLoading(false)
     }
     run()
     try { phCapture('quest_panel_opened') } catch { /* noop */ }
@@ -86,6 +100,25 @@ export default function QuestPanel({ open, onClose, onClaimed }) {
     load()
   }
 
+  // 주간 미션 수령 — 자동 지급(w_proof_1)은 서버가 거부하므로 버튼 자체를 두지 않는다
+  const claimWeekly = async (key) => {
+    if (weekBusy) return
+    setWeekBusy(key); setMsg(null)
+    try {
+      const { data, error } = await supabase.rpc('claim_weekly_mission_rpc', { p_key: key })
+      if (error || !data?.ok) {
+        setMsg({ ok: false, text: data?.error || '받을 수 없어요' })
+      } else {
+        setMsg({ ok: true, text: `이용권 ${data.reward}개 지급` })
+        setBalance((b) => (b == null ? b : b + Number(data.reward || 0)))
+        try { phCapture('weekly_mission_claimed', { key, reward: data.reward }) } catch { /* noop */ }
+        onClaimed?.(data.reward)
+      }
+    } catch { setMsg({ ok: false, text: '받을 수 없어요' }) }
+    setWeekBusy('')
+    load()
+  }
+
   const submitProof = async () => {
     if (sending) return
     setSending(true); setProofMsg(null)
@@ -101,7 +134,7 @@ export default function QuestPanel({ open, onClose, onClaimed }) {
         setBalance((b) => (b == null ? b : b + Number(data.reward || 0)))
         try { phCapture('success_proof_submitted', { platform }) } catch { /* noop */ }
         onClaimed?.(data.reward)
-        loadBalance()
+        load()   // 주간 '성과인증 1건'이 자동 달성으로 바뀐다
       }
     } catch { setProofMsg({ ok: false, text: '제출하지 못했어요' }) }
     setSending(false)
@@ -163,11 +196,69 @@ export default function QuestPanel({ open, onClose, onClaimed }) {
           </ul>
         )}
 
+        {/* 이번 주 미션 — 매주 월요일 리셋 */}
+        {weekly.length > 0 && (
+          <div className="mt-5">
+            <div className="mb-2 flex items-center gap-1.5">
+              <CalendarDays size={14} className="text-[#7FB2FF]" />
+              <h4 className="text-sm font-bold text-white">이번 주 미션</h4>
+              {weeklyClaimable(weekly) > 0 && (
+                <span className="rounded-full bg-[#0064FF] px-2 py-0.5 text-[11px] font-extrabold text-white">{weeklyClaimable(weekly)}</span>
+              )}
+              <span className="ml-auto text-[11px] text-white/35">월요일마다 초기화</span>
+            </div>
+            <ul className="space-y-2">
+              {weekly.map((m) => {
+                const meta = weeklyLabel(m.key)
+                const pct = m.target > 0 ? Math.min(100, Math.round((m.progress / m.target) * 100)) : 0
+                const can = m.done && !m.claimed && !m.auto
+                return (
+                  <li key={m.key} className={`rounded-xl border px-3.5 py-3 ${can ? 'border-[#0064FF]/35 bg-[#0064FF]/[0.08]' : 'border-white/10 bg-white/[0.03]'}`}>
+                    <div className="flex items-center gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className={`text-sm font-bold ${m.claimed ? 'text-white/40' : 'text-white'}`}>{meta.title}</p>
+                        <p className="mt-0.5 text-[11px] text-white/40">{meta.desc}</p>
+                      </div>
+                      <span className="shrink-0 text-[11px] font-bold text-white/45">+{m.reward}</span>
+                      {m.claimed ? (
+                        <span className="flex shrink-0 items-center gap-1 rounded-lg bg-white/5 px-3 py-1.5 text-[11px] font-bold text-white/35"><Check size={12} />수령 완료</span>
+                      ) : m.auto ? null : can ? (
+                        <button onClick={() => claimWeekly(m.key)} disabled={!!weekBusy}
+                          className="flex shrink-0 items-center gap-1 rounded-lg bg-[#0064FF] px-3 py-1.5 text-[11px] font-extrabold text-white transition hover:brightness-95 disabled:opacity-50">
+                          {weekBusy === m.key ? <Loader2 size={12} className="animate-spin" /> : <Gift size={12} />}수령하기
+                        </button>
+                      ) : (
+                        <span className="shrink-0 rounded-lg border border-white/10 px-3 py-1.5 text-[11px] font-bold text-white/30">진행 중</span>
+                      )}
+                    </div>
+
+                    {/* 진행바 */}
+                    <div className="mt-2.5 flex items-center gap-2">
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
+                        <div className={`h-full rounded-full transition-[width] duration-500 ${m.done ? 'bg-emerald-400' : 'bg-[#0064FF]'}`} style={{ width: pct + '%' }} />
+                      </div>
+                      <span className="shrink-0 text-[11px] font-bold text-white/45">{Math.min(m.progress, m.target)}/{m.target}</span>
+                    </div>
+
+                    {/* 자동 지급(성과인증)은 수령 버튼을 두지 않는다 — 서버가 claim 을 거부한다 */}
+                    {m.auto && !m.claimed && (
+                      <button onClick={() => { try { proofRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }) } catch { /* noop */ } }}
+                        className="mt-2 flex items-center gap-1 text-[11px] font-bold text-[#7FB2FF] hover:underline">
+                        성과인증 제출하면 자동 지급 <ArrowDown size={11} />
+                      </button>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        )}
+
         {/* 성과 인증 */}
-        <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+        <div ref={proofRef} className="mt-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
           <p className="text-sm font-bold text-white">크로닛으로 터졌어요!</p>
           <p className="mt-0.5 text-[11px] leading-relaxed text-white/45">
-            크로닛으로 만든 영상 링크를 남겨주시면 검토 후 이용권을 드려요. (7일에 1회)
+            크로닛으로 만든 영상 링크를 남겨주시면 검토 후 이용권 3개를 드려요. (7일에 1회)
           </p>
 
           <input value={url} onChange={(e) => { setUrl(e.target.value); setProofMsg(null) }}
@@ -186,11 +277,12 @@ export default function QuestPanel({ open, onClose, onClaimed }) {
           </div>
 
           <label className="mt-3 flex cursor-pointer items-start gap-2 text-[11px] leading-relaxed text-white/55">
-            <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5" />
-            <span>크로닛 홍보에 이 사례(링크·결과)를 사용하는 데 동의해요 <span className="text-white/30">(선택)</span></span>
+            <input type="checkbox" checked={consent} onChange={(e) => { setConsent(e.target.checked); setProofMsg(null) }} className="mt-0.5" />
+            <span>크로닛이 이 성과 사례를 홍보·마케팅에 활용하는 것에 동의합니다. <span className="text-white/35">(동의 시 이용권 3개 지급)</span> <span className="text-red-400">(필수)</span></span>
           </label>
 
-          <button onClick={submitProof} disabled={sending || !url.trim()}
+          {/* 동의해야 제출할 수 있다 — 서버도 동의 없으면 거부하므로 이중 안전장치 */}
+          <button onClick={submitProof} disabled={sending || !url.trim() || !consent}
             className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] py-2.5 text-sm font-bold text-white transition hover:brightness-95 disabled:opacity-40">
             {sending ? <Loader2 size={14} className="animate-spin" /> : <Trophy size={14} />}{sending ? '보내는 중…' : '인증하고 이용권 받기'}
           </button>
