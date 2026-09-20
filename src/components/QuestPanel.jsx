@@ -142,12 +142,14 @@ export default function QuestPanel({ open, onClose, onClaimed, onGoWatchlist }) 
 
   const ready = claimableCount(quests)
   // 출석은 위에 가로로 작게, 나머지는 아래 목록으로 (6개가 섞이면 읽기 어렵다)
+  // 일회성은 아직 안 받은 것만 — 주간·트랙과 항목이 겹쳐서, 받고 나면 묶음째 사라지게 한다
+  const openQuests = quests.filter((q) => !q.claimed)
   const attendance = weekly.filter((m) => m.group === 'attendance')
   const actions = weekly.filter((m) => m.group !== 'attendance')
 
   return (
     <div className="fixed inset-0 z-[90] flex items-start justify-center overflow-y-auto bg-black/70 px-4 py-6 backdrop-blur-sm sm:items-center" onClick={onClose}>
-      <div className="my-auto w-full max-w-md rounded-3xl border border-white/10 p-5 shadow-2xl md:max-w-3xl" style={{ background: '#14161c' }} onClick={(e) => e.stopPropagation()}>
+      <div className="my-auto w-full max-w-md rounded-3xl border border-white/10 p-5 shadow-2xl md:max-w-xl" style={{ background: '#14161c' }} onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
           <h3 className="flex items-center gap-1.5 text-base font-bold text-white">
             <Trophy size={17} className="text-amber-400" /> 미션
@@ -167,15 +169,19 @@ export default function QuestPanel({ open, onClose, onClaimed, onGoWatchlist }) 
           <p className={`mb-3 rounded-lg px-3 py-2 text-xs font-bold ${msg.ok ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>{msg.text}</p>
         )}
 
-        {/* PC 에서는 일회성 / 주간을 좌우로 — 모바일은 그대로 세로 스택 */}
-        <div className="md:grid md:grid-cols-2 md:items-start md:gap-4">
         {loading ? (
           <div className="flex items-center gap-2 py-8 text-sm text-white/40"><Loader2 size={15} className="animate-spin" />불러오는 중…</div>
         ) : !quests.length ? (
           <p className="py-8 text-center text-sm text-white/40">미션을 불러오지 못했어요.</p>
-        ) : (
-          <ul className="space-y-2">
-            {quests.map((q) => {
+        ) : openQuests.length > 0 ? (
+          <div>
+            <div className="mb-2 flex items-center gap-1.5">
+              <Trophy size={14} className="text-amber-400" />
+              <h4 className="text-sm font-bold text-white">시작 미션</h4>
+              <span className="ml-auto text-[11px] text-white/35">한 번만 받을 수 있어요</span>
+            </div>
+            <ul className="space-y-2">
+            {openQuests.map((q) => {
               const meta = labelOf(q)
               const can = q.eligible && !q.claimed
               return (
@@ -198,12 +204,13 @@ export default function QuestPanel({ open, onClose, onClaimed, onGoWatchlist }) 
                 </li>
               )
             })}
-          </ul>
-        )}
+            </ul>
+          </div>
+        ) : null}
 
         {/* 이번 주 미션 — 매주 월요일 리셋 */}
         {weekly.length > 0 && (
-          <div className="mt-5 md:mt-0">
+          <div className="mt-5">
             <div className="mb-2 flex items-center gap-1.5">
               <CalendarDays size={14} className="text-[#7FB2FF]" />
               <h4 className="text-sm font-bold text-white">이번 주 미션</h4>
@@ -284,7 +291,6 @@ export default function QuestPanel({ open, onClose, onClaimed, onGoWatchlist }) 
             </ul>
           </div>
         )}
-        </div>
 
         <WatchlistTrack onGo={onGoWatchlist} onClaimed={(r) => { onClaimed?.(r); loadBalance() }} />
 
