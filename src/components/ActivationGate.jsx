@@ -5,14 +5,17 @@ import ActivationOnboarding from './ActivationOnboarding'
 
 // 활성화 온보딩을 띄울지 판단.
 //
-// 대상: 가입을 마쳤고(onboarded) 아직 활성화를 안 한(onboarded_at is null) 진짜 로그인 유저.
-// 제외:
-//  - 이미 첫 분석을 한 사람(subscriptions.first_analysis_bonus) — 이미 활성화된 셈이고,
-//    이 흐름의 '첫 분석 무료'도 이미 써버린 상태라 다시 띄우면 이상하다.
-//  - 가입 절차 중(/register)·결제 결과 화면 — 각자 자기 흐름이 있다.
-//  ※ 기존 회원은 마이그레이션의 백필로 onboarded_at 이 채워져 대상에서 빠진다.
-//    백필을 안 돌리면 전 회원에게 강제로 뜬다.
+// 기준은 profiles.activation_at 하나 — null 이면 아직 활성화 전이다.
+// (onboarded / onboarded_at 은 '가입' 쪽 값이라 건드리지 않는다. 가입 완료 시각과
+//  활성화 완료는 별개고, 기존 회원은 activation_at 이 백필돼 있어 대상에서 빠진다.)
+//
+// 제외: 가입 절차 중(/register)·결제 결과 화면 — 각자 자기 흐름이 있다.
 const SKIP_PATHS = ['/register', '/payments']
+
+// '나중에 하기'를 누르면 이만큼 쉬었다 다시 묻는다(기존 가입 설문과 같은 방식)
+const DEFER_MS = 3 * 86400000
+const DEFER_KEY = 'chr_activation_deferred'
+const DONE_KEY = 'chr_activation_done'
 
 export default function ActivationGate() {
   const { pathname } = useLocation()
@@ -26,20 +29,21 @@ export default function ActivationGate() {
         const { data: { session } } = await supabase.auth.getSession()
         if (dead) return
 
-        let done = false
-        try { done = localStorage.getItem('chr_activation_done') === '1' } catch { /* noop */ }
-        if (done) { setShow(false); return }
+        // 서버 기록이 실패했을 때를 대비한 기기 단위 안전장치
+        let skip = false
+        try {
+          if (localStorage.getItem(DONE_KEY) === '1') skip = true
+          const at = Number(localStorage.getItem(DEFER_KEY) || 0)
+          if (at && Date.now() - at < DEFER_MS) skip = true
+        } catch { /* noop */ }
+        if (skip) { setShow(false); return }
 
         const u = session?.user
         if (!u || u.is_anonymous) { setShow(false); return }
 
-        const [{ data: prof }, { data: sub }] = await Promise.all([
-          supabase.from('profiles').select('onboarded, onboarded_at').eq('id', u.id).maybeSingle(),
-          supabase.from('subscriptions').select('first_analysis_bonus').eq('user_id', u.id).maybeSingle(),
-        ])
+        const { data: prof } = await supabase.from('profiles').select('activation_at').eq('id', u.id).maybeSingle()
         if (dead) return
-        if (!prof) { setShow(false); return }
-        setShow(prof.onboarded === true && !prof.onboarded_at && sub?.first_analysis_bonus !== true)
+        setShow(!!prof && !prof.activation_at)
       } catch { if (!dead) setShow(false) }
     }
 
@@ -50,5 +54,13 @@ export default function ActivationGate() {
   }, [])
 
   if (!show || suppressed) return null
-  return <ActivationOnboarding onDone={() => setShow(false)} />
+  return (
+    <ActivationOnboarding
+      onDone={() => setShow(false)}
+      onDefer={() => {
+        try { localStorage.setItem(DEFER_KEY, String(Date.now())) } catch { /* noop */ }
+        setShow(false)
+      }}
+    />
+  )
 }

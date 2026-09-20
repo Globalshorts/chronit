@@ -13,7 +13,7 @@ const PICK_COUNT = 3
 
 // 신규 유저 활성화 온보딩 — 니치 → 관련 트렌드 → 첫 액션(분석 or 저장) → 카톡 채널.
 // 완료 전에는 닫을 수 없다. 단, 트렌드를 못 불러오면 갇히지 않게 빠져나갈 길을 연다.
-export default function ActivationOnboarding({ onDone }) {
+export default function ActivationOnboarding({ onDone, onDefer }) {
   const [step, setStep] = useState('niche')      // niche | action | done
   const [niche, setNiche] = useState('')
   const [items, setItems] = useState([])
@@ -57,22 +57,19 @@ export default function ActivationOnboarding({ onDone }) {
   const pickNiche = (label, canonical) => {
     setNiche(canonical)
     try { localStorage.setItem('chr_niche', canonical) } catch { /* noop */ }
-    supabase.rpc('set_onboarding_niche_rpc', { p_niche: canonical }).then(null, () => {})
+    supabase.rpc('set_user_niche_rpc', { p_niche: canonical }).then(null, () => {})
     try { phCapture('niche_selected', { niche: canonical, chip: label }) } catch { /* noop */ }
     setStep('action')
     loadTrends(canonical)
   }
 
-  // 완료 기록. RPC 가 아직 없어도(마이그레이션 전) 사용자가 갇히지 않게 폴백을 둔다.
+  // 완료 기록 — activation_at 스탬프 + 니치 저장을 한 번에.
+  // (가입 쪽 complete_onboarding_rpc 는 여기서 쓰지 않는다)
+  // 서버 기록이 실패해도 모달에 갇히지 않게 기기 단위 표시를 함께 남긴다.
   const complete = useCallback(async (action) => {
     try { phCapture('activation_action_completed', { action, niche }) } catch { /* noop */ }
-    try {
-      const { error } = await supabase.rpc('complete_activation_rpc')
-      if (error) throw error
-    } catch {
-      try { await supabase.rpc('complete_onboarding_rpc') } catch { /* noop */ }
-      try { localStorage.setItem('chr_activation_done', '1') } catch { /* noop */ }
-    }
+    try { await supabase.rpc('complete_activation_rpc', { p_niche: niche || null }) } catch { /* noop */ }
+    try { localStorage.setItem('chr_activation_done', '1') } catch { /* noop */ }
     setStep('done')
   }, [niche])
 
@@ -108,10 +105,15 @@ export default function ActivationOnboarding({ onDone }) {
     const how = addKakaoChannel()
     setKakaoDone(true)
     try { phCapture('kakao_optin', { how }) } catch { /* noop */ }
-    supabase.rpc('set_kakao_opt_in_rpc', { p_opt_in: true }).then(null, () => {})
+    supabase.rpc('set_kakao_opt_in_rpc').then(null, () => {})   // 인자 없는 함수
   }
 
   const finish = () => { onDone?.() }
+  // 나중에 하기: activation_at 을 찍지 않으므로 유예가 지나면 다시 뜬다
+  const later = () => {
+    try { phCapture('onboarding_deferred', { step }) } catch { /* noop */ }
+    onDefer ? onDefer() : onDone?.()
+  }
 
   return (
     <div className="fixed inset-0 z-[95] flex items-start justify-center overflow-y-auto bg-black/70 px-4 py-6 backdrop-blur-sm sm:items-center">
@@ -129,6 +131,9 @@ export default function ActivationOnboarding({ onDone }) {
                 </button>
               ))}
             </div>
+            <button onClick={later} className="mt-5 w-full py-1 text-center text-xs font-medium text-white/35 hover:text-white/60">
+              나중에 하기
+            </button>
           </>
         )}
 
@@ -146,7 +151,7 @@ export default function ActivationOnboarding({ onDone }) {
             ) : err ? (
               <div className="py-10 text-center">
                 <p className="text-sm text-white/60">{err}</p>
-                <button onClick={() => complete('skip')} className="mt-4 text-xs font-bold text-white/45 underline">
+                <button onClick={later} className="mt-4 text-xs font-bold text-white/45 underline">
                   다음에 하기
                 </button>
               </div>
@@ -174,6 +179,11 @@ export default function ActivationOnboarding({ onDone }) {
                   </div>
                 ))}
               </div>
+            )}
+            {!loading && !err && (
+              <button onClick={later} className="mt-4 w-full py-1 text-center text-xs font-medium text-white/35 hover:text-white/60">
+                나중에 하기
+              </button>
             )}
           </>
         )}
