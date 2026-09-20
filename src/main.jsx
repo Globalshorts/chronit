@@ -20,8 +20,13 @@ try {
   }
 } catch { /* noop */ }
 
+// 서비스워커(웹푸시·설치)도 첫 페인트 이후에 붙인다
+const _startSW = () => {
+  try { if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {}) } catch { /* noop */ }
+}
+
 // 분석 초기화는 첫 페인트 이후로 지연 (초기 로드/렌더 블로킹 방지)
-const _startPH = () => { try { initPosthog() } catch {} }
+const _startPH = () => { try { initPosthog(); _startSW() } catch {} }
 if ('requestIdleCallback' in window) requestIdleCallback(_startPH, { timeout: 4000 })
 else setTimeout(_startPH, 2500)
 

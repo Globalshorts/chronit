@@ -99,6 +99,14 @@ function FindCard({ clip, onAnalyze }) {
   )
 }
 
+// 분석 결과를 실제로 본 순간 한 번.
+//  - analysis_events 기록: '첫 분석' 퀘스트의 판정 근거 (작업실이 닫힌 뒤로 기록처가 없었다)
+//  - 이벤트: 알림/설치 권유를 이 타이밍에만 띄우려고 알린다
+function markAnalyzed(clip) {
+  try { supabase.rpc('log_analysis_rpc', { p_url: clip?.page_url || clip?.url || '' }).then(null, () => {}) } catch { /* noop */ }
+  try { window.dispatchEvent(new Event('chronit:analysis-done')) } catch { /* noop */ }
+}
+
 // ── 분석 팝업(모달) ──
 // 분석 차감 안내 — 세션당 최초 1회 확인
 export function ackAnalyzeCost(balance) {
@@ -175,7 +183,7 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed, initialResult = null }
         let uNiche = '', uPersona = ''
         try { const { data: pf } = await supabase.from('profiles').select('niche,persona').eq('id', s.user.id).maybeSingle(); uNiche = pf?.niche || ''; uPersona = pf?.persona || '' } catch { /* noop */ }
         const cacheKey = String(clip.video_id || clip.page_url || clip.title || '').slice(0, 280) + '|' + uNiche + '|v9'
-        try { const { data: cached } = await supabase.rpc('get_analyze_cache_rpc', { p_key: cacheKey }); if (cached && cached.ok) { if (alive) { setResult(cached); try { onAnalyzed && onAnalyzed() } catch { /* noop */ } setLoading(false) } return } } catch { /* noop */ }
+        try { const { data: cached } = await supabase.rpc('get_analyze_cache_rpc', { p_key: cacheKey }); if (cached && cached.ok) { if (alive) { setResult(cached); markAnalyzed(clip); try { onAnalyzed && onAnalyzed() } catch { /* noop */ } setLoading(false) } return } } catch { /* noop */ }
         const r = await fetch(FN('analyze-clip'), {
           method: 'POST',
           headers: { Authorization: `Bearer ${s.access_token}`, 'Content-Type': 'application/json' },
@@ -183,7 +191,7 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed, initialResult = null }
         })
         const d = await r.json()
         if (!alive) return
-        if (d.ok) { setResult(d); try { onAnalyzed && onAnalyzed() } catch { /* noop */ } if (d.hook) { try { await supabase.rpc('set_analyze_cache_rpc', { p_key: cacheKey, p_result: d }) } catch { /* noop */ } } } else setErr(d.error || '분석에 실패했어요.')
+        if (d.ok) { setResult(d); markAnalyzed(clip); try { onAnalyzed && onAnalyzed() } catch { /* noop */ } if (d.hook) { try { await supabase.rpc('set_analyze_cache_rpc', { p_key: cacheKey, p_result: d }) } catch { /* noop */ } } } else setErr(d.error || '분석에 실패했어요.')
       } catch { if (alive) setErr('분석 중 오류가 발생했어요.') }
       finally { if (alive) setLoading(false) }
     })()
