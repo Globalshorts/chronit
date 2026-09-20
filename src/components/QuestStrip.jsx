@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Trophy, ChevronRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { claimableCount } from '../lib/quests'
@@ -8,6 +9,7 @@ import QuestPanel from './QuestPanel'
 const CHECKIN_KEY = 'chr_checkin_at'
 
 export default function QuestStrip({ enabled }) {
+  const nav = useNavigate()
   const [open, setOpen] = useState(false)
   const [ready, setReady] = useState(0)
 
@@ -55,7 +57,8 @@ export default function QuestStrip({ enabled }) {
         <ChevronRight size={15} className="shrink-0 text-white/30" />
       </button>
 
-      <QuestPanel open={open} onClose={() => { setOpen(false); refresh() }} onClaimed={refresh} />
+      <QuestPanel open={open} onClose={() => { setOpen(false); refresh() }} onClaimed={refresh}
+        onGoWatchlist={() => { setOpen(false); nav('/watchlist') }} />
     </>
   )
 }

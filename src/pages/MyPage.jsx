@@ -8,6 +8,7 @@ import AuthModal from '../components/AuthModal'
 import Footer from '../components/Footer'
 import FindsBottomNav from '../components/FindsBottomNav'
 import { supabase } from '../lib/supabase'
+import PushToggle from '../components/PushToggle'
 import { redeemAnyCode, validateTrialCode } from '../lib/redeemCode'
 import TrialCodeNotice from '../components/TrialCodeNotice'
 import { PLAN_LABEL } from '../lib/planLabels'
@@ -261,6 +262,9 @@ const MyPage = () => {
           </div>
         )}
 
+
+        {/* 알림 — 권한 요청은 사용자가 버튼을 누른 순간에만 뜬다 */}
+        <PushToggle />
 
         {/* 저장한 기획 */}
         <div className="mt-8">

@@ -3,11 +3,12 @@ import { X, Gift, Check, Loader2, Trophy, Sparkles, AlertTriangle, CalendarDays,
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
 import { labelOf, claimableCount, weeklyClaimable } from '../lib/quests'
+import WatchlistTrack from './WatchlistTrack'
 
 const PLATFORMS = ['인스타그램', '틱톡', '유튜브', '기타']
 
 // 미션 패널 — 퀘스트 수령 + 성과 인증. (마이페이지가 아니라 트렌드 상단에서 연다)
-export default function QuestPanel({ open, onClose, onClaimed }) {
+export default function QuestPanel({ open, onClose, onClaimed, onGoWatchlist }) {
   const [quests, setQuests] = useState([])
   const [weekly, setWeekly] = useState([])
   const [weekBusy, setWeekBusy] = useState('')
@@ -140,6 +141,9 @@ export default function QuestPanel({ open, onClose, onClaimed }) {
   }
 
   const ready = claimableCount(quests)
+  // 출석은 위에 가로로 작게, 나머지는 아래 목록으로 (6개가 섞이면 읽기 어렵다)
+  const attendance = weekly.filter((m) => m.group === 'attendance')
+  const actions = weekly.filter((m) => m.group !== 'attendance')
 
   return (
     <div className="fixed inset-0 z-[90] flex items-start justify-center overflow-y-auto bg-black/70 px-4 py-6 backdrop-blur-sm sm:items-center" onClick={onClose}>
@@ -208,8 +212,34 @@ export default function QuestPanel({ open, onClose, onClaimed }) {
               )}
               <span className="ml-auto text-[11px] text-white/35">월요일마다 초기화</span>
             </div>
+            {/* 출석 — 가로 칩. 받을 수 있으면 칩 자체가 버튼이 된다 */}
+            {attendance.length > 0 && (
+              <div className="mb-2.5 flex flex-wrap gap-1.5">
+                {attendance.map((m) => {
+                  const can = m.done && !m.claimed
+                  const label = (labelOf(m).title || m.key).replace(/^이번 주\s*/, '')
+                  const cls = m.claimed
+                    ? 'bg-emerald-500/15 text-emerald-400'
+                    : can
+                      ? 'bg-[#0064FF] text-white hover:brightness-95'
+                      : 'bg-white/5 text-white/45'
+                  return can ? (
+                    <button key={m.key} onClick={() => claimWeekly(m.key)} disabled={!!weekBusy}
+                      className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-bold transition disabled:opacity-50 ${cls}`}>
+                      {weekBusy === m.key ? <Loader2 size={11} className="animate-spin" /> : <Gift size={11} />}{label} +{m.reward}
+                    </button>
+                  ) : (
+                    <span key={m.key} className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-bold ${cls}`}>
+                      {m.claimed ? <Check size={11} /> : null}{label}
+                      {!m.claimed && <span className="text-white/30">{m.progress}/{m.target}</span>}
+                    </span>
+                  )
+                })}
+              </div>
+            )}
+
             <ul className="space-y-2">
-              {weekly.map((m) => {
+              {actions.map((m) => {
                 const meta = labelOf(m)
                 const pct = m.target > 0 ? Math.min(100, Math.round((m.progress / m.target) * 100)) : 0
                 const can = m.done && !m.claimed && !m.auto
@@ -255,6 +285,8 @@ export default function QuestPanel({ open, onClose, onClaimed }) {
           </div>
         )}
         </div>
+
+        <WatchlistTrack onGo={onGoWatchlist} onClaimed={(r) => { onClaimed?.(r); loadBalance() }} />
 
         {/* 성과 인증 */}
         <div ref={proofRef} className="mt-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
