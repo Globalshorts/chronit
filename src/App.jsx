@@ -5,7 +5,6 @@ import ErrorBoundary from './components/ErrorBoundary'
 import Home from './pages/Home'
 import BlobBackground from './components/BlobBackground'
 import ErrorReportModal from './components/ErrorReportModal'
-import OnboardingSurveyGate from './components/OnboardingSurveyGate'
 import ActivationGate from './components/ActivationGate'
 import InAppBrowserBanner from './components/InAppBrowserBanner'
 import InstallButton from './components/InstallButton'
@@ -100,7 +99,6 @@ const App = () => {
     <ScrollToTop />
     <ErrorReportModal />
     <InAppBrowserBanner />
-    <OnboardingSurveyGate />
     <ActivationGate />
     <Suspense fallback={null}><PwaInstallGlobal /></Suspense>
     <InstallButton />
