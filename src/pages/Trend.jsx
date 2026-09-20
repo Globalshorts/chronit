@@ -98,7 +98,7 @@ export default function Trend() {
     if (!data?.ok) { nav('/pricing'); return }
     setAnalyzedIds((prev) => [...prev, key])
     setModalClip(clip)
-    supabase.rpc('grant_first_analysis_bonus_rpc').catch(() => {})
+    supabase.rpc('grant_first_analysis_bonus_rpc').then(null, () => {})
   }
 
   // 메타 픽셀 전환: /trend 도달 1회 (로그인 여부 무관)
