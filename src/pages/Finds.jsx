@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import HeaderInstallBtn from '../components/HeaderInstallBtn'
 import { Navigate, Link, useNavigate } from 'react-router-dom'
-import { Search, Loader2, AlertTriangle, Flame, Eye, Heart, MessageCircle, Sparkles, X, Copy, Check, Download, Bookmark } from 'lucide-react'
+import { Search, Loader2, AlertTriangle, Flame, Eye, Heart, MessageCircle, Sparkles, X, Copy, Check, Download, Bookmark, RefreshCw } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
 import { FEATURES } from '../config/features'
@@ -21,8 +21,43 @@ const THUMB_PROXY = `${SB}/functions/v1/thumbnail-proxy`
 const proxyThumb = (url) => (url ? `${THUMB_PROXY}?url=${encodeURIComponent(url)}` : '')
 const fmt = (n) => (typeof n === 'number' ? n.toLocaleString('ko-KR') : null)
 
+// 소스마다 지표 필드명이 달라서 한 모양으로 맞춘다(최초 검색·다시 찾기 공용)
+const normClips = (list) => (Array.isArray(list) ? list : []).map((c) => ({
+  ...c,
+  views: c.views ?? c.view_count ?? c.play_count,
+  likes: c.likes ?? c.like_count ?? c.digg_count,
+  comments: c.comments ?? c.comment_count ?? c.comments_count,
+}))
+
 const isValidUrl = (u) =>
   ['youtube.com', 'youtu.be', 'tiktok.com', 'instagram.com'].some((p) => u.toLowerCase().includes(p))
+
+// 결과가 마음에 안 들 때 같은 검색어로 한 번 더 — 모델 재분석 없이 검색만 다시 돌린다(무료).
+function RecheckCard({ onClick, busy }) {
+  return (
+    <div className="mt-8 flex justify-center">
+      <div
+        className="w-full max-w-[320px] text-center"
+        style={{
+          background: 'rgba(255,255,255,0.08)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          border: '1px solid rgba(255,255,255,0.15)',
+          borderRadius: 16,
+          padding: 18,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
+        }}
+      >
+        <p className="text-sm font-bold text-white">원하는 결과가 없나요?</p>
+        <p className="mt-1 text-[11px] leading-relaxed text-white/55">같은 상품으로 다시 찾아볼게요 — 이용권은 차감되지 않아요</p>
+        <button onClick={onClick} disabled={busy}
+          className="mt-3.5 flex w-full items-center justify-center gap-1.5 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-2.5 text-sm font-bold text-white shadow-md transition hover:brightness-95 active:scale-[0.98] disabled:opacity-50">
+          {busy ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}{busy ? '다시 찾는 중…' : '다시 찾기'}
+        </button>
+      </div>
+    </div>
+  )
+}
 
 // ── 클립 카드 (기존 ClipCard의 재생 로직 복제, 담기→분석하기) ──
 function FindCard({ clip, onAnalyze }) {
@@ -501,6 +536,9 @@ export default function Finds() {
   const [analyzedIds, setAnalyzedIds] = useState([])
   const [balance, setBalance] = useState(null)
   const [payWall, setPayWall] = useState(false)
+  // 다시 찾기용 — 마지막 분석의 검색어/정체성/상품명
+  const [lastSearch, setLastSearch] = useState(null)
+  const [rechecking, setRechecking] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -523,6 +561,7 @@ export default function Finds() {
         const c = JSON.parse(raw)
         if (c && Array.isArray(c.clips) && c.clips.length && Date.now() - (c.ts || 0) < 1800000) {
           setClips(c.clips); if (c.q) setSourceUrl(c.q); if (Array.isArray(c.related)) setRelatedKw(c.related)
+          if (c.ls?.queries?.length) setLastSearch(c.ls)
         }
       }
     } catch { /* noop */ }
@@ -575,6 +614,7 @@ export default function Finds() {
       let queries = []
       let searchArgs = { product_name: '', keyword: '', keywords: [] }
       let rawClips = []
+      let identity = ''   // 서버가 만든 상품 정체성 — 같은 상품을 위로 올리는 데 쓴다
 
       if (isUrl) {
         // 링크 모드: 레퍼런스 영상 분석 → 키워드 추출 → 유사도 필터
@@ -599,6 +639,7 @@ export default function Finds() {
         if (!data1) { setError('분석이 지연되고 있어요. 잠시 후 다시 시도해 주세요.'); setSearching(false); return }
         refFrames = data1.reference_frames || []
         queries = data1.tiktok_queries || []
+        identity = data1.exp_identity || ''
         rawClips = data1.clips || []
         searchArgs = { product_name: data1.product_name || '', keyword: data1.keyword || '', keywords: data1.keywords || [] }
         setSrchStage('후보 소스 수집 중'); srchTargetRef.current = 58
@@ -612,7 +653,8 @@ export default function Finds() {
       let xhsClips = []
       setSrchStage('소스 수집 중'); srchTargetRef.current = Math.max(srchTargetRef.current, 66)
       await Promise.all([
-        (async () => { try { const r = await fetch(FN('search-clips'), { method: 'POST', headers, body: JSON.stringify({ action: 'search_tiktok', queries }) }); const d = await r.json(); if (d?.ok && Array.isArray(d.clips)) rawClips = d.clips } catch { /* noop */ } })(),
+        // identity·product_name 을 같이 보내야 서버가 같은 상품을 상단으로 정렬해준다(다시 찾기와 동일 조건)
+        (async () => { try { const r = await fetch(FN('search-clips'), { method: 'POST', headers, body: JSON.stringify({ action: 'search_tiktok', queries, identity, product_name: searchArgs.product_name || '' }) }); const d = await r.json(); if (d?.ok && Array.isArray(d.clips)) rawClips = d.clips } catch { /* noop */ } })(),
         (async () => { try { const r = await fetch(FN('search-xhs'), { method: 'POST', headers, body: JSON.stringify({ ...searchArgs, tiktok_queries: queries }) }); const d = await r.json(); if (d?.ok && Array.isArray(d.clips)) xhsClips = d.clips } catch { /* noop */ } })(),
       ])
 
@@ -636,9 +678,11 @@ export default function Finds() {
       }
       // 지표 필드 정규화(있으면 사용)
       setSrchStage('정리 중'); srchTargetRef.current = 95
-      setClips(finalClips.map((c) => ({ ...c, views: c.views ?? c.view_count ?? c.play_count, likes: c.likes ?? c.like_count ?? c.digg_count, comments: c.comments ?? c.comment_count ?? c.comments_count })))
+      setClips(normClips(finalClips))
+      const ls = queries.length ? { queries, identity, product_name: searchArgs.product_name || '' } : null
+      setLastSearch(ls)
       try { phCapture('search_succeeded', { count: finalClips.length }) } catch { /* noop */ }
-      try { sessionStorage.setItem('finds_cache', JSON.stringify({ q: su, clips: finalClips, ts: Date.now() })) } catch { /* noop */ }
+      try { sessionStorage.setItem('finds_cache', JSON.stringify({ q: su, clips: finalClips, ts: Date.now(), ls })) } catch { /* noop */ }
 
       const kwForRelated = isUrl ? (searchArgs.keyword || '') : su
       if (kwForRelated) {
@@ -652,6 +696,40 @@ export default function Finds() {
       setError('분석 중 일시적인 오류가 있었어요. 잠시 후 다시 시도해 주세요.')
     } finally {
       setSearching(false)
+    }
+  }
+
+  // 같은 검색어로 검색만 다시 — 모델 재분석/과금 없음(서버 search_tiktok 은 차감하지 않는다)
+  const recheck = async () => {
+    if (rechecking || !lastSearch?.queries?.length) return
+    setRechecking(true); setError('')
+    try {
+      const { data: { session: s } } = await supabase.auth.getSession()
+      const r = await fetch(FN('search-clips'), {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${s?.access_token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'search_tiktok',
+          queries: lastSearch.queries,
+          identity: lastSearch.identity || '',
+          product_name: lastSearch.product_name || '',
+        }),
+      })
+      const d = await r.json()
+      const got = normClips(d?.ok ? d.clips : [])
+      if (!got.length) { setError('새로 찾은 결과가 없어요. 잠시 후 다시 시도해 주세요.'); return }
+      setClips(got)
+      try { phCapture('research_rechecked', { count: got.length }) } catch { /* noop */ }
+      try {
+        const raw = sessionStorage.getItem('finds_cache')
+        const c = raw ? JSON.parse(raw) : {}
+        sessionStorage.setItem('finds_cache', JSON.stringify({ ...c, clips: got, ts: Date.now(), ls: lastSearch }))
+      } catch { /* noop */ }
+      try { window.scrollTo({ top: 0, behavior: 'smooth' }) } catch { /* noop */ }
+    } catch {
+      setError('다시 찾는 중 오류가 발생했어요. 잠시 후 시도해 주세요.')
+    } finally {
+      setRechecking(false)
     }
   }
 
@@ -723,9 +801,6 @@ export default function Finds() {
             {searchMode === 'channel' ? (channelLoading ? '분석 중…' : '채널 분석') : (searching ? '분석 중…' : '분석')}
           </button>
         </div>
-        {searchMode === 'clip' && !searching && clips.length > 0 && (
-          <p className="mt-2 text-xs text-slate-400">원하는 결과가 없나요? <button onClick={() => { try { const el = searchInputRef.current; if (el) { el.focus(); el.select(); el.scrollIntoView({ behavior: 'smooth', block: 'center' }) } } catch { /* noop */ } }} className="font-bold text-[#0064FF] hover:underline">재검색</button></p>
-        )}
 
         {searchMode === 'clip' && relatedKw.length > 0 && (
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
@@ -762,6 +837,9 @@ export default function Finds() {
           <div className={`mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 ${isAnon && clips.length ? 'pointer-events-none select-none blur-[6px]' : ''}`}>
             {clips.map((c) => <FindCard key={c.video_id} clip={c} onAnalyze={handleAnalyze} />)}
           </div>
+          {!isAnon && !searching && clips.length > 0 && lastSearch?.queries?.length > 0 && (
+            <RecheckCard onClick={recheck} busy={rechecking} />
+          )}
           {isAnon && clips.length > 0 && (
             <div className="absolute inset-0 flex items-start justify-center pt-24">
               <div className="rounded-2xl border border-slate-100 bg-white/95 px-7 py-6 text-center shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] backdrop-blur">
@@ -782,8 +860,10 @@ export default function Finds() {
           </div>
         )}
 
-        {searchMode === 'clip' && !searching && clips.length === 0 && !error && (
-          <div className="mt-16 text-center text-sm text-slate-400">마음에 든 쇼핑 릴스·틱톡 링크를 붙여넣어 시작해보세요.</div>
+        {searchMode === 'clip' && !searching && clips.length === 0 && (
+          lastSearch?.queries?.length > 0
+            ? <RecheckCard onClick={recheck} busy={rechecking} />
+            : !error && <div className="mt-16 text-center text-sm text-slate-400">마음에 든 쇼핑 릴스·틱톡 링크를 붙여넣어 시작해보세요.</div>
         )}
       </div>
 
