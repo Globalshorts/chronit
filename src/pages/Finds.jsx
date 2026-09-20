@@ -35,7 +35,7 @@ const isValidUrl = (u) =>
 // 결과가 마음에 안 들 때 같은 검색어로 한 번 더 — 모델 재분석 없이 검색만 다시 돌린다(무료).
 function RecheckCard({ onClick, busy }) {
   return (
-    <div className="mt-8 flex justify-center">
+    <div className="mt-5 flex justify-center">
       <div
         className="w-full max-w-[320px] text-center"
         style={{
@@ -811,6 +811,10 @@ export default function Finds() {
             ))}
           </div>
         )}
+        {/* 결과 위에 둔다 — 리스트 맨 아래면 스크롤해야 보여서 눌리지 않는다 */}
+        {searchMode === 'clip' && !isAnon && !searching && clips.length > 0 && lastSearch?.queries?.length > 0 && (
+          <RecheckCard onClick={recheck} busy={rechecking} />
+        )}
         {error && (
           <div className="mt-3 flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
             <AlertTriangle size={15} />{error}
@@ -837,9 +841,6 @@ export default function Finds() {
           <div className={`mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 ${isAnon && clips.length ? 'pointer-events-none select-none blur-[6px]' : ''}`}>
             {clips.map((c) => <FindCard key={c.video_id} clip={c} onAnalyze={handleAnalyze} />)}
           </div>
-          {!isAnon && !searching && clips.length > 0 && lastSearch?.queries?.length > 0 && (
-            <RecheckCard onClick={recheck} busy={rechecking} />
-          )}
           {isAnon && clips.length > 0 && (
             <div className="absolute inset-0 flex items-start justify-center pt-24">
               <div className="rounded-2xl border border-slate-100 bg-white/95 px-7 py-6 text-center shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] backdrop-blur">
