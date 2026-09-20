@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { X, Gift, Check, Loader2, Trophy, Sparkles, AlertTriangle, CalendarDays, ArrowDown } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
-import { sortQuests, questLabel, claimableCount, weeklyLabel, weeklyClaimable } from '../lib/quests'
+import { labelOf, claimableCount, weeklyClaimable } from '../lib/quests'
 
 const PLATFORMS = ['인스타그램', '틱톡', '유튜브', '기타']
 
@@ -38,7 +38,7 @@ export default function QuestPanel({ open, onClose, onClaimed }) {
     let wk = []
     try {
       const { data } = await supabase.rpc('get_quests_rpc')
-      list = data?.ok ? sortQuests(data.quests) : []
+      list = data?.ok && Array.isArray(data.quests) ? data.quests : []
     } catch { /* noop */ }
     try {
       const { data } = await supabase.rpc('get_weekly_missions_rpc')
@@ -60,7 +60,7 @@ export default function QuestPanel({ open, onClose, onClaimed }) {
       let bal = null
       try {
         const { data } = await supabase.rpc('get_quests_rpc')
-        list = data?.ok ? sortQuests(data.quests) : []
+        list = data?.ok && Array.isArray(data.quests) ? data.quests : []
       } catch { /* noop */ }
       try {
         const { data } = await supabase.rpc('get_weekly_missions_rpc')
@@ -172,7 +172,7 @@ export default function QuestPanel({ open, onClose, onClaimed }) {
         ) : (
           <ul className="space-y-2">
             {quests.map((q) => {
-              const meta = questLabel(q.key)
+              const meta = labelOf(q)
               const can = q.eligible && !q.claimed
               return (
                 <li key={q.key} className={`flex items-center gap-3 rounded-xl border px-3.5 py-3 ${can ? 'border-amber-400/30 bg-amber-400/[0.06]' : 'border-white/10 bg-white/[0.03]'}`}>
@@ -210,7 +210,7 @@ export default function QuestPanel({ open, onClose, onClaimed }) {
             </div>
             <ul className="space-y-2">
               {weekly.map((m) => {
-                const meta = weeklyLabel(m.key)
+                const meta = labelOf(m)
                 const pct = m.target > 0 ? Math.min(100, Math.round((m.progress / m.target) * 100)) : 0
                 const can = m.done && !m.claimed && !m.auto
                 return (
