@@ -6,6 +6,8 @@ import Home from './pages/Home'
 import BlobBackground from './components/BlobBackground'
 import ErrorReportModal from './components/ErrorReportModal'
 import OnboardingSurveyGate from './components/OnboardingSurveyGate'
+import ActivationGate from './components/ActivationGate'
+import InAppBrowserBanner from './components/InAppBrowserBanner'
 import InstallButton from './components/InstallButton'
 import AppShell from './components/AppShell'
 const PwaInstallGlobal = lazy(() => import('./components/PwaInstall'))
@@ -97,7 +99,9 @@ const App = () => {
     <div style={{ position: 'relative', zIndex: 1 }}>
     <ScrollToTop />
     <ErrorReportModal />
+    <InAppBrowserBanner />
     <OnboardingSurveyGate />
+    <ActivationGate />
     <Suspense fallback={null}><PwaInstallGlobal /></Suspense>
     <InstallButton />
     <ErrorBoundary>

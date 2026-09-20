@@ -17,6 +17,10 @@ const OnboardingSurveyGate = () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
         if (!session) { if (!dead) setOpen(false); return }
+        // 활성화 온보딩(ActivationGate) 대상이면 그쪽이 니치를 받으므로 여기선 빠진다
+        const { data: prof } = await supabase.from('profiles').select('onboarded_at').eq('id', session.user.id).maybeSingle()
+        if (dead) return
+        if (prof && !prof.onboarded_at) { setOpen(false); return }
         const { data } = await supabase.rpc('onboarding_state_rpc')
         if (dead) return
         if (data?.needed) {

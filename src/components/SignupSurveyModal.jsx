@@ -9,7 +9,7 @@ const SignupSurveyModal = ({ open, onDone, onClose }) => {
 
   const pick = (cat) => {
     try { localStorage.setItem('chr_niche', cat) } catch { /* noop */ }
-    supabase.rpc('set_onboarding_niche_rpc', { p_niche: cat }).catch(() => {})   // 백그라운드 저장(대기 X)
+    supabase.rpc('set_onboarding_niche_rpc', { p_niche: cat }).then(null, () => {})   // 백그라운드 저장(대기 X)
     onDone?.()
   }
   const skip = () => { onClose ? onClose() : onDone?.() }

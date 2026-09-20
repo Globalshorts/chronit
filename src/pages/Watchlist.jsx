@@ -211,7 +211,7 @@ export default function Watchlist() {
     if (!data?.ok) { nav('/pricing'); return }
     setAnalyzedIds((prev) => [...prev, key])
     setModalClip(clip)
-    supabase.rpc('grant_first_analysis_bonus_rpc').catch(() => {})
+    supabase.rpc('grant_first_analysis_bonus_rpc').then(null, () => {})
   }
 
   const now = Date.now()
