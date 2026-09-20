@@ -16,6 +16,8 @@ import {
 import PostTypeToggle from '../components/PostTypeToggle'
 import VideoModal from '../components/ReelModal'
 import TrendCard, { TrendThumb } from '../components/TrendCard'
+import QuestStrip from '../components/QuestStrip'
+import NewSinceBadges from '../components/NewSinceBadges'
 import { fmtCount as fmt } from '../lib/format'
 
 const CATS = ['전체','리빙','육아','푸드','잡화','패션','디지털','뷰티']
@@ -153,6 +155,10 @@ export default function Trend() {
   const rawSort = fastBench ? fbSort : sort
   const effSort = postType === 'carousel' && rawSort === 'view' ? 'like' : rawSort
   const sortOptions = (fastBench ? FB_SORTS : SORTS).filter(([k]) => !(postType === 'carousel' && k === 'view'))
+  // 개인화: 카테고리 칩이 '전체'일 때만 내 니치 소재를 앞으로 올린다.
+  // (칩을 직접 고르면 그 선택을 존중해야 하므로 건드리지 않는다)
+  const nicheCat = NICHE_TO_CAT[myNiche] || ''
+  const nicheFirst = !!nicheCat && selCat === '전체'
   const _listBase = (fastBench && Array.isArray(fbItems) && fbItems.length ? fbItems : items)
     .filter((it) => {
       // 게시일 슬라이더. 패스트벤치는 고유 게이트(≤2일)를 유지한 채 슬라이더를 더 좁히는 방향으로만 적용.
@@ -179,6 +185,11 @@ export default function Trend() {
     // 영상 없는 행은 깨진 릴스라 뺀다 — 캐러셀은 원래 영상이 없으니 예외
     .filter((it) => isCarousel(it) || String(it.video_url || '') !== '')
     .sort((a, b) => {
+      // 내 니치를 먼저, 그 안에서 선택한 정렬 기준대로
+      if (nicheFirst) {
+        const d = (b.category === nicheCat ? 1 : 0) - (a.category === nicheCat ? 1 : 0)
+        if (d) return d
+      }
       const s = effSort
       if (s === 'score') return fbScore(b) - fbScore(a)
       if (s === 'recent') return new Date(b.taken_at || 0) - new Date(a.taken_at || 0)
@@ -224,6 +235,9 @@ export default function Trend() {
           <p className="mt-1 text-sm text-slate-500">지금 뜨는 쇼핑 숏폼을 한눈에. 조회수·좋아요 순으로 정렬해 확인하세요.</p>
           <p className="mt-0.5 text-[11px] text-slate-400">[분석]은 이용권 1개가 차감돼요 · 이미 분석한 소스는 다시 열어도 무료예요</p>
         </header>
+
+        <QuestStrip enabled={isReal} />
+        <NewSinceBadges enabled={isReal} items={items} />
 
         {isReal && !fastBench && fbCount > 0 && (
           <button onClick={() => setFastBench(true)} className="mb-4 flex w-full items-center justify-between gap-3 rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 px-4 py-3 text-left ring-1 ring-amber-400/30 transition hover:brightness-125 active:scale-[0.99]">

@@ -237,7 +237,7 @@ const Register = () => {
               <input type="checkbox" className="sr-only" checked={marketing} onChange={(e) => setMarketing(e.target.checked)} />
               <span className="text-sm leading-relaxed text-gray-600">
                 <span className="font-bold text-gray-400">[선택]</span> 마케팅 정보 수신에 동의합니다.
-                <span className="mt-0.5 block text-xs text-gray-400">혜택·이벤트·신규 기능 소식을 이메일/카카오톡 등으로 받아봅니다.</span>
+                <span className="mt-0.5 block text-xs text-gray-400">혜택·이벤트·신규 소재 소식을 이메일·카카오톡·앱 푸시로 받아봅니다. 언제든 수신거부할 수 있어요.</span>
               </span>
             </label>
 

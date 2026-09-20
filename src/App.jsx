@@ -7,6 +7,7 @@ import BlobBackground from './components/BlobBackground'
 import ErrorReportModal from './components/ErrorReportModal'
 import ActivationGate from './components/ActivationGate'
 import InAppBrowserBanner from './components/InAppBrowserBanner'
+import PushPrompt from './components/PushPrompt'
 import InstallButton from './components/InstallButton'
 import AppShell from './components/AppShell'
 const PwaInstallGlobal = lazy(() => import('./components/PwaInstall'))
@@ -100,6 +101,7 @@ const App = () => {
     <ErrorReportModal />
     <InAppBrowserBanner />
     <ActivationGate />
+    <PushPrompt />
     <Suspense fallback={null}><PwaInstallGlobal /></Suspense>
     <InstallButton />
     <ErrorBoundary>
