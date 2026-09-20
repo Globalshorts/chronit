@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import HeaderInstallBtn from '../components/HeaderInstallBtn'
 import { Navigate, Link, useNavigate } from 'react-router-dom'
-import { Search, Loader2, AlertTriangle, Flame, Eye, Heart, MessageCircle, Sparkles, X, Copy, Check, Download, Bookmark, Crown } from 'lucide-react'
+import { Search, Loader2, AlertTriangle, Flame, Eye, Heart, MessageCircle, Sparkles, X, Copy, Check, Download, Bookmark } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
 import { FEATURES } from '../config/features'
@@ -12,7 +12,6 @@ import SiteNav from '../components/SiteNav'
 import ChannelModal from '../components/ChannelModal'
 import { useAnalysis } from '../context/analysis'
 import FindsBottomNav from '../components/FindsBottomNav'
-import XhsSearch from '../components/XhsSearch'
 
 // ⚠️ Finds = 기존 영상분석 뷰(클립 그리드 + 재생)를 복제한 독립 페이지.
 //    VideoGenerator는 건드리지 않음(회귀 위험 0). '담기' 대신 '분석하기' 모달로 대체.
@@ -697,19 +696,14 @@ export default function Finds() {
           <ReferralCTA variant="button" />
           <button onClick={() => (isAnon ? setShowAuth(true) : nav('/pricing'))} className="inline-flex items-center gap-1 rounded-full bg-[#0064FF] px-3 py-1 text-xs font-bold text-white transition hover:brightness-95">이용권 구매</button>
         </div>
-        <p className="-mt-1 mb-3 text-[11px] text-slate-400">{searchMode === 'xhs'
-          ? '참고 전용이에요 — 샤오홍슈 노트를 레퍼런스로만 보여드려요 (다운로드·삽입 없음)'
-          : searchMode === 'channel'
+        <p className="-mt-1 mb-3 text-[11px] text-slate-400">{searchMode === 'channel'
           ? '‘채널 분석’ 실행 시 이용권 1개가 차감돼요 · 분석 실패 시 자동 환불돼요'
           : '검색은 무료예요 · 클립별 ‘분석하기’를 누르면 이용권 1개 차감 (같은 소스 다시 열기는 무료)'}</p>
-        <div className="relative mb-2 flex w-full max-w-md rounded-xl bg-slate-100 p-1 text-sm font-bold">
-          <span aria-hidden className="absolute left-1 top-1 bottom-1 w-[calc((100%-0.5rem)/3)] rounded-lg bg-white shadow-sm transition-transform duration-300 ease-out" style={{ transform: `translateX(${['clip', 'channel', 'xhs'].indexOf(searchMode) * 100}%)` }} />
+        <div className="relative mb-2 flex w-full max-w-xs rounded-xl bg-slate-100 p-1 text-sm font-bold">
+          <span aria-hidden className="absolute left-1 top-1 bottom-1 w-[calc(50%-0.25rem)] rounded-lg bg-white shadow-sm transition-transform duration-300 ease-out" style={{ transform: searchMode === 'channel' ? 'translateX(100%)' : 'translateX(0)' }} />
           <button onClick={() => setSearchMode('clip')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors active:scale-[0.98] ${searchMode === 'clip' ? 'text-[#0064FF]' : 'text-slate-500'}`}>관련 클립 검색</button>
           <button onClick={() => setSearchMode('channel')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors active:scale-[0.98] ${searchMode === 'channel' ? 'text-[#0064FF]' : 'text-slate-500'}`}>채널 분석</button>
-          <button onClick={() => { setSearchMode('xhs'); try { phCapture('xhs_tab_opened') } catch { /* noop */ } }} className={`relative z-10 flex flex-1 items-center justify-center gap-1 rounded-lg py-2 transition-colors active:scale-[0.98] ${searchMode === 'xhs' ? 'text-[#0064FF]' : 'text-slate-500'}`}>샤오홍슈 <Crown size={12} className="text-amber-500" aria-label="프로 이상" /></button>
         </div>
-        {searchMode === 'xhs' && <XhsSearch session={session} onNeedAuth={() => setShowAuth(true)} />}
-        {searchMode !== 'xhs' && (
         <div className="flex flex-col gap-2 sm:flex-row">
           <input data-ph-search="1" ref={searchInputRef} value={searchMode === 'channel' ? chUrl : sourceUrl} onChange={(e) => (searchMode === 'channel' ? setChUrl(e.target.value) : setSourceUrl(e.target.value))}
             onKeyDown={(e) => { if (e.key === 'Enter') (searchMode === 'channel' ? analyzeChannel() : analyze()) }}
@@ -721,7 +715,6 @@ export default function Finds() {
             {searchMode === 'channel' ? (channelLoading ? '분석 중…' : '채널 분석') : (searching ? '분석 중…' : '분석')}
           </button>
         </div>
-        )}
         {searchMode === 'clip' && !searching && clips.length > 0 && (
           <p className="mt-2 text-xs text-slate-400">원하는 결과가 없나요? <button onClick={() => { try { const el = searchInputRef.current; if (el) { el.focus(); el.select(); el.scrollIntoView({ behavior: 'smooth', block: 'center' }) } } catch { /* noop */ } }} className="font-bold text-[#0064FF] hover:underline">재검색</button></p>
         )}
@@ -735,7 +728,7 @@ export default function Finds() {
             ))}
           </div>
         )}
-        {error && searchMode !== 'xhs' && (
+        {error && (
           <div className="mt-3 flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
             <AlertTriangle size={15} />{error}
           </div>
