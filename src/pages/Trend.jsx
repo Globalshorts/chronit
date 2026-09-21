@@ -53,7 +53,7 @@ const regionOf = (it) => { const c = `${it.caption || ''} ${it.owner || ''}`; if
 
 const TREND_TTL = 10 * 60 * 1000 // 10분: 이 안이면 재요청 안 함(서버는 최대 24h마다 갱신)
 const readTrendCache = () => { try { const c = JSON.parse(localStorage.getItem('chronit_trend_cache') || 'null'); return (c && Array.isArray(c.items)) ? c : null } catch { return null } }
-const writeTrendCache = (items, fb, fbCount) => { try { localStorage.setItem('chronit_trend_cache', JSON.stringify({ items, fb: fb || [], fbCount: (typeof fbCount === 'number' ? fbCount : null), at: Date.now() })) } catch { /* noop */ } }
+const writeTrendCache = (items, fbCount) => { try { localStorage.setItem('chronit_trend_cache', JSON.stringify({ items, fbCount: (typeof fbCount === 'number' ? fbCount : null), at: Date.now() })) } catch { /* noop */ } }
 
 export default function Trend() {
   const nav = useNavigate()
@@ -65,12 +65,13 @@ export default function Trend() {
   const [selCat, setSelCat] = useState(() => { try { return NICHE_TO_CAT[localStorage.getItem('chr_niche') || ''] || '전체' } catch { return '전체' } })
   const [showAdv, setShowAdv] = useState(true)   // 슬라이더를 못 찾는다는 피드백 → 기본 펼침
   const [limitModal, setLimitModal] = useState(null)
-  const [fbItems, setFbItems] = useState(() => readTrendCache()?.fb || [])
   const [fbCountSrv, setFbCountSrv] = useState(() => { const c = readTrendCache(); return c && typeof c.fbCount === 'number' ? c.fbCount : null })
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState('')
   const [sort, setSort] = useState('view')
-  const [fbSort, setFbSort] = useState('score')   // 패스트벤치 기본 정렬 = 터짐 점수
+  const [fbSort, setFbSort] = useState('comment')   // 서버가 댓글순으로 주므로 그 순서를 기본으로
+  const [fbRpc, setFbRpc] = useState(null)         // fastbench_feed_rpc 결과 (null = 아직 안 받음)
+  const [fbRange, setFbRange] = useState(FB_DAY_MAX)   // 패스트벤치 전용 기간(서버 파라미터)
   const [showHelp, setShowHelp] = useState(false)
   const [range, setRange] = useState(DAY_MAX)
   const [fMin, setFMin] = useState('')
@@ -124,7 +125,7 @@ export default function Trend() {
   useEffect(() => {
     if (!isReal) return
     const cached = readTrendCache()
-    if (cached) { setItems(cached.items); setFbItems(cached.fb || []); if (typeof cached.fbCount === 'number') setFbCountSrv(cached.fbCount) }                       // 캐시 있으면 즉시 표시(스피너 없음)
+    if (cached) { setItems(cached.items); if (typeof cached.fbCount === 'number') setFbCountSrv(cached.fbCount) }                       // 캐시 있으면 즉시 표시(스피너 없음)
     if (cached && Date.now() - cached.at < TREND_TTL) return  // 신선하면 재요청 스킵
     let alive = true
     if (!cached) setLoading(true)                            // 보여줄 캐시 없을 때만 스피너
@@ -134,12 +135,34 @@ export default function Trend() {
         const { data: { session: s } } = await supabase.auth.getSession()
         const r = await fetch(FN('trend-feed'), { method: 'POST', headers: { Authorization: `Bearer ${s.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
         const d = await r.json()
-        if (alive) { setItems(d.items || []); setFbItems(d.fastbench_items || []); setFbCountSrv(typeof d.fastbench_count === 'number' ? d.fastbench_count : null); writeTrendCache(d.items || [], d.fastbench_items || [], d.fastbench_count) }  // 백그라운드 갱신 + 캐시 저장
+        if (alive) { setItems(d.items || []); setFbCountSrv(typeof d.fastbench_count === 'number' ? d.fastbench_count : null); writeTrendCache(d.items || [], d.fastbench_count) }  // 백그라운드 갱신 + 캐시 저장
       } catch { if (alive && !cached) setErr('트렌드를 불러오지 못했어요.') }
       finally { if (alive) setLoading(false) }
     })()
     return () => { alive = false }
   }, [session])
+
+  // 패스트벤치는 서버가 걸러 준다(댓글 수·기간·캐러셀 포함 여부).
+  useEffect(() => {
+    if (!isReal || !fastBench) return
+    let dead = false
+    const run = async () => {
+      let rows = []
+      try {
+        const { data } = await supabase.rpc('fastbench_feed_rpc', {
+          p_limit: 60,
+          p_min_comments: minComments > 0 ? minComments : 200,
+          p_days: fbRange,
+          p_include_carousel: postType !== 'reel',
+        })
+        if (Array.isArray(data)) rows = data
+      } catch { /* noop */ }
+      if (dead) return
+      setFbRpc(rows)
+    }
+    run()
+    return () => { dead = true }
+  }, [isReal, fastBench, minComments, fbRange, postType])
 
   useEffect(() => { if (!isReal) return; try { phCapture('trend_feed_viewed') } catch { /* noop */ }; supabase.from('profiles').select('niche').maybeSingle().then(({ data }) => { const n = data && data.niche; if (n && NICHE_TO_CAT[n]) { setMyNiche(n); setSelCat((c) => c === '전체' ? NICHE_TO_CAT[n] : c); try { localStorage.setItem('chr_niche', n) } catch { /* noop */ } } }) }, [isReal])
   useEffect(() => { if (isReal) return; supabase.rpc('public_trend_preview_rpc', { p_limit: 12 }).then(({ data }) => { if (Array.isArray(data)) setPreview(data) }).catch(() => {}); supabase.rpc('public_trend_count_rpc').then(({ data }) => { if (typeof data === 'number') setPreviewCount(data) }).catch(() => {}) }, [isReal])
@@ -149,27 +172,28 @@ export default function Trend() {
   const now = Date.now()
   const FB_SCORE = 12
   const fbScore = (it) => ((Number(it.comment_count) || 0) * 1000 + (Number(it.like_count) || 0) * 50 + (Number(it.view_count) || 0)) / Math.max(Number(it.follower_count) || 0, 1000)
-  const fbCount = fbCountSrv != null ? fbCountSrv : items.filter((it) => it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && fbScore(it) >= FB_SCORE).length
+  const fbCount = Array.isArray(fbRpc) ? fbRpc.length
+    : fbCountSrv != null ? fbCountSrv
+    : items.filter((it) => it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && fbScore(it) >= FB_SCORE).length
   const matchNiche = (it) => { const kws = NICHE_KW[myNiche]; if (!kws) return false; const t = ((it.caption || '') + ' ' + (it.hashtag || '')).toLowerCase(); return kws.some((k) => t.includes(k)) }
   // 캐러셀만 볼 때 조회수순은 의미가 없어(전부 0) 좋아요순으로 바꿔 적용한다
   const rawSort = fastBench ? fbSort : sort
   const effSort = postType === 'carousel' && rawSort === 'view' ? 'like' : rawSort
-  const sortOptions = (fastBench ? FB_SORTS : SORTS).filter(([k]) => !(postType === 'carousel' && k === 'view'))
+  const sortOptions = (fastBench ? FB_SORTS.filter(([k]) => k !== 'score') : SORTS)
+    .filter(([k]) => !(postType === 'carousel' && k === 'view'))
   // 개인화: 카테고리 칩이 '전체'일 때만 내 니치 소재를 앞으로 올린다.
   // (칩을 직접 고르면 그 선택을 존중해야 하므로 건드리지 않는다)
   const nicheCat = NICHE_TO_CAT[myNiche] || ''
   const nicheFirst = !!nicheCat && selCat === '전체'
-  const _listBase = (fastBench && Array.isArray(fbItems) && fbItems.length ? fbItems : items)
+  // 패스트벤치: 기간·댓글수·캐러셀은 서버가 이미 걸렀고, 팔로워·영상주소는 응답에 없다 → 그 필터들을 건너뛴다
+  const fbMode = fastBench && Array.isArray(fbRpc)
+  const _listBase = (fbMode ? fbRpc : items)
     .filter((it) => {
-      // 게시일 슬라이더. 패스트벤치는 고유 게이트(≤2일)를 유지한 채 슬라이더를 더 좁히는 방향으로만 적용.
-      const win = dayWindowMs(range, fastBench ? FB_DAY_MAX : DAY_MAX)
-      return it.taken_at && now - new Date(it.taken_at).getTime() <= win
+      if (fbMode) return true
+      return it.taken_at && now - new Date(it.taken_at).getTime() <= dayWindowMs(range, DAY_MAX)
     })
     .filter((it) => {
-      if (!fastBench) return true
-      return fbScore(it) >= FB_SCORE
-    })
-    .filter((it) => {
+      if (fbMode) return true
       const lo = Number(fMin) || 0, hi = Number(fMax) || 0
       if (!lo && !hi) return true
       const fc = Number(it.follower_count)
@@ -178,12 +202,12 @@ export default function Trend() {
       if (hi && fc > hi) return false
       return true
     })
-    .filter((it) => !minComments || (Number(it.comment_count) || 0) >= minComments)
+    .filter((it) => fbMode || !minComments || (Number(it.comment_count) || 0) >= minComments)
     .filter((it) => !region || regionOf(it) === region)
     .filter((it) => selCat === '전체' || it.category === selCat)
     .filter((it) => matchPostType(it, postType))
-    // 영상 없는 행은 깨진 릴스라 뺀다 — 캐러셀은 원래 영상이 없으니 예외
-    .filter((it) => isCarousel(it) || String(it.video_url || '') !== '')
+    // 영상 없는 행은 깨진 릴스라 뺀다 — 캐러셀·패스트벤치(응답에 video_url 없음)는 예외
+    .filter((it) => fbMode || isCarousel(it) || String(it.video_url || '') !== '')
     .sort((a, b) => {
       // 내 니치를 먼저, 그 안에서 선택한 정렬 기준대로
       if (nicheFirst) {
@@ -274,7 +298,7 @@ export default function Trend() {
           </div>
         </div>
         )}
-        {fastBench && <p className="mb-3 -mt-2 flex items-center gap-1 text-xs font-semibold text-amber-600"><Crown size={12} /> 먼저 움직이는 크리에이터의 선점 리스트 — 최근 48시간{fbSort === 'score' ? ' · 터짐 점수순' : ''}</p>}
+        {fastBench && <p className="mb-3 -mt-2 flex items-center gap-1 text-xs font-semibold text-amber-600"><Crown size={12} /> 먼저 움직이는 크리에이터의 선점 리스트 — 최근 {fbRange}일 · 댓글 {(minComments > 0 ? minComments : 200).toLocaleString('ko-KR')}개 이상</p>}
 
         {isReal && showAdv && (<div className="mb-5 rounded-xl bg-slate-900 p-4">
           <div className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-3">
@@ -291,8 +315,8 @@ export default function Trend() {
               label="게시일" min={1} step={1} unit="일" infinitySuffix="이하" allAtMax={false}
               max={fastBench ? FB_DAY_MAX : DAY_MAX}
               marks={fastBench ? FB_DAY_MARKS : DAY_MARKS}
-              value={Math.min(range, fastBench ? FB_DAY_MAX : DAY_MAX)}
-              onChange={setRange}
+              value={fastBench ? fbRange : range}
+              onChange={fastBench ? setFbRange : setRange}
             />
             <RangeFilter
               label="댓글수" min={0} max={COMMENT_MAX} step={50} unit="개" infinitySuffix="이상" marks={COMMENT_MARKS}
@@ -362,7 +386,8 @@ export default function Trend() {
           })()
         ) : loading ? (
           <div className="flex items-center gap-2 py-10 text-slate-400"><Loader2 size={16} className="animate-spin" />트렌드 불러오는 중…</div>
-        ) : err ? (
+        ) : (err && !fbMode) ? (
+          // 패스트벤치는 제 소스(fastbench_feed_rpc)를 쓰므로 트렌드 로딩 실패에 가려지면 안 된다
           <div className="py-10 text-red-500">{err}</div>
         ) : (
           <>

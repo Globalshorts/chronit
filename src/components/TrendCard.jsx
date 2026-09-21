@@ -30,6 +30,8 @@ export default function TrendCard({
   const carousel = isCarousel(it)
   const cover = coverOf(it)
   const count = imagesOf(it).length
+  // 캐러셀이거나 영상 주소가 없으면(일부 피드는 video_url 을 주지 않는다) 재생 대신 게시물을 연다
+  const openOnly = carousel || !it.video_url
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
       {locked ? (
@@ -43,15 +45,15 @@ export default function TrendCard({
           </div>
         </div>
       ) : (
-        <div role="button" onClick={carousel ? () => openPost(it.url) : onPlay}
-          aria-label={carousel ? `@${it.owner} 캐러셀 게시물 인스타그램에서 보기` : undefined}
+        <div role="button" onClick={openOnly ? () => openPost(it.url) : onPlay}
+          aria-label={openOnly ? `@${it.owner} 게시물 인스타그램에서 보기` : undefined}
           className="relative block aspect-[9/16] cursor-pointer bg-slate-100">
           <TrendThumb url={cover} sc={it.shortcode} />
           {rank != null && <div className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">#{rank}</div>}
           {it.taken_at && <div className="absolute right-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">{timeAgo(it.taken_at)}</div>}
           <div className="absolute inset-0 flex items-center justify-center opacity-90">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-black/45 text-white">
-              {carousel ? <ExternalLink size={15} /> : <Play size={16} className="ml-0.5" />}
+              {openOnly ? <ExternalLink size={15} /> : <Play size={16} className="ml-0.5" />}
             </div>
           </div>
           {carousel && (
