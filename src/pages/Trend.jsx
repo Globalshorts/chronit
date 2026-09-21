@@ -16,6 +16,7 @@ import {
 import PostTypeToggle from '../components/PostTypeToggle'
 import VideoModal from '../components/ReelModal'
 import TrendCard, { TrendThumb } from '../components/TrendCard'
+import { memList, memFb, readSkeleton, loadTrendList, loadFastbench, loadDetail } from '../lib/trendStore'
 import QuestStrip from '../components/QuestStrip'
 import NewSinceBadges from '../components/NewSinceBadges'
 import { fmtCount as fmt } from '../lib/format'
@@ -55,7 +56,6 @@ const regionOf = (it) => { const c = `${it.caption || ''} ${it.owner || ''}`; if
 // 그 함수는 매 호출마다 테이블을 두 번 훑고 팔로워를 조인하며, 데이터가 24시간 넘게 묵으면
 // 사용자 요청 안에서 Apify 스크래핑(최대 110초)까지 돌린다. 표시에 필요한 값은 이미 테이블에 있다.
 const FEED_DAYS = 8
-const FEED_COLS = 'shortcode,url,video_url,thumbnail_url,caption,owner,follower_count,view_count,like_count,comment_count,velocity,taken_at,post_type,images,category'
 
 // 마지막으로 고른 카테고리만 기억한다(니치로 자동 선택하면 새로고침 때마다 바뀐 것처럼 보인다)
 const CAT_KEY = 'chr_trend_cat'
@@ -64,18 +64,19 @@ const readCat = () => { try { const c = localStorage.getItem(CAT_KEY); return CA
 export default function Trend() {
   const nav = useNavigate()
   const [session, setSession] = useState(null)
-  const [items, setItems] = useState([])
+  // 메모리에 있으면 그대로(로딩 0), 없으면 지난 방문의 골격만 먼저 그린다(수치는 비워둠)
+  const [items, setItems] = useState(() => memList() || readSkeleton() || [])
   const [preview, setPreview] = useState([])
   const [previewCount, setPreviewCount] = useState(0)
   const [myNiche, setMyNiche] = useState(() => { try { return localStorage.getItem('chr_niche') || '' } catch { return '' } })
   const [selCat, setSelCat] = useState(readCat)
   const [showAdv, setShowAdv] = useState(true)   // 슬라이더를 못 찾는다는 피드백 → 기본 펼침
   const [limitModal, setLimitModal] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(() => !(memList() || readSkeleton()))
   const [err, setErr] = useState('')
   const [sort, setSort] = useState('view')
   const [fbSort, setFbSort] = useState('score')   // 팔로워 대비 댓글(comment_per_follower) 순
-  const [fbRpc, setFbRpc] = useState(null)         // fastbench_feed_rpc 결과 (null = 아직 안 받음)
+  const [fbRpc, setFbRpc] = useState(memFb)       // fastbench_feed_rpc 결과 (null = 아직 안 받음)
   const [fbRange, setFbRange] = useState(FB_DAY_MAX)   // 패스트벤치 전용 기간(서버 파라미터)
   const [showHelp, setShowHelp] = useState(false)
   const [range, setRange] = useState(DAY_MAX)
@@ -100,6 +101,14 @@ export default function Trend() {
     onNeedLogin: () => setShowAuth(true),
     onLimit: (limit) => setLimitModal({ limit }),
   })
+
+  // 목록엔 video_url·images·전체 캡션이 없다(가볍게 유지) → 누를 때만 받아온다
+  const openItem = async (it) => {
+    const d = await loadDetail(it.shortcode)
+    const merged = { ...it, ...(d || {}) }
+    if (merged.video_url) setPlayClip(feedClip(merged))
+    else openPost(merged.url || it.url)
+  }
 
   const handleAnalyze = async (clip) => {
     const key = clip.page_url || clip.title
@@ -130,14 +139,15 @@ export default function Trend() {
   useEffect(() => {
     if (!isReal) return
     let alive = true
-    const since = new Date(Date.now() - FEED_DAYS * 86400000).toISOString()
 
     const load = async () => {
-      const { data, error } = await supabase.from('trend_feed').select(FEED_COLS)
-        .gte('taken_at', since).order('comment_count', { ascending: false }).limit(200)
-      if (!alive) return
-      if (error) { setErr('트렌드를 불러오지 못했어요.'); setLoading(false); return }
-      setErr(''); setItems(data || []); setLoading(false)
+      try {
+        const rows = await loadTrendList({ limit: 200, days: FEED_DAYS, includeCarousel: postType !== 'reel' })
+        if (!alive) return
+        setErr(''); setItems(rows); setLoading(false)
+      } catch {
+        if (alive) { setErr('트렌드를 불러오지 못했어요.'); setLoading(false) }
+      }
     }
 
     const run = async () => {
@@ -153,7 +163,7 @@ export default function Trend() {
     }
     run()
     return () => { alive = false }
-  }, [isReal])
+  }, [isReal, postType])
 
   // 패스트벤치는 서버가 걸러 준다(댓글 수·기간·캐러셀·팔로워 상한).
   // 트렌드 탭에서도 미리 받아둔다 — 안내 배너의 개수를 옛 캐시가 아니라 최신값으로 보여주려고.
@@ -163,15 +173,14 @@ export default function Trend() {
     const run = async () => {
       let rows = []
       try {
-        const { data } = await supabase.rpc('fastbench_feed_rpc', {
-          p_limit: 60,
-          p_min_comments: minComments > 0 ? minComments : 200,
-          p_days: fbRange,
-          p_include_carousel: postType !== 'reel',
+        rows = await loadFastbench({
+          limit: 60,
+          minComments: minComments > 0 ? minComments : 200,
+          days: fbRange,
+          includeCarousel: postType !== 'reel',
           // 팔로워 상한은 서버에서 거른다(하한은 응답의 follower_count 로 아래에서)
-          p_max_followers: fMax ? Number(fMax) : null,
+          maxFollowers: fMax ? Number(fMax) : null,
         })
-        if (Array.isArray(data)) rows = data
       } catch { /* noop */ }
       if (dead) return
       setFbRpc(rows)
@@ -221,8 +230,6 @@ export default function Trend() {
     .filter((it) => !region || regionOf(it) === region)
     .filter((it) => selCat === '전체' || it.category === selCat)
     .filter((it) => matchPostType(it, postType))
-    // 영상 없는 행은 깨진 릴스라 뺀다 — 캐러셀·패스트벤치(응답에 video_url 없음)는 예외
-    .filter((it) => fbMode || isCarousel(it) || String(it.video_url || '') !== '')
     .sort((a, b) => {
       // 내 니치를 먼저, 그 안에서 선택한 정렬 기준대로
       if (nicheFirst) {
@@ -425,7 +432,7 @@ export default function Trend() {
                   const watching = isWatched(it.owner)
                   return (
                     <div key={it.shortcode || i} className="flex gap-2.5 rounded-xl border border-slate-100 bg-slate-50 p-2.5 sm:flex-col">
-                      <div role="button" onClick={() => (carousel ? openPost(it.url) : setPlayClip(clip))} className="relative aspect-[9/16] w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-slate-200 sm:w-full">
+                      <div role="button" onClick={() => (carousel ? openPost(it.url) : openItem(it))} className="relative aspect-[9/16] w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-slate-200 sm:w-full">
                         <TrendThumb url={coverOf(it)} sc={it.shortcode} />
                         <div className="absolute left-1 top-1 rounded bg-black/60 px-1 text-[10px] font-bold text-white">#{i + 1}</div>
                         {/* 피드 카드와 눈에 띄는 정도를 맞춤 (모바일은 썸네일이 64px라 과하지 않게) */}
@@ -440,7 +447,7 @@ export default function Trend() {
                         </div>
                         <div className="mb-2 line-clamp-2 text-[12px] font-medium text-slate-700">{it.caption || '(설명 없음)'}</div>
                         <div className="flex gap-1.5">
-                          <button onClick={() => handleAnalyze(clip)} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-[11px] font-bold text-white transition hover:brightness-95"><Sparkles size={11} />분석</button>
+                          <button onClick={async () => { const d = await loadDetail(it.shortcode); handleAnalyze({ ...clip, ...(d ? { video_url: d.video_url, title: d.caption || clip.title } : {}) }) }} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-[11px] font-bold text-white transition hover:brightness-95"><Sparkles size={11} />분석</button>
                           <button onClick={() => { window.location.href = '/research?url=' + encodeURIComponent(it.url) }} className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-slate-200 py-1.5 text-[11px] font-bold text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]">소스 찾기</button>
                         </div>
                       </div>
@@ -460,8 +467,9 @@ export default function Trend() {
                   key={it.shortcode || i}
                   it={it} rank={i + 1} locked={locked}
                   watching={isWatched(it.owner)}
-                  onPlay={() => setPlayClip(clip)}
-                  onAnalyze={() => handleAnalyze(clip)}
+                  lazyDetail
+                  onPlay={() => openItem(it)}
+                  onAnalyze={async () => { const d = await loadDetail(it.shortcode); handleAnalyze({ ...clip, ...(d ? { video_url: d.video_url, title: d.caption || clip.title } : {}) }) }}
                   onSource={() => { window.location.href = '/research?url=' + encodeURIComponent(it.url) }}
                   onToggleWatch={() => toggleWatch(it.owner)}
                   onUnlock={() => nav('/pricing')}

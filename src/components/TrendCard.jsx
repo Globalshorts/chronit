@@ -23,15 +23,23 @@ export function TrendThumb({ url, sc }) {
 // it: watch_feed / trend-feed 공통 행
 //   shortcode,url,video_url,thumbnail_url,caption,comment_count,like_count,view_count,owner,taken_at,velocity
 //   post_type('reel'|'carousel'), images[] (캐러셀 이미지, 릴스는 [])
+// 숫자가 아직 안 온 행(골격)은 0 을 그리면 틀린 값이 된다 → 자리만 잡아둔다
+const Num = ({ value, pending }) => (
+  pending ? <span className="inline-block h-2.5 w-7 animate-pulse rounded bg-slate-300/50 align-middle" /> : <>{fmtCount(value)}</>
+)
+
 export default function TrendCard({
   it, rank, locked = false, watching = false, lockedLabel = '프로 이상 전용',
+  lazyDetail = false,
   onPlay, onAnalyze, onSource, onToggleWatch, onUnlock,
 }) {
   const carousel = isCarousel(it)
   const cover = coverOf(it)
   const count = imagesOf(it).length
-  // 캐러셀이거나 영상 주소가 없으면(일부 피드는 video_url 을 주지 않는다) 재생 대신 게시물을 연다
-  const openOnly = carousel || !it.video_url
+  const pending = it._skeleton === true
+  // 캐러셀은 바로 게시물로. 그 외에는 video_url 이 있으면 재생,
+  // lazyDetail(목록에 video_url 을 안 싣는 피드)이면 호출부가 상세를 받아 판단한다.
+  const openOnly = carousel || (!lazyDetail && !it.video_url)
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
       {locked ? (
@@ -76,11 +84,11 @@ export default function TrendCard({
       )}
       <div className="p-2">
         <div className="mb-1.5 flex items-center gap-2 text-[11px] text-slate-500">
-          {!carousel && <span className="flex items-center gap-0.5"><Eye size={11} />{fmtCount(it.view_count)}</span>}
-          <span className="flex items-center gap-0.5"><Heart size={11} />{fmtCount(it.like_count)}</span>
-          <span className="flex items-center gap-0.5"><MessageCircle size={11} />{fmtCount(it.comment_count)}</span>
+          {!carousel && <span className="flex items-center gap-0.5"><Eye size={11} /><Num value={it.view_count} pending={pending} /></span>}
+          <span className="flex items-center gap-0.5"><Heart size={11} /><Num value={it.like_count} pending={pending} /></span>
+          <span className="flex items-center gap-0.5"><MessageCircle size={11} /><Num value={it.comment_count} pending={pending} /></span>
         </div>
-        <div className="mb-1.5 truncate text-[11px] text-slate-400">{locked ? lockedLabel : `@${it.owner}${it.follower_count ? ` · 팔로워 ${fmtCount(it.follower_count)}` : ''}`}</div>
+        <div className="mb-1.5 truncate text-[11px] text-slate-400">{locked ? lockedLabel : `@${it.owner}${!pending && it.follower_count ? ` · 팔로워 ${fmtCount(it.follower_count)}` : ''}`}</div>
         {locked ? (
           <button onClick={onUnlock} className="flex w-full items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Lock size={12} />잠금 해제하고 보기</button>
         ) : (
