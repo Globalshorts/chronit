@@ -376,7 +376,7 @@ export default function Watchlist() {
               return (
                 <TrendCard
                   key={it.shortcode || i}
-                  it={it} rank={i + 1}
+                  it={it} rank={i + 1} showOwner
                   onPlay={() => { logEvent('trend_card_click', { shortcode: it.shortcode, source: 'watchlist' }); logEvent('trend_play', { shortcode: it.shortcode, source: 'watchlist' }); setPlayClip(clip) }}
                   onAnalyze={() => handleAnalyze(clip)}
                   onSource={() => findSource(it.url)}
@@ -424,7 +424,7 @@ export default function Watchlist() {
         </div>
       )}
 
-      {modalClip && <AnalyzeModal clip={modalClip} onClose={() => setModalClip(null)} />}
+      {modalClip && <AnalyzeModal clip={modalClip} allowDownload={false} onClose={() => setModalClip(null)} />}
       {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onSource={() => findSource(playClip.page_url)} onAnalyze={() => { setPlayClip(null); handleAnalyze(playClip) }} />}
     </div>
   )

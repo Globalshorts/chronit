@@ -5,13 +5,12 @@ import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, Help
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
 import { fbTrack } from '../lib/fbq'
-import { useWatchToggle } from '../lib/useWatchToggle'
 import { useProPlus } from '../lib/useProPlus'
 import RangeFilter from '../components/RangeFilter'
 import {
   DAY_MAX, DAY_MARKS, FB_DAY_MAX, FB_DAY_MARKS, dayWindowMs,
   COMMENT_MAX, COMMENT_MARKS, FOLLOWER_MAX, FOLLOWER_MARKS, manFmt,
-  isCarousel, matchPostType, coverOf, viewRankOf, feedClip, openPost,
+  isCarousel, matchPostType, coverOf, viewRankOf, feedClip,
 } from '../lib/filterConfig'
 import PostTypeToggle from '../components/PostTypeToggle'
 import VideoModal from '../components/ReelModal'
@@ -52,7 +51,7 @@ const FN = (n) => `${SB}/functions/v1/${n}`
 const SORTS = [['view', '조회수'], ['recent', '최신'], ['like', '좋아요'], ['comment', '댓글']]
 const FB_SORTS = [['score', '터짐 점수'], ...SORTS]
 const REGIONS = [['전체', ''], ['한국', 'kr'], ['일본', 'jp'], ['미국', 'us']]
-const regionOf = (it) => { const c = `${it.caption || ''} ${it.owner || ''}`; if (/[가-힣]/.test(c)) return 'kr'; if (/[ぁ-ゖァ-ヺ]/.test(c)) return 'jp'; return 'us' }
+const regionOf = (it) => { const c = `${it.caption || ''}`; if (/[가-힣]/.test(c)) return 'kr'; if (/[ぁ-ゖァ-ヺ]/.test(c)) return 'jp'; return 'us' }
 
 // 트렌드 목록은 trend_feed 를 직접 읽는다. 예전엔 trend-feed 엣지 함수를 기다렸는데,
 // 그 함수는 매 호출마다 테이블을 두 번 훑고 팔로워를 조인하며, 데이터가 24시간 넘게 묵으면
@@ -103,12 +102,10 @@ export default function Trend() {
   const isReal = !!session && session.user?.is_anonymous !== true
   // 패스트벤치는 프로(finds100)·비즈니스(finds300) 전용 — 스탠다드/무료는 블러 (샤오홍슈 참고검색과 같은 기준)
   const { isProPlus, isAdmin } = useProPlus(session)
-  // 카드의 북마크 = 그 계정을 워치리스트에 담기/빼기
-  const { isWatched, toggle: toggleWatch } = useWatchToggle({
-    enabled: isReal, source: 'trend',
-    onNeedLogin: () => setShowAuth(true),
-    onLimit: (limit) => setLimitModal({ limit }),
-  })
+  // 계정명(owner)은 이제 클라이언트로 내려오지 않는다.
+  // 담김 여부는 서버가 행마다 watching 으로 알려주고, 누른 뒤에는 shortcode 로 덮어쓴다.
+  const [watchOv, setWatchOv] = useState({})
+  const isWatching = (it) => (it && it.shortcode in watchOv ? watchOv[it.shortcode] : !!(it && it.watching))
 
   // 한 번이라도 움직였으면 코치마크·넛지는 제 할 일을 다 한 것
   const markActed = () => {
@@ -119,31 +116,36 @@ export default function Trend() {
   }
   const closeCoach = () => { dismissCoach(); setCoachOn(false) }
 
-  // 목록엔 video_url·images·전체 캡션이 없다(가볍게 유지) → 누를 때만 받아온다
+  // 목록엔 video_url·images·전체 캡션이 없다(가볍게 유지) → 누를 때만 받아온다.
+  // 재생이든 캐러셀이든 전부 앱 안에서 연다 — 인스타로 내보내면 원본 주소가 노출된다.
   const openItem = async (it) => {
     markActed()
     logEvent('trend_card_click', { shortcode: it.shortcode })
     const d = await loadDetail(it.shortcode)
     const merged = { ...it, ...(d || {}) }
-    if (merged.video_url) { logEvent('trend_play', { shortcode: it.shortcode }); setPlayClip(feedClip(merged)) }
-    else openPost(merged.url || it.url)
+    if (merged.video_url) logEvent('trend_play', { shortcode: it.shortcode })
+    setPlayClip({ ...feedClip(merged), images: Array.isArray(merged.images) ? merged.images : [] })
   }
 
-  // 캐러셀처럼 바로 인스타로 나가는 경우도 '카드를 눌렀다'는 사실은 같다
-  const openOutside = (it) => {
-    markActed()
-    logEvent('trend_card_click', { shortcode: it.shortcode, outside: true })
-    openPost(it.url)
-  }
+  // 소스 찾기 — 원본 URL 대신 shortcode 만 넘긴다. 서버가 URL 을 복원한다.
+  const findSource = (shortcode) => { if (shortcode) nav('/research', { state: { shortcode } }) }
 
-  // 소스 찾기 — URL 을 주소창/입력창에 남기지 않고 라우터 state 로만 넘긴다.
-  // 화면에 뜨면 그대로 복사해서 외부 다운로더로 가져갈 수 있다.
-  const findSource = (url) => { if (url) nav('/research', { state: { src: url } }) }
-
-  const saveItem = (it) => {
+  const saveItem = async (it) => {
     markActed()
     logEvent('save_click', { shortcode: it.shortcode })
-    toggleWatch(it.owner)
+    const next = !isWatching(it)
+    setWatchOv((p) => ({ ...p, [it.shortcode]: next }))          // 낙관적
+    const { data, error } = await supabase.rpc('watch_toggle_by_shortcode_rpc', { p_shortcode: it.shortcode, p_add: next })
+    if (error || data?.ok === false) {
+      setWatchOv((p) => ({ ...p, [it.shortcode]: !next }))       // 롤백
+      if (data?.status === 'limit') setLimitModal({ limit: data.limit ?? null })
+      else setShowAuth(true)
+      return
+    }
+    // 같은 계정의 다른 카드도 함께 — 서버가 계정명 대신 shortcode 목록만 돌려준다
+    const codes = Array.isArray(data?.shortcodes) && data.shortcodes.length ? data.shortcodes : [it.shortcode]
+    setWatchOv((p) => { const n = { ...p }; codes.forEach((c) => { n[c] = next }); return n })
+    if (data?.status === 'added') logEvent('watch_add', { shortcode: it.shortcode })
   }
 
   const handleAnalyze = async (clip, source = 'trend') => {
@@ -498,10 +500,10 @@ export default function Trend() {
                   const carousel = isCarousel(it)
                   const vel = Number(it.velocity) || 0
                   const fresh = it.taken_at && (now - new Date(it.taken_at).getTime() <= 3 * 86400000)
-                  const watching = isWatched(it.owner)
+                  const watching = isWatching(it)
                   return (
                     <div key={it.shortcode || i} className="flex gap-2.5 rounded-xl border border-slate-100 bg-slate-50 p-2.5 sm:flex-col">
-                      <div role="button" onClick={() => (carousel ? openOutside(it) : openItem(it))} className="relative aspect-[9/16] w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-slate-200 sm:w-full">
+                      <div role="button" onClick={() => openItem(it)} className="relative aspect-[9/16] w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-slate-200 sm:w-full">
                         <TrendThumb url={coverOf(it)} sc={it.shortcode} />
                         <div className="absolute left-1 top-1 rounded bg-black/60 px-1 text-[10px] font-bold text-white">#{i + 1}</div>
                       </div>
@@ -515,7 +517,7 @@ export default function Trend() {
                           <button onClick={async () => { const d = await loadDetail(it.shortcode); handleAnalyze({ ...clip, ...(d ? { video_url: d.video_url, title: d.caption || clip.title } : {}) }, 'today_picks') }} title="분석 = 비슷한 소재 찾기" className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-[11px] font-bold text-white transition hover:brightness-95"><Sparkles size={11} />분석</button>
                           <button onClick={() => saveItem(it)} title="담기 = 이 계정을 워치리스트에 저장" aria-pressed={watching} className={`flex flex-1 items-center justify-center gap-1 rounded-lg border py-1.5 text-[11px] font-bold transition ${watching ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-slate-200 text-slate-600 hover:border-[#0064FF] hover:text-[#0064FF]'}`}><Bookmark size={11} className={watching ? 'fill-emerald-500 text-emerald-500' : ''} />{watching ? '담김' : '담기'}</button>
                         </div>
-                        <button onClick={() => { findSource(it.url) }} className="mt-1.5 w-full rounded-lg py-1 text-[11px] font-bold text-slate-400 transition hover:text-[#0064FF]">소스 찾기 →</button>
+                        <button onClick={() => { findSource(it.shortcode) }} className="mt-1.5 w-full rounded-lg py-1 text-[11px] font-bold text-slate-400 transition hover:text-[#0064FF]">소스 찾기 →</button>
                       </div>
                     </div>
                   )
@@ -545,13 +547,13 @@ export default function Trend() {
                 <TrendCard
                   key={it.shortcode || i}
                   it={it} rank={i + 1} locked={locked}
-                  watching={isWatched(it.owner)}
+                  watching={isWatching(it)}
                   lazyDetail
                   coach={coachOn && i === coachIdx}
                   onPlay={() => openItem(it)}
-                  onOpen={() => openOutside(it)}
+                  onOpen={() => openItem(it)}
                   onAnalyze={async () => { const d = await loadDetail(it.shortcode); handleAnalyze({ ...clip, ...(d ? { video_url: d.video_url, title: d.caption || clip.title } : {}) }, fastBench ? 'fastbench' : 'trend') }}
-                  onSource={() => { findSource(it.url) }}
+                  onSource={() => { findSource(it.shortcode) }}
                   onToggleWatch={() => saveItem(it)}
                   onUnlock={() => nav('/pricing')}
                 />
@@ -572,8 +574,8 @@ export default function Trend() {
           </div>
         </div>
       )}
-      {modalClip && <AnalyzeModal clip={modalClip} onClose={() => setModalClip(null)} />}
-      {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onSource={() => findSource(playClip.page_url)} onAnalyze={() => { setPlayClip(null); handleAnalyze(playClip) }} />}
+      {modalClip && <AnalyzeModal clip={modalClip} allowDownload={false} onClose={() => setModalClip(null)} />}
+      {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onSource={() => findSource(playClip.video_id)} onAnalyze={() => { setPlayClip(null); handleAnalyze(playClip) }} />}
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
       {limitModal && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4" onClick={() => setLimitModal(null)}>

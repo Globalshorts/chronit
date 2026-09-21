@@ -153,7 +153,7 @@ export function ackAnalyzeCost(balance) {
   return ok
 }
 
-export function AnalyzeModal({ clip, onClose, onAnalyzed, initialResult = null }) {
+export function AnalyzeModal({ clip, onClose, onAnalyzed, initialResult = null, allowDownload = true }) {
   const [copied, setCopied] = useState(false)
   const [dlErr, setDlErr] = useState('')
   const [dling, setDling] = useState(false)
@@ -287,7 +287,7 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed, initialResult = null }
         </div>
 
         <p className="line-clamp-2 text-sm text-slate-600">{clip.title || '(제목 없음)'}</p>
-        <p className="mt-0.5 text-xs text-slate-400">@{clip.author || '?'} · {clip.source}</p>
+        <p className="mt-0.5 text-xs text-slate-400">{clip.author ? `@${clip.author} · ` : ''}{clip.source}</p>
 
         <div className="mt-3 flex items-center gap-4 text-sm text-slate-600">
           {clip.views != null && <span className="flex items-center gap-1"><Eye size={14} />{fmt(clip.views)}</span>}
@@ -295,7 +295,7 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed, initialResult = null }
           <span className="flex items-center gap-1"><MessageCircle size={14} />{fmt(clip.comments) ?? '—'}</span>
         </div>
 
-        {(clip.download_url || clip.video_url) && (
+        {allowDownload && (clip.download_url || clip.video_url) && (
           <>
             <button onClick={download} disabled={dling} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] py-3 text-sm font-bold text-white shadow-sm transition hover:brightness-95 disabled:opacity-60">
               {dling ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} {dling ? '내려받는 중…' : 'HD 다운로드'}
@@ -557,16 +557,17 @@ export default function Finds() {
   const bootRef = useRef(false)
   useEffect(() => {
     if (bootRef.current) return
+    const sc = (navState && navState.shortcode) || ''
     let u = (navState && navState.src) || ''
-    if (!u) {
+    if (!u && !sc) {
       // 예전 링크(?url=) 호환 — 받자마자 주소창에서 지운다
       const q = new URLSearchParams(window.location.search).get('url')
       if (q) { u = q; try { window.history.replaceState({}, '', window.location.pathname) } catch { /* noop */ } }
     }
-    if (!u) return
+    if (!u && !sc) return
     bootRef.current = true
-    setSrcHidden(u)
-    setTimeout(() => analyze(u), 0)
+    if (u) setSrcHidden(u)
+    setTimeout(() => analyze(u || null, sc), 0)
   }, [])
 
   useEffect(() => {
@@ -608,13 +609,15 @@ export default function Finds() {
 
   // ── 검색/분석: submit → poll → (틱톡+샤오홍슈 병렬) → clip-filter ──
   // (이용권/과금 로직은 이 페이지에 아직 적용하지 않음 — 추후 별도 반영)
-  const analyze = async (override) => {
-    const su = (typeof override === 'string' ? override : sourceUrl).trim()
-    if (!su) { setError('링크나 키워드를 입력해주세요'); return }
-    const isUrl = isValidUrl(su)
+  // shortcode 로 들어오면 URL 은 클라이언트에 아예 없다 — 서버가 복원한다.
+  const analyze = async (override, shortcode = '') => {
+    const sc = String(shortcode || '').trim()
+    const su = sc ? '' : (typeof override === 'string' ? override : sourceUrl).trim()
+    if (!su && !sc) { setError('링크나 키워드를 입력해주세요'); return }
+    const isUrl = sc ? true : isValidUrl(su)
     setError(''); setSearching(true); setClips([]); setRelatedKw([])
     srchTargetRef.current = 8; setProgress(4); setSrchStage('시작하는 중')
-    try { if (/instagram\.com|^@/i.test(su)) supabase.auth.getSession().then(({ data }) => fetch(FN('trend-capture'), { method: 'POST', headers: { Authorization: `Bearer ${data.session?.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ url: su }) }).catch(() => {})) } catch { /* noop */ }
+    try { if (su && /instagram\.com|^@/i.test(su)) supabase.auth.getSession().then(({ data }) => fetch(FN('trend-capture'), { method: 'POST', headers: { Authorization: `Bearer ${data.session?.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ url: su }) }).catch(() => {})) } catch { /* noop */ }
     try {
       let sess = (await supabase.auth.getSession()).data.session
       if (!sess) {
@@ -633,7 +636,7 @@ export default function Finds() {
 
       if (isUrl) {
         // 링크 모드: 레퍼런스 영상 분석 → 키워드 추출 → 유사도 필터
-        const subResp = await fetch(FN('search-clips'), { method: 'POST', headers, body: JSON.stringify({ action: 'submit', source_url: su }) })
+        const subResp = await fetch(FN('search-clips'), { method: 'POST', headers, body: JSON.stringify({ action: 'submit', ...(sc ? { shortcode: sc } : { source_url: su }) }) })
         const sub = await subResp.json()
         if (!sub.ok || !sub.prediction_id) { setError(sub.error || '분석에 실패했어요. 잠시 후 다시 시도해 주세요.'); setSearching(false); return }
         setSrchStage('레퍼런스 영상 분석 중'); srchTargetRef.current = 40

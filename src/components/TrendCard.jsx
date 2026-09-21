@@ -30,7 +30,7 @@ const Num = ({ value, pending }) => (
 
 export default function TrendCard({
   it, rank, locked = false, watching = false, lockedLabel = '프로 이상 전용',
-  lazyDetail = false, coach = false,
+  lazyDetail = false, coach = false, showOwner = false,
   onPlay, onOpen, onAnalyze, onSource, onToggleWatch, onUnlock,
 }) {
   const carousel = isCarousel(it)
@@ -54,14 +54,14 @@ export default function TrendCard({
         </div>
       ) : (
         <div role="button" onClick={openOnly ? () => (onOpen ? onOpen() : openPost(it.url)) : onPlay}
-          aria-label={openOnly ? `@${it.owner} 게시물 인스타그램에서 보기` : undefined}
+          aria-label={openOnly ? (showOwner ? `@${it.owner} 게시물 열기` : '이 게시물 열기') : undefined}
           className="relative block aspect-[9/16] cursor-pointer bg-slate-100">
           <TrendThumb url={cover} sc={it.shortcode} />
           {rank != null && <div className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">#{rank}</div>}
           {it.taken_at && <div className="absolute right-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">{timeAgo(it.taken_at)}</div>}
           <div className="absolute inset-0 flex items-center justify-center opacity-90">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-black/45 text-white">
-              {openOnly ? <ExternalLink size={15} /> : <Play size={16} className="ml-0.5" />}
+              {openOnly ? (onOpen ? <Layers size={15} /> : <ExternalLink size={15} />) : <Play size={16} className="ml-0.5" />}
             </div>
           </div>
           {carousel && (
@@ -79,7 +79,12 @@ export default function TrendCard({
           <span className="flex items-center gap-0.5"><Heart size={11} /><Num value={it.like_count} pending={pending} /></span>
           <span className="flex items-center gap-0.5"><MessageCircle size={11} /><Num value={it.comment_count} pending={pending} /></span>
         </div>
-        <div className="mb-1.5 truncate text-[11px] text-slate-400">{locked ? lockedLabel : `@${it.owner}${!pending && it.follower_count ? ` · 팔로워 ${fmtCount(it.follower_count)}` : ''}`}</div>
+        <div className="mb-1.5 truncate text-[11px] text-slate-400">
+          {locked ? lockedLabel
+            : showOwner ? `@${it.owner}${!pending && it.follower_count ? ` · 팔로워 ${fmtCount(it.follower_count)}` : ''}`
+            : (!pending && it.follower_count) ? `팔로워 ${fmtCount(it.follower_count)}`
+            : (it.category || '\u00a0')}
+        </div>
         {locked ? (
           <button onClick={onUnlock} className="flex w-full items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Lock size={12} />잠금 해제하고 보기</button>
         ) : (
