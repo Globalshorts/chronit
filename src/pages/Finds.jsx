@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import HeaderInstallBtn from '../components/HeaderInstallBtn'
-import { Navigate, Link, useNavigate } from 'react-router-dom'
+import { Navigate, Link, useNavigate, useLocation } from 'react-router-dom'
 import { Search, Loader2, AlertTriangle, Flame, Eye, Heart, MessageCircle, Sparkles, X, Copy, Check, Download, Bookmark, RefreshCw } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
@@ -517,7 +517,8 @@ export default function Finds() {
     return () => clearTimeout(timer)
   }, [])
   const [session, setSession] = useState(null)
-  const [sourceUrl, setSourceUrl] = useState('')
+  const [sourceUrl, setSourceUrl] = useState('')      // 입력창에 보이는 값
+  const [srcHidden, setSrcHidden] = useState('')      // 트렌드에서 내부로 받은 소스 — 화면에 그리지 않는다
   const searchInputRef = useRef(null)
   const [searchMode, setSearchMode] = useState('clip')
   const [chUrl, setChUrl] = useState('')
@@ -551,9 +552,21 @@ export default function Finds() {
     return () => { try { sub.subscription.unsubscribe() } catch { /* noop */ } }
   }, [])
 
+  const { state: navState } = useLocation()
+  // 한 번만. 리마운트로 두 번 타면 검색(유료 호출)이 두 번 나간다.
+  const bootRef = useRef(false)
   useEffect(() => {
-    const u = new URLSearchParams(window.location.search).get('url')
-    if (u) { setSourceUrl(u); setTimeout(() => analyze(u), 0) }
+    if (bootRef.current) return
+    let u = (navState && navState.src) || ''
+    if (!u) {
+      // 예전 링크(?url=) 호환 — 받자마자 주소창에서 지운다
+      const q = new URLSearchParams(window.location.search).get('url')
+      if (q) { u = q; try { window.history.replaceState({}, '', window.location.pathname) } catch { /* noop */ } }
+    }
+    if (!u) return
+    bootRef.current = true
+    setSrcHidden(u)
+    setTimeout(() => analyze(u), 0)
   }, [])
 
   useEffect(() => {
@@ -562,7 +575,7 @@ export default function Finds() {
       if (raw) {
         const c = JSON.parse(raw)
         if (c && Array.isArray(c.clips) && c.clips.length && Date.now() - (c.ts || 0) < 1800000) {
-          setClips(c.clips); if (c.q) setSourceUrl(c.q); if (Array.isArray(c.related)) setRelatedKw(c.related)
+          setClips(c.clips); if (c.q) { if (c.hidden) setSrcHidden(c.q); else setSourceUrl(c.q) }; if (Array.isArray(c.related)) setRelatedKw(c.related)
           if (c.ls?.queries?.length) setLastSearch(c.ls)
         }
       }
@@ -684,7 +697,8 @@ export default function Finds() {
       const ls = queries.length ? { queries, identity, product_name: searchArgs.product_name || '' } : null
       setLastSearch(ls)
       try { phCapture('search_succeeded', { count: finalClips.length }) } catch { /* noop */ }
-      try { sessionStorage.setItem('finds_cache', JSON.stringify({ q: su, clips: finalClips, ts: Date.now(), ls })) } catch { /* noop */ }
+      // hidden: 사용자가 직접 입력한 게 아니라 트렌드에서 넘어온 소스
+      try { sessionStorage.setItem('finds_cache', JSON.stringify({ q: su, hidden: su !== sourceUrl.trim(), clips: finalClips, ts: Date.now(), ls })) } catch { /* noop */ }
 
       const kwForRelated = isUrl ? (searchArgs.keyword || '') : su
       if (kwForRelated) {
@@ -836,7 +850,7 @@ export default function Finds() {
         )}
 
         {searchMode === 'clip' && !searching && clips.length > 0 && (
-          <p className="mt-5 -mb-1 text-xs leading-relaxed text-slate-400">찾은 소재는 원본과 비슷한 <b className="text-slate-500">레퍼런스</b>예요 — 100% 동일 상품이 아닐 수 있어요.{/화장품|뷰티|코스메틱|화장|스킨|립|틴트|파운데이션|쿠션|앰플|세럼|향수|마스카라|아이섀도/.test(sourceUrl) && ' 특히 화장품·뷰티는 동일 상품 매칭이 어려워 비슷한 느낌 위주로 나와요.'}</p>
+          <p className="mt-5 -mb-1 text-xs leading-relaxed text-slate-400">찾은 소재는 원본과 비슷한 <b className="text-slate-500">레퍼런스</b>예요 — 100% 동일 상품이 아닐 수 있어요.{/화장품|뷰티|코스메틱|화장|스킨|립|틴트|파운데이션|쿠션|앰플|세럼|향수|마스카라|아이섀도/.test(sourceUrl || srcHidden) && ' 특히 화장품·뷰티는 동일 상품 매칭이 어려워 비슷한 느낌 위주로 나와요.'}</p>
         )}
         {searchMode === 'clip' && (
         <div className="relative">

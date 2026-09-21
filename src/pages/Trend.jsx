@@ -136,6 +136,10 @@ export default function Trend() {
     openPost(it.url)
   }
 
+  // 소스 찾기 — URL 을 주소창/입력창에 남기지 않고 라우터 state 로만 넘긴다.
+  // 화면에 뜨면 그대로 복사해서 외부 다운로더로 가져갈 수 있다.
+  const findSource = (url) => { if (url) nav('/research', { state: { src: url } }) }
+
   const saveItem = (it) => {
     markActed()
     logEvent('save_click', { shortcode: it.shortcode })
@@ -511,7 +515,7 @@ export default function Trend() {
                           <button onClick={async () => { const d = await loadDetail(it.shortcode); handleAnalyze({ ...clip, ...(d ? { video_url: d.video_url, title: d.caption || clip.title } : {}) }, 'today_picks') }} title="분석 = 비슷한 소재 찾기" className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-[11px] font-bold text-white transition hover:brightness-95"><Sparkles size={11} />분석</button>
                           <button onClick={() => saveItem(it)} title="담기 = 이 계정을 워치리스트에 저장" aria-pressed={watching} className={`flex flex-1 items-center justify-center gap-1 rounded-lg border py-1.5 text-[11px] font-bold transition ${watching ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-slate-200 text-slate-600 hover:border-[#0064FF] hover:text-[#0064FF]'}`}><Bookmark size={11} className={watching ? 'fill-emerald-500 text-emerald-500' : ''} />{watching ? '담김' : '담기'}</button>
                         </div>
-                        <button onClick={() => { window.location.href = '/research?url=' + encodeURIComponent(it.url) }} className="mt-1.5 w-full rounded-lg py-1 text-[11px] font-bold text-slate-400 transition hover:text-[#0064FF]">소스 찾기 →</button>
+                        <button onClick={() => { findSource(it.url) }} className="mt-1.5 w-full rounded-lg py-1 text-[11px] font-bold text-slate-400 transition hover:text-[#0064FF]">소스 찾기 →</button>
                       </div>
                     </div>
                   )
@@ -547,7 +551,7 @@ export default function Trend() {
                   onPlay={() => openItem(it)}
                   onOpen={() => openOutside(it)}
                   onAnalyze={async () => { const d = await loadDetail(it.shortcode); handleAnalyze({ ...clip, ...(d ? { video_url: d.video_url, title: d.caption || clip.title } : {}) }, fastBench ? 'fastbench' : 'trend') }}
-                  onSource={() => { window.location.href = '/research?url=' + encodeURIComponent(it.url) }}
+                  onSource={() => { findSource(it.url) }}
                   onToggleWatch={() => saveItem(it)}
                   onUnlock={() => nav('/pricing')}
                 />
@@ -569,7 +573,7 @@ export default function Trend() {
         </div>
       )}
       {modalClip && <AnalyzeModal clip={modalClip} onClose={() => setModalClip(null)} />}
-      {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onSource={() => { window.location.href = '/research?url=' + encodeURIComponent(playClip.page_url) }} onAnalyze={() => { setPlayClip(null); handleAnalyze(playClip) }} />}
+      {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onSource={() => findSource(playClip.page_url)} onAnalyze={() => { setPlayClip(null); handleAnalyze(playClip) }} />}
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
       {limitModal && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4" onClick={() => setLimitModal(null)}>

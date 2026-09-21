@@ -212,6 +212,9 @@ export default function Watchlist() {
   }
 
 
+  // 트렌드와 같은 이유 — 소스 URL 은 화면에 남기지 않는다
+  const findSource = (url) => { if (url) nav('/research', { state: { src: url } }) }
+
   const handleAnalyze = async (clip) => {
     const key = clip.page_url || clip.title
     try { phCapture('analysis_clicked', { source: 'watchlist' }) } catch { /* noop */ }
@@ -376,7 +379,7 @@ export default function Watchlist() {
                   it={it} rank={i + 1}
                   onPlay={() => { logEvent('trend_card_click', { shortcode: it.shortcode, source: 'watchlist' }); logEvent('trend_play', { shortcode: it.shortcode, source: 'watchlist' }); setPlayClip(clip) }}
                   onAnalyze={() => handleAnalyze(clip)}
-                  onSource={() => { window.location.href = '/research?url=' + encodeURIComponent(it.url) }}
+                  onSource={() => findSource(it.url)}
                   watching={isWatched(it.owner)}
                   onToggleWatch={async () => { logEvent('save_click', { shortcode: it.shortcode, source: 'watchlist' }); await toggleWatch(it.owner); loadAccounts() }}
                 />
@@ -422,7 +425,7 @@ export default function Watchlist() {
       )}
 
       {modalClip && <AnalyzeModal clip={modalClip} onClose={() => setModalClip(null)} />}
-      {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onSource={() => { window.location.href = '/research?url=' + encodeURIComponent(playClip.page_url) }} onAnalyze={() => { setPlayClip(null); handleAnalyze(playClip) }} />}
+      {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onSource={() => findSource(playClip.page_url)} onAnalyze={() => { setPlayClip(null); handleAnalyze(playClip) }} />}
     </div>
   )
 }
