@@ -51,25 +51,30 @@ const FB_SORTS = [['score', '터짐 점수'], ...SORTS]
 const REGIONS = [['전체', ''], ['한국', 'kr'], ['일본', 'jp'], ['미국', 'us']]
 const regionOf = (it) => { const c = `${it.caption || ''} ${it.owner || ''}`; if (/[가-힣]/.test(c)) return 'kr'; if (/[ぁ-ゖァ-ヺ]/.test(c)) return 'jp'; return 'us' }
 
-const TREND_TTL = 10 * 60 * 1000 // 10분: 이 안이면 재요청 안 함(서버는 최대 24h마다 갱신)
-const readTrendCache = () => { try { const c = JSON.parse(localStorage.getItem('chronit_trend_cache') || 'null'); return (c && Array.isArray(c.items)) ? c : null } catch { return null } }
-const writeTrendCache = (items, fbCount) => { try { localStorage.setItem('chronit_trend_cache', JSON.stringify({ items, fbCount: (typeof fbCount === 'number' ? fbCount : null), at: Date.now() })) } catch { /* noop */ } }
+// 트렌드 목록은 trend_feed 를 직접 읽는다. 예전엔 trend-feed 엣지 함수를 기다렸는데,
+// 그 함수는 매 호출마다 테이블을 두 번 훑고 팔로워를 조인하며, 데이터가 24시간 넘게 묵으면
+// 사용자 요청 안에서 Apify 스크래핑(최대 110초)까지 돌린다. 표시에 필요한 값은 이미 테이블에 있다.
+const FEED_DAYS = 8
+const FEED_COLS = 'shortcode,url,video_url,thumbnail_url,caption,owner,follower_count,view_count,like_count,comment_count,velocity,taken_at,post_type,images,category'
+
+// 마지막으로 고른 카테고리만 기억한다(니치로 자동 선택하면 새로고침 때마다 바뀐 것처럼 보인다)
+const CAT_KEY = 'chr_trend_cat'
+const readCat = () => { try { const c = localStorage.getItem(CAT_KEY); return CATS.includes(c) ? c : '전체' } catch { return '전체' } }
 
 export default function Trend() {
   const nav = useNavigate()
   const [session, setSession] = useState(null)
-  const [items, setItems] = useState(() => readTrendCache()?.items || [])
+  const [items, setItems] = useState([])
   const [preview, setPreview] = useState([])
   const [previewCount, setPreviewCount] = useState(0)
   const [myNiche, setMyNiche] = useState(() => { try { return localStorage.getItem('chr_niche') || '' } catch { return '' } })
-  const [selCat, setSelCat] = useState(() => { try { return NICHE_TO_CAT[localStorage.getItem('chr_niche') || ''] || '전체' } catch { return '전체' } })
+  const [selCat, setSelCat] = useState(readCat)
   const [showAdv, setShowAdv] = useState(true)   // 슬라이더를 못 찾는다는 피드백 → 기본 펼침
   const [limitModal, setLimitModal] = useState(null)
-  const [fbCountSrv, setFbCountSrv] = useState(() => { const c = readTrendCache(); return c && typeof c.fbCount === 'number' ? c.fbCount : null })
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [err, setErr] = useState('')
   const [sort, setSort] = useState('view')
-  const [fbSort, setFbSort] = useState('comment')   // 서버가 댓글순으로 주므로 그 순서를 기본으로
+  const [fbSort, setFbSort] = useState('score')   // 팔로워 대비 댓글(comment_per_follower) 순
   const [fbRpc, setFbRpc] = useState(null)         // fastbench_feed_rpc 결과 (null = 아직 안 받음)
   const [fbRange, setFbRange] = useState(FB_DAY_MAX)   // 패스트벤치 전용 기간(서버 파라미터)
   const [showHelp, setShowHelp] = useState(false)
@@ -124,27 +129,36 @@ export default function Trend() {
 
   useEffect(() => {
     if (!isReal) return
-    const cached = readTrendCache()
-    if (cached) { setItems(cached.items); if (typeof cached.fbCount === 'number') setFbCountSrv(cached.fbCount) }                       // 캐시 있으면 즉시 표시(스피너 없음)
-    if (cached && Date.now() - cached.at < TREND_TTL) return  // 신선하면 재요청 스킵
     let alive = true
-    if (!cached) setLoading(true)                            // 보여줄 캐시 없을 때만 스피너
-    ;(async () => {
-      setErr('')
+    const since = new Date(Date.now() - FEED_DAYS * 86400000).toISOString()
+
+    const load = async () => {
+      const { data, error } = await supabase.from('trend_feed').select(FEED_COLS)
+        .gte('taken_at', since).order('comment_count', { ascending: false }).limit(200)
+      if (!alive) return
+      if (error) { setErr('트렌드를 불러오지 못했어요.'); setLoading(false); return }
+      setErr(''); setItems(data || []); setLoading(false)
+    }
+
+    const run = async () => {
+      await load()
+      // 수집 갱신은 서버 몫 — 화면을 막지 않게 던져만 두고, 끝나면 조용히 다시 읽는다
       try {
         const { data: { session: s } } = await supabase.auth.getSession()
-        const r = await fetch(FN('trend-feed'), { method: 'POST', headers: { Authorization: `Bearer ${s.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
-        const d = await r.json()
-        if (alive) { setItems(d.items || []); setFbCountSrv(typeof d.fastbench_count === 'number' ? d.fastbench_count : null); writeTrendCache(d.items || [], d.fastbench_count) }  // 백그라운드 갱신 + 캐시 저장
-      } catch { if (alive && !cached) setErr('트렌드를 불러오지 못했어요.') }
-      finally { if (alive) setLoading(false) }
-    })()
+        if (s?.access_token) {
+          fetch(FN('trend-feed'), { method: 'POST', headers: { Authorization: `Bearer ${s.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
+            .then(() => { if (alive) load() }, () => {})
+        }
+      } catch { /* noop */ }
+    }
+    run()
     return () => { alive = false }
-  }, [session])
+  }, [isReal])
 
-  // 패스트벤치는 서버가 걸러 준다(댓글 수·기간·캐러셀 포함 여부).
+  // 패스트벤치는 서버가 걸러 준다(댓글 수·기간·캐러셀·팔로워 상한).
+  // 트렌드 탭에서도 미리 받아둔다 — 안내 배너의 개수를 옛 캐시가 아니라 최신값으로 보여주려고.
   useEffect(() => {
-    if (!isReal || !fastBench) return
+    if (!isReal) return
     let dead = false
     const run = async () => {
       let rows = []
@@ -154,6 +168,8 @@ export default function Trend() {
           p_min_comments: minComments > 0 ? minComments : 200,
           p_days: fbRange,
           p_include_carousel: postType !== 'reel',
+          // 팔로워 상한은 서버에서 거른다(하한은 응답의 follower_count 로 아래에서)
+          p_max_followers: fMax ? Number(fMax) : null,
         })
         if (Array.isArray(data)) rows = data
       } catch { /* noop */ }
@@ -162,7 +178,7 @@ export default function Trend() {
     }
     run()
     return () => { dead = true }
-  }, [isReal, fastBench, minComments, fbRange, postType])
+  }, [isReal, fastBench, minComments, fbRange, postType, fMax])
 
   useEffect(() => { if (!isReal) return; try { phCapture('trend_feed_viewed') } catch { /* noop */ }; supabase.from('profiles').select('niche').maybeSingle().then(({ data }) => { const n = data && data.niche; if (n && NICHE_TO_CAT[n]) { setMyNiche(n); setSelCat((c) => c === '전체' ? NICHE_TO_CAT[n] : c); try { localStorage.setItem('chr_niche', n) } catch { /* noop */ } } }) }, [isReal])
   useEffect(() => { if (isReal) return; supabase.rpc('public_trend_preview_rpc', { p_limit: 12 }).then(({ data }) => { if (Array.isArray(data)) setPreview(data) }).catch(() => {}); supabase.rpc('public_trend_count_rpc').then(({ data }) => { if (typeof data === 'number') setPreviewCount(data) }).catch(() => {}) }, [isReal])
@@ -172,14 +188,13 @@ export default function Trend() {
   const now = Date.now()
   const FB_SCORE = 12
   const fbScore = (it) => ((Number(it.comment_count) || 0) * 1000 + (Number(it.like_count) || 0) * 50 + (Number(it.view_count) || 0)) / Math.max(Number(it.follower_count) || 0, 1000)
-  const fbCount = Array.isArray(fbRpc) ? fbRpc.length
-    : fbCountSrv != null ? fbCountSrv
-    : items.filter((it) => it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && fbScore(it) >= FB_SCORE).length
+  // 아직 패스트벤치를 안 눌렀으면 개수를 모른다 — 옛 캐시 값을 보여주지 않는다
+  const fbCount = Array.isArray(fbRpc) ? fbRpc.length : null
   const matchNiche = (it) => { const kws = NICHE_KW[myNiche]; if (!kws) return false; const t = ((it.caption || '') + ' ' + (it.hashtag || '')).toLowerCase(); return kws.some((k) => t.includes(k)) }
   // 캐러셀만 볼 때 조회수순은 의미가 없어(전부 0) 좋아요순으로 바꿔 적용한다
   const rawSort = fastBench ? fbSort : sort
   const effSort = postType === 'carousel' && rawSort === 'view' ? 'like' : rawSort
-  const sortOptions = (fastBench ? FB_SORTS.filter(([k]) => k !== 'score') : SORTS)
+  const sortOptions = (fastBench ? FB_SORTS : SORTS)
     .filter(([k]) => !(postType === 'carousel' && k === 'view'))
   // 개인화: 카테고리 칩이 '전체'일 때만 내 니치 소재를 앞으로 올린다.
   // (칩을 직접 고르면 그 선택을 존중해야 하므로 건드리지 않는다)
@@ -193,13 +208,13 @@ export default function Trend() {
       return it.taken_at && now - new Date(it.taken_at).getTime() <= dayWindowMs(range, DAY_MAX)
     })
     .filter((it) => {
-      if (fbMode) return true
       const lo = Number(fMin) || 0, hi = Number(fMax) || 0
       if (!lo && !hi) return true
       const fc = Number(it.follower_count)
       if (!fc) return false
       if (lo && fc < lo) return false
-      if (hi && fc > hi) return false
+      // 패스트벤치는 상한을 서버(p_max_followers)가 이미 걸렀다
+      if (!fbMode && hi && fc > hi) return false
       return true
     })
     .filter((it) => fbMode || !minComments || (Number(it.comment_count) || 0) >= minComments)
@@ -215,7 +230,12 @@ export default function Trend() {
         if (d) return d
       }
       const s = effSort
-      if (s === 'score') return fbScore(b) - fbScore(a)
+      // 터짐 점수 = 팔로워 대비 댓글(서버 계산). 없으면 기존 방식으로 떨어진다.
+      if (s === 'score') {
+        const ca = Number(a.comment_per_follower), cb = Number(b.comment_per_follower)
+        if (Number.isFinite(ca) || Number.isFinite(cb)) return (cb || 0) - (ca || 0)
+        return fbScore(b) - fbScore(a)
+      }
       if (s === 'recent') return new Date(b.taken_at || 0) - new Date(a.taken_at || 0)
       // 조회수순: 캐러셀은 조회수가 0이라 좋아요 수로 비교 (동률이면 댓글수)
       if (s === 'view') return (viewRankOf(b) - viewRankOf(a)) || ((Number(b.comment_count) || 0) - (Number(a.comment_count) || 0))
@@ -226,7 +246,8 @@ export default function Trend() {
 
   const fbQual = (it) => !!it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && fbScore(it) >= FB_SCORE
   const gateOn = previewLock || (!isProPlus && !isAdmin)
-  const lockedCount = gateOn ? (fbCountSrv != null ? fbCountSrv : list.filter(fbQual).length) : 0
+  // 잠긴 개수 = 패스트벤치 대상 수(서버 기준). 아직 못 받았으면 화면에 있는 것으로 어림잡는다.
+  const lockedCount = gateOn ? (fbCount != null ? fbCount : list.filter(fbQual).length) : 0
   const pickScore = (it) => {
     const vel = Number(it.velocity) || 0
     const ageDays = it.taken_at ? (now - new Date(it.taken_at).getTime()) / 86400000 : 999
@@ -286,7 +307,7 @@ export default function Trend() {
         <div className="mb-5">
           <div className="mb-3 flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {CATS.map((c) => (
-              <button key={c} onClick={() => setSelCat(c)} className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-bold transition ${selCat === c ? 'bg-[#0064FF] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{c}</button>
+              <button key={c} onClick={() => { setSelCat(c); try { localStorage.setItem(CAT_KEY, c) } catch { /* noop */ } }} className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-bold transition ${selCat === c ? 'bg-[#0064FF] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{c}</button>
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2">
