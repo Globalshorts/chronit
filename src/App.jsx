@@ -8,6 +8,7 @@ import ErrorReportModal from './components/ErrorReportModal'
 import ActivationGate from './components/ActivationGate'
 import InAppBrowserBanner from './components/InAppBrowserBanner'
 import PushPrompt from './components/PushPrompt'
+import { prefetchFeeds } from './lib/trendStore'
 import InstallButton from './components/InstallButton'
 import AppShell from './components/AppShell'
 const PwaInstallGlobal = lazy(() => import('./components/PwaInstall'))
@@ -88,6 +89,14 @@ const App = () => {
       if (event === 'SIGNED_OUT') { try { window.gtag && window.gtag('config', GA, { user_id: undefined, send_page_view: false }) } catch {}; phReset() }
     })
     return () => { try { sub.subscription.unsubscribe() } catch {} }
+  }, [])
+
+  // 앱이 뜨면 트렌드·패스트벤치를 뒤에서 미리 받아 메모리에 올려둔다 → 첫 진입에 이미 떠 있게.
+  useEffect(() => {
+    const start = () => { supabase.auth.getSession().then(({ data }) => { if (data.session) prefetchFeeds() }, () => {}) }
+    const t = setTimeout(start, 1200)
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => { if (s) prefetchFeeds() })
+    return () => { clearTimeout(t); try { sub.subscription.unsubscribe() } catch { /* noop */ } }
   }, [])
   // 자동 재접속(강제 새로고침) 비활성화 — must-revalidate 헤더가 다음 접속에 최신본을 보장하므로 불필요.
   // (매 접속마다 재로딩되는 문제 방지)
