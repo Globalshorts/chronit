@@ -15,6 +15,7 @@ const PwaInstallGlobal = lazy(() => import('./components/PwaInstall'))
 import { installGlobalErrorCapture } from './lib/errorReport'
 import { supabase } from './lib/supabase'
 import { trackSignupIfNew } from './lib/trackSignup'
+import { logEventOnce } from './lib/events'
 import { phIdentify, phReset } from './lib/posthog'
 
 // ── 라우트별 코드 스플리팅 (홈 진입 시 앱 전체가 아니라 필요한 청크만 로드) ──
@@ -76,6 +77,8 @@ const RouteFallback = () => (
 
 const App = () => {
   useEffect(() => { installGlobalErrorCapture(); try { sessionStorage.removeItem('chr_chunk_reload') } catch {} }, [])
+  // 여정의 시작점 — 탭당 1회
+  useEffect(() => { logEventOnce('app_open') }, [])
   useEffect(() => {
     const GA = 'G-Y46H5BMZ2X'
     const setUid = (session) => {

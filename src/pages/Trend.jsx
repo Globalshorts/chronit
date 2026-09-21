@@ -5,18 +5,19 @@ import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, Help
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
 import { fbTrack } from '../lib/fbq'
-import { useWatchToggle } from '../lib/useWatchToggle'
 import { useProPlus } from '../lib/useProPlus'
 import RangeFilter from '../components/RangeFilter'
 import {
   DAY_MAX, DAY_MARKS, FB_DAY_MAX, FB_DAY_MARKS, dayWindowMs,
   COMMENT_MAX, COMMENT_MARKS, FOLLOWER_MAX, FOLLOWER_MARKS, manFmt,
-  isCarousel, matchPostType, coverOf, viewRankOf, feedClip, openPost,
+  isCarousel, matchPostType, coverOf, viewRankOf, feedClip,
 } from '../lib/filterConfig'
 import PostTypeToggle from '../components/PostTypeToggle'
 import VideoModal from '../components/ReelModal'
 import TrendCard, { TrendThumb } from '../components/TrendCard'
 import { memList, memFb, readSkeleton, loadTrendList, loadFastbench, loadDetail } from '../lib/trendStore'
+import { logEvent, logEventOnce } from '../lib/events'
+import { coachPending, dismissCoach } from '../lib/coach'
 import QuestStrip from '../components/QuestStrip'
 import NewSinceBadges from '../components/NewSinceBadges'
 import { fmtCount as fmt } from '../lib/format'
@@ -50,7 +51,7 @@ const FN = (n) => `${SB}/functions/v1/${n}`
 const SORTS = [['view', '조회수'], ['recent', '최신'], ['like', '좋아요'], ['comment', '댓글']]
 const FB_SORTS = [['score', '터짐 점수'], ...SORTS]
 const REGIONS = [['전체', ''], ['한국', 'kr'], ['일본', 'jp'], ['미국', 'us']]
-const regionOf = (it) => { const c = `${it.caption || ''} ${it.owner || ''}`; if (/[가-힣]/.test(c)) return 'kr'; if (/[ぁ-ゖァ-ヺ]/.test(c)) return 'jp'; return 'us' }
+const regionOf = (it) => { const c = `${it.caption || ''}`; if (/[가-힣]/.test(c)) return 'kr'; if (/[ぁ-ゖァ-ヺ]/.test(c)) return 'jp'; return 'us' }
 
 // 트렌드 목록은 trend_feed 를 직접 읽는다. 예전엔 trend-feed 엣지 함수를 기다렸는데,
 // 그 함수는 매 호출마다 테이블을 두 번 훑고 팔로워를 조인하며, 데이터가 24시간 넘게 묵으면
@@ -92,26 +93,65 @@ export default function Trend() {
   const [analyzedIds, setAnalyzedIds] = useState([])
   const [showAuth, setShowAuth] = useState(false)
   const [playClip, setPlayClip] = useState(null)
+  // 첫 방문(또는 온보딩 직후)에 '뭘 누르면 되는지'를 한 번 짚어준다
+  const [coachOn, setCoachOn] = useState(coachPending)
+  const [nudge, setNudge] = useState(false)
+  const actedRef = useRef(false)     // 이 방문에서 분석/담기/재생을 한 번이라도 했나
+  const depthRef = useRef(0)         // 이미 쏜 스크롤 깊이
+  const nudgeOffRef = useRef(false)  // 넛지를 닫았으면 다시 띄우지 않는다
   const isReal = !!session && session.user?.is_anonymous !== true
   // 패스트벤치는 프로(finds100)·비즈니스(finds300) 전용 — 스탠다드/무료는 블러 (샤오홍슈 참고검색과 같은 기준)
   const { isProPlus, isAdmin } = useProPlus(session)
-  // 카드의 북마크 = 그 계정을 워치리스트에 담기/빼기
-  const { isWatched, toggle: toggleWatch } = useWatchToggle({
-    enabled: isReal, source: 'trend',
-    onNeedLogin: () => setShowAuth(true),
-    onLimit: (limit) => setLimitModal({ limit }),
-  })
+  // 계정명(owner)은 이제 클라이언트로 내려오지 않는다.
+  // 담김 여부는 서버가 행마다 watching 으로 알려주고, 누른 뒤에는 shortcode 로 덮어쓴다.
+  const [watchOv, setWatchOv] = useState({})
+  const isWatching = (it) => (it && it.shortcode in watchOv ? watchOv[it.shortcode] : !!(it && it.watching))
 
-  // 목록엔 video_url·images·전체 캡션이 없다(가볍게 유지) → 누를 때만 받아온다
+  // 한 번이라도 움직였으면 코치마크·넛지는 제 할 일을 다 한 것
+  const markActed = () => {
+    actedRef.current = true
+    nudgeOffRef.current = true
+    setNudge(false)
+    setCoachOn((v) => { if (v) dismissCoach(); return false })
+  }
+  const closeCoach = () => { dismissCoach(); setCoachOn(false) }
+
+  // 목록엔 video_url·images·전체 캡션이 없다(가볍게 유지) → 누를 때만 받아온다.
+  // 재생이든 캐러셀이든 전부 앱 안에서 연다 — 인스타로 내보내면 원본 주소가 노출된다.
   const openItem = async (it) => {
+    markActed()
+    logEvent('trend_card_click', { shortcode: it.shortcode })
     const d = await loadDetail(it.shortcode)
     const merged = { ...it, ...(d || {}) }
-    if (merged.video_url) setPlayClip(feedClip(merged))
-    else openPost(merged.url || it.url)
+    if (merged.video_url) logEvent('trend_play', { shortcode: it.shortcode })
+    setPlayClip({ ...feedClip(merged), images: Array.isArray(merged.images) ? merged.images : [] })
   }
 
-  const handleAnalyze = async (clip) => {
+  // 소스 찾기 — 원본 URL 대신 shortcode 만 넘긴다. 서버가 URL 을 복원한다.
+  const findSource = (shortcode) => { if (shortcode) nav('/research', { state: { shortcode } }) }
+
+  const saveItem = async (it) => {
+    markActed()
+    logEvent('save_click', { shortcode: it.shortcode })
+    const next = !isWatching(it)
+    setWatchOv((p) => ({ ...p, [it.shortcode]: next }))          // 낙관적
+    const { data, error } = await supabase.rpc('watch_toggle_by_shortcode_rpc', { p_shortcode: it.shortcode, p_add: next })
+    if (error || data?.ok === false) {
+      setWatchOv((p) => ({ ...p, [it.shortcode]: !next }))       // 롤백
+      if (data?.status === 'limit') setLimitModal({ limit: data.limit ?? null })
+      else setShowAuth(true)
+      return
+    }
+    // 같은 계정의 다른 카드도 함께 — 서버가 계정명 대신 shortcode 목록만 돌려준다
+    const codes = Array.isArray(data?.shortcodes) && data.shortcodes.length ? data.shortcodes : [it.shortcode]
+    setWatchOv((p) => { const n = { ...p }; codes.forEach((c) => { n[c] = next }); return n })
+    if (data?.status === 'added') logEvent('watch_add', { shortcode: it.shortcode })
+  }
+
+  const handleAnalyze = async (clip, source = 'trend') => {
     const key = clip.page_url || clip.title
+    markActed()
+    logEvent('analyze_click', { shortcode: clip.video_id || null, source })
     try { phCapture('trend_item_opened', { source: 'trend' }); phCapture('analysis_clicked', { source: 'trend' }) } catch { /* noop */ }
     if (analyzedIds.includes(key)) { setModalClip(clip); return }
     if (!ackAnalyzeCost(null)) return
@@ -129,6 +169,35 @@ export default function Trend() {
     vcSent.current = true
     fbTrack('ViewContent', { content_name: 'trend_feed', content_category: 'trend' })
   }, [])
+
+  // 어느 탭까지 봤는지 — 세션의 마지막 이벤트가 곧 이탈 지점이다
+  useEffect(() => {
+    if (!isReal) return
+    logEvent('tab_view', { tab: fastBench ? 'fastbench' : 'trend' })
+    if (fastBench) logEventOnce('fastbench_view')
+  }, [isReal, fastBench])
+
+  useEffect(() => {
+    if (!isReal || !fastBench) return
+    logEvent('fastbench_filter', { category: selCat, min_comments: minComments })
+  }, [isReal, fastBench, selCat, minComments])
+
+  // 스크롤 깊이(25/50/75/100) + 아무 행동 없이 훑기만 하면 넛지
+  useEffect(() => {
+    if (!isReal) return
+    const onScroll = () => {
+      const el = document.documentElement
+      const max = el.scrollHeight - el.clientHeight
+      if (max <= 0) return
+      const pct = Math.min(100, Math.round((el.scrollTop / max) * 100))
+      for (const d of [25, 50, 75, 100]) {
+        if (pct >= d && depthRef.current < d) { depthRef.current = d; logEvent('trend_scroll', { depth: d }) }
+      }
+      if (pct >= 25 && !actedRef.current && !nudgeOffRef.current) setNudge(true)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [isReal])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
@@ -255,6 +324,8 @@ export default function Trend() {
   const gateOn = previewLock || (!isProPlus && !isAdmin)
   // 잠긴 개수 = 패스트벤치 대상 수(서버 기준). 아직 못 받았으면 화면에 있는 것으로 어림잡는다.
   const lockedCount = gateOn ? (fbCount != null ? fbCount : list.filter(fbQual).length) : 0
+  // 코치마크는 잠긴 카드에 붙이면 안 된다 — 거긴 [분석] 대신 잠금 버튼이 있다
+  const coachIdx = list.findIndex((it) => !(gateOn && fbQual(it)))
   const pickScore = (it) => {
     const vel = Number(it.velocity) || 0
     const ageDays = it.taken_at ? (now - new Date(it.taken_at).getTime()) / 86400000 : 999
@@ -429,16 +500,12 @@ export default function Trend() {
                   const carousel = isCarousel(it)
                   const vel = Number(it.velocity) || 0
                   const fresh = it.taken_at && (now - new Date(it.taken_at).getTime() <= 3 * 86400000)
-                  const watching = isWatched(it.owner)
+                  const watching = isWatching(it)
                   return (
                     <div key={it.shortcode || i} className="flex gap-2.5 rounded-xl border border-slate-100 bg-slate-50 p-2.5 sm:flex-col">
-                      <div role="button" onClick={() => (carousel ? openPost(it.url) : openItem(it))} className="relative aspect-[9/16] w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-slate-200 sm:w-full">
+                      <div role="button" onClick={() => openItem(it)} className="relative aspect-[9/16] w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-slate-200 sm:w-full">
                         <TrendThumb url={coverOf(it)} sc={it.shortcode} />
                         <div className="absolute left-1 top-1 rounded bg-black/60 px-1 text-[10px] font-bold text-white">#{i + 1}</div>
-                        {/* 피드 카드와 눈에 띄는 정도를 맞춤 (모바일은 썸네일이 64px라 과하지 않게) */}
-                        <button onClick={(e) => { e.stopPropagation(); toggleWatch(it.owner) }} title={watching ? `@${it.owner} 감시 해제` : `@${it.owner} 워치리스트에 추가`} aria-label={watching ? `@${it.owner} 감시 해제` : `@${it.owner} 워치리스트에 추가`} aria-pressed={watching} className="absolute bottom-1 right-1 flex h-9 w-9 items-center justify-center rounded-full bg-black/65 text-white shadow-lg ring-1 ring-white/20 backdrop-blur transition hover:bg-black/85 active:scale-95 sm:bottom-2 sm:right-2 sm:h-12 sm:w-12">
-                          <Bookmark size={20} strokeWidth={2.25} className={watching ? 'fill-emerald-400 text-emerald-400' : ''} />
-                        </button>
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="mb-1 flex flex-wrap gap-1">
@@ -447,9 +514,10 @@ export default function Trend() {
                         </div>
                         <div className="mb-2 line-clamp-2 text-[12px] font-medium text-slate-700">{it.caption || '(설명 없음)'}</div>
                         <div className="flex gap-1.5">
-                          <button onClick={async () => { const d = await loadDetail(it.shortcode); handleAnalyze({ ...clip, ...(d ? { video_url: d.video_url, title: d.caption || clip.title } : {}) }) }} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-[11px] font-bold text-white transition hover:brightness-95"><Sparkles size={11} />분석</button>
-                          <button onClick={() => { window.location.href = '/research?url=' + encodeURIComponent(it.url) }} className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-slate-200 py-1.5 text-[11px] font-bold text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]">소스 찾기</button>
+                          <button onClick={async () => { const d = await loadDetail(it.shortcode); handleAnalyze({ ...clip, ...(d ? { video_url: d.video_url, title: d.caption || clip.title } : {}) }, 'today_picks') }} title="분석 = 비슷한 소재 찾기" className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-[11px] font-bold text-white transition hover:brightness-95"><Sparkles size={11} />분석</button>
+                          <button onClick={() => saveItem(it)} title="담기 = 이 계정을 워치리스트에 저장" aria-pressed={watching} className={`flex flex-1 items-center justify-center gap-1 rounded-lg border py-1.5 text-[11px] font-bold transition ${watching ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-slate-200 text-slate-600 hover:border-[#0064FF] hover:text-[#0064FF]'}`}><Bookmark size={11} className={watching ? 'fill-emerald-500 text-emerald-500' : ''} />{watching ? '담김' : '담기'}</button>
                         </div>
+                        <button onClick={() => { findSource(it.shortcode) }} className="mt-1.5 w-full rounded-lg py-1 text-[11px] font-bold text-slate-400 transition hover:text-[#0064FF]">소스 찾기 →</button>
                       </div>
                     </div>
                   )
@@ -458,6 +526,19 @@ export default function Trend() {
             </div>
           )}
           {lockedCount > 0 && <p className="mb-3 flex items-start gap-1.5 rounded-xl bg-slate-900 px-3 py-2.5 text-sm font-bold text-white"><Crown size={15} className="mt-0.5 shrink-0 text-amber-400" /><span>지금 막 터진 소재 {lockedCount}개 · <span className="text-amber-300">패스트벤치는 프로 이상 전용이에요.</span> 며칠 뒤 무료로 풀리지만, 그땐 남들이 다 따라한 뒤예요.</span></p>}
+          {coachOn && list.length > 0 && (
+            // 첫 방문 코치마크 — 아래 첫 카드의 [분석]이 같이 깜빡인다
+            <div className="mb-3 flex items-start gap-2 rounded-xl border border-[#0064FF]/25 bg-[#0064FF]/[0.06] px-3 py-2.5">
+              <Sparkles size={15} className="mt-0.5 shrink-0 text-[#0064FF]" />
+              <p className="flex-1 text-[13px] font-bold leading-relaxed text-slate-700">
+                마음에 드는 소재를 눌러 <span className="text-[#0064FF]">분석</span>하면 비슷한 클립을 찾아드려요
+              </p>
+              <button onClick={closeCoach} aria-label="안내 닫기" className="shrink-0 text-slate-400 transition hover:text-slate-600"><X size={14} /></button>
+            </div>
+          )}
+          <p className="mb-2 text-[11px] font-medium text-slate-400">
+            <b className="text-slate-500">분석</b> = 비슷한 소재 찾기 · <b className="text-slate-500">담기</b> = 이 계정을 워치리스트에 저장
+          </p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {list.map((it, i) => {
               const clip = feedClip(it)
@@ -466,12 +547,14 @@ export default function Trend() {
                 <TrendCard
                   key={it.shortcode || i}
                   it={it} rank={i + 1} locked={locked}
-                  watching={isWatched(it.owner)}
+                  watching={isWatching(it)}
                   lazyDetail
+                  coach={coachOn && i === coachIdx}
                   onPlay={() => openItem(it)}
-                  onAnalyze={async () => { const d = await loadDetail(it.shortcode); handleAnalyze({ ...clip, ...(d ? { video_url: d.video_url, title: d.caption || clip.title } : {}) }) }}
-                  onSource={() => { window.location.href = '/research?url=' + encodeURIComponent(it.url) }}
-                  onToggleWatch={() => toggleWatch(it.owner)}
+                  onOpen={() => openItem(it)}
+                  onAnalyze={async () => { const d = await loadDetail(it.shortcode); handleAnalyze({ ...clip, ...(d ? { video_url: d.video_url, title: d.caption || clip.title } : {}) }, fastBench ? 'fastbench' : 'trend') }}
+                  onSource={() => { findSource(it.shortcode) }}
+                  onToggleWatch={() => saveItem(it)}
                   onUnlock={() => nav('/pricing')}
                 />
               )
@@ -481,8 +564,18 @@ export default function Trend() {
           </>
         )}
       </div>
-      {modalClip && <AnalyzeModal clip={modalClip} onClose={() => setModalClip(null)} />}
-      {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onSource={() => { window.location.href = '/research?url=' + encodeURIComponent(playClip.page_url) }} onAnalyze={() => { setPlayClip(null); handleAnalyze(playClip) }} />}
+      {nudge && isReal && (
+        // 한참 훑기만 하고 아무것도 안 눌렀을 때 — 다음 행동을 한 번 더 짚어준다
+        <div className="fixed inset-x-0 bottom-20 z-40 flex justify-center px-4 sm:bottom-6">
+          <div className="flex w-full max-w-md items-center gap-2.5 rounded-2xl bg-slate-900 px-4 py-3 shadow-2xl ring-1 ring-white/10">
+            <Sparkles size={16} className="shrink-0 text-[#7FB2FF]" />
+            <p className="flex-1 text-[13px] font-bold leading-snug text-white">이 중 하나를 <span className="text-[#7FB2FF]">분석</span>해보세요 — 비슷한 클립을 찾아드려요</p>
+            <button onClick={() => { nudgeOffRef.current = true; setNudge(false) }} aria-label="닫기" className="shrink-0 text-white/40 transition hover:text-white/80"><X size={15} /></button>
+          </div>
+        </div>
+      )}
+      {modalClip && <AnalyzeModal clip={modalClip} allowDownload={false} onClose={() => setModalClip(null)} />}
+      {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onSource={() => findSource(playClip.video_id)} onAnalyze={() => { setPlayClip(null); handleAnalyze(playClip) }} />}
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
       {limitModal && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4" onClick={() => setLimitModal(null)}>
