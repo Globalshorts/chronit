@@ -5,6 +5,7 @@ import { Search, Loader2, AlertTriangle, Flame, Eye, Heart, MessageCircle, Spark
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
 import { logEvent } from '../lib/events'
+import { maskHandles } from '../lib/format'
 import { FEATURES } from '../config/features'
 import AuthModal from '../components/AuthModal'
 import ReferralCTA from '../components/ReferralCTA'
@@ -286,7 +287,7 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed, initialResult = null, 
           <button onClick={onClose} className="text-slate-400 hover:text-slate-700"><X size={20} /></button>
         </div>
 
-        <p className="line-clamp-2 text-sm text-slate-600">{clip.title || '(제목 없음)'}</p>
+        <p className="line-clamp-2 text-sm text-slate-600">{maskHandles(clip.title) || '(제목 없음)'}</p>
         <p className="mt-0.5 text-xs text-slate-400">{clip.author ? `@${clip.author} · ` : ''}{clip.source}</p>
 
         <div className="mt-3 flex items-center gap-4 text-sm text-slate-600">

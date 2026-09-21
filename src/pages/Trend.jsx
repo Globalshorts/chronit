@@ -20,7 +20,7 @@ import { logEvent, logEventOnce } from '../lib/events'
 import { coachPending, dismissCoach } from '../lib/coach'
 import QuestStrip from '../components/QuestStrip'
 import NewSinceBadges from '../components/NewSinceBadges'
-import { fmtCount as fmt } from '../lib/format'
+import { fmtCount as fmt, maskHandles } from '../lib/format'
 
 const CATS = ['전체','리빙','육아','푸드','잡화','패션','디지털','뷰티']
 const NICHE_TO_CAT = { '뷰티·화장품':'뷰티','패션·의류':'패션','리빙·홈·주방':'리빙','잡화·소품':'잡화','푸드·식품':'푸드','육아·키즈':'육아','헬스·건강':'헬스','반려동물':'반려','디지털·가전':'디지털' }
@@ -61,6 +61,8 @@ const FEED_DAYS = 8
 // 마지막으로 고른 카테고리만 기억한다(니치로 자동 선택하면 새로고침 때마다 바뀐 것처럼 보인다)
 const CAT_KEY = 'chr_trend_cat'
 const readCat = () => { try { const c = localStorage.getItem(CAT_KEY); return CATS.includes(c) ? c : '전체' } catch { return '전체' } }
+// 직접 고른 적이 있는지 — 있으면 니치로 자동 선택하지 않는다
+const catChosen = () => { try { return CATS.includes(localStorage.getItem(CAT_KEY)) } catch { return false } }
 
 export default function Trend() {
   const nav = useNavigate()
@@ -258,7 +260,7 @@ export default function Trend() {
     return () => { dead = true }
   }, [isReal, fastBench, minComments, fbRange, postType, fMax])
 
-  useEffect(() => { if (!isReal) return; try { phCapture('trend_feed_viewed') } catch { /* noop */ }; supabase.from('profiles').select('niche').maybeSingle().then(({ data }) => { const n = data && data.niche; if (n && NICHE_TO_CAT[n]) { setMyNiche(n); setSelCat((c) => c === '전체' ? NICHE_TO_CAT[n] : c); try { localStorage.setItem('chr_niche', n) } catch { /* noop */ } } }) }, [isReal])
+  useEffect(() => { if (!isReal) return; try { phCapture('trend_feed_viewed') } catch { /* noop */ }; supabase.from('profiles').select('niche').maybeSingle().then(({ data }) => { const n = data && data.niche; if (n && NICHE_TO_CAT[n]) { setMyNiche(n); if (!catChosen()) setSelCat((c) => c === '전체' ? NICHE_TO_CAT[n] : c); try { localStorage.setItem('chr_niche', n) } catch { /* noop */ } } }) }, [isReal])
   useEffect(() => { if (isReal) return; supabase.rpc('public_trend_preview_rpc', { p_limit: 12 }).then(({ data }) => { if (Array.isArray(data)) setPreview(data) }).catch(() => {}); supabase.rpc('public_trend_count_rpc').then(({ data }) => { if (typeof data === 'number') setPreviewCount(data) }).catch(() => {}) }, [isReal])
 
   if (!FEATURES.trendFeed) return <Navigate to="/" replace />
@@ -450,7 +452,7 @@ export default function Trend() {
                         </div>
                         <div className="p-2">
                           <div className="mb-1 flex gap-1.5 text-[10px] text-white/45"><span className="flex items-center gap-0.5"><Eye size={10} />{fmt(it.view_count)}</span><span className="flex items-center gap-0.5"><MessageCircle size={10} />{fmt(it.comment_count)}</span></div>
-                          <div className="mb-2 line-clamp-2 text-[11px] text-white/70">{it.caption || '(설명 없음)'}</div>
+                          <div className="mb-2 line-clamp-2 text-[11px] text-white/70">{maskHandles(it.caption) || '(설명 없음)'}</div>
                           <div className="flex flex-col gap-1">
                             <button onClick={(e) => { e.stopPropagation(); setShowAuth(true) }} className="flex w-full items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-2 text-[11px] font-bold text-white transition hover:brightness-95"><Sparkles size={11} />분석</button>
                             <button onClick={(e) => { e.stopPropagation(); setShowAuth(true) }} className="flex w-full items-center justify-center rounded-lg border border-white/15 py-2 text-[11px] font-bold text-white/70 transition hover:border-[#0064FF] hover:text-white">소스 찾기</button>
@@ -512,7 +514,7 @@ export default function Trend() {
                           {vel > 0 && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[10px] font-bold text-[#0064FF]">지금 퍼지는 중 · ↑{Math.round(vel)}</span>}
                           {!carousel && (Number(it.view_count) || 0) < 300000 ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">아직 덜 퍼짐 · 선점 기회</span> : fresh ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">최근 등장</span> : null}
                         </div>
-                        <div className="mb-2 line-clamp-2 text-[12px] font-medium text-slate-700">{it.caption || '(설명 없음)'}</div>
+                        <div className="mb-2 line-clamp-2 text-[12px] font-medium text-slate-700">{maskHandles(it.caption) || '(설명 없음)'}</div>
                         <div className="flex gap-1.5">
                           <button onClick={async () => { const d = await loadDetail(it.shortcode); handleAnalyze({ ...clip, ...(d ? { video_url: d.video_url, title: d.caption || clip.title } : {}) }, 'today_picks') }} title="분석 = 비슷한 소재 찾기" className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-[11px] font-bold text-white transition hover:brightness-95"><Sparkles size={11} />분석</button>
                           <button onClick={() => saveItem(it)} title="담기 = 이 계정을 워치리스트에 저장" aria-pressed={watching} className={`flex flex-1 items-center justify-center gap-1 rounded-lg border py-1.5 text-[11px] font-bold transition ${watching ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-slate-200 text-slate-600 hover:border-[#0064FF] hover:text-[#0064FF]'}`}><Bookmark size={11} className={watching ? 'fill-emerald-500 text-emerald-500' : ''} />{watching ? '담김' : '담기'}</button>
