@@ -4,6 +4,7 @@ import { Navigate, Link, useNavigate } from 'react-router-dom'
 import { Search, Loader2, AlertTriangle, Flame, Eye, Heart, MessageCircle, Sparkles, X, Copy, Check, Download, Bookmark, RefreshCw } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
+import { logEvent } from '../lib/events'
 import { FEATURES } from '../config/features'
 import AuthModal from '../components/AuthModal'
 import ReferralCTA from '../components/ReferralCTA'
@@ -218,7 +219,7 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed, initialResult = null }
         let uNiche = '', uPersona = ''
         try { const { data: pf } = await supabase.from('profiles').select('niche,persona').eq('id', s.user.id).maybeSingle(); uNiche = pf?.niche || ''; uPersona = pf?.persona || '' } catch { /* noop */ }
         const cacheKey = String(clip.video_id || clip.page_url || clip.title || '').slice(0, 280) + '|' + uNiche + '|v9'
-        try { const { data: cached } = await supabase.rpc('get_analyze_cache_rpc', { p_key: cacheKey }); if (cached && cached.ok) { if (alive) { setResult(cached); markAnalyzed(clip); try { onAnalyzed && onAnalyzed() } catch { /* noop */ } setLoading(false) } return } } catch { /* noop */ }
+        try { const { data: cached } = await supabase.rpc('get_analyze_cache_rpc', { p_key: cacheKey }); if (cached && cached.ok) { if (alive) { setResult(cached); markAnalyzed(clip); try { onAnalyzed && onAnalyzed() } catch { /* noop */ } logEvent('analyze_result', { ok: true, cached: true, shortcode: clip.video_id || null }); setLoading(false) } return } } catch { /* noop */ }
         const r = await fetch(FN('analyze-clip'), {
           method: 'POST',
           headers: { Authorization: `Bearer ${s.access_token}`, 'Content-Type': 'application/json' },
@@ -226,8 +227,9 @@ export function AnalyzeModal({ clip, onClose, onAnalyzed, initialResult = null }
         })
         const d = await r.json()
         if (!alive) return
+        logEvent('analyze_result', { ok: !!d.ok, shortcode: clip.video_id || null })
         if (d.ok) { setResult(d); markAnalyzed(clip); try { onAnalyzed && onAnalyzed() } catch { /* noop */ } if (d.hook) { try { await supabase.rpc('set_analyze_cache_rpc', { p_key: cacheKey, p_result: d }) } catch { /* noop */ } } } else setErr(d.error || '분석에 실패했어요.')
-      } catch { if (alive) setErr('분석 중 오류가 발생했어요.') }
+      } catch { logEvent('analyze_result', { ok: false, error: 'exception' }); if (alive) setErr('분석 중 오류가 발생했어요.') }
       finally { if (alive) setLoading(false) }
     })()
     return () => { alive = false }

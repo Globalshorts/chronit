@@ -1,3 +1,5 @@
+import { logEvent } from './events'
+
 // 신규 계정일 때만 GA4 sign_up(전환) 1회 발생.
 // - user.created_at 이 최근(30분 이내)이면 신규 가입으로 판단(재로그인 제외)
 // - localStorage 가드로 새로고침/중복 발생 방지
@@ -12,6 +14,7 @@ export function trackSignupIfNew(session) {
     if (localStorage.getItem(k)) return
     localStorage.setItem(k, '1')
     const method = (u.app_metadata && u.app_metadata.provider) || 'unknown'
+    logEvent('signup_complete', { method })
     if (window.gtag) window.gtag('event', 'sign_up', { method, event_category: 'conversion' })
     if (window.fbq) window.fbq('track', 'CompleteRegistration', { registration_method: method })
   } catch { /* noop */ }

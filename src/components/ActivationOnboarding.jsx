@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Sparkles, Bookmark, Loader2, Check, MessageCircle, Eye, PartyPopper } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
+import { logEvent } from '../lib/events'
+import { armCoach } from '../lib/coach'
 import { ONBOARDING_NICHES, catOfNiche } from '../lib/niche'
 import { preloadKakao, addKakaoChannel } from '../lib/kakaoChannel'
 import { TrendThumb } from './TrendCard'
@@ -14,6 +17,7 @@ const PICK_COUNT = 3
 // 신규 유저 활성화 온보딩 — 니치 → 관련 트렌드 → 첫 액션(분석 or 저장) → 카톡 채널.
 // 완료 전에는 닫을 수 없다. 단, 트렌드를 못 불러오면 갇히지 않게 빠져나갈 길을 연다.
 export default function ActivationOnboarding({ onDone, onDefer }) {
+  const nav = useNavigate()
   const [step, setStep] = useState('niche')      // niche | action | done
   const [niche, setNiche] = useState('')
   const [items, setItems] = useState([])
@@ -24,7 +28,7 @@ export default function ActivationOnboarding({ onDone, onDefer }) {
   const [kakaoDone, setKakaoDone] = useState(false)
   const [busy, setBusy] = useState(false)
 
-  useEffect(() => { try { phCapture('onboarding_started') } catch { /* noop */ } }, [])
+  useEffect(() => { try { phCapture('onboarding_started') } catch { /* noop */ }; logEvent('onboarding_start') }, [])
   // 팝업 차단을 피하려면 클릭 시점엔 SDK 가 이미 떠 있어야 한다
   useEffect(() => { if (step === 'done') preloadKakao() }, [step])
 
@@ -46,6 +50,7 @@ export default function ActivationOnboarding({ onDone, onDefer }) {
       const rest = all.filter((it) => !mine.includes(it)).sort(byViews)
       const picked = [...mine.sort(byViews), ...rest].slice(0, PICK_COUNT)
       if (!picked.length) setErr('지금은 보여드릴 소재가 없어요.')
+      else logEvent('onboarding_step', { step: 'trends', count: picked.length })
       setItems(picked)
     } catch {
       setErr('트렌드를 불러오지 못했어요.')
@@ -59,6 +64,7 @@ export default function ActivationOnboarding({ onDone, onDefer }) {
     try { localStorage.setItem('chr_niche', canonical) } catch { /* noop */ }
     supabase.rpc('set_user_niche_rpc', { p_niche: canonical }).then(null, () => {})
     try { phCapture('niche_selected', { niche: canonical, chip: label }) } catch { /* noop */ }
+    logEvent('onboarding_step', { step: 'niche', niche: canonical })
     setStep('action')
     loadTrends(canonical)
   }
@@ -68,6 +74,7 @@ export default function ActivationOnboarding({ onDone, onDefer }) {
   // 서버 기록이 실패해도 모달에 갇히지 않게 기기 단위 표시를 함께 남긴다.
   const complete = useCallback(async (action) => {
     try { phCapture('activation_action_completed', { action, niche }) } catch { /* noop */ }
+    logEvent('onboarding_complete', { action, niche: niche || null })
     try { await supabase.rpc('complete_activation_rpc', { p_niche: niche || null }) } catch { /* noop */ }
     try { localStorage.setItem('chr_activation_done', '1') } catch { /* noop */ }
     setStep('done')
@@ -81,6 +88,8 @@ export default function ActivationOnboarding({ onDone, onDefer }) {
 
   // 첫 분석은 무료 — 이용권을 차감하지 않고, 첫 분석 보너스만 소진 처리한다
   const analyze = (it) => {
+    logEvent('onboarding_step', { step: 'analyze', shortcode: it.shortcode })
+    logEvent('analyze_click', { shortcode: it.shortcode, source: 'onboarding' })
     setModalClip(clipOf(it))
     supabase.rpc('grant_first_analysis_bonus_rpc').then(null, () => {})
   }
@@ -90,6 +99,7 @@ export default function ActivationOnboarding({ onDone, onDefer }) {
     if (busy) return
     setBusy(true)
     const name = String(it.owner || '').trim().toLowerCase().replace(/^@/, '')
+    logEvent('save_click', { shortcode: it.shortcode, source: 'onboarding' })
     let ok = false
     try {
       const { data } = await supabase.rpc('watch_toggle_account_rpc', { p_username: name, p_add: true })
@@ -105,13 +115,21 @@ export default function ActivationOnboarding({ onDone, onDefer }) {
     const how = addKakaoChannel()
     setKakaoDone(true)
     try { phCapture('kakao_optin', { how }) } catch { /* noop */ }
+    logEvent('onboarding_step', { step: 'kakao', how })
     supabase.rpc('set_kakao_opt_in_rpc').then(null, () => {})   // 인자 없는 함수
   }
 
-  const finish = () => { onDone?.() }
+  // 니치만 고르고 끝내지 않는다. 아하를 본 사람을 바로 트렌드에 앉히고,
+  // 거기서 다음 행동([분석])을 코치마크로 짚어준다.
+  const finish = () => {
+    armCoach()
+    onDone?.()
+    try { nav('/trend') } catch { /* noop */ }
+  }
   // 나중에 하기: activation_at 을 찍지 않으므로 유예가 지나면 다시 뜬다
   const later = () => {
     try { phCapture('onboarding_deferred', { step }) } catch { /* noop */ }
+    logEvent('onboarding_skip', { step })
     onDefer ? onDefer() : onDone?.()
   }
 
@@ -212,7 +230,7 @@ export default function ActivationOnboarding({ onDone, onDefer }) {
 
             <button onClick={finish}
               className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl bg-white/10 py-3 text-sm font-bold text-white transition hover:bg-white/15">
-              <Check size={15} />시작하기
+              <Check size={15} />트렌드 보러 가기
             </button>
           </>
         )}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from './supabase'
 import { phCapture } from './posthog'
+import { logEvent } from './events'
 
 // 카드의 '저장' = 그 계정을 워치리스트에 넣기/빼기.
 // 서버가 username 을 소문자로 정규화하므로 비교도 소문자로 한다.
@@ -46,7 +47,7 @@ export function useWatchToggle({ enabled, onNeedLogin, onLimit, source } = {}) {
     // added / exists → 감시중, removed → 해제
     if (status === 'removed') setWatched((p) => p.filter((x) => x !== name))
     else setWatched((p) => (p.includes(name) ? p : [...p, name]))
-    if (status === 'added') { try { phCapture('watch_account_added', { source }) } catch { /* noop */ } }
+    if (status === 'added') { try { phCapture('watch_account_added', { source }) } catch { /* noop */ }; logEvent('watch_add', { username: name, source }) }
   }, [enabled, watched, busy, onNeedLogin, onLimit, source])
 
   return { watched, isWatched, toggle, reload, busy }

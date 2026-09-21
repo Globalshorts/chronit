@@ -30,8 +30,8 @@ const Num = ({ value, pending }) => (
 
 export default function TrendCard({
   it, rank, locked = false, watching = false, lockedLabel = '프로 이상 전용',
-  lazyDetail = false,
-  onPlay, onAnalyze, onSource, onToggleWatch, onUnlock,
+  lazyDetail = false, coach = false,
+  onPlay, onOpen, onAnalyze, onSource, onToggleWatch, onUnlock,
 }) {
   const carousel = isCarousel(it)
   const cover = coverOf(it)
@@ -53,7 +53,7 @@ export default function TrendCard({
           </div>
         </div>
       ) : (
-        <div role="button" onClick={openOnly ? () => openPost(it.url) : onPlay}
+        <div role="button" onClick={openOnly ? () => (onOpen ? onOpen() : openPost(it.url)) : onPlay}
           aria-label={openOnly ? `@${it.owner} 게시물 인스타그램에서 보기` : undefined}
           className="relative block aspect-[9/16] cursor-pointer bg-slate-100">
           <TrendThumb url={cover} sc={it.shortcode} />
@@ -71,15 +71,6 @@ export default function TrendCard({
               <Layers size={12} />{count > 0 ? `${count}장` : '캐러셀'}
             </div>
           )}
-          {onToggleWatch && (
-            // 이 계정을 워치리스트에 담기/빼기 (히트영역·아이콘 2배 — 잘 안 보인다는 피드백)
-            <button onClick={(e) => { e.stopPropagation(); onToggleWatch() }}
-              title={watching ? `@${it.owner} 감시 해제` : `@${it.owner} 워치리스트에 추가`}
-              aria-label={watching ? `@${it.owner} 감시 해제` : `@${it.owner} 워치리스트에 추가`} aria-pressed={watching}
-              className="absolute bottom-2 right-2 flex h-14 w-14 items-center justify-center rounded-full bg-black/65 text-white shadow-lg ring-1 ring-white/20 backdrop-blur transition hover:bg-black/85 active:scale-95">
-              <Bookmark size={28} strokeWidth={2.25} className={watching ? 'fill-emerald-400 text-emerald-400' : ''} />
-            </button>
-          )}
         </div>
       )}
       <div className="p-2">
@@ -92,10 +83,21 @@ export default function TrendCard({
         {locked ? (
           <button onClick={onUnlock} className="flex w-full items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Lock size={12} />잠금 해제하고 보기</button>
         ) : (
-          <div className="flex gap-1.5">
-            <button onClick={onAnalyze} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Sparkles size={12} />분석</button>
-            <button onClick={onSource} className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-slate-200 py-1.5 text-xs font-bold text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]">소스 찾기</button>
-          </div>
+          <>
+            <div className="flex gap-1.5">
+              <button onClick={onAnalyze} title="분석 = 비슷한 소재 찾기"
+                className={`flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95${coach ? ' animate-pulse ring-2 ring-[#0064FF]/45 ring-offset-2' : ''}`}>
+                <Sparkles size={12} />분석
+              </button>
+              {onToggleWatch && (
+                <button onClick={onToggleWatch} title="담기 = 이 계정을 워치리스트에 저장" aria-pressed={watching}
+                  className={`flex flex-1 items-center justify-center gap-1 rounded-lg border py-1.5 text-xs font-bold transition ${watching ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-slate-200 text-slate-600 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>
+                  <Bookmark size={12} className={watching ? 'fill-emerald-500 text-emerald-500' : ''} />{watching ? '담김' : '담기'}
+                </button>
+              )}
+            </div>
+            <button onClick={onSource} className="mt-1.5 w-full rounded-lg py-1 text-[11px] font-bold text-slate-400 transition hover:text-[#0064FF]">소스 찾기 →</button>
+          </>
         )}
       </div>
     </div>

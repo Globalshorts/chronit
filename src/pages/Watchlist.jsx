@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Bookmark, Plus, RefreshCw, Loader2, Sparkles, X, AlertTriangle, Settings2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
+import { logEvent } from '../lib/events'
 import RangeFilter from '../components/RangeFilter'
 import VideoModal from '../components/ReelModal'
 import TrendCard from '../components/TrendCard'
@@ -121,6 +122,7 @@ export default function Watchlist() {
       if (alive) setLoading(false)
     })()
     try { phCapture('watchlist_viewed') } catch { /* noop */ }
+    logEvent('tab_view', { tab: 'watch' })
     return () => { alive = false }
   }, [isReal, loadAccounts, loadWallet])
 
@@ -213,6 +215,7 @@ export default function Watchlist() {
   const handleAnalyze = async (clip) => {
     const key = clip.page_url || clip.title
     try { phCapture('analysis_clicked', { source: 'watchlist' }) } catch { /* noop */ }
+    logEvent('analyze_click', { shortcode: clip.video_id || null, source: 'watchlist' })
     if (analyzedIds.includes(key)) { setModalClip(clip); return }
     if (!ackAnalyzeCost(null)) return
     const { data } = await supabase.rpc('use_finds_credit_rpc')
@@ -371,11 +374,11 @@ export default function Watchlist() {
                 <TrendCard
                   key={it.shortcode || i}
                   it={it} rank={i + 1}
-                  onPlay={() => setPlayClip(clip)}
+                  onPlay={() => { logEvent('trend_card_click', { shortcode: it.shortcode, source: 'watchlist' }); logEvent('trend_play', { shortcode: it.shortcode, source: 'watchlist' }); setPlayClip(clip) }}
                   onAnalyze={() => handleAnalyze(clip)}
                   onSource={() => { window.location.href = '/research?url=' + encodeURIComponent(it.url) }}
                   watching={isWatched(it.owner)}
-                  onToggleWatch={async () => { await toggleWatch(it.owner); loadAccounts() }}
+                  onToggleWatch={async () => { logEvent('save_click', { shortcode: it.shortcode, source: 'watchlist' }); await toggleWatch(it.owner); loadAccounts() }}
                 />
               )
             })}
