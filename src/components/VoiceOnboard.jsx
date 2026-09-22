@@ -6,9 +6,10 @@ const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
 const FN = (n) => `${SB}/functions/v1/${n}`
 
 // 내 말투 온보딩: 인스타 ID → 릴스 학습 → 스타일카드 확인·보정
-export default function VoiceOnboard({ onClose, onReady }) {
-  const [step, setStep] = useState('input') // input | loading | review
-  const [handle, setHandle] = useState('')
+export default function VoiceOnboard({ onClose, onReady, defaultHandle = '' }) {
+  const [step, setStep] = useState('input') // input | loading | review | done
+  const [handle, setHandle] = useState(defaultHandle)
+  const [msg, setMsg] = useState('')
   const [err, setErr] = useState('')
   const [data, setData] = useState(null)       // voice-onboard 응답
   const [gender, setGender] = useState('')     // 남 | 여 | ''
@@ -26,7 +27,8 @@ export default function VoiceOnboard({ onClose, onReady }) {
       const t = await token(); if (!t) { setErr('로그인이 필요해요'); setStep('input'); return }
       const r = await fetch(FN('voice-onboard'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u }) })
       const d = await r.json()
-      if (!d.ok) { setErr(d.error || '학습에 실패했어요'); setStep('input'); return }
+      if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? '재학습에 이용권 1개가 필요해요. 충전 후 다시 시도해주세요' : (d.error || '학습에 실패했어요')); setStep('input'); return }
+      if (d.skipped) { setMsg(d.message || '새로 올린 릴스가 없어요'); setStep('done'); onReady && onReady(d); return }
       setData(d)
       const sc = d.style_card || {}
       setGender(sc.gender_guess === '남' || sc.gender_guess === '여' ? sc.gender_guess : '')
@@ -69,8 +71,8 @@ export default function VoiceOnboard({ onClose, onReady }) {
               <input value={handle} onChange={e => setHandle(e.target.value)} onKeyDown={e => e.key === 'Enter' && start()} placeholder="instagram_id" className="flex-1 bg-transparent text-[15px] text-white placeholder-white/30 outline-none" />
             </div>
             {err && <div className="mt-3 text-sm text-amber-400">⚠ {err}</div>}
-            <button onClick={start} className="mt-4 w-full rounded-2xl bg-[#0064FF] py-3 text-sm font-bold text-white transition hover:brightness-110">릴스 학습 시작</button>
-            <p className="mt-2 text-center text-[11px] text-white/35">약 30초 정도 걸려요 · 최근 릴스에서 말투를 뽑아요</p>
+            <button onClick={start} className="mt-4 w-full rounded-2xl bg-[#0064FF] py-3 text-sm font-bold text-white transition hover:brightness-110">{defaultHandle ? '다시 학습하기' : '릴스 학습 시작'}</button>
+            <p className="mt-2 text-center text-[11px] text-white/35">약 30초 정도 걸려요 · 최근 릴스에서 말투를 뽑아요{defaultHandle ? ' · 첫 학습 무료, 새 릴스로 다시 학습 시 이용권 1개' : ''}</p>
           </div>
         )}
 
@@ -115,8 +117,20 @@ export default function VoiceOnboard({ onClose, onReady }) {
                 <input value={tone} onChange={e => setTone(e.target.value)} placeholder="예: 깐깐한 디자이너 시선, 유쾌함" className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-[#0064FF]" />
               </div>
             </div>
+            {data?.charged && <div className="mt-3 text-center text-xs font-bold text-[#5AA0FF]">💧 재학습 · 이용권 1개 차감{typeof data?.balance === 'number' ? ` (남은 이용권 ${data.balance})` : ''}</div>}
             {err && <div className="mt-3 text-sm text-amber-400">⚠ {err}</div>}
             <button onClick={save} disabled={saving} className="mt-4 w-full rounded-2xl bg-[#0064FF] py-3 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-40">{saving ? '저장 중…' : '내 말투 저장하고 시작'}</button>
+          </div>
+        )}
+
+        {step === 'done' && (
+          <div className="flex flex-col items-center gap-4 px-5 py-12 text-center">
+            <div className="grid h-14 w-14 place-items-center rounded-full bg-[#0064FF]/15"><Check size={28} className="text-[#5AA0FF]" /></div>
+            <div>
+              <div className="font-bold text-white">{msg}</div>
+              <div className="mt-1 text-sm text-white/50">새 릴스를 올린 뒤 다시 학습하면 최신 말투로 갱신돼요</div>
+            </div>
+            <button onClick={onClose} className="rounded-2xl bg-white/10 px-6 py-2.5 text-sm font-bold text-white hover:bg-white/15">닫기</button>
           </div>
         )}
       </div>

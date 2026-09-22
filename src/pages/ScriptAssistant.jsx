@@ -42,6 +42,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [voiceProfile, setVoiceProfile] = useState(null)  // {has_voice, ig_username, style_card}
   const [showOnboard, setShowOnboard] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [showConvList, setShowConvList] = useState(false)
   const scrollRef = useRef(null)
   const greetedRef = useRef(false)
 
@@ -214,7 +215,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const started = jobId || messages.length > 0
 
   return (
-    <div className="relative flex min-h-[calc(100vh-0px)] flex-col px-4 pt-5 md:px-8 md:pt-7">
+    <div className="relative flex min-h-[calc(100vh-0px)]">
       <style>{`
         .sa-orb-wrap{position:relative;filter:drop-shadow(0 10px 34px rgba(0,100,255,.45))}
         .sa-orb{position:absolute;inset:0;background:radial-gradient(120% 120% at 30% 25%,#5AA0FF 0%,#0064FF 45%,#0042B8 100%);border-radius:44% 56% 61% 39%/45% 43% 57% 55%;animation:sa-blob 6s ease-in-out infinite}
@@ -224,30 +225,36 @@ export default function ScriptAssistant({ session: sessionProp }) {
         .sa-fade{animation:sa-fade .35s ease}@keyframes sa-fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
       `}</style>
 
-      {/* 헤더 */}
-      <div className="mb-1 flex items-center justify-between gap-3">
-        <div>
-          <h1 className="flex items-center gap-2 text-xl font-bold text-white"><Sparkles size={20} className="text-[#0064FF]" /> 대본 비서</h1>
-          <p className="mt-0.5 text-sm text-white/50">트렌드 영상에서 '대본 작성하기'로 시작해요 · 대화로 다듬을수록 내 말투를 배워요</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <button onClick={() => setShowJobs(v => !v)} className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-white/70 hover:text-white"><MessageSquareText size={14} /> 내 대본 {jobs.length ? `(${jobs.length})` : ''} <ChevronDown size={13} /></button>
-            {showJobs && (
-              <div className="absolute right-0 z-30 mt-1.5 max-h-80 w-72 overflow-y-auto rounded-2xl border border-white/10 bg-[#12141a] p-1.5 shadow-2xl">
-                {jobs.length === 0 ? <div className="px-3 py-4 text-center text-xs text-white/40">아직 만든 대본이 없어요</div> :
-                  jobs.map(j => (
-                    <button key={j.id} onClick={() => openJob(j.id)} className={`block w-full truncate rounded-xl px-3 py-2.5 text-left text-sm transition hover:bg-white/5 ${j.id === jobId ? 'bg-white/5 text-white' : 'text-white/70'}`}>
-                      <div className="truncate font-bold">{j.product_name || '(제목 없음)'}</div>
-                      <div className="text-[11px] text-white/35">{new Date(j.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}</div>
-                    </button>
-                  ))}
-              </div>
-            )}
+      {/* 왼쪽 대화 리스트 (데스크톱 고정 · 모바일 드로어) */}
+      <aside className={`${showConvList ? 'fixed inset-0 z-40 flex bg-black/50' : 'hidden'} md:static md:z-0 md:flex md:bg-transparent`} onClick={() => setShowConvList(false)}>
+        <div className="flex h-full min-h-[calc(100vh-0px)] w-64 shrink-0 flex-col border-r border-white/10 bg-[#0d0e12] p-3" onClick={e => e.stopPropagation()}>
+          <button onClick={() => { newChat(); setShowConvList(false) }} className="mb-3 flex items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] py-2.5 text-sm font-bold text-white transition hover:brightness-110"><Plus size={16} /> 새 대본</button>
+          <div className="mb-1.5 px-1 text-[11px] font-bold text-white/35">내 대본 {jobs.length ? `(${jobs.length})` : ''}</div>
+          <div className="-mx-1 flex-1 overflow-y-auto px-1">
+            {jobs.length === 0 ? <div className="px-2 py-4 text-xs text-white/30">아직 만든 대본이 없어요</div> :
+              jobs.map(j => (
+                <button key={j.id} onClick={() => { openJob(j.id); setShowConvList(false) }} className={`mb-0.5 block w-full truncate rounded-lg px-2.5 py-2 text-left text-sm transition hover:bg-white/5 ${j.id === jobId ? 'bg-white/10 text-white' : 'text-white/70'}`}>
+                  <div className="truncate">{j.product_name || '(제목 없음)'}</div>
+                  <div className="text-[10px] text-white/30">{new Date(j.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}</div>
+                </button>
+              ))}
           </div>
+        </div>
+      </aside>
+
+      {/* 오른쪽: 채팅 영역 */}
+      <div className="flex min-w-0 flex-1 flex-col px-4 pt-5 md:px-8 md:pt-6">
+      {/* 헤더 */}
+      <div className="mb-1 flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <button onClick={() => setShowConvList(true)} className="shrink-0 rounded-lg border border-white/15 p-1.5 text-white/70 hover:text-white md:hidden"><MessageSquareText size={16} /></button>
+          <div className="min-w-0">
+            <h1 className="flex items-center gap-2 text-xl font-bold text-white"><Sparkles size={20} className="text-[#0064FF]" /> 대본 비서</h1>
+            <p className="mt-0.5 text-sm leading-snug text-white/50">트렌드 영상에서 '대본 작성하기'로 시작해요<br />대화로 다듬을수록 내 말투를 배워요</p>
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
           <button onClick={() => setShowSettings(true)} className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition ${voiceProfile?.has_voice ? 'border-[#0064FF]/40 bg-[#0064FF]/10 text-[#5AA0FF]' : 'border-white/15 bg-white/5 text-white/70 hover:text-white'}`}><Settings size={13} /> {voiceProfile?.has_voice ? `내 말투${voiceProfile.ig_username ? ` @${voiceProfile.ig_username}` : ''}` : '개인화'}</button>
-          <button onClick={newChat} className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white hover:bg-white/15"><Plus size={14} /> 새 대본</button>
-          {turns !== null && turns > 0 && <div className={`rounded-full px-3 py-1.5 text-xs font-bold ${turns <= 3 ? 'bg-amber-500/20 text-amber-300' : 'bg-[#0064FF]/15 text-[#5AA0FF]'}`}>남은 대화 {turns}턴</div>}
           {balance !== null && <div className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white/70">이용권 {balance}</div>}
         </div>
       </div>
@@ -374,13 +381,15 @@ export default function ScriptAssistant({ session: sessionProp }) {
           <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={onKey} rows={1}
             placeholder={jobId ? '더 짧게, 훅 더 세게 … 대화로 다듬어요' : (soso ? '소재 카드의 버튼을 누르거나, 직접 적어도 돼요' : "트렌드에서 '대본 작성하기'로 시작하거나 직접 적어주세요")}
             className="max-h-32 flex-1 resize-none rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-[15px] text-white placeholder-white/35 outline-none focus:border-[#0064FF]" />
+          {turns !== null && turns > 0 && <div className={`mb-0.5 shrink-0 self-center rounded-full px-2.5 py-1 text-[11px] font-bold ${turns <= 3 ? 'bg-amber-500/20 text-amber-300' : 'bg-[#0064FF]/15 text-[#5AA0FF]'}`} title="이 세션 남은 대화 턴">{turns}턴</div>}
           <button onClick={send} disabled={busy || !input.trim()} className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#0064FF] text-white transition disabled:opacity-40"><Send size={18} /></button>
         </div>
         <div className="mx-auto mt-1.5 max-w-[700px] text-center text-[11px] text-white/35">{turns > 0 ? `현재 세션 ${turns}턴 남음 · 대화·대본 모두 포함 · 소진 시 이용권 2개로 15턴 충전` : '대화·대본은 15턴 세션으로 열려요 (이용권 2개)'}</div>
       </div>
+      </div>
 
-      {showSettings && <PersonaSettings onClose={() => setShowSettings(false)} onRelearn={() => { setShowSettings(false); setShowOnboard(true) }} />}
-      {showOnboard && <VoiceOnboard onClose={() => setShowOnboard(false)} onReady={() => { loadVoiceProfile() }} />}
+      {showSettings && <PersonaSettings onClose={() => setShowSettings(false)} onChanged={() => loadVoiceProfile()} onRelearn={() => { setShowSettings(false); setShowOnboard(true) }} />}
+      {showOnboard && <VoiceOnboard defaultHandle={voiceProfile?.ig_username || ''} onClose={() => setShowOnboard(false)} onReady={() => { loadVoiceProfile(); refreshSession() }} />}
     </div>
   )
 }

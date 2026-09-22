@@ -8,7 +8,7 @@ const NICHE_OPTIONS = ['뷰티·화장품', '패션·의류', '리빙·홈·주�
 const TARGET_OPTIONS = ['20·30대 자취·1인가구', '신혼·새댁', '3040 주부·살림', '육아맘·키즈', '학생·사회초년생', '시니어·4050', '전 연령', '기타']
 
 // 베라 개인화 설정 드로어: 닉네임 · 니치 · 타깃 · 내 말투(보정)
-export default function PersonaSettings({ onClose, onRelearn }) {
+export default function PersonaSettings({ onClose, onRelearn, onChanged }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -62,6 +62,11 @@ export default function PersonaSettings({ onClose, onRelearn }) {
     } catch { /* noop */ } finally { setSaving(false) }
   }
 
+  const resetVoice = async () => {
+    if (!window.confirm('학습한 내 말투를 초기화할까요? 전사·스타일카드가 삭제되고, 다시 인스타로 학습해야 해요. (닉네임·니치는 유지)')) return
+    try { await supabase.rpc('reset_voice_profile_rpc'); onChanged && onChanged(); onClose && onClose() } catch { /* noop */ }
+  }
+
   const selCls = 'w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2.5 text-sm text-white outline-none focus:border-[#0064FF]'
   const inCls = 'w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-[#0064FF]'
 
@@ -110,6 +115,7 @@ export default function PersonaSettings({ onClose, onRelearn }) {
                     <button onClick={onRelearn} className="flex items-center gap-1 rounded-lg bg-white/10 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-white/15"><RefreshCw size={11} /> 다시 학습</button>
                   </div>
                   {sc.narrative_pattern && <div className="mt-2 text-[12px] text-white/70"><span className="text-white/45">서사 · </span>{sc.narrative_pattern}</div>}
+                  <button onClick={resetVoice} className="mt-2.5 text-[11px] text-white/35 underline underline-offset-2 hover:text-amber-400">말투 초기화</button>
                 </div>
               ) : (
                 <button onClick={onRelearn} className="w-full rounded-2xl border border-dashed border-white/20 py-3 text-sm font-bold text-[#5AA0FF] hover:bg-white/5">＋ 내 인스타 릴스로 말투 배우기</button>
