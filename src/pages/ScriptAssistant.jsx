@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import VoiceOnboard from '../components/VoiceOnboard'
 import PersonaSettings from '../components/PersonaSettings'
 import { useAnalysis } from '../context/analysis'
+import EnergyOrb from '../components/EnergyOrb'
 
 const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
 const FN = (n) => `${SB}/functions/v1/${n}`
@@ -12,7 +13,7 @@ const FN = (n) => `${SB}/functions/v1/${n}`
 function Droplet({ size = 84, label }) {
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="sa-orb-wrap" style={{ width: size, height: size }}><div className="sa-orb" /><div className="sa-orb-hi" /></div>
+      <EnergyOrb size={size} style={{ filter: 'drop-shadow(0 10px 34px rgba(0,100,255,.45))' }} />
       {label && <div className="text-sm text-white/50">{label}</div>}
     </div>
   )
@@ -298,7 +299,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
         <div className="flex min-w-0 items-center gap-2">
           <button onClick={() => setShowConvList(true)} className="shrink-0 rounded-lg border border-white/15 p-1.5 text-white/70 hover:text-white md:hidden"><MessageSquareText size={16} /></button>
           <div className="min-w-0">
-            <h1 className="flex items-center gap-2 text-xl font-bold text-white"><Sparkles size={20} className="text-[#0064FF]" /> 대본 비서</h1>
+            <h1 className="flex items-center gap-2 text-xl font-bold text-white"><EnergyOrb size={24} /> 대본 비서</h1>
             <p className="mt-0.5 text-sm leading-snug text-white/50">트렌드 영상에서 '대본 작성하기'로 시작해요<br />대화로 다듬을수록 내 말투를 배워요</p>
           </div>
         </div>

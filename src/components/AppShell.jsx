@@ -1,11 +1,13 @@
 import { Link, useLocation, Outlet } from 'react-router-dom'
 import { Flame, Search, Bookmark, User, CreditCard, Download, Shield, Handshake, PenLine } from 'lucide-react'
+import EnergyOrb from './EnergyOrb'
+const ScriptOrbIcon = (p) => <EnergyOrb size={p && p.size ? p.size : 18} />
 import { useMyRole } from '../lib/useIsAdmin'
 
 // 작업 공간(핵심) / 부수 페이지 분리
 const WORKSPACE_NAV = [
   { to: '/trend', label: '트렌드', title: '실시간 트렌드', Icon: Flame },
-  { to: '/script', label: '대본', title: '대본 비서', Icon: PenLine },
+  { to: '/script', label: '대본', title: '대본 비서', Icon: ScriptOrbIcon },
   { to: '/watchlist', label: '워치리스트', title: '워치리스트', Icon: Bookmark },
 ]
 const AUX_NAV = [
