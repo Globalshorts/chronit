@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Sparkles, Send, Copy, Check, Wand2, Flame, Plus, MessageSquareText, ChevronDown, Film, Download, Clipboard, Settings, Pencil } from 'lucide-react'
+import { Sparkles, Send, Copy, Check, Wand2, Flame, Plus, MessageSquareText, ChevronDown, Film, Download, Clipboard, Settings, Pencil, Trash2, ChevronLeft, ChevronRight, Sprout } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import VoiceOnboard from '../components/VoiceOnboard'
 import PersonaSettings from '../components/PersonaSettings'
@@ -43,6 +43,8 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [showOnboard, setShowOnboard] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showConvList, setShowConvList] = useState(false)
+  const [convCollapsed, setConvCollapsed] = useState(false)
+  const [learnCount, setLearnCount] = useState(0)
   const scrollRef = useRef(null)
   const greetedRef = useRef(false)
 
@@ -57,7 +59,18 @@ export default function ScriptAssistant({ session: sessionProp }) {
       const { data } = await supabase.rpc('get_voice_context_rpc')
       const has = !!(data && data.base_profile && Array.isArray(data.base_profile.transcripts) && data.base_profile.transcripts.length > 0)
       setVoiceProfile(has ? { has_voice: true, ig_username: data.ig_username || '', style_card: data.style_card || {} } : { has_voice: false })
+      setLearnCount(Number(data?.edit_count || 0))
     } catch { setVoiceProfile({ has_voice: false }) }
+  }
+
+  const deleteJob = async (id, e) => {
+    if (e) e.stopPropagation()
+    if (!window.confirm('이 대본을 삭제할까요? 되돌릴 수 없어요.')) return
+    try {
+      await supabase.rpc('delete_job_rpc', { p_job_id: id })
+      if (id === jobId) newChat()
+      loadJobs()
+    } catch { /* noop */ }
   }
   useEffect(() => { scrollRef.current?.scrollTo({ top: 9e9, behavior: 'smooth' }) }, [messages, busy])
 
@@ -209,6 +222,8 @@ export default function ScriptAssistant({ session: sessionProp }) {
     if (jobId) {
       supabase.rpc('set_job_script_rpc', { p_job_id: jobId, p_script: after, p_status: 'done' }).catch(() => {})
       supabase.rpc('record_edit_rpc', { p_job_id: jobId, p_before: before, p_after: after }).catch(() => {})
+      const n = learnCount + 1; setLearnCount(n)
+      setNote(`🌱 베라가 내 수정을 배웠어요 · 말투 학습 ${n}회째`); setTimeout(() => setNote(''), 4000)
     }
   }
   const onKey = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }
@@ -225,18 +240,32 @@ export default function ScriptAssistant({ session: sessionProp }) {
         .sa-fade{animation:sa-fade .35s ease}@keyframes sa-fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
       `}</style>
 
+      {/* 접힌 상태 스트립 (데스크톱) */}
+      {convCollapsed && (
+        <div className="hidden shrink-0 flex-col items-center gap-2 border-r border-white/10 bg-[#0d0e12] px-2 py-3 md:flex">
+          <button onClick={() => setConvCollapsed(false)} title="대본 목록 펼치기" className="rounded-lg p-2 text-white/60 hover:bg-white/5 hover:text-white"><ChevronRight size={18} /></button>
+          <button onClick={newChat} title="새 대본" className="rounded-lg p-2 text-[#5AA0FF] hover:bg-white/5"><Plus size={18} /></button>
+        </div>
+      )}
+
       {/* 왼쪽 대화 리스트 (데스크톱 고정 · 모바일 드로어) */}
-      <aside className={`${showConvList ? 'fixed inset-0 z-40 flex bg-black/50' : 'hidden'} md:static md:z-0 md:flex md:bg-transparent`} onClick={() => setShowConvList(false)}>
+      <aside className={`${showConvList ? 'fixed inset-0 z-40 flex bg-black/50' : 'hidden'} ${convCollapsed ? 'md:hidden' : 'md:static md:z-0 md:flex md:bg-transparent'}`} onClick={() => setShowConvList(false)}>
         <div className="flex h-full min-h-[calc(100vh-0px)] w-64 shrink-0 flex-col border-r border-white/10 bg-[#0d0e12] p-3" onClick={e => e.stopPropagation()}>
           <button onClick={() => { newChat(); setShowConvList(false) }} className="mb-3 flex items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] py-2.5 text-sm font-bold text-white transition hover:brightness-110"><Plus size={16} /> 새 대본</button>
-          <div className="mb-1.5 px-1 text-[11px] font-bold text-white/35">내 대본 {jobs.length ? `(${jobs.length})` : ''}</div>
+          <div className="mb-1.5 flex items-center justify-between px-1">
+            <span className="text-[11px] font-bold text-white/35">내 대본 {jobs.length ? `(${jobs.length})` : ''}</span>
+            <button onClick={() => setConvCollapsed(true)} title="접기" className="hidden rounded p-0.5 text-white/40 hover:text-white md:block"><ChevronLeft size={15} /></button>
+          </div>
           <div className="-mx-1 flex-1 overflow-y-auto px-1">
             {jobs.length === 0 ? <div className="px-2 py-4 text-xs text-white/30">아직 만든 대본이 없어요</div> :
               jobs.map(j => (
-                <button key={j.id} onClick={() => { openJob(j.id); setShowConvList(false) }} className={`mb-0.5 block w-full truncate rounded-lg px-2.5 py-2 text-left text-sm transition hover:bg-white/5 ${j.id === jobId ? 'bg-white/10 text-white' : 'text-white/70'}`}>
-                  <div className="truncate">{j.product_name || '(제목 없음)'}</div>
-                  <div className="text-[10px] text-white/30">{new Date(j.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}</div>
-                </button>
+                <div key={j.id} className={`group mb-0.5 flex items-center rounded-lg transition hover:bg-white/5 ${j.id === jobId ? 'bg-white/10' : ''}`}>
+                  <button onClick={() => { openJob(j.id); setShowConvList(false) }} className={`min-w-0 flex-1 truncate px-2.5 py-2 text-left text-sm ${j.id === jobId ? 'text-white' : 'text-white/70'}`}>
+                    <div className="truncate">{j.product_name || '(제목 없음)'}</div>
+                    <div className="text-[10px] text-white/30">{new Date(j.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}</div>
+                  </button>
+                  <button onClick={(e) => deleteJob(j.id, e)} title="삭제" className="mr-1 shrink-0 rounded p-1.5 text-white/25 opacity-100 transition hover:bg-white/10 hover:text-amber-400 md:opacity-0 md:group-hover:opacity-100"><Trash2 size={13} /></button>
+                </div>
               ))}
           </div>
         </div>
@@ -325,6 +354,9 @@ export default function ScriptAssistant({ session: sessionProp }) {
                 ) : (
                   <>
                     <div className={`whitespace-pre-wrap rounded-2xl rounded-bl-md border px-4 py-3 text-[15px] leading-relaxed text-white/95 ${m.mine ? 'border-[#0064FF]/40 bg-[#0064FF]/[0.08]' : 'border-white/10 bg-white/[0.06]'}`}>{m.text}{m.edited && <span className="ml-1.5 align-middle text-[11px] text-white/30">· 수정됨</span>}</div>
+                    {m.isScript && (
+                      <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-[#5AA0FF]/10 px-2.5 py-1 text-[11px] font-bold text-[#5AA0FF]"><Sprout size={12} /> 직접 고칠수록 베라가 내 말투를 배워요{learnCount ? ` · ${learnCount}회 학습` : ''}</div>
+                    )}
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       {m.isScript && (
                         <button onClick={() => startEdit(i, m.text)} className="flex items-center gap-1.5 rounded-xl border border-[#0064FF]/50 bg-[#0064FF]/10 px-3.5 py-2 text-sm font-bold text-[#5AA0FF] transition hover:bg-[#0064FF]/20"><Pencil size={14} /> 직접 수정</button>
