@@ -104,7 +104,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       setSoso(base)
       if (!base.caption && s.source_ref) {
         supabase.rpc('trend_detail_rpc', { p_shortcode: s.source_ref })
-          .then(({ data }) => { const c = String(data?.caption || '').replace(/\s+/g, ' ').trim(); if (c) setSoso(v => ({ ...v, caption: c })) }).catch(() => {})
+          .then(({ data }) => { const c = String(data?.caption || '').replace(/\s+/g, ' ').trim(); if (c) setSoso(v => ({ ...v, caption: c })) }).then(null, () => {})
       }
       nav('.', { replace: true, state: null })
     }
@@ -207,12 +207,12 @@ export default function ScriptAssistant({ session: sessionProp }) {
       if (d.reply) setMessages(m => [...m, { role: 'assistant', text: d.reply }])
       if (d.script && jobId) {
         setMessages(m => [...m, { role: 'assistant', text: d.script, isScript: true }])
-        supabase.rpc('set_job_script_rpc', { p_job_id: jobId, p_script: d.script, p_status: 'done' }).catch(() => {})
-        if (prevScript) supabase.rpc('record_edit_rpc', { p_job_id: jobId, p_before: prevScript, p_after: d.script }).catch(() => {})
+        supabase.rpc('set_job_script_rpc', { p_job_id: jobId, p_script: d.script, p_status: 'done' }).then(null, () => {})
+        if (prevScript) supabase.rpc('record_edit_rpc', { p_job_id: jobId, p_before: prevScript, p_after: d.script }).then(null, () => {})
       }
       if (jobId) {
-        supabase.rpc('append_job_message_rpc', { p_job_id: jobId, p_role: 'user', p_content: text }).catch(() => {})
-        if (d.reply) supabase.rpc('append_job_message_rpc', { p_job_id: jobId, p_role: 'assistant', p_content: d.reply }).catch(() => {})
+        supabase.rpc('append_job_message_rpc', { p_job_id: jobId, p_role: 'user', p_content: text }).then(null, () => {})
+        if (d.reply) supabase.rpc('append_job_message_rpc', { p_job_id: jobId, p_role: 'assistant', p_content: d.reply }).then(null, () => {})
       }
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
@@ -242,8 +242,8 @@ export default function ScriptAssistant({ session: sessionProp }) {
     setMessages(m => m.map((x, idx) => idx === i ? { ...x, text: after, edited: true } : x))
     setEditIdx(-1); setEditText('')
     if (jobId) {
-      supabase.rpc('set_job_script_rpc', { p_job_id: jobId, p_script: after, p_status: 'done' }).catch(() => {})
-      supabase.rpc('record_edit_rpc', { p_job_id: jobId, p_before: before, p_after: after }).catch(() => {})
+      supabase.rpc('set_job_script_rpc', { p_job_id: jobId, p_script: after, p_status: 'done' }).then(null, () => {})
+      supabase.rpc('record_edit_rpc', { p_job_id: jobId, p_before: before, p_after: after }).then(null, () => {})
       const n = learnCount + 1; setLearnCount(n)
       setNote(`🌱 베라가 내 수정을 배웠어요 · 말투 학습 ${n}회째`); setTimeout(() => setNote(''), 4000)
     }
