@@ -133,6 +133,7 @@ const App = () => {
       <Route path="/generate" element={<GenerateGate />} />
       <Route element={<AppShell />}>
         <Route path="/trend" element={<Trend />} />
+        <Route path="/script" element={<ScriptAssistant />} />
         <Route path="/research" element={<Finds />} />
         <Route path="/watchlist" element={<Watchlist />} />
         <Route path="/me" element={<MyPage />} />
@@ -152,7 +153,6 @@ const App = () => {
       <Route path="/dm" element={<DmAutomation />} />
       <Route path="/payments/success" element={<PaymentResult />} />
       <Route path="/payments/fail" element={<PaymentResult fail />} />
-      <Route path="/script" element={<ScriptAssistant />} />
     </Routes>
     </Suspense>
     </ErrorBoundary>

@@ -1,9 +1,10 @@
 import { Link, useLocation, Outlet } from 'react-router-dom'
-import { Flame, Search, Bookmark, User, CreditCard, Download, Shield, Handshake } from 'lucide-react'
+import { Flame, Search, Bookmark, User, CreditCard, Download, Shield, Handshake, PenLine } from 'lucide-react'
 import { useMyRole } from '../lib/useIsAdmin'
 
 const NAV = [
   { to: '/trend', label: '트렌드', title: '실시간 트렌드', Icon: Flame },
+  { to: '/script', label: '대본', title: '대본 비서', Icon: PenLine },
   { to: '/watchlist', label: '워치리스트', title: '워치리스트', Icon: Bookmark },
   { to: '/research', label: '리서치', title: '리서치', Icon: Search },
   { to: '/me', label: '마이', title: '마이페이지', Icon: User },

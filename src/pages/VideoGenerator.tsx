@@ -9,7 +9,6 @@
  * Stage 6: 제목/해시태그 + 내보내기
  */
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import ScriptAssistant from "./ScriptAssistant";
 import { createPortal } from "react-dom";
 import { Scissors, Sparkles, Film, Mic, AlertTriangle, RefreshCw, ChevronLeft, Search, Target, Plus, Gift, ChevronDown, Pencil, Eye, MessageCircle, User, MessageSquare, Receipt, LogOut, Heart, Zap, Lightbulb, PenTool, Shield, Palette, Upload, ShoppingCart, ChevronUp, Save, X, Home, History, Link2, Download, Copy, Check, Trash2, Clock, Loader2, Smartphone, Settings, Ticket, Monitor } from "lucide-react";
 import DOMPurify from "dompurify";
@@ -55,7 +54,6 @@ function AppTopBar({ onMenuClick, onInvite, session, balance, daysLeft, userPlan
   }, []);
   const VIEW_TABS = [
     { v: "generator", label: "프로젝트" },
-    { v: "script", label: "대본" },
     { v: "history", label: "생성 내역" },
     { v: "product-search", label: "내 링크" },
     { v: "dm", label: "자동 DM", locked: !(userRole === "partner" || userRole === "super_admin") },
@@ -166,7 +164,6 @@ function AppTabBar({ activeView, onViewChange, userRole, userPlan }: { activeVie
   const isAdmin = userRole === "super_admin";
   const TABS: any[] = [
     { v: "generator", label: "프로젝트" },
-    { v: "script", label: "대본" },
     { v: "history", label: "생성 내역" },
     { v: "product-search", label: "내 링크" },
     { v: "dm", label: "자동 DM", locked: !isPartner },
@@ -2140,9 +2137,6 @@ export default function VideoGenerator() {
       <div className="flex-1 min-w-0 flex flex-col">
         {activeView !== "generator" && (
           <div className={`mx-auto w-full flex-1 overflow-y-auto pb-20 md:pb-6 max-w-5xl px-4 md:px-8 py-5 md:py-6`}>
-            {activeView === "script" && (
-              <ScriptAssistant session={session} />
-            )}
             {activeView === "history" && (
               <>
                 <h2 className="mb-6 flex items-center gap-2 text-xl font-bold text-gray-900"><Film size={22} className="text-[#0064FF]" /> 생성 내역</h2>
@@ -3897,7 +3891,6 @@ function NavSidebar({ activeView, onViewChange, userRole, balance, userPlan, ses
   const GROUPS = [
     { title: "자주 쓰는 메뉴", items: [
       { v: "generator",      label: "프로젝트" },
-      { v: "script", label: "대본 비서", icon: "✍️" },
       { v: "history",        label: "생성 내역" },
       { v: "product-search", label: "내 링크" },
     ]},
