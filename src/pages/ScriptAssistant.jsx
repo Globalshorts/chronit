@@ -115,7 +115,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       supabase.from('job_messages').select('role,content').eq('job_id', id).order('created_at'),
       supabase.from('job_clips').select('id,thumbnail:storage_path,source_url,status').eq('job_id', id),
     ])
-    setMessages((msgs || []).map(m => ({ role: m.role, text: m.content }))); setClips(cl || []); setJobId(id); setSoso(null)
+    setMessages((msgs || []).map(m => ({ role: m.role, text: m.content, isScript: m.role === 'assistant' }))); setClips(cl || []); setJobId(id); setSoso(null)
   }
   const newChat = () => { setMessages([]); setJobId(null); setSoso(null); setClips([]); setInput(''); setErr(''); setShowJobs(false) }
 
@@ -151,7 +151,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       const d = await r.json()
       if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? `이용권이 부족해요. 15턴 세션을 열려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '대본 생성 실패')); return }
       setJobId(d.job_id); applyMeter(d)
-      setMessages([{ role: 'assistant', text: d.script }]); loadJobs()
+      setMessages([{ role: 'assistant', text: d.script, isScript: true }]); loadJobs()
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
 
@@ -170,7 +170,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       applyMeter(d)
       if (d.reply) setMessages(m => [...m, { role: 'assistant', text: d.reply }])
       if (d.script && jobId) {
-        setMessages(m => [...m, { role: 'assistant', text: d.script }])
+        setMessages(m => [...m, { role: 'assistant', text: d.script, isScript: true }])
         supabase.rpc('set_job_script_rpc', { p_job_id: jobId, p_script: d.script, p_status: 'done' }).catch(() => {})
         if (prevScript) supabase.rpc('record_edit_rpc', { p_job_id: jobId, p_before: prevScript, p_after: d.script }).catch(() => {})
       }
@@ -191,7 +191,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       const t = await token()
       const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'refine', job_id: jobId, voice_mode: 'my', instruction: '내 말투 그대로 자연스럽게 다시 써줘', current_script: src }) })
       const d = await r.json()
-      if (d.ok && d.script) setMessages(m => [...m, { role: 'assistant', text: d.script, mine: true }])
+      if (d.ok && d.script) setMessages(m => [...m, { role: 'assistant', text: d.script, mine: true, isScript: true }])
       else setErr(d.error || '내 말투 변환 실패')
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
@@ -318,10 +318,14 @@ export default function ScriptAssistant({ session: sessionProp }) {
                 ) : (
                   <>
                     <div className={`whitespace-pre-wrap rounded-2xl rounded-bl-md border px-4 py-3 text-[15px] leading-relaxed text-white/95 ${m.mine ? 'border-[#0064FF]/40 bg-[#0064FF]/[0.08]' : 'border-white/10 bg-white/[0.06]'}`}>{m.text}{m.edited && <span className="ml-1.5 align-middle text-[11px] text-white/30">· 수정됨</span>}</div>
-                    <div className="mt-1.5 flex gap-1.5">
-                      <button onClick={() => copy(m.text, i)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-white/50 hover:bg-white/10 hover:text-white/80">{copiedI === i ? <Check size={12} /> : <Copy size={12} />} 복사</button>
-                      <button onClick={() => startEdit(i, m.text)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-white/50 hover:bg-white/10 hover:text-white/80"><Pencil size={12} /> 수정</button>
-                      <button onClick={() => applyMyVoice(m.text)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-[#5AA0FF] hover:bg-[#0064FF]/15"><Wand2 size={12} /> {voiceProfile?.has_voice ? '내 말투로 입히기' : '내 말투 배우기'}</button>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      {m.isScript && (
+                        <button onClick={() => startEdit(i, m.text)} className="flex items-center gap-1.5 rounded-xl border border-[#0064FF]/50 bg-[#0064FF]/10 px-3.5 py-2 text-sm font-bold text-[#5AA0FF] transition hover:bg-[#0064FF]/20"><Pencil size={14} /> 직접 수정</button>
+                      )}
+                      {m.isScript && !m.mine && (
+                        <button onClick={() => applyMyVoice(m.text)} className="flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-3.5 py-2 text-sm font-bold text-white/80 transition hover:bg-white/10"><Wand2 size={14} /> {voiceProfile?.has_voice ? '내 말투로 입히기' : '내 말투 배우기'}</button>
+                      )}
+                      <button onClick={() => copy(m.text, i)} className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs text-white/45 hover:bg-white/10 hover:text-white/80">{copiedI === i ? <Check size={13} /> : <Copy size={13} />} 복사</button>
                     </div>
                   </>
                 )}
