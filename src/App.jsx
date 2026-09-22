@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-route
 import { AnalysisProvider } from './context/analysis'
 import ErrorBoundary from './components/ErrorBoundary'
 import Home from './pages/Home'
+import ScriptAssistant from './pages/ScriptAssistant'
 import BlobBackground from './components/BlobBackground'
 import ErrorReportModal from './components/ErrorReportModal'
 import ActivationGate from './components/ActivationGate'
@@ -151,6 +152,7 @@ const App = () => {
       <Route path="/dm" element={<DmAutomation />} />
       <Route path="/payments/success" element={<PaymentResult />} />
       <Route path="/payments/fail" element={<PaymentResult fail />} />
+      <Route path="/script" element={<ScriptAssistant />} />
     </Routes>
     </Suspense>
     </ErrorBoundary>
