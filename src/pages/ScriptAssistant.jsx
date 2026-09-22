@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Sparkles, Send, Copy, Check, Wand2, Flame, Plus, MessageSquareText, ChevronDown } from 'lucide-react'
+import { Sparkles, Send, Copy, Check, Wand2, Flame, Plus, MessageSquareText, ChevronDown, Film, Download, Clipboard } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
@@ -23,10 +23,12 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [jobId, setJobId] = useState(null)
-  const [srcRef, setSrcRef] = useState(null)
+  const [soso, setSoso] = useState(null)        // {source_ref, caption, thumb} 트렌드 소재
+  const [clips, setClips] = useState([])         // 이 작업의 소스 클립(레드노트 등)
   const [balance, setBalance] = useState(null)
   const [copiedI, setCopiedI] = useState(-1)
   const [err, setErr] = useState('')
+  const [stage, setStage] = useState('')
   const [jobs, setJobs] = useState([])
   const [showJobs, setShowJobs] = useState(false)
   const scrollRef = useRef(null)
@@ -38,21 +40,18 @@ export default function ScriptAssistant({ session: sessionProp }) {
   useEffect(() => { if (session) loadJobs() }, [session])
   useEffect(() => { scrollRef.current?.scrollTo({ top: 9e9, behavior: 'smooth' }) }, [messages, busy])
 
-  // 트렌드 재생 모달에서 "대본 작성하기"로 넘어온 소재 받기
+  // 트렌드 재생 모달의 "대본 작성하기" → 소재(클립) 자체를 비서로 가져오기
   useEffect(() => {
     const s = loc.state
     if (s && (s.source_ref || s.caption)) {
-      setSrcRef(s.source_ref || null)
-      setMessages([]); setJobId(null)
-      const cap = String(s.caption || '').replace(/\s+/g, ' ').trim().slice(0, 240)
-      if (cap) setInput(cap)
-      else if (s.source_ref) {
-        // 모달이 캡션을 안 넘겼으면 shortcode로 소재(캡션)를 불러와 자동 입력
+      setMessages([]); setJobId(null); setClips([])
+      const base = { source_ref: s.source_ref || null, caption: String(s.caption || '').replace(/\s+/g, ' ').trim(), thumb: s.thumbnail || '' }
+      setSoso(base)
+      if (!base.caption && s.source_ref) {
         supabase.rpc('trend_detail_rpc', { p_shortcode: s.source_ref })
-          .then(({ data }) => { const c = String(data?.caption || '').replace(/\s+/g, ' ').trim().slice(0, 240); if (c) setInput(c) })
-          .catch(() => {})
+          .then(({ data }) => { const c = String(data?.caption || '').replace(/\s+/g, ' ').trim(); if (c) setSoso(v => ({ ...v, caption: c })) }).catch(() => {})
       }
-      nav('.', { replace: true, state: null })  // 새로고침 시 재적용 방지
+      nav('.', { replace: true, state: null })
     }
   }, [loc.state])
 
@@ -65,11 +64,51 @@ export default function ScriptAssistant({ session: sessionProp }) {
   }
   const openJob = async (id) => {
     setShowJobs(false); setErr('')
-    const { data } = await supabase.from('job_messages').select('role,content').eq('job_id', id).order('created_at')
-    setMessages((data || []).map(m => ({ role: m.role, text: m.content }))); setJobId(id)
+    const [{ data: msgs }, { data: cl }] = await Promise.all([
+      supabase.from('job_messages').select('role,content').eq('job_id', id).order('created_at'),
+      supabase.from('job_clips').select('id,thumbnail:storage_path,source_url,status').eq('job_id', id),
+    ])
+    setMessages((msgs || []).map(m => ({ role: m.role, text: m.content }))); setClips(cl || []); setJobId(id); setSoso(null)
   }
-  const newChat = () => { setMessages([]); setJobId(null); setSrcRef(null); setInput(''); setErr(''); setShowJobs(false) }
+  const newChat = () => { setMessages([]); setJobId(null); setSoso(null); setClips([]); setInput(''); setErr(''); setShowJobs(false) }
 
+  // 소재 분석(상품·셀링포인트) — 캐시 우선, 무료
+  const analyzeSoso = async (t) => {
+    try {
+      const { data: { session: s } } = await supabase.auth.getSession()
+      let niche = '', persona = ''
+      try { const { data: pf } = await supabase.from('profiles').select('niche,persona').eq('id', s.user.id).maybeSingle(); niche = pf?.niche || ''; persona = pf?.persona || '' } catch { /* noop */ }
+      const cacheKey = String(soso.source_ref || soso.caption || '').slice(0, 280) + '|' + niche + '|v9'
+      try { const { data: cached } = await supabase.rpc('get_analyze_cache_rpc', { p_key: cacheKey }); if (cached && cached.ok) return cached } catch { /* noop */ }
+      const ar = await fetch(FN('analyze-clip'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ title: soso.caption, source: 'trend', thumbnail_url: soso.thumb, niche, persona, video_id: soso.source_ref }) })
+      const ad = await ar.json()
+      if (ad?.ok) { try { await supabase.rpc('set_analyze_cache_rpc', { p_key: cacheKey, p_result: ad }) } catch { /* noop */ } ; return ad }
+    } catch { /* noop */ }
+    return null
+  }
+
+  // 소재 카드로 대본 만들기 (분석 → 대본, 이용권 1)
+  const generateFromSoso = async () => {
+    if (busy || !soso) return
+    setErr(''); setBusy(true); setStage('소재 분석 중… (상품·셀링포인트)')
+    const t = await token(); if (!t) { setErr('로그인이 필요해요'); setBusy(false); setStage(''); return }
+    try {
+      const a = await analyzeSoso(t)
+      let product = a?.product_name || ''
+      const sp = Array.isArray(a?.selling_points) ? a.selling_points.filter(Boolean) : []
+      let selling = sp.length ? sp.join(' / ') : (soso.caption || '')
+      if (product) selling = product + ' — ' + selling
+      if (a) setSoso(v => ({ ...v, product, selling: sp }))
+      setStage('대본을 짓는 중…')
+      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'generate', voice_mode: 'base', source_ref: soso.source_ref, product_name: product || (soso.caption || '').split(/[—\-.\n]/)[0].slice(0, 60), selling_points: selling }) })
+      const d = await r.json()
+      if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? '이용권이 부족해요. 충전 후 다시 시도해주세요.' : (d.error || '대본 생성 실패')); return }
+      setJobId(d.job_id); if (typeof d.balance === 'number') setBalance(d.balance)
+      setMessages([{ role: 'assistant', text: d.script }]); loadJobs()
+    } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
+  }
+
+  // 다듬기(무료) 또는 직접입력 생성
   const send = async () => {
     const text = input.trim(); if (!text || busy) return
     setErr(''); setInput('')
@@ -77,9 +116,9 @@ export default function ScriptAssistant({ session: sessionProp }) {
     setMessages(m => [...m, { role: 'user', text }]); setBusy(true)
     try {
       if (!jobId) {
-        const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'generate', voice_mode: 'base', source_ref: srcRef, product_name: text.split(/[—\-.\n]/)[0].slice(0, 60), selling_points: text }) })
+        const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'generate', voice_mode: 'base', source_ref: soso?.source_ref || null, product_name: text.split(/[—\-.\n]/)[0].slice(0, 60), selling_points: text }) })
         const d = await r.json()
-        if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? '이용권이 부족해요. 충전 후 다시 시도해주세요.' : (d.error || '대본 생성 실패')); return }
+        if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? '이용권이 부족해요.' : (d.error || '대본 생성 실패')); return }
         setJobId(d.job_id); if (typeof d.balance === 'number') setBalance(d.balance)
         setMessages(m => [...m, { role: 'assistant', text: d.script }]); loadJobs()
       } else {
@@ -102,6 +141,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
   }
   const copy = async (text, i) => { try { await navigator.clipboard.writeText(text); setCopiedI(i); setTimeout(() => setCopiedI(-1), 1500) } catch {} }
   const onKey = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }
+  const started = jobId || messages.length > 0
 
   return (
     <div className="relative flex min-h-[calc(100vh-0px)] flex-col px-4 pt-5 md:px-8 md:pt-7">
@@ -140,18 +180,30 @@ export default function ScriptAssistant({ session: sessionProp }) {
         </div>
       </div>
 
+      {/* 소재 카드 (붙은 소재) */}
+      {soso && (
+        <div className="mx-auto mt-3 flex w-full max-w-[700px] items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.05] p-2.5">
+          {soso.thumb ? <img src={soso.thumb} referrerPolicy="no-referrer" className="h-16 w-12 shrink-0 rounded-lg object-cover" /> : <div className="grid h-16 w-12 shrink-0 place-items-center rounded-lg bg-white/10"><Film size={18} className="text-white/40" /></div>}
+          <div className="min-w-0 flex-1">
+            <div className="text-[11px] font-bold text-[#5AA0FF]">🔥 트렌드 소재{soso.product ? ' · 분석됨' : ''}</div>
+            {soso.product
+              ? <><div className="truncate text-[14px] font-bold text-white">{soso.product}</div><div className="line-clamp-1 text-[12px] text-white/55">{(soso.selling || []).join(' · ') || soso.caption}</div></>
+              : <div className="line-clamp-2 text-[13px] leading-snug text-white/80">{soso.caption || '(캡션 불러오는 중…)'}</div>}
+          </div>
+          {!started && <button onClick={generateFromSoso} disabled={busy} className="shrink-0 rounded-xl bg-[#0064FF] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-40">이 소재로 대본 만들기</button>}
+        </div>
+      )}
+
       {/* 대화 영역 */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto py-6">
-        {messages.length === 0 && !busy && (
+        {!started && !soso && !busy && (
           <div className="sa-fade flex flex-col items-center justify-center gap-5 py-12 text-center">
             <Droplet size={92} />
             <div>
-              <div className="text-lg font-bold text-white">{srcRef ? '이 소재로 대본을 만들까요?' : '어떤 소재로 대본을 만들까요?'}</div>
-              <div className="mt-1 text-sm text-white/50">{srcRef ? '아래 소재를 확인하고 전송하면 대본이 만들어져요.' : "트렌드에서 마음에 드는 영상을 열고 '대본 작성하기'를 누르면 시작돼요."}</div>
+              <div className="text-lg font-bold text-white">어떤 소재로 대본을 만들까요?</div>
+              <div className="mt-1 text-sm text-white/50">트렌드에서 마음에 드는 영상을 열고 '대본 작성하기'를 누르면 시작돼요.</div>
             </div>
-            {srcRef
-              ? <div className="rounded-full bg-[#0064FF]/15 px-3 py-1 text-xs text-[#5AA0FF]">🔥 트렌드 소재 선택됨 · 아래에서 전송</div>
-              : <Link to="/trend" className="flex items-center gap-2 rounded-full bg-[#0064FF] px-5 py-2.5 text-sm font-bold text-white transition hover:brightness-110"><Flame size={16} /> 트렌드에서 영상 고르기</Link>}
+            <Link to="/trend" className="flex items-center gap-2 rounded-full bg-[#0064FF] px-5 py-2.5 text-sm font-bold text-white transition hover:brightness-110"><Flame size={16} /> 트렌드에서 영상 고르기</Link>
           </div>
         )}
 
@@ -187,7 +239,31 @@ export default function ScriptAssistant({ session: sessionProp }) {
               </div>
             )
           })}
-          {busy && <div className="sa-fade self-start rounded-2xl rounded-bl-md border border-white/10 bg-white/[0.06] px-6 py-5"><Droplet size={44} label={jobId ? '다듬는 중…' : '대본을 짓는 중…'} /></div>}
+          {busy && <div className="sa-fade self-start rounded-2xl rounded-bl-md border border-white/10 bg-white/[0.06] px-6 py-5"><Droplet size={44} label={stage || (jobId ? '다듬는 중…' : '대본을 짓는 중…')} /></div>}
+
+          {/* 소스 클립 패널 (작업에 종속 — 레드노트 붙여넣기 도착지) */}
+          {started && (
+            <div className="mt-2 rounded-2xl border border-white/10 bg-white/[0.03] p-3.5">
+              <div className="mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-sm font-bold text-white"><Film size={15} className="text-[#5AA0FF]" /> 소스 클립 {clips.length ? `(${clips.length})` : ''}</div>
+                {clips.length > 0 && <button className="flex items-center gap-1 rounded-lg bg-white/10 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-white/15"><Download size={13} /> 전체 다운로드</button>}
+              </div>
+              {clips.length === 0 ? (
+                <div className="flex items-center gap-2 rounded-xl border border-dashed border-white/15 px-3 py-3 text-xs text-white/45">
+                  <Clipboard size={15} className="shrink-0 text-white/40" />
+                  <span>모바일 크로닛에서 <b className="text-white/70">레드노트 링크를 붙여넣으면</b> 이 대본의 소스 클립으로 여기 도착해요. PC에서 바로 다운로드.</span>
+                </div>
+              ) : (
+                <div className="flex gap-2 overflow-x-auto">
+                  {clips.map(c => (
+                    <div key={c.id} className="h-24 w-16 shrink-0 overflow-hidden rounded-lg bg-white/10">
+                      {c.thumbnail ? <img src={c.thumbnail} className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center text-[10px] text-white/40">{c.status}</div>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -197,7 +273,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       <div className="sticky bottom-0 border-t border-white/10 bg-[#0a0b0f]/85 pb-4 pt-3 backdrop-blur">
         <div className="mx-auto flex max-w-[700px] items-end gap-2">
           <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={onKey} rows={1}
-            placeholder={jobId ? '더 짧게, 훅 더 세게 … 대화로 다듬어요' : (srcRef ? '소재 확인 후 Enter로 대본 생성' : "트렌드에서 '대본 작성하기'로 시작하거나 직접 적어주세요")}
+            placeholder={jobId ? '더 짧게, 훅 더 세게 … 대화로 다듬어요' : (soso ? '소재 카드의 버튼을 누르거나, 직접 적어도 돼요' : "트렌드에서 '대본 작성하기'로 시작하거나 직접 적어주세요")}
             className="max-h-32 flex-1 resize-none rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-[15px] text-white placeholder-white/35 outline-none focus:border-[#0064FF]" />
           <button onClick={send} disabled={busy || !input.trim()} className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#0064FF] text-white transition disabled:opacity-40"><Send size={18} /></button>
         </div>

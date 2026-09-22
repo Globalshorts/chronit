@@ -60,7 +60,7 @@ export default function VideoModal({ clip, onClose, onSource, onAnalyze }) {
             <span className="flex items-center gap-0.5"><Heart size={12} />{fmt(clip.likes)}</span>
             <span className="flex items-center gap-0.5"><MessageCircle size={12} />{fmt(clip.comments)}</span>
           </div>
-          <button onClick={() => { _navScript('/script', { state: { source_ref: clip?.video_id, caption: clip?.caption || '', product_name: '' } }); onClose && onClose() }} className="mb-1.5 flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] py-3 text-sm font-extrabold text-white transition hover:brightness-95"><Sparkles size={16} />대본 작성하기</button>
+          <button onClick={() => { _navScript('/script', { state: { source_ref: clip?.video_id, caption: clip?.caption || '', thumbnail: clip?.thumbnail_url || '', product_name: '' } }); onClose && onClose() }} className="mb-1.5 flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] py-3 text-sm font-extrabold text-white transition hover:brightness-95"><Sparkles size={16} />대본 작성하기</button>
           <button onClick={onSource} className="mb-1.5 flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]">이 영상 소스 찾기</button>
           <button onClick={onAnalyze} className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]">벤치마크 분석</button>
         </div>
