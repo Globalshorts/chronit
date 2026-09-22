@@ -54,7 +54,7 @@ export default function HomeAnalysisShowcase() {
         <div className="mb-4 text-center text-[11px] font-semibold uppercase tracking-[0.28em] text-white/30">Research → Analyze → Remix</div>
         <h2 className="text-center text-3xl font-bold leading-tight text-white break-keep md:text-[2.5rem]">왜 터졌는지, 어떻게 내 걸로 만들지</h2>
         <p className="mx-auto mt-4 max-w-xl text-center text-[15px] leading-relaxed text-white/50 break-keep md:text-base">실제로 터진 쇼핑 릴을 골라 훅·확산 속도·2차 창작 편집 가이드까지 한 번에.</p>
-        <div className="mx-auto mt-9 h-[520px] max-w-4xl animate-pulse rounded-2xl border border-white/10 bg-white/[0.04] md:h-[440px]" />
+        <div className="mx-auto mt-9 h-[520px] max-w-4xl animate-pulse rounded-2xl glass md:h-[440px]" />
       </div>
     </section>
   )
@@ -185,7 +185,7 @@ export default function HomeAnalysisShowcase() {
                       <ul className="space-y-1">{rDiff.map((t, i) => <li key={i} className="flex gap-1.5 text-[12px] text-white/75"><span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-white/40" />{t}</li>)}</ul></div>
                   )}
                 </div>
-                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                <div className="rounded-xl glass p-3">
                   <div className="mb-1.5 text-[12px] font-bold text-white/70">편집 컷 구성</div>
                   <ol className="space-y-1.5">{rEdit.map((t, i) => (
                     <li key={i} className="flex gap-2 text-[12px] leading-relaxed text-white/80"><span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#0064FF]/20 text-[9px] font-bold text-[#7DA2FF]">{i + 1}</span>{t}</li>

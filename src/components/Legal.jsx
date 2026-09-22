@@ -57,7 +57,7 @@ const Legal = ({ title, subtitle, markdown }) => {
       </section>
 
       <section className="px-5 pb-24 md:px-8 md:pb-32">
-        <div className="mx-auto max-w-4xl rounded-3xl border border-white/10 bg-white/[0.02] p-6 md:p-12">
+        <div className="mx-auto max-w-4xl rounded-3xl glass p-6 md:p-12">
           <Suspense fallback={null}><Md components={mdComponents}>{markdown}</Md></Suspense>
         </div>
       </section>

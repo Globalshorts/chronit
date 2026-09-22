@@ -440,12 +440,12 @@ export default function Trend() {
             <div>
               {/* 오늘 먼저 볼 3개 — 선명하게(훅) */}
               {previewPicks.length > 0 && (
-                <div className="mb-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <div className="mb-4 rounded-2xl glass p-4">
                   <div className="flex items-center gap-1.5 text-sm font-extrabold text-white"><Flame size={15} className="text-[#0064FF]" />오늘 먼저 볼 트렌드 3개</div>
                   <p className="mb-3 mt-0.5 text-xs text-white/50">지금 반응이 빠르게 올라오는 소재{previewCount ? ` ${previewCount}개` : ''}. 로그인하면 전체 + 분석까지.</p>
                   <div className="grid grid-cols-3 gap-2.5">
                     {previewPicks.map((it, i) => (
-                      <div key={it.shortcode || i} role="button" onClick={() => setShowAuth(true)} className="cursor-pointer overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
+                      <div key={it.shortcode || i} role="button" onClick={() => setShowAuth(true)} className="cursor-pointer overflow-hidden rounded-xl glass">
                         <div className="relative aspect-[9/16] bg-white/5">
                           {coverOf(it) && <TrendThumb url={coverOf(it)} sc={it.shortcode} />}
                           {it.velocity != null && <div className="absolute left-1 top-1 rounded bg-[#0064FF] px-1.5 py-0.5 text-[10px] font-bold text-white">↑{Math.round(it.velocity)}</div>}
@@ -472,7 +472,7 @@ export default function Trend() {
                 <div className="pointer-events-none grid grid-cols-3 gap-3 blur-[6px] sm:grid-cols-4"
                   style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent)', maskImage: 'linear-gradient(to bottom, black 50%, transparent)' }}>
                   {(rest.length ? rest.slice(0, 8) : Array.from({ length: 8 })).map((it, i) => (
-                    <div key={(it && it.shortcode) || i} className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
+                    <div key={(it && it.shortcode) || i} className="overflow-hidden rounded-xl glass">
                       <div className="relative aspect-[9/16] bg-white/5">{it && coverOf(it) && <TrendThumb url={coverOf(it)} sc={it.shortcode} />}</div>
                       <div className="p-2"><div className="h-3 w-3/4 rounded bg-white/10" /></div>
                     </div>

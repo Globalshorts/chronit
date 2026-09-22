@@ -145,7 +145,7 @@ export default function DmAutomation({ userPlan, userRole }) {
   if (loading) return <div className="py-16 text-center text-white/50">불러오는 중…</div>
   if (!user) return <div className="py-16 text-center text-white/50">로그인이 필요해요.</div>
 
-  const inputCls = "w-full rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-[#0064FF] focus:ring-1 focus:ring-[#0064FF] transition"
+  const inputCls = "w-full rounded-xl glass px-3 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-[#0064FF] focus:ring-1 focus:ring-[#0064FF] transition"
 
   return (
     <div className="min-h-screen bg-[#0a0b0f]">
@@ -174,7 +174,7 @@ export default function DmAutomation({ userPlan, userRole }) {
                     </span>
                   </button>
                   <button onClick={() => disconnect(c)} title="연결 해제"
-                    className="shrink-0 rounded-lg border border-white/10 bg-white/[0.05] px-2.5 py-1.5 text-xs font-bold text-white/40 hover:border-red-200 hover:text-red-500 transition"><Trash2 size={13} /></button>
+                    className="shrink-0 rounded-lg glass px-2.5 py-1.5 text-xs font-bold text-white/40 hover:border-red-200 hover:text-red-500 transition"><Trash2 size={13} /></button>
                 </div>
               )
             })}
@@ -233,7 +233,7 @@ export default function DmAutomation({ userPlan, userRole }) {
               <button onClick={() => toggleRule(r)}
                 className={`rounded-lg border px-2.5 py-1.5 text-xs font-bold transition ${r.active ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-400' : 'border-white/10 bg-white/[0.05] text-white/40'}`}>{r.active ? 'ON' : 'OFF'}</button>
               <button onClick={() => delRule(r)}
-                className="rounded-lg border border-white/10 bg-white/[0.05] px-2.5 py-1.5 text-xs font-bold text-red-500 hover:border-red-200 transition"><Trash2 size={13} /></button>
+                className="rounded-lg glass px-2.5 py-1.5 text-xs font-bold text-red-500 hover:border-red-200 transition"><Trash2 size={13} /></button>
             </div>
           </div>
         ))}

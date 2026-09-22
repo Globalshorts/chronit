@@ -37,18 +37,18 @@ export default function AppShell({ children }) {
         <nav className="flex flex-col gap-1">
           <div className="mb-1 px-3 text-[10px] font-bold uppercase tracking-wide text-white/25">작업 공간</div>
           {WORKSPACE_NAV.map((n) => (
-            <Link key={n.to} to={n.to} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition ${active(n) ? 'bg-[#0064FF] text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
+            <Link key={n.to} to={n.to} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition ${active(n) ? 'bg-[#0064FF] text-white glass-active' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
               <n.Icon size={18} /> {n.label}
             </Link>
           ))}
           <div className="my-2 border-t border-white/10" />
           {AUX_NAV.map((n) => (
-            <Link key={n.to} to={n.to} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition ${active(n) ? 'bg-[#0064FF] text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
+            <Link key={n.to} to={n.to} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition ${active(n) ? 'bg-[#0064FF] text-white glass-active' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
               <n.Icon size={18} /> {n.label}
             </Link>
           ))}
           {roleNav && (
-            <Link to={roleNav.to} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition ${active(roleNav) ? 'bg-[#0064FF] text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
+            <Link to={roleNav.to} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition ${active(roleNav) ? 'bg-[#0064FF] text-white glass-active' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
               <roleNav.Icon size={18} /> {roleNav.label}
             </Link>
           )}

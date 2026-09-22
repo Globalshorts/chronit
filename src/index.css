@@ -222,3 +222,5 @@ select option:checked, select option:hover {
 .glass-soft{position:relative;background:rgba(255,255,255,.05);box-shadow:inset 1.2px 1.2px 0 rgba(255,255,255,.17),inset -1.2px -1.2px 0 rgba(255,255,255,.07),0 6px 18px -10px rgba(0,0,0,.5);}
 /* 파란 강조(mine) 글래스 */
 .glass-blue{position:relative;background:rgba(0,100,255,.10);box-shadow:inset 1.2px 1.2px 0 rgba(140,180,255,.35),inset -1.2px -1.2px 0 rgba(120,160,255,.15),0 6px 18px -10px rgba(0,60,180,.45);}
+/* 파란 활성 표면(사이드바 탭·주요 버튼) — 림라이트로 입체감 */
+.glass-active{box-shadow:inset 1.2px 1.2px 0 rgba(255,255,255,.30),inset -1.2px -1.2px 0 rgba(255,255,255,.10),0 6px 16px -6px rgba(0,100,255,.5);}

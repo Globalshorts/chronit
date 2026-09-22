@@ -295,7 +295,7 @@ export default function QuestPanel({ open, onClose, onClaimed, onGoWatchlist }) 
         <WatchlistTrack onGo={onGoWatchlist} onClaimed={(r) => { onClaimed?.(r); loadBalance() }} />
 
         {/* 성과 인증 */}
-        <div ref={proofRef} className="mt-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+        <div ref={proofRef} className="mt-5 rounded-2xl glass p-4">
           <p className="text-sm font-bold text-white">크로닛으로 터졌어요!</p>
           <p className="mt-0.5 text-[11px] leading-relaxed text-white/45">
             크로닛으로 만든 영상 링크를 남겨주시면 <b className="text-white/70">검토 후 승인 시 이용권 3개</b>를 드려요.

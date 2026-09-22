@@ -270,7 +270,7 @@ export default function Watchlist() {
       </header>
 
       {/* 요약 한 줄 + 관리 */}
-      <section className="mb-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+      <section className="mb-5 rounded-2xl glass p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-white/60">
             감시 <b className="text-white">{accounts.length.toLocaleString('ko-KR')}</b>
@@ -363,7 +363,7 @@ export default function Watchlist() {
       {loading ? (
         <div className="flex items-center gap-2 py-10 text-white/40"><Loader2 size={16} className="animate-spin" />불러오는 중…</div>
       ) : accounts.length === 0 ? (
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-10 text-center">
+        <div className="rounded-2xl glass p-10 text-center">
           <div className="mb-2 text-3xl">👀</div>
           <p className="font-bold text-white/80">감시할 계정을 먼저 추가해주세요.</p>
           <p className="mt-1 text-sm text-white/45">경쟁 계정·벤치마크 계정을 등록하면 새 게시물을 모아서 보여드려요.</p>
