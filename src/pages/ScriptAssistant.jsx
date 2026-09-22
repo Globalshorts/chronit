@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Sparkles, Send, Copy, Check, Wand2, Flame, Plus, MessageSquareText, ChevronDown, Film, Download, Clipboard } from 'lucide-react'
+import { Sparkles, Send, Copy, Check, Wand2, Flame, Plus, MessageSquareText, ChevronDown, Film, Download, Clipboard, Settings } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import VoiceOnboard from '../components/VoiceOnboard'
+import PersonaSettings from '../components/PersonaSettings'
 
 const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
 const FN = (n) => `${SB}/functions/v1/${n}`
@@ -38,6 +39,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [showJobs, setShowJobs] = useState(false)
   const [voiceProfile, setVoiceProfile] = useState(null)  // {has_voice, ig_username, style_card}
   const [showOnboard, setShowOnboard] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const scrollRef = useRef(null)
   const greetedRef = useRef(false)
 
@@ -227,7 +229,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
               </div>
             )}
           </div>
-          <button onClick={() => setShowOnboard(true)} className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition ${voiceProfile?.has_voice ? 'border-[#0064FF]/40 bg-[#0064FF]/10 text-[#5AA0FF]' : 'border-white/15 bg-white/5 text-white/70 hover:text-white'}`}><Wand2 size={13} /> {voiceProfile?.has_voice ? `내 말투${voiceProfile.ig_username ? ` @${voiceProfile.ig_username}` : ''}` : '내 말투 배우기'}</button>
+          <button onClick={() => setShowSettings(true)} className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition ${voiceProfile?.has_voice ? 'border-[#0064FF]/40 bg-[#0064FF]/10 text-[#5AA0FF]' : 'border-white/15 bg-white/5 text-white/70 hover:text-white'}`}><Settings size={13} /> {voiceProfile?.has_voice ? `내 말투${voiceProfile.ig_username ? ` @${voiceProfile.ig_username}` : ''}` : '개인화'}</button>
           <button onClick={newChat} className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white hover:bg-white/15"><Plus size={14} /> 새 대본</button>
           {turns !== null && turns > 0 && <div className={`rounded-full px-3 py-1.5 text-xs font-bold ${turns <= 3 ? 'bg-amber-500/20 text-amber-300' : 'bg-[#0064FF]/15 text-[#5AA0FF]'}`}>남은 대화 {turns}턴</div>}
           {balance !== null && <div className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white/70">이용권 {balance}</div>}
@@ -341,6 +343,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
         <div className="mx-auto mt-1.5 max-w-[700px] text-center text-[11px] text-white/35">{turns > 0 ? `현재 세션 ${turns}턴 남음 · 대화·대본 모두 포함 · 소진 시 이용권 2개로 15턴 충전` : '대화·대본은 15턴 세션으로 열려요 (이용권 2개)'}</div>
       </div>
 
+      {showSettings && <PersonaSettings onClose={() => setShowSettings(false)} onRelearn={() => { setShowSettings(false); setShowOnboard(true) }} />}
       {showOnboard && <VoiceOnboard onClose={() => setShowOnboard(false)} onReady={() => { loadVoiceProfile() }} />}
     </div>
   )
