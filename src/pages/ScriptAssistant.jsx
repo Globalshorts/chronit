@@ -121,7 +121,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const applyMeter = (d) => {
     if (typeof d.turns_left === 'number') setTurns(d.turns_left)
     if (typeof d.balance === 'number') setBalance(d.balance)
-    if (d.charged) { setNote('💧 이용권 2개 · 이 대본 15턴 세션'); setTimeout(() => setNote(''), 4000) }
+    if (d.charged) { setNote('💧 이용권 2개 · 이 대본 10턴 세션'); setTimeout(() => setNote(''), 4000) }
   }
   const lastScript = () => { for (let i = messages.length - 1; i >= 0; i--) if (messages[i].role === 'assistant' && messages[i].text) return messages[i].text; return '' }
 
@@ -178,7 +178,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       setStage('대본을 짓는 중…')
       const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'generate', voice_mode: 'base', source_ref: soso.source_ref, product_name: product || (soso.caption || '').split(/[—\-.\n]/)[0].slice(0, 60), selling_points: selling }) })
       const d = await r.json()
-      if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? `이용권이 부족해요. 15턴 세션을 열려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '대본 생성 실패')); return }
+      if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? `이용권이 부족해요. 10턴 세션을 열려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '대본 생성 실패')); return }
       setJobId(d.job_id); applyMeter(d)
       setMessages([{ role: 'assistant', text: d.script, isScript: true, analysis: { product, selling: sp } }]); loadJobs()
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
@@ -318,7 +318,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
               ? <><div className="truncate text-[14px] font-bold text-white">{soso.product}</div><div className="line-clamp-1 text-[12px] text-white/55">{(soso.selling || []).join(' · ') || soso.caption}</div></>
               : <div className="line-clamp-2 text-[13px] leading-snug text-white/80">{soso.caption || '(캡션 불러오는 중…)'}</div>}
           </div>
-          {!jobId && <button onClick={generateFromSoso} disabled={busy} className="shrink-0 rounded-xl bg-[#0064FF] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-40">이 소재로 대본 만들기{turns > 0 ? <span className="opacity-70"> · {turns}턴 남음</span> : <span className="opacity-70"> · 이용권 2 · 15턴</span>}</button>}
+          {!jobId && <button onClick={generateFromSoso} disabled={busy} className="shrink-0 rounded-xl bg-[#0064FF] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-40">이 소재로 대본 만들기{turns > 0 ? <span className="opacity-70"> · {turns}턴 남음</span> : <span className="opacity-70"> · 이용권 2 · 10턴</span>}</button>}
         </div>
       )}
 
@@ -459,7 +459,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
           {turns !== null && <div className={`mb-0.5 shrink-0 self-center rounded-full px-2.5 py-1 text-[11px] font-bold ${turns <= 3 ? 'bg-amber-500/20 text-amber-300' : 'bg-[#0064FF]/15 text-[#5AA0FF]'}`} title="이 대본 세션의 남은 턴">{turns}턴</div>}
           <button onClick={send} disabled={busy || !input.trim()} className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#0064FF] text-white transition disabled:opacity-40"><Send size={18} /></button>
         </div>
-        <div className="mx-auto mt-1.5 max-w-[700px] text-center text-[11px] text-white/35">{turns !== null ? `이 대본 세션 ${turns}턴 남음 · 소진 시 이용권 2개로 15턴 충전` : '대본을 만들면 15턴 세션이 열려요 (이용권 2개) · 가벼운 잡담은 무료'}</div>
+        <div className="mx-auto mt-1.5 max-w-[700px] text-center text-[11px] text-white/35">{turns !== null ? `이 대본 세션 ${turns}턴 남음 · 소진 시 이용권 2개로 10턴 충전` : '대본을 만들면 10턴 세션이 열려요 (이용권 2개) · 가벼운 잡담은 무료'}</div>
       </div>
       </div>
 
