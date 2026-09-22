@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { Eye, Heart, MessageCircle, Sparkles, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -7,6 +8,7 @@ import { supabase } from '../lib/supabase'
 const fmt = (n) => { n = Math.max(0, Math.trunc(Number(n) || 0)); return n >= 10000 ? (n / 10000).toFixed(1) + '만' : n >= 1000 ? (n / 1000).toFixed(1) + '천' : String(n) }
 
 export default function VideoModal({ clip, onClose, onSource, onAnalyze }) {
+  const _navScript = useNavigate()
   const imgs = Array.isArray(clip?.images) ? clip.images.filter(Boolean) : []
   const [src, setSrc] = useState(clip?.video_url || '')
   // 영상이 없고 이미지가 있으면 캐러셀 — 앱 안에서 넘겨 본다(인스타로 내보내면 원본 URL 이 노출된다)
@@ -58,7 +60,8 @@ export default function VideoModal({ clip, onClose, onSource, onAnalyze }) {
             <span className="flex items-center gap-0.5"><Heart size={12} />{fmt(clip.likes)}</span>
             <span className="flex items-center gap-0.5"><MessageCircle size={12} />{fmt(clip.comments)}</span>
           </div>
-          <button onClick={onSource} className="mb-1.5 flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] py-3 text-sm font-extrabold text-white transition hover:brightness-95"><Sparkles size={16} />이 영상 소스 찾기</button>
+          <button onClick={() => { _navScript('/script', { state: { source_ref: clip?.video_id, caption: clip?.caption || '', product_name: '' } }); onClose && onClose() }} className="mb-1.5 flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] py-3 text-sm font-extrabold text-white transition hover:brightness-95"><Sparkles size={16} />대본 작성하기</button>
+          <button onClick={onSource} className="mb-1.5 flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]">이 영상 소스 찾기</button>
           <button onClick={onAnalyze} className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]">벤치마크 분석</button>
         </div>
       </div>

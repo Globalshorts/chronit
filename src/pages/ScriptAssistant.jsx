@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { Sparkles, Send, Copy, Check, Wand2, Flame, Plus, MessageSquareText, X, ChevronDown } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Sparkles, Send, Copy, Check, Wand2, Flame, Plus, MessageSquareText, ChevronDown } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
@@ -15,22 +16,19 @@ function Droplet({ size = 84, label }) {
 }
 
 export default function ScriptAssistant({ session: sessionProp }) {
+  const loc = useLocation()
+  const nav = useNavigate()
   const [session, setSession] = useState(sessionProp || null)
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [jobId, setJobId] = useState(null)
-  const [srcRef, setSrcRef] = useState(null)      // 선택한 트렌드 shortcode
+  const [srcRef, setSrcRef] = useState(null)
   const [balance, setBalance] = useState(null)
   const [copiedI, setCopiedI] = useState(-1)
   const [err, setErr] = useState('')
-  // 스레드 목록
   const [jobs, setJobs] = useState([])
   const [showJobs, setShowJobs] = useState(false)
-  // 트렌드 소재 피커
-  const [showTrend, setShowTrend] = useState(false)
-  const [trend, setTrend] = useState([])
-  const [trendLoading, setTrendLoading] = useState(false)
   const scrollRef = useRef(null)
 
   useEffect(() => {
@@ -39,6 +37,18 @@ export default function ScriptAssistant({ session: sessionProp }) {
   }, [sessionProp])
   useEffect(() => { if (session) loadJobs() }, [session])
   useEffect(() => { scrollRef.current?.scrollTo({ top: 9e9, behavior: 'smooth' }) }, [messages, busy])
+
+  // 트렌드 재생 모달에서 "대본 작성하기"로 넘어온 소재 받기
+  useEffect(() => {
+    const s = loc.state
+    if (s && (s.source_ref || s.caption)) {
+      setSrcRef(s.source_ref || null)
+      setMessages([]); setJobId(null)
+      const cap = String(s.caption || '').replace(/\s+/g, ' ').trim().slice(0, 240)
+      setInput(cap || (s.product_name || ''))
+      nav('.', { replace: true, state: null })  // 새로고침 시 재적용 방지
+    }
+  }, [loc.state])
 
   const token = async () => (session?.access_token) || (await supabase.auth.getSession()).data.session?.access_token
   const lastScript = () => { for (let i = messages.length - 1; i >= 0; i--) if (messages[i].role === 'assistant' && messages[i].text) return messages[i].text; return '' }
@@ -50,26 +60,9 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const openJob = async (id) => {
     setShowJobs(false); setErr('')
     const { data } = await supabase.from('job_messages').select('role,content').eq('job_id', id).order('created_at')
-    setMessages((data || []).map(m => ({ role: m.role, text: m.content })))
-    setJobId(id)
+    setMessages((data || []).map(m => ({ role: m.role, text: m.content }))); setJobId(id)
   }
   const newChat = () => { setMessages([]); setJobId(null); setSrcRef(null); setInput(''); setErr(''); setShowJobs(false) }
-
-  const openTrend = async () => {
-    setShowTrend(true)
-    if (trend.length) return
-    setTrendLoading(true)
-    try {
-      const { data } = await supabase.rpc('trend_list_rpc', { p_limit: 40 })
-      setTrend(Array.isArray(data) ? data : [])
-    } catch (e) { setErr('트렌드를 불러오지 못했어요') } finally { setTrendLoading(false) }
-  }
-  const pickTrend = (it) => {
-    setSrcRef(it.shortcode || null)
-    const cap = String(it.caption || '').replace(/\s+/g, ' ').trim().slice(0, 240)
-    setInput(cap || '이 소재로 대본 만들어줘')
-    setShowTrend(false)
-  }
 
   const send = async () => {
     const text = input.trim(); if (!text || busy) return
@@ -119,7 +112,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       <div className="mb-1 flex items-center justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 text-xl font-bold text-white"><Sparkles size={20} className="text-[#0064FF]" /> 대본 비서</h1>
-          <p className="mt-0.5 text-sm text-white/50">트렌드 소재를 고르면 기승전결 대본을 써줘요 · 대화로 다듬을수록 내 말투를 배워요</p>
+          <p className="mt-0.5 text-sm text-white/50">트렌드 영상에서 '대본 작성하기'로 시작해요 · 대화로 다듬을수록 내 말투를 배워요</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative">
@@ -147,16 +140,16 @@ export default function ScriptAssistant({ session: sessionProp }) {
           <div className="sa-fade flex flex-col items-center justify-center gap-5 py-12 text-center">
             <Droplet size={92} />
             <div>
-              <div className="text-lg font-bold text-white">어떤 소재로 대본을 만들까요?</div>
-              <div className="mt-1 text-sm text-white/50">트렌드에서 소재를 고르면 상품 정보가 자동으로 들어와요.</div>
+              <div className="text-lg font-bold text-white">{srcRef ? '이 소재로 대본을 만들까요?' : '어떤 소재로 대본을 만들까요?'}</div>
+              <div className="mt-1 text-sm text-white/50">{srcRef ? '아래 소재를 확인하고 전송하면 대본이 만들어져요.' : "트렌드에서 마음에 드는 영상을 열고 '대본 작성하기'를 누르면 시작돼요."}</div>
             </div>
-            <button onClick={openTrend} className="flex items-center gap-2 rounded-full bg-[#0064FF] px-5 py-2.5 text-sm font-bold text-white transition hover:brightness-110"><Flame size={16} /> 트렌드에서 소재 고르기</button>
-            <div className="text-xs text-white/35">또는 아래에 직접 적어도 돼요</div>
+            {srcRef
+              ? <div className="rounded-full bg-[#0064FF]/15 px-3 py-1 text-xs text-[#5AA0FF]">🔥 트렌드 소재 선택됨 · 아래에서 전송</div>
+              : <Link to="/trend" className="flex items-center gap-2 rounded-full bg-[#0064FF] px-5 py-2.5 text-sm font-bold text-white transition hover:brightness-110"><Flame size={16} /> 트렌드에서 영상 고르기</Link>}
           </div>
         )}
 
         <div className="mx-auto flex max-w-[700px] flex-col gap-4">
-          {srcRef && messages.length === 0 && <div className="self-center rounded-full bg-[#0064FF]/15 px-3 py-1 text-xs text-[#5AA0FF]">🔥 트렌드 소재 선택됨 · 전송하면 대본 생성</div>}
           {messages.map((m, i) => {
             if (m.voicePreview) return (
               <div key={i} className="sa-fade w-full max-w-[92%] self-start">
@@ -197,39 +190,13 @@ export default function ScriptAssistant({ session: sessionProp }) {
       {/* 컴포저 */}
       <div className="sticky bottom-0 border-t border-white/10 bg-[#0a0b0f]/85 pb-4 pt-3 backdrop-blur">
         <div className="mx-auto flex max-w-[700px] items-end gap-2">
-          {!jobId && <button onClick={openTrend} title="트렌드에서 소재 고르기" className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/15 bg-white/5 text-[#5AA0FF] hover:text-white"><Flame size={18} /></button>}
           <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={onKey} rows={1}
-            placeholder={jobId ? '더 짧게, 훅 더 세게 … 대화로 다듬어요' : '트렌드에서 소재를 고르거나 직접 적어주세요 (Enter로 전송)'}
+            placeholder={jobId ? '더 짧게, 훅 더 세게 … 대화로 다듬어요' : (srcRef ? '소재 확인 후 Enter로 대본 생성' : "트렌드에서 '대본 작성하기'로 시작하거나 직접 적어주세요")}
             className="max-h-32 flex-1 resize-none rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-[15px] text-white placeholder-white/35 outline-none focus:border-[#0064FF]" />
           <button onClick={send} disabled={busy || !input.trim()} className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#0064FF] text-white transition disabled:opacity-40"><Send size={18} /></button>
         </div>
         <div className="mx-auto mt-1.5 max-w-[700px] text-center text-[11px] text-white/35">{jobId ? '다듬기는 무료예요 · 수정할수록 비서가 내 말투를 배워요' : '대본 만들기는 이용권 1개가 들어요'}</div>
       </div>
-
-      {/* 트렌드 소재 피커 모달 */}
-      {showTrend && (
-        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/60 p-0 md:items-center md:p-6" onClick={() => setShowTrend(false)}>
-          <div className="flex max-h-[80vh] w-full max-w-[560px] flex-col overflow-hidden rounded-t-3xl border border-white/10 bg-[#12141a] md:rounded-3xl" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-              <div className="flex items-center gap-2 font-bold text-white"><Flame size={16} className="text-[#0064FF]" /> 트렌드에서 소재 고르기</div>
-              <button onClick={() => setShowTrend(false)} className="text-white/50 hover:text-white"><X size={18} /></button>
-            </div>
-            <div className="overflow-y-auto p-2">
-              {trendLoading ? <div className="py-10 text-center text-sm text-white/40">불러오는 중…</div> :
-                trend.length === 0 ? <div className="py-10 text-center text-sm text-white/40">트렌드가 없어요</div> :
-                trend.map((it, i) => (
-                  <button key={it.shortcode || i} onClick={() => pickTrend(it)} className="flex w-full items-center gap-3 rounded-2xl p-2 text-left transition hover:bg-white/5">
-                    {it.thumbnail_url ? <img src={it.thumbnail_url} referrerPolicy="no-referrer" className="h-16 w-12 shrink-0 rounded-lg object-cover" /> : <div className="h-16 w-12 shrink-0 rounded-lg bg-white/10" />}
-                    <div className="min-w-0 flex-1">
-                      <div className="line-clamp-2 text-[13px] leading-snug text-white/90">{String(it.caption || '(캡션 없음)').replace(/\s+/g, ' ').slice(0, 90)}</div>
-                      <div className="mt-1 text-[11px] text-white/40">💬 {it.comment_count ?? 0} · ❤ {it.like_count ?? 0}</div>
-                    </div>
-                  </button>
-                ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
