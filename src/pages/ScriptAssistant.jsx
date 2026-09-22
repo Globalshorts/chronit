@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Sparkles, Send, Copy, Check, Wand2, Flame, Plus, MessageSquareText, ChevronDown, Film, Download, Clipboard } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import VoiceOnboard from '../components/VoiceOnboard'
 
 const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
 const FN = (n) => `${SB}/functions/v1/${n}`
@@ -35,6 +36,8 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [today, setToday] = useState([])
   const [jobs, setJobs] = useState([])
   const [showJobs, setShowJobs] = useState(false)
+  const [voiceProfile, setVoiceProfile] = useState(null)  // {has_voice, ig_username, style_card}
+  const [showOnboard, setShowOnboard] = useState(false)
   const scrollRef = useRef(null)
   const greetedRef = useRef(false)
 
@@ -42,7 +45,15 @@ export default function ScriptAssistant({ session: sessionProp }) {
     if (sessionProp) setSession(sessionProp)
     else supabase.auth.getSession().then(({ data }) => setSession(data.session || null))
   }, [sessionProp])
-  useEffect(() => { if (session) { loadJobs(); refreshSession() } }, [session])
+  useEffect(() => { if (session) { loadJobs(); refreshSession(); loadVoiceProfile() } }, [session])
+
+  const loadVoiceProfile = async () => {
+    try {
+      const { data } = await supabase.rpc('get_voice_context_rpc')
+      const has = !!(data && data.base_profile && Array.isArray(data.base_profile.transcripts) && data.base_profile.transcripts.length > 0)
+      setVoiceProfile(has ? { has_voice: true, ig_username: data.ig_username || '', style_card: data.style_card || {} } : { has_voice: false })
+    } catch { setVoiceProfile({ has_voice: false }) }
+  }
   useEffect(() => { scrollRef.current?.scrollTo({ top: 9e9, behavior: 'smooth' }) }, [messages, busy])
 
   // 닉네임 · 오늘 트렌드 · 베라 인사
@@ -166,14 +177,19 @@ export default function ScriptAssistant({ session: sessionProp }) {
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
 
-  const applyMyVoice = async () => {
-    setErr(''); setBusy(true)
+  // 내 말투로 입히기: 프로필 없으면 온보딩, 있으면 현재 대본을 내 말투로 다시 씀(무료 다듬기)
+  const applyMyVoice = async (srcText) => {
+    if (!voiceProfile?.has_voice) { setShowOnboard(true); return }
+    const src = srcText || lastScript()
+    if (!jobId || !src) { setErr('먼저 소재로 대본을 만들어 주세요'); return }
+    setErr(''); setBusy(true); setStage('내 말투로 바꾸는 중…')
     try {
       const t = await token()
-      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'preview_hook', selling_points: lastScript() }) })
+      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'refine', job_id: jobId, voice_mode: 'my', instruction: '내 말투 그대로 자연스럽게 다시 써줘', current_script: src }) })
       const d = await r.json()
-      setMessages(m => [...m, { role: 'assistant', voicePreview: true, noProfile: !!d.no_profile, hook: d.hook || '' }])
-    } catch (e) { setErr(String(e)) } finally { setBusy(false) }
+      if (d.ok && d.script) setMessages(m => [...m, { role: 'assistant', text: d.script, mine: true }])
+      else setErr(d.error || '내 말투 변환 실패')
+    } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
   const copy = async (text, i) => { try { await navigator.clipboard.writeText(text); setCopiedI(i); setTimeout(() => setCopiedI(-1), 1500) } catch {} }
   const onKey = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }
@@ -211,6 +227,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
               </div>
             )}
           </div>
+          <button onClick={() => setShowOnboard(true)} className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition ${voiceProfile?.has_voice ? 'border-[#0064FF]/40 bg-[#0064FF]/10 text-[#5AA0FF]' : 'border-white/15 bg-white/5 text-white/70 hover:text-white'}`}><Wand2 size={13} /> {voiceProfile?.has_voice ? `내 말투${voiceProfile.ig_username ? ` @${voiceProfile.ig_username}` : ''}` : '내 말투 배우기'}</button>
           <button onClick={newChat} className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white hover:bg-white/15"><Plus size={14} /> 새 대본</button>
           {turns !== null && turns > 0 && <div className={`rounded-full px-3 py-1.5 text-xs font-bold ${turns <= 3 ? 'bg-amber-500/20 text-amber-300' : 'bg-[#0064FF]/15 text-[#5AA0FF]'}`}>남은 대화 {turns}턴</div>}
           {balance !== null && <div className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white/70">이용권 {balance}</div>}
@@ -268,10 +285,11 @@ export default function ScriptAssistant({ session: sessionProp }) {
             if (m.role === 'user') return <div key={i} className="sa-fade max-w-[80%] self-end rounded-2xl rounded-br-md bg-[#0064FF] px-4 py-2.5 text-[15px] leading-relaxed text-white">{m.text}</div>
             return (
               <div key={i} className="sa-fade w-full max-w-[92%] self-start">
-                <div className="whitespace-pre-wrap rounded-2xl rounded-bl-md border border-white/10 bg-white/[0.06] px-4 py-3 text-[15px] leading-relaxed text-white/95">{m.text}</div>
+                {m.mine && <div className="mb-1 inline-flex items-center gap-1 rounded-full bg-[#0064FF]/15 px-2 py-0.5 text-[11px] font-bold text-[#5AA0FF]"><Wand2 size={11} /> 내 말투</div>}
+                <div className={`whitespace-pre-wrap rounded-2xl rounded-bl-md border px-4 py-3 text-[15px] leading-relaxed text-white/95 ${m.mine ? 'border-[#0064FF]/40 bg-[#0064FF]/[0.08]' : 'border-white/10 bg-white/[0.06]'}`}>{m.text}</div>
                 <div className="mt-1.5 flex gap-1.5">
                   <button onClick={() => copy(m.text, i)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-white/50 hover:bg-white/10 hover:text-white/80">{copiedI === i ? <Check size={12} /> : <Copy size={12} />} 복사</button>
-                  <button onClick={applyMyVoice} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-[#5AA0FF] hover:bg-[#0064FF]/15"><Wand2 size={12} /> 내 말투로 입히기</button>
+                  <button onClick={() => applyMyVoice(m.text)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-[#5AA0FF] hover:bg-[#0064FF]/15"><Wand2 size={12} /> {voiceProfile?.has_voice ? '내 말투로 입히기' : '내 말투 배우기'}</button>
                 </div>
               </div>
             )
@@ -322,6 +340,8 @@ export default function ScriptAssistant({ session: sessionProp }) {
         </div>
         <div className="mx-auto mt-1.5 max-w-[700px] text-center text-[11px] text-white/35">{turns > 0 ? `현재 세션 ${turns}턴 남음 · 대화·대본 모두 포함 · 소진 시 이용권 2개로 15턴 충전` : '대화·대본은 15턴 세션으로 열려요 (이용권 2개)'}</div>
       </div>
+
+      {showOnboard && <VoiceOnboard onClose={() => setShowOnboard(false)} onReady={() => { loadVoiceProfile() }} />}
     </div>
   )
 }
