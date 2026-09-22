@@ -2,15 +2,22 @@ import { useState, useEffect } from 'react'
 import { X, User, Target, Wand2, Users, MessageCircle, Check, RefreshCw, Sparkles } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
-// 베라 개인화 설정 드로어: 닉네임 · 니치/타깃 · 내 말투(보정)
+// 설문과 동일한 정식 니치 값
+const NICHE_OPTIONS = ['뷰티·화장품', '패션·의류', '리빙·홈·주방', '잡화·소품', '푸드·식품', '육아·키즈', '헬스·건강', '반려동물', '디지털·가전', '기타']
+// 타깃(주 시청자)
+const TARGET_OPTIONS = ['20·30대 자취·1인가구', '신혼·새댁', '3040 주부·살림', '육아맘·키즈', '학생·사회초년생', '시니어·4050', '전 연령', '기타']
+
+// 베라 개인화 설정 드로어: 닉네임 · 니치 · 타깃 · 내 말투(보정)
 export default function PersonaSettings({ onClose, onRelearn }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [nick, setNick] = useState('')
   const [niche, setNiche] = useState('')
+  const [nicheOther, setNicheOther] = useState('')
   const [target, setTarget] = useState('')
-  const [voice, setVoice] = useState(null)   // get_voice_context 결과
+  const [targetOther, setTargetOther] = useState('')
+  const [voice, setVoice] = useState(null)
   const [gender, setGender] = useState('')
   const [chars, setChars] = useState('')
   const [tone, setTone] = useState('')
@@ -20,12 +27,16 @@ export default function PersonaSettings({ onClose, onRelearn }) {
       const { data: { session } } = await supabase.auth.getSession()
       const uid = session?.user?.id
       const [{ data: pf }, { data: vc }] = await Promise.all([
-        uid ? supabase.from('profiles').select('nickname,niche,persona').eq('id', uid).maybeSingle() : Promise.resolve({ data: null }),
+        uid ? supabase.from('profiles').select('nickname,niche').eq('id', uid).maybeSingle() : Promise.resolve({ data: null }),
         supabase.rpc('get_voice_context_rpc'),
       ])
-      setNick(pf?.nickname || ''); setNiche(pf?.niche || ''); setTarget(pf?.persona || '')
+      setNick(pf?.nickname || '')
+      const nv = pf?.niche || ''
+      if (nv && !NICHE_OPTIONS.includes(nv)) { setNiche('기타'); setNicheOther(nv) } else setNiche(nv)
       setVoice(vc || null)
       const sc = vc?.style_card || {}, pv = vc?.persona || {}
+      const tv = pv.target || ''
+      if (tv && !TARGET_OPTIONS.includes(tv)) { setTarget('기타'); setTargetOther(tv) } else setTarget(tv)
       setGender(pv.gender || (sc.gender_guess === '남' || sc.gender_guess === '여' ? sc.gender_guess : ''))
       setChars((pv.recurring_characters || sc.recurring_characters || []).join(', '))
       setTone(pv.tone || sc.tone || '')
@@ -38,11 +49,21 @@ export default function PersonaSettings({ onClose, onRelearn }) {
   const save = async () => {
     setSaving(true); setSaved(false)
     try {
-      await supabase.rpc('set_profile_personalization_rpc', { p_nickname: nick.trim(), p_niche: niche.trim(), p_persona: target.trim() })
-      if (hasVoice) await supabase.rpc('update_voice_persona_rpc', { p_persona: { gender: gender || undefined, recurring_characters: chars.split(',').map(s => s.trim()).filter(Boolean), tone: tone.trim() || undefined } })
+      const nicheVal = niche === '기타' ? (nicheOther.trim() || '기타') : niche
+      const targetVal = target === '기타' ? (targetOther.trim() || '기타') : target
+      await supabase.rpc('set_profile_personalization_rpc', { p_nickname: nick.trim(), p_niche: nicheVal })
+      await supabase.rpc('update_voice_persona_rpc', { p_persona: {
+        target: targetVal || undefined,
+        gender: gender || undefined,
+        recurring_characters: chars.split(',').map(s => s.trim()).filter(Boolean),
+        tone: tone.trim() || undefined,
+      } })
       setSaved(true); setTimeout(() => setSaved(false), 2000)
     } catch { /* noop */ } finally { setSaving(false) }
   }
+
+  const selCls = 'w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2.5 text-sm text-white outline-none focus:border-[#0064FF]'
+  const inCls = 'w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-[#0064FF]'
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/60" onClick={onClose}>
@@ -56,21 +77,30 @@ export default function PersonaSettings({ onClose, onRelearn }) {
           <div className="flex flex-1 items-center justify-center text-white/40">불러오는 중…</div>
         ) : (
           <div className="flex-1 space-y-6 overflow-y-auto p-5">
-            {/* 닉네임 */}
             <section>
               <label className="mb-2 flex items-center gap-1.5 text-sm font-bold text-white"><User size={14} className="text-[#5AA0FF]" /> 베라가 부를 이름</label>
-              <input value={nick} onChange={e => setNick(e.target.value)} placeholder="닉네임" className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-[#0064FF]" />
+              <input value={nick} onChange={e => setNick(e.target.value)} placeholder="닉네임" className={inCls + ' py-2.5'} />
             </section>
 
-            {/* 니치 · 타깃 */}
             <section>
-              <label className="mb-2 flex items-center gap-1.5 text-sm font-bold text-white"><Target size={14} className="text-[#5AA0FF]" /> 니치 · 타깃</label>
-              <input value={niche} onChange={e => setNiche(e.target.value)} placeholder="니치 (예: 인테리어·생활용품 꿀템)" className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-[#0064FF]" />
-              <input value={target} onChange={e => setTarget(e.target.value)} placeholder="타깃 (예: 자취·신혼 20~30대)" className="mt-2 w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-[#0064FF]" />
-              <p className="mt-1.5 text-[11px] text-white/35">소재 분석·추천 정확도를 높여요</p>
+              <label className="mb-2 flex items-center gap-1.5 text-sm font-bold text-white"><Target size={14} className="text-[#5AA0FF]" /> 니치 (주력 카테고리)</label>
+              <select value={niche} onChange={e => setNiche(e.target.value)} className={selCls}>
+                <option value="">선택 안 함</option>
+                {NICHE_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
+              {niche === '기타' && <input value={nicheOther} onChange={e => setNicheOther(e.target.value)} placeholder="직접 입력" className={inCls + ' mt-2'} />}
             </section>
 
-            {/* 내 말투 */}
+            <section>
+              <label className="mb-2 flex items-center gap-1.5 text-sm font-bold text-white"><Users size={14} className="text-[#5AA0FF]" /> 타깃 (주 시청자)</label>
+              <select value={target} onChange={e => setTarget(e.target.value)} className={selCls}>
+                <option value="">선택 안 함</option>
+                {TARGET_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
+              {target === '기타' && <input value={targetOther} onChange={e => setTargetOther(e.target.value)} placeholder="직접 입력" className={inCls + ' mt-2'} />}
+              <p className="mt-1.5 text-[11px] text-white/35">이들이 공감할 표현·예시로 대본을 써요</p>
+            </section>
+
             <section>
               <label className="mb-2 flex items-center gap-1.5 text-sm font-bold text-white"><Wand2 size={14} className="text-[#5AA0FF]" /> 내 말투</label>
               {hasVoice ? (
@@ -97,11 +127,11 @@ export default function PersonaSettings({ onClose, onRelearn }) {
                   </div>
                   <div>
                     <label className="mb-1 flex items-center gap-1 text-xs text-white/60"><Users size={12} /> 단골 등장인물 (콤마)</label>
-                    <input value={chars} onChange={e => setChars(e.target.value)} placeholder="예: 와이프, 친구" className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-[#0064FF]" />
+                    <input value={chars} onChange={e => setChars(e.target.value)} placeholder="예: 와이프, 친구" className={inCls} />
                   </div>
                   <div>
                     <label className="mb-1 flex items-center gap-1 text-xs text-white/60"><MessageCircle size={12} /> 톤 (선택)</label>
-                    <input value={tone} onChange={e => setTone(e.target.value)} placeholder="예: 깐깐한 디자이너 시선" className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-[#0064FF]" />
+                    <input value={tone} onChange={e => setTone(e.target.value)} placeholder="예: 깐깐한 디자이너 시선" className={inCls} />
                   </div>
                 </div>
               )}

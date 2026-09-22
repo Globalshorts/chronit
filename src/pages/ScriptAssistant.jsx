@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Sparkles, Send, Copy, Check, Wand2, Flame, Plus, MessageSquareText, ChevronDown, Film, Download, Clipboard, Settings } from 'lucide-react'
+import { Sparkles, Send, Copy, Check, Wand2, Flame, Plus, MessageSquareText, ChevronDown, Film, Download, Clipboard, Settings, Pencil } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import VoiceOnboard from '../components/VoiceOnboard'
 import PersonaSettings from '../components/PersonaSettings'
@@ -31,6 +31,8 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [turns, setTurns] = useState(null)
   const [note, setNote] = useState('')
   const [copiedI, setCopiedI] = useState(-1)
+  const [editIdx, setEditIdx] = useState(-1)
+  const [editText, setEditText] = useState('')
   const [err, setErr] = useState('')
   const [stage, setStage] = useState('')
   const [nick, setNick] = useState('')
@@ -194,6 +196,20 @@ export default function ScriptAssistant({ session: sessionProp }) {
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
   const copy = async (text, i) => { try { await navigator.clipboard.writeText(text); setCopiedI(i); setTimeout(() => setCopiedI(-1), 1500) } catch {} }
+
+  // 인라인 수정: 베라 대본을 직접 고치고, 저장하면 그 수정을 말투 학습에 반영
+  const startEdit = (i, text) => { setEditIdx(i); setEditText(text) }
+  const cancelEdit = () => { setEditIdx(-1); setEditText('') }
+  const saveEdit = async (i) => {
+    const before = messages[i]?.text || ''; const after = editText.trim()
+    if (!after || after === before) { cancelEdit(); return }
+    setMessages(m => m.map((x, idx) => idx === i ? { ...x, text: after, edited: true } : x))
+    setEditIdx(-1); setEditText('')
+    if (jobId) {
+      supabase.rpc('set_job_script_rpc', { p_job_id: jobId, p_script: after, p_status: 'done' }).catch(() => {})
+      supabase.rpc('record_edit_rpc', { p_job_id: jobId, p_before: before, p_after: after }).catch(() => {})
+    }
+  }
   const onKey = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }
   const started = jobId || messages.length > 0
 
@@ -288,11 +304,27 @@ export default function ScriptAssistant({ session: sessionProp }) {
             return (
               <div key={i} className="sa-fade w-full max-w-[92%] self-start">
                 {m.mine && <div className="mb-1 inline-flex items-center gap-1 rounded-full bg-[#0064FF]/15 px-2 py-0.5 text-[11px] font-bold text-[#5AA0FF]"><Wand2 size={11} /> 내 말투</div>}
-                <div className={`whitespace-pre-wrap rounded-2xl rounded-bl-md border px-4 py-3 text-[15px] leading-relaxed text-white/95 ${m.mine ? 'border-[#0064FF]/40 bg-[#0064FF]/[0.08]' : 'border-white/10 bg-white/[0.06]'}`}>{m.text}</div>
-                <div className="mt-1.5 flex gap-1.5">
-                  <button onClick={() => copy(m.text, i)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-white/50 hover:bg-white/10 hover:text-white/80">{copiedI === i ? <Check size={12} /> : <Copy size={12} />} 복사</button>
-                  <button onClick={() => applyMyVoice(m.text)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-[#5AA0FF] hover:bg-[#0064FF]/15"><Wand2 size={12} /> {voiceProfile?.has_voice ? '내 말투로 입히기' : '내 말투 배우기'}</button>
-                </div>
+                {editIdx === i ? (
+                  <div>
+                    <textarea value={editText} onChange={e => setEditText(e.target.value)} autoFocus
+                      rows={Math.min(16, Math.max(4, editText.split('\n').length + 2))}
+                      className="w-full resize-none rounded-2xl border border-[#0064FF]/50 bg-white/[0.06] px-4 py-3 text-[15px] leading-relaxed text-white outline-none focus:border-[#0064FF]" />
+                    <div className="mt-1.5 flex items-center gap-1.5">
+                      <button onClick={() => saveEdit(i)} className="flex items-center gap-1 rounded-lg bg-[#0064FF] px-3 py-1 text-xs font-bold text-white"><Check size={12} /> 저장</button>
+                      <button onClick={cancelEdit} className="rounded-lg px-3 py-1 text-xs text-white/50 hover:text-white/80">취소</button>
+                      <span className="text-[11px] text-white/35">저장하면 베라가 내 수정 습관을 배워요</span>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className={`whitespace-pre-wrap rounded-2xl rounded-bl-md border px-4 py-3 text-[15px] leading-relaxed text-white/95 ${m.mine ? 'border-[#0064FF]/40 bg-[#0064FF]/[0.08]' : 'border-white/10 bg-white/[0.06]'}`}>{m.text}{m.edited && <span className="ml-1.5 align-middle text-[11px] text-white/30">· 수정됨</span>}</div>
+                    <div className="mt-1.5 flex gap-1.5">
+                      <button onClick={() => copy(m.text, i)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-white/50 hover:bg-white/10 hover:text-white/80">{copiedI === i ? <Check size={12} /> : <Copy size={12} />} 복사</button>
+                      <button onClick={() => startEdit(i, m.text)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-white/50 hover:bg-white/10 hover:text-white/80"><Pencil size={12} /> 수정</button>
+                      <button onClick={() => applyMyVoice(m.text)} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-[#5AA0FF] hover:bg-[#0064FF]/15"><Wand2 size={12} /> {voiceProfile?.has_voice ? '내 말투로 입히기' : '내 말투 배우기'}</button>
+                    </div>
+                  </>
+                )}
               </div>
             )
           })}
