@@ -346,19 +346,19 @@ export default function Trend() {
         <header className="mb-5">
           <div className="flex items-center gap-2 text-[#0064FF]">
             <Flame size={22} />
-            <h1 className="text-2xl font-extrabold text-slate-900">실시간 트렌드</h1>
+            <h1 className="text-2xl font-extrabold text-white">실시간 트렌드</h1>
             <div className="relative">
-              <button onClick={() => setShowHelp((v) => !v)} className="flex text-slate-300 transition-colors hover:text-slate-500" aria-label="선정 기준"><HelpCircle size={18} /></button>
+              <button onClick={() => setShowHelp((v) => !v)} className="flex text-slate-300 transition-colors hover:text-white/45" aria-label="선정 기준"><HelpCircle size={18} /></button>
               {showHelp && (
-                <div className="absolute left-0 top-7 z-50 w-64 rounded-xl border border-slate-200 bg-white p-3 text-xs font-medium leading-relaxed text-slate-600 shadow-xl" onClick={() => setShowHelp(false)}>
-                  <div className="mb-0.5 font-bold text-slate-800">선정 기준</div>
-                  최근 <b className="text-slate-800">반응이 터진</b>(댓글·조회수 높은) 쇼핑 릴스를 모읍니다. 위 <b className="text-slate-800">팔로워</b> 범위로 원하는 계정 규모만 골라 볼 수 있습니다.
+                <div className="absolute left-0 top-7 z-50 w-64 rounded-xl glass p-3 text-xs font-medium leading-relaxed text-white/55 shadow-xl" onClick={() => setShowHelp(false)}>
+                  <div className="mb-0.5 font-bold text-white">선정 기준</div>
+                  최근 <b className="text-white">반응이 터진</b>(댓글·조회수 높은) 쇼핑 릴스를 모읍니다. 위 <b className="text-white">팔로워</b> 범위로 원하는 계정 규모만 골라 볼 수 있습니다.
                 </div>
               )}
             </div>
           </div>
-          <p className="mt-1 text-sm text-slate-500">지금 뜨는 쇼핑 숏폼을 한눈에. 조회수·좋아요 순으로 정렬해 확인하세요.</p>
-          <p className="mt-0.5 text-[11px] text-slate-400">[분석]은 이용권 1개가 차감돼요 · 이미 분석한 소스는 다시 열어도 무료예요</p>
+          <p className="mt-1 text-sm text-white/45">지금 뜨는 쇼핑 숏폼을 한눈에. 조회수·좋아요 순으로 정렬해 확인하세요.</p>
+          <p className="mt-0.5 text-[11px] text-white/35">[분석]은 이용권 1개가 차감돼요 · 이미 분석한 소스는 다시 열어도 무료예요</p>
         </header>
 
         <QuestStrip enabled={isReal} />
@@ -370,15 +370,15 @@ export default function Trend() {
               <span className="flex items-center gap-1 text-[11px] font-extrabold tracking-wide text-amber-400"><Crown size={13} /> 패스트벤치 · 구독 전용</span>
               <span className="mt-0.5 block text-sm font-bold text-white">터진 뒤 따라하면 늦어요. 상위 크리에이터처럼 <span className="text-amber-300">터지는 순간</span> 먼저 잡으세요</span>
             </span>
-            <span className="shrink-0 whitespace-nowrap rounded-lg bg-amber-400 px-3 py-1.5 text-sm font-extrabold text-slate-900">{fbCount}개 열기 →</span>
+            <span className="shrink-0 whitespace-nowrap rounded-lg bg-amber-400 px-3 py-1.5 text-sm font-extrabold text-white">{fbCount}개 열기 →</span>
           </button>
         )}
 
         {isReal && (
-        <div className="relative mb-5 flex max-w-xs rounded-xl bg-slate-100 p-1 text-sm font-bold">
-          <span aria-hidden className="absolute left-1 top-1 bottom-1 w-[calc(50%-0.25rem)] rounded-lg bg-white shadow-sm transition-transform duration-300 ease-out" style={{ transform: fastBench ? 'translateX(100%)' : 'translateX(0)' }} />
-          <button onClick={() => setFastBench(false)} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${!fastBench ? 'text-[#0064FF]' : 'text-slate-500'}`}>트렌드</button>
-          <button onClick={() => setFastBench(true)} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${fastBench ? 'text-[#0064FF]' : 'text-slate-500'}`}>패스트벤치{fbCount > 0 ? ` ${fbCount}` : ''}</button>
+        <div className="relative mb-5 flex max-w-xs rounded-xl bg-white/[0.06] p-1 text-sm font-bold">
+          <span aria-hidden className="absolute left-1 top-1 bottom-1 w-[calc(50%-0.25rem)] rounded-lg bg-white/85 shadow-sm transition-transform duration-300 ease-out" style={{ transform: fastBench ? 'translateX(100%)' : 'translateX(0)' }} />
+          <button onClick={() => setFastBench(false)} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${!fastBench ? 'text-[#0064FF]' : 'text-white/45'}`}>트렌드</button>
+          <button onClick={() => setFastBench(true)} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${fastBench ? 'text-[#0064FF]' : 'text-white/45'}`}>패스트벤치{fbCount > 0 ? ` ${fbCount}` : ''}</button>
         </div>
         )}
         {isAdmin && <button onClick={() => setPreviewLock((v) => !v)} className={`mb-4 rounded-full px-3 py-1 text-xs font-bold transition ${previewLock ? 'bg-amber-500 text-white' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'}`}>블러 미리보기(관리자) {previewLock ? 'ON' : 'OFF'}</button>}
@@ -387,15 +387,15 @@ export default function Trend() {
         <div className="mb-5">
           <div className="mb-3 flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {CATS.map((c) => (
-              <button key={c} onClick={() => { setSelCat(c); try { localStorage.setItem(CAT_KEY, c) } catch { /* noop */ } }} className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-bold transition ${selCat === c ? 'bg-[#0064FF] text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{c}</button>
+              <button key={c} onClick={() => { setSelCat(c); try { localStorage.setItem(CAT_KEY, c) } catch { /* noop */ } }} className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-bold transition ${selCat === c ? 'bg-[#0064FF] text-white' : 'bg-white text-white/55 border border-white/10 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{c}</button>
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <select value={effSort} onChange={(e) => (fastBench ? setFbSort : setSort)(e.target.value)} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">
+            <select value={effSort} onChange={(e) => (fastBench ? setFbSort : setSort)(e.target.value)} className="rounded-lg glass px-3 py-1.5 text-sm font-bold text-white/85">
               {sortOptions.map(([k, l]) => <option key={k} value={k}>{k === 'score' ? l : `${l}순`}</option>)}
             </select>
             {/* 패널을 접어도 유형 필터가 걸려 있다는 걸 버튼에 남긴다 */}
-            <button onClick={() => setShowAdv((v) => !v)} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-500 hover:border-[#0064FF] hover:text-[#0064FF]">상세 필터{!showAdv && postType !== 'all' ? ` · ${postType === 'carousel' ? '캐러셀' : '릴스'}` : ''} {showAdv ? '▴' : '▾'}</button>
+            <button onClick={() => setShowAdv((v) => !v)} className="rounded-lg glass px-3 py-1.5 text-sm font-bold text-white/45 hover:border-[#0064FF] hover:text-[#0064FF]">상세 필터{!showAdv && postType !== 'all' ? ` · ${postType === 'carousel' ? '캐러셀' : '릴스'}` : ''} {showAdv ? '▴' : '▾'}</button>
           </div>
         </div>
         )}
@@ -486,16 +486,16 @@ export default function Trend() {
             )
           })()
         ) : loading ? (
-          <div className="flex items-center gap-2 py-10 text-slate-400"><Loader2 size={16} className="animate-spin" />트렌드 불러오는 중…</div>
+          <div className="flex items-center gap-2 py-10 text-white/35"><Loader2 size={16} className="animate-spin" />트렌드 불러오는 중…</div>
         ) : (err && !fbMode) ? (
           // 패스트벤치는 제 소스(fastbench_feed_rpc)를 쓰므로 트렌드 로딩 실패에 가려지면 안 된다
           <div className="py-10 text-red-500">{err}</div>
         ) : (
           <>
           {todayPicks.length > 0 && (
-            <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-4">
-              <div className="flex items-center gap-1.5 text-sm font-extrabold text-slate-900"><Flame size={15} className="text-[#0064FF]" />오늘 먼저 볼 트렌드 3개</div>
-              <p className="mb-3 mt-0.5 text-xs text-slate-500">지금 반응이 빠르게 올라오는 소재만 골랐어요. 포화 전에 먼저 선점하세요.</p>
+            <div className="mb-6 rounded-2xl glass p-4">
+              <div className="flex items-center gap-1.5 text-sm font-extrabold text-white"><Flame size={15} className="text-[#0064FF]" />오늘 먼저 볼 트렌드 3개</div>
+              <p className="mb-3 mt-0.5 text-xs text-white/45">지금 반응이 빠르게 올라오는 소재만 골랐어요. 포화 전에 먼저 선점하세요.</p>
               <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
                 {todayPicks.map((it, i) => {
                   const clip = feedClip(it)
@@ -504,8 +504,8 @@ export default function Trend() {
                   const fresh = it.taken_at && (now - new Date(it.taken_at).getTime() <= 3 * 86400000)
                   const watching = isWatching(it)
                   return (
-                    <div key={it.shortcode || i} className="flex gap-2.5 rounded-xl border border-slate-100 bg-slate-50 p-2.5 sm:flex-col">
-                      <div role="button" onClick={() => openItem(it)} className="relative aspect-[9/16] w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-slate-200 sm:w-full">
+                    <div key={it.shortcode || i} className="flex gap-2.5 rounded-xl glass p-2.5 sm:flex-col">
+                      <div role="button" onClick={() => openItem(it)} className="relative aspect-[9/16] w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-white/10 sm:w-full">
                         <TrendThumb url={coverOf(it)} sc={it.shortcode} />
                         <div className="absolute left-1 top-1 rounded bg-black/60 px-1 text-[10px] font-bold text-white">#{i + 1}</div>
                       </div>
@@ -514,10 +514,10 @@ export default function Trend() {
                           {vel > 0 && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[10px] font-bold text-[#0064FF]">지금 퍼지는 중 · ↑{Math.round(vel)}</span>}
                           {!carousel && (Number(it.view_count) || 0) < 300000 ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">아직 덜 퍼짐 · 선점 기회</span> : fresh ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">최근 등장</span> : null}
                         </div>
-                        <div className="mb-2 line-clamp-2 text-[12px] font-medium text-slate-700">{maskHandles(it.caption) || '(설명 없음)'}</div>
+                        <div className="mb-2 line-clamp-2 text-[12px] font-medium text-white/85">{maskHandles(it.caption) || '(설명 없음)'}</div>
                         <div className="flex gap-1.5">
                           <button onClick={() => nav('/script', { state: { source_ref: it.shortcode, caption: it.caption || '', thumbnail: coverOf(it) || '', product_name: '' } })} title="이 소재로 대본 작성" className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-[11px] font-bold text-white transition hover:brightness-95"><Sparkles size={11} />대본 작성</button>
-                          <button onClick={() => saveItem(it)} title="담기 = 이 계정을 워치리스트에 저장" aria-pressed={watching} className={`flex flex-1 items-center justify-center gap-1 rounded-lg border py-1.5 text-[11px] font-bold transition ${watching ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-slate-200 text-slate-600 hover:border-[#0064FF] hover:text-[#0064FF]'}`}><Bookmark size={11} className={watching ? 'fill-emerald-500 text-emerald-500' : ''} />{watching ? '담김' : '담기'}</button>
+                          <button onClick={() => saveItem(it)} title="담기 = 이 계정을 워치리스트에 저장" aria-pressed={watching} className={`flex flex-1 items-center justify-center gap-1 rounded-lg border py-1.5 text-[11px] font-bold transition ${watching ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-white/10 text-white/55 hover:border-[#0064FF] hover:text-[#0064FF]'}`}><Bookmark size={11} className={watching ? 'fill-emerald-500 text-emerald-500' : ''} />{watching ? '담김' : '담기'}</button>
                         </div>
                       </div>
                     </div>
@@ -531,14 +531,14 @@ export default function Trend() {
             // 첫 방문 코치마크 — 아래 첫 카드의 [분석]이 같이 깜빡인다
             <div className="mb-3 flex items-start gap-2 rounded-xl border border-[#0064FF]/25 bg-[#0064FF]/[0.06] px-3 py-2.5">
               <Sparkles size={15} className="mt-0.5 shrink-0 text-[#0064FF]" />
-              <p className="flex-1 text-[13px] font-bold leading-relaxed text-slate-700">
+              <p className="flex-1 text-[13px] font-bold leading-relaxed text-white/85">
                 마음에 드는 소재를 눌러 <span className="text-[#0064FF]">분석</span>하면 비슷한 클립을 찾아드려요
               </p>
-              <button onClick={closeCoach} aria-label="안내 닫기" className="shrink-0 text-slate-400 transition hover:text-slate-600"><X size={14} /></button>
+              <button onClick={closeCoach} aria-label="안내 닫기" className="shrink-0 text-white/35 transition hover:text-white/55"><X size={14} /></button>
             </div>
           )}
-          <p className="mb-2 text-[11px] font-medium text-slate-400">
-            <b className="text-slate-500">분석</b> = 비슷한 소재 찾기 · <b className="text-slate-500">담기</b> = 이 계정을 워치리스트에 저장
+          <p className="mb-2 text-[11px] font-medium text-white/35">
+            <b className="text-white/45">분석</b> = 비슷한 소재 찾기 · <b className="text-white/45">담기</b> = 이 계정을 워치리스트에 저장
           </p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {list.map((it, i) => {
@@ -559,7 +559,7 @@ export default function Trend() {
                 />
               )
             })}
-            {!list.length && <div className="col-span-full p-10 text-center text-sm text-slate-400">{postType === 'carousel' ? '조건에 맞는 캐러셀이 아직 없어요.' : minComments ? `댓글 ${minComments.toLocaleString('ko-KR')}개 이상인 소재가 아직 없어요. 조건을 낮춰보세요.` : (fMin || fMax) ? '이 팔로워 구간은 아직 준비 중이에요. 곧 더 많은 계정을 추가할 예정이에요.' : '해당 기간에 트렌드가 없어요.'}</div>}
+            {!list.length && <div className="col-span-full p-10 text-center text-sm text-white/35">{postType === 'carousel' ? '조건에 맞는 캐러셀이 아직 없어요.' : minComments ? `댓글 ${minComments.toLocaleString('ko-KR')}개 이상인 소재가 아직 없어요. 조건을 낮춰보세요.` : (fMin || fMax) ? '이 팔로워 구간은 아직 준비 중이에요. 곧 더 많은 계정을 추가할 예정이에요.' : '해당 기간에 트렌드가 없어요.'}</div>}
           </div>
           </>
         )}
@@ -579,11 +579,11 @@ export default function Trend() {
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
       {limitModal && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4" onClick={() => setLimitModal(null)}>
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-slate-900" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-white" onClick={(e) => e.stopPropagation()}>
             <h3 className="mb-2 text-base font-bold">감시 계정 한도 초과</h3>
-            <p className="text-sm leading-relaxed text-slate-600">현재 요금제 감시 한도({limitModal.limit ?? ''}개)를 다 쓰셨어요. 업그레이드하시겠어요?</p>
+            <p className="text-sm leading-relaxed text-white/55">현재 요금제 감시 한도({limitModal.limit ?? ''}개)를 다 쓰셨어요. 업그레이드하시겠어요?</p>
             <div className="mt-5 flex gap-2">
-              <button onClick={() => setLimitModal(null)} className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50">나중에</button>
+              <button onClick={() => setLimitModal(null)} className="flex-1 rounded-xl border border-white/10 py-2.5 text-sm font-bold text-white/45 hover:bg-white/5">나중에</button>
               <button onClick={() => nav('/pricing')} className="flex-1 rounded-xl bg-[#0064FF] py-2.5 text-sm font-bold text-white hover:brightness-95">업그레이드</button>
             </div>
           </div>
