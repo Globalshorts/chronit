@@ -516,10 +516,9 @@ export default function Trend() {
                         </div>
                         <div className="mb-2 line-clamp-2 text-[12px] font-medium text-slate-700">{maskHandles(it.caption) || '(설명 없음)'}</div>
                         <div className="flex gap-1.5">
-                          <button onClick={async () => { const d = await loadDetail(it.shortcode); handleAnalyze({ ...clip, ...(d ? { video_url: d.video_url, title: d.caption || clip.title } : {}) }, 'today_picks') }} title="분석 = 비슷한 소재 찾기" className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-[11px] font-bold text-white transition hover:brightness-95"><Sparkles size={11} />분석</button>
+                          <button onClick={() => nav('/script', { state: { source_ref: it.shortcode, caption: it.caption || '', thumbnail: coverOf(it) || '', product_name: '' } })} title="이 소재로 대본 작성" className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-[11px] font-bold text-white transition hover:brightness-95"><Sparkles size={11} />대본 작성</button>
                           <button onClick={() => saveItem(it)} title="담기 = 이 계정을 워치리스트에 저장" aria-pressed={watching} className={`flex flex-1 items-center justify-center gap-1 rounded-lg border py-1.5 text-[11px] font-bold transition ${watching ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-slate-200 text-slate-600 hover:border-[#0064FF] hover:text-[#0064FF]'}`}><Bookmark size={11} className={watching ? 'fill-emerald-500 text-emerald-500' : ''} />{watching ? '담김' : '담기'}</button>
                         </div>
-                        <button onClick={() => { findSource(it.shortcode) }} className="mt-1.5 w-full rounded-lg py-1 text-[11px] font-bold text-slate-400 transition hover:text-[#0064FF]">소스 찾기 →</button>
                       </div>
                     </div>
                   )
@@ -554,8 +553,7 @@ export default function Trend() {
                   coach={coachOn && i === coachIdx}
                   onPlay={() => openItem(it)}
                   onOpen={() => openItem(it)}
-                  onAnalyze={async () => { const d = await loadDetail(it.shortcode); handleAnalyze({ ...clip, ...(d ? { video_url: d.video_url, title: d.caption || clip.title } : {}) }, fastBench ? 'fastbench' : 'trend') }}
-                  onSource={() => { findSource(it.shortcode) }}
+                  onScript={() => nav('/script', { state: { source_ref: it.shortcode, caption: it.caption || '', thumbnail: (clip && clip.thumbnail_url) || coverOf(it) || '', product_name: '' } })}
                   onToggleWatch={() => saveItem(it)}
                   onUnlock={() => nav('/pricing')}
                 />
@@ -577,7 +575,7 @@ export default function Trend() {
         </div>
       )}
       {modalClip && <AnalyzeModal clip={modalClip} allowDownload={false} onClose={() => setModalClip(null)} />}
-      {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onSource={() => findSource(playClip.video_id)} onAnalyze={() => { setPlayClip(null); handleAnalyze(playClip) }} />}
+      {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onSave={() => saveItem({ ...playClip, shortcode: playClip.shortcode || playClip.video_id })} saved={isWatching({ ...playClip, shortcode: playClip.shortcode || playClip.video_id })} />}
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
       {limitModal && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4" onClick={() => setLimitModal(null)}>

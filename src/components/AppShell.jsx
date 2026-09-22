@@ -2,13 +2,17 @@ import { Link, useLocation, Outlet } from 'react-router-dom'
 import { Flame, Search, Bookmark, User, CreditCard, Download, Shield, Handshake, PenLine } from 'lucide-react'
 import { useMyRole } from '../lib/useIsAdmin'
 
-const NAV = [
+// 작업 공간(핵심) / 부수 페이지 분리
+const WORKSPACE_NAV = [
   { to: '/trend', label: '트렌드', title: '실시간 트렌드', Icon: Flame },
   { to: '/script', label: '대본', title: '대본 비서', Icon: PenLine },
   { to: '/watchlist', label: '워치리스트', title: '워치리스트', Icon: Bookmark },
+]
+const AUX_NAV = [
   { to: '/me', label: '마이', title: '마이페이지', Icon: User },
   { to: '/pricing', label: '이용권', title: '이용권 · 요금', Icon: CreditCard },
 ]
+const NAV = [...WORKSPACE_NAV, ...AUX_NAV]
 // 역할 전용 탭 — 데스크톱 사이드바에만 노출(모바일 하단 탭에는 넣지 않는다)
 const ADMIN_NAV = { to: '/admin', label: '관리자', title: '관리자', Icon: Shield }
 const PARTNER_NAV = { to: '/partner', label: '파트너', title: '파트너', Icon: Handshake }
@@ -31,7 +35,14 @@ export default function AppShell({ children }) {
           <span className="text-lg font-bold tracking-tight">Chronit</span>
         </Link>
         <nav className="flex flex-col gap-1">
-          {NAV.map((n) => (
+          <div className="mb-1 px-3 text-[10px] font-bold uppercase tracking-wide text-white/25">작업 공간</div>
+          {WORKSPACE_NAV.map((n) => (
+            <Link key={n.to} to={n.to} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition ${active(n) ? 'bg-[#0064FF] text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
+              <n.Icon size={18} /> {n.label}
+            </Link>
+          ))}
+          <div className="my-2 border-t border-white/10" />
+          {AUX_NAV.map((n) => (
             <Link key={n.to} to={n.to} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition ${active(n) ? 'bg-[#0064FF] text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
               <n.Icon size={18} /> {n.label}
             </Link>

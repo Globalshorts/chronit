@@ -31,7 +31,7 @@ const Num = ({ value, pending }) => (
 export default function TrendCard({
   it, rank, locked = false, watching = false, lockedLabel = '프로 이상 전용',
   lazyDetail = false, coach = false, showOwner = false,
-  onPlay, onOpen, onAnalyze, onSource, onToggleWatch, onUnlock,
+  onPlay, onOpen, onAnalyze, onSource, onToggleWatch, onUnlock, onScript,
 }) {
   const carousel = isCarousel(it)
   const cover = coverOf(it)
@@ -90,9 +90,9 @@ export default function TrendCard({
         ) : (
           <>
             <div className="flex gap-1.5">
-              <button onClick={onAnalyze} title="분석 = 비슷한 소재 찾기"
+              <button onClick={onScript} title="이 소재로 대본 작성하기"
                 className={`flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95${coach ? ' animate-pulse ring-2 ring-[#0064FF]/45 ring-offset-2' : ''}`}>
-                <Sparkles size={12} />분석
+                <Sparkles size={12} />대본 작성
               </button>
               {onToggleWatch && (
                 <button onClick={onToggleWatch} title="담기 = 이 계정을 워치리스트에 저장" aria-pressed={watching}
@@ -101,7 +101,6 @@ export default function TrendCard({
                 </button>
               )}
             </div>
-            <button onClick={onSource} className="mt-1.5 w-full rounded-lg py-1 text-[11px] font-bold text-slate-400 transition hover:text-[#0064FF]">소스 찾기 →</button>
           </>
         )}
       </div>

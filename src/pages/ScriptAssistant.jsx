@@ -4,6 +4,7 @@ import { Sparkles, Send, Copy, Check, Wand2, Flame, Plus, MessageSquareText, Che
 import { supabase } from '../lib/supabase'
 import VoiceOnboard from '../components/VoiceOnboard'
 import PersonaSettings from '../components/PersonaSettings'
+import { useAnalysis } from '../context/analysis'
 
 const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
 const FN = (n) => `${SB}/functions/v1/${n}`
@@ -45,6 +46,8 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [showConvList, setShowConvList] = useState(false)
   const [convCollapsed, setConvCollapsed] = useState(false)
   const [learnCount, setLearnCount] = useState(0)
+  const [channelMode, setChannelMode] = useState(false)
+  const { startChannel } = useAnalysis()
   const scrollRef = useRef(null)
   const greetedRef = useRef(false)
   const textareaRef = useRef(null)
@@ -136,9 +139,10 @@ export default function ScriptAssistant({ session: sessionProp }) {
   }
   const newChat = () => { setMessages([]); setJobId(null); setSoso(null); setClips([]); setInput(''); setErr(''); setShowJobs(false); resetGrow() }
 
-  // 채널 분석: URL 입력 유도
+  // 채널 분석: URL 입력 유도 → 다음 전송에서 실제 분석 실행
   const startChannelAnalysis = () => {
-    setMessages(m => [...m, { role: 'assistant', text: '분석할 채널의 인스타그램 또는 틱톡 URL을 보내주세요 🔗\n최근 콘텐츠 방향과 잘 되는 패턴을 짚어드릴게요.' }])
+    setChannelMode(true)
+    setMessages(m => [...m, { role: 'assistant', text: '분석할 채널의 인스타그램 또는 틱톡 URL(또는 @아이디)을 보내주세요 🔗\n최근 콘텐츠 방향과 잘 되는 패턴을 분석해드릴게요.' }])
     setShowConvList(false)
     setTimeout(() => textareaRef.current?.focus(), 60)
   }
@@ -180,9 +184,16 @@ export default function ScriptAssistant({ session: sessionProp }) {
   }
 
   // 베라와 대화 (무료). 대본이 있으면 요청 시 다듬어 줌(무료). 새 대본 커밋은 소재 카드로.
-  const send = async () => {
-    const text = input.trim(); if (!text || busy) return
-    setErr(''); setInput(''); resetGrow()
+  const send = async (preset) => {
+    const text = (typeof preset === 'string' ? preset : input).trim(); if (!text || busy) return
+    setErr(''); if (typeof preset !== 'string') { setInput(''); resetGrow() }
+    // 채널 분석 모드 — URL/아이디를 받아 실제 분석 실행 (기존 채널분석 시스템 재활용)
+    if (channelMode) {
+      setChannelMode(false)
+      setMessages(m => [...m, { role: 'user', text }, { role: 'assistant', text: '채널을 분석하고 있어요 📊 결과 창이 곧 떠요. (분석은 이용권 1개)' }])
+      try { startChannel && startChannel(text) } catch { setErr('채널 분석을 시작하지 못했어요') }
+      return
+    }
     const t = await token(); if (!t) { setErr('로그인이 필요해요'); return }
     const prevScript = jobId ? lastScript() : ''
     const newMsgs = [...messages, { role: 'user', text }]
@@ -414,10 +425,27 @@ export default function ScriptAssistant({ session: sessionProp }) {
 
       {/* 컴포저 */}
       <div className="sticky bottom-0 border-t border-white/10 bg-[#0a0b0f]/85 pb-4 pt-3 backdrop-blur md:pr-16">
-        <div className="mx-auto mb-2 flex max-w-[700px] flex-wrap items-center gap-2">
-          <Link to="/trend" className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-[#5AA0FF] transition hover:text-white"><Flame size={13} /> 트렌드에서 영상 고르기</Link>
-          <button onClick={startChannelAnalysis} className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-[#5AA0FF] transition hover:text-white"><BarChart3 size={13} /> 채널 분석</button>
-        </div>
+        {(() => {
+          const last = messages[messages.length - 1]
+          const scriptOut = !!last?.isScript
+          const atStart = !jobId && messages.length <= 1
+          const chip = 'flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-white/70 transition hover:text-white'
+          if (atStart) return (
+            <div className="mx-auto mb-2 flex max-w-[700px] flex-wrap items-center gap-2">
+              <Link to="/trend" className={chip + ' text-[#5AA0FF]'}><Flame size={13} /> 트렌드에서 영상 고르기</Link>
+              <button onClick={startChannelAnalysis} className={chip + ' text-[#5AA0FF]'}><BarChart3 size={13} /> 채널 분석</button>
+            </div>
+          )
+          if (scriptOut && !busy) return (
+            <div className="mx-auto mb-2 flex max-w-[700px] flex-wrap items-center gap-2">
+              <span className="mr-0.5 text-[11px] font-bold text-white/35">다음 →</span>
+              {['더 짧게', '훅 더 세게', '댓글 유도 강하게', '다른 앵글로'].map(q => (
+                <button key={q} onClick={() => send(q)} className={chip}>{q}</button>
+              ))}
+            </div>
+          )
+          return null
+        })()}
         <div className="mx-auto flex max-w-[700px] items-end gap-2">
           <textarea ref={textareaRef} value={input} onChange={e => { setInput(e.target.value); autoGrow(e.target) }} onKeyDown={onKey} rows={1}
             placeholder={jobId ? '더 짧게, 훅 더 세게 … 대화로 다듬어요' : (soso ? '소재 카드의 버튼을 누르거나, 직접 적어도 돼요' : "트렌드에서 '대본 작성하기'로 시작하거나 직접 적어주세요")}
