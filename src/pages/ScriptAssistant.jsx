@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Sparkles, Send, Copy, Check, Wand2, Flame, Plus, MessageSquareText, ChevronDown, Film, Download, Clipboard, Settings, Pencil, Trash2, ChevronLeft, ChevronRight, Sprout } from 'lucide-react'
+import { Sparkles, Send, Copy, Check, Wand2, Flame, Plus, MessageSquareText, ChevronDown, Film, Download, Clipboard, Settings, Pencil, Trash2, ChevronLeft, ChevronRight, Sprout, BarChart3 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import VoiceOnboard from '../components/VoiceOnboard'
 import PersonaSettings from '../components/PersonaSettings'
@@ -47,6 +47,9 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [learnCount, setLearnCount] = useState(0)
   const scrollRef = useRef(null)
   const greetedRef = useRef(false)
+  const textareaRef = useRef(null)
+  const autoGrow = (el) => { if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 160) + 'px' }
+  const resetGrow = () => { if (textareaRef.current) { textareaRef.current.style.height = 'auto' } }
 
   useEffect(() => {
     if (sessionProp) setSession(sessionProp)
@@ -131,7 +134,14 @@ export default function ScriptAssistant({ session: sessionProp }) {
     ])
     setMessages((msgs || []).map(m => ({ role: m.role, text: m.content, isScript: m.role === 'assistant' }))); setClips(cl || []); setJobId(id); setSoso(null)
   }
-  const newChat = () => { setMessages([]); setJobId(null); setSoso(null); setClips([]); setInput(''); setErr(''); setShowJobs(false) }
+  const newChat = () => { setMessages([]); setJobId(null); setSoso(null); setClips([]); setInput(''); setErr(''); setShowJobs(false); resetGrow() }
+
+  // 채널 분석: URL 입력 유도
+  const startChannelAnalysis = () => {
+    setMessages(m => [...m, { role: 'assistant', text: '분석할 채널의 인스타그램 또는 틱톡 URL을 보내주세요 🔗\n최근 콘텐츠 방향과 잘 되는 패턴을 짚어드릴게요.' }])
+    setShowConvList(false)
+    setTimeout(() => textareaRef.current?.focus(), 60)
+  }
 
   // 소재 분석(상품·셀링포인트) — 캐시 우선, 무료
   const analyzeSoso = async (t) => {
@@ -165,14 +175,14 @@ export default function ScriptAssistant({ session: sessionProp }) {
       const d = await r.json()
       if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? `이용권이 부족해요. 15턴 세션을 열려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '대본 생성 실패')); return }
       setJobId(d.job_id); applyMeter(d)
-      setMessages([{ role: 'assistant', text: d.script, isScript: true }]); loadJobs()
+      setMessages([{ role: 'assistant', text: d.script, isScript: true, analysis: { product, selling: sp } }]); loadJobs()
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
 
   // 베라와 대화 (무료). 대본이 있으면 요청 시 다듬어 줌(무료). 새 대본 커밋은 소재 카드로.
   const send = async () => {
     const text = input.trim(); if (!text || busy) return
-    setErr(''); setInput('')
+    setErr(''); setInput(''); resetGrow()
     const t = await token(); if (!t) { setErr('로그인이 필요해요'); return }
     const prevScript = jobId ? lastScript() : ''
     const newMsgs = [...messages, { role: 'user', text }]
@@ -240,22 +250,11 @@ export default function ScriptAssistant({ session: sessionProp }) {
         .sa-fade{animation:sa-fade .35s ease}@keyframes sa-fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
       `}</style>
 
-      {/* 접힌 상태 스트립 (데스크톱) */}
-      {convCollapsed && (
-        <div className="hidden shrink-0 flex-col items-center gap-2 border-r border-white/10 bg-[#0d0e12] px-2 py-3 md:flex">
-          <button onClick={() => setConvCollapsed(false)} title="대본 목록 펼치기" className="rounded-lg p-2 text-white/60 hover:bg-white/5 hover:text-white"><ChevronRight size={18} /></button>
-          <button onClick={newChat} title="새 대본" className="rounded-lg p-2 text-[#5AA0FF] hover:bg-white/5"><Plus size={18} /></button>
-        </div>
-      )}
-
       {/* 왼쪽 대화 리스트 (데스크톱 고정 · 모바일 드로어) */}
       <aside className={`${showConvList ? 'fixed inset-0 z-40 flex bg-black/50' : 'hidden'} ${convCollapsed ? 'md:hidden' : 'md:static md:z-0 md:flex md:bg-transparent'}`} onClick={() => setShowConvList(false)}>
         <div className="flex h-full min-h-[calc(100vh-0px)] w-64 shrink-0 flex-col border-r border-white/10 bg-[#0d0e12] p-3" onClick={e => e.stopPropagation()}>
           <button onClick={() => { newChat(); setShowConvList(false) }} className="mb-3 flex items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] py-2.5 text-sm font-bold text-white transition hover:brightness-110"><Plus size={16} /> 새 대본</button>
-          <div className="mb-1.5 flex items-center justify-between px-1">
-            <span className="text-[11px] font-bold text-white/35">내 대본 {jobs.length ? `(${jobs.length})` : ''}</span>
-            <button onClick={() => setConvCollapsed(true)} title="접기" className="hidden rounded p-0.5 text-white/40 hover:text-white md:block"><ChevronLeft size={15} /></button>
-          </div>
+          <div className="mb-1.5 px-1 text-[11px] font-bold text-white/35">내 대본 {jobs.length ? `(${jobs.length})` : ''}</div>
           <div className="-mx-1 flex-1 overflow-y-auto px-1">
             {jobs.length === 0 ? <div className="px-2 py-4 text-xs text-white/30">아직 만든 대본이 없어요</div> :
               jobs.map(j => (
@@ -272,7 +271,11 @@ export default function ScriptAssistant({ session: sessionProp }) {
       </aside>
 
       {/* 오른쪽: 채팅 영역 */}
-      <div className="flex min-w-0 flex-1 flex-col px-4 pt-5 md:px-8 md:pt-6">
+      <div className="relative flex min-w-0 flex-1 flex-col px-4 pt-5 md:px-8 md:pt-6">
+        {/* 접기/펼치기 토글 — 경계 중앙에 걸치게 */}
+        <button onClick={() => setConvCollapsed(v => !v)} title={convCollapsed ? '대본 목록 펼치기' : '대본 목록 접기'} className="absolute left-0 top-1/2 z-20 hidden h-8 w-8 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-white/15 bg-[#1a1c22] text-white/60 shadow-lg transition hover:text-white md:grid">
+          {convCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </button>
       {/* 헤더 */}
       <div className="mb-1 flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
@@ -353,6 +356,13 @@ export default function ScriptAssistant({ session: sessionProp }) {
                   </div>
                 ) : (
                   <>
+                    {m.analysis && (m.analysis.product || (m.analysis.selling && m.analysis.selling.length > 0)) && (
+                      <div className="mb-2 rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-[12px]">
+                        <div className="mb-1 flex items-center gap-1 font-bold text-[#5AA0FF]"><BarChart3 size={12} /> 소재 분석</div>
+                        {m.analysis.product && <div className="text-white/85">상품 · {m.analysis.product}</div>}
+                        {m.analysis.selling && m.analysis.selling.length > 0 && <div className="mt-0.5 text-white/55">셀링포인트 · {m.analysis.selling.join(' / ')}</div>}
+                      </div>
+                    )}
                     <div className={`whitespace-pre-wrap rounded-2xl rounded-bl-md border px-4 py-3 text-[15px] leading-relaxed text-white/95 ${m.mine ? 'border-[#0064FF]/40 bg-[#0064FF]/[0.08]' : 'border-white/10 bg-white/[0.06]'}`}>{m.text}{m.edited && <span className="ml-1.5 align-middle text-[11px] text-white/30">· 수정됨</span>}</div>
                     {m.isScript && (
                       <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-[#5AA0FF]/10 px-2.5 py-1 text-[11px] font-bold text-[#5AA0FF]"><Sprout size={12} /> 직접 고칠수록 베라가 내 말투를 배워요{learnCount ? ` · ${learnCount}회 학습` : ''}</div>
@@ -403,16 +413,15 @@ export default function ScriptAssistant({ session: sessionProp }) {
       {err && <div className="mx-auto mb-2 max-w-[700px] text-sm text-amber-400">⚠ {err}</div>}
 
       {/* 컴포저 */}
-      <div className="sticky bottom-0 border-t border-white/10 bg-[#0a0b0f]/85 pb-4 pt-3 backdrop-blur">
-        {!jobId && !soso && (
-          <div className="mx-auto mb-2 flex max-w-[700px] items-center gap-2">
-            <Link to="/trend" className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-[#5AA0FF] transition hover:text-white"><Flame size={13} /> 트렌드에서 영상 고르기</Link>
-          </div>
-        )}
+      <div className="sticky bottom-0 border-t border-white/10 bg-[#0a0b0f]/85 pb-4 pt-3 backdrop-blur md:pr-16">
+        <div className="mx-auto mb-2 flex max-w-[700px] flex-wrap items-center gap-2">
+          <Link to="/trend" className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-[#5AA0FF] transition hover:text-white"><Flame size={13} /> 트렌드에서 영상 고르기</Link>
+          <button onClick={startChannelAnalysis} className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-[#5AA0FF] transition hover:text-white"><BarChart3 size={13} /> 채널 분석</button>
+        </div>
         <div className="mx-auto flex max-w-[700px] items-end gap-2">
-          <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={onKey} rows={1}
+          <textarea ref={textareaRef} value={input} onChange={e => { setInput(e.target.value); autoGrow(e.target) }} onKeyDown={onKey} rows={1}
             placeholder={jobId ? '더 짧게, 훅 더 세게 … 대화로 다듬어요' : (soso ? '소재 카드의 버튼을 누르거나, 직접 적어도 돼요' : "트렌드에서 '대본 작성하기'로 시작하거나 직접 적어주세요")}
-            className="max-h-32 flex-1 resize-none rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-[15px] text-white placeholder-white/35 outline-none focus:border-[#0064FF]" />
+            className="flex-1 resize-none overflow-y-auto rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-[15px] leading-relaxed text-white placeholder-white/35 outline-none focus:border-[#0064FF]" style={{ maxHeight: 160 }} />
           {turns !== null && turns > 0 && <div className={`mb-0.5 shrink-0 self-center rounded-full px-2.5 py-1 text-[11px] font-bold ${turns <= 3 ? 'bg-amber-500/20 text-amber-300' : 'bg-[#0064FF]/15 text-[#5AA0FF]'}`} title="이 세션 남은 대화 턴">{turns}턴</div>}
           <button onClick={send} disabled={busy || !input.trim()} className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#0064FF] text-white transition disabled:opacity-40"><Send size={18} /></button>
         </div>

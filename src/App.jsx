@@ -60,7 +60,7 @@ const PaymentResult = lazyRetry(() => import('./pages/PaymentResult'))
 // 렌더(편집) 종료 게이트 — 2026-09-15 0시(KST)부터 작업실 진입 차단, Research로 리다이렉트
 const RENDER_CLOSE = new Date('2026-09-15T00:00:00+09:00').getTime()
 function GenerateGate() {
-  if (Date.now() >= RENDER_CLOSE) return <Navigate to="/research" replace />
+  if (Date.now() >= RENDER_CLOSE) return <Navigate to="/trend" replace />
   return <VideoGenerator />
 }
 
@@ -134,14 +134,14 @@ const App = () => {
       <Route element={<AppShell />}>
         <Route path="/trend" element={<Trend />} />
         <Route path="/script" element={<ScriptAssistant />} />
-        <Route path="/research" element={<Finds />} />
+        <Route path="/research" element={<Navigate to="/trend" replace />} />
         <Route path="/watchlist" element={<Watchlist />} />
         <Route path="/me" element={<MyPage />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/partner" element={<Partner />} />
       </Route>
-      <Route path="/finds" element={<Navigate to="/research" replace />} />
+      <Route path="/finds" element={<Navigate to="/trend" replace />} />
       <Route path="/fastbench" element={<FastBench />} />
       <Route path="/channel-analysis" element={<ChannelAnalysis />} />
       <Route path="/links" element={<LinksManager />} />
