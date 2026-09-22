@@ -115,13 +115,13 @@ export default function ScriptAssistant({ session: sessionProp }) {
     try {
       const t = await token(); if (!t) return
       const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'session' }) })
-      const d = await r.json(); if (d.ok) { setTurns(d.remaining_turns ?? 0); if (typeof d.balance === 'number') setBalance(d.balance) }
+      const d = await r.json(); if (d.ok) { setTurns(typeof d.turns_left === 'number' ? d.turns_left : null); if (typeof d.balance === 'number') setBalance(d.balance) }
     } catch { /* noop */ }
   }
   const applyMeter = (d) => {
-    if (typeof d.remaining_turns === 'number') setTurns(d.remaining_turns)
+    if (typeof d.turns_left === 'number') setTurns(d.turns_left)
     if (typeof d.balance === 'number') setBalance(d.balance)
-    if (d.charged) { setNote('💧 이용권 2개로 15턴 세션을 열었어요'); setTimeout(() => setNote(''), 4000) }
+    if (d.charged) { setNote('💧 이용권 2개 · 이 대본 15턴 세션'); setTimeout(() => setNote(''), 4000) }
   }
   const lastScript = () => { for (let i = messages.length - 1; i >= 0; i--) if (messages[i].role === 'assistant' && messages[i].text) return messages[i].text; return '' }
 
@@ -136,8 +136,9 @@ export default function ScriptAssistant({ session: sessionProp }) {
       supabase.from('job_clips').select('id,thumbnail:storage_path,source_url,status').eq('job_id', id),
     ])
     setMessages((msgs || []).map(m => ({ role: m.role, text: m.content, isScript: m.role === 'assistant' }))); setClips(cl || []); setJobId(id); setSoso(null)
+    try { const { data: jt } = await supabase.rpc('get_job_turns_rpc', { p_job_id: id }); setTurns(typeof jt?.turns_left === 'number' ? jt.turns_left : null) } catch { setTurns(null) }
   }
-  const newChat = () => { setMessages([]); setJobId(null); setSoso(null); setClips([]); setInput(''); setErr(''); setShowJobs(false); resetGrow() }
+  const newChat = () => { setMessages([]); setJobId(null); setSoso(null); setClips([]); setInput(''); setErr(''); setShowJobs(false); setTurns(null); resetGrow() }
 
   // 채널 분석: URL 입력 유도 → 다음 전송에서 실제 분석 실행
   const startChannelAnalysis = () => {
@@ -199,7 +200,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
     const newMsgs = [...messages, { role: 'user', text }]
     setMessages(newMsgs); setBusy(true); setStage('베라가 생각 중…')
     try {
-      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'chat', messages: newMsgs.map(m => ({ role: m.role, content: m.text })).filter(m => m.content), current_script: prevScript, nickname: nick, today_trends: today }) })
+      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'chat', job_id: jobId, messages: newMsgs.map(m => ({ role: m.role, content: m.text })).filter(m => m.content), current_script: prevScript, nickname: nick, today_trends: today }) })
       const d = await r.json()
       if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? `이용권이 부족해요. 대화를 이어가려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '응답 실패')); return }
       applyMeter(d)
@@ -226,8 +227,8 @@ export default function ScriptAssistant({ session: sessionProp }) {
       const t = await token()
       const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'refine', job_id: jobId, voice_mode: 'my', instruction: '내 말투 그대로 자연스럽게 다시 써줘', current_script: src }) })
       const d = await r.json()
-      if (d.ok && d.script) setMessages(m => [...m, { role: 'assistant', text: d.script, mine: true, isScript: true }])
-      else setErr(d.error || '내 말투 변환 실패')
+      if (d.ok && d.script) { setMessages(m => [...m, { role: 'assistant', text: d.script, mine: true, isScript: true }]); applyMeter(d) }
+      else setErr(d.code === 'INSUFFICIENT_CREDITS' ? `이 대본 세션을 이어가려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '내 말투 변환 실패'))
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
   const copy = async (text, i) => { try { await navigator.clipboard.writeText(text); setCopiedI(i); setTimeout(() => setCopiedI(-1), 1500) } catch {} }
@@ -254,10 +255,16 @@ export default function ScriptAssistant({ session: sessionProp }) {
     <div className="relative flex min-h-[calc(100vh-0px)]">
       <style>{`
         .sa-orb-wrap{position:relative;filter:drop-shadow(0 10px 34px rgba(0,100,255,.45))}
-        .sa-orb{position:absolute;inset:0;background:radial-gradient(120% 120% at 30% 25%,#5AA0FF 0%,#0064FF 45%,#0042B8 100%);border-radius:44% 56% 61% 39%/45% 43% 57% 55%;animation:sa-blob 6s ease-in-out infinite}
-        .sa-orb-hi{position:absolute;left:20%;top:16%;width:34%;height:28%;background:rgba(255,255,255,.55);border-radius:50%;filter:blur(4px);animation:sa-hi 6s ease-in-out infinite}
-        @keyframes sa-blob{0%,100%{border-radius:44% 56% 61% 39%/45% 43% 57% 55%;transform:rotate(0) scale(1)}33%{border-radius:62% 38% 43% 57%/56% 49% 51% 44%;transform:rotate(120deg) scale(1.04)}66%{border-radius:39% 61% 57% 43%/47% 63% 37% 53%;transform:rotate(240deg) scale(.98)}}
-        @keyframes sa-hi{0%,100%{opacity:.6;transform:translate(0,0)}50%{opacity:.9;transform:translate(3px,4px)}}
+        .sa-orb{position:absolute;inset:0;background:radial-gradient(120% 120% at 30% 25%,#5AA0FF 0%,#0064FF 45%,#0042B8 100%);border-radius:44% 56% 61% 39%/45% 43% 57% 55%;animation:sa-blob 3.2s ease-in-out infinite;will-change:transform,border-radius}
+        .sa-orb-hi{position:absolute;left:20%;top:16%;width:34%;height:28%;background:rgba(255,255,255,.6);border-radius:50%;filter:blur(4px);animation:sa-hi 3.2s ease-in-out infinite}
+        @keyframes sa-blob{
+          0%,100%{border-radius:44% 56% 61% 39%/45% 43% 57% 55%;transform:translateY(0) rotate(0deg) scale(1,1)}
+          20%{border-radius:58% 42% 38% 62%/58% 46% 54% 42%;transform:translateY(-5px) rotate(30deg) scale(1.06,.94)}
+          40%{border-radius:36% 64% 64% 36%/64% 36% 64% 36%;transform:translateY(3px) rotate(80deg) scale(.93,1.07)}
+          60%{border-radius:64% 36% 42% 58%/40% 64% 36% 60%;transform:translateY(-4px) rotate(165deg) scale(1.05,.96)}
+          80%{border-radius:46% 54% 55% 45%/54% 48% 52% 46%;transform:translateY(4px) rotate(255deg) scale(.97,1.04)}
+        }
+        @keyframes sa-hi{0%,100%{opacity:.55;transform:translate(0,0) scale(1)}30%{opacity:.9;transform:translate(4px,5px) scale(1.1)}60%{opacity:.7;transform:translate(-3px,3px) scale(.95)}}
         .sa-fade{animation:sa-fade .35s ease}@keyframes sa-fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
       `}</style>
 
@@ -450,10 +457,10 @@ export default function ScriptAssistant({ session: sessionProp }) {
           <textarea ref={textareaRef} value={input} onChange={e => { setInput(e.target.value); autoGrow(e.target) }} onKeyDown={onKey} rows={1}
             placeholder={jobId ? '더 짧게, 훅 더 세게 … 대화로 다듬어요' : (soso ? '소재 카드의 버튼을 누르거나, 직접 적어도 돼요' : "트렌드에서 '대본 작성하기'로 시작하거나 직접 적어주세요")}
             className="flex-1 resize-none overflow-y-auto rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-[15px] leading-relaxed text-white placeholder-white/35 outline-none focus:border-[#0064FF]" style={{ maxHeight: 160 }} />
-          {turns !== null && turns > 0 && <div className={`mb-0.5 shrink-0 self-center rounded-full px-2.5 py-1 text-[11px] font-bold ${turns <= 3 ? 'bg-amber-500/20 text-amber-300' : 'bg-[#0064FF]/15 text-[#5AA0FF]'}`} title="이 세션 남은 대화 턴">{turns}턴</div>}
+          {turns !== null && <div className={`mb-0.5 shrink-0 self-center rounded-full px-2.5 py-1 text-[11px] font-bold ${turns <= 3 ? 'bg-amber-500/20 text-amber-300' : 'bg-[#0064FF]/15 text-[#5AA0FF]'}`} title="이 대본 세션의 남은 턴">{turns}턴</div>}
           <button onClick={send} disabled={busy || !input.trim()} className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#0064FF] text-white transition disabled:opacity-40"><Send size={18} /></button>
         </div>
-        <div className="mx-auto mt-1.5 max-w-[700px] text-center text-[11px] text-white/35">{turns > 0 ? `현재 세션 ${turns}턴 남음 · 대화·대본 모두 포함 · 소진 시 이용권 2개로 15턴 충전` : '대화·대본은 15턴 세션으로 열려요 (이용권 2개)'}</div>
+        <div className="mx-auto mt-1.5 max-w-[700px] text-center text-[11px] text-white/35">{turns !== null ? `이 대본 세션 ${turns}턴 남음 · 소진 시 이용권 2개로 15턴 충전` : '대본을 만들면 15턴 세션이 열려요 (이용권 2개) · 가벼운 잡담은 무료'}</div>
       </div>
       </div>
 
