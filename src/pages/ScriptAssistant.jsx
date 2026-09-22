@@ -255,16 +255,15 @@ export default function ScriptAssistant({ session: sessionProp }) {
     <div className="relative flex min-h-[calc(100vh-0px)]">
       <style>{`
         .sa-orb-wrap{position:relative;filter:drop-shadow(0 10px 34px rgba(0,100,255,.45))}
-        .sa-orb{position:absolute;inset:0;background:radial-gradient(120% 120% at 30% 25%,#5AA0FF 0%,#0064FF 45%,#0042B8 100%);border-radius:44% 56% 61% 39%/45% 43% 57% 55%;animation:sa-blob 3.2s ease-in-out infinite;will-change:transform,border-radius}
-        .sa-orb-hi{position:absolute;left:20%;top:16%;width:34%;height:28%;background:rgba(255,255,255,.6);border-radius:50%;filter:blur(4px);animation:sa-hi 3.2s ease-in-out infinite}
+        .sa-orb{position:absolute;inset:0;background:radial-gradient(120% 120% at 30% 25%,#5AA0FF 0%,#0064FF 45%,#0042B8 100%);border-radius:44% 56% 61% 39%/45% 43% 57% 55%;animation:sa-blob 6s ease-in-out infinite;will-change:transform,border-radius}
+        .sa-orb-hi{position:absolute;left:20%;top:16%;width:34%;height:28%;background:rgba(255,255,255,.55);border-radius:50%;filter:blur(4px);animation:sa-hi 6s ease-in-out infinite}
         @keyframes sa-blob{
           0%,100%{border-radius:44% 56% 61% 39%/45% 43% 57% 55%;transform:translateY(0) rotate(0deg) scale(1,1)}
-          20%{border-radius:58% 42% 38% 62%/58% 46% 54% 42%;transform:translateY(-5px) rotate(30deg) scale(1.06,.94)}
-          40%{border-radius:36% 64% 64% 36%/64% 36% 64% 36%;transform:translateY(3px) rotate(80deg) scale(.93,1.07)}
-          60%{border-radius:64% 36% 42% 58%/40% 64% 36% 60%;transform:translateY(-4px) rotate(165deg) scale(1.05,.96)}
-          80%{border-radius:46% 54% 55% 45%/54% 48% 52% 46%;transform:translateY(4px) rotate(255deg) scale(.97,1.04)}
+          25%{border-radius:54% 46% 48% 52%/52% 48% 52% 48%;transform:translateY(-3px) rotate(90deg) scale(1.03,.98)}
+          50%{border-radius:62% 38% 43% 57%/56% 49% 51% 44%;transform:translateY(2px) rotate(180deg) scale(.98,1.03)}
+          75%{border-radius:46% 54% 57% 43%/47% 55% 45% 53%;transform:translateY(-2px) rotate(270deg) scale(1.02,.99)}
         }
-        @keyframes sa-hi{0%,100%{opacity:.55;transform:translate(0,0) scale(1)}30%{opacity:.9;transform:translate(4px,5px) scale(1.1)}60%{opacity:.7;transform:translate(-3px,3px) scale(.95)}}
+        @keyframes sa-hi{0%,100%{opacity:.6;transform:translate(0,0)}50%{opacity:.9;transform:translate(3px,4px)}}
         .sa-fade{animation:sa-fade .35s ease}@keyframes sa-fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
       `}</style>
 
