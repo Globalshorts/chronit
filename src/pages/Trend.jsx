@@ -532,7 +532,7 @@ export default function Trend() {
             <div className="mb-3 flex items-start gap-2 rounded-xl border border-[#0064FF]/25 bg-[#0064FF]/[0.06] px-3 py-2.5">
               <Sparkles size={15} className="mt-0.5 shrink-0 text-[#0064FF]" />
               <p className="flex-1 text-[13px] font-bold leading-relaxed text-white/85">
-                마음에 드는 소재를 눌러 <span className="text-[#0064FF]">분석</span>하면 비슷한 클립을 찾아드려요
+                마음에 드는 소재를 눌러 <span className="text-[#0064FF]">대본 작성</span>하면 베라가 대본을 써드려요
               </p>
               <button onClick={closeCoach} aria-label="안내 닫기" className="shrink-0 text-white/35 transition hover:text-white/55"><X size={14} /></button>
             </div>
@@ -569,7 +569,7 @@ export default function Trend() {
         <div className="fixed inset-x-0 bottom-20 z-40 flex justify-center px-4 sm:bottom-6">
           <div className="flex w-full max-w-md items-center gap-2.5 rounded-2xl bg-slate-900 px-4 py-3 shadow-2xl ring-1 ring-white/10">
             <Sparkles size={16} className="shrink-0 text-[#7FB2FF]" />
-            <p className="flex-1 text-[13px] font-bold leading-snug text-white">이 중 하나를 <span className="text-[#7FB2FF]">분석</span>해보세요 — 비슷한 클립을 찾아드려요</p>
+            <p className="flex-1 text-[13px] font-bold leading-snug text-white">이 중 하나로 <span className="text-[#7FB2FF]">대본</span>을 써보세요 — 베라가 기승전결로 뽑아드려요</p>
             <button onClick={() => { nudgeOffRef.current = true; setNudge(false) }} aria-label="닫기" className="shrink-0 text-white/40 transition hover:text-white/80"><X size={15} /></button>
           </div>
         </div>
