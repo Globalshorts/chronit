@@ -45,7 +45,13 @@ export default function ScriptAssistant({ session: sessionProp }) {
       setSrcRef(s.source_ref || null)
       setMessages([]); setJobId(null)
       const cap = String(s.caption || '').replace(/\s+/g, ' ').trim().slice(0, 240)
-      setInput(cap || (s.product_name || ''))
+      if (cap) setInput(cap)
+      else if (s.source_ref) {
+        // 모달이 캡션을 안 넘겼으면 shortcode로 소재(캡션)를 불러와 자동 입력
+        supabase.rpc('trend_detail_rpc', { p_shortcode: s.source_ref })
+          .then(({ data }) => { const c = String(data?.caption || '').replace(/\s+/g, ' ').trim().slice(0, 240); if (c) setInput(c) })
+          .catch(() => {})
+      }
       nav('.', { replace: true, state: null })  // 새로고침 시 재적용 방지
     }
   }, [loc.state])
