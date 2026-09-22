@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Instagram, Wand2, Check, Loader2, User, Users, MessageCircle } from 'lucide-react'
+import { X, AtSign, Wand2, Check, Loader2, User, Users, MessageCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
@@ -64,7 +64,7 @@ export default function VoiceOnboard({ onClose, onReady }) {
           <div className="p-5">
             <p className="text-sm leading-relaxed text-white/70">내 인스타그램 릴스를 학습해서 <b className="text-white">내가 진짜 말하는 말투 그대로</b> 대본을 써드려요. 공개 계정이어야 해요.</p>
             <div className="mt-4 flex items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-3 py-2.5 focus-within:border-[#0064FF]">
-              <Instagram size={18} className="text-white/40" />
+              <AtSign size={18} className="text-white/40" />
               <span className="text-white/40">@</span>
               <input value={handle} onChange={e => setHandle(e.target.value)} onKeyDown={e => e.key === 'Enter' && start()} placeholder="instagram_id" className="flex-1 bg-transparent text-[15px] text-white placeholder-white/30 outline-none" />
             </div>
