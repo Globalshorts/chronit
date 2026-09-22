@@ -2,11 +2,11 @@ import { X, Loader2, AlertTriangle, LayoutList, Scissors, Target, FileText, Type
 
 function Section({ icon: Icon, label, children }) {
   return (
-    <div className="rounded-xl border border-slate-100 bg-white p-3">
-      <div className="mb-1.5 flex items-center gap-1.5 text-xs font-extrabold text-slate-700">
+    <div className="rounded-xl border border-white/10 bg-white p-3">
+      <div className="mb-1.5 flex items-center gap-1.5 text-xs font-extrabold text-white/85">
         <Icon size={14} className="text-[#0064FF]" />{label}
       </div>
-      <div className="text-sm leading-relaxed text-slate-600">{children}</div>
+      <div className="text-sm leading-relaxed text-white/55">{children}</div>
     </div>
   )
 }
@@ -16,19 +16,19 @@ export default function ChannelModal({ open, loading, progress = 0, stage = '', 
   const r = result
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div className="max-h-[88vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="max-h-[88vh] w-full max-w-md overflow-y-auto rounded-2xl glass p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-start justify-between gap-3">
-          <h3 className="text-base font-extrabold text-slate-900">채널 따라하기 플레이북</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-700"><X size={20} /></button>
+          <h3 className="text-base font-extrabold text-white">채널 따라하기 플레이북</h3>
+          <button onClick={onClose} className="text-white/35 hover:text-white/85"><X size={20} /></button>
         </div>
 
         {loading ? (
           <div className="py-10">
-            <div className="mb-2 flex items-center justify-between text-sm text-slate-500">
+            <div className="mb-2 flex items-center justify-between text-sm text-white/45">
               <span className="flex items-center gap-2"><Loader2 size={16} className="animate-spin text-[#0064FF]" />{stage || '채널을 분석하고 있어요…'}</span>
               <span className="font-bold text-[#0064FF]">{Math.round(progress)}%</span>
             </div>
-            <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
               <div className="h-full rounded-full bg-gradient-to-r from-[#2A7BFF] via-[#0064FF] to-[#7C6BFF] transition-[width] duration-300 ease-out" style={{ width: progress + '%' }} />
             </div>
           </div>
@@ -40,7 +40,7 @@ export default function ChannelModal({ open, loading, progress = 0, stage = '', 
               <div className="flex items-center gap-1.5 text-xs font-bold text-[#0064FF]">
                 <span className="rounded bg-[#0064FF]/15 px-1.5 py-0.5 text-[10px] uppercase tracking-wide">{r.platform === 'youtube' ? 'YouTube' : 'Instagram'}</span>{r.name}
               </div>
-              {r.channel_summary && <div className="mt-1 text-[15px] font-extrabold leading-snug text-slate-900">{r.channel_summary}</div>}
+              {r.channel_summary && <div className="mt-1 text-[15px] font-extrabold leading-snug text-white">{r.channel_summary}</div>}
             </div>
 
             {(r.key_actions || []).length > 0 && (
@@ -48,9 +48,9 @@ export default function ChannelModal({ open, loading, progress = 0, stage = '', 
                 <div className="mb-1.5 flex items-center gap-1.5 text-xs font-extrabold text-orange-700"><Zap size={14} />지금 당장 이것부터</div>
                 <ul className="space-y-1.5">
                   {r.key_actions.map((k, i) => (
-                    <li key={i} className="flex gap-1.5 text-sm leading-relaxed text-slate-700">
+                    <li key={i} className="flex gap-1.5 text-sm leading-relaxed text-white/85">
                       <span className="mt-0.5 shrink-0 text-orange-400">▸</span>
-                      <mark className="rounded-[3px] bg-orange-200/70 px-1 font-semibold text-slate-800 [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{k}</mark>
+                      <mark className="rounded-[3px] bg-orange-200/70 px-1 font-semibold text-white [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">{k}</mark>
                     </li>
                   ))}
                 </ul>
@@ -66,7 +66,7 @@ export default function ChannelModal({ open, loading, progress = 0, stage = '', 
                     return (
                       <li key={i} className="flex gap-2">
                         <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#0064FF] text-[11px] font-bold text-white">{i + 1}</span>
-                        <span className="pt-0.5"><b className="text-slate-800">{head.trim()}</b>{rest.length ? <span className="text-slate-500"> — {rest.join('—').trim()}</span> : null}</span>
+                        <span className="pt-0.5"><b className="text-white">{head.trim()}</b>{rest.length ? <span className="text-white/45"> — {rest.join('—').trim()}</span> : null}</span>
                       </li>
                     )
                   })}
@@ -75,13 +75,13 @@ export default function ChannelModal({ open, loading, progress = 0, stage = '', 
             )}
 
             <Section icon={Type} label="제목·캡션 공식"><div className="whitespace-pre-line">{r.title_formula || '—'}</div></Section>
-            <Section icon={FileText} label="대본 템플릿"><div className="whitespace-pre-line rounded-lg bg-slate-50 p-2 text-[13px] leading-relaxed">{r.script_template || '—'}</div></Section>
+            <Section icon={FileText} label="대본 템플릿"><div className="whitespace-pre-line rounded-lg bg-white/[0.04] p-2 text-[13px] leading-relaxed">{r.script_template || '—'}</div></Section>
             <Section icon={Scissors} label="편집 스타일">{r.editing_style || '—'}</Section>
             <Section icon={Target} label="콘텐츠 전략">{r.content_strategy || '—'}</Section>
           </div>
         ) : null}
 
-        <p className="mt-4 text-center text-[11px] text-slate-400">벤치마킹·리서치 목적 · 콘텐츠 저작권은 원저작자에게 있습니다.</p>
+        <p className="mt-4 text-center text-[11px] text-white/35">벤치마킹·리서치 목적 · 콘텐츠 저작권은 원저작자에게 있습니다.</p>
       </div>
     </div>
   )

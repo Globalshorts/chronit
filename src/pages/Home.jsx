@@ -527,7 +527,7 @@ const Home = () => {
             {user ? (
               <>
                 {nickname ? (
-                  <Link to="/me" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-xl bg-white/10 px-4 py-3.5 text-lg font-bold text-white transition-colors hover:bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)]">
+                  <Link to="/me" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-xl glass/10 px-4 py-3.5 text-lg font-bold text-white transition-colors hover:bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)]">
                     <User size={18} /> {nickname} <span className="ml-auto text-sm font-medium text-white/70">마이페이지 →</span>
                   </Link>
                 ) : (
@@ -670,7 +670,7 @@ const Home = () => {
             <h2 className="text-3xl font-bold text-white md:text-4xl">필요한 만큼만</h2>
             <p className="mt-3 text-base text-white/45 md:text-lg">가입 시 무료 이용권을 제공합니다. 필요에 따라 구독하세요.</p>
           </div>
-          <div className="relative mx-auto mb-2 flex max-w-sm rounded-xl bg-white/[0.06] p-1 text-sm font-bold">
+          <div className="relative mx-auto mb-2 flex max-w-sm rounded-xl glass/[0.06] p-1 text-sm font-bold">
             <span aria-hidden className="absolute left-1 top-1 bottom-1 w-[calc(33.333%-0.25rem)] rounded-lg bg-white/15 shadow-none transition-transform duration-300 ease-out" style={{ transform: `translateX(${priceTab === 'annual' ? '100%' : priceTab === 'pack' ? '200%' : '0%'})` }} />
             <button onClick={() => setPriceTab('monthly')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${priceTab === 'monthly' ? 'text-[#0064FF]' : 'text-white/45'}`}>월간</button>
             <button onClick={() => setPriceTab('annual')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${priceTab === 'annual' ? 'text-[#0064FF]' : 'text-white/45'}`}>연간</button>
@@ -682,7 +682,7 @@ const Home = () => {
             <>
               <div className="mx-auto grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
                 {[{ credits: 10, price: 4900 }, { credits: 30, price: 12900, hot: true }, { credits: 100, price: 34900 }].map((p) => (
-                  <div key={p.credits} className={`flex flex-col rounded-2xl bg-white/[0.04] p-6 shadow-none ${p.hot ? 'border-2 border-[#0064FF]' : 'border border-white/10'}`}>
+                  <div key={p.credits} className={`flex flex-col rounded-2xl glass/[0.04] p-6 shadow-none ${p.hot ? 'border-2 border-[#0064FF]' : 'border border-white/10'}`}>
                     <div className="flex items-center gap-2"><h4 className="text-lg font-semibold text-white">이용권 {p.credits}개</h4>{p.hot && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0064FF]">인기</span>}</div>
                     <p className="mt-1 text-sm text-white/35">1회 결제 · 유효 12개월</p>
                     <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-white">₩{p.price.toLocaleString('ko-KR')}</span></div>
@@ -707,7 +707,7 @@ const Home = () => {
                   const annual = priceTab === 'annual'
                   const hot = p.id === HOT_PLAN
                   return (
-                    <div key={p.id} onClick={() => handleBuy('sub', annual ? 'annual' : 'monthly')} className={`flex cursor-pointer flex-col rounded-2xl bg-white/[0.04] p-6 shadow-none transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_22px_48px_rgba(20,40,90,0.18)] ${hot ? 'border-2 border-[#0064FF]' : 'border border-white/10'}`}>
+                    <div key={p.id} onClick={() => handleBuy('sub', annual ? 'annual' : 'monthly')} className={`flex cursor-pointer flex-col rounded-2xl glass/[0.04] p-6 shadow-none transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_22px_48px_rgba(20,40,90,0.18)] ${hot ? 'border-2 border-[#0064FF]' : 'border border-white/10'}`}>
                       <div className="flex items-center gap-2">
                         <h4 className="text-lg font-semibold text-white">{p.name}</h4>
                         {hot && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0064FF]">인기</span>}

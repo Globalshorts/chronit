@@ -32,7 +32,7 @@ export default function Pricing() {
     setAuthOpen(true)
   }
   const annual = priceTab === 'annual'
-  const cardCls = (hot) => `flex cursor-pointer flex-col rounded-2xl bg-white p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_22px_48px_rgba(20,40,90,0.18)] ${hot ? 'border-2 border-[#0064FF]' : 'border border-gray-100'}`
+  const cardCls = (hot) => `flex cursor-pointer flex-col rounded-2xl glass p-6 shadow-[0_1px_3px_rgba(20,20,20,0.05)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_22px_48px_rgba(20,40,90,0.18)] ${hot ? 'border-2 border-[#0064FF]' : 'border border-gray-100'}`
   const btnCls = (hot) => `mt-6 w-full rounded-xl py-2.5 text-sm font-semibold transition ${hot ? 'bg-[#0064FF] text-white hover:brightness-95' : 'border border-gray-200 text-gray-700 hover:border-[#0064FF] hover:text-[#0064FF]'}`
 
   return (

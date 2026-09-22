@@ -280,7 +280,7 @@ export default function Watchlist() {
             {deadCount > 0 && (<><span className="mx-2 text-white/20">·</span><b className="text-red-400">응답없음 {deadCount}</b></>)}
           </p>
           <button onClick={() => setManageOpen(true)} disabled={!accounts.length}
-            className="flex items-center gap-1.5 rounded-xl bg-white/10 px-3.5 py-2 text-sm font-bold text-white transition hover:bg-white/15 disabled:opacity-40">
+            className="flex items-center gap-1.5 rounded-xl glass/10 px-3.5 py-2 text-sm font-bold text-white transition hover:bg-white/15 disabled:opacity-40">
             <Settings2 size={15} /> 관리
           </button>
         </div>
@@ -304,7 +304,7 @@ export default function Watchlist() {
         <div className="mt-4 border-t border-white/10 pt-4">
           <div className="flex flex-wrap items-center gap-3">
             <button onClick={scan} disabled={scanning || !targets.length}
-              className="flex items-center gap-1.5 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-white/15 disabled:opacity-40">
+              className="flex items-center gap-1.5 rounded-xl glass/10 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-white/15 disabled:opacity-40">
               {scanning ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />}
               {scanning ? '갱신 중…' : '지금 갱신'}
             </button>
@@ -410,14 +410,14 @@ export default function Watchlist() {
 
       {limitModal && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4" onClick={() => setLimitModal(null)}>
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-slate-900" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-sm rounded-2xl glass p-6 text-white" onClick={(e) => e.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
               <h3 className="flex items-center gap-1.5 text-base font-bold"><AlertTriangle size={17} className="text-amber-500" /> 계정 한도 초과</h3>
-              <button onClick={() => setLimitModal(null)} className="text-slate-400 hover:text-slate-700"><X size={18} /></button>
+              <button onClick={() => setLimitModal(null)} className="text-white/35 hover:text-white/85"><X size={18} /></button>
             </div>
-            <p className="text-sm leading-relaxed text-slate-600">현재 요금제는 계정 {limitModal.limit ?? ''}개까지예요. 한도까지만 추가했어요. 업그레이드하시겠어요?</p>
+            <p className="text-sm leading-relaxed text-white/55">현재 요금제는 계정 {limitModal.limit ?? ''}개까지예요. 한도까지만 추가했어요. 업그레이드하시겠어요?</p>
             <div className="mt-5 flex gap-2">
-              <button onClick={() => setLimitModal(null)} className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50">나중에</button>
+              <button onClick={() => setLimitModal(null)} className="flex-1 rounded-xl border border-white/10 py-2.5 text-sm font-bold text-white/45 hover:bg-white/5">나중에</button>
               <button onClick={() => nav('/pricing')} className="flex-1 rounded-xl bg-[#0064FF] py-2.5 text-sm font-bold text-white hover:brightness-95">업그레이드</button>
             </div>
           </div>
