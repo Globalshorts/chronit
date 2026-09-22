@@ -310,7 +310,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
 
       {/* 소재 카드 (붙은 소재) */}
       {soso && (
-        <div className="mx-auto mt-3 flex w-full max-w-[700px] items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.05] p-2.5">
+        <div className="mx-auto mt-3 flex w-full max-w-[700px] items-center gap-3 rounded-2xl glass p-2.5">
           {soso.thumb ? <img src={soso.thumb} referrerPolicy="no-referrer" className="h-16 w-12 shrink-0 rounded-lg object-cover" /> : <div className="grid h-16 w-12 shrink-0 place-items-center rounded-lg bg-white/10"><Film size={18} className="text-white/40" /></div>}
           <div className="min-w-0 flex-1">
             <div className="text-[11px] font-bold text-[#5AA0FF]">🔥 트렌드 소재{soso.product ? ' · 분석됨' : ''}</div>
@@ -374,13 +374,13 @@ export default function ScriptAssistant({ session: sessionProp }) {
                 ) : (
                   <>
                     {m.analysis && (m.analysis.product || (m.analysis.selling && m.analysis.selling.length > 0)) && (
-                      <div className="mb-2 rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-[12px]">
+                      <div className="mb-2 rounded-xl glass px-3.5 py-2.5 text-[12px]">
                         <div className="mb-1 flex items-center gap-1 font-bold text-[#5AA0FF]"><BarChart3 size={12} /> 소재 분석</div>
                         {m.analysis.product && <div className="text-white/85">상품 · {m.analysis.product}</div>}
                         {m.analysis.selling && m.analysis.selling.length > 0 && <div className="mt-0.5 text-white/55">셀링포인트 · {m.analysis.selling.join(' / ')}</div>}
                       </div>
                     )}
-                    <div className={`whitespace-pre-wrap rounded-2xl rounded-bl-md border px-4 py-3 text-[15px] leading-relaxed text-white/95 ${m.mine ? 'border-[#0064FF]/40 bg-[#0064FF]/[0.08]' : 'border-white/10 bg-white/[0.06]'}`}>{m.text}{m.edited && <span className="ml-1.5 align-middle text-[11px] text-white/30">· 수정됨</span>}</div>
+                    <div className={`whitespace-pre-wrap rounded-2xl rounded-bl-md px-4 py-3 text-[15px] leading-relaxed text-white/95 ${m.mine ? 'glass-blue' : 'glass-soft'}`}>{m.text}{m.edited && <span className="ml-1.5 align-middle text-[11px] text-white/30">· 수정됨</span>}</div>
                     {m.isScript && (
                       <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-[#5AA0FF]/10 px-2.5 py-1 text-[11px] font-bold text-[#5AA0FF]"><Sprout size={12} /> 직접 고칠수록 베라가 내 말투를 배워요{learnCount ? ` · ${learnCount}회 학습` : ''}</div>
                     )}
@@ -398,11 +398,11 @@ export default function ScriptAssistant({ session: sessionProp }) {
               </div>
             )
           })}
-          {busy && <div className="sa-fade self-start rounded-2xl rounded-bl-md border border-white/10 bg-white/[0.06] px-6 py-5"><Droplet size={44} label={stage || (jobId ? '다듬는 중…' : '대본을 짓는 중…')} /></div>}
+          {busy && <div className="sa-fade self-start rounded-2xl rounded-bl-md glass-soft px-6 py-5"><Droplet size={44} label={stage || (jobId ? '다듬는 중…' : '대본을 짓는 중…')} /></div>}
 
           {/* 소스 클립 패널 (작업에 종속 — 레드노트 붙여넣기 도착지) */}
           {jobId && (
-            <div className="mt-2 rounded-2xl border border-white/10 bg-white/[0.03] p-3.5">
+            <div className="mt-2 rounded-2xl glass p-3.5">
               <div className="mb-2 flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-sm font-bold text-white"><Film size={15} className="text-[#5AA0FF]" /> 소스 클립 {clips.length ? `(${clips.length})` : ''}</div>
                 {clips.length > 0 && <button className="flex items-center gap-1 rounded-lg bg-white/10 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-white/15"><Download size={13} /> 전체 다운로드</button>}
