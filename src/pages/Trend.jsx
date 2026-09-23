@@ -358,7 +358,7 @@ export default function Trend() {
             </div>
           </div>
           <p className="mt-1 text-sm text-white/45">지금 뜨는 쇼핑 숏폼을 한눈에. 조회수·좋아요 순으로 정렬해 확인하세요.</p>
-          <p className="mt-0.5 text-[11px] text-white/35">마음에 드는 소재로 대본을 만들어보세요 · 로그인하면 전체 트렌드가 열려요</p>
+          <p className="mt-0.5 text-[11px] text-white/35">마음에 드는 소재를 눌러 베라로 대본을 만들어보세요</p>
         </header>
 
         <QuestStrip enabled={isReal} />
