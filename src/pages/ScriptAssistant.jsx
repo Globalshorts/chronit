@@ -99,6 +99,11 @@ export default function ScriptAssistant({ session: sessionProp }) {
   // 트렌드 재생 모달의 "대본 작성하기" → 소재(클립) 자체를 비서로 가져오기
   useEffect(() => {
     const s = loc.state
+    if (s && s.open_job) {          // 트렌드에서 백그라운드 생성해둔 대본 열기
+      openJob(s.open_job)
+      nav('.', { replace: true, state: null })
+      return
+    }
     if (s && (s.source_ref || s.caption)) {
       setMessages([]); setJobId(null); setClips([])
       const base = { source_ref: s.source_ref || null, caption: String(s.caption || '').replace(/\s+/g, ' ').trim(), thumb: s.thumbnail || '' }

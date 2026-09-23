@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import HeaderInstallBtn from '../components/HeaderInstallBtn'
 import { Navigate, Link, useNavigate } from 'react-router-dom'
-import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, HelpCircle, Zap, Crown, X, Bookmark } from 'lucide-react'
+import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, HelpCircle, Zap, Crown, X, Bookmark, ArrowRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
 import { fbTrack } from '../lib/fbq'
@@ -108,6 +108,50 @@ export default function Trend() {
   // 담김 여부는 서버가 행마다 watching 으로 알려주고, 누른 뒤에는 shortcode 로 덮어쓴다.
   const [watchOv, setWatchOv] = useState({})
   const isWatching = (it) => (it && it.shortcode in watchOv ? watchOv[it.shortcode] : !!(it && it.watching))
+
+  // 대본 작성 2단계: 1번 클릭 = 백그라운드 생성(과금), 준비되면 2번째 클릭 = 베라로 이동
+  // (그 사이 사용자는 레드노트에서 클립을 이미지 검색할 수 있다)
+  const [scriptGen, setScriptGen] = useState({})   // { [shortcode]: { status:'generating'|'ready'|'error', jobId, error } }
+  const genScriptBg = async (it, thumb) => {
+    const { data: { session: s } } = await supabase.auth.getSession()
+    const t = s?.access_token
+    if (!t) throw new Error('로그인이 필요해요')
+    let niche = '', persona = ''
+    try { const { data: pf } = await supabase.from('profiles').select('niche,persona').eq('id', s.user.id).maybeSingle(); niche = pf?.niche || ''; persona = pf?.persona || '' } catch { /* noop */ }
+    const caption = String(it.caption || '').replace(/\s+/g, ' ').trim()
+    let product = '', selling = caption
+    try {
+      const cacheKey = String(it.shortcode || caption).slice(0, 280) + '|' + niche + '|v9'
+      let ad = null
+      try { const { data: cached } = await supabase.rpc('get_analyze_cache_rpc', { p_key: cacheKey }); if (cached && cached.ok) ad = cached } catch { /* noop */ }
+      if (!ad) {
+        const ar = await fetch(FN('analyze-clip'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ title: caption, source: 'trend', thumbnail_url: thumb || '', niche, persona, video_id: it.shortcode }) })
+        ad = await ar.json()
+        if (ad?.ok) { try { await supabase.rpc('set_analyze_cache_rpc', { p_key: cacheKey, p_result: ad }) } catch { /* noop */ } }
+      }
+      if (ad?.ok) { product = ad.product_name || ''; const sp = Array.isArray(ad.selling_points) ? ad.selling_points.filter(Boolean) : []; selling = sp.length ? sp.join(' / ') : caption; if (product) selling = product + ' — ' + selling }
+    } catch { /* noop */ }
+    const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'generate', voice_mode: 'base', source_ref: it.shortcode, product_name: product || caption.split(/[\u2014\-.\n]/)[0].slice(0, 60), selling_points: selling }) })
+    const d = await r.json()
+    if (!d.ok) { const e = new Error(d.code === 'INSUFFICIENT_CREDITS' ? `이용권이 부족해요 (10턴 세션에 2개 필요)` : (d.error || '대본 생성 실패')); e.code = d.code; throw e }
+    return d.job_id
+  }
+  const startScript = async (it, thumb) => {
+    markActed()
+    const sc = it.shortcode
+    const cur = scriptGen[sc]
+    if (cur?.status === 'ready' && cur.jobId) { nav('/script', { state: { open_job: cur.jobId } }); return }
+    if (cur?.status === 'generating') return
+    setScriptGen((m) => ({ ...m, [sc]: { status: 'generating' } }))
+    logEvent('trend_script_start', { shortcode: sc })
+    try {
+      const jobId = await genScriptBg(it, thumb)
+      setScriptGen((m) => ({ ...m, [sc]: { status: 'ready', jobId } }))
+    } catch (e) {
+      setScriptGen((m) => ({ ...m, [sc]: { status: 'error', error: e.message } }))
+      if (e.code === 'INSUFFICIENT_CREDITS') nav('/pricing')
+    }
+  }
 
   // 한 번이라도 움직였으면 코치마크·넛지는 제 할 일을 다 한 것
   const markActed = () => {
@@ -516,7 +560,7 @@ export default function Trend() {
                         </div>
                         <div className="mb-2 line-clamp-2 text-[12px] font-medium text-white/85">{maskHandles(it.caption) || '(설명 없음)'}</div>
                         <div className="flex gap-1.5">
-                          <button onClick={() => nav('/script', { state: { source_ref: it.shortcode, caption: it.caption || '', thumbnail: coverOf(it) || '', product_name: '' } })} title="이 소재로 대본 작성" className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-[11px] font-bold text-white transition hover:brightness-95"><Sparkles size={11} />대본 작성</button>
+                          <button onClick={() => startScript(it, coverOf(it) || '')} disabled={scriptGen[it.shortcode]?.status === 'generating'} title={scriptGen[it.shortcode]?.error || '이 소재로 대본 작성'} className={`flex flex-1 items-center justify-center gap-1 rounded-lg py-1.5 text-[11px] font-bold text-white transition hover:brightness-95 ${scriptGen[it.shortcode]?.status === 'ready' ? 'bg-emerald-500' : scriptGen[it.shortcode]?.status === 'error' ? 'bg-rose-500' : 'bg-[#0064FF]'} ${scriptGen[it.shortcode]?.status === 'generating' ? 'opacity-70' : ''}`}>{scriptGen[it.shortcode]?.status === 'generating' ? <><Loader2 size={11} className="animate-spin" />생성 중…</> : scriptGen[it.shortcode]?.status === 'ready' ? <><ArrowRight size={11} />베라에서 보기</> : scriptGen[it.shortcode]?.status === 'error' ? <><Sparkles size={11} />다시 시도</> : <><Sparkles size={11} />대본 작성</>}</button>
                           <button onClick={() => saveItem(it)} title="담기 = 이 계정을 워치리스트에 저장" aria-pressed={watching} className={`flex flex-1 items-center justify-center gap-1 rounded-lg border py-1.5 text-[11px] font-bold transition ${watching ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-white/10 text-white/55 hover:border-[#0064FF] hover:text-[#0064FF]'}`}><Bookmark size={11} className={watching ? 'fill-emerald-500 text-emerald-500' : ''} />{watching ? '담김' : '담기'}</button>
                         </div>
                       </div>
@@ -553,7 +597,8 @@ export default function Trend() {
                   coach={coachOn && i === coachIdx}
                   onPlay={() => openItem(it)}
                   onOpen={() => openItem(it)}
-                  onScript={() => nav('/script', { state: { source_ref: it.shortcode, caption: it.caption || '', thumbnail: (clip && clip.thumbnail_url) || coverOf(it) || '', product_name: '' } })}
+                  onScript={() => startScript(it, (clip && clip.thumbnail_url) || coverOf(it) || '')}
+                  scriptState={scriptGen[it.shortcode]}
                   onToggleWatch={() => saveItem(it)}
                   onUnlock={() => nav('/pricing')}
                 />
