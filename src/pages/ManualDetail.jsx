@@ -13,20 +13,20 @@ import trendMd from '../content/trend-guide.md?raw'
 
 const SECTIONS = {
  start: {
- title: '3단계 빠른 시작',
- callout: '트렌드에서 소재를 골라 베라가 내 말투 대본을 써줍니다. 아래 세 단계를 확인하세요.',
+ title: '크로닛 제작 흐름',
+ callout: '소재를 찾고, 베라가 대본을 쓰고, 클립을 구해 릴스를 완성하는 실제 순서예요.',
  type: 'markdown',
  content: startMd,
  },
  search: {
- title: '대본 작성 vs 채널 분석',
- callout: '베라 대본 작성과 채널 분석, 언제 무엇을 쓰면 좋은지 정리했습니다.',
+ title: 'AI 비서 베라 사용법',
+ callout: '베라로 할 수 있는 대본 작성과 채널 분석을 정리했어요.',
  type: 'markdown',
  content: searchMd,
  },
  trend: {
- title: '실시간 트렌드',
- callout: '최근 반응이 터진 쇼핑 릴스를 모아 보는 곳입니다. 마음에 드는 소재로 바로 대본을 만들 수 있어요.',
+ title: '실시간 트렌드 보는 법',
+ callout: '최근 반응이 터진 쇼핑 릴스를 모아 보는 곳이에요. 마음에 드는 소재로 바로 대본을 만들 수 있어요.',
  type: 'markdown',
  content: trendMd,
  },
