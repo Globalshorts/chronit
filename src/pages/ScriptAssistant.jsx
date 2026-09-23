@@ -43,6 +43,8 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [showJobs, setShowJobs] = useState(false)
   const [voiceProfile, setVoiceProfile] = useState(null)  // {has_voice, ig_username, style_card}
   const [showOnboard, setShowOnboard] = useState(false)
+  const [onboardData, setOnboardData] = useState(null)   // 백그라운드 학습 결과(리뷰 재오픈용)
+  const [voiceLearn, setVoiceLearn] = useState(null)     // { status:'learning' } 학습 토스트
   const [showSettings, setShowSettings] = useState(false)
   const [showConvList, setShowConvList] = useState(false)
   const [convCollapsed, setConvCollapsed] = useState(false)
@@ -223,6 +225,19 @@ export default function ScriptAssistant({ session: sessionProp }) {
         if (d.reply) supabase.rpc('append_job_message_rpc', { p_job_id: jobId, p_role: 'assistant', p_content: d.reply }).then(null, () => {})
       }
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
+  }
+
+  // 내 말투 백그라운드 학습: 모달 닫고 토스트 → 완료되면 리뷰 재오픈(서버는 이미 저장됨)
+  const startVoiceLearnBg = async (handle) => {
+    setShowOnboard(false); setOnboardData(null); setVoiceLearn({ status: 'learning' })
+    try {
+      const t = await token(); if (!t) { setErr('로그인이 필요해요'); setVoiceLearn(null); return }
+      const r = await fetch(FN('voice-onboard'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ username: handle }) })
+      const d = await r.json()
+      if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? '재학습에 이용권 1개가 필요해요' : (d.error || '말투 학습에 실패했어요')) }
+      else if (d.skipped) { setNote('✨ 새로 올린 릴스가 없어 기존 말투를 유지했어요'); setTimeout(() => setNote(''), 4000); loadVoiceProfile() }
+      else { loadVoiceProfile(); refreshSession(); setOnboardData(d); setShowOnboard(true) }   // 리뷰 재오픈
+    } catch (e) { setErr(String(e)) } finally { setVoiceLearn(null) }
   }
 
   // 내 말투로 입히기: 프로필 없으면 온보딩, 있으면 현재 대본을 내 말투로 다시 씀(무료 다듬기)
@@ -471,8 +486,19 @@ export default function ScriptAssistant({ session: sessionProp }) {
       </div>
       </div>
 
+      {voiceLearn?.status === 'learning' && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-24 z-[2147482000] flex justify-center px-4 md:bottom-8">
+          <div className="pointer-events-auto flex max-w-md items-center gap-3 rounded-2xl glass px-4 py-3 shadow-2xl shadow-black/40">
+            <EnergyOrb size={30} />
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 text-sm font-bold text-white"><span className="rounded-md bg-[#0064FF]/20 px-1.5 py-0.5 text-[10px] font-extrabold tracking-wide text-[#5AA0FF]">학습 중</span> 내 말투를 배우고 있어요</div>
+              <div className="mt-0.5 text-[13px] leading-snug text-white/55">그동안 편하게 대화하거나 소재를 골라보세요<br className="hidden sm:block" /> 끝나면 확인 창을 띄워드릴게요</div>
+            </div>
+          </div>
+        </div>
+      )}
       {showSettings && <PersonaSettings onClose={() => setShowSettings(false)} onChanged={() => loadVoiceProfile()} onRelearn={() => { setShowSettings(false); setShowOnboard(true) }} />}
-      {showOnboard && <VoiceOnboard defaultHandle={voiceProfile?.ig_username || ''} onClose={() => setShowOnboard(false)} onReady={() => { loadVoiceProfile(); refreshSession() }} />}
+      {showOnboard && <VoiceOnboard defaultHandle={voiceProfile?.ig_username || ''} onClose={() => { setShowOnboard(false); setOnboardData(null) }} onReady={() => { loadVoiceProfile(); refreshSession() }} onBackground={startVoiceLearnBg} initialData={onboardData} initialStep={onboardData ? 'review' : 'input'} />}
     </div>
   )
 }

@@ -6,15 +6,16 @@ const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
 const FN = (n) => `${SB}/functions/v1/${n}`
 
 // 내 말투 온보딩: 인스타 ID → 릴스 학습 → 스타일카드 확인·보정
-export default function VoiceOnboard({ onClose, onReady, defaultHandle = '' }) {
-  const [step, setStep] = useState('input') // input | loading | review | done
+export default function VoiceOnboard({ onClose, onReady, defaultHandle = '', onBackground, initialData = null, initialStep = 'input' }) {
+  const _isc = initialData?.style_card || {}
+  const [step, setStep] = useState(initialStep) // input | loading | review | done
   const [handle, setHandle] = useState(defaultHandle)
   const [msg, setMsg] = useState('')
   const [err, setErr] = useState('')
-  const [data, setData] = useState(null)       // voice-onboard 응답
-  const [gender, setGender] = useState('')     // 남 | 여 | ''
-  const [chars, setChars] = useState('')       // 콤마 구분
-  const [tone, setTone] = useState('')
+  const [data, setData] = useState(initialData) // voice-onboard 응답
+  const [gender, setGender] = useState(_isc.gender_guess === '남' || _isc.gender_guess === '여' ? _isc.gender_guess : '') // 남 | 여 | ''
+  const [chars, setChars] = useState(Array.isArray(_isc.recurring_characters) ? _isc.recurring_characters.join(', ') : '') // 콤마 구분
+  const [tone, setTone] = useState(_isc.tone || '')
   const [saving, setSaving] = useState(false)
 
   const token = async () => (await supabase.auth.getSession()).data.session?.access_token
@@ -22,6 +23,7 @@ export default function VoiceOnboard({ onClose, onReady, defaultHandle = '' }) {
   const start = async () => {
     const u = handle.trim().replace(/^@/, '')
     if (!u) { setErr('인스타그램 아이디를 입력해주세요'); return }
+    if (onBackground) { onBackground(u); return }   // 백그라운드 학습: 부모가 fetch+토스트 처리, 끝나면 리뷰 재오픈
     setErr(''); setStep('loading')
     try {
       const t = await token(); if (!t) { setErr('로그인이 필요해요'); setStep('input'); return }
