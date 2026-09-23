@@ -326,7 +326,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <button onClick={() => setShowSettings(true)} className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition ${voiceProfile?.has_voice ? 'border-[#0064FF]/40 bg-[#0064FF]/10 text-[#5AA0FF]' : 'border-white/15 bg-white/5 text-white/70 hover:text-white'}`}><Settings size={13} /> {voiceProfile?.has_voice ? `내 말투${voiceProfile.ig_username ? ` @${voiceProfile.ig_username}` : ''}` : '개인화'}</button>
+          <button onClick={() => voiceProfile?.has_voice ? setShowSettings(true) : setShowOnboard(true)} className={`relative flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition ${voiceProfile?.has_voice ? 'border-[#0064FF]/40 bg-[#0064FF]/10 text-[#5AA0FF]' : 'border-[#0064FF]/60 bg-[#0064FF]/15 text-[#5AA0FF] hover:brightness-110'}`}>{!voiceProfile?.has_voice && <span className="absolute -right-0.5 -top-0.5 flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#0064FF] opacity-75" /><span className="relative inline-flex h-2 w-2 rounded-full bg-[#0064FF]" /></span>}{voiceProfile?.has_voice ? <Settings size={13} /> : <Wand2 size={13} />} {voiceProfile?.has_voice ? `내 말투${voiceProfile.ig_username ? ` @${voiceProfile.ig_username}` : ''}` : '내 말투 만들기'}</button>
           {balance !== null && <div className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white/70">이용권 {balance}</div>}
         </div>
       </div>
@@ -348,13 +348,36 @@ export default function ScriptAssistant({ session: sessionProp }) {
       {/* 대화 영역 */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto py-6">
         {!started && !soso && !busy && (
-          <div className="sa-fade flex flex-col items-center justify-center gap-5 py-12 text-center">
-            <Droplet size={92} />
+          <div className="sa-fade flex flex-col items-center justify-center gap-6 py-10 text-center">
+            <Droplet size={84} />
             <div>
-              <div className="text-lg font-bold text-white">어떤 소재로 대본을 만들까요?</div>
-              <div className="mt-1 text-sm text-white/50">트렌드에서 마음에 드는 영상을 열고 '대본 작성하기'를 누르면 시작돼요.</div>
+              <div className="text-lg font-bold text-white">대본, 어떻게 시작할까요?</div>
+              <div className="mt-1 text-sm text-white/50">소재를 고르고, 베라가 내 말투로 대본을 써드려요</div>
             </div>
-            <Link to="/trend" className="flex items-center gap-2 rounded-full bg-[#0064FF] px-5 py-2.5 text-sm font-bold text-white transition hover:brightness-110"><Flame size={16} /> 트렌드에서 영상 고르기</Link>
+            <div className="grid w-full max-w-[640px] grid-cols-1 gap-3 sm:grid-cols-2">
+              <Link to="/trend" className="group flex flex-col items-start gap-2 rounded-2xl glass p-5 text-left transition hover:-translate-y-0.5">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0064FF]/15 text-[#5AA0FF]"><Flame size={20} /></div>
+                <div className="text-[15px] font-bold text-white">트렌드에서 소재 고르기</div>
+                <div className="text-[13px] leading-snug text-white/50">반응 터진 쇼핑 릴스에서 골라 대본 작성으로</div>
+                <div className="mt-1 flex items-center gap-1 text-[13px] font-bold text-[#5AA0FF]">트렌드 열기 <ChevronRight size={14} /></div>
+              </Link>
+              {voiceProfile?.has_voice ? (
+                <button onClick={() => setShowSettings(true)} className="group flex flex-col items-start gap-2 rounded-2xl glass p-5 text-left transition hover:-translate-y-0.5">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400"><Check size={20} /></div>
+                  <div className="text-[15px] font-bold text-white">내 말투 학습됨{voiceProfile.ig_username ? ` · @${voiceProfile.ig_username}` : ''}</div>
+                  <div className="text-[13px] leading-snug text-white/50">첫 대본부터 내 말투로 나와요</div>
+                  <div className="mt-1 flex items-center gap-1 text-[13px] font-bold text-[#5AA0FF]">다시 학습 · 설정 <ChevronRight size={14} /></div>
+                </button>
+              ) : (
+                <button onClick={() => setShowOnboard(true)} className="group relative flex flex-col items-start gap-2 rounded-2xl glass p-5 text-left transition hover:-translate-y-0.5">
+                  <span className="absolute right-3 top-3 rounded-md bg-[#0064FF] px-1.5 py-0.5 text-[10px] font-extrabold text-white">NEW</span>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0064FF]/15 text-[#5AA0FF]"><Wand2 size={20} /></div>
+                  <div className="text-[15px] font-bold text-white">내 말투 가르치기</div>
+                  <div className="text-[13px] leading-snug text-white/50">인스타 릴스로 30초 학습 → 첫 대본부터 내 말투로</div>
+                  <div className="mt-1 flex items-center gap-1 text-[13px] font-bold text-[#5AA0FF]">지금 가르치기 <ChevronRight size={14} /></div>
+                </button>
+              )}
+            </div>
           </div>
         )}
 
