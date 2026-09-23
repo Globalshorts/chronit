@@ -142,10 +142,20 @@ export default function ScriptAssistant({ session: sessionProp }) {
     const [{ data: msgs }, { data: cl }, { data: jrow }] = await Promise.all([
       supabase.from('job_messages').select('role,content').eq('job_id', id).order('created_at'),
       supabase.from('job_clips').select('id,thumbnail:storage_path,source_url,status').eq('job_id', id),
-      supabase.from('jobs').select('voice_mode').eq('id', id).maybeSingle(),
+      supabase.from('jobs').select('voice_mode,product_name,selling_points').eq('id', id).maybeSingle(),
     ])
     const isMy = jrow?.voice_mode === 'my' && voiceProfile?.has_voice === true
-    setMessages((msgs || []).map(m => ({ role: m.role, text: m.content, isScript: m.role === 'assistant', mine: m.role === 'assistant' && isMy }))); setClips(cl || []); setJobId(id); setSoso(null)
+    // 분석 자료(상품·셀링포인트) 복원 — 첫 대본 메시지에 붙인다
+    let sell = String(jrow?.selling_points || '')
+    if (jrow?.product_name && sell.startsWith(jrow.product_name + ' — ')) sell = sell.slice((jrow.product_name + ' — ').length)
+    const analysis = (jrow?.product_name || sell) ? { product: jrow?.product_name || '', selling: sell ? sell.split(' / ').filter(Boolean) : [] } : null
+    let attached = false
+    setMessages((msgs || []).map(m => {
+      const isA = m.role === 'assistant'
+      const base = { role: m.role, text: m.content, isScript: isA, mine: isA && isMy }
+      if (isA && analysis && !attached) { attached = true; base.analysis = analysis }
+      return base
+    })); setClips(cl || []); setJobId(id); setSoso(null)
     try { const { data: jt } = await supabase.rpc('get_job_turns_rpc', { p_job_id: id }); setTurns(typeof jt?.turns_left === 'number' ? jt.turns_left : null) } catch { setTurns(null) }
   }
   const newChat = () => { setMessages([]); setJobId(null); setSoso(null); setClips([]); setInput(''); setErr(''); setShowJobs(false); setTurns(null); resetGrow() }
