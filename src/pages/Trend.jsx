@@ -131,7 +131,7 @@ export default function Trend() {
       }
       if (ad?.ok) { product = ad.product_name || ''; const sp = Array.isArray(ad.selling_points) ? ad.selling_points.filter(Boolean) : []; selling = sp.length ? sp.join(' / ') : caption; if (product) selling = product + ' — ' + selling }
     } catch { /* noop */ }
-    const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'generate', voice_mode: 'base', source_ref: it.shortcode, product_name: product || caption.split(/[\u2014\-.\n]/)[0].slice(0, 60), selling_points: selling }) })
+    const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'generate', voice_mode: 'my', source_ref: it.shortcode, product_name: product || caption.split(/[\u2014\-.\n]/)[0].slice(0, 60), selling_points: selling }) })
     const d = await r.json()
     if (!d.ok) { const e = new Error(d.code === 'INSUFFICIENT_CREDITS' ? `이용권이 부족해요 (10턴 세션에 2개 필요)` : (d.error || '대본 생성 실패')); e.code = d.code; throw e }
     return d.job_id

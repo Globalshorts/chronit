@@ -137,11 +137,13 @@ export default function ScriptAssistant({ session: sessionProp }) {
   }
   const openJob = async (id) => {
     setShowJobs(false); setErr('')
-    const [{ data: msgs }, { data: cl }] = await Promise.all([
+    const [{ data: msgs }, { data: cl }, { data: jrow }] = await Promise.all([
       supabase.from('job_messages').select('role,content').eq('job_id', id).order('created_at'),
       supabase.from('job_clips').select('id,thumbnail:storage_path,source_url,status').eq('job_id', id),
+      supabase.from('jobs').select('voice_mode').eq('id', id).maybeSingle(),
     ])
-    setMessages((msgs || []).map(m => ({ role: m.role, text: m.content, isScript: m.role === 'assistant' }))); setClips(cl || []); setJobId(id); setSoso(null)
+    const isMy = jrow?.voice_mode === 'my' && voiceProfile?.has_voice === true
+    setMessages((msgs || []).map(m => ({ role: m.role, text: m.content, isScript: m.role === 'assistant', mine: m.role === 'assistant' && isMy }))); setClips(cl || []); setJobId(id); setSoso(null)
     try { const { data: jt } = await supabase.rpc('get_job_turns_rpc', { p_job_id: id }); setTurns(typeof jt?.turns_left === 'number' ? jt.turns_left : null) } catch { setTurns(null) }
   }
   const newChat = () => { setMessages([]); setJobId(null); setSoso(null); setClips([]); setInput(''); setErr(''); setShowJobs(false); setTurns(null); resetGrow() }
@@ -182,11 +184,11 @@ export default function ScriptAssistant({ session: sessionProp }) {
       if (product) selling = product + ' — ' + selling
       if (a) setSoso(v => ({ ...v, product, selling: sp }))
       setStage('대본을 짓는 중…')
-      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'generate', voice_mode: 'base', source_ref: soso.source_ref, product_name: product || (soso.caption || '').split(/[—\-.\n]/)[0].slice(0, 60), selling_points: selling }) })
+      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'generate', voice_mode: 'my', source_ref: soso.source_ref, product_name: product || (soso.caption || '').split(/[—\-.\n]/)[0].slice(0, 60), selling_points: selling }) })
       const d = await r.json()
       if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? `이용권이 부족해요. 10턴 세션을 열려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '대본 생성 실패')); return }
       setJobId(d.job_id); applyMeter(d)
-      setMessages([{ role: 'assistant', text: d.script, isScript: true, analysis: { product, selling: sp } }]); loadJobs()
+      setMessages([{ role: 'assistant', text: d.script, isScript: true, mine: voiceProfile?.has_voice === true, analysis: { product, selling: sp } }]); loadJobs()
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
 
