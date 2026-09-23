@@ -13,8 +13,8 @@ const CARDS = [
   },
   {
     to: '/manual/search',
-    title: '검색 vs 채널 분석',
-    desc: '관련 클립 검색과\n채널 분석, 언제 뭘 쓰나',
+    title: '대본 작성 vs 채널 분석',
+    desc: '베라 대본 작성과\n채널 분석, 언제 뭘 쓰나',
     color: 'border-white/10 hover:border-[#0064FF]/50',
     badge: '추천',
     badgeColor: 'bg-[#0064FF]/15 text-[#0064FF]',
@@ -30,7 +30,7 @@ const CARDS = [
   {
     to: '/manual/credits',
     title: '요금제 · 이용권',
-    desc: '분석 1회 = 이용권 1개\n요금제·환불 안내',
+    desc: '대본 1개 = 세션 2개\n요금제·환불 안내',
     color: 'border-white/10 hover:border-[#0064FF]/50',
     badge: null,
     badgeColor: '',

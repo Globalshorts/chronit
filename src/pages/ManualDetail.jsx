@@ -14,25 +14,25 @@ import trendMd from '../content/trend-guide.md?raw'
 const SECTIONS = {
  start: {
  title: '3단계 빠른 시작',
- callout: '링크나 키워드를 넣으면 터진 릴스를 찾아 AI가 분석합니다. 아래 세 단계를 확인하세요.',
+ callout: '트렌드에서 소재를 골라 베라가 내 말투 대본을 써줍니다. 아래 세 단계를 확인하세요.',
  type: 'markdown',
  content: startMd,
  },
  search: {
- title: '검색 vs 채널 분석',
- callout: '관련 클립 검색과 채널 분석, 언제 무엇을 쓰면 좋은지 정리했습니다.',
+ title: '대본 작성 vs 채널 분석',
+ callout: '베라 대본 작성과 채널 분석, 언제 무엇을 쓰면 좋은지 정리했습니다.',
  type: 'markdown',
  content: searchMd,
  },
  trend: {
  title: '실시간 트렌드',
- callout: '최근 반응이 터진 쇼핑 릴스를 모아 보는 곳입니다. 팔로워 규모로 필터링할 수 있습니다.',
+ callout: '최근 반응이 터진 쇼핑 릴스를 모아 보는 곳입니다. 마음에 드는 소재로 바로 대본을 만들 수 있어요.',
  type: 'markdown',
  content: trendMd,
  },
  credits: {
  title: '요금제 · 이용권',
- callout: '분석 1회 = 이용권 1개. 요금제와 환불 규정을 정리했습니다.',
+ callout: '대본 1개 = 10턴 세션(이용권 2개). 요금제와 환불 규정을 정리했습니다.',
  type: 'markdown',
  content: creditsMd,
  },

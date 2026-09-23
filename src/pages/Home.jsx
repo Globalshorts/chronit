@@ -578,7 +578,7 @@ const Home = () => {
               오늘 반응한 쇼핑 숏폼,<br />내 <span className="text-[#A9C0FF]">다음 영상 기획</span>으로.
             </h1>
             <p className="mx-auto mb-10 max-w-md text-[15px] font-normal leading-relaxed text-white/45 break-keep md:text-base">
-              감으로 찍어 망하는 영상은 그만 — 이미 반응이 증명된 소재만 골라,<br />훅·셀링포인트·컷 구성을 분석해 내 상품 기획으로 바꿔보세요.
+              감으로 찍어 망하는 영상은 그만 — 이미 반응이 증명된 소재만 골라,<br />베라 대본 비서가 내 말투 대본까지 써드려요.
             </p>
             <div className="flex w-full max-w-sm flex-col items-center gap-4">
               <button onClick={handleFinds}
@@ -645,8 +645,8 @@ const Home = () => {
           <RevealStagger className="space-y-4">
             {[
               { q: '어떤 플랫폼의 소스를 찾아주나요?', a: '샤오훙슈·틱톡·인스타 등에서 지금 반응이 좋은 소스를 찾아냅니다. 국내에 아직 알려지지 않은 소스도 먼저 발견할 수 있습니다.' },
-              { q: '분석은 뭘 알려주나요?', a: '영상이 왜 통했는지 — 훅(첫 3초)·셀링포인트·구성 흐름을 짚어냅니다. 그대로 벤치마크해 내 영상에 적용할 수 있습니다.' },
-              { q: '이용권은 어떻게 쓰이나요?', a: '분석 1회에 이용권 1개가 사용됩니다. 검색과 트렌드 열람은 무료이며, 무료 회원에게도 매월 이용권 5개를 제공합니다.' },
+              { q: '베라 대본 비서는 뭘 해주나요?', a: '고른 소재를 바탕으로 내 말투에 맞는 릴스 대본을 써줍니다. 대화로 톤·길이·표현을 다듬을수록 내 말투를 학습해 점점 나다워집니다.' },
+              { q: '이용권은 어떻게 쓰이나요?', a: '대본 1개를 시작하면 10턴 대화 세션이 열리고 이용권 2개가 사용됩니다. 채널 분석은 1회에 1개이며, 트렌드 열람·검색은 무료입니다. 무료 회원에게도 매월 이용권 5개를 제공합니다.' },
             ].map(({ q, a }) => (
               <div key={q} className="rounded-2xl glass glass-c p-6 shadow-none md:p-7">
                 <div className="mb-3 flex items-start gap-3">
