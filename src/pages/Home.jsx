@@ -575,10 +575,10 @@ const Home = () => {
           {!user && (<>
             <p className="hero-shimmer mb-6 text-[11px] font-semibold uppercase tracking-[0.32em]">Trend · Vera · Script</p>
             <h1 className="mb-6 text-[2.4rem] font-semibold leading-[1.16] tracking-tight text-white break-keep md:text-[3.7rem]">
-              오늘 터진 쇼핑 소재,<br />내 <span className="text-[#A9C0FF]">말투 대본</span>까지 한 번에.
+              쇼핑 크리에이터의<br /><span className="text-[#A9C0FF]">AI 콘텐츠 비서</span>
             </h1>
             <p className="mx-auto mb-10 max-w-md text-[15px] font-normal leading-relaxed text-white/45 break-keep md:text-base">
-              감으로 찍어 망하는 영상은 그만 — 반응이 검증된 소재를 고르면,<br />베라가 내 말투 그대로 대본을 써드려요.
+              지금 팔리는 소재를 찾아, 내 말투로 대본까지.
             </p>
             <div className="flex w-full max-w-sm flex-col items-center gap-4">
               <button onClick={handleFinds}
