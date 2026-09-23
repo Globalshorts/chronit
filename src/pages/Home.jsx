@@ -462,12 +462,12 @@ const Home = () => {
 
       {/* Header */}
       <header className={`relative z-50 border-b transition-[background-color,border-color,padding] duration-300 ${scrolled ? 'border-white/10 bg-[#0A0B0F]/85 py-3 backdrop-blur-md' : 'border-transparent bg-transparent py-4 md:py-5'}`}>
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 md:px-8">
+        <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 md:px-8">
           <a href="/" className="flex min-w-0 items-center gap-2 md:gap-3">
             <img src="/cn-white.svg" alt="Chronit" className="h-9 w-9 shrink-0 md:h-10 md:w-10" />
             <h1 className={`hidden md:block text-2xl font-bold tracking-tight md:text-3xl ${scrolled ? 'text-white' : 'text-white'}`}>Chronit</h1>
           </a>
-          <SiteNav light={!scrolled} />
+          <div className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 md:block"><SiteNav light={!scrolled} /></div>
           <div className="flex shrink-0 items-center gap-2">
             <HeaderInstallBtn light />
             <div className="hidden md:flex items-center gap-2">
@@ -516,7 +516,7 @@ const Home = () => {
       <div className={`fixed top-0 left-0 right-0 z-40 transform transition-all duration-300 ease-in-out md:hidden ${menuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`} style={{ paddingTop: `${bannerH + 76}px` }}>
         <div className="border-b border-white/10 bg-[#0A0B0F] px-6 py-6 shadow-lg overflow-y-auto overscroll-contain" style={{ maxHeight: `calc(100dvh - ${bannerH + 76}px)` }}>
           <nav className="flex flex-col gap-1 text-lg font-bold text-white/70">
-            <Link to="/script" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 font-semibold text-[#0064FF] transition-colors hover:bg-[#0064FF]/5">대본 비서 — 소재 골라 내 말투 대본</Link>
+            <Link to="/script" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 font-semibold text-[#0064FF] transition-colors hover:bg-[#0064FF]/5">AI 비서 — 소재 골라 내 말투 대본</Link>
             <Link to="/trend" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 font-semibold text-[#0064FF] transition-colors hover:bg-[#0064FF]/5">실시간 트렌드</Link>
             <Link to="/manual" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-white/[0.03] hover:text-[#0064FF]">사용 방법</Link>
             <Link to="/me" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-white/[0.03] hover:text-[#0064FF]">마이페이지</Link>
