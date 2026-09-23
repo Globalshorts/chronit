@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-route
 import { AnalysisProvider } from './context/analysis'
 import ErrorBoundary from './components/ErrorBoundary'
 import Home from './pages/Home'
+import ScriptAssistant from './pages/ScriptAssistant'
 import BlobBackground from './components/BlobBackground'
 import ErrorReportModal from './components/ErrorReportModal'
 import ActivationGate from './components/ActivationGate'
@@ -20,6 +21,8 @@ import { phIdentify, phReset } from './lib/posthog'
 
 // ── 라우트별 코드 스플리팅 (홈 진입 시 앱 전체가 아니라 필요한 청크만 로드) ──
 // 청크 로드 실패(배포 갱신으로 옛 해시 요청 등) 시 1회 새로고침해 최신 청크를 받음 → 빈 화면 방지
+import WhatsNew from './components/WhatsNew'
+
 const lazyRetry = (factory) => lazy(() => factory().catch((err) => {
   try {
     const k = 'chr_chunk_reload'
@@ -52,6 +55,7 @@ const BoardWrite = lazyRetry(() => import('./pages/BoardWrite'))
 const BoardPost = lazyRetry(() => import('./pages/BoardPost'))
 const MyPage = lazyRetry(() => import('./pages/MyPage'))
 const Pricing = lazyRetry(() => import('./pages/Pricing'))
+const Changelog = lazyRetry(() => import('./pages/Changelog'))
 const UserProfile = lazyRetry(() => import('./pages/UserProfile'))
 const DmAutomation = lazyRetry(() => import('./pages/DmAutomation'))
 const PaymentResult = lazyRetry(() => import('./pages/PaymentResult'))
@@ -59,7 +63,7 @@ const PaymentResult = lazyRetry(() => import('./pages/PaymentResult'))
 // 렌더(편집) 종료 게이트 — 2026-09-15 0시(KST)부터 작업실 진입 차단, Research로 리다이렉트
 const RENDER_CLOSE = new Date('2026-09-15T00:00:00+09:00').getTime()
 function GenerateGate() {
-  if (Date.now() >= RENDER_CLOSE) return <Navigate to="/research" replace />
+  if (Date.now() >= RENDER_CLOSE) return <Navigate to="/trend" replace />
   return <VideoGenerator />
 }
 
@@ -116,6 +120,7 @@ const App = () => {
     <PushPrompt />
     <Suspense fallback={null}><PwaInstallGlobal /></Suspense>
     <InstallButton />
+    <WhatsNew />
     <ErrorBoundary>
     <Suspense fallback={<RouteFallback />}>
     <Routes>
@@ -123,6 +128,7 @@ const App = () => {
       <Route path="/start" element={<Landing />} />
       <Route path="/register" element={<Register />} />
       <Route path="/manual" element={<Manual />} />
+      <Route path="/changelog" element={<Changelog />} />
       <Route path="/manual/:section" element={<ManualDetail />} />
       <Route path="/events" element={<Events />} />
       <Route path="/events/write" element={<EventWrite />} />
@@ -132,14 +138,15 @@ const App = () => {
       <Route path="/generate" element={<GenerateGate />} />
       <Route element={<AppShell />}>
         <Route path="/trend" element={<Trend />} />
-        <Route path="/research" element={<Finds />} />
+        <Route path="/script" element={<ScriptAssistant />} />
+        <Route path="/research" element={<Navigate to="/trend" replace />} />
         <Route path="/watchlist" element={<Watchlist />} />
         <Route path="/me" element={<MyPage />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/partner" element={<Partner />} />
       </Route>
-      <Route path="/finds" element={<Navigate to="/research" replace />} />
+      <Route path="/finds" element={<Navigate to="/trend" replace />} />
       <Route path="/fastbench" element={<FastBench />} />
       <Route path="/channel-analysis" element={<ChannelAnalysis />} />
       <Route path="/links" element={<LinksManager />} />

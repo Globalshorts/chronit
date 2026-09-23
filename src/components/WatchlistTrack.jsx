@@ -62,7 +62,7 @@ export default function WatchlistTrack({ onGo, onClaimed }) {
   }
 
   return (
-    <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+    <div className="mt-5 rounded-2xl glass p-4">
       <div className="mb-3 flex items-center gap-1.5">
         <Bookmark size={14} className="text-emerald-400" />
         <h4 className="text-sm font-bold text-white">워치리스트 성장</h4>
@@ -105,7 +105,7 @@ export default function WatchlistTrack({ onGo, onClaimed }) {
           )}
         </div>
       ) : (
-        <p className="rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-3 text-center text-xs font-bold text-emerald-400">
+        <p className="rounded-xl glass px-3.5 py-3 text-center text-xs font-bold text-emerald-400">
           모든 단계를 완료했어요 🎉
         </p>
       )}

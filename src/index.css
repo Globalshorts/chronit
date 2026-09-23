@@ -214,3 +214,13 @@ select option:checked, select option:hover {
 /* 워치리스트 갱신 진행바 shimmer — 청크 응답 사이에도 살아있다는 신호 */
 @keyframes chr-shimmer { 0% { transform: translateX(-120%) } 100% { transform: translateX(420%) } }
 .chr-shimmer { animation: chr-shimmer 1.5s linear infinite; }
+
+/* ── 다크 글래스모피즘 ── 좌상단·우하단 하얀 림라이트로 입체감 */
+.glass{position:relative;background:rgba(255,255,255,.05);backdrop-filter:blur(14px) saturate(1.1);-webkit-backdrop-filter:blur(14px) saturate(1.1);box-shadow:0 12px 34px -14px rgba(0,0,0,.6);}
+.glass::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.2px;background:linear-gradient(135deg,rgba(255,255,255,.6) 0%,rgba(255,255,255,.1) 30%,rgba(255,255,255,0) 50%,rgba(255,255,255,.1) 70%,rgba(255,255,255,.45) 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+/* 가벼운 버전 — 말풍선 등 작은 표면(블러 없이 림라이트만) */
+.glass-soft{position:relative;background:rgba(255,255,255,.05);box-shadow:inset 1.5px 1.5px 0 rgba(255,255,255,.24),inset -1.5px -1.5px 0 rgba(255,255,255,.14),0 6px 18px -10px rgba(0,0,0,.5);}
+/* 파란 강조(mine) 글래스 */
+.glass-blue{position:relative;background:rgba(0,100,255,.12);box-shadow:inset 1.5px 1.5px 0 rgba(160,195,255,.45),inset -1.5px -1.5px 0 rgba(130,170,255,.25),0 6px 18px -10px rgba(0,60,180,.5);}
+/* 파란 활성 표면(사이드바 탭·주요 버튼) — 림라이트로 입체감 */
+.glass-active{box-shadow:inset 1.6px 1.6px 0 rgba(255,255,255,.4),inset -1.6px -1.6px 0 rgba(255,255,255,.2),0 6px 16px -6px rgba(0,100,255,.5);}

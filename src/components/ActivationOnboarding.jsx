@@ -176,7 +176,7 @@ export default function ActivationOnboarding({ onDone, onDefer }) {
             ) : (
               <div className="mt-5 grid grid-cols-3 gap-2.5">
                 {items.map((it) => (
-                  <div key={it.shortcode} className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
+                  <div key={it.shortcode} className="overflow-hidden rounded-xl glass">
                     <div className="relative aspect-[9/16] bg-white/5">
                       <TrendThumb url={it.thumbnail_url} sc={it.shortcode} />
                     </div>

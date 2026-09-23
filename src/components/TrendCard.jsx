@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Flame, Eye, Heart, MessageCircle, Sparkles, Lock, Play, Bookmark, Layers, ExternalLink } from 'lucide-react'
+import { Flame, Eye, Heart, MessageCircle, Sparkles, Lock, Play, Bookmark, Layers, ExternalLink, Loader2, ArrowRight } from 'lucide-react'
 import { fmtCount, timeAgo } from '../lib/format'
 import { isCarousel, coverOf, imagesOf, openPost } from '../lib/filterConfig'
 
@@ -31,7 +31,7 @@ const Num = ({ value, pending }) => (
 export default function TrendCard({
   it, rank, locked = false, watching = false, lockedLabel = '프로 이상 전용',
   lazyDetail = false, coach = false, showOwner = false,
-  onPlay, onOpen, onAnalyze, onSource, onToggleWatch, onUnlock,
+  onPlay, onOpen, onAnalyze, onSource, onToggleWatch, onUnlock, onScript, scriptState,
 }) {
   const carousel = isCarousel(it)
   const cover = coverOf(it)
@@ -41,9 +41,9 @@ export default function TrendCard({
   // lazyDetail(목록에 video_url 을 안 싣는 피드)이면 호출부가 상세를 받아 판단한다.
   const openOnly = carousel || (!lazyDetail && !it.video_url)
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+    <div className="overflow-hidden rounded-xl glass">
       {locked ? (
-        <div role="button" onClick={onUnlock} className="relative block aspect-[9/16] cursor-pointer bg-slate-100">
+        <div role="button" onClick={onUnlock} className="relative block aspect-[9/16] cursor-pointer bg-white/[0.06]">
           <div className="h-full w-full overflow-hidden blur-[12px]"><TrendThumb url={cover} sc={it.shortcode} /></div>
           {rank != null && <div className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">#{rank}</div>}
           {it.taken_at && <div className="absolute right-1.5 top-1.5 rounded bg-[#0064FF] px-1.5 py-0.5 text-[10px] font-bold text-white">{timeAgo(it.taken_at)}</div>}
@@ -55,7 +55,7 @@ export default function TrendCard({
       ) : (
         <div role="button" onClick={openOnly ? () => (onOpen ? onOpen() : openPost(it.url)) : onPlay}
           aria-label={openOnly ? (showOwner ? `@${it.owner} 게시물 열기` : '이 게시물 열기') : undefined}
-          className="relative block aspect-[9/16] cursor-pointer bg-slate-100">
+          className="relative block aspect-[9/16] cursor-pointer bg-white/[0.06]">
           <TrendThumb url={cover} sc={it.shortcode} />
           {rank != null && <div className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">#{rank}</div>}
           {it.taken_at && <div className="absolute right-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">{timeAgo(it.taken_at)}</div>}
@@ -74,12 +74,12 @@ export default function TrendCard({
         </div>
       )}
       <div className="p-2">
-        <div className="mb-1.5 flex items-center gap-2 text-[11px] text-slate-500">
+        <div className="mb-1.5 flex items-center gap-2 text-[11px] text-white/45">
           {!carousel && <span className="flex items-center gap-0.5"><Eye size={11} /><Num value={it.view_count} pending={pending} /></span>}
           <span className="flex items-center gap-0.5"><Heart size={11} /><Num value={it.like_count} pending={pending} /></span>
           <span className="flex items-center gap-0.5"><MessageCircle size={11} /><Num value={it.comment_count} pending={pending} /></span>
         </div>
-        <div className="mb-1.5 truncate text-[11px] text-slate-400">
+        <div className="mb-1.5 truncate text-[11px] text-white/35">
           {locked ? lockedLabel
             : showOwner ? `@${it.owner}${!pending && it.follower_count ? ` · 팔로워 ${fmtCount(it.follower_count)}` : ''}`
             : (!pending && it.follower_count) ? `팔로워 ${fmtCount(it.follower_count)}`
@@ -90,18 +90,17 @@ export default function TrendCard({
         ) : (
           <>
             <div className="flex gap-1.5">
-              <button onClick={onAnalyze} title="분석 = 비슷한 소재 찾기"
-                className={`flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95${coach ? ' animate-pulse ring-2 ring-[#0064FF]/45 ring-offset-2' : ''}`}>
-                <Sparkles size={12} />분석
+              <button onClick={onScript} disabled={scriptState?.status === 'generating'} title={scriptState?.error || '이 소재로 대본 작성하기'}
+                className={`flex flex-1 items-center justify-center gap-1 rounded-lg py-1.5 text-xs font-bold text-white transition hover:brightness-95 ${scriptState?.status === 'ready' ? 'bg-emerald-500' : scriptState?.status === 'error' ? 'bg-rose-500' : 'bg-[#0064FF]'} ${scriptState?.status === 'generating' ? 'opacity-70' : ''}${coach ? ' animate-pulse ring-2 ring-[#0064FF]/45 ring-offset-2' : ''}`}>
+                {scriptState?.status === 'generating' ? <><Loader2 size={12} className="animate-spin" />생성 중…</> : scriptState?.status === 'ready' ? <><ArrowRight size={12} />베라에서 보기</> : scriptState?.status === 'error' ? <><Sparkles size={12} />다시 시도</> : <><Sparkles size={12} />대본 작성</>}
               </button>
               {onToggleWatch && (
                 <button onClick={onToggleWatch} title="담기 = 이 계정을 워치리스트에 저장" aria-pressed={watching}
-                  className={`flex flex-1 items-center justify-center gap-1 rounded-lg border py-1.5 text-xs font-bold transition ${watching ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-slate-200 text-slate-600 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>
+                  className={`flex flex-1 items-center justify-center gap-1 rounded-lg border py-1.5 text-xs font-bold transition ${watching ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-white/10 text-white/55 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>
                   <Bookmark size={12} className={watching ? 'fill-emerald-500 text-emerald-500' : ''} />{watching ? '담김' : '담기'}
                 </button>
               )}
             </div>
-            <button onClick={onSource} className="mt-1.5 w-full rounded-lg py-1 text-[11px] font-bold text-slate-400 transition hover:text-[#0064FF]">소스 찾기 →</button>
           </>
         )}
       </div>

@@ -31,7 +31,7 @@ export default function FeatureLanding({ active, eyebrow, badge, title, sub, ben
         <section className="px-5 pb-16 md:px-8">
           <div className="mx-auto grid max-w-4xl gap-4 md:grid-cols-3">
             {benefits.map((b, i) => (
-              <div key={i} className="rounded-2xl border border-white/10 bg-white/[0.04] p-6">
+              <div key={i} className="rounded-2xl glass p-6">
                 <div className="text-[15px] font-bold text-white">{b.title}</div>
                 <p className="mt-2 text-[14px] leading-relaxed text-white/55">{b.desc}</p>
               </div>
@@ -46,7 +46,7 @@ export default function FeatureLanding({ active, eyebrow, badge, title, sub, ben
             <div className="mb-8 text-center text-[11px] font-semibold uppercase tracking-[0.28em] text-white/30">How it works</div>
             <div className="space-y-3">
               {steps.map((s, i) => (
-                <div key={i} className="flex items-start gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+                <div key={i} className="flex items-start gap-4 rounded-2xl glass p-5">
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0064FF]/15 text-sm font-bold text-[#7DA2FF]">{i + 1}</span>
                   <div><div className="text-[15px] font-bold text-white">{s.title}</div><p className="mt-1 text-[14px] leading-relaxed text-white/55">{s.desc}</p></div>
                 </div>

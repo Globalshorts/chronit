@@ -5,32 +5,32 @@ import { ManualHeader, ManualFooter } from '../components/ManualLayout'
 const CARDS = [
   {
     to: '/manual/start',
-    title: '3단계 빠른 시작',
-    desc: '링크·키워드 넣고\n검색부터 분석까지',
+    title: '크로닛 제작 흐름',
+    desc: '소재 찾기부터\n릴스 완성까지 전체 순서',
     color: 'border-white/10 hover:border-[#0064FF]/50',
     badge: '필수',
     badgeColor: 'bg-[#0064FF]/15 text-[#0064FF]',
   },
   {
     to: '/manual/search',
-    title: '검색 vs 채널 분석',
-    desc: '관련 클립 검색과\n채널 분석, 언제 뭘 쓰나',
+    title: 'AI 비서 베라 사용법',
+    desc: '대본 작성·채널 분석\n베라로 할 수 있는 것',
     color: 'border-white/10 hover:border-[#0064FF]/50',
     badge: '추천',
     badgeColor: 'bg-[#0064FF]/15 text-[#0064FF]',
   },
   {
     to: '/manual/trend',
-    title: '실시간 트렌드',
+    title: '실시간 트렌드 보는 법',
     desc: '잘 뜬 쇼핑 숏폼을\n한곳에 모아보기',
     color: 'border-white/10 hover:border-[#0064FF]/50',
     badge: '핵심',
-    badgeColor: 'bg-[#FFB800]/15 text-[#9a6b00]',
+    badgeColor: 'bg-[#FFB800]/15 text-[#FFB800]',
   },
   {
     to: '/manual/credits',
     title: '요금제 · 이용권',
-    desc: '분석 1회 = 이용권 1개\n요금제·환불 안내',
+    desc: '이용권 어떻게 쓰나\n요금·환불 안내',
     color: 'border-white/10 hover:border-[#0064FF]/50',
     badge: null,
     badgeColor: '',
@@ -56,7 +56,7 @@ const CARDS = [
 const Manual = () => {
   const { pathname } = useLocation()
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#FAFAF8] font-sans text-gray-900 selection:bg-[#0064FF]/30">
+    <div className="min-h-screen overflow-x-hidden bg-[#0a0b0f] font-sans text-white selection:bg-[#0064FF]/30">
       <ManualHeader currentPath={pathname} />
 
       {/* 히어로 */}
@@ -65,8 +65,8 @@ const Manual = () => {
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#0064FF]/20 bg-[#0064FF]/10 px-4 py-1.5 text-sm font-bold text-[#0064FF] shadow-[0_0_20px_rgba(59,130,246,0.15)] md:text-base">
             <Sparkles size={14} fill="currentColor" /> <span>크로닛 사용 방법</span>
           </div>
-          <h1 className="mb-4 text-4xl font-bold tracking-tight text-gray-900 md:text-6xl">사용 방법</h1>
-          <p className="text-lg leading-[1.8] text-slate-500 md:text-xl">세팅부터 제작·공유까지, 크로닛을 제대로 쓰는 법.</p>
+          <h1 className="mb-4 text-4xl font-bold tracking-tight text-white md:text-6xl">사용 방법</h1>
+          <p className="text-lg leading-[1.8] text-white/45 md:text-xl">소재 찾기부터 대본·제작까지,<br />크로닛을 제대로 쓰는 법.</p>
         </div>
       </section>
 
@@ -77,7 +77,7 @@ const Manual = () => {
             <Link
               key={card.to}
               to={card.to}
-              className={`group relative flex flex-col gap-3 rounded-2xl border bg-white/[0.04] p-6 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/[0.06] ${card.color}`}
+              className={`group relative flex flex-col gap-3 rounded-2xl glass p-6 transition-all duration-200 hover:-translate-y-0.5 ${card.color}`}
             >
               {card.badge && (
                 <span className={`absolute top-4 right-4 rounded-full px-2.5 py-0.5 text-xs font-bold ${card.badgeColor}`}>
@@ -85,8 +85,8 @@ const Manual = () => {
                 </span>
               )}
               <div>
-                <h2 className="text-lg font-bold text-gray-900">{card.title}</h2>
-                <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-slate-500">{card.desc}</p>
+                <h2 className="text-lg font-bold text-white">{card.title}</h2>
+                <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-white/55">{card.desc}</p>
               </div>
               <div className="mt-auto flex items-center gap-1 text-sm font-bold text-[#0064FF] transition-gap group-hover:gap-2">
                 바로가기 <ChevronRight size={16} />

@@ -27,7 +27,7 @@ export const Lightbox = ({ src, alt, onClose }) => (
 const makeMdComponents = (onImageClick) => ({
   h1: (p) => <h1 className="mt-8 mb-3 text-xl font-bold text-gray-900 md:text-2xl" {...p} />,
   h2: (p) => <h2 className="mt-8 mb-3 text-lg font-bold text-gray-900 md:text-xl" {...p} />,
-  h3: (p) => <h3 className="mt-5 mb-2 text-base font-bold text-gray-700 md:text-lg" {...p} />,
+  h3: (p) => <h3 className="mt-8 mb-2.5 text-lg font-extrabold text-gray-900 md:text-2xl" {...p} />,
   p:  (p) => <p className="my-2 text-base leading-[1.9] text-slate-600 [overflow-wrap:anywhere] md:text-lg" {...p} />,
   ul: (p) => <ul className="my-2 list-disc space-y-1.5 pl-5 text-slate-600 [overflow-wrap:anywhere]" {...p} />,
   ol: (p) => <ol className="my-2 list-decimal space-y-1.5 pl-5 text-slate-600 [overflow-wrap:anywhere]" {...p} />,

@@ -13,26 +13,26 @@ import trendMd from '../content/trend-guide.md?raw'
 
 const SECTIONS = {
  start: {
- title: '3단계 빠른 시작',
- callout: '링크나 키워드를 넣으면 터진 릴스를 찾아 AI가 분석합니다. 아래 세 단계를 확인하세요.',
+ title: '크로닛 제작 흐름',
+ callout: '소재를 찾고, 베라가 대본을 쓰고, 클립을 구해 릴스를 완성하는 실제 순서예요.',
  type: 'markdown',
  content: startMd,
  },
  search: {
- title: '검색 vs 채널 분석',
- callout: '관련 클립 검색과 채널 분석, 언제 무엇을 쓰면 좋은지 정리했습니다.',
+ title: 'AI 비서 베라 사용법',
+ callout: '베라로 할 수 있는 대본 작성과 채널 분석을 정리했어요.',
  type: 'markdown',
  content: searchMd,
  },
  trend: {
- title: '실시간 트렌드',
- callout: '최근 반응이 터진 쇼핑 릴스를 모아 보는 곳입니다. 팔로워 규모로 필터링할 수 있습니다.',
+ title: '실시간 트렌드 보는 법',
+ callout: '최근 반응이 터진 쇼핑 릴스를 모아 보는 곳이에요. 마음에 드는 소재로 바로 대본을 만들 수 있어요.',
  type: 'markdown',
  content: trendMd,
  },
  credits: {
  title: '요금제 · 이용권',
- callout: '분석 1회 = 이용권 1개. 요금제와 환불 규정을 정리했습니다.',
+ callout: '대본 1개 = 10턴 세션(이용권 2개). 요금제와 환불 규정을 정리했습니다.',
  type: 'markdown',
  content: creditsMd,
  },
@@ -147,14 +147,14 @@ const ManualDetail = () => {
  )}
 
  {section === 'start' && (
- <Link to="/research" className="group mt-8 block overflow-hidden rounded-3xl border-2 border-[#0064FF]/40 bg-gradient-to-br from-[#0064FF]/12 to-[#0064FF]/5 p-6 transition-all hover:-translate-y-0.5 hover:border-[#0064FF] hover:shadow-xl md:p-7">
+ <Link to="/trend" className="group mt-8 block overflow-hidden rounded-3xl border-2 border-[#0064FF]/40 bg-gradient-to-br from-[#0064FF]/12 to-[#0064FF]/5 p-6 transition-all hover:-translate-y-0.5 hover:border-[#0064FF] hover:shadow-xl md:p-7">
  <span className="inline-block rounded-full bg-[#0064FF] px-3 py-1 text-xs font-bold text-white">바로 시작</span>
- <h3 className="mt-3 text-xl font-bold leading-snug text-gray-900 md:text-2xl">지금 바로 소재 찾아보기 </h3>
+ <h3 className="mt-3 text-xl font-bold leading-snug text-gray-900 md:text-2xl">지금 바로 트렌드에서 소재 찾기</h3>
  <p className="mt-2 text-sm leading-relaxed text-gray-600 md:text-base">
- 링크나 키워드만 넣으면 터진 릴스를 찾아냅니다. <b className="text-[#0064FF]">가입은 무료</b>, 매월 이용권 5개를 제공합니다.
+ 터진 소재를 골라 베라에게 대본까지 맡겨보세요. <b className="text-[#0064FF]">가입은 무료</b>, 매월 이용권 5개를 제공합니다.
  </p>
  <span className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#0064FF] px-6 py-3.5 text-base font-bold text-white shadow-md shadow-black/5 transition-all group-hover:gap-3">
- 리서치 열기 <ArrowRight size={18} />
+ 트렌드 열기 <ArrowRight size={18} />
  </span>
  </Link>
  )}

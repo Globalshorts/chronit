@@ -141,7 +141,7 @@ const MyPage = () => {
     <div className="min-h-screen font-sans">
       <div className="flex min-h-[70vh] flex-col items-center justify-center gap-4 px-5 text-center">
         <p className="text-lg font-bold">로그인이 필요해요</p>
-        <p className="-mt-2 text-sm text-slate-400">저장한 소재·이용권·내 활동을 보려면 로그인하세요.</p>
+        <p className="-mt-2 text-sm text-white/35">저장한 소재·이용권·내 활동을 보려면 로그인하세요.</p>
         <button onClick={() => setAuthOpen(true)} className="rounded-full bg-[#0064FF] px-6 py-2.5 font-bold text-white">무료로 로그인 / 가입</button>
       </div>
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
@@ -164,10 +164,10 @@ const MyPage = () => {
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <span className="truncate text-2xl font-bold">{profile?.nickname || '닉네임 미설정'}</span>
-                <button onClick={() => setNickOpen(true)} className="shrink-0 text-slate-400 hover:text-[#0064FF]" title="닉네임 변경"><Pencil size={16} /></button>
+                <button onClick={() => setNickOpen(true)} className="shrink-0 text-white/35 hover:text-[#0064FF]" title="닉네임 변경"><Pencil size={16} /></button>
               </div>
-              <div className="mt-1 truncate text-sm text-slate-500">{profile?.email || user?.email}</div>
-              {profile?.created_at && <div className="mt-0.5 text-xs text-slate-400">가입일 {new Date(profile.created_at).toLocaleDateString('ko-KR')}</div>}
+              <div className="mt-1 truncate text-sm text-white/45">{profile?.email || user?.email}</div>
+              {profile?.created_at && <div className="mt-0.5 text-xs text-white/35">가입일 {new Date(profile.created_at).toLocaleDateString('ko-KR')}</div>}
             </div>
             <button onClick={() => supabase.auth.signOut().then(() => nav('/'))}
               className="flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 px-3.5 py-2 text-sm font-bold text-gray-600 transition-all hover:border-gray-400 active:scale-[0.98]">
@@ -177,25 +177,25 @@ const MyPage = () => {
           {profile?.referral_code && (
             <>
             <button onClick={copyRef} className="mt-4 flex w-full items-center justify-between rounded-xl bg-gray-50 px-4 py-3 text-left transition-colors hover:bg-gray-100">
-              <span className="text-sm text-slate-500">내 추천 링크 <span className="font-bold text-gray-800">?ref={profile.referral_code}</span></span>
-              {copied ? <Check size={16} className="text-[#0064FF]" /> : <Copy size={16} className="text-slate-400" />}
+              <span className="text-sm text-white/45">내 추천 링크 <span className="font-bold text-gray-800">?ref={profile.referral_code}</span></span>
+              {copied ? <Check size={16} className="text-[#0064FF]" /> : <Copy size={16} className="text-white/35" />}
             </button>
-            <div className="mt-2 rounded-xl bg-[#0064FF]/5 px-4 py-3 text-xs leading-relaxed text-slate-600">
+            <div className="mt-2 rounded-xl bg-[#0064FF]/5 px-4 py-3 text-xs leading-relaxed text-white/55">
               <p className="mb-1 flex items-center gap-1 font-bold text-gray-800"><Gift size={14} className="text-[#0064FF]" /> 친구 초대 보상</p>
               <p>• 친구가 내 링크로 <b>가입</b>하면 → 친구에게 <b>이용권 2개</b></p>
               <p>• 친구가 <b>첫 결제</b>하면 → 나에게 <b>이용권 50개</b> · 친구에게 <b>이용권 20개</b></p>
-              <p className="mt-1.5 text-slate-400">※ 결제 시 지급되는 보너스 이용권은 30일간 유효해요.</p>
+              <p className="mt-1.5 text-white/35">※ 결제 시 지급되는 보너스 이용권은 30일간 유효해요.</p>
             </div>
             {refInfo && refInfo.ref_remaining_days > 0 ? (
               <div className="mt-2 rounded-xl border border-[#0064FF]/20 bg-white px-4 py-3">
                 <div className="mb-1.5 flex items-center justify-between text-xs">
                   <span className="flex items-center gap-1 font-bold text-gray-700"><Gift size={13} className="text-[#0064FF]" /> 보너스 이용권 만료까지</span>
-                  <span className={refInfo.ref_remaining_days <= 3 ? "font-bold text-red-500" : "text-slate-500"}>{refInfo.ref_remaining_days}일</span>
+                  <span className={refInfo.ref_remaining_days <= 3 ? "font-bold text-red-500" : "text-white/45"}>{refInfo.ref_remaining_days}일</span>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
                   <div className={`h-full rounded-full transition-all ${refInfo.ref_remaining_days <= 3 ? "bg-red-500" : "bg-[#0064FF]"}`} style={{ width: `${Math.min(100, Math.round((refInfo.ref_remaining_days / 30) * 100))}%` }} />
                 </div>
-                <p className="mt-1.5 text-[11px] text-slate-400">받은 보너스 이용권은 만료 전에 사용하세요.</p>
+                <p className="mt-1.5 text-[11px] text-white/35">받은 보너스 이용권은 만료 전에 사용하세요.</p>
               </div>
             ) : null}
             </>
@@ -207,7 +207,7 @@ const MyPage = () => {
           {/* 추천 코드 */}
           <div className="rounded-3xl border border-gray-200 bg-white p-5">
             <p className="mb-1 flex items-center gap-1.5 text-sm font-bold text-gray-800"><Gift size={15} className="text-[#0064FF]" /> 추천 코드</p>
-            <p className="mb-3 text-xs text-slate-500">친구에게 받은 코드 · 이용권 2개</p>
+            <p className="mb-3 text-xs text-white/45">친구에게 받은 코드 · 이용권 2개</p>
             <div className="flex gap-2">
               <input value={redeemCode} onChange={(e) => setRedeemCode(e.target.value.toUpperCase())} onKeyDown={(e) => e.key === 'Enter' && redeem()}
                 placeholder="추천 코드"
@@ -220,7 +220,7 @@ const MyPage = () => {
           {/* 프로모 코드 */}
           <div className="rounded-3xl border border-gray-200 bg-white p-5">
             <p className="mb-1 flex items-center gap-1.5 text-sm font-bold text-gray-800"><Ticket size={15} className="text-[#7C3AED]" /> 강사·프로모 코드</p>
-            <p className="mb-3 text-xs text-slate-500">강사·이벤트·광고 코드 (첫 달 무료 / 보너스 이용권)</p>
+            <p className="mb-3 text-xs text-white/45">강사·이벤트·광고 코드 (첫 달 무료 / 보너스 이용권)</p>
             <div className="flex gap-2">
               <input value={promoCode} onChange={(e) => setPromoCode(e.target.value.toUpperCase())} onKeyDown={(e) => e.key === 'Enter' && redeemPromo()}
                 placeholder="강사·프로모 코드"
@@ -237,9 +237,9 @@ const MyPage = () => {
         <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
           <div className="flex items-center justify-between">
             <div>
-              <div className="flex items-center gap-1 text-xs text-slate-400"><Sparkles size={13} /> 리서치 이용권</div>
+              <div className="flex items-center gap-1 text-xs text-white/35"><Sparkles size={13} /> 리서치 이용권</div>
               <div className="mt-1 text-2xl font-bold text-gray-800">{wallet ? wallet.finds_balance.toLocaleString() : '…'}</div>
-              <div className="mt-0.5 text-[11px] text-slate-400">{wallet?.sub_active
+              <div className="mt-0.5 text-[11px] text-white/35">{wallet?.sub_active
                 ? `${PLAN_LABEL[wallet.plan]} · 이용권 ${wallet.finds_balance.toLocaleString()} · ${wallet.days_left}일 남음`
                 : (PLAN_LABEL[wallet?.plan] || '무료')}</div>
             </div>
@@ -252,7 +252,7 @@ const MyPage = () => {
           <div className="mt-3 flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3">
             <div>
               <div className="text-sm font-bold text-gray-800">{PLAN_LABEL[wallet.plan]} {isTrial ? '무료 체험 중' : '구독'}</div>
-              <div className="text-xs text-slate-400">{wallet.auto_renew
+              <div className="text-xs text-white/35">{wallet.auto_renew
                 ? (isTrial ? `${fmtDate(wallet.expires_at)} 첫 자동결제 · 그 전에 해지하면 청구되지 않아요` : `다음 결제 ${fmtDate(wallet.expires_at)}`)
                 : `${wallet.days_left}일 남음 · 자동결제 해지됨`}</div>
             </div>
@@ -270,13 +270,13 @@ const MyPage = () => {
         <div className="mt-8">
           <div className="mb-1 flex items-baseline gap-2">
             <h2 className="flex items-center gap-1.5 text-base font-bold text-gray-800"><FileText size={16} className="text-[#0064FF]" /> 저장한 기획</h2>
-            <span className="text-sm text-slate-400">{briefs.length}</span>
+            <span className="text-sm text-white/35">{briefs.length}</span>
           </div>
-          <p className="mb-3 text-xs text-slate-400">저장한 기획은 90일간 보관돼요.</p>
+          <p className="mb-3 text-xs text-white/35">저장한 기획은 90일간 보관돼요.</p>
           {briefs.length === 0 ? (
             <div className="rounded-2xl border border-gray-200 bg-white px-4 py-8 text-center">
-              <p className="text-sm text-slate-500">아직 저장한 기획이 없어요.</p>
-              <p className="mt-1 text-xs text-slate-400">트렌드에서 소재를 분석한 뒤 ‘이 기획 저장하기’를 눌러보세요.</p>
+              <p className="text-sm text-white/45">아직 저장한 기획이 없어요.</p>
+              <p className="mt-1 text-xs text-white/35">트렌드에서 소재를 분석한 뒤 ‘이 기획 저장하기’를 눌러보세요.</p>
             </div>
           ) : (
             <div className="flex flex-col gap-2">
@@ -288,11 +288,11 @@ const MyPage = () => {
                   <div className="flex min-w-0 flex-1 flex-col">
                     <button onClick={() => setOpenBrief(b)} className="min-w-0 text-left">
                       <div className="line-clamp-2 text-[13px] font-medium text-gray-800">{b.caption || '(설명 없음)'}</div>
-                      <div className="mt-1 text-[11px] text-slate-400">저장일 {fmtDate(b.created_at)}</div>
+                      <div className="mt-1 text-[11px] text-white/35">저장일 {fmtDate(b.created_at)}</div>
                     </button>
                     <div className="mt-auto flex items-center gap-2 pt-2">
                       <button onClick={() => setOpenBrief(b)} className="rounded-lg bg-[#0064FF] px-3 py-1.5 text-[11px] font-bold text-white transition hover:brightness-95">기획 보기</button>
-                      {b.url && <a href={b.url} target="_blank" rel="noreferrer" className="rounded-lg border border-gray-200 px-3 py-1.5 text-[11px] font-bold text-slate-500 hover:text-slate-700">원본</a>}
+                      {b.url && <a href={b.url} target="_blank" rel="noreferrer" className="rounded-lg border border-gray-200 px-3 py-1.5 text-[11px] font-bold text-white/45 hover:text-white/85">원본</a>}
                       <button onClick={() => removeBrief(b.id)} aria-label="삭제" className="ml-auto rounded-lg p-1.5 text-slate-300 transition hover:text-red-500"><Trash2 size={14} /></button>
                     </div>
                   </div>
@@ -306,31 +306,31 @@ const MyPage = () => {
         <div className="mt-8 mb-1 flex border-b border-gray-200">
           {tabs.map(([k, label]) => (
             <button key={k} onClick={() => setTab(k)}
-              className={`-mb-px border-b-2 px-4 py-3 text-sm font-bold transition-colors ${tab === k ? 'border-[#0064FF] text-[#0064FF]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+              className={`-mb-px border-b-2 px-4 py-3 text-sm font-bold transition-colors ${tab === k ? 'border-[#0064FF] text-[#0064FF]' : 'border-transparent text-white/45 hover:text-white/85'}`}>
               {label}
             </button>
           ))}
         </div>
 
         {tab === 'posts' && (
-          posts.length === 0 ? <p className="py-10 text-center text-sm text-slate-400">작성한 글이 없어요</p> :
+          posts.length === 0 ? <p className="py-10 text-center text-sm text-white/35">작성한 글이 없어요</p> :
           <ul className="divide-y divide-gray-100">
             {posts.map(p => (
               <li key={p.id}><Link to={`/board/${p.id}`} className="flex items-center gap-2 py-3.5">
                 <span className={`rounded-md px-2 py-0.5 text-xs font-bold ${CAT_CLS[p.category] || CAT_CLS.free}`}>{CAT_LABEL[p.category] || '자유'}</span>
                 <span className="flex-1 truncate text-sm font-bold text-gray-900">{p.title}</span>
-                <span className="shrink-0 text-xs text-slate-400">{fmtWhen(p.created_at)}</span>
+                <span className="shrink-0 text-xs text-white/35">{fmtWhen(p.created_at)}</span>
               </Link></li>
             ))}
           </ul>
         )}
         {tab === 'comments' && (
-          comments.length === 0 ? <p className="py-10 text-center text-sm text-slate-400">작성한 댓글이 없어요</p> :
+          comments.length === 0 ? <p className="py-10 text-center text-sm text-white/35">작성한 댓글이 없어요</p> :
           <ul className="divide-y divide-gray-100">
             {comments.map(c => (
               <li key={c.id}><Link to={`/board/${c.post_id}`} className="block py-3.5">
                 <p className="truncate text-sm text-gray-800">{c.body}</p>
-                <span className="text-xs text-slate-400">{fmtWhen(c.created_at)}</span>
+                <span className="text-xs text-white/35">{fmtWhen(c.created_at)}</span>
               </Link></li>
             ))}
           </ul>

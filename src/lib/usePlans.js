@@ -17,7 +17,8 @@ const build = (row, id) => {
     credits,
     watch,
     perks: [
-      `월 ${credits.toLocaleString('ko-KR')}회 소재 분석·소스 추출`,
+      '베라 대본 비서 · 내 말투 학습 대본',
+      `월 이용권 ${credits.toLocaleString('ko-KR')}개 (대본 · 채널 분석)`,
       `워치리스트 감시 계정 ${watch.toLocaleString('ko-KR')}개`,
       ...(PLAN_PERKS[id] || []),
     ],

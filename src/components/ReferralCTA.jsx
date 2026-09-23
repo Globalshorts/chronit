@@ -28,12 +28,12 @@ export default function ReferralCTA({ variant = 'card', className = '' }) {
     )
   }
   return (
-    <div className={`rounded-xl bg-[#0064FF]/5 p-3 ${className}`}>
-      <p className="mb-0.5 flex items-center gap-1 text-xs font-bold text-gray-800"><Gift size={13} className="text-[#0064FF]" /> 친구 초대하고 이용권 받기</p>
-      <p className="mb-2 text-[11px] text-gray-500">친구가 첫 결제하면 <b className="text-gray-700">나 50개 · 친구 20개</b> 이용권을 드려요</p>
-      <button onClick={copy} className="flex w-full items-center justify-between gap-2 rounded-lg border border-[#0064FF]/20 bg-white px-3 py-2 text-xs transition hover:border-[#0064FF]">
-        <span className="truncate text-gray-600">chronit.kr/?ref={code}</span>
-        {copied ? <Check size={14} className="shrink-0 text-[#0064FF]" /> : <Copy size={14} className="shrink-0 text-gray-400" />}
+    <div className={`glass rounded-xl p-3 ${className}`}>
+      <p className="mb-0.5 flex items-center gap-1 text-xs font-bold text-white"><Gift size={13} className="text-[#4d97ff]" /> 친구 초대하고 이용권 받기</p>
+      <p className="mb-2 text-[11px] text-white/55">친구가 첫 결제하면 <b className="text-white/85">나 50개 · 친구 20개</b> 이용권을 드려요</p>
+      <button onClick={copy} className="flex w-full items-center justify-between gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs transition hover:border-[#4d97ff]/60">
+        <span className="truncate text-white/70">chronit.kr/?ref={code}</span>
+        {copied ? <Check size={14} className="shrink-0 text-[#4d97ff]" /> : <Copy size={14} className="shrink-0 text-white/40" />}
       </button>
     </div>
   )

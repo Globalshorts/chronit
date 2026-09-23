@@ -91,7 +91,7 @@ const DemoVideosPanel = () => {
   }
 
   return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
+    <div className="rounded-2xl glass p-8">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Film size={18} className="text-blue-400" />
@@ -209,7 +209,7 @@ const MissionsPanel = () => {
   const labelCls = 'mb-1 block text-xs font-bold text-slate-400'
 
   if (editing) return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8 space-y-4 max-w-2xl">
+    <div className="rounded-2xl glass p-8 space-y-4 max-w-2xl">
       <div className="flex items-center gap-2">
         <button onClick={() => setEditing(null)} className="text-slate-400 hover:text-white"><ChevronLeft size={18} /></button>
         <h2 className="text-lg font-bold text-white">{editing === 'new' ? '새 이벤트' : '이벤트 수정'}</h2>
@@ -243,7 +243,7 @@ const MissionsPanel = () => {
       </div>
       <label className="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" checked={form.active} onChange={e => set('active', e.target.checked)} /> 공개 (영상 만들기 모달에 노출)</label>
 
-      <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 space-y-4">
+      <div className="rounded-xl glass p-4 space-y-4">
         <p className="text-xs font-bold text-slate-300">받기 조건 <span className="font-normal text-slate-500">(받기 누를 때 자동 검사 · 즉시 지급형만 적용)</span></p>
         {form.type === 'claim' && (
           <div>
@@ -286,7 +286,7 @@ const MissionsPanel = () => {
   )
 
   return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
+    <div className="rounded-2xl glass p-8">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-bold text-white">이벤트 (이용권 미션)</h2>
@@ -300,7 +300,7 @@ const MissionsPanel = () => {
       ) : (
         <div className="space-y-2">
           {list.map(m => (
-            <div key={m.id} className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.02] p-3">
+            <div key={m.id} className="flex items-center gap-3 rounded-xl glass p-3">
               <span className="inline-block rounded-lg px-2 py-1 text-xs font-bold text-white shrink-0" style={{ backgroundColor: m.badge_color }}>{m.badge_label}</span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-bold text-white">{m.title || '(제목 없음)'}</p>
@@ -344,7 +344,7 @@ const TipsPanel = () => {
   const inputCls = 'w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-blue-500'
 
   return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8">
+    <div className="rounded-2xl glass p-8">
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-bold text-white">숏폼 부업 꿀팁</h2>
@@ -355,7 +355,7 @@ const TipsPanel = () => {
       <p className="mb-4 text-xs text-slate-500">영상 생성 로딩 화면에 30초마다 랜덤으로 노출돼요.</p>
 
       {editing && (
-        <div className="mb-5 rounded-xl border border-white/10 bg-white/[0.02] p-4 space-y-3">
+        <div className="mb-5 rounded-xl glass p-4 space-y-3">
           <div className="flex gap-3">
             <div className="w-20"><label className="mb-1 block text-xs font-bold text-slate-400">이모지</label><input className={inputCls + ' text-center'} value={form.emoji} onChange={e => set('emoji', e.target.value)} /></div>
             <div className="flex-1"><label className="mb-1 block text-xs font-bold text-slate-400">분류 (선택)</label><input className={inputCls} value={form.category} onChange={e => set('category', e.target.value)} placeholder="후킹 / 수익화 / 크로닛 ..." /></div>
@@ -377,7 +377,7 @@ const TipsPanel = () => {
       ) : (
         <div className="space-y-1.5">
           {list.map(t => (
-            <div key={t.id} className={`flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.02] p-2.5 ${t.active ? '' : 'opacity-50'}`}>
+            <div key={t.id} className={`flex items-center gap-3 rounded-xl glass p-2.5 ${t.active ? '' : 'opacity-50'}`}>
               <span className="text-xl shrink-0 w-7 text-center">{t.emoji}</span>
               <p className="min-w-0 flex-1 truncate text-sm text-white">{t.text}</p>
               {t.category && <span className="shrink-0 rounded-full bg-white/8 px-2 py-0.5 text-[11px] text-slate-400">{t.category}</span>}
