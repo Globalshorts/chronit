@@ -18,7 +18,7 @@ export default function WhatsNew() {
   if (!latest || !open) return null
   const dismiss = () => { try { localStorage.setItem(KEY, latest.version) } catch { /* noop */ } setOpen(false) }
   return (
-    <div className="pointer-events-none fixed bottom-4 right-4 z-[2147483000] w-[min(92vw,340px)] md:bottom-6 md:right-6">
+    <div className="pointer-events-none fixed bottom-20 right-4 z-[2147483000] w-[min(92vw,340px)] md:bottom-6 md:right-6">
       <div className="pointer-events-auto relative overflow-hidden rounded-2xl glass p-4 shadow-2xl shadow-black/50">
         <button onClick={dismiss} aria-label="닫기" className="absolute right-2.5 top-2.5 text-white/40 transition hover:text-white/80"><X size={16} /></button>
         <div className="flex items-center gap-2">

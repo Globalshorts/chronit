@@ -332,7 +332,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
           <button onClick={() => setShowConvList(true)} className="shrink-0 rounded-lg border border-white/15 p-1.5 text-white/70 hover:text-white md:hidden"><MessageSquareText size={16} /></button>
           <div className="min-w-0">
             <h1 className="flex items-center gap-2 text-xl font-bold text-white"><EnergyOrb size={24} /> 대본 비서</h1>
-            <p className="mt-0.5 text-sm leading-snug text-white/50">트렌드 영상에서 '대본 작성하기'로 시작해요<br />대화로 다듬을수록 내 말투를 배워요</p>
+            <p className="mt-0.5 text-sm leading-snug text-white/50">대화로 다듬을수록 내 말투를 배워요</p>
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
@@ -486,7 +486,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       {err && <div className="mx-auto mb-2 max-w-[700px] text-sm text-amber-400">⚠ {err}</div>}
 
       {/* 컴포저 */}
-      <div className="sticky bottom-0 border-t border-white/10 bg-[#0a0b0f]/85 pb-4 pt-3 backdrop-blur md:pr-16">
+      <div className="sticky bottom-0 border-t border-white/10 bg-[#0a0b0f]/85 pb-[calc(env(safe-area-inset-bottom)+4.5rem)] pt-3 backdrop-blur md:pb-4 md:pr-16">
         {(() => {
           const last = messages[messages.length - 1]
           const scriptOut = !!last?.isScript

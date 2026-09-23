@@ -125,7 +125,6 @@ const App = () => {
     <Suspense fallback={<RouteFallback />}>
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/start" element={<Landing />} />
       <Route path="/register" element={<Register />} />
       <Route path="/manual" element={<Manual />} />
       <Route path="/changelog" element={<Changelog />} />
@@ -154,7 +153,6 @@ const App = () => {
       <Route path="/board/write" element={<BoardWrite />} />
       <Route path="/board/u/:id" element={<UserProfile />} />
       <Route path="/board/:id" element={<BoardPost />} />
-      <Route path="/u/:handle" element={<LinkPage />} />
       <Route path="/dm" element={<DmAutomation />} />
       <Route path="/payments/success" element={<PaymentResult />} />
       <Route path="/payments/fail" element={<PaymentResult fail />} />
