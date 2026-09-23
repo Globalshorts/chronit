@@ -32,7 +32,7 @@ export default function AppShell({ children }) {
     <div className="min-h-screen bg-[#0a0b0f] text-white md:flex">
       {/* 데스크톱 왼쪽 내비 */}
       <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-white/10 bg-[#0c0d11] p-4 md:flex">
-        <Link to="/trend" className="mb-6 flex items-center gap-2 px-2">
+        <Link to="/" className="mb-6 flex items-center gap-2 px-2">
           <img src="/cn-white.svg" alt="Chronit" className="h-7 w-7" />
           <span className="text-lg font-bold tracking-tight">Chronit</span>
         </Link>
@@ -66,7 +66,7 @@ export default function AppShell({ children }) {
       <div className="min-w-0 flex-1 pb-16 md:pb-0">
         {/* 모바일 상단 브랜드바 (데스크톱은 사이드바가 대체) */}
         <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-white/10 bg-[#0a0b0f]/90 px-4 py-3 backdrop-blur md:hidden">
-          <Link to="/trend" className="flex items-center gap-1.5">
+          <Link to="/" className="flex items-center gap-1.5">
             <img src="/cn-white.svg" alt="Chronit" className="h-6 w-6" />
           </Link>
           <span className="text-base font-extrabold">{cur?.title ?? 'Chronit'}</span>

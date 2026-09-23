@@ -313,11 +313,7 @@ const Home = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       const u = (session?.user && !session.user.is_anonymous) ? session.user : null
       setUser(u)
-      // 로그인(온보딩 완료) 유저는 마케팅 랜딩 대신 앱 홈(트렌드)으로. 랜딩 재노출 방지.
-      if (u) {
-        supabase.from('profiles').select('onboarded').eq('id', u.id).maybeSingle()
-          .then(({ data: prof }) => { if (!prof || prof.onboarded !== false) window.location.replace('/trend') })
-      }
+      // 로그인 유저도 랜딩(홈)을 자유롭게 볼 수 있게 강제 진입 제거 — 로고 클릭 시 홈으로.
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
