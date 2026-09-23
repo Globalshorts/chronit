@@ -21,6 +21,8 @@ import { phIdentify, phReset } from './lib/posthog'
 
 // ── 라우트별 코드 스플리팅 (홈 진입 시 앱 전체가 아니라 필요한 청크만 로드) ──
 // 청크 로드 실패(배포 갱신으로 옛 해시 요청 등) 시 1회 새로고침해 최신 청크를 받음 → 빈 화면 방지
+import WhatsNew from './components/WhatsNew'
+
 const lazyRetry = (factory) => lazy(() => factory().catch((err) => {
   try {
     const k = 'chr_chunk_reload'
@@ -53,6 +55,7 @@ const BoardWrite = lazyRetry(() => import('./pages/BoardWrite'))
 const BoardPost = lazyRetry(() => import('./pages/BoardPost'))
 const MyPage = lazyRetry(() => import('./pages/MyPage'))
 const Pricing = lazyRetry(() => import('./pages/Pricing'))
+const Changelog = lazyRetry(() => import('./pages/Changelog'))
 const UserProfile = lazyRetry(() => import('./pages/UserProfile'))
 const DmAutomation = lazyRetry(() => import('./pages/DmAutomation'))
 const PaymentResult = lazyRetry(() => import('./pages/PaymentResult'))
@@ -117,6 +120,7 @@ const App = () => {
     <PushPrompt />
     <Suspense fallback={null}><PwaInstallGlobal /></Suspense>
     <InstallButton />
+    <WhatsNew />
     <ErrorBoundary>
     <Suspense fallback={<RouteFallback />}>
     <Routes>
@@ -124,6 +128,7 @@ const App = () => {
       <Route path="/start" element={<Landing />} />
       <Route path="/register" element={<Register />} />
       <Route path="/manual" element={<Manual />} />
+      <Route path="/changelog" element={<Changelog />} />
       <Route path="/manual/:section" element={<ManualDetail />} />
       <Route path="/events" element={<Events />} />
       <Route path="/events/write" element={<EventWrite />} />
