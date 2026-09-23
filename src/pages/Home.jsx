@@ -501,7 +501,7 @@ const Home = () => {
             {/* 모바일 상단 시작하기 CTA (햄버거에 가려지지 않게 상시 노출) */}
             <button onClick={handleFinds}
               className="rounded-full bg-[linear-gradient(140deg,#2A7BFF_0%,#0064FF_55%,#0055DB_100%)] px-4 py-2 text-sm font-bold whitespace-nowrap text-white shadow-md shadow-black/5 transition-all active:scale-[0.98] md:hidden">
-              {user ? '리서치' : '무료 체험'}
+              {user ? '대본 쓰기' : '무료 체험'}
             </button>
             <button onClick={() => setMenuOpen((v) => !v)} aria-label="메뉴"
               className={`flex h-11 w-11 items-center justify-center rounded-full border transition-all md:hidden ${scrolled ? 'border-white/15 text-white/70 hover:border-white/30' : 'border-white/30 text-white hover:border-white/60'}`}>
@@ -516,7 +516,7 @@ const Home = () => {
       <div className={`fixed top-0 left-0 right-0 z-40 transform transition-all duration-300 ease-in-out md:hidden ${menuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`} style={{ paddingTop: `${bannerH + 76}px` }}>
         <div className="border-b border-white/10 bg-[#0A0B0F] px-6 py-6 shadow-lg overflow-y-auto overscroll-contain" style={{ maxHeight: `calc(100dvh - ${bannerH + 76}px)` }}>
           <nav className="flex flex-col gap-1 text-lg font-bold text-white/70">
-            <Link to="/research" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 font-semibold text-[#0064FF] transition-colors hover:bg-[#0064FF]/5">리서치 — 터지는 소재 찾기</Link>
+            <Link to="/script" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 font-semibold text-[#0064FF] transition-colors hover:bg-[#0064FF]/5">대본 비서 — 소재 골라 내 말투 대본</Link>
             <Link to="/trend" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 font-semibold text-[#0064FF] transition-colors hover:bg-[#0064FF]/5">실시간 트렌드</Link>
             <Link to="/manual" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-white/[0.03] hover:text-[#0064FF]">사용 방법</Link>
             <Link to="/me" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-4 transition-colors hover:bg-white/[0.03] hover:text-[#0064FF]">마이페이지</Link>
@@ -573,17 +573,17 @@ const Home = () => {
             </div>
           )}
           {!user && (<>
-            <p className="hero-shimmer mb-6 text-[11px] font-semibold uppercase tracking-[0.32em]">Research · Analyze · Remix</p>
+            <p className="hero-shimmer mb-6 text-[11px] font-semibold uppercase tracking-[0.32em]">Trend · Vera · Script</p>
             <h1 className="mb-6 text-[2.4rem] font-semibold leading-[1.16] tracking-tight text-white break-keep md:text-[3.7rem]">
-              오늘 반응한 쇼핑 숏폼,<br />내 <span className="text-[#A9C0FF]">다음 영상 기획</span>으로.
+              오늘 터진 쇼핑 소재,<br />내 <span className="text-[#A9C0FF]">말투 대본</span>까지 한 번에.
             </h1>
             <p className="mx-auto mb-10 max-w-md text-[15px] font-normal leading-relaxed text-white/45 break-keep md:text-base">
-              감으로 찍어 망하는 영상은 그만 — 이미 반응이 증명된 소재만 골라,<br />베라 대본 비서가 내 말투 대본까지 써드려요.
+              감으로 찍어 망하는 영상은 그만 — 반응이 검증된 소재를 고르면,<br />베라가 내 말투 그대로 대본을 써드려요.
             </p>
             <div className="flex w-full max-w-sm flex-col items-center gap-4">
               <button onClick={handleFinds}
                 className="w-full rounded-full bg-white px-8 py-4 text-base font-semibold text-[#0A0B0F] transition-all hover:bg-white/90 active:scale-[0.99]">
-                지금 반응한 소재 무료로 보기
+                무료로 대본 만들어보기
               </button>
               <p className="text-[13px] font-normal text-white/35">카드 등록 없이 · 월 5회 무료</p>
               {spots != null && spots > 0 && (
@@ -599,16 +599,16 @@ const Home = () => {
       {/* ── 문제 → 해결(핀 고정 가로 전환) ── */}
       {!user && <ProblemSolution />}
 
-      {/* ── 제품 쇼케이스: 실제 분석 화면 ── */}
+      {/* ── 제품 쇼케이스: 베라 대본 데모 ── */}
       {!user && <HomeAnalysisShowcase />}
 
       {/* ── 실데이터 통계 스트립 ── */}
       {stats?.clips ? (
         <section id="features" style={{ scrollMarginTop: '120px' }} className="px-5 pb-10 md:px-8">
           <Reveal className="mx-auto grid max-w-3xl grid-cols-3 divide-x divide-white/10 rounded-2xl glass glass-c py-6 text-center">
-            <div><div className="text-2xl font-bold text-white md:text-3xl">{Number(stats.clips).toLocaleString('ko-KR')}</div><div className="mt-1 text-xs text-white/35">발굴한 소스</div></div>
+            <div><div className="text-2xl font-bold text-white md:text-3xl">{Number(stats.clips).toLocaleString('ko-KR')}</div><div className="mt-1 text-xs text-white/35">모은 트렌드 소재</div></div>
             <div><div className="text-2xl font-bold text-white md:text-3xl">{Number(stats.curators).toLocaleString('ko-KR')}</div><div className="mt-1 text-xs text-white/35">추적 중인 큐레이터</div></div>
-            <div><div className="text-2xl font-bold text-white md:text-3xl">매일</div><div className="mt-1 text-xs text-white/35">새 소스 갱신</div></div>
+            <div><div className="text-2xl font-bold text-white md:text-3xl">매일</div><div className="mt-1 text-xs text-white/35">새 소재 갱신</div></div>
           </Reveal>
         </section>
       ) : null}
@@ -622,9 +622,9 @@ const Home = () => {
           </div>
           <RevealStagger className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             {[
-              { name: '쇼핑 크리에이터 K', text: '영상 찾는 게 늘 힘들었는데, 그게 해결됐어요.' },
-              { name: '쇼핑 크리에이터 C', text: '제품 사용해보니 영상 모아주는 게 너무 편해요.' },
-              { name: '쇼핑 크리에이터 S', text: '아주 획기적입니다. 굿굿굿 정말 굿입니다.' },
+              { name: '쇼핑 크리에이터 K', text: '대본 쓰는 게 늘 막막했는데, 내 말투로 뽑아주니 편해요.' },
+              { name: '쇼핑 크리에이터 C', text: '소재 고르고 대본까지 한 번에 되니 시간이 확 줄었어요.' },
+              { name: '쇼핑 크리에이터 S', text: '진짜 제가 쓴 것처럼 나와요. 획기적입니다.' },
               { name: '쇼핑 크리에이터 R', text: '와… 대박입니다. 안 쓸 수가 없어요.' },
             ].map(({ name, text }) => (
               <div key={name} className="flex flex-col rounded-2xl glass glass-c p-6 shadow-none">
