@@ -644,9 +644,10 @@ const Home = () => {
           </div>
           <RevealStagger className="space-y-4">
             {[
-              { q: '어떤 플랫폼의 소스를 찾아주나요?', a: '샤오훙슈·틱톡·인스타 등에서 지금 반응이 좋은 소스를 찾아냅니다. 국내에 아직 알려지지 않은 소스도 먼저 발견할 수 있습니다.' },
+              { q: '트렌드 소재는 얼마나 자주 갱신되나요?', a: (<>AI가 <b className="font-bold text-[#5AA0FF]">매일</b> 새 쇼핑 소재를 발굴해 실시간으로 채워요{stats?.clips ? <> — 지금까지 모은 소재 <b className="text-white">{Number(stats.clips).toLocaleString('ko-KR')}+</b></> : ''}. 수백 개 트렌드 계정을 24시간 추적해, 남들이 따라 하기 전에 먼저 만날 수 있어요.</>) },
               { q: '베라 대본 비서는 뭘 해주나요?', a: '고른 소재를 바탕으로 내 말투에 맞는 릴스 대본을 써줍니다. 대화로 톤·길이·표현을 다듬을수록 내 말투를 학습해 점점 나다워집니다.' },
-              { q: '이용권은 어떻게 쓰이나요?', a: '대본 1개를 시작하면 10턴 대화 세션이 열리고 이용권 2개가 사용됩니다. 채널 분석은 1회에 1개이며, 트렌드 열람·검색은 무료입니다. 무료 회원에게도 매월 이용권 5개를 제공합니다.' },
+              { q: '이용권은 어디에 쓰이나요?', a: '이용권은 ① 베라 AI로 대본을 만들 때(대본 1개 = 10턴 세션 · 이용권 2개) ② 워치리스트에서 감시 계정의 새 게시물을 가져올 때(50계정당 1개) ③ 채널 분석(1회 1개)에 쓰여요. 트렌드 열람·검색은 무료이고, 무료 회원에게도 매월 이용권 5개를 드려요.' },
+              { q: '여러 명이 함께 쓰는 팀 계정을 지원하나요?', a: '네, 팀 계정 관련은 문의 이메일(help@chronit.kr)로 연락주세요!' },
             ].map(({ q, a }) => (
               <div key={q} className="rounded-2xl glass glass-c p-6 shadow-none md:p-7">
                 <div className="mb-3 flex items-start gap-3">
@@ -670,7 +671,7 @@ const Home = () => {
             <h2 className="text-3xl font-bold text-white md:text-4xl">필요한 만큼만</h2>
             <p className="mt-3 text-base text-white/45 md:text-lg">가입 시 무료 이용권을 제공합니다. 필요에 따라 구독하세요.</p>
           </div>
-          <div className="relative mx-auto mb-2 flex max-w-sm rounded-xl glass/[0.06] p-1 text-sm font-bold">
+          <div className="relative mx-auto mb-2 flex max-w-sm rounded-xl glass p-1 text-sm font-bold">
             <span aria-hidden className="absolute left-1 top-1 bottom-1 w-[calc(33.333%-0.25rem)] rounded-lg bg-white/15 shadow-none transition-transform duration-300 ease-out" style={{ transform: `translateX(${priceTab === 'annual' ? '100%' : priceTab === 'pack' ? '200%' : '0%'})` }} />
             <button onClick={() => setPriceTab('monthly')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${priceTab === 'monthly' ? 'text-[#0064FF]' : 'text-white/45'}`}>월간</button>
             <button onClick={() => setPriceTab('annual')} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${priceTab === 'annual' ? 'text-[#0064FF]' : 'text-white/45'}`}>연간</button>
@@ -682,7 +683,7 @@ const Home = () => {
             <>
               <div className="mx-auto grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
                 {[{ credits: 10, price: 4900 }, { credits: 30, price: 12900, hot: true }, { credits: 100, price: 34900 }].map((p) => (
-                  <div key={p.credits} className={`flex flex-col rounded-2xl glass/[0.04] p-6 shadow-none ${p.hot ? 'border-2 border-[#0064FF]' : 'border border-white/10'}`}>
+                  <div key={p.credits} className={`flex flex-col rounded-2xl glass glass-c p-6 shadow-none ${p.hot ? 'border-2 border-[#0064FF]' : 'border border-white/10'}`}>
                     <div className="flex items-center gap-2"><h4 className="text-lg font-semibold text-white">이용권 {p.credits}개</h4>{p.hot && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0064FF]">인기</span>}</div>
                     <p className="mt-1 text-sm text-white/35">1회 결제 · 유효 12개월</p>
                     <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-white">₩{p.price.toLocaleString('ko-KR')}</span></div>
@@ -707,7 +708,7 @@ const Home = () => {
                   const annual = priceTab === 'annual'
                   const hot = p.id === HOT_PLAN
                   return (
-                    <div key={p.id} onClick={() => handleBuy('sub', annual ? 'annual' : 'monthly')} className={`flex cursor-pointer flex-col rounded-2xl glass/[0.04] p-6 shadow-none transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_22px_48px_rgba(20,40,90,0.18)] ${hot ? 'border-2 border-[#0064FF]' : 'border border-white/10'}`}>
+                    <div key={p.id} onClick={() => handleBuy('sub', annual ? 'annual' : 'monthly')} className={`flex cursor-pointer flex-col rounded-2xl glass glass-c p-6 shadow-none transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_22px_48px_rgba(20,40,90,0.18)] ${hot ? 'border-2 border-[#0064FF]' : 'border border-white/10'}`}>
                       <div className="flex items-center gap-2">
                         <h4 className="text-lg font-semibold text-white">{p.name}</h4>
                         {hot && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0064FF]">인기</span>}

@@ -51,8 +51,8 @@ export default function HomeAnalysisShowcase() {
     const wait = (ms) => new Promise((r) => timers.push(setTimeout(r, ms)))
     const run = async () => {
       while (alive) {
-        setStep(0); setPicked(false); setTyped(0); setCur({ x: 12, y: 14 }); await wait(500); if (!alive) break
-        setCur({ x: 50, y: 74 }); await wait(1300); if (!alive) break   // 커서를 3번째 카드로
+        setStep(0); setPicked(false); setTyped(0); setCur({ x: 8, y: 8 }); await wait(500); if (!alive) break
+        setCur({ x: 82, y: 26 }); await wait(1300); if (!alive) break   // 커서를 우상단 장난감 카드로
         setPicked(true); await wait(800); if (!alive) break             // 클릭
         setStep(1)
         for (let i = 1; i <= SCRIPT_LINES.length; i++) { if (!alive) break; setTyped(i); await wait(560) }
@@ -87,19 +87,21 @@ export default function HomeAnalysisShowcase() {
           <div className="mx-auto w-full max-w-sm rounded-3xl glass p-4">
             {/* STEP 0: 트렌드 그리드 + 커서 */}
             {step === 0 && (
-              <div className="relative">
+              <div>
                 <div className="mb-2 text-[11px] font-bold text-white/45">🔥 실시간 트렌드</div>
-                <div className="grid grid-cols-3 gap-2">
-                  {GRID.map((c, i) => (
-                    <div key={i} className={`relative aspect-[9/12] overflow-hidden rounded-xl bg-gradient-to-br ${c.g} ring-1 transition-all duration-200 ${picked && i === PICK ? 'ring-2 ring-[#5AA0FF] scale-[1.04]' : 'ring-white/10'}`}>
-                      <div className="flex h-full items-center justify-center text-2xl">{c.emoji}</div>
-                      <div className="absolute bottom-1 left-1 flex items-center gap-0.5 rounded bg-black/45 px-1 text-[9px] font-bold text-white/80"><Eye size={8} />{c.v}</div>
-                    </div>
-                  ))}
-                </div>
-                <div className="pointer-events-none absolute z-10 transition-all duration-[1200ms] ease-out" style={{ left: `${cur.x}%`, top: `${cur.y}%` }}>
-                  <MousePointer2 size={20} className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]" fill="white" />
-                  {picked && <span className="absolute -left-1 -top-1 h-6 w-6 animate-ping rounded-full bg-[#5AA0FF]/50" />}
+                <div className="relative">
+                  <div className="grid grid-cols-3 gap-2">
+                    {GRID.map((c, i) => (
+                      <div key={i} className={`relative aspect-[9/12] overflow-hidden rounded-xl bg-gradient-to-br ${c.g} ring-1 transition-all duration-200 ${picked && i === PICK ? 'ring-2 ring-[#5AA0FF] scale-[1.04]' : 'ring-white/10'}`}>
+                        <div className="flex h-full items-center justify-center text-2xl">{c.emoji}</div>
+                        <div className="absolute bottom-1 left-1 flex items-center gap-0.5 rounded bg-black/45 px-1 text-[9px] font-bold text-white/80"><Eye size={8} />{c.v}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="pointer-events-none absolute z-10 -translate-x-1 -translate-y-1 transition-all duration-[1200ms] ease-out" style={{ left: `${cur.x}%`, top: `${cur.y}%` }}>
+                    {picked && <span className="absolute -left-2 -top-2 h-7 w-7 animate-ping rounded-full bg-[#5AA0FF]/50" />}
+                    <MousePointer2 size={22} className="relative text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]" fill="white" />
+                  </div>
                 </div>
               </div>
             )}
@@ -112,7 +114,7 @@ export default function HomeAnalysisShowcase() {
                   <div className="min-w-0"><div className="text-[11px] font-bold text-[#5AA0FF]">🔥 트렌드 소재</div><div className="truncate text-[13px] font-medium text-white/85">아이 장난감 정리함</div></div>
                 </div>
                 <div className="mt-3 flex items-center gap-2">
-                  <EnergyOrb size={22} />
+                  <EnergyOrb size={40} />
                   <span className="text-[13px] font-bold text-white">베라</span>
                   {typed >= SCRIPT_LINES.length
                     ? <span className="ml-auto flex items-center gap-1 rounded-md bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-400"><Check size={10} /> 내 말투 완성</span>
