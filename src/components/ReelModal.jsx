@@ -1,13 +1,13 @@
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { Eye, Heart, MessageCircle, Sparkles, X, ChevronLeft, ChevronRight, Bookmark } from 'lucide-react'
+import { Eye, Heart, MessageCircle, Sparkles, X, ChevronLeft, ChevronRight, Bookmark, Loader2, ArrowRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 // 릴스 재생 모달 — 트렌드/워치리스트 공용.
 // clip: { video_url, video_id(=shortcode), thumbnail_url, views, likes, comments }
 const fmt = (n) => { n = Math.max(0, Math.trunc(Number(n) || 0)); return n >= 10000 ? (n / 10000).toFixed(1) + '만' : n >= 1000 ? (n / 1000).toFixed(1) + '천' : String(n) }
 
-export default function VideoModal({ clip, onClose, onSave, saved = false }) {
+export default function VideoModal({ clip, onClose, onSave, saved = false, onScript, scriptState }) {
   const _navScript = useNavigate()
   const imgs = Array.isArray(clip?.images) ? clip.images.filter(Boolean) : []
   const [src, setSrc] = useState(clip?.video_url || '')
@@ -60,7 +60,11 @@ export default function VideoModal({ clip, onClose, onSave, saved = false }) {
             <span className="flex items-center gap-0.5"><Heart size={12} />{fmt(clip.likes)}</span>
             <span className="flex items-center gap-0.5"><MessageCircle size={12} />{fmt(clip.comments)}</span>
           </div>
-          <button onClick={() => { _navScript('/script', { state: { source_ref: clip?.video_id, caption: clip?.caption || '', thumbnail: clip?.thumbnail_url || '', product_name: '' } }); onClose && onClose() }} className="mb-1.5 flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] py-3 text-sm font-extrabold text-white transition hover:brightness-95"><Sparkles size={16} />대본 작성하기</button>
+          {onScript ? (
+            <button onClick={() => onScript()} disabled={scriptState?.status === 'generating'} title={scriptState?.error || ''} className={`mb-1.5 flex w-full items-center justify-center gap-1.5 rounded-xl py-3 text-sm font-extrabold text-white transition hover:brightness-95 ${scriptState?.status === 'ready' ? 'bg-emerald-500' : scriptState?.status === 'error' ? 'bg-rose-500' : 'bg-[#0064FF]'} ${scriptState?.status === 'generating' ? 'opacity-70' : ''}`}>{scriptState?.status === 'generating' ? <><Loader2 size={16} className="animate-spin" />대본 생성 중…</> : scriptState?.status === 'ready' ? <><ArrowRight size={16} />베라에서 대본 보기</> : scriptState?.status === 'error' ? <><Sparkles size={16} />다시 시도</> : <><Sparkles size={16} />대본 작성하기</>}</button>
+          ) : (
+            <button onClick={() => { _navScript('/script', { state: { source_ref: clip?.video_id, caption: clip?.caption || '', thumbnail: clip?.thumbnail_url || '', product_name: '' } }); onClose && onClose() }} className="mb-1.5 flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] py-3 text-sm font-extrabold text-white transition hover:brightness-95"><Sparkles size={16} />대본 작성하기</button>
+          )}
           {onSave && (
             <button onClick={onSave} aria-pressed={saved} className={`flex w-full items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-bold transition ${saved ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-slate-200 text-slate-600 hover:border-[#0064FF] hover:text-[#0064FF]'}`}><Bookmark size={15} className={saved ? 'fill-emerald-500 text-emerald-500' : ''} />{saved ? '워치리스트에 담김' : '워치리스트에 담기'}</button>
           )}

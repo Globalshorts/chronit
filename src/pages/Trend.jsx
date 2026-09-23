@@ -620,7 +620,7 @@ export default function Trend() {
         </div>
       )}
       {modalClip && <AnalyzeModal clip={modalClip} allowDownload={false} onClose={() => setModalClip(null)} />}
-      {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onSave={() => saveItem({ ...playClip, shortcode: playClip.shortcode || playClip.video_id })} saved={isWatching({ ...playClip, shortcode: playClip.shortcode || playClip.video_id })} />}
+      {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onScript={() => startScript({ shortcode: playClip.shortcode || playClip.video_id, caption: playClip.caption || '' }, playClip.thumbnail_url || coverOf(playClip) || '')} scriptState={scriptGen[playClip.shortcode || playClip.video_id]} onSave={() => saveItem({ ...playClip, shortcode: playClip.shortcode || playClip.video_id })} saved={isWatching({ ...playClip, shortcode: playClip.shortcode || playClip.video_id })} />}
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
       {limitModal && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4" onClick={() => setLimitModal(null)}>
