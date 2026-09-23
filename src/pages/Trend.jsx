@@ -358,7 +358,7 @@ export default function Trend() {
             </div>
           </div>
           <p className="mt-1 text-sm text-white/45">지금 뜨는 쇼핑 숏폼을 한눈에. 조회수·좋아요 순으로 정렬해 확인하세요.</p>
-          <p className="mt-0.5 text-[11px] text-white/35">[분석]은 이용권 1개가 차감돼요 · 이미 분석한 소스는 다시 열어도 무료예요</p>
+          <p className="mt-0.5 text-[11px] text-white/35">마음에 드는 소재로 대본을 만들어보세요 · 로그인하면 전체 트렌드가 열려요</p>
         </header>
 
         <QuestStrip enabled={isReal} />
@@ -442,7 +442,7 @@ export default function Trend() {
               {previewPicks.length > 0 && (
                 <div className="mb-4 rounded-2xl glass p-4">
                   <div className="flex items-center gap-1.5 text-sm font-extrabold text-white"><Flame size={15} className="text-[#0064FF]" />오늘 먼저 볼 트렌드 3개</div>
-                  <p className="mb-3 mt-0.5 text-xs text-white/50">지금 반응이 빠르게 올라오는 소재{previewCount ? ` ${previewCount}개` : ''}. 로그인하면 전체 + 분석까지.</p>
+                  <p className="mb-3 mt-0.5 text-xs text-white/50">지금 반응이 빠르게 올라오는 소재{previewCount ? ` ${previewCount}개` : ''}. 로그인하면 전체 트렌드가 열려요.</p>
                   <div className="grid grid-cols-3 gap-2.5">
                     {previewPicks.map((it, i) => (
                       <div key={it.shortcode || i} role="button" onClick={() => setShowAuth(true)} className="cursor-pointer overflow-hidden rounded-xl glass">
@@ -454,8 +454,8 @@ export default function Trend() {
                           <div className="mb-1 flex gap-1.5 text-[10px] text-white/45"><span className="flex items-center gap-0.5"><Eye size={10} />{fmt(it.view_count)}</span><span className="flex items-center gap-0.5"><MessageCircle size={10} />{fmt(it.comment_count)}</span></div>
                           <div className="mb-2 line-clamp-2 text-[11px] text-white/70">{maskHandles(it.caption) || '(설명 없음)'}</div>
                           <div className="flex flex-col gap-1">
-                            <button onClick={(e) => { e.stopPropagation(); setShowAuth(true) }} className="flex w-full items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-2 text-[11px] font-bold text-white transition hover:brightness-95"><Sparkles size={11} />분석</button>
-                            <button onClick={(e) => { e.stopPropagation(); setShowAuth(true) }} className="flex w-full items-center justify-center rounded-lg border border-white/15 py-2 text-[11px] font-bold text-white/70 transition hover:border-[#0064FF] hover:text-white">소스 찾기</button>
+                            <button onClick={(e) => { e.stopPropagation(); setShowAuth(true) }} className="flex w-full items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-2 text-[11px] font-bold text-white transition hover:brightness-95"><Sparkles size={11} />대본 작성</button>
+                            <button onClick={(e) => { e.stopPropagation(); setShowAuth(true) }} className="flex w-full items-center justify-center gap-1 rounded-lg border border-white/15 py-2 text-[11px] font-bold text-white/70 transition hover:border-[#0064FF] hover:text-white"><Bookmark size={11} />담기</button>
                           </div>
                         </div>
                       </div>
@@ -465,7 +465,7 @@ export default function Trend() {
               )}
 
               {/* 로그인 CTA — 크게 */}
-              <button onClick={() => setShowAuth(true)} className="mb-5 w-full rounded-xl bg-[#0064FF] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#0064FF]/20 transition hover:brightness-95 active:scale-[0.99]">{previewCount ? `무료로 가입하고 트렌드 ${previewCount}개 전체 보기 →` : '무료로 가입하고 전체 트렌드 + 분석 보기 →'}</button>
+              <button onClick={() => setShowAuth(true)} className="mb-5 w-full rounded-xl bg-[#0064FF] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#0064FF]/20 transition hover:brightness-95 active:scale-[0.99]">{previewCount ? `무료로 가입하고 트렌드 ${previewCount}개 전체 보기 →` : '무료로 가입하고 전체 트렌드 보기 →'}</button>
 
               {/* 나머지 블러 — 자연스럽게 페이드아웃 */}
               <div className="relative">
@@ -538,7 +538,7 @@ export default function Trend() {
             </div>
           )}
           <p className="mb-2 text-[11px] font-medium text-white/35">
-            <b className="text-white/45">분석</b> = 비슷한 소재 찾기 · <b className="text-white/45">담기</b> = 이 계정을 워치리스트에 저장
+            <b className="text-white/45">대본 작성</b> = 이 소재로 베라가 대본 작성 · <b className="text-white/45">담기</b> = 이 계정을 워치리스트에 저장
           </p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {list.map((it, i) => {
