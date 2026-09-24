@@ -192,6 +192,8 @@ const Home = () => {
       .then(({ data }) => setNickname(data?.nickname ?? null))
   }, [user])
 
+  // 모바일은 기본 진입을 베라(대본)로, 데스크톱은 트렌드로
+  const entryPath = () => (typeof window !== 'undefined' && window.innerWidth < 768 ? '/script' : '/trend')
   const handleAfterLogin = (session) => {
     // sign_up 전환은 App 전역 리스너(trackSignupIfNew)에서 신규 계정 1회만 발생
     fetch('http://localhost:17389/ping')
@@ -215,7 +217,7 @@ const Home = () => {
       pendingPlanRef.current = null
     } else if (pendingStartRef.current) {
       pendingStartRef.current = false
-      window.location.href = '/trend'
+      window.location.href = entryPath()
     }
   }
 
@@ -224,15 +226,15 @@ const Home = () => {
   const handleStart = () => {
     phCapture('cta_clicked', { location: 'primary' }, { transport: 'sendBeacon' })
     fbTrack('Lead', { content_name: 'free_start', location: 'primary' })
-    window.location.href = '/trend'
+    window.location.href = entryPath()
   }
 
   const handleFinds = () => {
     phCapture('cta_clicked', { location: 'finds' }, { transport: 'sendBeacon' })
     fbTrack('Lead', { content_name: 'free_start', location: 'finds' })
-    window.location.href = '/trend'
+    window.location.href = entryPath()
   }
-  const heroSubmit = () => { const q = heroQuery.trim(); phCapture('cta_clicked', { location: 'hero', has_query: !!q }, { transport: 'sendBeacon' }); window.location.href = q ? '/research?q=' + encodeURIComponent(q) : '/trend' }
+  const heroSubmit = () => { const q = heroQuery.trim(); phCapture('cta_clicked', { location: 'hero', has_query: !!q }, { transport: 'sendBeacon' }); window.location.href = q ? '/research?q=' + encodeURIComponent(q) : entryPath() }
   const handleBuy = (tab = 'sub', period = 'monthly') => {
     setBuyTab(tab); setBuyPeriod(period)
     if (user && !user.is_anonymous) { setBuyOpen(true); return }
