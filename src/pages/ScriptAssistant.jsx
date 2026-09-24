@@ -337,41 +337,17 @@ export default function ScriptAssistant({ session: sessionProp }) {
     const prevScript = jobId ? lastScript() : ''
     const chatJob = (jobId && (turns > 0 || prevScript)) ? jobId : null
     const newMsgs = [...messages, { role: 'user', text }]
-    setMessages(newMsgs)
-    // 트렌드/카테고리 요청이면 실제 트렌드 카드를 채팅에 바로 렌더 (LLM 안 거침, 무료)
-    const CATS = { 뷰티: ['뷰티', '화장품', '메이크업', '스킨케어', '코스메', '립', '파운데', '선크림', '쿠션'], 리빙: ['리빙', '살림', '주방', '수납', '정리', '청소', '인테리어', '가구'], 푸드: ['푸드', '음식', '간식', '요리', '레시피', '먹', '식품', '밀키트'], 육아: ['육아', '아기', '애기', '키즈', '장난감', '아이', '유아'], 패션: ['패션', '옷', '의류', '코디', '신발', '가방', '악세'], 잡화: ['잡화', '소품', '문구', '팬시'], 디지털: ['디지털', '가전', '전자', '기기', '테크', '폰', '이어폰'], 헬스: ['헬스', '운동', '다이어트', '건강', '피트니스', '홈트'] }
-    let matchedCat = ''
-    for (const [cat, kws] of Object.entries(CATS)) { if (kws.some((k) => text.includes(k))) { matchedCat = cat; break } }
-    const wantsTrend = /트렌드|영상|소재|릴스|숏폼|추천|올릴|잘 ?나온|잘 ?된|잘 ?나가|터진|뜨는|요즘|보여줘|보여|골라|뭐\s?있|뭐\s?가|찾아|소개|알려|베스트|best|top|탑|순위|인기|\d\s*개/i.test(text)
-    if (matchedCat || wantsTrend) {
-      setBusy(true); setStage('트렌드 찾는 중…')
-      try {
-        const { data } = await supabase.rpc('trend_list_rpc', { p_limit: 60 })
-        const all = (Array.isArray(data) ? data : []).filter((r) => r.shortcode)
-        // 캡션 키워드 우선 필터 — "장난감"처럼 구체 요청이 카테고리 전체로 번지지 않게
-        const STOP = ['트렌드', '에서', '소재', '영상', '릴스', '숏폼', '추천', '보여줘', '보여', '골라줘', '골라', '가장', '좋은', '관련', '물품', '올릴', '요즘', '뜨는', '터진', '있어', '있는', '찾아', '최근', '인기', '좀', '제일', '그리고', '해줘', '소개해줘', '소개', '알려줘', '알려', '베스트', '순위', '탑', '뭐가', '뭐', '어떤']
-        const words0 = text.replace(/[0-9]+\s*개?/g, ' ').replace(/top\s*\d*/ig, ' ').split(/[\s,·]+/).map((w) => w.replace(/[?!.]/g, '').trim()).filter((w) => w.length >= 2 && !STOP.includes(w))
-        // 복합어 stem 추가 — 차량용품→차량, 주방템→주방
-        const words = [...new Set(words0.flatMap((w) => { const stem = w.replace(/(용품|아이템|템|제품|굿즈)$/,''); return stem && stem !== w && stem.length >= 2 ? [w, stem] : [w] }))]
-        const byKw = words.length ? all.filter((r) => { const c = String(r.caption || ''); return words.some((w) => c.includes(w)) }) : []
-        const byCat = matchedCat ? all.filter((r) => r.category === matchedCat) : []
-        const hasFilter = words.length > 0 || !!matchedCat
-        let picked = byKw.length ? byKw : byCat
-        if (!hasFilter) picked = all
-        const seen = new Set(); const rows = []
-        for (const r of picked) { if (!seen.has(r.shortcode)) { seen.add(r.shortcode); rows.push(r) } if (rows.length >= 6) break }
-        const label = byKw.length ? (words[0] || matchedCat) : matchedCat
-        if (rows.length) setMessages((m) => [...m, { role: 'assistant', trends: rows, trendCat: label }])
-        else setMessages((m) => [...m, { role: 'assistant', text: '그 소재는 지금 뜨는 게 안 보여요. 다른 키워드로 물어보거나 트렌드 탭에서 직접 찾아볼 수 있어요.' }])
-      } catch { setErr('트렌드를 불러오지 못했어요') } finally { setBusy(false); setStage('') }
-      return
-    }
-    setBusy(true); setStage('베라가 생각 중…')
-    let trendsForChat = today
+    setMessages(newMsgs); setBusy(true); setStage('베라가 생각 중…')
     try {
-      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'chat', job_id: chatJob, messages: newMsgs.map(m => ({ role: m.role, content: m.text })).filter(m => m.content), current_script: prevScript, nickname: nick, today_trends: trendsForChat }) })
+      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'chat', job_id: chatJob, messages: newMsgs.map(m => ({ role: m.role, content: m.text })).filter(m => m.content), current_script: prevScript, nickname: nick, today_trends: today }) })
       const d = await r.json()
       if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? `이용권이 부족해요. 대화를 이어가려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '응답 실패')); return }
+      // 서버(LLM)가 트렌드 목록 요청으로 판단 → 실제 카드 렌더 (무료)
+      if (Array.isArray(d.trends)) {
+        if (d.trends.length) setMessages(m => [...m, { role: 'assistant', trends: d.trends, trendCat: d.trend_cat || '' }])
+        else setMessages(m => [...m, { role: 'assistant', text: '그 소재는 지금 뜨는 게 안 보여요. 다른 키워드로 물어보거나 트렌드 탭에서 직접 찾아볼 수 있어요.' }])
+        return
+      }
       applyMeter(d)
       if (d.reply) setMessages(m => [...m, { role: 'assistant', text: d.reply }])
       if (d.script && chatJob) {
