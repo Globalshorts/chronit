@@ -37,6 +37,7 @@ const WARN_OVER = 300      // 이 이상이면 탭 이탈 경고(동시 10개 �
 export default function Watchlist() {
   const nav = useNavigate()
   const { scriptGen, startScript } = useScriptGen()
+  const goAnalyze = (it, thumb) => nav('/script', { state: { source_ref: it.shortcode, caption: it.caption || '', thumbnail: thumb || '', analyze: true } })
   const [session, setSession] = useState(null)
   const [accounts, setAccounts] = useState([])
   const [feed, setFeed] = useState([])
@@ -382,6 +383,7 @@ export default function Watchlist() {
                   it={it} rank={i + 1} showOwner
                   onPlay={() => { logEvent('trend_card_click', { shortcode: it.shortcode, source: 'watchlist' }); logEvent('trend_play', { shortcode: it.shortcode, source: 'watchlist' }); setPlayClip(clip) }}
                   onScript={() => startScript(it, clip.thumbnail_url || it.thumbnail_url || '')}
+                  onAnalyze={() => goAnalyze(it, clip.thumbnail_url || it.thumbnail_url || '')}
                   scriptState={scriptGen[it.shortcode]}
                   watching={isWatched(it.owner)}
                   onToggleWatch={async () => { logEvent('save_click', { shortcode: it.shortcode, source: 'watchlist' }); await toggleWatch(it.owner); loadAccounts() }}
@@ -429,7 +431,7 @@ export default function Watchlist() {
 
       {modalClip && <AnalyzeModal clip={modalClip} allowDownload={false} onClose={() => setModalClip(null)} />}
       <ScriptGenToast scriptGen={scriptGen} />
-      {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onScript={() => startScript({ shortcode: playClip.shortcode || playClip.video_id, caption: playClip.caption || '' }, playClip.thumbnail_url || '')} scriptState={scriptGen[playClip.shortcode || playClip.video_id]} />}
+      {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onScript={() => startScript({ shortcode: playClip.shortcode || playClip.video_id, caption: playClip.caption || '' }, playClip.thumbnail_url || '')} onAnalyze={() => { goAnalyze({ shortcode: playClip.shortcode || playClip.video_id, caption: playClip.caption || '' }, playClip.thumbnail_url || ''); setPlayClip(null) }} scriptState={scriptGen[playClip.shortcode || playClip.video_id]} />}
     </div>
   )
 }

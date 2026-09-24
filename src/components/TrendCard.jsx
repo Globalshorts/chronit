@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Flame, Eye, Heart, MessageCircle, Sparkles, Lock, Play, Bookmark, Layers, ExternalLink, Loader2, ArrowRight } from 'lucide-react'
+import { Flame, Eye, Heart, MessageCircle, Sparkles, Lock, Play, Bookmark, Layers, ExternalLink, Loader2, ArrowRight, BarChart3 } from 'lucide-react'
 import { fmtCount, timeAgo } from '../lib/format'
 import { isCarousel, coverOf, imagesOf, openPost } from '../lib/filterConfig'
 
@@ -89,11 +89,17 @@ export default function TrendCard({
           <button onClick={onUnlock} className="flex w-full items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Lock size={12} />잠금 해제하고 보기</button>
         ) : (
           <>
-            <div className="flex gap-1.5">
-              <button onClick={onScript} disabled={scriptState?.status === 'generating'} title={scriptState?.error || '이 소재로 대본 작성하기'}
-                className={`flex flex-1 items-center justify-center gap-1 rounded-lg py-1.5 text-xs font-bold text-white transition hover:brightness-95 ${scriptState?.status === 'ready' ? 'bg-emerald-500' : scriptState?.status === 'error' ? 'bg-rose-500' : 'bg-[#0064FF]'} ${scriptState?.status === 'generating' ? 'opacity-70' : ''}${coach ? ' animate-pulse ring-2 ring-[#0064FF]/45 ring-offset-2' : ''}`}>
-                {scriptState?.status === 'generating' ? <><Loader2 size={12} className="animate-spin" />생성 중…</> : scriptState?.status === 'ready' ? <><ArrowRight size={12} />베라에서 보기</> : scriptState?.status === 'error' ? <><Sparkles size={12} />다시 시도</> : <><Sparkles size={12} />대본 작성</>}
-              </button>
+            <button onClick={onScript} disabled={scriptState?.status === 'generating'} title={scriptState?.error || '이 소재로 대본 작성하기'}
+              className={`flex w-full items-center justify-center gap-1 rounded-lg py-1.5 text-xs font-bold text-white transition hover:brightness-95 ${scriptState?.status === 'ready' ? 'bg-emerald-500' : scriptState?.status === 'error' ? 'bg-rose-500' : 'bg-[#0064FF]'} ${scriptState?.status === 'generating' ? 'opacity-70' : ''}${coach ? ' animate-pulse ring-2 ring-[#0064FF]/45 ring-offset-2' : ''}`}>
+              {scriptState?.status === 'generating' ? <><Loader2 size={12} className="animate-spin" />생성 중…</> : scriptState?.status === 'ready' ? <><ArrowRight size={12} />베라에서 보기</> : scriptState?.status === 'error' ? <><Sparkles size={12} />다시 시도</> : <><Sparkles size={12} />대본 작성</>}
+            </button>
+            <div className="mt-1.5 flex gap-1.5">
+              {onAnalyze && (
+                <button onClick={onAnalyze} title="이 소재 분석 (이용권 1개)"
+                  className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-white/10 py-1.5 text-xs font-bold text-white/55 transition hover:border-[#0064FF] hover:text-[#5AA0FF]">
+                  <BarChart3 size={12} />분석
+                </button>
+              )}
               {onToggleWatch && (
                 <button onClick={onToggleWatch} title="담기 = 이 계정을 워치리스트에 저장" aria-pressed={watching}
                   className={`flex flex-1 items-center justify-center gap-1 rounded-lg border py-1.5 text-xs font-bold transition ${watching ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-white/10 text-white/55 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>

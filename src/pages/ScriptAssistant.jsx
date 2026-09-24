@@ -32,6 +32,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [rnUrl, setRnUrl] = useState('')         // 레드노트 링크 입력
   const [rnBusy, setRnBusy] = useState(false)
   const [rnErr, setRnErr] = useState('')
+  const [pendingAnalyze, setPendingAnalyze] = useState(false)  // 트렌드에서 분석 진입 시 자동 실행
   const [balance, setBalance] = useState(null)
   const [turns, setTurns] = useState(null)
   const [note, setNote] = useState('')
@@ -113,6 +114,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       setMessages([]); setJobId(null); setClips([])
       const base = { source_ref: s.source_ref || null, caption: String(s.caption || '').replace(/\s+/g, ' ').trim(), thumb: s.thumbnail || '' }
       setSoso(base)
+      if (s.analyze) setPendingAnalyze(true)
       if (!base.caption && s.source_ref) {
         supabase.rpc('trend_detail_rpc', { p_shortcode: s.source_ref })
           .then(({ data }) => { const c = String(data?.caption || '').replace(/\s+/g, ' ').trim(); if (c) setSoso(v => ({ ...v, caption: c })) }).then(null, () => {})
@@ -120,6 +122,12 @@ export default function ScriptAssistant({ session: sessionProp }) {
       nav('.', { replace: true, state: null })
     }
   }, [loc.state])
+
+  // 트렌드에서 '분석'으로 진입하면 소재 붙은 뒤 자동 분석
+  useEffect(() => {
+    if (pendingAnalyze && soso && (soso.caption || soso.source_ref)) { setPendingAnalyze(false); analyzeSosoToChat() }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingAnalyze, soso])
 
   const token = async () => (session?.access_token) || (await supabase.auth.getSession()).data.session?.access_token
   const refreshSession = async () => {
@@ -184,6 +192,52 @@ export default function ScriptAssistant({ session: sessionProp }) {
       if (ad?.ok) { try { await supabase.rpc('set_analyze_cache_rpc', { p_key: cacheKey, p_result: ad }) } catch { /* noop */ } ; return ad }
     } catch { /* noop */ }
     return null
+  }
+
+  // 분석 결과를 베라 채팅 메시지로 포맷
+  const formatAnalysis = (a) => {
+    const L = ['📊 소재 분석']
+    if (a.hook) L.push(`\n[훅] ${a.hook}${a.hook_score != null ? ` · ${a.hook_score}점` : ''}${a.hook_type ? ` · ${a.hook_type}` : ''}`)
+    if (a.hook_why) L.push(`  ↳ ${a.hook_why}`)
+    if (a.payoff) L.push(`[결말] ${a.payoff}${a.payoff_score != null ? ` · ${a.payoff_score}점` : ''}`)
+    if (Array.isArray(a.selling_points) && a.selling_points.length) L.push(`[셀링포인트] ${a.selling_points.join(' · ')}`)
+    if (a.structure) L.push(`[구성] ${a.structure}`)
+    if (a.target) L.push(`[타깃] ${a.target}`)
+    const cs = a.comment_sentiment
+    if (cs && (cs.purchase_intent || cs.positive || cs.question)) L.push(`[댓글 반응] 구매의도 ${cs.purchase_intent}% · 질문 ${cs.question}% · 긍정 ${cs.positive}%`)
+    const rx = a.remix || {}
+    if (Array.isArray(rx.hook_ideas) && rx.hook_ideas.length) L.push(`\n[내 걸로 · 훅 아이디어]\n${rx.hook_ideas.map((x) => `· ${x}`).join('\n')}`)
+    if (Array.isArray(rx.edit_script) && rx.edit_script.length) L.push(`[편집 순서]\n${rx.edit_script.map((x, i) => `${i + 1}. ${x}`).join('\n')}`)
+    if (Array.isArray(rx.differentiation) && rx.differentiation.length) L.push(`[차별화]\n${rx.differentiation.map((x) => `· ${x}`).join('\n')}`)
+    if (Array.isArray(a.hashtags) && a.hashtags.length) L.push(`[해시태그] ${a.hashtags.join(' ')}`)
+    return L.join('\n')
+  }
+
+  // 소재 분석 → 베라 채팅으로 (캐시 히트=무료, 신규=이용권 1개)
+  const analyzeSosoToChat = async () => {
+    if (busy) return
+    if (!soso) { setErr('먼저 트렌드에서 소재를 골라주세요'); return }
+    const t = await token(); if (!t) { setErr('로그인이 필요해요'); return }
+    setErr(''); setBusy(true); setStage('소재 분석 중…')
+    try {
+      const { data: { session: se } } = await supabase.auth.getSession()
+      let niche = '', persona = ''
+      try { const { data: pf } = await supabase.from('profiles').select('niche,persona').eq('id', se.user.id).maybeSingle(); niche = pf?.niche || ''; persona = pf?.persona || '' } catch { /* noop */ }
+      const cacheKey = String(soso.source_ref || soso.caption || '').slice(0, 280) + '|' + niche + '|v9'
+      let a = null
+      try { const { data: cached } = await supabase.rpc('get_analyze_cache_rpc', { p_key: cacheKey }); if (cached && cached.ok) a = cached } catch { /* noop */ }
+      if (!a) {
+        if (balance !== null && balance < 1) { setErr('소재 분석엔 이용권 1개가 필요해요'); return }
+        const ar = await fetch(FN('analyze-clip'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ title: soso.caption, source: 'trend', thumbnail_url: soso.thumb, niche, persona, video_id: soso.source_ref }) })
+        const ad = await ar.json()
+        if (!ad?.ok) { setErr(ad?.error || '분석에 실패했어요. 잠시 후 다시 시도해 주세요'); return }
+        try { const { data: ch } = await supabase.rpc('charge_credits_rpc', { p_n: 1 }); if (ch && typeof ch.balance === 'number') setBalance(ch.balance); setNote('💧 소재 분석 · 이용권 1개'); setTimeout(() => setNote(''), 3000) } catch { /* noop */ }
+        try { await supabase.rpc('set_analyze_cache_rpc', { p_key: cacheKey, p_result: ad }) } catch { /* noop */ }
+        a = ad
+      }
+      if (a.product_name || (Array.isArray(a.selling_points) && a.selling_points.length)) setSoso((v) => ({ ...v, product: a.product_name || v.product, selling: Array.isArray(a.selling_points) ? a.selling_points : v.selling }))
+      setMessages((m) => [...m, { role: 'assistant', text: formatAnalysis(a) }])
+    } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
 
   // 소재 카드로 대본 만들기 (분석 → 대본, 이용권 1)
@@ -366,7 +420,12 @@ export default function ScriptAssistant({ session: sessionProp }) {
               ? <><div className="truncate text-[14px] font-bold text-white">{soso.product}</div><div className="line-clamp-1 text-[12px] text-white/55">{(soso.selling || []).join(' · ') || soso.caption}</div></>
               : <div className="line-clamp-2 text-[13px] leading-snug text-white/80">{soso.caption || '(캡션 불러오는 중…)'}</div>}
           </div>
-          {!jobId && <button onClick={generateFromSoso} disabled={busy} className="shrink-0 rounded-xl bg-[#0064FF] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-40">이 소재로 대본 만들기{turns > 0 ? <span className="opacity-70"> · {turns}턴 남음</span> : <span className="opacity-70"> · 이용권 2 · 10턴</span>}</button>}
+          {!jobId && (
+            <div className="flex shrink-0 flex-col gap-1.5">
+              <button onClick={generateFromSoso} disabled={busy} className="rounded-xl bg-[#0064FF] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-40">이 소재로 대본 만들기{turns > 0 ? <span className="opacity-70"> · {turns}턴 남음</span> : <span className="opacity-70"> · 이용권 2 · 10턴</span>}</button>
+              <button onClick={analyzeSosoToChat} disabled={busy} className="flex items-center justify-center gap-1 rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-xs font-bold text-white/75 transition hover:text-white disabled:opacity-40"><BarChart3 size={13} /> 소재 분석 · 이용권 1</button>
+            </div>
+          )}
         </div>
       )}
 
@@ -516,6 +575,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
             <div className="mx-auto mb-2 flex max-w-[700px] flex-wrap items-center gap-2">
               <Link to="/trend" className={chip + ' text-[#5AA0FF]'}><Flame size={13} /> 트렌드에서 영상 고르기</Link>
               <button onClick={startChannelAnalysis} className={chip + ' text-[#5AA0FF]'}><BarChart3 size={13} /> 채널 분석</button>
+              {soso && <button onClick={analyzeSosoToChat} className={chip + ' text-[#5AA0FF]'}><BarChart3 size={13} /> 소재 분석</button>}
             </div>
           )
           if (scriptOut && !busy) return (

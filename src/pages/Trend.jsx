@@ -114,6 +114,7 @@ export default function Trend() {
   // 대본 작성 2단계 — 공용 훅(트렌드/워치리스트). markActed로 활성 추적만 감싼다.
   const { scriptGen, startScript: _startScript } = useScriptGen()
   const startScript = (it, thumb) => { markActed(); _startScript(it, thumb) }
+  const goAnalyze = (it, thumb) => { markActed(); nav('/script', { state: { source_ref: it.shortcode, caption: it.caption || '', thumbnail: thumb || '', analyze: true } }) }
 
   // 한 번이라도 움직였으면 코치마크·넛지는 제 할 일을 다 한 것
   const markActed = () => {
@@ -560,6 +561,7 @@ export default function Trend() {
                   onPlay={() => openItem(it)}
                   onOpen={() => openItem(it)}
                   onScript={() => startScript(it, (clip && clip.thumbnail_url) || coverOf(it) || '')}
+                  onAnalyze={() => goAnalyze(it, (clip && clip.thumbnail_url) || coverOf(it) || '')}
                   scriptState={scriptGen[it.shortcode]}
                   onToggleWatch={() => saveItem(it)}
                   onUnlock={() => nav('/pricing')}
@@ -583,7 +585,7 @@ export default function Trend() {
       )}
       {modalClip && <AnalyzeModal clip={modalClip} allowDownload={false} onClose={() => setModalClip(null)} />}
       <ScriptGenToast scriptGen={scriptGen} />
-      {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onScript={() => startScript({ shortcode: playClip.shortcode || playClip.video_id, caption: playClip.caption || '' }, playClip.thumbnail_url || coverOf(playClip) || '')} scriptState={scriptGen[playClip.shortcode || playClip.video_id]} onSave={() => saveItem({ ...playClip, shortcode: playClip.shortcode || playClip.video_id })} saved={isWatching({ ...playClip, shortcode: playClip.shortcode || playClip.video_id })} />}
+      {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onScript={() => startScript({ shortcode: playClip.shortcode || playClip.video_id, caption: playClip.caption || '' }, playClip.thumbnail_url || coverOf(playClip) || '')} onAnalyze={() => { goAnalyze({ shortcode: playClip.shortcode || playClip.video_id, caption: playClip.caption || '' }, playClip.thumbnail_url || coverOf(playClip) || ''); setPlayClip(null) }} scriptState={scriptGen[playClip.shortcode || playClip.video_id]} onSave={() => saveItem({ ...playClip, shortcode: playClip.shortcode || playClip.video_id })} saved={isWatching({ ...playClip, shortcode: playClip.shortcode || playClip.video_id })} />}
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
       {limitModal && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4" onClick={() => setLimitModal(null)}>
