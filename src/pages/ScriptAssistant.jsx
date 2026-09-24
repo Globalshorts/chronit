@@ -605,6 +605,14 @@ export default function ScriptAssistant({ session: sessionProp }) {
               ))}
             </div>
           )
+          if (last?.report && !busy) return (
+            <div className="mx-auto mb-2 flex max-w-[700px] flex-wrap items-center gap-2">
+              <span className="mr-0.5 text-[11px] font-bold text-white/35">다음 →</span>
+              {soso && !jobId && <button onClick={generateFromSoso} className={chip + ' border-[#0064FF]/50 bg-[#0064FF]/10 text-[#5AA0FF]'}><Sparkles size={13} /> 이 소재로 대본 만들기</button>}
+              <button onClick={() => send('이 분석에서 훅 아이디어 더 뽑아줘')} className={chip}>훅 더 뽑기</button>
+              <Link to="/trend" className={chip}><Flame size={13} /> 다른 소재 보기</Link>
+            </div>
+          )
           return null
         })()}
         <div className="mx-auto flex max-w-[700px] items-end gap-2">
