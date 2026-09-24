@@ -347,11 +347,20 @@ export default function ScriptAssistant({ session: sessionProp }) {
       setBusy(true); setStage('트렌드 찾는 중…')
       try {
         const { data } = await supabase.rpc('trend_list_rpc', { p_limit: 60 })
-        let rows = Array.isArray(data) ? data : []
-        if (matchedCat) rows = rows.filter((r) => r.category === matchedCat)
-        rows = rows.filter((r) => r.shortcode).slice(0, 6)
-        if (rows.length) setMessages((m) => [...m, { role: 'assistant', trends: rows, trendCat: matchedCat }])
-        else setMessages((m) => [...m, { role: 'assistant', text: matchedCat ? `${matchedCat} 카테고리는 지금 뜨는 소재가 없어요. 트렌드 탭에서 다른 필터로 찾아볼 수 있어요.` : '지금 뜨는 소재를 못 찾았어요. 트렌드 탭에서 직접 골라보세요.' }])
+        const all = (Array.isArray(data) ? data : []).filter((r) => r.shortcode)
+        // 캡션 키워드 우선 필터 — "장난감"처럼 구체 요청이 카테고리 전체로 번지지 않게
+        const STOP = ['트렌드', '에서', '소재', '영상', '릴스', '숏폼', '추천', '보여줘', '보여', '골라줘', '골라', '가장', '좋은', '관련', '물품', '제품', '올릴', '요즘', '뜨는', '터진', '있어', '있는', '찾아', '최근', '인기', '좀', '제일', '그리고', '해줘']
+        const words = text.replace(/[0-9]+\s*개?/g, ' ').split(/[\s,·]+/).map((w) => w.replace(/[?!.]/g, '').trim()).filter((w) => w.length >= 2 && !STOP.includes(w))
+        const byKw = words.length ? all.filter((r) => { const c = String(r.caption || ''); return words.some((w) => c.includes(w)) }) : []
+        const byCat = matchedCat ? all.filter((r) => r.category === matchedCat) : []
+        const hasFilter = words.length > 0 || !!matchedCat
+        let picked = byKw.length ? byKw : byCat
+        if (!hasFilter) picked = all
+        const seen = new Set(); const rows = []
+        for (const r of picked) { if (!seen.has(r.shortcode)) { seen.add(r.shortcode); rows.push(r) } if (rows.length >= 6) break }
+        const label = byKw.length ? (words[0] || matchedCat) : matchedCat
+        if (rows.length) setMessages((m) => [...m, { role: 'assistant', trends: rows, trendCat: label }])
+        else setMessages((m) => [...m, { role: 'assistant', text: '그 소재는 지금 뜨는 게 안 보여요. 다른 키워드로 물어보거나 트렌드 탭에서 직접 찾아볼 수 있어요.' }])
       } catch { setErr('트렌드를 불러오지 못했어요') } finally { setBusy(false); setStage('') }
       return
     }
@@ -676,7 +685,8 @@ export default function ScriptAssistant({ session: sessionProp }) {
         )}
         {(() => {
           const last = messages[messages.length - 1]
-          const scriptOut = !!last?.isScript
+          if (last?.trends) return null
+          const scriptOut = !!last?.isScript && !last?.trends
           const atStart = !jobId && messages.length <= 1
           const chip = 'flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-white/70 transition hover:text-white'
           if (atStart) return (
