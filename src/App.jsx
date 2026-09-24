@@ -1,5 +1,6 @@
 import { useEffect, lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom'
+import { saveLastPath } from './lib/entry'
 import { AnalysisProvider } from './context/analysis'
 import ErrorBoundary from './components/ErrorBoundary'
 import Home from './pages/Home'
@@ -73,6 +74,12 @@ const ScrollToTop = () => {
   return null
 }
 
+const LastPathTracker = () => {
+  const { pathname } = useLocation()
+  useEffect(() => { saveLastPath(pathname) }, [pathname])
+  return null
+}
+
 const RouteFallback = () => (
   <div style={{ minHeight: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }} aria-hidden="true">
     <div style={{ width: 26, height: 26, border: '2.5px solid rgba(255,255,255,.15)', borderTopColor: '#4d7cff', borderRadius: '50%', animation: 'bootspin .8s linear infinite' }} />
@@ -114,6 +121,7 @@ const App = () => {
     <BlobBackground />
     <div style={{ position: 'relative', zIndex: 1 }}>
     <ScrollToTop />
+    <LastPathTracker />
     <ErrorReportModal />
     <InAppBrowserBanner />
     <ActivationGate />

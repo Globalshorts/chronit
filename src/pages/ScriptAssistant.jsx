@@ -59,9 +59,13 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const { startChannel } = useAnalysis()
   const scrollRef = useRef(null)
   const greetedRef = useRef(false)
+  const autoOpenRef = useRef(false)
   const textareaRef = useRef(null)
   const autoGrow = (el) => { if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 160) + 'px' }
   const resetGrow = () => { if (textareaRef.current) { textareaRef.current.style.height = 'auto' } }
+  const [atBottom, setAtBottom] = useState(true)
+  const scrollToBottom = () => scrollRef.current?.scrollTo({ top: 9e9, behavior: 'smooth' })
+  const onChatScroll = (e) => { const el = e.currentTarget; setAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 80) }
 
   useEffect(() => {
     if (sessionProp) setSession(sessionProp)
@@ -97,12 +101,25 @@ export default function ScriptAssistant({ session: sessionProp }) {
       try { const { data: pf } = await supabase.from('profiles').select('nickname').eq('id', session.user.id).maybeSingle(); nn = pf?.nickname || '' } catch { /* noop */ }
       setNick(nn)
       supabase.rpc('trend_list_rpc', { p_limit: 3 }).then(({ data }) => setToday((Array.isArray(data) ? data : []).map(x => String(x.caption || '').replace(/\s+/g, ' ').trim().slice(0, 70)).filter(Boolean))).catch(() => {})
-      if (!greetedRef.current && messages.length === 0 && !soso && !jobId) {
+      if (!greetedRef.current && messages.length === 0 && !soso && !jobId && (!jobs || jobs.length === 0)) {
         greetedRef.current = true
         setMessages([{ role: 'assistant', text: `안녕하세요${nn ? ` ${nn}님` : ''}! 저는 대본 비서 베라예요 🙂\n트렌드에서 마음에 드는 영상을 열어 '대본 작성하기'를 누르면 기승전결 대본을 써드려요. 오늘 뭐가 뜨는지 궁금하면 편하게 물어보세요.` }])
       }
     })()
-  }, [session])
+  }, [session, jobs])
+
+  // 재방문 진입: 트렌드/분석 진입 의도가 없으면 가장 최근 세션 자동 열기
+  useEffect(() => {
+    if (autoOpenRef.current || !session) return
+    const st = loc.state
+    if (st && (st.open_job || st.source_ref || st.caption)) { autoOpenRef.current = true; return }
+    if (jobId || soso) { autoOpenRef.current = true; return }
+    if (Array.isArray(jobs) && jobs.length > 0) {
+      autoOpenRef.current = true; greetedRef.current = true
+      openJob(jobs[0].id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, jobs])
 
   // 트렌드 재생 모달의 "대본 작성하기" → 소재(클립) 자체를 비서로 가져오기
   useEffect(() => {
@@ -470,7 +487,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       )}
 
       {/* 대화 영역 */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto py-6">
+      <div ref={scrollRef} onScroll={onChatScroll} className="flex-1 overflow-y-auto py-6">
         {!started && !soso && !busy && (
           <div className="sa-fade flex flex-col items-center justify-center gap-6 py-10 text-center">
             <Droplet size={84} />
@@ -605,6 +622,9 @@ export default function ScriptAssistant({ session: sessionProp }) {
       {note && <div className="mx-auto mb-2 max-w-[700px] text-center text-xs font-bold text-[#5AA0FF]">{note}</div>}
       {err && <div className="mx-auto mb-2 max-w-[700px] text-sm text-amber-400">⚠ {err}</div>}
 
+      {!atBottom && (
+        <button onClick={scrollToBottom} aria-label="맨 아래로" className="absolute bottom-28 left-1/2 z-30 -translate-x-1/2 flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-[#0a0b0f]/90 text-white/80 shadow-lg backdrop-blur transition hover:text-white md:bottom-20"><ChevronDown size={18} /></button>
+      )}
       {/* 컴포저 */}
       <div className="sticky bottom-0 border-t border-white/10 bg-[#0a0b0f]/85 pb-[calc(env(safe-area-inset-bottom)+4.5rem)] pt-3 backdrop-blur md:pb-4 md:pr-16">
         {(() => {

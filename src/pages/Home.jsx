@@ -15,6 +15,7 @@ import { phCapture } from '../lib/posthog'
 import { fbTrack } from '../lib/fbq'
 import { usePlans } from '../lib/usePlans'
 import { ACCOUNTS_PER_CREDIT } from '../lib/planLabels'
+import { getEntryPath } from '../lib/entry'
 // 모달들: 열릴 때만 로드(엔트리 경량화)
 const PaymentModal = lazy(() => import('../components/PaymentModal'))
 const FindsPricing = lazy(() => import('../components/FindsPricing'))
@@ -192,8 +193,8 @@ const Home = () => {
       .then(({ data }) => setNickname(data?.nickname ?? null))
   }, [user])
 
-  // 모바일은 기본 진입을 베라(대본)로, 데스크톱은 트렌드로
-  const entryPath = () => (typeof window !== 'undefined' && window.innerWidth < 768 ? '/script' : '/trend')
+  // 마지막 방문 페이지(기기별)로 진입, 기록 없으면 트렌드
+  const entryPath = () => getEntryPath()
   const handleAfterLogin = (session) => {
     // sign_up 전환은 App 전역 리스너(trackSignupIfNew)에서 신규 계정 1회만 발생
     fetch('http://localhost:17389/ping')
