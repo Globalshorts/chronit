@@ -233,11 +233,11 @@ const MyPage = () => {
         </div>
         <TrialCodeNotice trial={trial} onClose={() => setTrial(null)} />
 
-        {/* 리서치 이용권 */}
+        {/* 이용권 */}
         <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
           <div className="flex items-center justify-between">
             <div>
-              <div className="flex items-center gap-1 text-xs text-white/35"><Sparkles size={13} /> 리서치 이용권</div>
+              <div className="flex items-center gap-1 text-xs text-white/35"><Sparkles size={13} /> 이용권</div>
               <div className="mt-1 text-2xl font-bold text-gray-800">{wallet ? wallet.finds_balance.toLocaleString() : '…'}</div>
               <div className="mt-0.5 text-[11px] text-white/35">{wallet?.sub_active
                 ? `${PLAN_LABEL[wallet.plan]} · 이용권 ${wallet.finds_balance.toLocaleString()} · ${wallet.days_left}일 남음`

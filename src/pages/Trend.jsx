@@ -41,7 +41,6 @@ const NICHE_KW = {
 import { FEATURES } from '../config/features'
 import SiteNav from '../components/SiteNav'
 import FindsBottomNav from '../components/FindsBottomNav'
-import { AnalyzeModal, ackAnalyzeCost } from './Finds'
 import AuthModal from '../components/AuthModal'
 import FindsPricing from '../components/FindsPricing'
 
@@ -92,9 +91,7 @@ export default function Trend() {
   const [postType, setPostType] = useState('all')   // all | reel | carousel — 트렌드·패스트벤치 공용
   const [fastBench, setFastBench] = useState(false)
   const [previewLock, setPreviewLock] = useState(false)
-  const [modalClip, setModalClip] = useState(null)
   const [payWall, setPayWall] = useState(false)
-  const [analyzedIds, setAnalyzedIds] = useState([])
   const [showAuth, setShowAuth] = useState(false)
   const [playClip, setPlayClip] = useState(null)
   // 첫 방문(또는 온보딩 직후)에 '뭘 누르면 되는지'를 한 번 짚어준다
@@ -137,7 +134,6 @@ export default function Trend() {
   }
 
   // 소스 찾기 — 원본 URL 대신 shortcode 만 넘긴다. 서버가 URL 을 복원한다.
-  const findSource = (shortcode) => { if (shortcode) nav('/research', { state: { shortcode } }) }
 
   const saveItem = async (it) => {
     markActed()
@@ -157,19 +153,6 @@ export default function Trend() {
     if (data?.status === 'added') logEvent('watch_add', { shortcode: it.shortcode })
   }
 
-  const handleAnalyze = async (clip, source = 'trend') => {
-    const key = clip.page_url || clip.title
-    markActed()
-    logEvent('analyze_click', { shortcode: clip.video_id || null, source })
-    try { phCapture('trend_item_opened', { source: 'trend' }); phCapture('analysis_clicked', { source: 'trend' }) } catch { /* noop */ }
-    if (analyzedIds.includes(key)) { setModalClip(clip); return }
-    if (!ackAnalyzeCost(null)) return
-    const { data } = await supabase.rpc('use_finds_credit_rpc')
-    if (!data?.ok) { nav('/pricing'); return }
-    setAnalyzedIds((prev) => [...prev, key])
-    setModalClip(clip)
-    supabase.rpc('grant_first_analysis_bonus_rpc').then(null, () => {})
-  }
 
   // 메타 픽셀 전환: /trend 도달 1회 (로그인 여부 무관)
   const vcSent = useRef(false)
@@ -583,7 +566,6 @@ export default function Trend() {
           </div>
         </div>
       )}
-      {modalClip && <AnalyzeModal clip={modalClip} allowDownload={false} onClose={() => setModalClip(null)} />}
       <ScriptGenToast scriptGen={scriptGen} />
       {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onScript={() => startScript({ shortcode: playClip.shortcode || playClip.video_id, caption: playClip.caption || '' }, playClip.thumbnail_url || coverOf(playClip) || '')} onAnalyze={() => { goAnalyze({ shortcode: playClip.shortcode || playClip.video_id, caption: playClip.caption || '' }, playClip.thumbnail_url || coverOf(playClip) || ''); setPlayClip(null) }} scriptState={scriptGen[playClip.shortcode || playClip.video_id]} onSave={() => saveItem({ ...playClip, shortcode: playClip.shortcode || playClip.video_id })} saved={isWatching({ ...playClip, shortcode: playClip.shortcode || playClip.video_id })} />}
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />

@@ -349,8 +349,10 @@ export default function ScriptAssistant({ session: sessionProp }) {
         return
       }
       applyMeter(d)
-      if (d.reply) setMessages(m => [...m, { role: 'assistant', text: d.reply }])
+      let shown = false
+      if (d.reply) { setMessages(m => [...m, { role: 'assistant', text: d.reply }]); shown = true }
       if (d.script && chatJob) {
+        shown = true
         setMessages(m => [...m, { role: 'assistant', text: d.script, isScript: true }])
         supabase.rpc('set_job_script_rpc', { p_job_id: chatJob, p_script: d.script, p_status: 'done' }).then(null, () => {})
         if (prevScript) supabase.rpc('record_edit_rpc', { p_job_id: chatJob, p_before: prevScript, p_after: d.script }).then(null, () => {})
@@ -359,6 +361,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
         supabase.rpc('append_job_message_rpc', { p_job_id: chatJob, p_role: 'user', p_content: text }).then(null, () => {})
         if (d.reply) supabase.rpc('append_job_message_rpc', { p_job_id: chatJob, p_role: 'assistant', p_content: d.reply }).then(null, () => {})
       }
+      if (!shown) setMessages(m => [...m, { role: 'assistant', text: '네, 말씀하세요!' }])
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
 
@@ -466,7 +469,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       {/* 헤더 */}
       <div className="mb-1 flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          <button onClick={() => setShowConvList(true)} className="shrink-0 rounded-lg border border-white/15 p-1.5 text-white/70 hover:text-white md:hidden"><MessageSquareText size={16} /></button>
+          <button onClick={() => setShowConvList(true)} className="flex shrink-0 items-center gap-1 rounded-lg border border-white/15 px-2.5 py-1.5 text-xs font-bold text-white/70 hover:text-white md:hidden"><MessageSquareText size={14} /> 내 대본{jobs.length ? ` ${jobs.length}` : ''}</button>
           <div className="min-w-0">
             <h1 className="flex items-center gap-2 text-xl font-bold text-white"><EnergyOrb size={24} /> 대본 비서</h1>
             <p className="mt-0.5 text-sm leading-snug text-white/50">대화로 다듬을수록 내 말투를 배워요</p>
