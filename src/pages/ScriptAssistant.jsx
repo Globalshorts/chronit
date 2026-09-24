@@ -7,6 +7,7 @@ import PersonaSettings from '../components/PersonaSettings'
 import { useAnalysis } from '../context/analysis'
 import EnergyOrb from '../components/EnergyOrb'
 import ClipAnalysisReport from '../components/ClipAnalysisReport'
+import { TrendThumb } from '../components/TrendCard'
 import { maskHandles } from '../lib/format'
 
 const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
@@ -35,6 +36,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [rnBusy, setRnBusy] = useState(false)
   const [rnErr, setRnErr] = useState('')
   const [pendingAnalyze, setPendingAnalyze] = useState(false)  // 트렌드에서 분석 진입 시 자동 실행
+  const [pendingGen, setPendingGen] = useState(false)  // 카드에서 대본 진입 시 자동 실행
   const [balance, setBalance] = useState(null)
   const [turns, setTurns] = useState(null)
   const [note, setNote] = useState('')
@@ -153,6 +155,10 @@ export default function ScriptAssistant({ session: sessionProp }) {
     if (pendingAnalyze && soso && (soso.caption || soso.source_ref)) { setPendingAnalyze(false); analyzeSosoToChat() }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingAnalyze, soso])
+  useEffect(() => {
+    if (pendingGen && soso && (soso.caption || soso.source_ref)) { setPendingGen(false); generateFromSoso() }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingGen, soso])
 
   const token = async () => (session?.access_token) || (await supabase.auth.getSession()).data.session?.access_token
   const refreshSession = async () => {
@@ -308,6 +314,14 @@ export default function ScriptAssistant({ session: sessionProp }) {
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
 
+  // 채팅 트렌드 카드에서 소재 선택 → 대본/분석 자동 실행 (새 소재이므로 새 세션)
+  const pickTrend = (it, mode) => {
+    if (busy) return
+    const clip = { source_ref: it.shortcode, caption: String(it.caption || '').replace(/\s+/g, ' ').trim(), thumb: it.thumbnail_url || '' }
+    setJobId(null); setSoso(clip)
+    if (mode === 'analyze') setPendingAnalyze(true); else setPendingGen(true)
+  }
+
   // 베라와 대화 (무료). 대본이 있으면 요청 시 다듬어 줌(무료). 새 대본 커밋은 소재 카드로.
   const send = async (preset) => {
     const text = (typeof preset === 'string' ? preset : input).trim(); if (!text || busy) return
@@ -323,23 +337,26 @@ export default function ScriptAssistant({ session: sessionProp }) {
     const prevScript = jobId ? lastScript() : ''
     const chatJob = (jobId && (turns > 0 || prevScript)) ? jobId : null
     const newMsgs = [...messages, { role: 'user', text }]
-    setMessages(newMsgs); setBusy(true); setStage('베라가 생각 중…')
-    // 트렌드/카테고리 요청이면 실제 trend_feed를 조회해 베라에 넘긴다 (없다고 잘못 답하지 않게)
-    let trendsForChat = today
-    try {
-      const CATS = { 뷰티: ['뷰티', '화장품', '메이크업', '스킨케어', '코스메', '립', '파운데', '선크림', '쿠션'], 리빙: ['리빙', '살림', '주방', '수납', '정리', '청소', '인테리어', '가구'], 푸드: ['푸드', '음식', '간식', '요리', '레시피', '먹', '식품', '밀키트'], 육아: ['육아', '아기', '애기', '키즈', '장난감', '아이', '유아'], 패션: ['패션', '옷', '의류', '코디', '신발', '가방', '악세'], 잡화: ['잡화', '소품', '문구', '팬시'], 디지털: ['디지털', '가전', '전자', '기기', '테크', '폰', '이어폰'], 헬스: ['헬스', '운동', '다이어트', '건강', '피트니스', '홈트'] }
-      let matchedCat = ''
-      for (const [cat, kws] of Object.entries(CATS)) { if (kws.some((k) => text.includes(k))) { matchedCat = cat; break } }
-      const wantsTrend = /트렌드|영상|소재|릴스|숏폼|추천|올릴|잘 ?나온|잘 ?된|잘 ?나가|터진|뜨는|요즘/.test(text)
-      if (matchedCat || wantsTrend) {
+    setMessages(newMsgs)
+    // 트렌드/카테고리 요청이면 실제 트렌드 카드를 채팅에 바로 렌더 (LLM 안 거침, 무료)
+    const CATS = { 뷰티: ['뷰티', '화장품', '메이크업', '스킨케어', '코스메', '립', '파운데', '선크림', '쿠션'], 리빙: ['리빙', '살림', '주방', '수납', '정리', '청소', '인테리어', '가구'], 푸드: ['푸드', '음식', '간식', '요리', '레시피', '먹', '식품', '밀키트'], 육아: ['육아', '아기', '애기', '키즈', '장난감', '아이', '유아'], 패션: ['패션', '옷', '의류', '코디', '신발', '가방', '악세'], 잡화: ['잡화', '소품', '문구', '팬시'], 디지털: ['디지털', '가전', '전자', '기기', '테크', '폰', '이어폰'], 헬스: ['헬스', '운동', '다이어트', '건강', '피트니스', '홈트'] }
+    let matchedCat = ''
+    for (const [cat, kws] of Object.entries(CATS)) { if (kws.some((k) => text.includes(k))) { matchedCat = cat; break } }
+    const wantsTrend = /트렌드|영상|소재|릴스|숏폼|추천|올릴|잘 ?나온|잘 ?된|잘 ?나가|터진|뜨는|요즘|보여줘|뭐\s?있|찾아/.test(text)
+    if (matchedCat || wantsTrend) {
+      setBusy(true); setStage('트렌드 찾는 중…')
+      try {
         const { data } = await supabase.rpc('trend_list_rpc', { p_limit: 60 })
         let rows = Array.isArray(data) ? data : []
         if (matchedCat) rows = rows.filter((r) => r.category === matchedCat)
-        const picked = rows.slice(0, 6).map((r) => `${maskHandles(String(r.caption || '')).replace(/\s+/g, ' ').trim().slice(0, 70)}${r.category ? ` [${r.category}]` : ''}`).filter(Boolean)
-        if (picked.length) trendsForChat = picked
-        else if (matchedCat) trendsForChat = []
-      }
-    } catch { /* noop */ }
+        rows = rows.filter((r) => r.shortcode).slice(0, 6)
+        if (rows.length) setMessages((m) => [...m, { role: 'assistant', trends: rows, trendCat: matchedCat }])
+        else setMessages((m) => [...m, { role: 'assistant', text: matchedCat ? `${matchedCat} 카테고리는 지금 뜨는 소재가 없어요. 트렌드 탭에서 다른 필터로 찾아볼 수 있어요.` : '지금 뜨는 소재를 못 찾았어요. 트렌드 탭에서 직접 골라보세요.' }])
+      } catch { setErr('트렌드를 불러오지 못했어요') } finally { setBusy(false); setStage('') }
+      return
+    }
+    setBusy(true); setStage('베라가 생각 중…')
+    let trendsForChat = today
     try {
       const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'chat', job_id: chatJob, messages: newMsgs.map(m => ({ role: m.role, content: m.text })).filter(m => m.content), current_script: prevScript, nickname: nick, today_trends: trendsForChat }) })
       const d = await r.json()
@@ -548,6 +565,29 @@ export default function ScriptAssistant({ session: sessionProp }) {
                     </>
                   )}
                 </div>
+              </div>
+            )
+            if (m.trends) return (
+              <div key={i} className="sa-fade w-full max-w-[700px] self-start">
+                <div className="mb-2 text-sm text-white/70">{m.trendCat ? `${m.trendCat} ` : ''}트렌드 소재예요 — 마음에 드는 걸 고르면 대본을 써드릴게요</div>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {m.trends.map((it, k) => (
+                    <div key={k} className="overflow-hidden rounded-xl glass">
+                      <div className="relative aspect-[9/16] bg-white/[0.06]">
+                        <TrendThumb url={it.thumbnail_url} sc={it.shortcode} />
+                        {it.category && <div className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">{it.category}</div>}
+                      </div>
+                      <div className="p-2">
+                        <div className="line-clamp-2 text-[11px] leading-snug text-white/70">{maskHandles(String(it.caption || '')).replace(/\s+/g, ' ').trim().slice(0, 60) || '(캡션 없음)'}</div>
+                        <div className="mt-1.5 flex gap-1">
+                          <button onClick={() => pickTrend(it, 'script')} disabled={busy} className="flex-1 rounded-lg bg-[#0064FF] px-2 py-1.5 text-[11px] font-bold text-white transition hover:brightness-110 disabled:opacity-40">대본</button>
+                          <button onClick={() => pickTrend(it, 'analyze')} disabled={busy} className="rounded-lg border border-white/15 bg-white/5 px-2 py-1.5 text-[11px] font-bold text-white/75 transition hover:text-white disabled:opacity-40">분석</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Link to="/trend" className="mt-2 inline-block text-xs font-bold text-[#5AA0FF]">트렌드 탭에서 더 보기 →</Link>
               </div>
             )
             if (m.report) return <div key={i} className="sa-fade w-full max-w-[700px] self-start"><ClipAnalysisReport a={m.report} /></div>
