@@ -6,6 +6,7 @@ import VoiceOnboard from '../components/VoiceOnboard'
 import PersonaSettings from '../components/PersonaSettings'
 import { useAnalysis } from '../context/analysis'
 import EnergyOrb from '../components/EnergyOrb'
+import ClipAnalysisReport from '../components/ClipAnalysisReport'
 
 const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
 const FN = (n) => `${SB}/functions/v1/${n}`
@@ -236,7 +237,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
         a = ad
       }
       if (a.product_name || (Array.isArray(a.selling_points) && a.selling_points.length)) setSoso((v) => ({ ...v, product: a.product_name || v.product, selling: Array.isArray(a.selling_points) ? a.selling_points : v.selling }))
-      setMessages((m) => [...m, { role: 'assistant', text: formatAnalysis(a) }])
+      setMessages((m) => [...m, { role: 'assistant', report: a }])
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
 
@@ -486,6 +487,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
                 </div>
               </div>
             )
+            if (m.report) return <div key={i} className="sa-fade w-full max-w-[700px] self-start"><ClipAnalysisReport a={m.report} /></div>
             if (m.role === 'user') return <div key={i} className="sa-fade max-w-[80%] self-end rounded-2xl rounded-br-md bg-[#0064FF] px-4 py-2.5 text-[15px] leading-relaxed text-white">{m.text}</div>
             return (
               <div key={i} className="sa-fade w-full max-w-[92%] self-start">
