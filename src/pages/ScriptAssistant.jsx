@@ -218,8 +218,9 @@ export default function ScriptAssistant({ session: sessionProp }) {
     try {
       const { data: { session: s } } = await supabase.auth.getSession()
       let niche = '', persona = ''
-      try { const { data: pf } = await supabase.from('profiles').select('niche,persona').eq('id', s.user.id).maybeSingle(); niche = pf?.niche || ''; persona = pf?.persona || '' } catch { /* noop */ }
-      const cacheKey = String(soso.source_ref || soso.caption || '').slice(0, 280) + '|' + niche + '|v9'
+      try { const { data: pf } = await supabase.from('profiles').select('niche').eq('id', s.user.id).maybeSingle(); niche = pf?.niche || '' } catch { /* noop */ }
+      try { const { data: vc } = await supabase.rpc('get_voice_context_rpc'); persona = vc?.persona?.target || '' } catch { /* noop */ }
+      const cacheKey = String(soso.source_ref || soso.caption || '').slice(0, 280) + '|' + niche + '|' + persona + '|v10'
       try { const { data: cached } = await supabase.rpc('get_analyze_cache_rpc', { p_key: cacheKey }); if (cached && cached.ok) return cached } catch { /* noop */ }
       const ar = await fetch(FN('analyze-clip'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ title: soso.caption, source: 'trend', thumbnail_url: soso.thumb, niche, persona, video_id: soso.source_ref }) })
       const ad = await ar.json()
@@ -256,8 +257,9 @@ export default function ScriptAssistant({ session: sessionProp }) {
     try {
       const { data: { session: se } } = await supabase.auth.getSession()
       let niche = '', persona = ''
-      try { const { data: pf } = await supabase.from('profiles').select('niche,persona').eq('id', se.user.id).maybeSingle(); niche = pf?.niche || ''; persona = pf?.persona || '' } catch { /* noop */ }
-      const cacheKey = String(soso.source_ref || soso.caption || '').slice(0, 280) + '|' + niche + '|v9'
+      try { const { data: pf } = await supabase.from('profiles').select('niche').eq('id', se.user.id).maybeSingle(); niche = pf?.niche || '' } catch { /* noop */ }
+      try { const { data: vc } = await supabase.rpc('get_voice_context_rpc'); persona = vc?.persona?.target || '' } catch { /* noop */ }
+      const cacheKey = String(soso.source_ref || soso.caption || '').slice(0, 280) + '|' + niche + '|' + persona + '|v10'
       let a = null
       try { const { data: cached } = await supabase.rpc('get_analyze_cache_rpc', { p_key: cacheKey }); if (cached && cached.ok) a = cached } catch { /* noop */ }
       if (!a) {
@@ -344,7 +346,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? `이용권이 부족해요. 대화를 이어가려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '응답 실패')); return }
       // 서버(LLM)가 트렌드 목록 요청으로 판단 → 실제 카드 렌더 (무료)
       if (Array.isArray(d.trends)) {
-        if (d.trends.length) setMessages(m => [...m, { role: 'assistant', trends: d.trends, trendCat: d.trend_cat || '' }])
+        if (d.trends.length) setMessages(m => [...m, { role: 'assistant', trends: d.trends, trendCat: d.trend_cat || '', note: d.note || '', fallback: !!d.fallback }])
         else setMessages(m => [...m, { role: 'assistant', text: '그 소재는 지금 뜨는 게 안 보여요. 다른 키워드로 물어보거나 트렌드 탭에서 직접 찾아볼 수 있어요.' }])
         return
       }
@@ -559,7 +561,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
             )
             if (m.trends) return (
               <div key={i} className="sa-fade w-full max-w-[700px] self-start">
-                <div className="mb-2 text-sm text-white/70">{m.trendCat ? `${m.trendCat} ` : ''}트렌드 소재예요 — 마음에 드는 걸 고르면 대본을 써드릴게요</div>
+<div className={`mb-2 text-sm ${m.fallback ? 'text-amber-300/90' : 'text-white/70'}`}>{m.note || `${m.trendCat ? m.trendCat + ' ' : ''}트렌드 소재예요 — 마음에 드는 걸 고르면 대본을 써드릴게요`}</div>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                   {m.trends.map((it, k) => (
                     <div key={k} className="overflow-hidden rounded-xl glass">
