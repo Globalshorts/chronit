@@ -629,11 +629,11 @@ export default function ScriptAssistant({ session: sessionProp }) {
       {note && <div className="mx-auto mb-2 max-w-[700px] text-center text-xs font-bold text-[#5AA0FF]">{note}</div>}
       {err && <div className="mx-auto mb-2 max-w-[700px] text-sm text-amber-400">⚠ {err}</div>}
 
-      {!atBottom && (
-        <button onClick={scrollToBottom} aria-label="맨 아래로" className="fixed bottom-32 left-1/2 z-30 -translate-x-1/2 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-[#0a0b0f]/95 text-white/80 shadow-lg backdrop-blur transition hover:text-white md:bottom-24"><ChevronDown size={18} /></button>
-      )}
       {/* 컴포저 */}
-      <div className="sticky bottom-0 border-t border-white/10 bg-[#0a0b0f]/85 pb-[calc(env(safe-area-inset-bottom)+4.5rem)] pt-3 backdrop-blur md:pb-4 md:pr-16">
+      <div className="sticky bottom-0 border-t border-white/10 bg-[#0a0b0f]/85 pb-[calc(env(safe-area-inset-bottom)+4.5rem)] pt-3 backdrop-blur md:pb-4 md:pr-16 relative">
+        {!atBottom && (
+          <button onClick={scrollToBottom} aria-label="맨 아래로" className="absolute -top-14 left-1/2 z-30 -translate-x-1/2 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-[#0a0b0f]/95 text-white/80 shadow-lg backdrop-blur transition hover:text-white"><ChevronDown size={18} /></button>
+        )}
         {(() => {
           const last = messages[messages.length - 1]
           const scriptOut = !!last?.isScript
