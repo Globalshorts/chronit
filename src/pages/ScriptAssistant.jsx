@@ -147,7 +147,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const lastScript = () => { for (let i = messages.length - 1; i >= 0; i--) if (messages[i].role === 'assistant' && messages[i].text) return messages[i].text; return '' }
 
   const loadJobs = async () => {
-    const { data } = await supabase.from('jobs').select('id,product_name,created_at').order('created_at', { ascending: false }).limit(40)
+    const { data } = await supabase.from('jobs').select('id,product_name,created_at,status').order('created_at', { ascending: false }).limit(40)
     setJobs(data || [])
   }
   const openJob = async (id) => {
@@ -155,7 +155,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
     const [{ data: msgs }, { data: cl }, { data: jrow }] = await Promise.all([
       supabase.from('job_messages').select('role,content').eq('job_id', id).order('created_at'),
       supabase.from('job_clips').select('id,storage_path,source_url,status').eq('job_id', id),
-      supabase.from('jobs').select('voice_mode,product_name,selling_points').eq('id', id).maybeSingle(),
+      supabase.from('jobs').select('voice_mode,product_name,selling_points,analysis,status').eq('id', id).maybeSingle(),
     ])
     const isMy = jrow?.voice_mode === 'my' && voiceProfile?.has_voice === true
     // 분석 자료(상품·셀링포인트) 복원 — 첫 대본 메시지에 붙인다
@@ -163,12 +163,14 @@ export default function ScriptAssistant({ session: sessionProp }) {
     if (jrow?.product_name && sell.startsWith(jrow.product_name + ' — ')) sell = sell.slice((jrow.product_name + ' — ').length)
     const analysis = (jrow?.product_name || sell) ? { product: jrow?.product_name || '', selling: sell ? sell.split(' / ').filter(Boolean) : [] } : null
     let attached = false
-    setMessages((msgs || []).map(m => {
+    const built = (msgs || []).map(m => {
       const isA = m.role === 'assistant'
       const base = { role: m.role, text: m.content, isScript: isA, mine: isA && isMy }
       if (isA && analysis && !attached) { attached = true; base.analysis = analysis }
       return base
-    })); setClips(cl || []); setJobId(id); setSoso(null)
+    })
+    if (jrow?.analysis) built.unshift({ role: 'assistant', report: jrow.analysis })
+    setMessages(built); setClips(cl || []); setJobId(id); setSoso(null)
     try { const { data: jt } = await supabase.rpc('get_job_turns_rpc', { p_job_id: id }); setTurns(typeof jt?.turns_left === 'number' ? jt.turns_left : null) } catch { setTurns(null) }
   }
   const newChat = () => { setMessages([]); setJobId(null); setSoso(null); setClips([]); setInput(''); setErr(''); setShowJobs(false); setTurns(null); resetGrow() }
@@ -233,12 +235,27 @@ export default function ScriptAssistant({ session: sessionProp }) {
         const ar = await fetch(FN('analyze-clip'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ title: soso.caption, source: 'trend', thumbnail_url: soso.thumb, niche, persona, video_id: soso.source_ref }) })
         const ad = await ar.json()
         if (!ad?.ok) { setErr(ad?.error || '분석에 실패했어요. 잠시 후 다시 시도해 주세요'); return }
-        try { const { data: ch } = await supabase.rpc('charge_credits_rpc', { p_n: 1 }); if (ch && typeof ch.balance === 'number') setBalance(ch.balance); setNote('💧 소재 분석 · 이용권 1개'); setTimeout(() => setNote(''), 3000) } catch { /* noop */ }
         try { await supabase.rpc('set_analyze_cache_rpc', { p_key: cacheKey, p_result: ad }) } catch { /* noop */ }
         a = ad
       }
-      if (a.product_name || (Array.isArray(a.selling_points) && a.selling_points.length)) setSoso((v) => ({ ...v, product: a.product_name || v.product, selling: Array.isArray(a.selling_points) ? a.selling_points : v.selling }))
-      setMessages((m) => [...m, { role: 'assistant', report: a }])
+      const sp0 = Array.isArray(a.selling_points) ? a.selling_points.filter(Boolean) : []
+      const prod0 = a.product_name || (soso.caption || '').split(/[—\-.\n]/)[0].slice(0, 60)
+      let sell0 = sp0.length ? sp0.join(' / ') : (soso.caption || '')
+      if (a.product_name) sell0 = a.product_name + ' — ' + sell0
+      // 분석 = 이용권 1개로 세션 생성 → 왼쪽 대본 리스트에 남는다
+      if (jobId) {
+        setMessages((m) => [...m, { role: 'assistant', report: a }])
+      } else {
+        const { data: aj } = await supabase.rpc('create_analysis_job_rpc', { p_source_ref: soso.source_ref || null, p_product_name: prod0, p_selling_points: sell0, p_analysis: a })
+        if (aj && aj.ok) {
+          setJobId(aj.job_id); setTurns(0)
+          if (typeof aj.balance === 'number') setBalance(aj.balance)
+          setNote('💧 소재 분석 · 이용권 1개'); setTimeout(() => setNote(''), 3000)
+          setMessages((m) => [...m, { role: 'assistant', report: a }]); loadJobs()
+        } else if (aj && aj.code === 'INSUFFICIENT_CREDITS') { setErr('소재 분석엔 이용권 1개가 필요해요'); return }
+        else { setMessages((m) => [...m, { role: 'assistant', report: a }]) }
+      }
+      if (a.product_name || sp0.length) setSoso((v) => ({ ...v, product: a.product_name || v.product, selling: sp0.length ? sp0 : v.selling }))
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
 
@@ -255,11 +272,15 @@ export default function ScriptAssistant({ session: sessionProp }) {
       if (product) selling = product + ' — ' + selling
       if (a) setSoso(v => ({ ...v, product, selling: sp }))
       setStage('대본을 짓는 중…')
-      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'generate', voice_mode: 'my', source_ref: soso.source_ref, product_name: product || (soso.caption || '').split(/[—\-.\n]/)[0].slice(0, 60), selling_points: selling }) })
+      const gbody = { action: 'generate', voice_mode: 'my', source_ref: soso.source_ref, product_name: product || (soso.caption || '').split(/[—\-.\n]/)[0].slice(0, 60), selling_points: selling }
+      if (jobId) gbody.job_id = jobId
+      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify(gbody) })
       const d = await r.json()
       if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? `이용권이 부족해요. 10턴 세션을 열려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '대본 생성 실패')); return }
-      setJobId(d.job_id); applyMeter(d)
-      setMessages([{ role: 'assistant', text: d.script, isScript: true, mine: voiceProfile?.has_voice === true, analysis: { product, selling: sp } }]); loadJobs()
+      const scriptMsg = { role: 'assistant', text: d.script, isScript: true, mine: voiceProfile?.has_voice === true, analysis: { product, selling: sp } }
+      if (jobId) { applyMeter(d); setMessages((m) => [...m, scriptMsg]) }
+      else { setJobId(d.job_id); applyMeter(d); setMessages([scriptMsg]) }
+      loadJobs()
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
 
@@ -276,6 +297,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
     }
     const t = await token(); if (!t) { setErr('로그인이 필요해요'); return }
     const prevScript = jobId ? lastScript() : ''
+    const chatJob = (jobId && (turns > 0 || prevScript)) ? jobId : null
     const newMsgs = [...messages, { role: 'user', text }]
     setMessages(newMsgs); setBusy(true); setStage('베라가 생각 중…')
     // 트렌드/카테고리 요청이면 실제 trend_feed를 조회해 베라에 넘긴다 (없다고 잘못 답하지 않게)
@@ -295,19 +317,19 @@ export default function ScriptAssistant({ session: sessionProp }) {
       }
     } catch { /* noop */ }
     try {
-      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'chat', job_id: jobId, messages: newMsgs.map(m => ({ role: m.role, content: m.text })).filter(m => m.content), current_script: prevScript, nickname: nick, today_trends: trendsForChat }) })
+      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'chat', job_id: chatJob, messages: newMsgs.map(m => ({ role: m.role, content: m.text })).filter(m => m.content), current_script: prevScript, nickname: nick, today_trends: trendsForChat }) })
       const d = await r.json()
       if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? `이용권이 부족해요. 대화를 이어가려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '응답 실패')); return }
       applyMeter(d)
       if (d.reply) setMessages(m => [...m, { role: 'assistant', text: d.reply }])
-      if (d.script && jobId) {
+      if (d.script && chatJob) {
         setMessages(m => [...m, { role: 'assistant', text: d.script, isScript: true }])
-        supabase.rpc('set_job_script_rpc', { p_job_id: jobId, p_script: d.script, p_status: 'done' }).then(null, () => {})
-        if (prevScript) supabase.rpc('record_edit_rpc', { p_job_id: jobId, p_before: prevScript, p_after: d.script }).then(null, () => {})
+        supabase.rpc('set_job_script_rpc', { p_job_id: chatJob, p_script: d.script, p_status: 'done' }).then(null, () => {})
+        if (prevScript) supabase.rpc('record_edit_rpc', { p_job_id: chatJob, p_before: prevScript, p_after: d.script }).then(null, () => {})
       }
-      if (jobId) {
-        supabase.rpc('append_job_message_rpc', { p_job_id: jobId, p_role: 'user', p_content: text }).then(null, () => {})
-        if (d.reply) supabase.rpc('append_job_message_rpc', { p_job_id: jobId, p_role: 'assistant', p_content: d.reply }).then(null, () => {})
+      if (chatJob) {
+        supabase.rpc('append_job_message_rpc', { p_job_id: chatJob, p_role: 'user', p_content: text }).then(null, () => {})
+        if (d.reply) supabase.rpc('append_job_message_rpc', { p_job_id: chatJob, p_role: 'assistant', p_content: d.reply }).then(null, () => {})
       }
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
@@ -397,7 +419,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
               jobs.map(j => (
                 <div key={j.id} className={`group mb-0.5 flex items-center rounded-lg transition hover:bg-white/5 ${j.id === jobId ? 'bg-white/10 glass-soft' : ''}`}>
                   <button onClick={() => { openJob(j.id); setShowConvList(false) }} className={`min-w-0 flex-1 truncate px-2.5 py-2 text-left text-sm ${j.id === jobId ? 'text-white' : 'text-white/70'}`}>
-                    <div className="truncate">{j.product_name || '(제목 없음)'}</div>
+                    <div className="truncate">{j.status === 'analyzed' ? '📊 ' : ''}{j.product_name || '(제목 없음)'}</div>
                     <div className="text-[10px] text-white/30">{new Date(j.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}</div>
                   </button>
                   <button onClick={(e) => deleteJob(j.id, e)} title="삭제" className="mr-1 shrink-0 rounded p-1.5 text-white/25 opacity-100 transition hover:bg-white/10 hover:text-amber-400 md:opacity-0 md:group-hover:opacity-100"><Trash2 size={13} /></button>
@@ -608,7 +630,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
           if (last?.report && !busy) return (
             <div className="mx-auto mb-2 flex max-w-[700px] flex-wrap items-center gap-2">
               <span className="mr-0.5 text-[11px] font-bold text-white/35">다음 →</span>
-              {soso && !jobId && <button onClick={generateFromSoso} className={chip + ' border-[#0064FF]/50 bg-[#0064FF]/10 text-[#5AA0FF]'}><Sparkles size={13} /> 이 소재로 대본 만들기</button>}
+              {soso && <button onClick={generateFromSoso} className={chip + ' border-[#0064FF]/50 bg-[#0064FF]/10 text-[#5AA0FF]'}><Sparkles size={13} /> 이 소재로 대본 만들기</button>}
               <button onClick={() => send('이 분석에서 훅 아이디어 더 뽑아줘')} className={chip}>훅 더 뽑기</button>
               <Link to="/trend" className={chip}><Flame size={13} /> 다른 소재 보기</Link>
             </div>
