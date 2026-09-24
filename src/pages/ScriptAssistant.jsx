@@ -64,8 +64,8 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const autoGrow = (el) => { if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 160) + 'px' }
   const resetGrow = () => { if (textareaRef.current) { textareaRef.current.style.height = 'auto' } }
   const [atBottom, setAtBottom] = useState(true)
-  const scrollToBottom = () => scrollRef.current?.scrollTo({ top: 9e9, behavior: 'smooth' })
-  const onChatScroll = (e) => { const el = e.currentTarget; setAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 80) }
+  const scrollToBottom = () => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' })
+  const checkAtBottom = () => setAtBottom((window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 140))
 
   useEffect(() => {
     if (sessionProp) setSession(sessionProp)
@@ -91,7 +91,13 @@ export default function ScriptAssistant({ session: sessionProp }) {
       loadJobs()
     } catch { /* noop */ }
   }
-  useEffect(() => { scrollRef.current?.scrollTo({ top: 9e9, behavior: 'smooth' }) }, [messages, busy])
+  useEffect(() => {
+    checkAtBottom()
+    window.addEventListener('scroll', checkAtBottom, { passive: true })
+    window.addEventListener('resize', checkAtBottom)
+    return () => { window.removeEventListener('scroll', checkAtBottom); window.removeEventListener('resize', checkAtBottom) }
+  }, [])
+  useEffect(() => { window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }); const t = setTimeout(checkAtBottom, 400); return () => clearTimeout(t) }, [messages, busy])
 
   // 닉네임 · 오늘 트렌드 · 베라 인사
   useEffect(() => {
@@ -182,8 +188,9 @@ export default function ScriptAssistant({ session: sessionProp }) {
     let attached = false
     const built = (msgs || []).map(m => {
       const isA = m.role === 'assistant'
-      const base = { role: m.role, text: m.content, isScript: isA, mine: isA && isMy }
-      if (isA && analysis && !attached) { attached = true; base.analysis = analysis }
+      const looksScript = isA && !!m.content && m.content.includes('\n') && m.content.replace(/\s/g, '').length > 30
+      const base = { role: m.role, text: m.content, isScript: looksScript, mine: looksScript && isMy }
+      if (looksScript && analysis && !attached) { attached = true; base.analysis = analysis }
       return base
     })
     if (jrow?.analysis) built.unshift({ role: 'assistant', report: jrow.analysis })
@@ -487,7 +494,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       )}
 
       {/* 대화 영역 */}
-      <div ref={scrollRef} onScroll={onChatScroll} className="flex-1 overflow-y-auto py-6">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto py-6">
         {!started && !soso && !busy && (
           <div className="sa-fade flex flex-col items-center justify-center gap-6 py-10 text-center">
             <Droplet size={84} />
@@ -623,7 +630,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       {err && <div className="mx-auto mb-2 max-w-[700px] text-sm text-amber-400">⚠ {err}</div>}
 
       {!atBottom && (
-        <button onClick={scrollToBottom} aria-label="맨 아래로" className="absolute bottom-28 left-1/2 z-30 -translate-x-1/2 flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-[#0a0b0f]/90 text-white/80 shadow-lg backdrop-blur transition hover:text-white md:bottom-20"><ChevronDown size={18} /></button>
+        <button onClick={scrollToBottom} aria-label="맨 아래로" className="fixed bottom-32 left-1/2 z-30 -translate-x-1/2 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-[#0a0b0f]/95 text-white/80 shadow-lg backdrop-blur transition hover:text-white md:bottom-24"><ChevronDown size={18} /></button>
       )}
       {/* 컴포저 */}
       <div className="sticky bottom-0 border-t border-white/10 bg-[#0a0b0f]/85 pb-[calc(env(safe-area-inset-bottom)+4.5rem)] pt-3 backdrop-blur md:pb-4 md:pr-16">
