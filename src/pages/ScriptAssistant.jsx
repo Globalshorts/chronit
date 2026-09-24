@@ -7,6 +7,7 @@ import PersonaSettings from '../components/PersonaSettings'
 import { useAnalysis } from '../context/analysis'
 import EnergyOrb from '../components/EnergyOrb'
 import ClipAnalysisReport from '../components/ClipAnalysisReport'
+import { maskHandles } from '../lib/format'
 
 const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
 const FN = (n) => `${SB}/functions/v1/${n}`
@@ -277,8 +278,24 @@ export default function ScriptAssistant({ session: sessionProp }) {
     const prevScript = jobId ? lastScript() : ''
     const newMsgs = [...messages, { role: 'user', text }]
     setMessages(newMsgs); setBusy(true); setStage('베라가 생각 중…')
+    // 트렌드/카테고리 요청이면 실제 trend_feed를 조회해 베라에 넘긴다 (없다고 잘못 답하지 않게)
+    let trendsForChat = today
     try {
-      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'chat', job_id: jobId, messages: newMsgs.map(m => ({ role: m.role, content: m.text })).filter(m => m.content), current_script: prevScript, nickname: nick, today_trends: today }) })
+      const CATS = { 뷰티: ['뷰티', '화장품', '메이크업', '스킨케어', '코스메', '립', '파운데', '선크림', '쿠션'], 리빙: ['리빙', '살림', '주방', '수납', '정리', '청소', '인테리어', '가구'], 푸드: ['푸드', '음식', '간식', '요리', '레시피', '먹', '식품', '밀키트'], 육아: ['육아', '아기', '애기', '키즈', '장난감', '아이', '유아'], 패션: ['패션', '옷', '의류', '코디', '신발', '가방', '악세'], 잡화: ['잡화', '소품', '문구', '팬시'], 디지털: ['디지털', '가전', '전자', '기기', '테크', '폰', '이어폰'], 헬스: ['헬스', '운동', '다이어트', '건강', '피트니스', '홈트'] }
+      let matchedCat = ''
+      for (const [cat, kws] of Object.entries(CATS)) { if (kws.some((k) => text.includes(k))) { matchedCat = cat; break } }
+      const wantsTrend = /트렌드|영상|소재|릴스|숏폼|추천|올릴|잘 ?나온|잘 ?된|잘 ?나가|터진|뜨는|요즘/.test(text)
+      if (matchedCat || wantsTrend) {
+        const { data } = await supabase.rpc('trend_list_rpc', { p_limit: 60 })
+        let rows = Array.isArray(data) ? data : []
+        if (matchedCat) rows = rows.filter((r) => r.category === matchedCat)
+        const picked = rows.slice(0, 6).map((r) => `${maskHandles(String(r.caption || '')).replace(/\s+/g, ' ').trim().slice(0, 70)}${r.category ? ` [${r.category}]` : ''}`).filter(Boolean)
+        if (picked.length) trendsForChat = picked
+        else if (matchedCat) trendsForChat = []
+      }
+    } catch { /* noop */ }
+    try {
+      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'chat', job_id: jobId, messages: newMsgs.map(m => ({ role: m.role, content: m.text })).filter(m => m.content), current_script: prevScript, nickname: nick, today_trends: trendsForChat }) })
       const d = await r.json()
       if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? `이용권이 부족해요. 대화를 이어가려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '응답 실패')); return }
       applyMeter(d)
