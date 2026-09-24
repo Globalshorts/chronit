@@ -29,6 +29,9 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [jobId, setJobId] = useState(null)
   const [soso, setSoso] = useState(null)        // {source_ref, caption, thumb} 트렌드 소재
   const [clips, setClips] = useState([])         // 이 작업의 소스 클립(레드노트 등)
+  const [rnUrl, setRnUrl] = useState('')         // 레드노트 링크 입력
+  const [rnBusy, setRnBusy] = useState(false)
+  const [rnErr, setRnErr] = useState('')
   const [balance, setBalance] = useState(null)
   const [turns, setTurns] = useState(null)
   const [note, setNote] = useState('')
@@ -141,7 +144,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
     setShowJobs(false); setErr('')
     const [{ data: msgs }, { data: cl }, { data: jrow }] = await Promise.all([
       supabase.from('job_messages').select('role,content').eq('job_id', id).order('created_at'),
-      supabase.from('job_clips').select('id,thumbnail:storage_path,source_url,status').eq('job_id', id),
+      supabase.from('job_clips').select('id,storage_path,source_url,status').eq('job_id', id),
       supabase.from('jobs').select('voice_mode,product_name,selling_points').eq('id', id).maybeSingle(),
     ])
     const isMy = jrow?.voice_mode === 'my' && voiceProfile?.has_voice === true
@@ -263,6 +266,18 @@ export default function ScriptAssistant({ session: sessionProp }) {
       if (d.ok && d.script) { setMessages(m => [...m, { role: 'assistant', text: d.script, mine: true, isScript: true }]); applyMeter(d) }
       else setErr(d.code === 'INSUFFICIENT_CREDITS' ? `이 대본 세션을 이어가려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '내 말투 변환 실패'))
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
+  }
+  // 레드노트 링크 → 서버 캐싱 → 소스 클립으로 추가
+  const addRednoteClip = async () => {
+    const u = rnUrl.trim(); if (!u || rnBusy || !jobId) return
+    setRnErr(''); setRnBusy(true)
+    try {
+      const t = await token(); if (!t) { setRnErr('로그인이 필요해요'); return }
+      const r = await fetch(FN('rednote-clip'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ job_id: jobId, url: u }) })
+      const d = await r.json()
+      if (d.ok && d.clip) { setClips((cs) => [...cs, d.clip]); setRnUrl('') }
+      else setRnErr(d.error || '클립을 가져오지 못했어요')
+    } catch (e) { setRnErr(String(e)) } finally { setRnBusy(false) }
   }
   const copy = async (text, i) => { try { await navigator.clipboard.writeText(text); setCopiedI(i); setTimeout(() => setCopiedI(-1), 1500) } catch {} }
 
@@ -461,19 +476,24 @@ export default function ScriptAssistant({ session: sessionProp }) {
             <div className="mt-2 rounded-2xl glass p-3.5">
               <div className="mb-2 flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-sm font-bold text-white"><Film size={15} className="text-[#5AA0FF]" /> 소스 클립 {clips.length ? `(${clips.length})` : ''}</div>
-                {clips.length > 0 && <button className="flex items-center gap-1 rounded-lg bg-white/10 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-white/15"><Download size={13} /> 전체 다운로드</button>}
+                {clips.length > 0 && <button onClick={() => clips.forEach((c) => c.storage_path && window.open(c.storage_path, '_blank'))} className="flex items-center gap-1 rounded-lg bg-white/10 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-white/15"><Download size={13} /> 전체 다운로드</button>}
               </div>
-              {clips.length === 0 ? (
-                <div className="flex items-center gap-2 rounded-xl border border-dashed border-white/15 px-3 py-3 text-xs text-white/45">
-                  <Clipboard size={15} className="shrink-0 text-white/40" />
-                  <span>모바일 크로닛에서 <b className="text-white/70">레드노트 링크를 붙여넣으면</b> 이 대본의 소스 클립으로 여기 도착해요. PC에서 바로 다운로드.</span>
-                </div>
-              ) : (
-                <div className="flex gap-2 overflow-x-auto">
-                  {clips.map(c => (
-                    <div key={c.id} className="h-24 w-16 shrink-0 overflow-hidden rounded-lg bg-white/10">
-                      {c.thumbnail ? <img src={c.thumbnail} className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center text-[10px] text-white/40">{c.status}</div>}
-                    </div>
+              <div className="flex gap-2">
+                <input value={rnUrl} onChange={(e) => setRnUrl(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addRednoteClip()} placeholder="레드노트 공유 링크 붙여넣기 (xhslink.com/… 도 OK)"
+                  className="min-w-0 flex-1 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/35 outline-none focus:border-[#0064FF]" />
+                <button onClick={addRednoteClip} disabled={rnBusy || !rnUrl.trim()} className="flex shrink-0 items-center gap-1 rounded-xl bg-[#0064FF] px-3.5 py-2 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-40">{rnBusy ? '가져오는 중…' : <><Plus size={14} /> 추가</>}</button>
+              </div>
+              <p className="mt-1.5 flex items-start gap-1 text-[11px] leading-snug text-white/40"><Clipboard size={12} className="mt-0.5 shrink-0" /><span>레드노트 앱에서 <b className="text-white/60">공유 → 링크 복사</b> 후 붙여넣으면 영상이 저장돼요 · PC에서 바로 다운로드 (7일 보관)</span></p>
+              {rnErr && <div className="mt-1.5 text-xs text-amber-400">⚠ {rnErr}</div>}
+              {clips.length > 0 && (
+                <div className="mt-3 flex gap-2 overflow-x-auto">
+                  {clips.map((c) => (
+                    <a key={c.id} href={c.storage_path || undefined} target="_blank" rel="noreferrer" download
+                      className="group relative grid h-24 w-16 shrink-0 place-items-center overflow-hidden rounded-lg border border-white/10 bg-white/5 transition hover:border-[#0064FF]">
+                      {c.status === 'ready'
+                        ? <><Film size={18} className="text-white/45" /><span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-0.5 bg-black/65 py-0.5 text-[9px] font-bold text-white"><Download size={9} /> 저장</span></>
+                        : <span className="text-[10px] text-white/40">{c.status || '처리중'}</span>}
+                    </a>
                   ))}
                 </div>
               )}
