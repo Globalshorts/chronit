@@ -474,17 +474,17 @@ export default function ScriptAssistant({ session: sessionProp }) {
           {convCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
       {/* 헤더 */}
-      <div className="mb-1 flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2">
-          <button onClick={() => setShowConvList(true)} className="flex shrink-0 items-center gap-1 rounded-lg border border-white/15 px-2.5 py-1.5 text-xs font-bold text-white/70 hover:text-white md:hidden"><MessageSquareText size={14} /> 내 대본{jobs.length ? ` ${jobs.length}` : ''}</button>
+      <div className="mb-1">
+        <button onClick={() => setShowConvList(true)} className="mb-2 flex w-fit shrink-0 items-center gap-1 rounded-lg border border-white/15 px-2.5 py-1.5 text-xs font-bold text-white/70 hover:text-white md:hidden"><MessageSquareText size={14} /> 내 대본{jobs.length ? ` ${jobs.length}` : ''}</button>
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="flex items-center gap-2 text-xl font-bold text-white"><EnergyOrb size={24} /> 대본 비서</h1>
+            <h1 className="flex items-center gap-2 whitespace-nowrap text-xl font-bold text-white"><EnergyOrb size={24} /> 대본 비서</h1>
             <p className="mt-0.5 text-sm leading-snug text-white/50">대화로 다듬을수록 내 말투를 배워요</p>
           </div>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
           <button onClick={() => voiceProfile?.has_voice ? setShowSettings(true) : setShowOnboard(true)} className={`relative flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition ${voiceProfile?.has_voice ? 'border-[#0064FF]/40 bg-[#0064FF]/10 text-[#5AA0FF]' : 'border-[#0064FF]/60 bg-[#0064FF]/15 text-[#5AA0FF] hover:brightness-110'}`}>{!voiceProfile?.has_voice && <span className="absolute -right-0.5 -top-0.5 flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#0064FF] opacity-75" /><span className="relative inline-flex h-2 w-2 rounded-full bg-[#0064FF]" /></span>}{voiceProfile?.has_voice ? <Settings size={13} /> : <Wand2 size={13} />} {voiceProfile?.has_voice ? `내 말투${voiceProfile.ig_username ? ` @${voiceProfile.ig_username}` : ''}` : '내 말투 만들기'}</button>
           {balance !== null && <div className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white/70">이용권 {balance}</div>}
+          </div>
         </div>
       </div>
 

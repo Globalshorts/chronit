@@ -461,14 +461,14 @@ const Home = () => {
 
       {/* Header */}
       <header className={`relative z-50 border-b transition-[background-color,border-color,padding] duration-300 ${scrolled ? 'border-white/10 bg-[#0A0B0F]/85 py-3 backdrop-blur-md' : 'border-transparent bg-transparent py-4 md:py-5'}`}>
-        <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 md:px-8">
-          <a href="/" className="flex min-w-0 items-center gap-2 md:gap-3">
+        <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 md:gap-6 md:px-8">
+          <a href="/" className="flex shrink-0 items-center gap-2 md:gap-3">
             <img src="/cn-white.svg" alt="Chronit" className="h-9 w-9 shrink-0 md:h-10 md:w-10" />
             <h1 className={`hidden md:block text-2xl font-bold tracking-tight md:text-3xl ${scrolled ? 'text-white' : 'text-white'}`}>Chronit</h1>
           </a>
-          <div className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 md:block"><SiteNav light={!scrolled} /></div>
+          <div className="hidden min-w-0 flex-1 justify-center md:flex"><SiteNav light={!scrolled} /></div>
           <div className="flex shrink-0 items-center gap-2">
-            <HeaderInstallBtn light />
+            <span className="hidden lg:inline-flex"><HeaderInstallBtn light /></span>
             <div className="hidden md:flex items-center gap-2">
               {user ? (
                 <>
