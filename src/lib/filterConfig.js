@@ -6,8 +6,8 @@ export const DAY_MAX = 7
 export const DAY_MARKS = [[1, '1일'], [3, '3일'], [5, '5일'], [DAY_MAX, '7일']]
 
 // 패스트벤치는 서버(fastbench_feed_rpc)가 기간을 거른다 — 기본 21일. 슬라이더로 더 좁힐 수 있다.
-export const FB_DAY_MAX = 21
-export const FB_DAY_MARKS = [[1, '1일'], [3, '3일'], [7, '7일'], [FB_DAY_MAX, '21일']]
+export const FB_DAY_MAX = 7
+export const FB_DAY_MARKS = [[1, '1일'], [3, '3일'], [5, '5일'], [FB_DAY_MAX, '7일']]
 
 // 실제 필터 창(ms) — taken_at >= now - min(선택값, 상한)일
 export const dayWindowMs = (days, cap = DAY_MAX) =>
