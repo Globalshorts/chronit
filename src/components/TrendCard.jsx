@@ -23,16 +23,27 @@ export function TrendThumb({ url, sc, eager = false, w = 360 }) {
     : `${SB}/functions/v1/thumbnail-proxy?url=${encodeURIComponent(url)}${sc ? `&sc=${encodeURIComponent(sc)}` : ''}`
   if (!src || err) return <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-slate-300"><Flame size={26} /></div>
   return (
-    <img
-      src={src}
-      referrerPolicy="no-referrer"
-      loading={eager ? 'eager' : 'lazy'}
-      fetchpriority={eager ? 'high' : 'auto'}
-      decoding="async"
-      onLoad={() => setLoaded(true)}
-      onError={() => setErr(true)}
-      className={`h-full w-full object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
-    />
+    // 썸네일을 잘리지 않게 전체 표시(contain) + 뒤에 같은 이미지를 흐리게 깔아 여백을 채운다.
+    <div className="relative h-full w-full overflow-hidden">
+      <img
+        src={src}
+        aria-hidden="true"
+        referrerPolicy="no-referrer"
+        loading={eager ? 'eager' : 'lazy'}
+        decoding="async"
+        className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover blur-xl opacity-60"
+      />
+      <img
+        src={src}
+        referrerPolicy="no-referrer"
+        loading={eager ? 'eager' : 'lazy'}
+        fetchpriority={eager ? 'high' : 'auto'}
+        decoding="async"
+        onLoad={() => setLoaded(true)}
+        onError={() => setErr(true)}
+        className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+      />
+    </div>
   )
 }
 
