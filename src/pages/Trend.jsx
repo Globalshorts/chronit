@@ -312,7 +312,7 @@ export default function Trend() {
     })
   const list = _listBase
 
-  const fbQual = (it) => !!it.taken_at && (now - new Date(it.taken_at).getTime() <= 2 * 86400000) && fbScore(it) >= FB_SCORE
+  const fbQual = (it) => !!it.taken_at && (now - new Date(it.taken_at).getTime() <= 3 * 86400000) && fbScore(it) >= FB_SCORE
   const gateOn = previewLock || (!isProPlus && !isAdmin)
   // 잠긴 개수 = 패스트벤치 대상 수(서버 기준). 아직 못 받았으면 화면에 있는 것으로 어림잡는다.
   const lockedCount = gateOn ? (fbCount != null ? fbCount : list.filter(fbQual).length) : 0
