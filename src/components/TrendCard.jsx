@@ -6,17 +6,34 @@ import { isCarousel, coverOf, imagesOf, openPost } from '../lib/filterConfig'
 // 트렌드 피드 카드 — 트렌드/워치리스트 공용.
 const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
 
+// 스토리지 원본 URL을 피드 카드용 리사이즈(render) URL로 바꿔 egress 절감 (원본은 보관, 서빙만 축소).
+const sizedStorage = (u, w = 360, q = 62) =>
+  u.includes('/storage/v1/object/public/')
+    ? u.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + (u.includes('?') ? '&' : '?') + `width=${w}&quality=${q}`
+    : u
+
 // sc(shortcode)를 넘기면 프록시가 post/{sc}.jpg 한 경로에만 캐시한다.
 // 안 넘기면 URL 해시로 돌아가는데, IG URL 서명이 갱신될 때마다 새 파일이 쌓인다.
-export function TrendThumb({ url, sc }) {
+export function TrendThumb({ url, sc, eager = false, w = 360 }) {
   const [err, setErr] = useState(false)
-  // 이미 우리 스토리지에 캐시된 URL 은 프록시를 거치지 않는다 — 거치면 같은 사진이
-  // post/{sc}.jpg 로 한 번 더 복사되고, 불필요한 함수 호출이 한 번 더 난다.
+  const [loaded, setLoaded] = useState(false)
+  // 스토리지 캐시본은 프록시 없이 리사이즈만, IG URL 은 프록시(캐시)로.
   const src = !url ? '' : url.includes('/storage/v1/object/public/')
-    ? url
+    ? sizedStorage(url, w)
     : `${SB}/functions/v1/thumbnail-proxy?url=${encodeURIComponent(url)}${sc ? `&sc=${encodeURIComponent(sc)}` : ''}`
   if (!src || err) return <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-slate-300"><Flame size={26} /></div>
-  return <img src={src} referrerPolicy="no-referrer" loading="lazy" className="h-full w-full object-cover" onError={() => setErr(true)} />
+  return (
+    <img
+      src={src}
+      referrerPolicy="no-referrer"
+      loading={eager ? 'eager' : 'lazy'}
+      fetchpriority={eager ? 'high' : 'auto'}
+      decoding="async"
+      onLoad={() => setLoaded(true)}
+      onError={() => setErr(true)}
+      className={`h-full w-full object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+    />
+  )
 }
 
 
@@ -30,7 +47,7 @@ const Num = ({ value, pending }) => (
 
 export default function TrendCard({
   it, rank, locked = false, watching = false, lockedLabel = '프로 이상 전용',
-  lazyDetail = false, coach = false, showOwner = false,
+  lazyDetail = false, coach = false, showOwner = false, eager = false,
   onPlay, onOpen, onAnalyze, onSource, onToggleWatch, onUnlock, onScript, scriptState,
 }) {
   const carousel = isCarousel(it)
@@ -56,7 +73,7 @@ export default function TrendCard({
         <div role="button" onClick={openOnly ? () => (onOpen ? onOpen() : openPost(it.url)) : onPlay}
           aria-label={openOnly ? (showOwner ? `@${it.owner} 게시물 열기` : '이 게시물 열기') : undefined}
           className="relative block aspect-[9/16] cursor-pointer bg-white/[0.06]">
-          <TrendThumb url={cover} sc={it.shortcode} />
+          <TrendThumb url={cover} sc={it.shortcode} eager={eager} />
           {rank != null && <div className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">#{rank}</div>}
           {it.taken_at && <div className="absolute right-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">{timeAgo(it.taken_at)}</div>}
           <div className="absolute inset-0 flex items-center justify-center opacity-90">

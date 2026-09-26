@@ -539,7 +539,7 @@ export default function Trend() {
                   key={it.shortcode || i}
                   it={it} rank={i + 1} locked={locked}
                   watching={isWatching(it)}
-                  lazyDetail
+                  lazyDetail eager={i < 6}
                   coach={coachOn && i === coachIdx}
                   onPlay={() => openItem(it)}
                   onOpen={() => openItem(it)}
