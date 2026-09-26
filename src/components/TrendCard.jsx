@@ -9,7 +9,7 @@ const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
 // 스토리지 원본 URL을 피드 카드용 리사이즈(render) URL로 바꿔 egress 절감 (원본은 보관, 서빙만 축소).
 const sizedStorage = (u, w = 360, q = 62) =>
   u.includes('/storage/v1/object/public/')
-    ? u.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + (u.includes('?') ? '&' : '?') + `width=${w}&quality=${q}`
+    ? u.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + (u.includes('?') ? '&' : '?') + `width=${w}&quality=${q}&resize=contain`
     : u
 
 // sc(shortcode)를 넘기면 프록시가 post/{sc}.jpg 한 경로에만 캐시한다.
