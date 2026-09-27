@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Eye, Heart, MessageCircle, Sparkles, X, ChevronLeft, ChevronRight, Bookmark, Loader2, ArrowRight, BarChart3 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
@@ -12,9 +12,18 @@ export default function VideoModal({ clip, onClose, onSave, saved = false, onScr
   const imgs = Array.isArray(clip?.images) ? clip.images.filter(Boolean) : []
   const [src, setSrc] = useState(clip?.video_url || '')
   // 영상이 없고 이미지가 있으면 캐러셀 — 앱 안에서 넘겨 본다(인스타로 내보내면 원본 URL 이 노출된다)
-  const [mode, setMode] = useState(clip?.video_url ? 'video' : imgs.length ? 'images' : 'embed')
+  const [mode, setMode] = useState(clip?.video_url ? 'video' : imgs.length ? 'images' : 'loading')
   const [idx, setIdx] = useState(0)
   const [tried, setTried] = useState(false)
+  useEffect(() => {
+    if (mode !== 'loading') return
+    let alive = true
+    ;(async () => {
+      try { const { data } = await supabase.functions.invoke('trend-reel', { body: { shortcode: clip?.video_id } }); if (alive && data?.video_url) { setSrc(data.video_url); setMode('video'); return } } catch { /* noop */ }
+      if (alive) setMode('embed')
+    })()
+    return () => { alive = false }
+  }, [])
   const onVidError = async () => {
     if (!tried) {
       setTried(true)
@@ -51,6 +60,8 @@ export default function VideoModal({ clip, onClose, onSave, saved = false, onScr
             onContextMenu={(e) => e.preventDefault()}
             onError={onVidError}
             className="min-h-0 w-full flex-1 bg-black object-contain" />
+        ) : mode === 'loading' ? (
+          <div className="grid min-h-0 w-full flex-1 place-items-center bg-black text-white/60"><Loader2 size={26} className="animate-spin" /></div>
         ) : (
           <iframe key="emb" src={`https://www.instagram.com/reel/${clip.video_id}/embed`} title="reel" loading="lazy" allow="autoplay; encrypted-media; clipboard-write" className="min-h-0 w-full flex-1 border-0 bg-black" />
         )}

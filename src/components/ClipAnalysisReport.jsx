@@ -31,8 +31,7 @@ export default function ClipAnalysisReport({ a, shortcode }) {
   }
   const onPlay = async () => {
     setVstate('loading')
-    let u = video
-    if (!u) u = await refresh()
+    const u = await refresh()   // 저장 URL은 만료 가능 → 항상 신선 URL을 받아 재생
     setVstate(u ? 'playing' : 'expired')
   }
   const onVidError = async () => {
@@ -42,9 +41,9 @@ export default function ClipAnalysisReport({ a, shortcode }) {
     if (!u) setVstate('expired')
   }
   const onDownload = async () => {
-    let u = video || (await refresh())
-    if (!u) { setVstate('expired'); return }
     setDl(true)
+    const u = await refresh()
+    if (!u) { setVstate('expired'); setDl(false); return }
     try {
       const r = await fetch(u); if (!r.ok) throw new Error('fetch')
       const b = await r.blob(); const link = document.createElement('a')
