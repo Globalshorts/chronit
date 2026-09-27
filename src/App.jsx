@@ -39,6 +39,7 @@ const Watchlist = lazyRetry(() => import('./pages/Watchlist'))
 const FastBench = lazyRetry(() => import('./pages/FastBench'))
 const ChannelAnalysis = lazyRetry(() => import('./pages/ChannelAnalysis'))
 const Landing = lazyRetry(() => import('./pages/Landing'))
+const Vera = lazyRetry(() => import('./pages/Vera'))
 const Register = lazyRetry(() => import('./pages/Register'))
 const Manual = lazyRetry(() => import('./pages/Manual'))
 const ManualDetail = lazyRetry(() => import('./pages/ManualDetail'))
@@ -133,6 +134,7 @@ const App = () => {
     <Suspense fallback={<RouteFallback />}>
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/vera" element={<Vera />} />
       <Route path="/register" element={<Register />} />
       <Route path="/manual" element={<Manual />} />
       <Route path="/changelog" element={<Changelog />} />
