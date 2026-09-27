@@ -198,7 +198,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
     const [{ data: msgs }, { data: cl }, { data: jrow }] = await Promise.all([
       supabase.from('job_messages').select('role,content').eq('job_id', id).order('created_at'),
       supabase.from('job_clips').select('id,storage_path,source_url,status').eq('job_id', id),
-      supabase.from('jobs').select('voice_mode,product_name,selling_points,analysis,status').eq('id', id).maybeSingle(),
+      supabase.from('jobs').select('voice_mode,product_name,selling_points,analysis,status,source_ref').eq('id', id).maybeSingle(),
     ])
     const isMy = jrow?.voice_mode === 'my' && voiceProfile?.has_voice === true
     // 분석 자료(상품·셀링포인트) 복원 — 첫 대본 메시지에 붙인다
@@ -213,7 +213,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       if (looksScript && analysis && !attached) { attached = true; base.analysis = analysis }
       return base
     })
-    if (jrow?.analysis) built.unshift({ role: 'assistant', report: jrow.analysis })
+    if (jrow?.analysis) built.unshift({ role: 'assistant', report: jrow.analysis, shortcode: jrow.source_ref || null })
     setMessages(built); setClips(cl || []); setJobId(id); setSoso(null)
     try { const { data: jt } = await supabase.rpc('get_job_turns_rpc', { p_job_id: id }); setTurns(typeof jt?.turns_left === 'number' ? jt.turns_left : null) } catch { setTurns(null) }
   }
@@ -290,16 +290,16 @@ export default function ScriptAssistant({ session: sessionProp }) {
       if (a.product_name) sell0 = a.product_name + ' — ' + sell0
       // 분석 = 이용권 1개로 세션 생성 → 왼쪽 대본 리스트에 남는다
       if (jobId) {
-        setMessages((m) => [...m, { role: 'assistant', report: a }])
+        setMessages((m) => [...m, { role: 'assistant', report: a, shortcode: soso?.source_ref || null }])
       } else {
         const { data: aj } = await supabase.rpc('create_analysis_job_rpc', { p_source_ref: soso.source_ref || null, p_product_name: prod0, p_selling_points: sell0, p_analysis: a })
         if (aj && aj.ok) {
           setJobId(aj.job_id); setTurns(0)
           if (typeof aj.balance === 'number') setBalance(aj.balance)
           setNote('💧 소재 분석 · 이용권 1개'); setTimeout(() => setNote(''), 3000)
-          setMessages((m) => [...m, { role: 'assistant', report: a }]); loadJobs()
+          setMessages((m) => [...m, { role: 'assistant', report: a, shortcode: soso?.source_ref || null }]); loadJobs()
         } else if (aj && aj.code === 'INSUFFICIENT_CREDITS') { setErr('소재 분석엔 이용권 1개가 필요해요'); return }
-        else { setMessages((m) => [...m, { role: 'assistant', report: a }]) }
+        else { setMessages((m) => [...m, { role: 'assistant', report: a, shortcode: soso?.source_ref || null }]) }
       }
       if (a.product_name || sp0.length) setSoso((v) => ({ ...v, product: a.product_name || v.product, selling: sp0.length ? sp0 : v.selling }))
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
@@ -607,7 +607,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
                 <Link to="/trend" className="mt-2 inline-block text-xs font-bold text-[#5AA0FF]">트렌드 탭에서 더 보기 →</Link>
               </div>
             )
-            if (m.report) return <div key={i} className="sa-fade w-full max-w-[700px] self-start"><ClipAnalysisReport a={m.report} /></div>
+            if (m.report) return <div key={i} className="sa-fade w-full max-w-[700px] self-start"><ClipAnalysisReport a={m.report} shortcode={m.shortcode} /></div>
             if (m.role === 'user') return <div key={i} className="sa-fade max-w-[80%] self-end rounded-2xl rounded-br-md bg-[#0064FF] px-4 py-2.5 text-[15px] leading-relaxed text-white">{m.text}</div>
             return (
               <div key={i} className="sa-fade w-full max-w-[92%] self-start">
