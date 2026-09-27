@@ -9,6 +9,8 @@ import EnergyOrb from '../components/EnergyOrb'
 import ClipAnalysisReport from '../components/ClipAnalysisReport'
 import { TrendThumb } from '../components/TrendCard'
 import { maskHandles } from '../lib/format'
+import { logEvent } from '../lib/events'
+import { phCapture } from '../lib/posthog'
 
 const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
 const FN = (n) => `${SB}/functions/v1/${n}`
@@ -25,6 +27,17 @@ function Droplet({ size = 84, label }) {
 export default function ScriptAssistant({ session: sessionProp }) {
   const loc = useLocation()
   const nav = useNavigate()
+  // 베라 이탈 퍼널 — 서버 로그(user_events) + PostHog 동시. 마지막 이벤트가 곧 이탈 지점.
+  const track = (event, props) => { try { logEvent(event, props || {}); phCapture(event, props || {}) } catch { /* noop */ } }
+  const sawScriptRef = useRef(false)   // 이번 세션에서 대본을 봤나 (이탈 분모)
+  const actedRef = useRef(false)       // 복사/사용 등 실제로 써먹었나
+  const refineRef = useRef(0)          // 재생성(다듬기) 횟수 — 많을수록 불만족 신호
+  useEffect(() => {
+    // 대본은 봤는데 아무것도 안 하고 떠나면(탭 닫기/화면 이탈) = 조용한 이탈
+    const onLeave = () => { if (sawScriptRef.current && !actedRef.current) track('vera_abandoned', { refines: refineRef.current }) }
+    window.addEventListener('beforeunload', onLeave)
+    return () => { window.removeEventListener('beforeunload', onLeave); onLeave() }
+  }, [])
   const [session, setSession] = useState(sessionProp || null)
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
@@ -308,12 +321,13 @@ export default function ScriptAssistant({ session: sessionProp }) {
       if (jobId) gbody.job_id = jobId
       const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify(gbody) })
       const d = await r.json()
-      if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? `이용권이 부족해요. 10턴 세션을 열려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '대본 생성 실패')); return }
+      if (!d.ok) { const blocked = d.code === 'INSUFFICIENT_CREDITS'; track(blocked ? 'vera_blocked_credits' : 'vera_gen_failed', { where: 'generate' }); setErr(blocked ? `이용권이 부족해요. 10턴 세션을 열려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '대본 생성 실패')); return }
       const scriptMsg = { role: 'assistant', text: d.script, isScript: true, mine: voiceProfile?.has_voice === true, analysis: { product, selling: sp } }
       if (jobId) { applyMeter(d); setMessages((m) => [...m, scriptMsg]) }
       else { setJobId(d.job_id); applyMeter(d); setMessages([scriptMsg]) }
+      sawScriptRef.current = true; track('vera_script_shown', { source: 'soso', mine: voiceProfile?.has_voice === true })
       loadJobs()
-    } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
+    } catch (e) { track('vera_gen_failed', { where: 'generate', error: String(e).slice(0, 120) }); setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
 
   // 채팅 트렌드 카드에서 소재 선택 → 대본/분석 자동 실행 (새 소재이므로 새 세션)
@@ -344,8 +358,10 @@ export default function ScriptAssistant({ session: sessionProp }) {
       const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'chat', job_id: chatJob, messages: newMsgs.map(m => ({ role: m.role, content: m.text })).filter(m => m.content), current_script: prevScript, nickname: nick, today_trends: today }) })
       const d = await r.json()
       if (!d.ok) {
-        const bubble = d.code === 'INSUFFICIENT_CREDITS' ? `이용권이 부족해요. 대화를 이어가려면 이용권 ${d.need || 2}개가 필요해요.` : '앗, 잠깐 문제가 있었어요 😢 한 번만 다시 보내주실래요?'
-        setErr(d.code === 'INSUFFICIENT_CREDITS' ? bubble : (d.error || '응답 실패'))
+        const blocked = d.code === 'INSUFFICIENT_CREDITS'
+        track(blocked ? 'vera_blocked_credits' : 'vera_gen_failed', { where: 'chat' })
+        const bubble = blocked ? `이용권이 부족해요. 대화를 이어가려면 이용권 ${d.need || 2}개가 필요해요.` : '앗, 잠깐 문제가 있었어요 😢 한 번만 다시 보내주실래요?'
+        setErr(blocked ? bubble : (d.error || '응답 실패'))
         setMessages(m => [...m, { role: 'assistant', text: bubble }])
         return
       }
@@ -360,6 +376,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       if (d.reply) { setMessages(m => [...m, { role: 'assistant', text: d.reply }]); shown = true }
       if (d.script && chatJob) {
         shown = true
+        sawScriptRef.current = true; track('vera_script_shown', { source: 'chat' })
         setMessages(m => [...m, { role: 'assistant', text: d.script, isScript: true }])
         supabase.rpc('set_job_script_rpc', { p_job_id: chatJob, p_script: d.script, p_status: 'done' }).then(null, () => {})
         if (prevScript) supabase.rpc('record_edit_rpc', { p_job_id: chatJob, p_before: prevScript, p_after: d.script }).then(null, () => {})
@@ -369,7 +386,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
         if (d.reply) supabase.rpc('append_job_message_rpc', { p_job_id: chatJob, p_role: 'assistant', p_content: d.reply }).then(null, () => {})
       }
       if (!shown) setMessages(m => [...m, { role: 'assistant', text: '네, 말씀하세요!' }])
-    } catch (e) { setErr(String(e)); setMessages(m => [...m, { role: 'assistant', text: '연결이 잠깐 불안정했어요 😢 다시 한 번 보내주실래요?' }]) } finally { setBusy(false); setStage('') }
+    } catch (e) { track('vera_gen_failed', { where: 'chat', error: String(e).slice(0, 120) }); setErr(String(e)); setMessages(m => [...m, { role: 'assistant', text: '연결이 잠깐 불안정했어요 😢 다시 한 번 보내주실래요?' }]) } finally { setBusy(false); setStage('') }
   }
 
   // 내 말투 백그라운드 학습: 모달 닫고 토스트 → 완료되면 리뷰 재오픈(서버는 이미 저장됨)
@@ -395,9 +412,9 @@ export default function ScriptAssistant({ session: sessionProp }) {
       const t = await token()
       const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'refine', job_id: jobId, voice_mode: 'my', instruction: '내 말투 그대로 자연스럽게 다시 써줘', current_script: src }) })
       const d = await r.json()
-      if (d.ok && d.script) { setMessages(m => [...m, { role: 'assistant', text: d.script, mine: true, isScript: true }]); applyMeter(d) }
-      else setErr(d.code === 'INSUFFICIENT_CREDITS' ? `이 대본 세션을 이어가려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '내 말투 변환 실패'))
-    } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
+      if (d.ok && d.script) { refineRef.current += 1; sawScriptRef.current = true; track('vera_refine', { kind: 'myvoice', n: refineRef.current }); setMessages(m => [...m, { role: 'assistant', text: d.script, mine: true, isScript: true }]); applyMeter(d) }
+      else { const blocked = d.code === 'INSUFFICIENT_CREDITS'; track(blocked ? 'vera_blocked_credits' : 'vera_gen_failed', { where: 'refine' }); setErr(blocked ? `이 대본 세션을 이어가려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '내 말투 변환 실패')) }
+    } catch (e) { track('vera_gen_failed', { where: 'refine', error: String(e).slice(0, 120) }); setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
   // 레드노트 링크 → 서버 캐싱 → 소스 클립으로 추가
   const addRednoteClip = async () => {
@@ -411,7 +428,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       else setRnErr(d.error || '클립을 가져오지 못했어요')
     } catch (e) { setRnErr(String(e)) } finally { setRnBusy(false) }
   }
-  const copy = async (text, i) => { try { await navigator.clipboard.writeText(text); setCopiedI(i); setTimeout(() => setCopiedI(-1), 1500) } catch {} }
+  const copy = async (text, i) => { try { await navigator.clipboard.writeText(text); actedRef.current = true; track('vera_script_copied'); setCopiedI(i); setTimeout(() => setCopiedI(-1), 1500) } catch {} }
 
   // 인라인 수정: 베라 대본을 직접 고치고, 저장하면 그 수정을 말투 학습에 반영
   const startEdit = (i, text) => { setEditIdx(i); setEditText(text) }
