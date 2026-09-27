@@ -24,7 +24,8 @@ export default function ClipAnalysisReport({ a, shortcode }) {
     return () => { alive = false }
   }, [shortcode])
   const thumb = d?.thumbnail_url || (Array.isArray(d?.images) ? d.images[0] : '') || ''
-  const postUrl = d?.url || (shortcode ? `https://www.instagram.com/reel/${shortcode}/` : '')
+  // /reel/ 은 릴스 플레이어라 자동으로 다음 릴스로 넘어감 → /p/ 단일 게시물로 고정(원본 정확히 열림)
+  const postUrl = shortcode ? `https://www.instagram.com/p/${shortcode}/` : (d?.url || '')
   const refresh = async () => {
     try { const { data } = await supabase.functions.invoke('trend-reel', { body: { shortcode } }); if (data?.video_url) { setVideo(data.video_url); return data.video_url } } catch { /* noop */ }
     return ''
