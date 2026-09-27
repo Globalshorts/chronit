@@ -54,6 +54,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [turns, setTurns] = useState(null)
   const [note, setNote] = useState('')
   const [copiedI, setCopiedI] = useState(-1)
+  const [rated, setRated] = useState({})   // 대본별 평가(👍/👎)
   const [editIdx, setEditIdx] = useState(-1)
   const [editText, setEditText] = useState('')
   const [err, setErr] = useState('')
@@ -429,6 +430,8 @@ export default function ScriptAssistant({ session: sessionProp }) {
     } catch (e) { setRnErr(String(e)) } finally { setRnBusy(false) }
   }
   const copy = async (text, i) => { try { await navigator.clipboard.writeText(text); actedRef.current = true; track('vera_script_copied'); setCopiedI(i); setTimeout(() => setCopiedI(-1), 1500) } catch {} }
+  // 대본 평가 — 👎면 "완벽하지 않아서 이탈"의 직접 신호. 평가하면 조용한 이탈로는 안 잡음.
+  const rate = (i, rating) => { if (rated[i]) return; setRated((r) => ({ ...r, [i]: rating })); actedRef.current = true; track('vera_rated', { rating, job_id: jobId, mine: !!messages[i]?.mine }) }
 
   // 인라인 수정: 베라 대본을 직접 고치고, 저장하면 그 수정을 말투 학습에 반영
   const startEdit = (i, text) => { setEditIdx(i); setEditText(text) }
@@ -642,6 +645,16 @@ export default function ScriptAssistant({ session: sessionProp }) {
                       )}
                       <button onClick={() => copy(m.text, i)} className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs text-white/45 hover:bg-white/10 hover:text-white/80">{copiedI === i ? <Check size={13} /> : <Copy size={13} />} 복사</button>
                     </div>
+                    {m.isScript && (
+                      <div className="mt-2 flex items-center gap-1.5 text-xs text-white/40">
+                        <span>이번 대본 어땠나요?</span>
+                        <button onClick={() => rate(i, 'up')} disabled={!!rated[i]} title="좋아요"
+                          className={`rounded-lg px-2 py-1 transition ${rated[i] === 'up' ? 'bg-[#0064FF]/20' : 'hover:bg-white/10'} ${rated[i] && rated[i] !== 'up' ? 'opacity-30' : ''}`}>👍</button>
+                        <button onClick={() => rate(i, 'down')} disabled={!!rated[i]} title="별로예요"
+                          className={`rounded-lg px-2 py-1 transition ${rated[i] === 'down' ? 'bg-amber-500/20' : 'hover:bg-white/10'} ${rated[i] && rated[i] !== 'down' ? 'opacity-30' : ''}`}>👎</button>
+                        {rated[i] && <span className="text-white/30">고마워요!</span>}
+                      </div>
+                    )}
                   </>
                 )}
               </div>
