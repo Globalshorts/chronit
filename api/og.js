@@ -48,8 +48,11 @@ export default async function handler(req, res) {
     shell = setMeta(shell, 'twitter:image', img, 'name')
   }
 
+  // 링크인바이오(/u/*)는 검색엔진 인덱싱 제외 — 소셜 OG 공유는 그대로 동작(noindex는 검색엔진 전용).
+  shell = shell.replace(/<meta name="robots" content="[^"]*"\s*\/>/, '<meta name="robots" content="noindex, follow" />')
   res.statusCode = 200
   res.setHeader('content-type', 'text/html; charset=utf-8')
+  res.setHeader('X-Robots-Tag', 'noindex, follow')
   res.setHeader('cache-control', 's-maxage=300, stale-while-revalidate=600')
   res.end(shell)
 }

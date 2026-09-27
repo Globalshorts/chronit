@@ -1,5 +1,12 @@
 User-agent: *
 Allow: /
+Disallow: /watchlist
+Disallow: /mypage
+Disallow: /links
+Disallow: /partner
+Disallow: /dm
+Disallow: /payment
+Disallow: /board/write
 
 User-agent: Yeti
 Allow: /
