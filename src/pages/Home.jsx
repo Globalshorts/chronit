@@ -577,7 +577,7 @@ const Home = () => {
               쇼핑 크리에이터의<br /><span className="text-[#A9C0FF]">AI 콘텐츠 비서</span>
             </h1>
             <p className="mx-auto mb-10 max-w-md text-[15px] font-normal leading-relaxed text-white/45 break-keep md:text-base">
-              지금 팔리는 소재를 찾아, 내 말투로 대본까지.
+              지금 뜨는 소재를 찾고, 분석하고, 내 말투로 대본까지.
             </p>
             <div className="flex w-full max-w-sm flex-col items-center gap-4">
               <button onClick={handleFinds}
@@ -594,6 +594,26 @@ const Home = () => {
           </>)}
         </div>
       </section>
+
+      {/* ── 3단계: 찾고 → 분석하고 → 대본까지 ── */}
+      {!user && (
+        <section className="px-5 pb-4 pt-2 md:px-8">
+          <RevealStagger className="mx-auto grid max-w-3xl grid-cols-3 gap-3 md:gap-4">
+            {[
+              { n: '01', Icon: Search, t: '찾기', d: '지금 반응하는\n쇼핑 릴스 발견' },
+              { n: '02', Icon: MessageCircle, t: '분석', d: '왜 터졌는지\nAI에게 질문' },
+              { n: '03', Icon: Captions, t: '만들기', d: '내 말투로\n대본 완성' },
+            ].map(({ n, Icon, t, d }) => (
+              <div key={n} className="flex flex-col items-center rounded-2xl glass glass-c px-3 py-6 text-center md:px-4 md:py-7">
+                <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-[#0064FF]/15 text-[#A9C0FF]"><Icon size={20} /></span>
+                <div className="text-[10px] font-bold tracking-widest text-white/30">{n}</div>
+                <div className="mt-1 text-base font-bold text-white md:text-lg">{t}</div>
+                <p className="mt-1.5 whitespace-pre-line text-xs leading-relaxed text-white/45 md:text-sm">{d}</p>
+              </div>
+            ))}
+          </RevealStagger>
+        </section>
+      )}
 
       {/* ── 실데이터 통계 스트립 ── */}
       {stats?.clips ? (
