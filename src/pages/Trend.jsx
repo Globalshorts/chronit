@@ -20,7 +20,6 @@ import TrendCard, { TrendThumb } from '../components/TrendCard'
 import { memList, memFb, readSkeleton, loadTrendList, loadFastbench, loadDetail } from '../lib/trendStore'
 import { logEvent, logEventOnce } from '../lib/events'
 import { coachPending, dismissCoach } from '../lib/coach'
-import QuestStrip from '../components/QuestStrip'
 import NewSinceBadges from '../components/NewSinceBadges'
 import { fmtCount as fmt, maskHandles } from '../lib/format'
 
@@ -333,36 +332,25 @@ export default function Trend() {
     <div>
 
       <div className="mx-auto max-w-5xl px-4 py-8">
-        <header className="mb-5">
-          <div className="flex items-center gap-2 text-[#0064FF]">
-            <Flame size={22} />
-            <h1 className="text-2xl font-extrabold text-white">실시간 트렌드</h1>
+        <header className="mb-6">
+          <div className="mb-2 flex items-center gap-1.5 text-[#0064FF]">
+            <Flame size={15} />
+            <span className="text-xs font-bold tracking-wide">실시간 트렌드</span>
             <div className="relative">
-              <button onClick={() => setShowHelp((v) => !v)} className="flex text-slate-300 transition-colors hover:text-white/45" aria-label="선정 기준"><HelpCircle size={18} /></button>
+              <button onClick={() => setShowHelp((v) => !v)} className="flex text-slate-400 transition-colors hover:text-white/60" aria-label="선정 기준"><HelpCircle size={15} /></button>
               {showHelp && (
-                <div className="absolute left-0 top-7 z-50 w-64 rounded-xl glass p-3 text-xs font-medium leading-relaxed text-white/55 shadow-xl" onClick={() => setShowHelp(false)}>
+                <div className="absolute left-0 top-6 z-50 w-64 rounded-xl glass p-3 text-xs font-medium leading-relaxed text-white/55 shadow-xl" onClick={() => setShowHelp(false)}>
                   <div className="mb-0.5 font-bold text-white">선정 기준</div>
                   최근 <b className="text-white">반응이 터진</b>(댓글·조회수 높은) 쇼핑 릴스를 모읍니다. 위 <b className="text-white">팔로워</b> 범위로 원하는 계정 규모만 골라 볼 수 있습니다.
                 </div>
               )}
             </div>
           </div>
-          <p className="mt-1 text-sm text-white/45">지금 뜨는 쇼핑 숏폼을 한눈에. 조회수·좋아요 순으로 정렬해 확인하세요.</p>
-          <p className="mt-0.5 text-[11px] text-white/35">마음에 드는 소재를 눌러 베라로 대본을 만들어보세요</p>
+          <h1 className="text-2xl font-extrabold leading-snug tracking-tight text-white sm:text-[28px]">오늘 어떤 상품으로<br className="sm:hidden" /> 릴스를 만들어볼까요?</h1>
+          <p className="mt-2.5 text-sm font-medium text-white/55">최근 7일간 반응이 좋은 쇼핑 릴스를 기반으로 찾아드립니다.</p>
         </header>
 
-        <QuestStrip enabled={isReal} />
         <NewSinceBadges enabled={isReal} items={items} />
-
-        {isReal && !fastBench && fbCount > 0 && (
-          <button onClick={() => setFastBench(true)} className="mb-4 flex w-full items-center justify-between gap-3 rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 px-4 py-3 text-left ring-1 ring-amber-400/30 transition hover:brightness-125 active:scale-[0.99]">
-            <span className="min-w-0">
-              <span className="flex items-center gap-1 text-[11px] font-extrabold tracking-wide text-amber-400"><Crown size={13} /> 패스트벤치 · 구독 전용</span>
-              <span className="mt-0.5 block text-sm font-bold text-white">터진 뒤 따라하면 늦어요. 상위 크리에이터처럼 <span className="text-amber-300">터지는 순간</span> 먼저 잡으세요</span>
-            </span>
-            <span className="shrink-0 whitespace-nowrap rounded-lg bg-amber-400 px-3 py-1.5 text-sm font-extrabold text-white">{fbCount}개 열기 →</span>
-          </button>
-        )}
 
         {isReal && (
         <div className="relative mb-5 flex max-w-xs rounded-xl bg-white/[0.06] p-1 text-sm font-bold">
