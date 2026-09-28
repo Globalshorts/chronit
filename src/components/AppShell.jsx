@@ -1,4 +1,6 @@
 import { Link, useLocation, Outlet } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
+const lazyTrialModal = () => lazy(() => import('./TrialContinueModal'))
 import { Flame, Search, Bookmark, User, CreditCard, Download, Shield, Handshake, PenLine } from 'lucide-react'
 import EnergyOrb from './EnergyOrb'
 const ScriptOrbIcon = (p) => <EnergyOrb size={p && p.size ? p.size : 18} />
@@ -19,6 +21,8 @@ const NAV = [...WORKSPACE_NAV, ...AUX_NAV]
 const ADMIN_NAV = { to: '/admin', label: '관리자', title: '관리자', Icon: Shield }
 const PARTNER_NAV = { to: '/partner', label: '파트너', title: '파트너', Icon: Handshake }
 
+const TrialContinueModal = lazyTrialModal()
+
 export default function AppShell({ children }) {
   const loc = useLocation()
   const role = useMyRole()
@@ -30,6 +34,7 @@ export default function AppShell({ children }) {
   const cur = NAV.find(active) ?? [ADMIN_NAV, PARTNER_NAV].find(active)
   return (
     <div className="min-h-screen bg-[#0a0b0f] text-white md:flex">
+      <Suspense fallback={null}><TrialContinueModal /></Suspense>
       {/* 데스크톱 왼쪽 내비 */}
       <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-white/10 bg-[#0c0d11] p-4 md:flex">
         <Link to="/" className="mb-6 flex items-center gap-2 px-2">
