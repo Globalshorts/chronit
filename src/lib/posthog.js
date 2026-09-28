@@ -38,3 +38,16 @@ export async function initPosthog() {
 export function phIdentify(uid) { try { if (!uid) return; if (ready && posthog) posthog.identify(uid); else pendingUid = uid } catch {} }
 export function phReset() { try { pendingUid = null; if (ready && posthog) posthog.reset() } catch {} }
 export function phCapture(event, props, opts) { try { if (ready && posthog && event) posthog.capture(event, props || {}, opts) } catch {} }
+export function phFeatureFlag(key) { try { return (ready && posthog && posthog.getFeatureFlag) ? posthog.getFeatureFlag(key) : undefined } catch { return undefined } }
+// 플래그가 로드되면 cb 호출. ready 전이면 잠깐 폴링해서 붙는다. unsubscribe 반환.
+export function onPhFlags(cb) {
+  let unsub = () => {}
+  let poll = null, stop = null
+  const attach = () => { try { if (posthog && posthog.onFeatureFlags) { const u = posthog.onFeatureFlags(() => cb()); if (typeof u === 'function') unsub = u } } catch { /* noop */ } }
+  if (ready) attach()
+  else {
+    poll = setInterval(() => { if (ready) { clearInterval(poll); clearTimeout(stop); attach(); cb() } }, 300)
+    stop = setTimeout(() => { try { clearInterval(poll) } catch { /* noop */ } }, 8000)
+  }
+  return () => { try { if (poll) clearInterval(poll); if (stop) clearTimeout(stop); unsub() } catch { /* noop */ } }
+}

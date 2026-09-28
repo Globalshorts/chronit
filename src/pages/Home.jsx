@@ -10,6 +10,7 @@ import HeaderInstallBtn from '../components/HeaderInstallBtn'
 import SiteNav from '../components/SiteNav'
 import Reveal from '../components/Reveal'
 import RevealStagger from '../components/RevealStagger'
+import { useHeroVariant } from '../lib/useHeroVariant'
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
 import { fbTrack } from '../lib/fbq'
@@ -154,6 +155,7 @@ const Home = () => {
   const [badgeIdx, setBadgeIdx] = useState(0)
   const [heroPersona, setHeroPersona] = useState(2)
   const [heroQuery, setHeroQuery] = useState('')
+  const heroVariant = useHeroVariant()  // 랜딩 히어로 A/B (PostHog: landing-hero)
   const [phIdx, setPhIdx] = useState(0)
   useEffect(() => { idle(() => supabase.rpc('public_stats_rpc').then(({ data }) => { if (data) setStats(data) })) }, [])
   const PAINS = [
@@ -572,19 +574,27 @@ const Home = () => {
             </div>
           )}
           {!user && (<>
-            <p className="hero-shimmer mb-6 text-[11px] font-semibold uppercase tracking-[0.32em]">Trend · Vera · Script</p>
-            <h1 className="mb-6 text-[2.4rem] font-semibold leading-[1.16] tracking-tight text-white break-keep md:text-[3.7rem]">
-              쇼핑 크리에이터의<br /><span className="text-[#A9C0FF]">AI 콘텐츠 비서</span>
-            </h1>
+            <p className="hero-shimmer mb-6 text-[11px] font-semibold uppercase tracking-[0.32em]">{heroVariant === 'B' ? '쇼핑 크리에이터를 위한 AI' : 'Trend · Vera · Script'}</p>
+            {heroVariant === 'B' ? (
+              <h1 className="mb-6 text-[2.4rem] font-semibold leading-[1.16] tracking-tight text-white break-keep md:text-[3.7rem]">
+                오늘 뭐 팔지,<br /><span className="text-[#A9C0FF]">아직도 인스타에서 찾으세요?</span>
+              </h1>
+            ) : (
+              <h1 className="mb-6 text-[2.4rem] font-semibold leading-[1.16] tracking-tight text-white break-keep md:text-[3.7rem]">
+                쇼핑 크리에이터의<br /><span className="text-[#A9C0FF]">AI 콘텐츠 비서</span>
+              </h1>
+            )}
             <p className="mx-auto mb-10 max-w-md text-[15px] font-normal leading-relaxed text-white/45 break-keep md:text-base">
-              지금 뜨는 소재를 찾고, 분석하고, 내 말투로 대본까지.
+              {heroVariant === 'B'
+                ? '지금 반응하는 쇼핑 릴스를 찾고, 왜 터졌는지 분석하고, 내 말투로 대본까지.'
+                : '지금 뜨는 소재를 찾고, 분석하고, 내 말투로 대본까지.'}
             </p>
             <div className="flex w-full max-w-sm flex-col items-center gap-4">
               <button onClick={handleFinds}
                 className="w-full rounded-full bg-white px-8 py-4 text-base font-semibold text-[#0A0B0F] transition-all hover:bg-white/90 active:scale-[0.99]">
-                무료로 대본 만들어보기
+                {heroVariant === 'B' ? '무료로 쇼핑 릴스 찾아보기' : '무료로 대본 만들어보기'}
               </button>
-              <p className="text-[13px] font-normal text-white/35">카드 등록 없이 · 월 5회 무료</p>
+              <p className="text-[13px] font-normal text-white/35">{heroVariant === 'B' ? '카드 없이 무료 5회 · 월 9,900원부터' : '카드 등록 없이 · 월 5회 무료'}</p>
               {spots != null && spots > 0 && (
                 <p className="mt-4 flex items-center gap-1.5 text-[13px] font-normal text-white/40">
                   <Users size={13} className="text-white/40" /> 이미 <span className="font-semibold text-white/70">{spots.toLocaleString('ko-KR')}</span>명의 크리에이터가 함께합니다
