@@ -121,10 +121,10 @@ export default function PersonaSettings({ onClose, onRelearn, onChanged }) {
                 <button onClick={onRelearn} className="w-full rounded-2xl border border-dashed border-white/20 py-3 text-sm font-bold text-[#5AA0FF] hover:bg-white/5">＋ 내 인스타 릴스로 말투 배우기</button>
               )}
 
-              {hasVoice && (
-                <div className="mt-3 space-y-3">
+              <div className="mt-3 space-y-3">
+                  <div className="rounded-lg bg-white/[0.04] px-3 py-2 text-[11px] leading-relaxed text-white/45">{hasVoice ? '학습된 말투를 아래에서 보정할 수 있어요' : '핸들이 없어도 화자·등장인물을 직접 정하면 대본에 그대로 반영돼요 — 화자가 제멋대로 바뀌지 않게'}</div>
                   <div>
-                    <label className="mb-1 flex items-center gap-1 text-xs text-white/60"><User size={12} /> 성별 (호칭 정확도)</label>
+                    <label className="mb-1 flex items-center gap-1 text-xs text-white/60"><User size={12} /> 화자 성별 (호칭 정확도)</label>
                     <div className="flex gap-2">
                       {[['남', '남성'], ['여', '여성'], ['', '지정 안 함']].map(([v, l]) => (
                         <button key={l} onClick={() => setGender(v)} className={`flex-1 rounded-xl border px-3 py-2 text-sm font-bold transition ${gender === v ? 'border-[#0064FF] bg-[#0064FF]/15 text-white' : 'border-white/15 bg-white/5 text-white/60'}`}>{l}</button>
@@ -132,15 +132,15 @@ export default function PersonaSettings({ onClose, onRelearn, onChanged }) {
                     </div>
                   </div>
                   <div>
-                    <label className="mb-1 flex items-center gap-1 text-xs text-white/60"><Users size={12} /> 단골 등장인물 (콤마)</label>
-                    <input value={chars} onChange={e => setChars(e.target.value)} placeholder="예: 와이프, 친구" className={inCls} />
+                    <label className="mb-1 flex items-center gap-1 text-xs text-white/60"><Users size={12} /> 출연 인물 (콤마 · 비우면 화자 혼자)</label>
+                    <input value={chars} onChange={e => setChars(e.target.value)} placeholder="예: 아내, 친구 · 없으면 비워두세요" className={inCls} />
+                    <p className="mt-1 text-[11px] text-white/30">여기 적은 인물만 대본에 나와요. 비우면 등장인물 없이 화자 혼자로 써요.</p>
                   </div>
                   <div>
                     <label className="mb-1 flex items-center gap-1 text-xs text-white/60"><MessageCircle size={12} /> 톤 (선택)</label>
                     <input value={tone} onChange={e => setTone(e.target.value)} placeholder="예: 깐깐한 디자이너 시선" className={inCls} />
                   </div>
                 </div>
-              )}
             </section>
           </div>
         )}
