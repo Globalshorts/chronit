@@ -397,6 +397,7 @@ function BehaviorPanel() {
   const [err, setErr] = useState('')
   const [loading, setLoading] = useState(true)
   const [days, setDays] = useState(30)
+  const [hoverIdx, setHoverIdx] = useState(null)
   const load = async (d) => {
     setLoading(true); setErr('')
     try {
@@ -485,14 +486,29 @@ function BehaviorPanel() {
             {pts.map((p, i) => (
               <g key={'pt' + i}>
                 <circle cx={p.x} cy={p.y} r={i === worstIdx || i === worstIdx - 1 ? 5 : 4} fill="#fff" stroke={i === worstIdx ? '#ef4444' : '#0064FF'} strokeWidth="2.5" />
-                <circle cx={p.x} cy={p.y} r="16" fill="transparent" style={{ cursor: 'pointer' }}>
-                  <title>{p.st.label} · {fmt(p.st.count)}명{base > 0 ? ` (${Math.round((p.st.count / base) * 100)}%)` : ''}{i > 0 ? ` · 직전 대비 −${fmt((stages[i-1].count||0)-(p.st.count||0))}명` : ''}</title>
-                </circle>
+                <circle cx={p.x} cy={p.y} r="20" fill="transparent" style={{ cursor: 'pointer' }}
+                  onMouseEnter={() => setHoverIdx(i)} onMouseLeave={() => setHoverIdx(null)} />
                 <text x={p.x} y={p.y - 11} textAnchor="middle" fontSize="12" fontWeight="800" fill="#14161a">{fmt(p.st.count)}</text>
                 <text x={p.x} y={H - 24} textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#6b7280">{p.st.label}</text>
                 <text x={p.x} y={H - 10} textAnchor="middle" fontSize="9.5" fill="#9aa0a6">{base > 0 ? Math.round((p.st.count / base) * 100) + '%' : ''}</text>
               </g>
             ))}
+            {hoverIdx != null && pts[hoverIdx] && (() => {
+              const hp = pts[hoverIdx]; const hs = hp.st
+              const pct = base > 0 ? Math.round((hs.count / base) * 100) : 0
+              const drop = hoverIdx > 0 ? (stages[hoverIdx - 1].count || 0) - (hs.count || 0) : null
+              const bw = 158, bh = drop != null ? 62 : 46
+              let bx = hp.x - bw / 2; bx = Math.max(4, Math.min(W - bw - 4, bx))
+              let by = hp.y - bh - 14; if (by < 2) by = hp.y + 16
+              return (
+                <g pointerEvents="none">
+                  <rect x={bx} y={by} width={bw} height={bh} rx="9" fill="#14161a" opacity="0.97" />
+                  <text x={bx + 13} y={by + 20} fontSize="12.5" fontWeight="700" fill="#c8ccd2">{hs.label}</text>
+                  <text x={bx + 13} y={by + 40} fontSize="18" fontWeight="800" fill="#fff">{fmt(hs.count)}명<tspan fontSize="12.5" fill="#9aa0a6"> ({pct}%)</tspan></text>
+                  {drop != null && <text x={bx + 13} y={by + 55} fontSize="11.5" fill={hoverIdx === worstIdx ? '#ff8a8a' : '#9aa0a6'}>직전 대비 −{fmt(drop)}명</text>}
+                </g>
+              )
+            })()}
           </svg>
         </div>
       )}

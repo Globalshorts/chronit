@@ -5,6 +5,7 @@ import { supabase } from './supabase'
 // (supabase.rpc 는 Promise 가 아니라 thenable 이라 .catch 가 없다 → .then(null, fn))
 
 const SID_KEY = 'chr_evt_sid'
+const DID_KEY = 'chr_did'
 
 const newId = () => {
   try { if (crypto?.randomUUID) return crypto.randomUUID() } catch { /* noop */ }
@@ -22,12 +23,23 @@ export function eventSession() {
   return cached
 }
 
+// 영구 기기 ID — localStorage 라 같은 기기/브라우저면 방문을 1명으로 집계
+let didCache = ''
+export function deviceId() {
+  if (didCache) return didCache
+  try {
+    didCache = localStorage.getItem(DID_KEY) || ''
+    if (!didCache) { didCache = newId(); localStorage.setItem(DID_KEY, didCache) }
+  } catch { didCache = didCache || newId() }
+  return didCache
+}
+
 export function logEvent(event, props) {
   if (!event) return
   try {
     supabase.rpc('log_event_rpc', {
       p_event: event,
-      p_props: props || {},
+      p_props: { ...(props || {}), did: deviceId() },
       p_path: typeof location !== 'undefined' ? location.pathname : null,
       p_session: eventSession(),
     }).then(null, () => {})
