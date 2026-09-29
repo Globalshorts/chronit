@@ -15,22 +15,22 @@ export default function VideoModal({ clip, onClose, onSave, saved = false, onScr
   const [mode, setMode] = useState(clip?.video_url ? 'video' : imgs.length ? 'images' : 'loading')
   const [idx, setIdx] = useState(0)
   const [tried, setTried] = useState(false)
+  // 항상 네이티브로만 재생 — 인스타 웹 임베드(iframe) 폴백은 쓰지 않는다.
+  const loadNative = async () => {
+    try { const { data } = await supabase.functions.invoke('trend-reel', { body: { shortcode: clip?.video_id } }); if (data?.video_url) return data.video_url } catch { /* noop */ }
+    return ''
+  }
   useEffect(() => {
     if (mode !== 'loading') return
     let alive = true
-    ;(async () => {
-      try { const { data } = await supabase.functions.invoke('trend-reel', { body: { shortcode: clip?.video_id } }); if (alive && data?.video_url) { setSrc(data.video_url); setMode('video'); return } } catch { /* noop */ }
-      if (alive) setMode('embed')
-    })()
+    ;(async () => { const u = await loadNative(); if (!alive) return; if (u) { setSrc(u); setMode('video') } else setMode('expired') })()
     return () => { alive = false }
   }, [])
   const onVidError = async () => {
-    if (!tried) {
-      setTried(true)
-      try { const { data } = await supabase.functions.invoke('trend-reel', { body: { shortcode: clip?.video_id } }); if (data?.video_url) { setSrc(data.video_url); return } } catch { /* noop */ }
-    }
-    setMode('embed')
+    if (!tried) { setTried(true); const u = await loadNative(); if (u) { setSrc(u); return } }
+    setMode('expired')
   }
+  const retry = async () => { setTried(false); setMode('loading'); const u = await loadNative(); if (u) { setSrc(u); setMode('video') } else setMode('expired') }
   if (!clip) return null
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 sm:p-4" onClick={onClose}>
@@ -63,7 +63,13 @@ export default function VideoModal({ clip, onClose, onSave, saved = false, onScr
         ) : mode === 'loading' ? (
           <div className="grid min-h-0 w-full flex-1 place-items-center bg-black text-white/60"><Loader2 size={26} className="animate-spin" /></div>
         ) : (
-          <iframe key="emb" src={`https://www.instagram.com/reel/${clip.video_id}/embed`} title="reel" loading="lazy" allow="autoplay; encrypted-media; clipboard-write" className="min-h-0 w-full flex-1 border-0 bg-black" />
+          <div className="grid min-h-0 w-full flex-1 place-items-center bg-black px-6 text-center">
+            <div>
+              <div className="text-sm font-bold text-white/80">영상을 불러오지 못했어요</div>
+              <div className="mt-1 text-xs text-white/45">인스타그램 영상 링크가 만료됐을 수 있어요</div>
+              <button onClick={retry} className="mt-4 rounded-xl bg-white/10 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/15">다시 시도</button>
+            </div>
+          </div>
         )}
         <div className="shrink-0 bg-white p-3" style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}>
           <div className="mb-2 flex items-center gap-3 text-xs text-slate-500">
