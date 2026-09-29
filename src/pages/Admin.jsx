@@ -411,9 +411,12 @@ function BehaviorPanel() {
   const stages = data?.stages || []
   const base = stages[0]?.count || 0
   // 최대 이탈 구간(직전 대비 감소율 최대)
-  // 최대 이탈 = 직전 대비 "인원 수"가 가장 많이 빠진 구간 (% 아님 — 바닥의 작은 수는 무시)
+  // 최대 이탈 = 로그인 "이후" 단계 중 직전 대비 인원이 가장 많이 빠진 곳.
+  // 방문→로그인 이탈은 모든 SaaS 공통(콜드 트래픽)이라 제품 병목 판단에선 제외한다.
+  const loginIdx = stages.findIndex((s) => s.key === 'login')
+  const fromIdx = loginIdx >= 0 ? loginIdx + 1 : 1
   let worstIdx = -1, worstDrop = -1
-  for (let i = 1; i < stages.length; i++) {
+  for (let i = fromIdx; i < stages.length; i++) {
     const prev = stages[i - 1].count || 0, cur = stages[i].count || 0
     const d = prev - cur
     if (d > worstDrop) { worstDrop = d; worstIdx = i }
@@ -516,11 +519,11 @@ function BehaviorPanel() {
 
       {data && worstIdx > 0 && (
         <div className="mt-3 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
-          최대 이탈: <b>{stages[worstIdx - 1].label} → {stages[worstIdx].label}</b>에서 {fmt((stages[worstIdx - 1].count || 0) - (stages[worstIdx].count || 0))}명 빠짐
+          제품 최대 이탈(로그인 이후): <b>{stages[worstIdx - 1].label} → {stages[worstIdx].label}</b>에서 {fmt((stages[worstIdx - 1].count || 0) - (stages[worstIdx].count || 0))}명 빠짐
           ({stages[worstIdx - 1].count > 0 ? Math.round(((stages[worstIdx - 1].count - stages[worstIdx].count) / stages[worstIdx - 1].count) * 100) : 0}% 이탈)
         </div>
       )}
-      <p className="mt-3 text-[11px] leading-relaxed text-gray-400">※ "방문" 100% 기준의 기간별 행동 퍼널. 분석·대본은 핵심 행동으로 묶었어요. 앱 내 이벤트 계측 이후 데이터라 기간을 좁힐수록 정확해요. · 결제=해당 기간 유료 플랜(비-트라이얼) 신규.</p>
+      <p className="mt-3 text-[11px] leading-relaxed text-gray-400">※ 방문→로그인 이탈은 모든 SaaS 공통(콜드 트래픽은 대부분 가입 안 함)이라 "제품 최대 이탈"에선 제외했어요. "방문" 100% 기준의 기간별 행동 퍼널. 분석·대본은 핵심 행동으로 묶었어요. 앱 내 이벤트 계측 이후 데이터라 기간을 좁힐수록 정확해요. · 결제=해당 기간 유료 플랜(비-트라이얼) 신규.</p>
     </div>
   )
 }
