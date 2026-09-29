@@ -396,40 +396,67 @@ function BehaviorPanel() {
   const [data, setData] = useState(null)
   const [err, setErr] = useState('')
   const [loading, setLoading] = useState(true)
-  const load = async () => {
+  const [days, setDays] = useState(30)
+  const load = async (d) => {
     setLoading(true); setErr('')
     try {
-      const { data: d, error } = await supabase.rpc('funnel_stats')
+      const { data: r, error } = await supabase.rpc('funnel_stats', { p_days: d })
       if (error) throw error
-      setData(d)
+      setData(r)
     } catch (e) { setErr(String(e?.message || e)) } finally { setLoading(false) }
   }
-  useEffect(() => { load() }, [])
+  useEffect(() => { load(days) }, [days])
   const fmt = (n) => (n == null ? '-' : Number(n).toLocaleString('ko-KR'))
   const stages = data?.stages || []
-  const base = stages[0]?.count || 1
+  const base = stages[0]?.count || 0
   let worstIdx = -1, worstDrop = -1
   for (let i = 1; i < stages.length; i++) {
     const prev = stages[i - 1].count || 0, cur = stages[i].count || 0
     const drop = prev > 0 ? (prev - cur) / prev : 0
     if (prev > 0 && drop > worstDrop) { worstDrop = drop; worstIdx = i }
   }
+  const PERIODS = [[7, '최근 7일'], [30, '최근 30일'], [0, '전체']]
   return (
     <div className="max-w-2xl">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-lg font-extrabold text-gray-900">전환 퍼널</h2>
-          <p className="text-xs text-gray-500">가입 → 결제까지 8단계, 어디서 이탈하는지</p>
+          <p className="text-xs text-gray-500">방문 → 결제까지, 어디서 이탈하는지</p>
         </div>
-        <button onClick={load} disabled={loading} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50">{loading ? '불러오는 중…' : '새로고침'}</button>
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-lg bg-gray-100 p-0.5">
+            {PERIODS.map(([d, l]) => (
+              <button key={d} onClick={() => setDays(d)} className={`rounded-md px-2.5 py-1 text-xs font-bold transition ${days === d ? 'bg-white text-[#0064FF] shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}>{l}</button>
+            ))}
+          </div>
+          <button onClick={() => load(days)} disabled={loading} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50">{loading ? '…' : '새로고침'}</button>
+        </div>
       </div>
+
+      {data && (
+        <div className="mb-4 flex gap-3">
+          <div className="flex-1 rounded-xl border border-gray-100 bg-white px-4 py-3">
+            <div className="text-[11px] font-semibold text-gray-400">전체 가입</div>
+            <div className="text-xl font-extrabold text-gray-900">{fmt(data.total_signups)}</div>
+          </div>
+          <div className="flex-1 rounded-xl border border-gray-100 bg-white px-4 py-3">
+            <div className="text-[11px] font-semibold text-gray-400">{days === 0 ? '전체 방문자' : '기간 내 방문'}</div>
+            <div className="text-xl font-extrabold text-gray-900">{fmt(base)}</div>
+          </div>
+          <div className="flex-1 rounded-xl border border-gray-100 bg-white px-4 py-3">
+            <div className="text-[11px] font-semibold text-gray-400">방문→결제 전환</div>
+            <div className="text-xl font-extrabold text-gray-900">{base > 0 ? ((stages[stages.length - 1].count / base) * 100).toFixed(1) : '0'}%</div>
+          </div>
+        </div>
+      )}
+
       {err && <div className="mb-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">불러오지 못했어요: {err}</div>}
       {loading && !data ? (
         <div className="py-10 text-center text-sm text-gray-400">불러오는 중…</div>
       ) : (
         <div className="flex flex-col gap-2.5">
           {stages.map((st, i) => {
-            const pctBase = base > 0 ? Math.round((st.count / base) * 100) : 0
+            const pct = base > 0 ? Math.round((st.count / base) * 100) : 0
             const w = Math.max(2, base > 0 ? (st.count / base) * 100 : 0)
             const prev = i > 0 ? (stages[i - 1].count || 0) : null
             const d = prev != null ? prev - (st.count || 0) : null
@@ -439,7 +466,7 @@ function BehaviorPanel() {
               <div key={st.key} className={`rounded-2xl border bg-white p-3.5 shadow-sm ${worst ? 'border-red-200' : 'border-gray-100'}`}>
                 <div className="flex items-baseline justify-between">
                   <div className="text-sm font-bold text-gray-900">{i + 1}. {st.label}</div>
-                  <div className="text-base font-extrabold text-gray-900">{fmt(st.count)}<span className="ml-1.5 text-xs font-semibold text-gray-400">{pctBase}% of 대상</span></div>
+                  <div className="text-base font-extrabold text-gray-900">{fmt(st.count)}<span className="ml-1.5 text-xs font-semibold text-gray-400">{pct}%</span></div>
                 </div>
                 <div className={`mt-2 h-2.5 w-full overflow-hidden rounded-full ${worst ? 'bg-red-50' : 'bg-gray-100'}`}>
                   <div className="h-full rounded-full bg-gradient-to-r from-[#0064FF] to-[#4f8bff]" style={{ width: w + '%' }} />
@@ -454,7 +481,7 @@ function BehaviorPanel() {
           })}
         </div>
       )}
-      <p className="mt-4 text-[11px] leading-relaxed text-gray-400">※ 앱 내 이벤트(app_open·소재탐색·분석 등)는 계측 도입 이후 기록이라, 계측 전 가입자는 "앱 진입" 이후 단계에 안 잡힐 수 있어요. "가입→앱 진입" 낙폭은 실제보다 크게 보일 수 있고, 앱 진입 이후 흐름이 더 정확해요. · 결제=유료 플랜(비-트라이얼) 기준.</p>
+      <p className="mt-4 text-[11px] leading-relaxed text-gray-400">※ "방문"을 100% 기준으로 한 기간별 행동 퍼널이에요. 앱 내 이벤트 계측 이후 데이터라 기간을 좁힐수록 정확해요. · 결제=해당 기간 유료 플랜(비-트라이얼) 신규 기준.</p>
     </div>
   )
 }
