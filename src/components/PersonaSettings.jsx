@@ -20,6 +20,7 @@ export default function PersonaSettings({ onClose, onRelearn, onChanged }) {
   const [voice, setVoice] = useState(null)
   const [gender, setGender] = useState('')
   const [chars, setChars] = useState('')
+  const [charMode, setCharMode] = useState('auto')   // auto(자유) | solo(혼자) | fixed(고정)
   const [tone, setTone] = useState('')
 
   useEffect(() => { (async () => {
@@ -38,7 +39,9 @@ export default function PersonaSettings({ onClose, onRelearn, onChanged }) {
       const tv = pv.target || ''
       if (tv && !TARGET_OPTIONS.includes(tv)) { setTarget('기타'); setTargetOther(tv) } else setTarget(tv)
       setGender(pv.gender || (sc.gender_guess === '남' || sc.gender_guess === '여' ? sc.gender_guess : ''))
-      setChars((pv.recurring_characters || sc.recurring_characters || []).join(', '))
+      const rc = (pv.recurring_characters || sc.recurring_characters || [])
+      setChars(rc.join(', '))
+      setCharMode(pv.character_mode || (rc.length ? 'fixed' : 'auto'))
       setTone(pv.tone || sc.tone || '')
     } catch { /* noop */ } finally { setLoading(false) }
   })() }, [])
@@ -55,7 +58,8 @@ export default function PersonaSettings({ onClose, onRelearn, onChanged }) {
       await supabase.rpc('update_voice_persona_rpc', { p_persona: {
         target: targetVal || undefined,
         gender: gender || undefined,
-        recurring_characters: chars.split(',').map(s => s.trim()).filter(Boolean),
+        character_mode: charMode,
+        recurring_characters: charMode === 'fixed' ? chars.split(',').map(s => s.trim()).filter(Boolean) : [],
         tone: tone.trim() || undefined,
       } })
       setSaved(true); setTimeout(() => setSaved(false), 2000)
@@ -132,9 +136,14 @@ export default function PersonaSettings({ onClose, onRelearn, onChanged }) {
                     </div>
                   </div>
                   <div>
-                    <label className="mb-1 flex items-center gap-1 text-xs text-white/60"><Users size={12} /> 출연 인물 (콤마 · 비우면 화자 혼자)</label>
-                    <input value={chars} onChange={e => setChars(e.target.value)} placeholder="예: 아내, 친구 · 없으면 비워두세요" className={inCls} />
-                    <p className="mt-1 text-[11px] text-white/30">여기 적은 인물만 대본에 나와요. 비우면 등장인물 없이 화자 혼자로 써요.</p>
+                    <label className="mb-1 flex items-center gap-1 text-xs text-white/60"><Users size={12} /> 출연 인물</label>
+                    <div className="flex gap-2">
+                      {[['auto', '자유롭게'], ['solo', '화자 혼자'], ['fixed', '고정']].map(([v, l]) => (
+                        <button key={v} onClick={() => setCharMode(v)} className={`flex-1 rounded-xl border px-2 py-2 text-sm font-bold transition ${charMode === v ? 'border-[#0064FF] bg-[#0064FF]/15 text-white' : 'border-white/15 bg-white/5 text-white/60'}`}>{l}</button>
+                      ))}
+                    </div>
+                    {charMode === 'fixed' && <input value={chars} onChange={e => setChars(e.target.value)} placeholder="예: 아내, 친구" className={inCls + ' mt-2'} />}
+                    <p className="mt-1 text-[11px] text-white/30">{charMode === 'auto' ? '상황에 맞는 인물이 매번 다르게 등장해요 (다양성↑)' : charMode === 'solo' ? '등장인물 없이 화자 혼자 이야기해요' : '여기 적은 인물 위주로만 등장해요'}</p>
                   </div>
                   <div>
                     <label className="mb-1 flex items-center gap-1 text-xs text-white/60"><MessageCircle size={12} /> 톤 (선택)</label>
