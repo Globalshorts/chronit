@@ -305,6 +305,23 @@ export default function ScriptAssistant({ session: sessionProp }) {
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
 
+  // A/B 중 하나 선택 → 그 대본을 확정(서버 저장 + 로깅), 메시지를 일반 대본으로 치환
+  const chooseVariant = async (i, variant) => {
+    setMessages((m) => m.map((x, idx) => {
+      if (idx !== i || !x.ab) return x
+      const chosen = variant === 'B' ? x.b : x.a
+      return { role: 'assistant', text: chosen, isScript: true, mine: x.mine, analysis: x.analysis }
+    }))
+    const msg = messages[i]; if (!msg) return
+    const chosen = variant === 'B' ? msg.b : msg.a
+    const jid = jobId || msg.jobId
+    try { track('vera_ab_chosen', { variant, genre: msg.genre }) } catch { /* noop */ }
+    try {
+      const t = await token(); if (!t || !jid) return
+      await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'choose', job_id: jid, script: chosen, variant, genre: msg.genre }) })
+    } catch { /* noop */ }
+  }
+
   // 소재 카드로 대본 만들기 (분석 → 대본, 이용권 1)
   const generateFromSoso = async () => {
     if (busy || !soso) return
@@ -323,9 +340,14 @@ export default function ScriptAssistant({ session: sessionProp }) {
       const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify(gbody) })
       const d = await r.json()
       if (!d.ok) { const blocked = d.code === 'INSUFFICIENT_CREDITS'; track(blocked ? 'vera_blocked_credits' : 'vera_gen_failed', { where: 'generate' }); setErr(blocked ? `이용권이 부족해요. 10턴 세션을 열려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '대본 생성 실패')); return }
-      const scriptMsg = { role: 'assistant', text: d.script, isScript: true, mine: voiceProfile?.has_voice === true, analysis: { product, selling: sp } }
-      if (jobId) { applyMeter(d); setMessages((m) => [...m, scriptMsg]) }
-      else { setJobId(d.job_id); applyMeter(d); setMessages([scriptMsg]) }
+      const jid = jobId || d.job_id
+      const meta = { mine: voiceProfile?.has_voice === true, analysis: { product, selling: sp }, jobId: jid, genre: d.genre || null }
+      const outMsg = d.script_b
+        ? { role: 'assistant', ab: true, a: d.script, b: d.script_b, ...meta }
+        : { role: 'assistant', text: d.script, isScript: true, ...meta }
+      applyMeter(d)
+      if (jobId) setMessages((m) => [...m, outMsg])
+      else { setJobId(d.job_id); setMessages([outMsg]) }
       sawScriptRef.current = true; track('vera_script_shown', { source: 'soso', mine: voiceProfile?.has_voice === true })
       loadJobs()
     } catch (e) { track('vera_gen_failed', { where: 'generate', error: String(e).slice(0, 120) }); setErr(String(e)) } finally { setBusy(false); setStage('') }
@@ -608,6 +630,18 @@ export default function ScriptAssistant({ session: sessionProp }) {
               </div>
             )
             if (m.report) return <div key={i} className="sa-fade w-full max-w-[700px] self-start"><ClipAnalysisReport a={m.report} shortcode={m.shortcode} /></div>
+            if (m.ab) return (
+              <div key={i} className="sa-fade w-full max-w-[700px] self-start space-y-3">
+                <div className="text-sm font-bold text-white/70">두 가지 방향으로 써봤어요 — 마음에 드는 쪽을 고르세요</div>
+                {[['A', m.a], ['B', m.b]].map(([v, txt]) => (
+                  <div key={v} className="rounded-2xl border border-white/12 bg-white/[0.04] p-4">
+                    <div className="mb-2"><span className="rounded-md bg-[#0064FF]/20 px-2 py-0.5 text-xs font-extrabold text-[#5AA0FF]">{v}안</span></div>
+                    <div className="whitespace-pre-wrap text-[15px] leading-relaxed text-white/90">{txt}</div>
+                    <button onClick={() => chooseVariant(i, v)} className="mt-3 rounded-xl bg-[#0064FF] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95 active:scale-[0.99]">이 안으로 할게요</button>
+                  </div>
+                ))}
+              </div>
+            )
             if (m.role === 'user') return <div key={i} className="sa-fade max-w-[80%] self-end rounded-2xl rounded-br-md bg-[#0064FF] px-4 py-2.5 text-[15px] leading-relaxed text-white">{m.text}</div>
             return (
               <div key={i} className="sa-fade w-full max-w-[92%] self-start">
