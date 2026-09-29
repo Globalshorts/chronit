@@ -43,13 +43,15 @@ export default function ClipAnalysisReport({ a, shortcode }) {
   }
   const onDownload = async () => {
     setDl(true)
-    const u = await refresh()
+    const u = await refresh()   // 만료 가능 → 항상 신선 URL을 먼저 받는다
     if (!u) { setVstate('expired'); setDl(false); return }
     try {
-      const r = await fetch(u); if (!r.ok) throw new Error('fetch')
-      const b = await r.blob(); const link = document.createElement('a')
-      link.href = URL.createObjectURL(b); link.download = `${shortcode || 'clip'}.mp4`
-      document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(link.href), 4000)
+      // fbcdn은 CORS로 클라 fetch가 막힌다 → 같은 오리진 프록시(/api/dl)로 첨부 다운로드
+      const name = `${shortcode || 'clip'}.mp4`
+      const dlUrl = `/api/dl?src=${encodeURIComponent(u)}&name=${encodeURIComponent(name)}`
+      const link = document.createElement('a')
+      link.href = dlUrl; link.download = name
+      document.body.appendChild(link); link.click(); link.remove()
     } catch { window.open(u, '_blank', 'noopener') } finally { setDl(false) }
   }
   if (!a) return null

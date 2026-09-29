@@ -19,19 +19,29 @@ const ymd = (d) => (d ? new Date(d).toISOString().slice(0, 10) : '')
 export default function WatchAccountsManager({ open, onClose, accounts, feedCounts, onChanged, isProPlus = false, onImport }) {
   const [q, setQ] = useState('')
   const [filter, setFilter] = useState('all')
+  const [sortBy, setSortBy] = useState('followers')   // followers | activity | recent | name
   const [sel, setSel] = useState([])
   const [busy, setBusy] = useState(false)
 
   const rows = useMemo(() => {
     const needle = q.trim().toLowerCase()
-    return (accounts || []).filter((a) => {
+    const list = (accounts || []).filter((a) => {
       if (needle && !`${a.username} ${a.nickname || ''}`.toLowerCase().includes(needle)) return false
       if (filter === 'off') return a.active === false
       if (filter === 'all') return true
       if (a.active === false) return false
       return statusOf(a) === filter
     })
-  }, [accounts, q, filter])
+    const num = (v) => Number(v) || 0
+    const fc = (a) => num(feedCounts[a.username])
+    const cmp = {
+      followers: (a, b) => num(b.follower_count) - num(a.follower_count),
+      activity: (a, b) => fc(b) - fc(a),
+      recent: (a, b) => new Date(b.last_found_at || 0) - new Date(a.last_found_at || 0),
+      name: (a, b) => String(a.username || '').localeCompare(String(b.username || '')),
+    }[sortBy] || (() => 0)
+    return [...list].sort(cmp)
+  }, [accounts, q, filter, sortBy, feedCounts])
 
   if (!open) return null
 
@@ -105,6 +115,13 @@ export default function WatchAccountsManager({ open, onClose, accounts, feedCoun
           {FILTERS.map(([k, l]) => (
             <button key={k} onClick={() => setFilter(k)} className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${filter === k ? 'bg-[#0064FF] text-white' : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'}`}>{l}</button>
           ))}
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} aria-label="정렬"
+            className="rounded-lg border border-white/10 bg-black/40 px-2.5 py-1.5 text-xs font-bold text-white/80 outline-none focus:border-[#0064FF]">
+            <option value="followers">팔로워순</option>
+            <option value="activity">활동량순</option>
+            <option value="recent">최근 게시물순</option>
+            <option value="name">이름순</option>
+          </select>
         </div>
 
         {/* 일괄 작업 */}
