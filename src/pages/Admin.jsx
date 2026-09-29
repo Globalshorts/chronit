@@ -411,11 +411,12 @@ function BehaviorPanel() {
   const stages = data?.stages || []
   const base = stages[0]?.count || 0
   // 최대 이탈 구간(직전 대비 감소율 최대)
+  // 최대 이탈 = 직전 대비 "인원 수"가 가장 많이 빠진 구간 (% 아님 — 바닥의 작은 수는 무시)
   let worstIdx = -1, worstDrop = -1
   for (let i = 1; i < stages.length; i++) {
     const prev = stages[i - 1].count || 0, cur = stages[i].count || 0
-    const drop = prev > 0 ? (prev - cur) / prev : 0
-    if (prev > 0 && drop > worstDrop) { worstDrop = drop; worstIdx = i }
+    const d = prev - cur
+    if (d > worstDrop) { worstDrop = d; worstIdx = i }
   }
   const PERIODS = [[7, '최근 7일'], [30, '최근 30일'], [0, '전체']]
 
