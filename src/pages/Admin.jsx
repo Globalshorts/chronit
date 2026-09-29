@@ -485,6 +485,9 @@ function BehaviorPanel() {
             {pts.map((p, i) => (
               <g key={'pt' + i}>
                 <circle cx={p.x} cy={p.y} r={i === worstIdx || i === worstIdx - 1 ? 5 : 4} fill="#fff" stroke={i === worstIdx ? '#ef4444' : '#0064FF'} strokeWidth="2.5" />
+                <circle cx={p.x} cy={p.y} r="16" fill="transparent" style={{ cursor: 'pointer' }}>
+                  <title>{p.st.label} · {fmt(p.st.count)}명{base > 0 ? ` (${Math.round((p.st.count / base) * 100)}%)` : ''}{i > 0 ? ` · 직전 대비 −${fmt((stages[i-1].count||0)-(p.st.count||0))}명` : ''}</title>
+                </circle>
                 <text x={p.x} y={p.y - 11} textAnchor="middle" fontSize="12" fontWeight="800" fill="#14161a">{fmt(p.st.count)}</text>
                 <text x={p.x} y={H - 24} textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#6b7280">{p.st.label}</text>
                 <text x={p.x} y={H - 10} textAnchor="middle" fontSize="9.5" fill="#9aa0a6">{base > 0 ? Math.round((p.st.count / base) * 100) + '%' : ''}</text>
