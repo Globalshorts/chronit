@@ -198,7 +198,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
     const [{ data: msgs }, { data: cl }, { data: jrow }] = await Promise.all([
       supabase.from('job_messages').select('role,content').eq('job_id', id).order('created_at'),
       supabase.from('job_clips').select('id,storage_path,source_url,status').eq('job_id', id),
-      supabase.from('jobs').select('voice_mode,product_name,selling_points,analysis,status,source_ref').eq('id', id).maybeSingle(),
+      supabase.from('jobs').select('voice_mode,product_name,selling_points,analysis,status,source_ref,script,script_b,ab_pending').eq('id', id).maybeSingle(),
     ])
     const isMy = jrow?.voice_mode === 'my' && voiceProfile?.has_voice === true
     // 분석 자료(상품·셀링포인트) 복원 — 첫 대본 메시지에 붙인다
@@ -213,6 +213,12 @@ export default function ScriptAssistant({ session: sessionProp }) {
       if (looksScript && analysis && !attached) { attached = true; base.analysis = analysis }
       return base
     })
+    // A/B 대기 중이면 저장된 두 안을 선택 카드로 (기존 대본 메시지는 치운다)
+    if (jrow?.ab_pending && jrow?.script_b) {
+      const cleaned = built.filter((m) => !m.isScript)
+      cleaned.push({ role: 'assistant', ab: true, a: jrow.script || '', b: jrow.script_b, genre: '', mine: isMy, analysis, jobId: id })
+      built.length = 0; built.push(...cleaned)
+    }
     if (jrow?.analysis) built.unshift({ role: 'assistant', report: jrow.analysis, shortcode: jrow.source_ref || null })
     setMessages(built); setClips(cl || []); setJobId(id); setSoso(null)
     try { const { data: jt } = await supabase.rpc('get_job_turns_rpc', { p_job_id: id }); setTurns(typeof jt?.turns_left === 'number' ? jt.turns_left : null) } catch { setTurns(null) }
