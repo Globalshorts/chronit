@@ -642,8 +642,10 @@ export default function ScriptAssistant({ session: sessionProp }) {
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {[['A', m.a], ['B', m.b]].map(([v, txt]) => (
                     <div key={v} className="flex flex-col rounded-2xl border border-white/12 bg-white/[0.04] p-4">
-                      <div className="mb-2"><span className="rounded-md bg-[#0064FF]/20 px-2 py-0.5 text-xs font-extrabold text-[#5AA0FF]">{v}안</span></div>
-                      <div className="whitespace-pre-wrap text-[15px] leading-relaxed text-white/90">{txt}</div>
+                      <div className="mb-2.5"><span className="rounded-md bg-[#0064FF]/20 px-2 py-0.5 text-xs font-extrabold text-[#5AA0FF]">{v}안</span></div>
+                      <div className="flex-1 space-y-2 text-[13.5px] leading-[1.55] text-white/85">
+                        {String(txt).split(/\n+/).map((line, li) => line.trim() && <p key={li} className="break-keep">{line.trim()}</p>)}
+                      </div>
                       <button onClick={() => chooseVariant(i, v)} className="mt-3 w-full rounded-xl bg-[#0064FF] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95 active:scale-[0.99]">이 안으로 할게요</button>
                     </div>
                   ))}
