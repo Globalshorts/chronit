@@ -409,6 +409,7 @@ function BehaviorPanel() {
   const fmt = (n) => (n == null ? '-' : Number(n).toLocaleString('ko-KR'))
   const stages = data?.stages || []
   const base = stages[0]?.count || 0
+  // 최대 이탈 구간(직전 대비 감소율 최대)
   let worstIdx = -1, worstDrop = -1
   for (let i = 1; i < stages.length; i++) {
     const prev = stages[i - 1].count || 0, cur = stages[i].count || 0
@@ -416,12 +417,26 @@ function BehaviorPanel() {
     if (prev > 0 && drop > worstDrop) { worstDrop = drop; worstIdx = i }
   }
   const PERIODS = [[7, '최근 7일'], [30, '최근 30일'], [0, '전체']]
+
+  // SVG 좌표 계산
+  const W = 620, H = 250, mL = 14, mR = 14, mT = 30, mB = 46
+  const plotW = W - mL - mR, plotH = H - mT - mB
+  const n = stages.length
+  const maxV = Math.max(base, 1)
+  const pts = stages.map((st, i) => ({
+    x: n > 1 ? mL + (i / (n - 1)) * plotW : mL + plotW / 2,
+    y: mT + plotH * (1 - (st.count || 0) / maxV),
+    st, i,
+  }))
+  const lineD = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ' ' + p.y.toFixed(1)).join(' ')
+  const areaD = pts.length ? (lineD + ' L' + pts[pts.length - 1].x.toFixed(1) + ' ' + (mT + plotH) + ' L' + pts[0].x.toFixed(1) + ' ' + (mT + plotH) + ' Z') : ''
+
   return (
     <div className="max-w-2xl">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-lg font-extrabold text-gray-900">전환 퍼널</h2>
-          <p className="text-xs text-gray-500">방문 → 결제까지, 어디서 이탈하는지</p>
+          <p className="text-xs text-gray-500">방문 → 결제, 선이 급하게 꺾이는 곳이 이탈 지점</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex rounded-lg bg-gray-100 p-0.5">
@@ -434,17 +449,17 @@ function BehaviorPanel() {
       </div>
 
       {data && (
-        <div className="mb-4 flex gap-3">
-          <div className="flex-1 rounded-xl border border-gray-100 bg-white px-4 py-3">
+        <div className="mb-4 grid grid-cols-3 gap-3">
+          <div className="rounded-xl border border-gray-100 bg-white px-4 py-3">
             <div className="text-[11px] font-semibold text-gray-400">전체 가입</div>
             <div className="text-xl font-extrabold text-gray-900">{fmt(data.total_signups)}</div>
           </div>
-          <div className="flex-1 rounded-xl border border-gray-100 bg-white px-4 py-3">
+          <div className="rounded-xl border border-gray-100 bg-white px-4 py-3">
             <div className="text-[11px] font-semibold text-gray-400">{days === 0 ? '전체 방문자' : '기간 내 방문'}</div>
             <div className="text-xl font-extrabold text-gray-900">{fmt(base)}</div>
           </div>
-          <div className="flex-1 rounded-xl border border-gray-100 bg-white px-4 py-3">
-            <div className="text-[11px] font-semibold text-gray-400">방문→결제 전환</div>
+          <div className="rounded-xl border border-gray-100 bg-white px-4 py-3">
+            <div className="text-[11px] font-semibold text-gray-400">방문→결제</div>
             <div className="text-xl font-extrabold text-gray-900">{base > 0 ? ((stages[stages.length - 1].count / base) * 100).toFixed(1) : '0'}%</div>
           </div>
         </div>
@@ -454,34 +469,38 @@ function BehaviorPanel() {
       {loading && !data ? (
         <div className="py-10 text-center text-sm text-gray-400">불러오는 중…</div>
       ) : (
-        <div className="flex flex-col gap-2.5">
-          {stages.map((st, i) => {
-            const pct = base > 0 ? Math.round((st.count / base) * 100) : 0
-            const w = Math.max(2, base > 0 ? (st.count / base) * 100 : 0)
-            const prev = i > 0 ? (stages[i - 1].count || 0) : null
-            const d = prev != null ? prev - (st.count || 0) : null
-            const dp = prev ? Math.round((d / prev) * 100) : 0
-            const worst = i === worstIdx
-            return (
-              <div key={st.key} className={`rounded-2xl border bg-white p-3.5 shadow-sm ${worst ? 'border-red-200' : 'border-gray-100'}`}>
-                <div className="flex items-baseline justify-between">
-                  <div className="text-sm font-bold text-gray-900">{i + 1}. {st.label}</div>
-                  <div className="text-base font-extrabold text-gray-900">{fmt(st.count)}<span className="ml-1.5 text-xs font-semibold text-gray-400">{pct}%</span></div>
-                </div>
-                <div className={`mt-2 h-2.5 w-full overflow-hidden rounded-full ${worst ? 'bg-red-50' : 'bg-gray-100'}`}>
-                  <div className="h-full rounded-full bg-gradient-to-r from-[#0064FF] to-[#4f8bff]" style={{ width: w + '%' }} />
-                </div>
-                {i > 0 && (
-                  <div className={`mt-1.5 text-[11.5px] ${worst ? 'font-bold text-red-500' : 'text-gray-400'}`}>
-                    직전 대비 {d > 0 ? `−${fmt(d)}명 (${dp}% 이탈)` : '유지'}{worst ? ' · 최대 이탈' : ''}
-                  </div>
-                )}
-              </div>
-            )
-          })}
+        <div className="rounded-2xl border border-gray-100 bg-white p-3 shadow-sm">
+          <svg viewBox={`0 0 ${W} ${H}`} width="100%" preserveAspectRatio="xMidYMid meet" style={{ display: 'block' }}>
+            <defs>
+              <linearGradient id="fnArea" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#0064FF" stopOpacity="0.16" />
+                <stop offset="100%" stopColor="#0064FF" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            {areaD && <path d={areaD} fill="url(#fnArea)" />}
+            {pts.map((p, i) => i === 0 ? null : (
+              <line key={'seg' + i} x1={pts[i - 1].x} y1={pts[i - 1].y} x2={p.x} y2={p.y}
+                stroke={i === worstIdx ? '#ef4444' : '#0064FF'} strokeWidth={i === worstIdx ? 3.5 : 2.5} strokeLinecap="round" />
+            ))}
+            {pts.map((p, i) => (
+              <g key={'pt' + i}>
+                <circle cx={p.x} cy={p.y} r={i === worstIdx || i === worstIdx - 1 ? 5 : 4} fill="#fff" stroke={i === worstIdx ? '#ef4444' : '#0064FF'} strokeWidth="2.5" />
+                <text x={p.x} y={p.y - 11} textAnchor="middle" fontSize="12" fontWeight="800" fill="#14161a">{fmt(p.st.count)}</text>
+                <text x={p.x} y={H - 24} textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#6b7280">{p.st.label}</text>
+                <text x={p.x} y={H - 10} textAnchor="middle" fontSize="9.5" fill="#9aa0a6">{base > 0 ? Math.round((p.st.count / base) * 100) + '%' : ''}</text>
+              </g>
+            ))}
+          </svg>
         </div>
       )}
-      <p className="mt-4 text-[11px] leading-relaxed text-gray-400">※ "방문"을 100% 기준으로 한 기간별 행동 퍼널이에요. 앱 내 이벤트 계측 이후 데이터라 기간을 좁힐수록 정확해요. · 결제=해당 기간 유료 플랜(비-트라이얼) 신규 기준.</p>
+
+      {data && worstIdx > 0 && (
+        <div className="mt-3 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+          최대 이탈: <b>{stages[worstIdx - 1].label} → {stages[worstIdx].label}</b>에서 {fmt((stages[worstIdx - 1].count || 0) - (stages[worstIdx].count || 0))}명 빠짐
+          ({stages[worstIdx - 1].count > 0 ? Math.round(((stages[worstIdx - 1].count - stages[worstIdx].count) / stages[worstIdx - 1].count) * 100) : 0}% 이탈)
+        </div>
+      )}
+      <p className="mt-3 text-[11px] leading-relaxed text-gray-400">※ "방문" 100% 기준의 기간별 행동 퍼널. 분석·대본은 핵심 행동으로 묶었어요. 앱 내 이벤트 계측 이후 데이터라 기간을 좁힐수록 정확해요. · 결제=해당 기간 유료 플랜(비-트라이얼) 신규.</p>
     </div>
   )
 }
