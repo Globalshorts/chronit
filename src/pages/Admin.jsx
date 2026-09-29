@@ -392,6 +392,73 @@ const TipsPanel = () => {
   )
 }
 
+function BehaviorPanel() {
+  const [data, setData] = useState(null)
+  const [err, setErr] = useState('')
+  const [loading, setLoading] = useState(true)
+  const load = async () => {
+    setLoading(true); setErr('')
+    try {
+      const { data: d, error } = await supabase.rpc('funnel_stats')
+      if (error) throw error
+      setData(d)
+    } catch (e) { setErr(String(e?.message || e)) } finally { setLoading(false) }
+  }
+  useEffect(() => { load() }, [])
+  const fmt = (n) => (n == null ? '-' : Number(n).toLocaleString('ko-KR'))
+  const stages = data?.stages || []
+  const base = stages[0]?.count || 1
+  let worstIdx = -1, worstDrop = -1
+  for (let i = 1; i < stages.length; i++) {
+    const prev = stages[i - 1].count || 0, cur = stages[i].count || 0
+    const drop = prev > 0 ? (prev - cur) / prev : 0
+    if (prev > 0 && drop > worstDrop) { worstDrop = drop; worstIdx = i }
+  }
+  return (
+    <div className="max-w-2xl">
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-extrabold text-gray-900">전환 퍼널</h2>
+          <p className="text-xs text-gray-500">가입 → 결제까지 8단계, 어디서 이탈하는지</p>
+        </div>
+        <button onClick={load} disabled={loading} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50">{loading ? '불러오는 중…' : '새로고침'}</button>
+      </div>
+      {err && <div className="mb-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">불러오지 못했어요: {err}</div>}
+      {loading && !data ? (
+        <div className="py-10 text-center text-sm text-gray-400">불러오는 중…</div>
+      ) : (
+        <div className="flex flex-col gap-2.5">
+          {stages.map((st, i) => {
+            const pctBase = base > 0 ? Math.round((st.count / base) * 100) : 0
+            const w = Math.max(2, base > 0 ? (st.count / base) * 100 : 0)
+            const prev = i > 0 ? (stages[i - 1].count || 0) : null
+            const d = prev != null ? prev - (st.count || 0) : null
+            const dp = prev ? Math.round((d / prev) * 100) : 0
+            const worst = i === worstIdx
+            return (
+              <div key={st.key} className={`rounded-2xl border bg-white p-3.5 shadow-sm ${worst ? 'border-red-200' : 'border-gray-100'}`}>
+                <div className="flex items-baseline justify-between">
+                  <div className="text-sm font-bold text-gray-900">{i + 1}. {st.label}</div>
+                  <div className="text-base font-extrabold text-gray-900">{fmt(st.count)}<span className="ml-1.5 text-xs font-semibold text-gray-400">{pctBase}% of 대상</span></div>
+                </div>
+                <div className={`mt-2 h-2.5 w-full overflow-hidden rounded-full ${worst ? 'bg-red-50' : 'bg-gray-100'}`}>
+                  <div className="h-full rounded-full bg-gradient-to-r from-[#0064FF] to-[#4f8bff]" style={{ width: w + '%' }} />
+                </div>
+                {i > 0 && (
+                  <div className={`mt-1.5 text-[11.5px] ${worst ? 'font-bold text-red-500' : 'text-gray-400'}`}>
+                    직전 대비 {d > 0 ? `−${fmt(d)}명 (${dp}% 이탈)` : '유지'}{worst ? ' · 최대 이탈' : ''}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+      <p className="mt-4 text-[11px] leading-relaxed text-gray-400">※ 앱 내 이벤트(app_open·소재탐색·분석 등)는 계측 도입 이후 기록이라, 계측 전 가입자는 "앱 진입" 이후 단계에 안 잡힐 수 있어요. "가입→앱 진입" 낙폭은 실제보다 크게 보일 수 있고, 앱 진입 이후 흐름이 더 정확해요. · 결제=유료 플랜(비-트라이얼) 기준.</p>
+    </div>
+  )
+}
+
 const Admin = () => {
   const [session, setSession] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -424,6 +491,7 @@ const Admin = () => {
 
   const TABS = [
     { key: 'manage', label: '회원·결제' },
+    { key: 'behavior', label: '사용자 행동' },
     { key: 'trends', label: '트렌드 계정' },
     { key: 'errors', label: '오류 로그' },
     { key: 'proofs', label: '성과인증' },
@@ -445,6 +513,7 @@ const Admin = () => {
           ))}
         </div>
         {tab === 'manage' && <AdminManage session={session} />}
+        {tab === 'behavior' && <BehaviorPanel />}
         {tab === 'trends' && <TrendAccountsPanel />}
         {tab === 'errors' && <ErrorReportsPanel />}
         {tab === 'proofs' && <ProofReviewPanel />}
