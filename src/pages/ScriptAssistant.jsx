@@ -637,15 +637,17 @@ export default function ScriptAssistant({ session: sessionProp }) {
             )
             if (m.report) return <div key={i} className="sa-fade w-full max-w-[700px] self-start"><ClipAnalysisReport a={m.report} shortcode={m.shortcode} /></div>
             if (m.ab) return (
-              <div key={i} className="sa-fade w-full max-w-[700px] self-start space-y-3">
-                <div className="text-sm font-bold text-white/70">두 가지 방향으로 써봤어요 — 마음에 드는 쪽을 고르세요</div>
-                {[['A', m.a], ['B', m.b]].map(([v, txt]) => (
-                  <div key={v} className="rounded-2xl border border-white/12 bg-white/[0.04] p-4">
-                    <div className="mb-2"><span className="rounded-md bg-[#0064FF]/20 px-2 py-0.5 text-xs font-extrabold text-[#5AA0FF]">{v}안</span></div>
-                    <div className="whitespace-pre-wrap text-[15px] leading-relaxed text-white/90">{txt}</div>
-                    <button onClick={() => chooseVariant(i, v)} className="mt-3 rounded-xl bg-[#0064FF] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95 active:scale-[0.99]">이 안으로 할게요</button>
-                  </div>
-                ))}
+              <div key={i} className="sa-fade w-full max-w-[760px] self-start">
+                <div className="mb-2 text-sm font-bold text-white/70">두 가지 방향으로 써봤어요 — 마음에 드는 쪽을 고르세요</div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {[['A', m.a], ['B', m.b]].map(([v, txt]) => (
+                    <div key={v} className="flex flex-col rounded-2xl border border-white/12 bg-white/[0.04] p-4">
+                      <div className="mb-2"><span className="rounded-md bg-[#0064FF]/20 px-2 py-0.5 text-xs font-extrabold text-[#5AA0FF]">{v}안</span></div>
+                      <div className="whitespace-pre-wrap text-[15px] leading-relaxed text-white/90">{txt}</div>
+                      <button onClick={() => chooseVariant(i, v)} className="mt-3 w-full rounded-xl bg-[#0064FF] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95 active:scale-[0.99]">이 안으로 할게요</button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )
             if (m.role === 'user') return <div key={i} className="sa-fade max-w-[80%] self-end rounded-2xl rounded-br-md bg-[#0064FF] px-4 py-2.5 text-[15px] leading-relaxed text-white">{m.text}</div>
