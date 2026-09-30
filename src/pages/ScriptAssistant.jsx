@@ -378,6 +378,28 @@ export default function ScriptAssistant({ session: sessionProp }) {
       try { startChannel && startChannel(text) } catch { setErr('채널 분석을 시작하지 못했어요') }
       return
     }
+    // 인스타 릴스 링크 붙여넣기 → 그 릴스를 불러와 분석/대본으로 연결 (LLM 우회)
+    const igm = text.match(/instagram\.com\/(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/i)
+    if (igm) {
+      const sc = igm[1]
+      const wantGen = /대본|스크립트|써\s*줘|써줘|작성|만들/.test(text)
+      const wantAnalyze = /분석|해석|인사이트|왜\s*터/.test(text)
+      setMessages(m => [...m, { role: 'user', text }]); setBusy(true); setStage('릴스를 불러오는 중…')
+      try {
+        const t2 = await token(); if (!t2) { setErr('로그인이 필요해요'); return }
+        const rr = await fetch(FN('reel-by-url'), { method: 'POST', headers: { Authorization: `Bearer ${t2}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ url: text }) })
+        const rd = await rr.json()
+        if (!rd?.ok || (!rd.caption && !rd.owner)) { setMessages(m => [...m, { role: 'assistant', text: '그 릴스를 못 불러왔어요 😢 비공개·삭제됐거나 링크가 정확한지 확인해 주세요.' }]); return }
+        setJobId(null)
+        setSoso({ source_ref: sc, caption: rd.caption || '', thumb: rd.thumbnail || '' })
+        if (wantGen) setPendingGen(true)
+        else if (wantAnalyze) setPendingAnalyze(true)
+        else setMessages(m => [...m, { role: 'assistant', text: `${rd.owner ? '@' + rd.owner + ' ' : ''}릴스 가져왔어요. 아래에서 분석하거나 대본을 만들 수 있어요 👇` }])
+      } catch { setMessages(m => [...m, { role: 'assistant', text: '릴스를 불러오지 못했어요 😢 잠시 후 다시 시도해 주세요.' }]) }
+      finally { setBusy(false); setStage('') }
+      return
+    }
+
     const t = await token(); if (!t) { setErr('로그인이 필요해요'); setMessages(m => [...m, { role: 'assistant', text: '로그인이 필요해요 🙏 새로고침 후 다시 시도해 주세요.' }]); return }
     const prevScript = jobId ? lastScript() : ''
     const chatJob = (jobId && (turns > 0 || prevScript)) ? jobId : null
