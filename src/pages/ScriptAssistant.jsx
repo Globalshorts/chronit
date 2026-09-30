@@ -123,25 +123,14 @@ export default function ScriptAssistant({ session: sessionProp }) {
       try { const { data: pf } = await supabase.from('profiles').select('nickname').eq('id', session.user.id).maybeSingle(); nn = pf?.nickname || '' } catch { /* noop */ }
       setNick(nn)
       supabase.rpc('trend_list_rpc', { p_limit: 3 }).then(({ data }) => setToday((Array.isArray(data) ? data : []).map(x => String(x.caption || '').replace(/\s+/g, ' ').trim().slice(0, 70)).filter(Boolean))).catch(() => {})
-      if (!greetedRef.current && messages.length === 0 && !soso && !jobId && (!jobs || jobs.length === 0)) {
+      if (!greetedRef.current && messages.length === 0 && !soso && !jobId) {
         greetedRef.current = true
         setMessages([{ role: 'assistant', text: `안녕하세요${nn ? ` ${nn}님` : ''}! 저는 대본 비서 베라예요 🙂\n트렌드에서 마음에 드는 영상을 열어 '대본 작성하기'를 누르면 기승전결 대본을 써드려요. 오늘 뭐가 뜨는지 궁금하면 편하게 물어보세요.` }])
       }
     })()
   }, [session, jobs])
 
-  // 재방문 진입: 트렌드/분석 진입 의도가 없으면 가장 최근 세션 자동 열기
-  useEffect(() => {
-    if (autoOpenRef.current || !session) return
-    const st = loc.state
-    if (st && (st.open_job || st.source_ref || st.caption)) { autoOpenRef.current = true; return }
-    if (jobId || soso) { autoOpenRef.current = true; return }
-    if (Array.isArray(jobs) && jobs.length > 0) {
-      autoOpenRef.current = true; greetedRef.current = true
-      openJob(jobs[0].id)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, jobs])
+  // (제거) 자동 세션 복원 — 세션마다 독립되도록 항상 새 대화로 시작. 지난 세션은 목록에서 직접 연다.
 
   // 트렌드 재생 모달의 "대본 작성하기" → 소재(클립) 자체를 비서로 가져오기
   useEffect(() => {
