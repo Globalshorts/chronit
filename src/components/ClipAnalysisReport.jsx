@@ -17,22 +17,27 @@ export default function ClipAnalysisReport({ a, shortcode }) {
   const [vstate, setVstate] = useState('idle')  // idle | loading | playing | expired
   const [dl, setDl] = useState(false)
   const triedFresh = useRef(false)
+  const freshRef = useRef(false)   // trend-reel로 받은 신선 URL 보유 여부
   useEffect(() => {
     if (!shortcode) return
     let alive = true
+    freshRef.current = false; triedFresh.current = false
     loadDetail(shortcode).then((det) => { if (alive && det) { setD(det); setVideo(det.video_url || '') } })
+    // 리포트가 뜨는 즉시 신선 URL을 백그라운드로 미리 받아둔다 → 재생 클릭 시 바로 재생
+    ;(async () => { try { const { data } = await supabase.functions.invoke('trend-reel', { body: { shortcode } }); if (alive && data?.video_url) { setVideo(data.video_url); freshRef.current = true } } catch { /* noop */ } })()
     return () => { alive = false }
   }, [shortcode])
   const thumb = d?.thumbnail_url || (Array.isArray(d?.images) ? d.images[0] : '') || ''
   // /reel/ 은 릴스 플레이어라 자동으로 다음 릴스로 넘어감 → /p/ 단일 게시물로 고정(원본 정확히 열림)
   const postUrl = shortcode ? `https://www.instagram.com/p/${shortcode}/` : (d?.url || '')
   const refresh = async () => {
-    try { const { data } = await supabase.functions.invoke('trend-reel', { body: { shortcode } }); if (data?.video_url) { setVideo(data.video_url); return data.video_url } } catch { /* noop */ }
+    try { const { data } = await supabase.functions.invoke('trend-reel', { body: { shortcode } }); if (data?.video_url) { setVideo(data.video_url); freshRef.current = true; return data.video_url } } catch { /* noop */ }
     return ''
   }
   const onPlay = async () => {
+    if (freshRef.current && video) { setVstate('playing'); return }   // 프리페치 완료 → 즉시 재생
     setVstate('loading')
-    const u = await refresh()   // 저장 URL은 만료 가능 → 항상 신선 URL을 받아 재생
+    const u = await refresh()
     setVstate(u ? 'playing' : 'expired')
   }
   const onVidError = async () => {
@@ -43,7 +48,7 @@ export default function ClipAnalysisReport({ a, shortcode }) {
   }
   const onDownload = async () => {
     setDl(true)
-    const u = await refresh()   // 만료 가능 → 항상 신선 URL을 먼저 받는다
+    const u = (freshRef.current && video) ? video : await refresh()
     if (!u) { setVstate('expired'); setDl(false); return }
     try {
       // fbcdn은 CORS로 클라 fetch가 막힌다 → 같은 오리진 프록시(/api/dl)로 첨부 다운로드
@@ -122,7 +127,7 @@ export default function ClipAnalysisReport({ a, shortcode }) {
           <div className="mb-2 text-[12px] font-bold text-white/60">원본 소재</div>
           <div className="relative mx-auto aspect-[9/16] max-h-[440px] overflow-hidden rounded-lg bg-black/50">
             {vstate === 'playing' && video ? (
-              <video key={video} src={video} poster={thumb} controls autoPlay playsInline
+              <video key={video} src={video} poster={thumb} controls autoPlay playsInline preload="auto"
                 className="absolute inset-0 h-full w-full bg-black object-contain"
                 controlsList="noplaybackrate noremoteplayback" onError={onVidError} />
             ) : vstate === 'expired' ? (
