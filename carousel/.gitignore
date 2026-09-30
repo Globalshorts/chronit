@@ -1,0 +1,10 @@
+_auto_carousel/assets/*.ttf
+_auto_carousel/assets/*.otf
+_auto_carousel/assets/*.png
+logo/
+pexels_key.txt
+_C샘플_*/
+_L캐러셀_*/
+광고_캐러셀_*/
+*.png
+__pycache__/
