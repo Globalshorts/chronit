@@ -392,6 +392,65 @@ const TipsPanel = () => {
   )
 }
 
+function UtmPanel() {
+  const [rows, setRows] = useState([])
+  const [err, setErr] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [days, setDays] = useState(0)
+  const load = async (d) => {
+    setLoading(true); setErr('')
+    try {
+      const { data, error } = await supabase.rpc('utm_stats', { p_days: d })
+      if (error) throw error
+      setRows(data || [])
+    } catch (e) { setErr(String(e?.message || e)) } finally { setLoading(false) }
+  }
+  useEffect(() => { load(days) }, [days])
+  const fmt = (n) => (n == null ? '-' : Number(n).toLocaleString('ko-KR'))
+  const PERIODS = [[7, '최근 7일'], [30, '최근 30일'], [0, '전체']]
+  const tot = rows.reduce((a, r) => ({ s: a.s + Number(r.signups || 0), p: a.p + Number(r.paid || 0), rev: a.rev + Number(r.revenue || 0) }), { s: 0, p: 0, rev: 0 })
+  return (
+    <div>
+      <div className="mb-4 flex items-center gap-2">
+        {PERIODS.map(([d, label]) => (
+          <button key={d} onClick={() => setDays(d)}
+            className={`rounded-full px-3 py-1 text-xs font-bold ${days === d ? 'bg-[#0064FF] text-white' : 'bg-gray-100 text-gray-500'}`}>{label}</button>
+        ))}
+        <span className="ml-auto text-xs text-gray-500">유입 {fmt(tot.s)} · 결제 {fmt(tot.p)} · 매출 ₩{fmt(tot.rev)}</span>
+      </div>
+      {err && <p className="text-sm text-red-500">{err}</p>}
+      {loading ? <p className="text-sm text-gray-400">불러오는 중…</p> : (
+        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs text-gray-500">
+                <th className="px-3 py-2">소스</th><th className="px-3 py-2">캔페인</th><th className="px-3 py-2">소재</th>
+                <th className="px-3 py-2 text-right">유입</th><th className="px-3 py-2 text-right">결제</th>
+                <th className="px-3 py-2 text-right">전환율</th><th className="px-3 py-2 text-right">매출</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={i} className={`border-b border-gray-100 ${Number(r.paid) > 0 ? 'bg-blue-50/40' : ''}`}>
+                  <td className="px-3 py-2 font-bold text-gray-800">{r.source}</td>
+                  <td className="px-3 py-2 text-gray-600">{r.campaign}</td>
+                  <td className="px-3 py-2 text-gray-600">{r.content}</td>
+                  <td className="px-3 py-2 text-right">{fmt(r.signups)}</td>
+                  <td className={`px-3 py-2 text-right font-bold ${Number(r.paid) > 0 ? 'text-[#0064FF]' : 'text-gray-400'}`}>{fmt(r.paid)}</td>
+                  <td className="px-3 py-2 text-right">{r.conv != null ? `${r.conv}%` : '-'}</td>
+                  <td className="px-3 py-2 text-right">{Number(r.revenue) > 0 ? `₩${fmt(r.revenue)}` : '-'}</td>
+                </tr>
+              ))}
+              {rows.length === 0 && <tr><td colSpan={7} className="px-3 py-6 text-center text-gray-400">데이터 없음</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <p className="mt-3 text-xs text-gray-400">utm_source/campaign/content 기준 자동 집계 — 새 UTM은 자동으로 추가됩니다. 결제·매출은 billing_success 기준.</p>
+    </div>
+  )
+}
+
 function BehaviorPanel() {
   const [data, setData] = useState(null)
   const [err, setErr] = useState('')
@@ -561,6 +620,7 @@ const Admin = () => {
   const TABS = [
     { key: 'manage', label: '회원·결제' },
     { key: 'behavior', label: '사용자 행동' },
+    { key: 'utm', label: 'UTM 성과' },
     { key: 'trends', label: '트렌드 계정' },
     { key: 'errors', label: '오류 로그' },
     { key: 'proofs', label: '성과인증' },
@@ -583,6 +643,7 @@ const Admin = () => {
         </div>
         {tab === 'manage' && <AdminManage session={session} />}
         {tab === 'behavior' && <BehaviorPanel />}
+        {tab === 'utm' && <UtmPanel />}
         {tab === 'trends' && <TrendAccountsPanel />}
         {tab === 'errors' && <ErrorReportsPanel />}
         {tab === 'proofs' && <ProofReviewPanel />}
