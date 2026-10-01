@@ -9,7 +9,7 @@ POST https://oxygqtbdpnxxcgzwdlzi.supabase.co/functions/v1/repo-commit
 Content-Type: application/json
 ```json
 {
-  "key": "chr_mktg_c9f3a1e7",
+  "key": "<repo_commit_key>",
   "repo": "Globalshorts/chronit",
   "branch": "main",
   "message": "커밋 메시지",
@@ -20,10 +20,12 @@ Content-Type: application/json
   ]
 }
 ```
-- 여러 파일을 하나의 커밋으로 올린다(blob→tree→commit→ref 업데이트).
-- content는 **파일 전체 내용**(부분 패치 아님). 바이너리는 encoding:"base64".
-- 토큰은 서버(app_config.GH_TOKEN)에 있어 세션에 노출 안 됨.
+- 인증키(`key`)는 레포 push 전용 키(`repo_commit_key`). 발행용 cron_secret도 받지만 전용 키 권장.
+- 여러 파일을 하나의 커밋으로 올린다(blob to tree to commit to ref).
+- content는 파일 전체 내용(부분 패치 아님). 바이너리는 encoding:"base64".
+- GitHub 토큰은 서버(app_config.GH_TOKEN)에 있어 세션에 노출 안 됨.
+- 성공 시 Vercel이 main push를 감지해 자동 배포.
 
-## 에이전트 사용 팁
-외부(노트북 세션)에서 레포 코드를 고쳐야 하면: 바뀐 파일의 전체 내용을 만들어
-위 함수에 files 배열로 넘기면 push 완료. Vercel이 main push를 감지해 자동 배포.
+## 노트북 세션 에이전트에게
+레포 코드를 고쳐야 하면: 바뀐 파일의 전체 내용을 만들어 위 함수에 files로 넘겨라.
+호출 자체는 Supabase라 git 프록시에 막히지 않는다. key 값은 사용자에게 받는다.
