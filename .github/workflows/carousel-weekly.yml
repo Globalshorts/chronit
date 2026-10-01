@@ -1,0 +1,22 @@
+name: Weekly Carousel
+on:
+  schedule:
+    - cron: '0 23 * * 0'   # 월 08:00 KST (일 23:00 UTC)
+  workflow_dispatch: {}
+jobs:
+  gen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install --quiet Pillow numpy requests
+      - name: Fetch fonts & logo
+        env:
+          PEXELS_KEY: ${{ secrets.PEXELS_KEY }}
+        run: bash carousel/bootstrap.sh
+      - name: Generate & enqueue carousels
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: python3 carousel/run_weekly.py

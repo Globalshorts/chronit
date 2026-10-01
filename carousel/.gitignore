@@ -8,3 +8,11 @@ _L캐러셀_*/
 광고_캐러셀_*/
 *.png
 __pycache__/
+_out_*/
+_*preview/
+_*.jpg
+logo/
+_auto_carousel/assets/*.ttf
+_auto_carousel/assets/*.otf
+_auto_carousel/assets/*.png
+*.json
