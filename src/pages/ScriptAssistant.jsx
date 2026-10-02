@@ -385,7 +385,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
   // 소재 카드로 대본 만들기 (분석 → 대본, 이용권 1)
   const generateFromSoso = async () => {
     if (busy || !soso) return
-    setErr(''); setBusy(true); setStage('소재 분석 중… (상품·셀링포인트)')
+    setErr(''); setBusy(true); setStage('대본 준비 중…')
     const t = await token(); if (!t) { setErr('로그인이 필요해요'); setBusy(false); setStage(''); return }
     try {
       const a = await analyzeSoso(t)
