@@ -62,6 +62,10 @@ def photo_bg(q,dark=0.46):
     return Image.fromarray(np.clip(a*(1-ov[:,:,None])+np.array([8,9,13])*ov[:,:,None],0,255).astype(np.uint8)).convert("RGBA")
 def solid_bg(tone=(10,11,14)):
     return Image.new("RGB",(W,H),tone).convert("RGBA")
+# 포맷별 본문 배경 사진 쿼리 (gen_formats가 render 시작 시 set_bg로 지정). PEXELS 없으면 solid로 자동 폴백.
+_BGQ="online shopping products lifestyle dark"
+def set_bg(q):
+    global _BGQ; _BGQ=q or _BGQ
 
 # ---------- 공통 요소 ----------
 def eyebrow(d,txt,ac,y=116):
@@ -117,7 +121,7 @@ def cover(path, th, eyebrow_txt, lines, hl_text, foot):
         f=F(BHS,104); highlight(d,MX,y+4,hl_text,f,ac,th["hl"])
         d.text((MX,H-120),foot,font=F(GM,28),fill=GREY)
     elif skin=="editorial": # 솔리드 배경 매거진형 — 사진 없이 깔끔
-        im=solid_bg((9,10,13)); d=ImageDraw.Draw(im)
+        im=photo_bg(q,0.62); d=ImageDraw.Draw(im)
         d.rectangle([0,0,W,14],fill=ac)
         d.text((MX,96),"CHRONIT  INSIGHT  /  "+eyebrow_txt,font=F(NB,28),fill=(150,160,180))
         d.rectangle([MX,160,W-MX,163],fill=(42,47,58))
@@ -137,7 +141,7 @@ def cover(path, th, eyebrow_txt, lines, hl_text, foot):
 # ---------- 리스트 카드 슬라이드 (2개/장) ----------
 def list_slide(path, th, i, n, header, items):
     """items: list of dict(rank,title,meta,label,body) — 최대 2개"""
-    ac=th["ac"]; im=solid_bg(); d=ImageDraw.Draw(im); eyebrow(d,header,ac)
+    ac=th["ac"]; im=photo_bg(_BGQ,0.58); d=ImageDraw.Draw(im); eyebrow(d,header,ac)
     cw=W-2*MX; ch=372; gap=44; y0=338
     for k,it in enumerate(items[:2]):
         x,y=MX,y0+k*(ch+gap)
@@ -161,7 +165,7 @@ def list_slide(path, th, i, n, header, items):
 
 # ---------- 숫자/스탯 슬라이드 ----------
 def stat_slide(path, th, i, n, header, big, big_unit, caption_lines):
-    ac=th["ac"]; im=solid_bg(); d=ImageDraw.Draw(im); eyebrow(d,header,ac)
+    ac=th["ac"]; im=photo_bg(_BGQ,0.62); d=ImageDraw.Draw(im); eyebrow(d,header,ac)
     d.text((MX,470),big,font=F(BHS,260),fill=ac)
     if big_unit: d.text((MX+wof(d,big,F(BHS,260))+16,650),big_unit,font=F(BHS,80),fill=WHITE)
     y=820

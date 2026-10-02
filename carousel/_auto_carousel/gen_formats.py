@@ -6,6 +6,7 @@ import carousel_engine as E
 def _foot(): return "실제 트렌드 데이터 기반 · chronit.kr"
 
 def render_top10(data, out):
+    E.set_bg("person filming smartphone product video studio")
     pairs=[data[i:i+2] for i in range(0,min(10,len(data)),2)]
     cnt=min(10,len(data)); n=2+len(pairs)
     th=E.new_theme(); th["n"]=n; os.makedirs(out,exist_ok=True)
@@ -16,6 +17,7 @@ def render_top10(data, out):
     E.cta(f"{out}/{n:02d}.jpg", th, n, n, ["이 훅들,","어떻게 찾았냐고요?"], ["크로닛이 매주 터지는 쇼핑 릴스를 모아","훅까지 분석해줍니다."], "chronit.kr 에서 무료로", "당신 상품은 어떤 훅? 댓글로 ㄱㄱ")
 
 def render_rising(data, out):
+    E.set_bg("trending shopping products flat lay")
     pairs=[data[i:i+2] for i in range(0,min(6,len(data)),2)]
     n=2+len(pairs)
     th=E.new_theme(); th["n"]=n; os.makedirs(out,exist_ok=True)
@@ -26,6 +28,7 @@ def render_rising(data, out):
     E.cta(f"{out}/{n:02d}.jpg", th, n, n, ["다음에 뭐가","뜰지 궁금하죠?"], ["크로닛이 뜨는 소재를","매일 실시간으로 모아줍니다."], "chronit.kr 에서 확인", "요즘 뭐가 궁금해요? 댓글 ㄱㄱ")
 
 def render_numbers(data, out):
+    E.set_bg("data analytics dashboard dark screen")
     th=E.new_theme(); th["n"]=2+len(data["cards"]); os.makedirs(out,exist_ok=True)
     n=th["n"]
     E.cover(f"{out}/01.jpg", th, "크로닛 데이터", ["숫자로 보는","이번 주 쇼핑"], "숏츠 리포트", _foot())
