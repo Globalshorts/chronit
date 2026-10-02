@@ -25,7 +25,7 @@ function useProvideScriptGen() {
     let niche = '', persona = ''
     try { const { data: pf } = await supabase.from('profiles').select('niche,persona').eq('id', s.user.id).maybeSingle(); niche = pf?.niche || ''; persona = pf?.persona || '' } catch { /* noop */ }
     const caption = String(it.caption || '').replace(/\s+/g, ' ').trim()
-    let product = '', points = ''
+    let product = '', points = '', hookStr = '', targetStr = ''
     try {
       const cacheKey = String(it.shortcode || caption).slice(0, 280) + '|' + niche + '|v9'
       let ad = null
@@ -35,11 +35,12 @@ function useProvideScriptGen() {
         ad = await ar.json()
         if (ad?.ok) { try { await supabase.rpc('set_analyze_cache_rpc', { p_key: cacheKey, p_result: ad }) } catch { /* noop */ } }
       }
-      if (ad?.ok) { product = ad.product_name || ''; const sp = Array.isArray(ad.selling_points) ? ad.selling_points.filter(Boolean) : []; points = sp.join(' / ') }
+      if (ad?.ok) { product = ad.product_name || ''; const sp = Array.isArray(ad.selling_points) ? ad.selling_points.filter(Boolean) : []; points = sp.join(' / '); hookStr = ad.hook || ''; targetStr = ad.target || '' }
     } catch { /* noop */ }
     const subject = caption.slice(0, 240)
     const prodName = product || subject.split(/[—\-.\n|·]/)[0].trim().slice(0, 60) || subject.slice(0, 60)
-    const sellingFinal = [subject ? ('원본 소재(이 영상이 실제로 다루는 제품/주제 — 반드시 이것으로만 쓰고 다른 상품으로 바꾸지 말 것): ' + subject) : '', points].filter(Boolean).join('\n')
+    const anchor = [subject, hookStr && ('이 영상 훅: ' + hookStr), targetStr && ('타깃: ' + targetStr)].filter(Boolean).join(' / ')
+    const sellingFinal = [anchor ? ('원본 소재(이 영상이 실제로 다루는 제품/주제 — 반드시 이것으로만 쓰고 절대 다른 상품으로 바꾸지 말 것): ' + anchor) : '', points].filter(Boolean).join('\n')
     const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'generate', voice_mode: 'my', source_ref: it.shortcode, product_name: prodName, selling_points: sellingFinal }) })
     const d = await r.json()
     if (!d.ok) { const e = new Error(d.code === 'INSUFFICIENT_CREDITS' ? '이용권이 부족해요 (10턴 세션에 2개 필요)' : (d.error || '대본 생성 실패')); e.code = d.code; throw e }

@@ -404,8 +404,9 @@ export default function ScriptAssistant({ session: sessionProp }) {
       const sp = Array.isArray(a?.selling_points) ? a.selling_points.filter(Boolean) : []
       const points = sp.join(' / ')
       const subject = String(soso.caption || '').replace(/\s+/g, ' ').trim().slice(0, 240)
+      const anchor = [subject, a?.hook && ('이 영상 훅: ' + a.hook), a?.target && ('타깃: ' + a.target)].filter(Boolean).join(' / ')
       const prodName = product || subject.split(/[—\-.\n|·]/)[0].trim().slice(0, 60) || subject.slice(0, 60)
-      const sellingFinal = [subject ? ('원본 소재(이 영상이 실제로 다루는 제품/주제 — 반드시 이것으로만 쓰고 다른 상품으로 바꾸지 말 것): ' + subject) : '', points].filter(Boolean).join('\n')
+      const sellingFinal = [anchor ? ('원본 소재(이 영상이 실제로 다루는 제품/주제 — 반드시 이것으로만 쓰고 절대 다른 상품으로 바꾸지 말 것): ' + anchor) : '', points].filter(Boolean).join('\n')
       if (a) setSoso(v => ({ ...v, product: product || v.product, selling: sp }))
       setStage('대본을 짓는 중…')
       const gbody = { action: 'generate', voice_mode: 'my', source_ref: soso.source_ref, product_name: prodName, selling_points: sellingFinal }
