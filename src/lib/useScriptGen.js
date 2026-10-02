@@ -25,7 +25,7 @@ function useProvideScriptGen() {
     let niche = '', persona = ''
     try { const { data: pf } = await supabase.from('profiles').select('niche,persona').eq('id', s.user.id).maybeSingle(); niche = pf?.niche || ''; persona = pf?.persona || '' } catch { /* noop */ }
     const caption = String(it.caption || '').replace(/\s+/g, ' ').trim()
-    let product = '', selling = caption
+    let product = '', points = ''
     try {
       const cacheKey = String(it.shortcode || caption).slice(0, 280) + '|' + niche + '|v9'
       let ad = null
@@ -35,7 +35,7 @@ function useProvideScriptGen() {
         ad = await ar.json()
         if (ad?.ok) { try { await supabase.rpc('set_analyze_cache_rpc', { p_key: cacheKey, p_result: ad }) } catch { /* noop */ } }
       }
-      if (ad?.ok) { product = ad.product_name || ''; const sp = Array.isArray(ad.selling_points) ? ad.selling_points.filter(Boolean) : []; selling = sp.length ? sp.join(' / ') : caption; if (product) selling = product + ' — ' + selling }
+      if (ad?.ok) { product = ad.product_name || ''; const sp = Array.isArray(ad.selling_points) ? ad.selling_points.filter(Boolean) : []; points = sp.join(' / ') }
     } catch { /* noop */ }
     const subject = caption.slice(0, 240)
     const prodName = product || subject.split(/[—\-.\n|·]/)[0].trim().slice(0, 60) || subject.slice(0, 60)

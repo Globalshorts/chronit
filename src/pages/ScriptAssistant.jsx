@@ -79,6 +79,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const { startChannel } = useAnalysis()
   const { scriptGen } = useScriptGen()
   const [clipBox, setClipBox] = useState(null)   // 상단 원본 클립 박스 {source_ref, caption, thumb}
+  const [clipVideo, setClipVideo] = useState('')  // 클립 박스 원본 영상 프리페치 URL (눌렀을 때 즉시 재생)
   const [playClip, setPlayClip] = useState(null) // 원본 영상 뷰어(만료 시 재취득, IG 비노출)
   const [awaitRef, setAwaitRef] = useState(null) // 트렌드에서 생성 중 넘어옴 — 완료되면 openJob
   const scrollRef = useRef(null)
@@ -188,6 +189,22 @@ export default function ScriptAssistant({ session: sessionProp }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clipBox?.source_ref])
+
+  // 클립 박스가 뜨면 원본 영상 URL을 미리 받아둔다 — 누르면 로딩 없이 바로 재생 (인스타 링크 비노출, trend-reel 경유)
+  useEffect(() => {
+    setClipVideo('')
+    const sc = clipBox?.source_ref
+    if (!sc) return
+    let alive = true
+    supabase.functions.invoke('trend-reel', { body: { shortcode: sc } })
+      .then(({ data }) => { if (alive && data?.video_url) setClipVideo(data.video_url) }).then(null, () => {})
+    return () => { alive = false }
+  }, [clipBox?.source_ref])
+
+  // 클립 박스 모달 액션 — 트렌드 모달과 동일하게 이 소재를 분석/대본으로 (현재 세션에 이어붙임)
+  const clipToSoso = () => ({ source_ref: clipBox.source_ref, caption: clipBox.caption || '', thumb: clipBox.thumb || '' })
+  const clipAnalyze = () => { if (!clipBox) return; setPlayClip(null); setSoso(clipToSoso()); setPendingAnalyze(true) }
+  const clipScript = () => { if (!clipBox) return; setPlayClip(null); setSoso(clipToSoso()); setPendingGen(true) }
 
   // 트렌드에서 '분석'으로 진입하면 소재 붙은 뒤 자동 분석
   useEffect(() => {
@@ -644,7 +661,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
 
       {/* 원본 클립 박스 — 소재 카드가 없을 때(대본/분석 작업 중) 상시 노출. 눌러서 원본 영상 확인(레드노트·구글렌즈용) */}
       {!soso && clipBox?.source_ref && (
-        <button type="button" onClick={() => setPlayClip({ video_id: clipBox.source_ref, thumbnail_url: clipBox.thumb || '', caption: clipBox.caption || '' })}
+        <button type="button" onClick={() => setPlayClip({ video_id: clipBox.source_ref, thumbnail_url: clipBox.thumb || '', caption: clipBox.caption || '', video_url: clipVideo || '' })}
           className="mx-auto mt-3 flex w-full max-w-[700px] items-center gap-3 rounded-2xl glass p-2.5 text-left transition hover:brightness-110">
           {clipBox.thumb
             ? <img src={clipBox.thumb} referrerPolicy="no-referrer" className="h-16 w-12 shrink-0 rounded-lg object-cover" />
@@ -906,7 +923,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       )}
       {showSettings && <PersonaSettings onClose={() => setShowSettings(false)} onChanged={() => loadVoiceProfile()} onRelearn={() => { setShowSettings(false); setShowOnboard(true) }} />}
       {showOnboard && <VoiceOnboard defaultHandle={voiceProfile?.ig_username || ''} onClose={() => { setShowOnboard(false); setOnboardData(null) }} onReady={() => { loadVoiceProfile(); refreshSession() }} onBackground={startVoiceLearnBg} initialData={onboardData} initialStep={onboardData ? 'review' : 'input'} />}
-      {playClip && <VideoModal clip={playClip} viewOnly onClose={() => setPlayClip(null)} />}
+      {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onAnalyze={clipAnalyze} onScript={clipScript} scriptState={busy ? { status: 'generating' } : null} />}
     </div>
   )
 }
