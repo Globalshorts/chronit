@@ -19,10 +19,21 @@ def wof(d,t,f): b=d.textbbox((0,0),t,font=f); return b[2]-b[0]
 def hb(d,t,f): b=d.textbbox((0,0),t,font=f); return b[3]-b[1],b[1]
 def dark_text(ac): return (12,12,14) if 0.299*ac[0]+0.587*ac[1]+0.114*ac[2]>150 else WHITE
 def wrap(d,t,f,maxw):
+    # 어절(공백) 단위로 줄바꿈. 한 어절이 폭을 넘으면 그 어절만 글자 단위로 쪼갠다.
     out=[]; line=""
-    for ch in t:
-        if wof(d,line+ch,f)<=maxw: line+=ch
-        else: out.append(line); line=ch
+    for word in str(t).split(" "):
+        if wof(d,word,f)>maxw:
+            if line: out.append(line); line=""
+            cur=""
+            for ch in word:
+                if wof(d,cur+ch,f)<=maxw: cur+=ch
+                else:
+                    if cur: out.append(cur)
+                    cur=ch
+            line=cur; continue
+        cand=(line+" "+word) if line else word
+        if wof(d,cand,f)<=maxw: line=cand
+        else: out.append(line); line=word
     if line: out.append(line)
     return out
 
@@ -137,11 +148,15 @@ def list_slide(path, th, i, n, header, items):
         else: # bar
             d.rectangle([x,y+20,x+7,y+ch-20],fill=ac); px0=x+40
             d.text((px0,y+26),it["rank"],font=F(BHS,60),fill=ac); d.text((px0+ (wof(d,it['rank'],F(BHS,60))+22),y+52),it.get("meta",""),font=F(GM,27),fill=DIM)
-        hy=y+118; hf=F(BHS,46)
-        for ln in wrap(d,it["title"],hf,cw-80)[:3]: d.text((px0,hy),ln,font=hf,fill=WHITE); hy+=56
+        tw=(x+cw)-px0-40  # 카드 안쪽 우측 여백 확보
+        hy=y+118; tl=[]; hf=F(BHS,46); lh=58
+        for sz in (46,42,38,34):  # 제목이 2줄에 들어오도록 폰트 자동 축소
+            hf=F(BHS,sz); tl=wrap(d,it["title"],hf,tw); lh=sz+12
+            if len(tl)<=2: break
+        for ln in tl[:2]: d.text((px0,hy),ln,font=hf,fill=WHITE); hy+=lh
         hy+=6; d.line([(px0,hy),(x+cw-40,hy)],fill=(255,255,255,40),width=2); hy+=18
         if it.get("label"): d.text((px0,hy),it["label"],font=F(NB,25),fill=ac); hy+=40
-        for ln in wrap(d,it.get("body",""),F(GM,29),cw-80)[:2]: d.text((px0,hy),ln,font=F(GM,29),fill=GREY); hy+=40
+        for ln in wrap(d,it.get("body",""),F(GM,29),tw)[:2]: d.text((px0,hy),ln,font=F(GM,29),fill=GREY); hy+=40
     dots(im,i,n,ac); im.convert("RGB").save(path,quality=92)
 
 # ---------- 숫자/스탯 슬라이드 ----------
