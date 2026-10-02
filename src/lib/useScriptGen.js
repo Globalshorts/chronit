@@ -37,7 +37,10 @@ function useProvideScriptGen() {
       }
       if (ad?.ok) { product = ad.product_name || ''; const sp = Array.isArray(ad.selling_points) ? ad.selling_points.filter(Boolean) : []; selling = sp.length ? sp.join(' / ') : caption; if (product) selling = product + ' — ' + selling }
     } catch { /* noop */ }
-    const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'generate', voice_mode: 'my', source_ref: it.shortcode, product_name: product || caption.split(/[—\-.\n]/)[0].slice(0, 60), selling_points: selling }) })
+    const subject = caption.slice(0, 240)
+    const prodName = product || subject.split(/[—\-.\n|·]/)[0].trim().slice(0, 60) || subject.slice(0, 60)
+    const sellingFinal = [subject ? ('원본 소재(이 영상이 실제로 다루는 제품/주제 — 반드시 이것으로만 쓰고 다른 상품으로 바꾸지 말 것): ' + subject) : '', points].filter(Boolean).join('\n')
+    const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'generate', voice_mode: 'my', source_ref: it.shortcode, product_name: prodName, selling_points: sellingFinal }) })
     const d = await r.json()
     if (!d.ok) { const e = new Error(d.code === 'INSUFFICIENT_CREDITS' ? '이용권이 부족해요 (10턴 세션에 2개 필요)' : (d.error || '대본 생성 실패')); e.code = d.code; throw e }
     return d.job_id
