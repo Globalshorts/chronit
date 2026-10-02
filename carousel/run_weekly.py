@@ -71,6 +71,6 @@ def main():
         out=os.path.join(HERE,f"_out_{fmt}")
         subprocess.run(["python3","gen_formats.py",fmt,jp,out],cwd=AC,check=True)
         urls=upload(fmt,out,ds)
-        res=post("/functions/v1/carousel-enqueue", {"format":fmt,"pillar":PILLAR[fmt],"imgs":urls,"caption":CAPS[fmt]}, {"x-cron-secret":SEC})
+        res=post("/functions/v1/carousel-enqueue", {"format":fmt,"pillar":PILLAR[fmt],"imgs":urls,"caption":((copy.get("caption") or "").strip() or CAPS[fmt])}, {"x-cron-secret":SEC})
         print("enqueued",fmt,len(urls),res.get("ok"))
 main()
