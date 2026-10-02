@@ -798,7 +798,11 @@ export default function ScriptAssistant({ session: sessionProp }) {
         {(() => {
           const last = messages[messages.length - 1]
           if (last?.trends) return null
-          const scriptOut = !!last?.isScript && !last?.trends
+          // 마지막 '내용' 메시지(대본/A·B/분석)를 거슬러 찾아 모드 확정 — 뒤에 잡담이 붙어도 안 엉킴
+          let modeMsg = null
+          for (let k = messages.length - 1; k >= 0; k--) { const mm = messages[k]; if (mm?.trends) break; if (mm?.ab || mm?.isScript || mm?.report) { modeMsg = mm; break } }
+          const scriptOut = !!(modeMsg?.ab || modeMsg?.isScript)   // 대본·A/B = 대본 모드
+          const isAnalyze = !!modeMsg?.report                      // 분석 리포트 = 분석 모드
           const atStart = !jobId && messages.length <= 1
           const chip = 'flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-white/70 transition hover:text-white'
           if (atStart) return (
@@ -816,7 +820,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
               ))}
             </div>
           )
-          if (last?.report && !busy) return (
+          if (isAnalyze && !busy) return (
             <div className="mx-auto mb-2 flex max-w-[700px] flex-wrap items-center gap-2">
               <span className="mr-0.5 text-[11px] font-bold text-white/35">다음 →</span>
               {soso && <button onClick={generateFromSoso} className={chip + ' border-[#0064FF]/50 bg-[#0064FF]/10 text-[#5AA0FF]'}><Sparkles size={13} /> 이 소재로 대본 만들기</button>}
