@@ -39,11 +39,13 @@ export default function ScriptAssistant({ session: sessionProp }) {
     return () => { window.removeEventListener('beforeunload', onLeave); onLeave() }
   }, [])
   const [session, setSession] = useState(sessionProp || null)
-  const [messages, setMessages] = useState([])
+  const restore = (() => { try { return JSON.parse(sessionStorage.getItem('vera_chat') || 'null') } catch { return null } })()
+  const [messages, setMessages] = useState(restore?.messages || [])
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
-  const [jobId, setJobId] = useState(null)
+  const [jobId, setJobId] = useState(restore?.jobId || null)
   const [soso, setSoso] = useState(null)        // {source_ref, caption, thumb} 트렌드 소재
+  const [clipRef, setClipRef] = useState(restore?.clipRef || null)   // 현재 작업 클립 맥락 {source_ref, caption} — 대화에 실어 베라가 기억하게
   const [clips, setClips] = useState([])         // 이 작업의 소스 클립(레드노트 등)
   const [rnUrl, setRnUrl] = useState('')         // 레드노트 링크 입력
   const [rnBusy, setRnBusy] = useState(false)
@@ -143,7 +145,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
     if (s && (s.source_ref || s.caption)) {
       setMessages([]); setJobId(null); setClips([])
       const base = { source_ref: s.source_ref || null, caption: String(s.caption || '').replace(/\s+/g, ' ').trim(), thumb: s.thumbnail || '' }
-      setSoso(base)
+      setSoso(base); setClipRef({ source_ref: base.source_ref, caption: base.caption })
       if (s.analyze) setPendingAnalyze(true)
       if (!base.caption && s.source_ref) {
         supabase.rpc('trend_detail_rpc', { p_shortcode: s.source_ref })
@@ -162,6 +164,15 @@ export default function ScriptAssistant({ session: sessionProp }) {
     if (pendingGen && soso && (soso.caption || soso.source_ref)) { setPendingGen(false); generateFromSoso() }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingGen, soso])
+
+
+  // 진행 중 세션 유지 (새로고침·이동에도 대화 보존, 탭 닫으면 초기화=세션 격리)
+  useEffect(() => {
+    try {
+      if (messages.length || jobId) sessionStorage.setItem('vera_chat', JSON.stringify({ messages, jobId, clipRef }))
+      else sessionStorage.removeItem('vera_chat')
+    } catch { /* noop */ }
+  }, [messages, jobId, clipRef])
 
   const token = async () => (session?.access_token) || (await supabase.auth.getSession()).data.session?.access_token
   const refreshSession = async () => {
@@ -209,10 +220,10 @@ export default function ScriptAssistant({ session: sessionProp }) {
       built.length = 0; built.push(...cleaned)
     }
     if (jrow?.analysis) built.unshift({ role: 'assistant', report: jrow.analysis, shortcode: jrow.source_ref || null })
-    setMessages(built); setClips(cl || []); setJobId(id); setSoso(null)
+    setMessages(built); setClips(cl || []); setJobId(id); setSoso(null); setClipRef(jrow?.source_ref ? { source_ref: jrow.source_ref, caption: '' } : null)
     try { const { data: jt } = await supabase.rpc('get_job_turns_rpc', { p_job_id: id }); setTurns(typeof jt?.turns_left === 'number' ? jt.turns_left : null) } catch { setTurns(null) }
   }
-  const newChat = () => { setMessages([]); setJobId(null); setSoso(null); setClips([]); setInput(''); setErr(''); setShowJobs(false); setTurns(null); resetGrow() }
+  const newChat = () => { try { sessionStorage.removeItem('vera_chat') } catch {} ; setMessages([]); setJobId(null); setSoso(null); setClipRef(null); setClips([]); setInput(''); setErr(''); setShowJobs(false); setTurns(null); resetGrow() }
 
   // 채널 분석: URL 입력 유도 → 다음 전송에서 실제 분석 실행
   const startChannelAnalysis = () => {
@@ -380,7 +391,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
         const rd = await rr.json()
         if (!rd?.ok || (!rd.caption && !rd.owner)) { setMessages(m => [...m, { role: 'assistant', text: '그 릴스를 못 불러왔어요 😢 비공개·삭제됐거나 링크가 정확한지 확인해 주세요.' }]); return }
         setJobId(null)
-        setSoso({ source_ref: sc, caption: rd.caption || '', thumb: rd.thumbnail || '' })
+        setSoso({ source_ref: sc, caption: rd.caption || '', thumb: rd.thumbnail || '' }); setClipRef({ source_ref: sc, caption: rd.caption || '' })
         if (wantGen) setPendingGen(true)
         else if (wantAnalyze) setPendingAnalyze(true)
         else setMessages(m => [...m, { role: 'assistant', text: `${rd.owner ? '@' + rd.owner + ' ' : ''}릴스 가져왔어요. 아래에서 분석하거나 대본을 만들 수 있어요 👇` }])
@@ -389,13 +400,28 @@ export default function ScriptAssistant({ session: sessionProp }) {
       return
     }
 
+    // 현재 작업 클립이 맥락에 있고 '분석'을 요청하면 → 그 클립을 실제로 분석
+    if (!soso && (clipRef?.source_ref || clipRef?.caption) && /분석|해석|왜\s*터|인사이트/.test(text)) {
+      setMessages(m => [...m, { role: 'user', text }])
+      setSoso({ source_ref: clipRef.source_ref || null, caption: clipRef.caption || '', thumb: '' })
+      setPendingAnalyze(true)
+      return
+    }
     const t = await token(); if (!t) { setErr('로그인이 필요해요'); setMessages(m => [...m, { role: 'assistant', text: '로그인이 필요해요 🙏 새로고침 후 다시 시도해 주세요.' }]); return }
     const prevScript = jobId ? lastScript() : ''
     const chatJob = (jobId && (turns > 0 || prevScript)) ? jobId : null
     const newMsgs = [...messages, { role: 'user', text }]
+    const histForLLM = newMsgs.map(m => {
+      if (m.text) return { role: m.role, content: m.text }
+      if (m.ab) return { role: 'assistant', content: `(방금 생성한 대본)\nA안:\n${m.a || ''}\n\nB안:\n${m.b || ''}` }
+      if (m.report) { const rp = typeof m.report === 'string' ? m.report : JSON.stringify(m.report); return { role: 'assistant', content: `(이 클립 분석 리포트)\n${rp}`.slice(0, 2000) } }
+      return null
+    }).filter(Boolean)
+    const clipCtx = clipRef || (soso ? { source_ref: soso.source_ref, caption: soso.caption } : null)
+    if (clipCtx && (clipCtx.caption || clipCtx.source_ref)) histForLLM.unshift({ role: 'user', content: `[작업 맥락] 지금 다루는 클립 소재: ${clipCtx.caption || clipCtx.source_ref}. 바로 아래 '방금 생성한 대본'이 이 클립으로 만든 거야. '방금 쓴 대본/클립'은 이걸 가리켜.` })
     setMessages(newMsgs); setBusy(true); setStage('베라가 생각 중…')
     try {
-      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'chat', job_id: chatJob, messages: newMsgs.map(m => ({ role: m.role, content: m.text })).filter(m => m.content), current_script: prevScript, nickname: nick, today_trends: today }) })
+      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'chat', job_id: chatJob, messages: histForLLM, clip: clipCtx, current_script: prevScript, nickname: nick, today_trends: today }) })
       const d = await r.json()
       if (!d.ok) {
         const blocked = d.code === 'INSUFFICIENT_CREDITS'
