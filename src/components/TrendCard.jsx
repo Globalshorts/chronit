@@ -117,9 +117,9 @@ export default function TrendCard({
           <button onClick={onUnlock} className="flex w-full items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Lock size={12} />잠금 해제하고 보기</button>
         ) : (
           <>
-            <button onClick={onScript} disabled={scriptState?.status === 'generating'} title={scriptState?.error || '이 소재로 대본 작성하기'}
-              className={`flex w-full items-center justify-center gap-1 rounded-lg py-1.5 text-xs font-bold text-white transition hover:brightness-95 ${scriptState?.status === 'ready' ? 'bg-emerald-500' : scriptState?.status === 'error' ? 'bg-rose-500' : 'bg-[#0064FF]'} ${scriptState?.status === 'generating' ? 'opacity-70' : ''}${coach ? ' animate-pulse ring-2 ring-[#0064FF]/45 ring-offset-2' : ''}`}>
-              {scriptState?.status === 'generating' ? <><Loader2 size={12} className="animate-spin" />생성 중…</> : scriptState?.status === 'ready' ? <><ArrowRight size={12} />베라에서 보기</> : scriptState?.status === 'error' ? <><Sparkles size={12} />다시 시도</> : <><Sparkles size={12} />대본 작성</>}
+            <button onClick={onScript} title={scriptState?.error || '이 소재로 대본 작성하기'}
+              className={`flex w-full items-center justify-center gap-1 rounded-lg py-1.5 text-xs font-bold text-white transition hover:brightness-95 ${scriptState?.status === 'ready' ? 'bg-emerald-500' : scriptState?.status === 'error' ? 'bg-rose-500' : 'bg-[#0064FF]'}${coach ? ' animate-pulse ring-2 ring-[#0064FF]/45 ring-offset-2' : ''}`}>
+              {scriptState?.status === 'generating' ? <><Loader2 size={12} className="animate-spin" />베라에서 확인하기</> : scriptState?.status === 'ready' ? <><ArrowRight size={12} />베라에서 보기</> : scriptState?.status === 'error' ? <><Sparkles size={12} />다시 시도</> : <><Sparkles size={12} />대본 작성</>}
             </button>
             <div className="mt-1.5 flex gap-1.5">
               {onAnalyze && (

@@ -14,7 +14,7 @@ export default function ScriptGenToast({ scriptGen }) {
             <span className="rounded-md bg-[#0064FF]/20 px-1.5 py-0.5 text-[10px] font-extrabold tracking-wide text-[#5AA0FF]">TIP</span>
             베라가 대본을 쓰는 동안{generating > 1 ? ` (${generating})` : ''}
           </div>
-          <div className="mt-0.5 text-[13px] leading-snug text-white/55">레드노트에서 쓸 클립을 미리 찾아두세요<br className="hidden sm:block" /> 준비되면 버튼이 <span className="font-bold text-[#5AA0FF]">‘베라에서 보기’</span>로 바뀌어요</div>
+          <div className="mt-0.5 text-[13px] leading-snug text-white/55">레드노트·구글렌즈로 쓸 원본을 미리 찾아두세요<br className="hidden sm:block" /> <span className="font-bold text-[#5AA0FF]">‘베라에서 확인하기’</span>를 누르면 바로 넘어가요 (생성은 계속돼요)</div>
         </div>
       </div>
     </div>

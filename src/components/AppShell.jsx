@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase'
 import { claimableCount } from '../lib/quests'
 const ScriptOrbIcon = (p) => <EnergyOrb size={p && p.size ? p.size : 18} />
 import { useMyRole } from '../lib/useIsAdmin'
+import { ScriptGenProvider } from '../lib/useScriptGen'
 
 // 작업 공간(핵심) / 부수 페이지 분리
 const WORKSPACE_NAV = [
@@ -30,7 +31,7 @@ const TrialContinueModal = lazyTrialModal()
 export default function AppShell({ children }) {
   const loc = useLocation()
   const role = useMyRole()
-  const content = children ?? <Outlet />
+  const content = <ScriptGenProvider>{children ?? <Outlet />}</ScriptGenProvider>
   const active = (n) => loc.pathname.startsWith(n.to)
   const roleNav = role === 'super_admin' ? ADMIN_NAV : role === 'partner' ? PARTNER_NAV : null
   const cur = NAV.find(active) ?? [ADMIN_NAV, PARTNER_NAV].find(active)

@@ -8,6 +8,8 @@ import { useAnalysis } from '../context/analysis'
 import EnergyOrb from '../components/EnergyOrb'
 import ClipAnalysisReport from '../components/ClipAnalysisReport'
 import { TrendThumb } from '../components/TrendCard'
+import VideoModal from '../components/ReelModal'
+import { useScriptGen } from '../lib/useScriptGen'
 import { maskHandles } from '../lib/format'
 import { logEvent } from '../lib/events'
 import { phCapture } from '../lib/posthog'
@@ -75,6 +77,10 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [learnCount, setLearnCount] = useState(0)
   const [channelMode, setChannelMode] = useState(false)
   const { startChannel } = useAnalysis()
+  const { scriptGen } = useScriptGen()
+  const [clipBox, setClipBox] = useState(null)   // 상단 원본 클립 박스 {source_ref, caption, thumb}
+  const [playClip, setPlayClip] = useState(null) // 원본 영상 뷰어(만료 시 재취득, IG 비노출)
+  const [awaitRef, setAwaitRef] = useState(null) // 트렌드에서 생성 중 넘어옴 — 완료되면 openJob
   const scrollRef = useRef(null)
   const greetedRef = useRef(false)
   const autoOpenRef = useRef(false)
@@ -125,7 +131,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       try { const { data: pf } = await supabase.from('profiles').select('nickname').eq('id', session.user.id).maybeSingle(); nn = pf?.nickname || '' } catch { /* noop */ }
       setNick(nn)
       supabase.rpc('trend_list_rpc', { p_limit: 3 }).then(({ data }) => setToday((Array.isArray(data) ? data : []).map(x => String(x.caption || '').replace(/\s+/g, ' ').trim().slice(0, 70)).filter(Boolean))).catch(() => {})
-      if (!greetedRef.current && messages.length === 0 && !soso && !jobId) {
+      if (!greetedRef.current && messages.length === 0 && !soso && !jobId && !awaitRef) {
         greetedRef.current = true
         setMessages([{ role: 'assistant', text: `안녕하세요${nn ? ` ${nn}님` : ''}! 저는 대본 비서 베라예요 🙂\n트렌드에서 마음에 드는 영상을 열어 '대본 작성하기'를 누르면 기승전결 대본을 써드려요. 오늘 뭐가 뜨는지 궁금하면 편하게 물어보세요.` }])
       }
@@ -137,12 +143,21 @@ export default function ScriptAssistant({ session: sessionProp }) {
   // 트렌드 재생 모달의 "대본 작성하기" → 소재(클립) 자체를 비서로 가져오기
   useEffect(() => {
     const s = loc.state
-    if (s && s.open_job) {          // 트렌드에서 백그라운드 생성해둔 대본 열기
+    if (!s) return
+    if (s.clip && s.clip.source_ref) setClipBox({ source_ref: s.clip.source_ref, caption: s.clip.caption || '', thumb: s.clip.thumb || '' })
+    if (s.awaiting_ref) {            // 트렌드에서 생성 중 넘어옴 — 로딩 띄우고 완료되면 연다
+      greetedRef.current = true
+      setMessages([]); setJobId(null); setClips([]); setSoso(null); setClipRef(null)
+      setAwaitRef(s.awaiting_ref)
+      nav('.', { replace: true, state: null })
+      return
+    }
+    if (s.open_job) {               // 트렌드에서 백그라운드 생성해둔 대본 열기
       openJob(s.open_job)
       nav('.', { replace: true, state: null })
       return
     }
-    if (s && (s.source_ref || s.caption)) {
+    if (s.source_ref || s.caption) {
       setMessages([]); setJobId(null); setClips([])
       const base = { source_ref: s.source_ref || null, caption: String(s.caption || '').replace(/\s+/g, ' ').trim(), thumb: s.thumbnail || '' }
       setSoso(base); setClipRef({ source_ref: base.source_ref, caption: base.caption })
@@ -154,6 +169,25 @@ export default function ScriptAssistant({ session: sessionProp }) {
       nav('.', { replace: true, state: null })
     }
   }, [loc.state])
+
+  // 트렌드에서 생성 중 넘어온 경우 — 공유 상태(scriptGen)가 완료되면 자동으로 그 대본을 연다
+  useEffect(() => {
+    if (!awaitRef) return
+    const g = scriptGen[awaitRef]
+    if (!g) return
+    if (g.status === 'ready' && g.jobId) { setAwaitRef(null); openJob(g.jobId) }
+    else if (g.status === 'error') { setAwaitRef(null); setErr(g.error || '대본 생성에 실패했어요') }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [awaitRef, scriptGen])
+
+  // 클립 박스 캡션 보충 (잡 목록에서 연 경우 캡션이 비어있을 수 있음)
+  useEffect(() => {
+    if (clipBox && clipBox.source_ref && !clipBox.caption) {
+      supabase.rpc('trend_detail_rpc', { p_shortcode: clipBox.source_ref })
+        .then(({ data }) => { const c = String(data?.caption || '').replace(/\s+/g, ' ').trim(); if (c) setClipBox(v => (v && v.source_ref === clipBox.source_ref) ? { ...v, caption: c } : v) }).then(null, () => {})
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clipBox?.source_ref])
 
   // 트렌드에서 '분석'으로 진입하면 소재 붙은 뒤 자동 분석
   useEffect(() => {
@@ -234,9 +268,10 @@ export default function ScriptAssistant({ session: sessionProp }) {
     }
     if (jrow?.analysis) built.unshift({ role: 'assistant', report: jrow.analysis, shortcode: jrow.source_ref || null })
     setMessages(built); setClips(cl || []); setJobId(id); setSoso(null); setClipRef(jrow?.source_ref ? { source_ref: jrow.source_ref, caption: '' } : null)
+    if (jrow?.source_ref) setClipBox(v => (v && v.source_ref === jrow.source_ref) ? v : { source_ref: jrow.source_ref, caption: '', thumb: '' }); else setClipBox(null)
     try { const { data: jt } = await supabase.rpc('get_job_turns_rpc', { p_job_id: id }); setTurns(typeof jt?.turns_left === 'number' ? jt.turns_left : null) } catch { setTurns(null) }
   }
-  const newChat = () => { try { sessionStorage.removeItem('vera_chat') } catch {} ; setMessages([]); setJobId(null); setSoso(null); setClipRef(null); setClips([]); setInput(''); setErr(''); setShowJobs(false); setTurns(null); resetGrow() }
+  const newChat = () => { try { sessionStorage.removeItem('vera_chat') } catch {} ; setMessages([]); setJobId(null); setSoso(null); setClipRef(null); setClipBox(null); setAwaitRef(null); setPlayClip(null); setClips([]); setInput(''); setErr(''); setShowJobs(false); setTurns(null); resetGrow() }
 
   // 채널 분석: URL 입력 유도 → 다음 전송에서 실제 분석 실행
   const startChannelAnalysis = () => {
@@ -605,9 +640,24 @@ export default function ScriptAssistant({ session: sessionProp }) {
         </div>
       )}
 
+      {/* 원본 클립 박스 — 소재 카드가 없을 때(대본/분석 작업 중) 상시 노출. 눌러서 원본 영상 확인(레드노트·구글렌즈용) */}
+      {!soso && clipBox?.source_ref && (
+        <button type="button" onClick={() => setPlayClip({ video_id: clipBox.source_ref, thumbnail_url: clipBox.thumb || '', caption: clipBox.caption || '' })}
+          className="mx-auto mt-3 flex w-full max-w-[700px] items-center gap-3 rounded-2xl glass p-2.5 text-left transition hover:brightness-110">
+          {clipBox.thumb
+            ? <img src={clipBox.thumb} referrerPolicy="no-referrer" className="h-16 w-12 shrink-0 rounded-lg object-cover" />
+            : <div className="h-16 w-12 shrink-0 overflow-hidden rounded-lg"><TrendThumb url="" sc={clipBox.source_ref} /></div>}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1 text-[11px] font-bold text-[#5AA0FF]"><Film size={12} /> 원본 클립 · 눌러서 보기</div>
+            <div className="line-clamp-2 text-[13px] leading-snug text-white/80">{clipBox.caption || '불러오는 중…'}</div>
+          </div>
+          <div className="shrink-0 rounded-full bg-white/10 px-3 py-2 text-xs font-bold text-white/70">원본 보기</div>
+        </button>
+      )}
+
       {/* 대화 영역 */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto py-6">
-        {!started && !soso && !busy && (
+        {!started && !soso && !busy && !awaitRef && (
           <div className="sa-fade flex flex-col items-center justify-center gap-6 py-10 text-center">
             <Droplet size={84} />
             <div>
@@ -754,7 +804,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
               </div>
             )
           })}
-          {busy && <div className="sa-fade self-start rounded-2xl rounded-bl-md glass-soft px-6 py-5"><Droplet size={44} label={stage || (jobId ? '다듬는 중…' : '대본을 짓는 중…')} /></div>}
+          {(busy || awaitRef) && <div className="sa-fade self-start rounded-2xl rounded-bl-md glass-soft px-6 py-5"><Droplet size={44} label={awaitRef ? '대본을 짓는 중…' : (stage || (jobId ? '다듬는 중…' : '대본을 짓는 중…'))} /></div>}
 
           {/* 소스 클립 패널 (작업에 종속 — 레드노트 붙여넣기 도착지) */}
           {jobId && (
@@ -854,6 +904,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       )}
       {showSettings && <PersonaSettings onClose={() => setShowSettings(false)} onChanged={() => loadVoiceProfile()} onRelearn={() => { setShowSettings(false); setShowOnboard(true) }} />}
       {showOnboard && <VoiceOnboard defaultHandle={voiceProfile?.ig_username || ''} onClose={() => { setShowOnboard(false); setOnboardData(null) }} onReady={() => { loadVoiceProfile(); refreshSession() }} onBackground={startVoiceLearnBg} initialData={onboardData} initialStep={onboardData ? 'review' : 'input'} />}
+      {playClip && <VideoModal clip={playClip} viewOnly onClose={() => setPlayClip(null)} />}
     </div>
   )
 }
