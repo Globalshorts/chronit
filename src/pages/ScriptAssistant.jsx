@@ -188,6 +188,19 @@ export default function ScriptAssistant({ session: sessionProp }) {
     if (d.charged) { setNote('💧 이용권 2개 · 이 대본 10턴 세션'); setTimeout(() => setNote(''), 4000) }
   }
   const lastScript = () => { for (let i = messages.length - 1; i >= 0; i--) if (messages[i].role === 'assistant' && messages[i].text) return messages[i].text; return '' }
+  // 상황 맞춤 다듬기 제안 — 최근 분석 점수(있으면)에 따라 약점만 제안
+  const refineChips = () => {
+    let rep = null
+    for (let i = messages.length - 1; i >= 0; i--) { if (messages[i].report) { rep = messages[i].report; break } ; if (messages[i].analysis) { rep = messages[i].analysis; break } }
+    const hs = rep?.hook_score, ps = rep?.payoff_score
+    const out = []
+    if (hs != null) { if (hs < 75) out.push('훅 더 세게'); else out.push('훅 다른 스타일로') } else out.push('훅 다듬기')
+    if (ps != null && ps < 75) out.push('결말 임팩트 강화')
+    out.push('더 짧게')
+    out.push('댓글 유도 넣기')
+    if (out.length < 4) out.push('다른 앵글로')
+    return out.slice(0, 4)
+  }
 
   const loadJobs = async () => {
     const { data } = await supabase.from('jobs').select('id,product_name,created_at,status').order('created_at', { ascending: false }).limit(40)
@@ -798,7 +811,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
           if (scriptOut && !busy) return (
             <div className="mx-auto mb-2 flex max-w-[700px] flex-wrap items-center gap-2">
               <span className="mr-0.5 text-[11px] font-bold text-white/35">다음 →</span>
-              {['더 짧게', '훅 더 세게', '댓글 유도 강하게', '다른 앵글로'].map(q => (
+              {refineChips().map(q => (
                 <button key={q} onClick={() => send(q)} className={chip}>{q}</button>
               ))}
             </div>

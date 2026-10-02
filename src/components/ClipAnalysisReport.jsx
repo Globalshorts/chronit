@@ -28,8 +28,6 @@ export default function ClipAnalysisReport({ a, shortcode }) {
     return () => { alive = false }
   }, [shortcode])
   const thumb = d?.thumbnail_url || (Array.isArray(d?.images) ? d.images[0] : '') || ''
-  // /reel/ 은 릴스 플레이어라 자동으로 다음 릴스로 넘어감 → /p/ 단일 게시물로 고정(원본 정확히 열림)
-  const postUrl = shortcode ? `https://www.instagram.com/p/${shortcode}/` : (d?.url || '')
   const refresh = async () => {
     try { const { data } = await supabase.functions.invoke('trend-reel', { body: { shortcode } }); if (data?.video_url) { setVideo(data.video_url); freshRef.current = true; return data.video_url } } catch { /* noop */ }
     return ''
@@ -132,8 +130,8 @@ export default function ClipAnalysisReport({ a, shortcode }) {
                 controlsList="noplaybackrate noremoteplayback" onError={onVidError} />
             ) : vstate === 'expired' ? (
               <div className="absolute inset-0 grid place-items-center px-4 text-center text-[13px] leading-relaxed text-white/50">
-                영상이 만료됐어요<br />
-                <a href={postUrl} target="_blank" rel="noreferrer" className="mt-1 inline-block font-bold text-[#5AA0FF] underline">인스타에서 보기</a>
+                원본을 불러올 수 없어요<br />
+                <button onClick={onPlay} className="mt-1 inline-block font-bold text-[#5AA0FF] underline">다시 시도</button>
               </div>
             ) : (
               <button onClick={onPlay} disabled={vstate === 'loading'} className="group absolute inset-0">
@@ -147,8 +145,7 @@ export default function ClipAnalysisReport({ a, shortcode }) {
             )}
           </div>
           <div className="mt-2 flex gap-2">
-            <a href={postUrl} target="_blank" rel="noreferrer" className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-white/15 bg-white/5 py-2 text-[12px] font-bold text-white/75 transition hover:text-white"><ExternalLink size={13} /> 원본 보기</a>
-            <button onClick={onDownload} disabled={dl} className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-white/15 bg-white/5 py-2 text-[12px] font-bold text-white/75 transition hover:text-white disabled:opacity-50">{dl ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />} 다운로드</button>
+            <button onClick={onDownload} disabled={dl} className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-white/15 bg-white/5 py-2 text-[12px] font-bold text-white/75 transition hover:text-white disabled:opacity-50">{dl ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />} 원본 다운로드</button>
           </div>
         </div>
       )}
