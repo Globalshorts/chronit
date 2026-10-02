@@ -464,6 +464,13 @@ export default function ScriptAssistant({ session: sessionProp }) {
       setPendingAnalyze(true)
       return
     }
+    // '다시 대본 작성 / 새로 써줘 / 다시 만들어' → 잡담 없이 바로 현재 소재로 새 A/B 재생성
+    if (/((다시|새로|재)\s*(대본|작성|생성|만들|써|뽑))|(대본\s*(다시|새로|재생성))/.test(text) && (soso || clipRef?.source_ref || clipRef?.caption)) {
+      setMessages(m => [...m, { role: 'user', text }])
+      const c = soso || { source_ref: clipRef.source_ref || null, caption: clipRef.caption || '', thumb: '' }
+      setSoso(c); setPendingGen(true)
+      return
+    }
     const t = await token(); if (!t) { setErr('로그인이 필요해요'); setMessages(m => [...m, { role: 'assistant', text: '로그인이 필요해요 🙏 새로고침 후 다시 시도해 주세요.' }]); return }
     const prevScript = jobId ? lastScript() : ''
     const chatJob = (jobId && (turns > 0 || prevScript)) ? jobId : null
