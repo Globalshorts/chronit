@@ -177,7 +177,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
     const g = scriptGen[awaitRef]
     if (!g) return
     if (g.status === 'ready' && g.jobId) { setAwaitRef(null); openJob(g.jobId) }
-    else if (g.status === 'error') { setAwaitRef(null); setErr(g.error || '대본 생성에 실패했어요') }
+    else if (g.status === 'error') { setAwaitRef(null); setErr(g.error || '대본 생성에 실패했어요'); if (g.code === 'INSUFFICIENT_CREDITS') nav('/pricing') }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [awaitRef, scriptGen])
 
@@ -240,18 +240,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
   }
   const lastScript = () => { for (let i = messages.length - 1; i >= 0; i--) if (messages[i].role === 'assistant' && messages[i].text) return messages[i].text; return '' }
   // 상황 맞춤 다듬기 제안 — 최근 분석 점수(있으면)에 따라 약점만 제안
-  const refineChips = () => {
-    let rep = null
-    for (let i = messages.length - 1; i >= 0; i--) { if (messages[i].report) { rep = messages[i].report; break } ; if (messages[i].analysis) { rep = messages[i].analysis; break } }
-    const hs = rep?.hook_score, ps = rep?.payoff_score
-    const out = []
-    if (hs != null) { if (hs < 75) out.push('훅 더 세게'); else out.push('훅 다른 스타일로') } else out.push('훅 다듬기')
-    if (ps != null && ps < 75) out.push('결말 임팩트 강화')
-    out.push('더 짧게')
-    out.push('댓글 유도 넣기')
-    if (out.length < 4) out.push('다른 앵글로')
-    return out.slice(0, 4)
-  }
+  const refineChips = () => ['훅 다듬기', '더 짧게', '댓글 유도 넣기', '다른 앵글로']
 
   const loadJobs = async () => {
     const { data } = await supabase.from('jobs').select('id,product_name,created_at,status').order('created_at', { ascending: false }).limit(40)
@@ -888,6 +877,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
               {refineChips().map(q => (
                 <button key={q} onClick={() => send(q)} className={chip}>{q}</button>
               ))}
+              <button onClick={() => send('이 소재의 핵심 셀링포인트를 정리해서 보여줘')} className={chip + ' border-[#0064FF]/50 bg-[#0064FF]/10 text-[#5AA0FF]'}><BarChart3 size={13} /> 셀링포인트 보기</button>
             </div>
           )
           if (isAnalyze && !busy) return (

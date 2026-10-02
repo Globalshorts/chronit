@@ -47,24 +47,22 @@ function useProvideScriptGen() {
     return d.job_id
   }
 
-  const startScript = useCallback(async (it, thumb) => {
+  const startScript = useCallback((it, thumb) => {
     const sc = it.shortcode
     const clip = { source_ref: sc, caption: String(it.caption || '').replace(/\s+/g, ' ').trim(), thumb: thumb || it.thumbnail_url || '' }
     const cur = scriptGen[sc]
-    // 준비 완료 → 그 대본 열기
+    // 이미 준비된 대본이면 바로 열기
     if (cur?.status === 'ready' && cur.jobId) { nav('/script', { state: { open_job: cur.jobId, clip } }); return }
-    // 생성 중 → 2차 클릭: 지금 바로 베라로. 베라가 로딩 띄우고 완료되면 연다.
-    if (cur?.status === 'generating') { nav('/script', { state: { awaiting_ref: sc, clip } }); return }
-    // 첫 클릭 → 백그라운드 생성 시작하고 화면은 유지(버튼이 '베라에서 확인하기'로 바뀜)
-    setScriptGen((m) => ({ ...m, [sc]: { status: 'generating', clip } }))
-    logEvent('trend_script_start', { shortcode: sc })
-    try {
-      const jobId = await genScriptBg(it, thumb)
-      setScriptGen((m) => ({ ...m, [sc]: { status: 'ready', jobId, clip } }))
-    } catch (e) {
-      setScriptGen((m) => ({ ...m, [sc]: { status: 'error', error: e.message, clip } }))
-      if (e.code === 'INSUFFICIENT_CREDITS') nav('/pricing')
+    // 아직 생성 전이면 백그라운드 생성 시작 (상태는 AppShell Context에 유지돼 베라로 넘어가도 안 끊김)
+    if (cur?.status !== 'generating') {
+      setScriptGen((m) => ({ ...m, [sc]: { status: 'generating', clip } }))
+      logEvent('trend_script_start', { shortcode: sc })
+      genScriptBg(it, thumb)
+        .then((jobId) => setScriptGen((m) => ({ ...m, [sc]: { status: 'ready', jobId, clip } })))
+        .catch((e) => setScriptGen((m) => ({ ...m, [sc]: { status: 'error', error: e.message, code: e.code, clip } })))
     }
+    // 바로 베라로 이동 — 상단에 원본 클립 박스 + 로딩, 완료되면 대본 자동 표시
+    nav('/script', { state: { awaiting_ref: sc, clip } })
   }, [scriptGen, nav])
 
   return { scriptGen, startScript }
