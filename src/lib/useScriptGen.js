@@ -1,4 +1,4 @@
-import { useState, createContext, useContext, useCallback } from 'react'
+import { useState, createContext, useContext, useCallback, createElement } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from './supabase'
 import { logEvent } from './events'
@@ -68,7 +68,7 @@ function useProvideScriptGen() {
 
 export function ScriptGenProvider({ children }) {
   const value = useProvideScriptGen()
-  return <ScriptGenContext.Provider value={value}>{children}</ScriptGenContext.Provider>
+  return createElement(ScriptGenContext.Provider, { value }, children)
 }
 
 // Provider 밖(안전장치)에서도 깨지지 않게 — 보통은 AppShell 안에서 공유 상태를 받는다.
