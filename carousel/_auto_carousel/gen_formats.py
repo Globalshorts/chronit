@@ -6,22 +6,24 @@ import carousel_engine as E
 def _foot(): return "실제 트렌드 데이터 기반 · chronit.kr"
 
 def render_top10(data, out):
-    th=E.new_theme(); th["n"]=7; os.makedirs(out,exist_ok=True)
-    E.cover(f"{out}/01.jpg", th, "크로닛 인사이트", ["이번 주 터진","쇼핑 숏츠 훅"], "TOP 10", _foot())
     pairs=[data[i:i+2] for i in range(0,min(10,len(data)),2)]
+    cnt=min(10,len(data)); n=2+len(pairs)
+    th=E.new_theme(); th["n"]=n; os.makedirs(out,exist_ok=True)
+    E.cover(f"{out}/01.jpg", th, "크로닛 인사이트", ["이번 주 터진","쇼핑 숏폼 훅"], f"TOP {cnt}", _foot())
     for idx,pr in enumerate(pairs):
         items=[dict(rank=x["rank"],title=x["hook"],meta=x["views"],label="왜 좋았나",body=x["why"]) for x in pr]
-        E.list_slide(f"{out}/{idx+2:02d}.jpg", th, idx+2, 7, "이번 주 쇼핑 숏츠 훅 TOP10", items)
-    E.cta(f"{out}/07.jpg", th, 7, 7, ["이 훅들,","어떻게 찾았냐고요?"], ["크로닛이 매주 터지는 쇼핑 릴스를 모아","훅까지 분석해줍니다."], "chronit.kr 에서 무료로", "당신 상품은 어떤 훅? 댓글로 ㄱㄱ")
+        E.list_slide(f"{out}/{idx+2:02d}.jpg", th, idx+2, n, f"이번 주 쇼핑 숏폼 훅 TOP {cnt}", items)
+    E.cta(f"{out}/{n:02d}.jpg", th, n, n, ["이 훅들,","어떻게 찾았냐고요?"], ["크로닛이 매주 터지는 쇼핑 릴스를 모아","훅까지 분석해줍니다."], "chronit.kr 에서 무료로", "당신 상품은 어떤 훅? 댓글로 ㄱㄱ")
 
 def render_rising(data, out):
-    th=E.new_theme(); th["n"]=5; os.makedirs(out,exist_ok=True)
-    E.cover(f"{out}/01.jpg", th, "크로닛 트렌드", ["이번 주","급상승한"], "쇼핑 소재", _foot())
     pairs=[data[i:i+2] for i in range(0,min(6,len(data)),2)]
+    n=2+len(pairs)
+    th=E.new_theme(); th["n"]=n; os.makedirs(out,exist_ok=True)
+    E.cover(f"{out}/01.jpg", th, "크로닛 트렌드", ["이번 주","급상승한"], "쇼핑 소재", _foot())
     for idx,pr in enumerate(pairs):
         items=[dict(rank=x["rank"],title=x["name"],meta=x.get("stat",""),label="왜 떴나",body=x.get("note","")) for x in pr]
-        E.list_slide(f"{out}/{idx+2:02d}.jpg", th, idx+2, 5, "이번 주 급상승 소재", items)
-    E.cta(f"{out}/05.jpg", th, 5, 5, ["다음에 뭐가","뜰지 궁금하죠?"], ["크로닛이 뜨는 소재를","매일 실시간으로 모아줍니다."], "chronit.kr 에서 확인", "요즘 뭐가 궁금해요? 댓글 ㄱㄱ")
+        E.list_slide(f"{out}/{idx+2:02d}.jpg", th, idx+2, n, "이번 주 급상승 소재", items)
+    E.cta(f"{out}/{n:02d}.jpg", th, n, n, ["다음에 뭐가","뜰지 궁금하죠?"], ["크로닛이 뜨는 소재를","매일 실시간으로 모아줍니다."], "chronit.kr 에서 확인", "요즘 뭐가 궁금해요? 댓글 ㄱㄱ")
 
 def render_numbers(data, out):
     th=E.new_theme(); th["n"]=2+len(data["cards"]); os.makedirs(out,exist_ok=True)

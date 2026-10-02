@@ -40,10 +40,10 @@ def upload(fmt, outdir, ds):
     return urls
 
 CAPS={
- "top10":"이번 주 한국 쇼핑 숏츠 훅 TOP10 🔥\n\n실제 상위 영상을 분석해 뽑았어요. 저장해두고 다음 릴스 만들 때 꺼내 쓰세요.\n\n▪ chronit.kr\n#쇼핑릴스 #숏폼마케팅 #릴스훅 #크로닛",
- "casestudy":"이번 주 터진 릴스, 왜 터졌을까 🔍\n\n조회수 상위 릴스를 훅·구성·댓글로 뜯어봤어요.\n\n▪ chronit.kr\n#릴스분석 #릴스훅 #숏폼마케팅",
- "numbers":"숫자로 보는 이번 주 쇼핑 숏츠 📊\n\n이번 주 트렌드를 데이터로 요약했어요.\n\n▪ chronit.kr\n#쇼핑데이터 #릴스인사이트 #숏폼마케팅",
- "rising":"이번 주 급상승한 쇼핑 소재 📈\n\n트렌드 상위에서 지금 뜨는 상품 유형을 뽑았어요.\n\n▪ chronit.kr\n#쇼핑트렌드 #릴스소재 #숏폼마케팅",
+ "top10":"이번 주 한국 쇼핑 숏폼 훅 TOP10 정리했어요.\n\n실제 상위 영상을 분석해 뽑았어요. 저장해두고 다음 릴스 만들 때 꺼내 쓰세요 📌\n\n어떤 훅이 제일 끌렸는지 댓글로 알려주세요 💬\n\n👉 오늘 뜬 소재 무료로 받기: chronit.kr",
+ "casestudy":"이번 주 터진 쇼핑 릴스, 왜 터졌을까요.\n\n조회수 상위 릴스를 훅·구성·댓글로 뜯어봤어요. 저장해두고 참고하세요 📌\n\n분석해볼 릴스 있으면 댓글로 알려주세요 💬\n\n👉 오늘 뜬 소재 무료로 받기: chronit.kr",
+ "numbers":"숫자로 보는 이번 주 쇼핑 숏폼 리포트.\n\n이번 주 트렌드를 데이터로 요약했어요. 저장해두세요 📌\n\n어떤 데이터가 더 궁금해요? 댓글로 알려주세요 💬\n\n👉 오늘 뜬 소재 무료로 받기: chronit.kr",
+ "rising":"이번 주 급상승한 쇼핑 소재 모음이에요.\n\n트렌드 상위에서 지금 뜨는 상품 유형을 뽑았어요. 저장해두세요 📌\n\n요즘 뭐가 궁금해요? 댓글로 알려주세요 💬\n\n👉 오늘 뜬 소재 무료로 받기: chronit.kr",
 }
 PILLAR={"top10":"I","casestudy":"P","numbers":"C","rising":"T"}
 
@@ -71,6 +71,7 @@ def main():
         out=os.path.join(HERE,f"_out_{fmt}")
         subprocess.run(["python3","gen_formats.py",fmt,jp,out],cwd=AC,check=True)
         urls=upload(fmt,out,ds)
-        res=post("/functions/v1/carousel-enqueue", {"format":fmt,"pillar":PILLAR[fmt],"imgs":urls,"caption":((copy.get("caption") or "").strip() or CAPS[fmt])}, {"x-cron-secret":SEC})
+        cap=((copy.get("captions") or {}).get(fmt) or "").strip() or (copy.get("caption") or "").strip() or CAPS[fmt]
+        res=post("/functions/v1/carousel-enqueue", {"format":fmt,"pillar":PILLAR[fmt],"imgs":urls,"caption":cap}, {"x-cron-secret":SEC})
         print("enqueued",fmt,len(urls),res.get("ok"))
 main()
