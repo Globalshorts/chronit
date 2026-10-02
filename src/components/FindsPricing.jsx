@@ -15,6 +15,7 @@ const PACKS = [
   { id: 'pack30',  credits: 30,  price: 12900 },
   { id: 'pack100', credits: 100, price: 34900 },
 ]
+const FINDS_RANK = { finds30: 1, finds100: 2, finds300: 3 }
 const won = (n) => n.toLocaleString('ko-KR')
 const perDay = (price) => Math.round(price / 30 / 10) * 10
 const genOrderId = (plan) => `chr_${plan}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
@@ -25,6 +26,9 @@ export default function FindsPricing({ open, onClose, defaultTab = 'sub', defaul
   const [period, setPeriod] = useState(defaultPeriod)
   const [busy, setBusy] = useState('')
   const [msg, setMsg] = useState('')
+  // 현재 구독 상태 — 활성 finds 구독이면 '신규 결제' 대신 '요금제 변경'(change-plan)으로 흐른다
+  const [curPlan, setCurPlan] = useState(null)
+  const [curActive, setCurActive] = useState(false)
   // 코드 입력(강사·프로모 코드) — 코드를 넣은 사람만 첫 달 무료 등 혜택이 적용된다.
   const [code, setCode] = useState('')
   const [codeBusy, setCodeBusy] = useState(false)
@@ -33,6 +37,14 @@ export default function FindsPricing({ open, onClose, defaultTab = 'sub', defaul
     if (!open) return
     setTab(defaultTab); setPeriod(defaultPeriod); setMsg('')
     setCode(''); setCodeMsg(null); setCodeBusy(false)
+    ;(async () => {
+      try {
+        const { data } = await supabase.rpc('get_my_balance_rpc')
+        const pl = data?.plan || null
+        setCurPlan(pl)
+        setCurActive(['finds30', 'finds100', 'finds300'].includes(pl))
+      } catch { setCurPlan(null); setCurActive(false) }
+    })()
   }, [open])
 
   const applyCode = async () => {
@@ -71,6 +83,18 @@ export default function FindsPricing({ open, onClose, defaultTab = 'sub', defaul
     } catch (e) { if (e?.code !== 'USER_CANCEL') setMsg('결제 오류: ' + (e?.message || e)); setBusy('') }
   }
 
+  // 활성 구독자의 요금제 변경 — 업그레이드=즉시 차액 청구, 다운그레이드=다음 결제일 예약(change-plan 엣지함수)
+  const changeSub = async (planId) => {
+    setMsg(''); setBusy(planId)
+    try {
+      const { data, error } = await supabase.functions.invoke('change-plan', { body: { to_plan: planId } })
+      if (error || data?.error) { setMsg(data?.error || error?.message || '변경에 실패했어요'); setBusy(''); return }
+      try { phCapture('plan_changed', { to_plan: planId, mode: data?.mode }) } catch { /* noop */ }
+      setMsg(data?.message || '요금제가 변경됐어요.')
+      setTimeout(() => window.location.reload(), 1800)
+    } catch (e) { setMsg('변경 오류: ' + (e?.message || e)); setBusy('') }
+  }
+
   const buyPack = async (pk) => {
     setMsg(''); setBusy(pk.id)
     try {
@@ -98,7 +122,7 @@ export default function FindsPricing({ open, onClose, defaultTab = 'sub', defaul
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div className="w-full max-w-md rounded-2xl glass p-6" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-bold text-white">Finds 이용권 구매</h3>
+          <h3 className="text-lg font-bold text-white">{curActive ? '요금제 변경' : 'Finds 이용권 구매'}</h3>
           <button onClick={onClose} className="text-white/35 hover:text-white/85"><X size={18} /></button>
         </div>
 
@@ -110,28 +134,52 @@ export default function FindsPricing({ open, onClose, defaultTab = 'sub', defaul
 
         {tab === 'sub' ? (
           <div className="flex flex-col gap-2">
-            <div className="mb-1 flex items-center justify-center gap-1.5 text-xs font-bold">
-              <button onClick={() => setPeriod('monthly')} className={`rounded-full px-3 py-1 transition ${!annual ? 'bg-slate-900 text-white' : 'bg-white/[0.06] text-white/45'}`}>월간</button>
-              <button onClick={() => setPeriod('annual')} className={`rounded-full px-3 py-1 transition ${annual ? 'bg-[#0064FF] text-white' : 'bg-white/[0.06] text-white/45'}`}>연간 · 3개월 무료</button>
-            </div>
-            {SUBS.map((p) => (
-              <button key={p.id} disabled={!!busy} onClick={() => buySub(p.id)}
-                className="flex items-center justify-between rounded-xl border border-white/10 px-4 py-3 text-left transition hover:border-[#0064FF] disabled:opacity-50">
-                <div><div className="font-bold text-white">{p.name} · 이용권 월 {p.credits.toLocaleString('ko-KR')}개</div><div className="text-xs text-white/35">{annual ? '매월 자동 충전 · 연 1회 결제' : '매월 자동 충전 · 언제든 해지'}</div></div>
-                {annual ? (
-                  <div className="text-right">
-                    <div className="text-[15px] font-bold text-[#0064FF]">₩{won(p.price * 9)}<span className="text-[11px] font-medium text-white/35"> /년</span></div>
-                    <div className="text-[11px] text-white/35"><span className="line-through">₩{won(p.price * 12)}</span> · 3개월 무료</div>
+            {/* 요금제 변경은 현재 구독 주기를 그대로 유지하므로 월간/연간 토글은 신규 결제일 때만 노출 */}
+            {!curActive && (
+              <div className="mb-1 flex items-center justify-center gap-1.5 text-xs font-bold">
+                <button onClick={() => setPeriod('monthly')} className={`rounded-full px-3 py-1 transition ${!annual ? 'bg-slate-900 text-white' : 'bg-white/[0.06] text-white/45'}`}>월간</button>
+                <button onClick={() => setPeriod('annual')} className={`rounded-full px-3 py-1 transition ${annual ? 'bg-[#0064FF] text-white' : 'bg-white/[0.06] text-white/45'}`}>연간 · 3개월 무료</button>
+              </div>
+            )}
+            {SUBS.map((p) => {
+              const isCurrent = curActive && p.id === curPlan
+              const isChange = curActive && !isCurrent
+              const up = isChange && (FINDS_RANK[p.id] || 0) > (FINDS_RANK[curPlan] || 0)
+              const showAnnual = annual && !curActive
+              return (
+                <button key={p.id} disabled={!!busy || isCurrent}
+                  onClick={() => (isCurrent ? null : isChange ? changeSub(p.id) : buySub(p.id))}
+                  className="flex items-center justify-between rounded-xl border border-white/10 px-4 py-3 text-left transition hover:border-[#0064FF] disabled:opacity-50">
+                  <div>
+                    <div className="font-bold text-white">
+                      {p.name} · 이용권 월 {p.credits.toLocaleString('ko-KR')}개
+                      {isCurrent && <span className="ml-1.5 rounded bg-white/15 px-1.5 py-0.5 text-[10px] text-white/70">현재 플랜</span>}
+                      {isChange && <span className={`ml-1.5 rounded px-1.5 py-0.5 text-[10px] ${up ? 'bg-[#0064FF]/25 text-[#8ab4ff]' : 'bg-white/10 text-white/55'}`}>{up ? '업그레이드' : '다운그레이드'}</span>}
+                    </div>
+                    <div className="text-xs text-white/35">
+                      {isCurrent ? '현재 이용 중인 플랜이에요'
+                        : isChange ? (up ? '지금 바꾸면 남은 기간 차액만 결제 · 이용권 즉시 증가' : '다음 결제일부터 변경 · 그때까지 현재 이용권 유지')
+                        : (annual ? '매월 자동 충전 · 연 1회 결제' : '매월 자동 충전 · 언제든 해지')}
+                    </div>
                   </div>
-                ) : (
-                  <div className="text-right">
-                    <div className="font-bold text-white">₩{won(p.price)}</div>
-                    <div className="text-[11px] text-white/35">/월 · 하루 약 {won(perDay(p.price))}원</div>
-                  </div>
-                )}
-              </button>
-            ))}
-            <p className="mt-1 text-center text-[11px] text-white/35">{annual ? '연간은 매월 이용권이 자동 충전돼요.' : '언제든 해지할 수 있어요.'}</p>
+                  {showAnnual ? (
+                    <div className="text-right">
+                      <div className="text-[15px] font-bold text-[#0064FF]">₩{won(p.price * 9)}<span className="text-[11px] font-medium text-white/35"> /년</span></div>
+                      <div className="text-[11px] text-white/35"><span className="line-through">₩{won(p.price * 12)}</span> · 3개월 무료</div>
+                    </div>
+                  ) : (
+                    <div className="text-right">
+                      <div className="font-bold text-white">₩{won(p.price)}</div>
+                      <div className="text-[11px] text-white/35">/월 · 하루 약 {won(perDay(p.price))}원</div>
+                    </div>
+                  )}
+                </button>
+              )
+            })}
+            <p className="mt-1 text-center text-[11px] text-white/35">
+              {curActive ? '업그레이드는 즉시 적용(차액 결제), 다운그레이드는 다음 결제일부터 적용돼요.'
+                : annual ? '연간은 매월 이용권이 자동 충전돼요.' : '언제든 해지할 수 있어요.'}
+            </p>
           </div>
         ) : (
           <div className="flex flex-col gap-2">
@@ -145,7 +193,7 @@ export default function FindsPricing({ open, onClose, defaultTab = 'sub', defaul
           </div>
         )}
 
-        {msg && <p className="mt-3 text-center text-sm text-red-500">{msg}</p>}
+        {msg && <p className="mt-3 text-center text-sm text-white/80">{msg}</p>}
 
         {/* 강사·프로모 코드 — 코드를 가진 사람만 첫 달 무료 등 혜택 적용 */}
         <div className="mt-4 rounded-xl border border-white/10 p-3">
