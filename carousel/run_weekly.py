@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """GitHub Actions 주간 실행기: 데이터(carousel-feed)+STT(stt-hook)+카피(carousel-copy)
 → 렌더(gen_formats)→ Storage 업로드 → 큐 적재(carousel-enqueue). 민감 작업은 엣지가 처리."""
-import os, json, subprocess, urllib.request, datetime
+import os, sys, json, subprocess, urllib.request, datetime
 SB="https://oxygqtbdpnxxcgzwdlzi.supabase.co"
 SEC=os.environ["CRON_SECRET"]
 ANON=os.environ.get("ANON_KEY","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94eWdxdGJkcG54eGNnendkbHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NTU4NTYsImV4cCI6MjA5MjMzMTg1Nn0.G8ZtLSZf9rWRbKlrEUchEmFUEBdV4J2L1s_5rGEPZjY")
@@ -74,4 +74,17 @@ def main():
         cap=((copy.get("captions") or {}).get(fmt) or "").strip() or (copy.get("caption") or "").strip() or CAPS[fmt]
         res=post("/functions/v1/carousel-enqueue", {"format":fmt,"pillar":PILLAR[fmt],"imgs":urls,"caption":cap}, {"x-cron-secret":SEC})
         print("enqueued",fmt,len(urls),res.get("ok"))
+    # --- 플래그십 스와이프 캐러셀 (주차 로테이션). 실패해도 위 핵심 4종엔 영향 없음 ---
+    try:
+        sys.path.insert(0, AC)
+        import swipe_engine, swipe_themes
+        wk=datetime.date.today().isocalendar()[1]
+        deck=swipe_themes.THEMES[wk % len(swipe_themes.THEMES)]
+        sout=os.path.join(HERE,"_out_swipe")
+        swipe_engine.render_deck(deck, sout)
+        surls=upload("swipe", sout, ds)
+        r=post("/functions/v1/carousel-enqueue", {"format":"swipe","pillar":"I","imgs":surls,"caption":deck["caption"]}, {"x-cron-secret":SEC})
+        print("enqueued swipe", deck["id"], len(surls), r.get("ok"))
+    except Exception as e:
+        print("swipe skip:", e)
 main()
