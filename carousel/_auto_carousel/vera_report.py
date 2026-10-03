@@ -91,23 +91,21 @@ def selling_slide(path, i, n, D):
 
 def comments_slide(path, i, n, D):
     im = _bg("people typing phone social media", 0.72); d = ImageDraw.Draw(im)
-    cs = D["comment_sentiment"]; an = max(1, D.get("comment_analyzed", 1))
+    cs = D["comment_sentiment"]
     _eyebrow(d, f"베라 분석 · 댓글 {D.get('comment_analyzed',0)}개", 90)
     _sh(d, (MX, 200), "댓글이 말해주는 신호", F(BHS, 58), WHITE, off=3)
-    rows = [("긍정 반응", cs.get("positive", 0), GOOD),
-            ("구매 문의 (어디서 사요?)", cs.get("question", 0), INFO),
-            ("불만", cs.get("complaint", 0), WARN)]
-    pi = cs.get("purchase_intent", 0)
-    is_pct = max([v for _, v, _ in rows] + [pi]) > an  # 값이 분석수를 넘으면 %로 간주
+    # analyze-clip의 comment_sentiment는 4분할 % (합=100). 바는 %로 표시.
+    rows = [("긍정 반응", int(cs.get("positive", 0)), GOOD),
+            ("구매 문의 (어디서 사요?)", int(cs.get("question", 0)), INFO),
+            ("불만", int(cs.get("complaint", 0)), WARN)]
     x = MX; w = W-2*MX; y = 360
     for label, v, col in rows:
-        frac = (v/100.0) if is_pct else (v/an)
-        hbar(d, x, y, w, frac, col, label, (f"{v}%" if is_pct else f"{v}개"))
+        hbar(d, x, y, w, v/100.0, col, label, f"{v}%")
         y += 132
-    # 히어로: 구매의사 있으면 그걸로, 없으면 긍정 비율로
-    pos = cs.get("positive", 0); pos_pct = pos if is_pct else round(pos/an*100)
-    h_lab, h_val, h_sub = (("구매 의사 지수", f"{pi}%", "댓글 대다수가 구매로 기울어짐")
-                           if pi > 0 else ("긍정 반응 비율", f"{pos_pct}%", "감성 반응이 폭발적"))
+    # 히어로: 구매 의도 있으면 그걸로, 없으면 긍정 비율로
+    pi = int(cs.get("purchase_intent", 0)); pos = int(cs.get("positive", 0))
+    h_lab, h_val, h_sub = (("구매 의도 지수", f"{pi}%", "댓글에서 구매로 이어질 신호가 뚜렷함")
+                           if pi > 0 else ("긍정 반응 비율", f"{pos}%", "감성 반응이 폭발적"))
     d.rounded_rectangle([MX, y+10, W-MX, y+190], 22, fill=(16, 17, 22))
     d.text((MX+34, y+40), h_lab, font=F(NB, 30), fill=AC)
     f = F(BHS, 96); d.text((MX+34, y+78), h_val, font=f, fill=WHITE)
@@ -160,8 +158,31 @@ def cta(path, i, n):
     _sh(d, (MX, y+150), "분석해보고 싶은 영상 있어요? 댓글로 알려주세요", F(GM, 30), GREY, off=2)
     _logo(im, W/2, H-92, 30); _dots(im, i, n); im.save(path, quality=93)
 
+def build_caption(D):
+    D = _clean_deep(D); cs = D.get("comment_sentiment", {}) or {}
+    sp = " / ".join((D.get("selling_points") or [])[:3])
+    diff = (D.get("remix", {}) or {}).get("differentiation") or []
+    pi = int(cs.get("purchase_intent", 0) or 0); pos = int(cs.get("positive", 0) or 0)
+    sig = f"구매 의도 {pi}%" if pi > 0 else f"긍정 반응 {pos}%"
+    parts = [
+        "이번 주 터진 쇼핑 릴스, 베라가 뜯어봤어요.",
+        f"'{D.get('product_name','')}' 영상인데 훅 {int(D.get('hook_score') or 0)}점 · 페이오프 {int(D.get('payoff_score') or 0)}점이 나왔어요.",
+        f"훅: \"{D.get('hook','')}\" — {D.get('hook_why','')}",
+        (f"먹힌 셀링포인트: {sp}" if sp else ""),
+        f"댓글 {D.get('comment_analyzed',0)}개를 분석했더니 {sig}. 사람들이 반응하는 지점이 분명했어요.",
+        (f"내 상품에 적용하려면: {diff[0]}" if diff else ""),
+        "저장해두고 다음 영상 기획할 때 참고하세요 📌",
+        "분석해보고 싶은 영상 있어요? 댓글로 알려주세요 💬",
+        "👉 영상 하나 넣으면 이 리포트가 자동으로: chronit.kr",
+    ]
+    return "\n\n".join([p for p in parts if p])
+
 def render_report(D, outdir):
     D = _clean_deep(D)
+    for k in ("hook_score", "payoff_score"):
+        D[k] = int(D.get(k) or 0)
+    D.setdefault("comment_sentiment", {}); D.setdefault("comment_analyzed", 0)
+    D.setdefault("remix", {}); D.setdefault("selling_points", []); D.setdefault("key_takeaways", [])
     os.makedirs(outdir, exist_ok=True); n = 7
     cover(f"{outdir}/01.jpg", D, n)
     hook_slide(f"{outdir}/02.jpg", 2, n, D)

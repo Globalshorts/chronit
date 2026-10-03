@@ -64,9 +64,9 @@ def main():
     def w(name,obj): open(os.path.join(AC,name),"w",encoding="utf-8").write(json.dumps(obj,ensure_ascii=False)); return name
     jobs=[]
     if copy.get("top10"): jobs.append(("top10", w("hooks.json", copy["top10"])))
-    if copy.get("casestudy"): jobs.append(("casestudy", w("casestudy.json", copy["casestudy"])))
     if copy.get("numbers"): jobs.append(("numbers", w("numbers.json", copy["numbers"])))
     if copy.get("rising"): jobs.append(("rising", w("rising.json", copy["rising"])))
+    # casestudy는 베라 분석 리포트로 대체(아래). 분석 실패 시에만 폴백으로 렌더.
     for fmt,jp in jobs:
         out=os.path.join(HERE,f"_out_{fmt}")
         subprocess.run(["python3","gen_formats.py",fmt,jp,out],cwd=AC,check=True)
@@ -74,7 +74,31 @@ def main():
         cap=((copy.get("captions") or {}).get(fmt) or "").strip() or (copy.get("caption") or "").strip() or CAPS[fmt]
         res=post("/functions/v1/carousel-enqueue", {"format":fmt,"pillar":PILLAR[fmt],"imgs":urls,"caption":cap}, {"x-cron-secret":SEC})
         print("enqueued",fmt,len(urls),res.get("ok"))
-    # --- 플래그십 스와이프 캐러셀 (주차 로테이션). 실패해도 위 핵심 4종엔 영향 없음 ---
+    # --- 베라 분석 리포트 (casestudy 대체): 1위 한국 영상 실분석(analyze-clip, ANON=이용권 무차감) ---
+    vera_ok=False
+    try:
+        sys.path.insert(0, AC); import vera_report
+        top=next((s for s in shopping if s.get("shortcode")), None)
+        if top:
+            az=post("/functions/v1/analyze-clip", {"shortcode":top["shortcode"],"title":top.get("caption",""),"source":"trend"}, {"Authorization":"Bearer "+ANON})
+            if az.get("ok") and (az.get("hook") or "").strip() and az.get("selling_points") and az.get("hook_score"):
+                vout=os.path.join(HERE,"_out_vera"); vera_report.render_report(az, vout)
+                vurls=upload("vera", vout, ds)
+                r=post("/functions/v1/carousel-enqueue", {"format":"vera","pillar":"P","imgs":vurls,"caption":vera_report.build_caption(az)}, {"x-cron-secret":SEC})
+                print("enqueued vera", top["shortcode"], len(vurls), r.get("ok")); vera_ok=True
+    except Exception as e:
+        print("vera skip:", e)
+    if not vera_ok and copy.get("casestudy"):
+        try:
+            jp=w("casestudy.json", copy["casestudy"]); out=os.path.join(HERE,"_out_casestudy")
+            subprocess.run(["python3","gen_formats.py","casestudy",jp,out],cwd=AC,check=True)
+            urls=upload("casestudy",out,ds)
+            cap=((copy.get("captions") or {}).get("casestudy") or "").strip() or CAPS["casestudy"]
+            post("/functions/v1/carousel-enqueue", {"format":"casestudy","pillar":"P","imgs":urls,"caption":cap}, {"x-cron-secret":SEC})
+            print("enqueued casestudy (fallback)")
+        except Exception as e:
+            print("casestudy fallback skip:", e)
+    # --- 플래그십 스와이프 캐러셀 (주차 로테이션). 실패해도 위 핵심 종에 영향 없음 ---
     try:
         sys.path.insert(0, AC)
         import swipe_engine, swipe_themes
