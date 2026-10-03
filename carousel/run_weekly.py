@@ -78,21 +78,26 @@ def main():
     vera_ok=False
     try:
         sys.path.insert(0, AC); import vera_report
-        # 한국 트렌드에서 '댓글 최다' 쇼핑 영상들(가십 제외). 진짜 제품으로 분석되는 첫 영상을 사용.
+        # 한국 트렌드에서 '댓글 최다' 쇼핑 영상들(가십·중복 영상 제외). 진짜 제품으로 분석되는 첫 영상을 사용.
         feats=fd.get("features") or []
+        _norm=lambda s:"".join(str(s).split()).lower()
+        recent=set(_norm(p) for p in (fd.get("recent_products") or []))
         if not feats:  # 폴백: shopping 풀에서 댓글 최다
             feats=[{"shortcode":s["shortcode"],"caption":s.get("caption",""),"comments":s.get("comments"),"thumbnail_url":""}
                    for s in sorted([s for s in shopping if s.get("shortcode")],key=lambda s:-(s.get("comments") or 0))[:3]]
-        for f in feats[:4]:
+        for f in feats[:5]:
             az=post("/functions/v1/analyze-clip", {"shortcode":f["shortcode"],"title":f.get("caption",""),"thumbnail_url":f.get("thumbnail_url") or "","source":"trend"}, {"Authorization":"Bearer "+ANON})
-            if az.get("ok") and (az.get("product_name") or "").strip() and len(az.get("selling_points") or [])>=2 and (az.get("hook_score") or 0)>=60:
+            pn=(az.get("product_name") or "").strip()
+            if az.get("ok") and pn and len(az.get("selling_points") or [])>=2 and (az.get("hook_score") or 0)>=60:
+                if _norm(pn) in recent:
+                    print("vera skip dup product", f.get("shortcode"), pn); continue
                 az["_feature"]=f"이번 주 댓글 가장 많았던 영상 · {int(f.get('comments') or 0)}개"
                 vout=os.path.join(HERE,"_out_vera"); vera_report.render_report(az, vout)
                 vurls=upload("vera", vout, ds)
-                r=post("/functions/v1/carousel-enqueue", {"format":"vera","pillar":"P","imgs":vurls,"caption":vera_report.build_caption(az)}, {"x-cron-secret":SEC})
+                r=post("/functions/v1/carousel-enqueue", {"format":"vera","pillar":"P","imgs":vurls,"caption":vera_report.build_caption(az),"featured_shortcode":f["shortcode"],"featured_product":pn}, {"x-cron-secret":SEC})
                 print("enqueued vera", f["shortcode"], f.get("comments"), len(vurls), r.get("ok")); vera_ok=True; break
             else:
-                print("vera skip candidate", f.get("shortcode"), (az.get("product_name") or "")[:20], az.get("hook_score"))
+                print("vera skip candidate", f.get("shortcode"), pn[:20], az.get("hook_score"))
     except Exception as e:
         print("vera skip:", e)
     if not vera_ok and copy.get("casestudy"):
