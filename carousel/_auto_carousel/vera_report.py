@@ -146,20 +146,25 @@ def remix_slide(path, i, n, D):
     _sh(d, (MX, H-96), "@chronit · chronit.kr", F(GM, 26), DIM, off=2); _dots(im, i, n); im.save(path, quality=93)
 
 def cta(path, i, n):
-    im = _bg("content creator editing laptop desk", 0.6); d = ImageDraw.Draw(im)
-    _sh(d, (MX, 90), "CHRONIT", F(NB, 30), WHITE, off=2)
-    y = 440
+    im = _bg("content creator editing laptop desk", 0.62); d = ImageDraw.Draw(im)
+    _sh(d, (MX, 88), "CHRONIT", F(NB, 30), WHITE, off=2)
+    y = 340
     for t in ["영상 선택하면", "이 리포트가 자동으로"]:
-        _sh(d, (MX, y), t, F(BHS, 86), WHITE, off=4); y += 104
-    y += 28
+        _sh(d, (MX, y), t, F(BHS, 80), WHITE, off=4); y += 96
+    y += 20
     for t in ["베라가 훅·셀링포인트·댓글 반응까지 분석하고,", "내 말투 대본까지 뽑아줍니다."]:
-        _sh(d, (MX, y), t, F(GM, 32), GREY, off=2); y += 46
-    y += 40
-    f = F(BHS, 46); label = "chronit.kr 에서 무료로 분석"
-    d.rounded_rectangle([MX, y, MX+wof(d, label, f)+56, y+86], 16, fill=AC)
-    d.text((MX+28, y+18), label, font=f, fill=(16, 12, 9))
-    _sh(d, (MX, y+150), "분석해보고 싶은 영상 있어요? 댓글로 알려주세요", F(GM, 30), GREY, off=2)
-    _logo(im, W/2, H-92, 30); _dots(im, i, n); im.save(path, quality=93)
+        _sh(d, (MX, y), t, F(GM, 31), GREY, off=2); y += 44
+    y += 30
+    f = F(BHS, 42); label = "chronit.kr 에서 무료로 분석"
+    d.rounded_rectangle([MX, y, MX+wof(d, label, f)+48, y+74], 14, fill=(30, 33, 40))
+    d.text((MX+24, y+14), label, font=f, fill=WHITE)
+    # 큰 댓글 유도 밴드 (핵심 CTA)
+    by = H - 450; bf = F(BHS, 66)
+    d.rounded_rectangle([MX, by, W-MX, by+210], 30, fill=AC)
+    for k, t in enumerate(["댓글에 '크로닛'", "남겨주세요"]):
+        d.text(((W-wof(d, t, bf))/2, by+36+k*82), t, font=bf, fill=(16, 12, 9))
+    _sh(d, (MX, by+230), "분석받고 싶은 영상도 댓글로 알려주세요", F(GM, 28), GREY, off=2)
+    _dots(im, i, n); im.save(path, quality=93)
 
 def build_caption(D):
     D = _clean_deep(D); cs = D.get("comment_sentiment", {}) or {}
