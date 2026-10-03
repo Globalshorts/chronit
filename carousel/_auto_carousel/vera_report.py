@@ -94,22 +94,23 @@ def comments_slide(path, i, n, D):
     cs = D["comment_sentiment"]
     _eyebrow(d, f"베라 분석 · 댓글 {D.get('comment_analyzed',0)}개", 90)
     _sh(d, (MX, 200), "댓글이 말해주는 신호", F(BHS, 58), WHITE, off=3)
-    # analyze-clip의 comment_sentiment는 4분할 % (합=100). 바는 %로 표시.
-    rows = [("긍정 반응", int(cs.get("positive", 0)), GOOD),
-            ("구매 문의 (어디서 사요?)", int(cs.get("question", 0)), INFO),
+    _sh(d, (MX, 288), "실제 댓글을 베라가 분류 · 합 100%", F(GM, 28), DIM, off=2)
+    # 4분할(합=100%)을 모두 바로 표시
+    rows = [("구매 의도", int(cs.get("purchase_intent", 0)), AC),
+            ("긍정 반응", int(cs.get("positive", 0)), GOOD),
+            ("질문·문의", int(cs.get("question", 0)), INFO),
             ("불만", int(cs.get("complaint", 0)), WARN)]
-    x = MX; w = W-2*MX; y = 360
+    x = MX; w = W-2*MX; y = 390
     for label, v, col in rows:
         hbar(d, x, y, w, v/100.0, col, label, f"{v}%")
-        y += 132
-    # 히어로: 구매 의도 있으면 그걸로, 없으면 긍정 비율로
-    pi = int(cs.get("purchase_intent", 0)); pos = int(cs.get("positive", 0))
-    h_lab, h_val, h_sub = (("구매 의도 지수", f"{pi}%", "댓글에서 구매로 이어질 신호가 뚜렷함")
-                           if pi > 0 else ("긍정 반응 비율", f"{pos}%", "감성 반응이 폭발적"))
-    d.rounded_rectangle([MX, y+10, W-MX, y+190], 22, fill=(16, 17, 22))
-    d.text((MX+34, y+40), h_lab, font=F(NB, 30), fill=AC)
-    f = F(BHS, 96); d.text((MX+34, y+78), h_val, font=f, fill=WHITE)
-    d.text((MX+34+wof(d, h_val, f)+24, y+130), h_sub, font=F(GM, 28), fill=GREY)
+        y += 124
+    dom = max(rows, key=lambda r: r[1])
+    msg = {"구매 의도": "구매로 바로 이어질 신호가 강해요", "긍정 반응": "감성 반응이 폭발적이에요",
+           "질문·문의": "'어디서 사요' 문의가 쏟아져요 — 구매 직전 신호", "불만": "호불호가 갈리는 소재예요"}.get(dom[0], "")
+    d.rounded_rectangle([MX, y+12, W-MX, y+150], 22, fill=(16, 17, 22))
+    d.text((MX+34, y+36), f"가장 큰 신호 · {dom[0]} {dom[1]}%", font=F(NB, 30), fill=AC)
+    for ln in wrap(d, msg, F(GM, 30), W-2*MX-68)[:1]:
+        d.text((MX+34, y+86), ln, font=F(GM, 30), fill=GREY)
     _sh(d, (MX, H-96), "@chronit · chronit.kr", F(GM, 26), DIM, off=2); _dots(im, i, n); im.save(path, quality=93)
 
 def structure_slide(path, i, n, D):
