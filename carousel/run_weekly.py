@@ -78,10 +78,13 @@ def main():
     vera_ok=False
     try:
         sys.path.insert(0, AC); import vera_report
-        top=next((s for s in shopping if s.get("shortcode")), None)
+        # 조회수가 아니라 '댓글 최다'(=그 주 가장 화제·반응 많은) 영상을 분석
+        cand=[s for s in shopping if s.get("shortcode")]
+        top=max(cand, key=lambda s:(s.get("comments") or 0)) if cand else None
         if top:
             az=post("/functions/v1/analyze-clip", {"shortcode":top["shortcode"],"title":top.get("caption",""),"source":"trend"}, {"Authorization":"Bearer "+ANON})
             if az.get("ok") and (az.get("hook") or "").strip() and az.get("selling_points") and az.get("hook_score"):
+                az["_feature"]=f"이번 주 댓글 가장 많았던 영상 · {int(top.get('comments') or 0)}개"
                 vout=os.path.join(HERE,"_out_vera"); vera_report.render_report(az, vout)
                 vurls=upload("vera", vout, ds)
                 r=post("/functions/v1/carousel-enqueue", {"format":"vera","pillar":"P","imgs":vurls,"caption":vera_report.build_caption(az)}, {"x-cron-secret":SEC})

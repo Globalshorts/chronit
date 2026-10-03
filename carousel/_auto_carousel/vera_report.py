@@ -46,13 +46,15 @@ def cover(path, D, n):
     im = _bg("person filming product review smartphone", 0.55); d = ImageDraw.Draw(im)
     _sh(d, (MX, 80), "CHRONIT", F(NB, 30), WHITE, off=2)
     _sh(d, (MX+150, 84), "· 베라 분석 리포트", F(NB, 26), (200, 205, 218), off=2)
-    y = 440
-    _sh(d, (MX, y), "이 영상, 왜 터졌을까?", F(BHS, 86), WHITE, off=4); y += 104
-    _sh(d, (MX, y), "베라가 뜯어봤습니다", F(BHS, 86), WHITE, off=4); y += 122
-    _hl(d, MX, y, D["product_name"], F(BHS, 60)); y += 150
-    cs = D["comment_sentiment"]; pi = cs.get("purchase_intent", 0)
-    tail = f"구매의사 {pi}%" if pi > 0 else f"긍정 {cs.get('positive',0)}%"
-    _sh(d, (MX, y), f"훅 {D['hook_score']}점 · 페이오프 {D['payoff_score']}점 · {tail}",
+    y = 416
+    _sh(d, (MX, y), "이 영상, 왜 터졌을까?", F(BHS, 84), WHITE, off=4); y += 100
+    _sh(d, (MX, y), "베라가 뜯어봤어요", F(BHS, 84), WHITE, off=4); y += 106
+    if D.get("_feature"):
+        _sh(d, (MX, y), D["_feature"], F(NB, 30), AC, (0, 0, 0), off=2); y += 60
+    _hl(d, MX, y+6, D["product_name"], F(BHS, 58)); y += 150
+    cs = D["comment_sentiment"]; pi = int(cs.get("purchase_intent", 0))
+    tail = f"구매의도 {pi}%" if pi > 0 else f"긍정 {int(cs.get('positive',0))}%"
+    _sh(d, (MX, y), f"훅 {int(D['hook_score'])}점 · 페이오프 {int(D['payoff_score'])}점 · {tail}",
         F(GM, 30), GREY, off=2)
     _logo(im, W/2, H-92, 30); _dots(im, 1, n); im.save(path, quality=93)
 
@@ -165,8 +167,9 @@ def build_caption(D):
     diff = (D.get("remix", {}) or {}).get("differentiation") or []
     pi = int(cs.get("purchase_intent", 0) or 0); pos = int(cs.get("positive", 0) or 0)
     sig = f"구매 의도 {pi}%" if pi > 0 else f"긍정 반응 {pos}%"
+    lead = (D.get("_feature") + ", 베라가 뜯어봤어요.") if D.get("_feature") else "이번 주 터진 쇼핑 릴스, 베라가 뜯어봤어요."
     parts = [
-        "이번 주 터진 쇼핑 릴스, 베라가 뜯어봤어요.",
+        lead,
         f"'{D.get('product_name','')}' 영상인데 훅 {int(D.get('hook_score') or 0)}점 · 페이오프 {int(D.get('payoff_score') or 0)}점이 나왔어요.",
         f"훅: \"{D.get('hook','')}\" — {D.get('hook_why','')}",
         (f"먹힌 셀링포인트: {sp}" if sp else ""),
