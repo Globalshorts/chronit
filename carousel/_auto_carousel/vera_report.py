@@ -149,7 +149,7 @@ def cta(path, i, n):
     im = _bg("content creator editing laptop desk", 0.6); d = ImageDraw.Draw(im)
     _sh(d, (MX, 90), "CHRONIT", F(NB, 30), WHITE, off=2)
     y = 440
-    for t in ["영상 하나 넣으면", "이 리포트가 자동으로"]:
+    for t in ["영상 선택하면", "이 리포트가 자동으로"]:
         _sh(d, (MX, y), t, F(BHS, 86), WHITE, off=4); y += 104
     y += 28
     for t in ["베라가 훅·셀링포인트·댓글 반응까지 분석하고,", "내 말투 대본까지 뽑아줍니다."]:
@@ -177,7 +177,7 @@ def build_caption(D):
         (f"내 상품에 적용하려면: {diff[0]}" if diff else ""),
         "저장해두고 다음 영상 기획할 때 참고하세요 📌",
         "분석해보고 싶은 영상 있어요? 댓글로 알려주세요 💬",
-        "👉 영상 하나 넣으면 이 리포트가 자동으로: chronit.kr",
+        "👉 영상 선택하면 이 리포트가 자동으로: chronit.kr",
     ]
     return "\n\n".join([p for p in parts if p])
 
