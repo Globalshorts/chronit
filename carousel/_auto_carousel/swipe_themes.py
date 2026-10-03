@@ -19,7 +19,7 @@ HOOKS = {
   {"no":"07","name":"결과 먼저","why":"완성 장면을 먼저 보여주면 과정이 궁금해진다","tpl":"[결과 비주얼] → \"어떻게 했냐면\"","ex":"지저분한 방 → 깔끔, 3만원으로 이렇게 됨","q":"clean organized tidy minimal room"},
  ],
  "cta": {"lines": ["훅은 잡았는데", "대본이 막막하다면?"],
-         "sub": ["크로닛이 매일 터지는 쇼핑 소재를 찾아주고,", "네 말투 그대로 대본까지 뽑아줍니다."],
+         "sub": ["크로닛이 매일 터지는 쇼핑 소재를 찾아주고,", "내 말투 그대로 대본까지 뽑아줍니다."],
          "end": "어떤 훅이 제일 끌려요? 댓글로 알려주세요",
          "q": "content creator editing video laptop phone desk", "dark": 0.6},
  "caption": (
@@ -80,7 +80,7 @@ STRUCTURE = {
   {"no":"05","name":"하울·언박싱","why_label":"언제 쓰나","why":"개봉 리액션은 대리만족을 준다","tpl":"[개봉] → [리액션] → [추천]","ex":"쿠팡 겨울 준비 하울","q":"unboxing package opening hands"},
  ],
  "cta": {"lines": ["구성은 잡았는데", "멘트가 안 떠오르면?"],
-         "sub": ["크로닛이 소재에 맞는 구성과 대본을", "네 말투 그대로 뽑아줍니다."],
+         "sub": ["크로닛이 소재에 맞는 구성과 대본을", "내 말투 그대로 뽑아줍니다."],
          "end": "어떤 구성 제일 자주 써요? 댓글로 알려주세요",
          "q": "creator editing video timeline laptop", "dark": 0.6},
  "caption": (

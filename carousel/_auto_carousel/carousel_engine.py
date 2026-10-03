@@ -8,7 +8,8 @@ import numpy as np
 HERE=os.path.dirname(os.path.abspath(__file__)); AS=os.path.join(HERE,"assets"); ROOT=os.path.dirname(HERE)
 try: PXKEY=open(os.path.join(ROOT,"pexels_key.txt"),encoding="utf-8").read().strip()
 except Exception: PXKEY=os.environ.get("PEXELS_KEY","")
-BHS=os.path.join(AS,"BlackHanSans-Regular.ttf"); NB=os.path.join(AS,"NotoSansKR-Bold.ttf"); GM=os.path.join(AS,"GmarketSansMedium.otf")
+# Pretendard — 가독성 높은 모던 한글 폰트. BHS=디스플레이(Black), NB=제목/강조(Bold), GM=본문(Medium)
+BHS=os.path.join(AS,"Pretendard-Black.otf"); NB=os.path.join(AS,"Pretendard-Bold.otf"); GM=os.path.join(AS,"Pretendard-Medium.otf")
 LOGO=os.path.join(ROOT,"logo","chronit-mark-white.png")
 W,H=1080,1350; MX=72
 WHITE=(255,255,255); GREY=(188,194,206); DIM=(146,152,166); CARD=(22,24,30)

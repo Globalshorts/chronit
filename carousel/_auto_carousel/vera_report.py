@@ -1,0 +1,196 @@
+# -*- coding: utf-8 -*-
+"""베라 분석 리포트 캐러셀 — analyze_clip_cache의 실제 분석(점수·셀링포인트·댓글감성)을
+그래프와 함께 렌더. Pexels 사진 배경 + 프리미엄 다크. swipe_engine 헬퍼 재사용.
+사용: python3 vera_report.py <outdir>  (DATA는 실제 분석 1건)"""
+import os, math, re
+from PIL import Image, ImageDraw
+import carousel_engine as E
+from carousel_engine import F, wof, wrap, photo_bg, BHS, NB, GM, LOGO, W, H
+from swipe_engine import _sh, _eyebrow, _logo, _dots, _hl, _bg, MX, AC, WHITE, GREY, DIM
+
+# 폰트에 없는 이모지·기호 제거(렌더용). 데이터는 보존, 화면 텍스트만 정리.
+_EMOJI = re.compile("[\U0001F000-\U0001FAFF\U00002600-\U000027BF\U00002B00-\U00002BFF"
+                    "\U0000FE00-\U0000FE0F\U00002190-\U000021FF\U00002300-\U000023FF❤]+")
+def clean(s): return _EMOJI.sub("", str(s)).replace("  ", " ").strip()
+def _clean_deep(x):
+    if isinstance(x, str): return clean(x)
+    if isinstance(x, list): return [_clean_deep(v) for v in x]
+    if isinstance(x, dict): return {k: _clean_deep(v) for k, v in x.items()}
+    return x
+
+GOOD = (86, 200, 120)   # 긍정
+INFO = (70, 150, 255)   # 질문/구매문의
+WARN = (240, 165, 70)   # 불만
+TRACK = (46, 50, 60)
+
+# ---------- 차트 프리미티브 ----------
+def gauge(d, cx, cy, r, score, color=AC):
+    bbox = [cx-r, cy-r, cx+r, cy+r]; start, extent = 135, 270
+    d.arc(bbox, start, start+extent, fill=TRACK, width=28)
+    d.arc(bbox, start, start+extent*max(0, min(100, score))/100.0, fill=color, width=28)
+    t = str(int(score)); f = F(BHS, 104)
+    d.text((cx-wof(d, t, f)/2, cy-78), t, font=f, fill=WHITE)
+    f2 = F(GM, 28); d.text((cx-wof(d, "/ 100", f2)/2, cy+46), "/ 100", font=f2, fill=DIM)
+
+def hbar(d, x, y, w, frac, color, label, value):
+    h = 40
+    d.text((x, y), label, font=F(NB, 30), fill=WHITE)
+    vt = value; d.text((x+w-wof(d, vt, F(NB, 30)), y), vt, font=F(NB, 30), fill=color)
+    by = y+46
+    d.rounded_rectangle([x, by, x+w, by+h], h//2, fill=(28, 31, 38))
+    fw = max(h, int(w*max(0.0, min(1.0, frac))))
+    d.rounded_rectangle([x, by, x+fw, by+h], h//2, fill=color)
+
+# ---------- 슬라이드 ----------
+def cover(path, D, n):
+    im = _bg("person filming product review smartphone", 0.55); d = ImageDraw.Draw(im)
+    _sh(d, (MX, 80), "CHRONIT", F(NB, 30), WHITE, off=2)
+    _sh(d, (MX+150, 84), "· 베라 분석 리포트", F(NB, 26), (200, 205, 218), off=2)
+    y = 440
+    _sh(d, (MX, y), "이 영상, 왜 터졌을까?", F(BHS, 86), WHITE, off=4); y += 104
+    _sh(d, (MX, y), "베라가 뜯어봤습니다", F(BHS, 86), WHITE, off=4); y += 122
+    _hl(d, MX, y, D["product_name"], F(BHS, 60)); y += 150
+    cs = D["comment_sentiment"]; pi = cs.get("purchase_intent", 0)
+    tail = f"구매의사 {pi}%" if pi > 0 else f"긍정 {cs.get('positive',0)}%"
+    _sh(d, (MX, y), f"훅 {D['hook_score']}점 · 페이오프 {D['payoff_score']}점 · {tail}",
+        F(GM, 30), GREY, off=2)
+    _logo(im, W/2, H-92, 30); _dots(im, 1, n); im.save(path, quality=93)
+
+def hook_slide(path, i, n, D):
+    im = _bg("surprised person watching phone", 0.7); d = ImageDraw.Draw(im)
+    _eyebrow(d, "베라 분석 · 훅", 90)
+    _sh(d, (MX, 200), "훅 (첫 3초)", F(BHS, 60), WHITE, off=3)
+    # 훅 타입 뱃지
+    bt = D["hook_type"]; f = F(NB, 28); bw = wof(d, bt, f)
+    d.rounded_rectangle([MX, 300, MX+bw+40, 352], 14, fill=AC); d.text((MX+20, 310), bt, font=f, fill=(16, 12, 9))
+    hy = 390
+    for ln in wrap(d, f"“{D['hook']}”", F(NB, 36), W-2*MX)[:3]:
+        _sh(d, (MX, hy), ln, F(NB, 36), WHITE, off=2); hy += 50
+    hy += 10
+    _sh(d, (MX, hy), "왜 먹혔나", F(NB, 25), AC, (0, 0, 0), off=2); hy += 40
+    for ln in wrap(d, D["hook_why"], F(GM, 30), W-2*MX)[:2]:
+        _sh(d, (MX, hy), ln, F(GM, 30), GREY, off=2); hy += 42
+    gauge(d, W-260, 1060, 150, D["hook_score"], AC)
+    d.text((W-260-wof(d, "훅 점수", F(NB, 28))/2, 1230), "훅 점수", font=F(NB, 28), fill=WHITE)
+    _sh(d, (MX, H-96), "@chronit · chronit.kr", F(GM, 26), DIM, off=2); _dots(im, i, n); im.save(path, quality=93)
+
+def selling_slide(path, i, n, D):
+    im = _bg("product display retail shelf", 0.66); d = ImageDraw.Draw(im)
+    _eyebrow(d, "베라 분석 · 셀링포인트", 90)
+    _sh(d, (MX, 200), "이 제품이 팔리는 이유", F(BHS, 60), WHITE, off=3)
+    d.rectangle([MX+2, 290, MX+92, 296], fill=AC)
+    sp = D["selling_points"]; y0 = 390; rowh = min(150, (H-200-y0)//max(1, len(sp)))
+    for k, s in enumerate(sp):
+        ry = y0+k*rowh
+        d.text((MX, ry), f"{k+1:02d}", font=F(BHS, 44), fill=AC)
+        for j, ln in enumerate(wrap(d, s, F(NB, 34), W-MX-120-MX)[:2]):
+            _sh(d, (MX+120, ry+(4 if j == 0 else 0)+j*44), ln, F(NB, 34), WHITE, off=2)
+        if k < len(sp)-1:
+            d.line([(MX, ry+rowh-20), (W-MX, ry+rowh-20)], fill=(70, 74, 84), width=2)
+    _sh(d, (MX, H-96), "@chronit · chronit.kr", F(GM, 26), DIM, off=2); _dots(im, i, n); im.save(path, quality=93)
+
+def comments_slide(path, i, n, D):
+    im = _bg("people typing phone social media", 0.72); d = ImageDraw.Draw(im)
+    cs = D["comment_sentiment"]; an = max(1, D.get("comment_analyzed", 1))
+    _eyebrow(d, f"베라 분석 · 댓글 {D.get('comment_analyzed',0)}개", 90)
+    _sh(d, (MX, 200), "댓글이 말해주는 신호", F(BHS, 58), WHITE, off=3)
+    rows = [("긍정 반응", cs.get("positive", 0), GOOD),
+            ("구매 문의 (어디서 사요?)", cs.get("question", 0), INFO),
+            ("불만", cs.get("complaint", 0), WARN)]
+    pi = cs.get("purchase_intent", 0)
+    is_pct = max([v for _, v, _ in rows] + [pi]) > an  # 값이 분석수를 넘으면 %로 간주
+    x = MX; w = W-2*MX; y = 360
+    for label, v, col in rows:
+        frac = (v/100.0) if is_pct else (v/an)
+        hbar(d, x, y, w, frac, col, label, (f"{v}%" if is_pct else f"{v}개"))
+        y += 132
+    # 히어로: 구매의사 있으면 그걸로, 없으면 긍정 비율로
+    pos = cs.get("positive", 0); pos_pct = pos if is_pct else round(pos/an*100)
+    h_lab, h_val, h_sub = (("구매 의사 지수", f"{pi}%", "댓글 대다수가 구매로 기울어짐")
+                           if pi > 0 else ("긍정 반응 비율", f"{pos_pct}%", "감성 반응이 폭발적"))
+    d.rounded_rectangle([MX, y+10, W-MX, y+190], 22, fill=(16, 17, 22))
+    d.text((MX+34, y+40), h_lab, font=F(NB, 30), fill=AC)
+    f = F(BHS, 96); d.text((MX+34, y+78), h_val, font=f, fill=WHITE)
+    d.text((MX+34+wof(d, h_val, f)+24, y+130), h_sub, font=F(GM, 28), fill=GREY)
+    _sh(d, (MX, H-96), "@chronit · chronit.kr", F(GM, 26), DIM, off=2); _dots(im, i, n); im.save(path, quality=93)
+
+def structure_slide(path, i, n, D):
+    im = _bg("video editing timeline screen", 0.7); d = ImageDraw.Draw(im)
+    _eyebrow(d, "베라 분석 · 구성 & 페이오프", 90)
+    _sh(d, (MX, 200), "어떻게 끌고 갔나", F(BHS, 58), WHITE, off=3)
+    hy = 330
+    _sh(d, (MX, hy), "구성", F(NB, 25), AC, (0, 0, 0), off=2); hy += 40
+    for ln in wrap(d, D["structure"], F(GM, 30), W-2*MX)[:2]:
+        _sh(d, (MX, hy), ln, F(GM, 30), GREY, off=2); hy += 42
+    hy += 16
+    _sh(d, (MX, hy), "페이오프 (결말 한 방)", F(NB, 25), AC, (0, 0, 0), off=2); hy += 40
+    for ln in wrap(d, D["payoff"], F(GM, 30), W-2*MX)[:2]:
+        _sh(d, (MX, hy), ln, F(GM, 30), GREY, off=2); hy += 42
+    gauge(d, W-260, 1060, 150, D["payoff_score"], GOOD)
+    d.text((W-260-wof(d, "페이오프 점수", F(NB, 26))/2, 1230), "페이오프 점수", font=F(NB, 26), fill=WHITE)
+    _sh(d, (MX, H-96), "@chronit · chronit.kr", F(GM, 26), DIM, off=2); _dots(im, i, n); im.save(path, quality=93)
+
+def remix_slide(path, i, n, D):
+    im = _bg("creative workspace planning notes", 0.68); d = ImageDraw.Draw(im)
+    _eyebrow(d, "베라 분석 · 내 상품에 적용", 90)
+    _sh(d, (MX, 200), "그대로 베껴 쓰는 법", F(BHS, 58), WHITE, off=3)
+    d.rectangle([MX+2, 290, MX+92, 296], fill=AC)
+    items = (D.get("remix", {}).get("differentiation") or D.get("key_takeaways") or [])[:4]
+    y0 = 400; rowh = min(150, (H-200-y0)//max(1, len(items)))
+    for k, s in enumerate(items):
+        ry = y0+k*rowh
+        d.text((MX, ry), "→", font=F(NB, 40), fill=AC)
+        for j, ln in enumerate(wrap(d, s, F(NB, 33), W-MX-80-MX)[:2]):
+            _sh(d, (MX+80, ry+(2 if j == 0 else 0)+j*42), ln, F(NB, 33), WHITE, off=2)
+    _sh(d, (MX, H-96), "@chronit · chronit.kr", F(GM, 26), DIM, off=2); _dots(im, i, n); im.save(path, quality=93)
+
+def cta(path, i, n):
+    im = _bg("content creator editing laptop desk", 0.6); d = ImageDraw.Draw(im)
+    _sh(d, (MX, 90), "CHRONIT", F(NB, 30), WHITE, off=2)
+    y = 440
+    for t in ["영상 하나 넣으면", "이 리포트가 자동으로"]:
+        _sh(d, (MX, y), t, F(BHS, 86), WHITE, off=4); y += 104
+    y += 28
+    for t in ["베라가 훅·셀링포인트·댓글 반응까지 분석하고,", "내 말투 대본까지 뽑아줍니다."]:
+        _sh(d, (MX, y), t, F(GM, 32), GREY, off=2); y += 46
+    y += 40
+    f = F(BHS, 46); label = "chronit.kr 에서 무료로 분석"
+    d.rounded_rectangle([MX, y, MX+wof(d, label, f)+56, y+86], 16, fill=AC)
+    d.text((MX+28, y+18), label, font=f, fill=(16, 12, 9))
+    _sh(d, (MX, y+150), "분석해보고 싶은 영상 있어요? 댓글로 알려주세요", F(GM, 30), GREY, off=2)
+    _logo(im, W/2, H-92, 30); _dots(im, i, n); im.save(path, quality=93)
+
+def render_report(D, outdir):
+    D = _clean_deep(D)
+    os.makedirs(outdir, exist_ok=True); n = 7
+    cover(f"{outdir}/01.jpg", D, n)
+    hook_slide(f"{outdir}/02.jpg", 2, n, D)
+    selling_slide(f"{outdir}/03.jpg", 3, n, D)
+    comments_slide(f"{outdir}/04.jpg", 4, n, D)
+    structure_slide(f"{outdir}/05.jpg", 5, n, D)
+    remix_slide(f"{outdir}/06.jpg", 6, n, D)
+    cta(f"{outdir}/07.jpg", 7, n)
+    return n
+
+# 실제 분석 1건 (analyze_clip_cache) — 한국 적합 연말 시즌 소재
+DATA = {
+ "hook": "이거 하나 켰을 뿐인데 집이 순식간에 크리스마스 마을로 변신해요🎄✨",
+ "hook_why": "단순한 동작으로 큰 변화를 줄 수 있다는 기대감을 준다.",
+ "hook_type": "변화",
+ "hook_score": 95,
+ "payoff": "복잡한 장식은 귀찮지만 크리스마스 분위기는 제대로 내고 싶다면 요거 하나면 충분하겠어요💕",
+ "payoff_score": 90,
+ "structure": "처음에는 제품의 효과를 강조하고, 중간에는 사용의 간편함을 설명하며, 마지막에는 감성적인 만족감을 제공한다.",
+ "target": "크리스마스 장식을 간편하게 하고 싶은 사람들",
+ "product_name": "크리스마스 무드 프로젝터 조명",
+ "selling_points": ["천장까지 반짝이는 조명 효과", "트리 없이도 크리스마스 분위기 연출", "간편한 설치와 사용", "아이들이 좋아할 만한 시각적 효과"],
+ "key_takeaways": ["간편하게 크리스마스 분위기를 연출할 수 있다.", "아이들과 함께 즐길 수 있는 시각적 효과 제공.", "복잡한 장식 없이도 충분한 효과를 낼 수 있다."],
+ "comment_analyzed": 15,
+ "comment_sentiment": {"positive": 100, "question": 0, "complaint": 0, "purchase_intent": 0},
+ "remix": {"differentiation": ["트리 없이도 크리스마스 분위기 연출 가능", "간편한 설치와 사용으로 시간 절약", "다양한 조명 패턴으로 독특한 분위기 연출"]},
+}
+
+if __name__ == "__main__":
+    import sys
+    render_report(DATA, sys.argv[1] if len(sys.argv) > 1 else "../_out_vera")
+    print("OK vera_report")
