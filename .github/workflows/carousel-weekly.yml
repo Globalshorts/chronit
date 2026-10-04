@@ -1,7 +1,7 @@
-name: Weekly Carousel
+name: Carousel Pipeline
 on:
   schedule:
-    - cron: '0 23 * * 0'   # 월 08:00 KST (일 23:00 UTC)
+    - cron: '0 23 * * 0,3'   # 월·목 08:00 KST (일·수 23:00 UTC) — 주 2회 생성
   workflow_dispatch: {}
 jobs:
   gen:

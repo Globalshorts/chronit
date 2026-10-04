@@ -115,8 +115,10 @@ def main():
     try:
         sys.path.insert(0, AC)
         import swipe_engine, swipe_themes
-        wk=datetime.date.today().isocalendar()[1]
-        deck=swipe_themes.THEMES[wk % len(swipe_themes.THEMES)]
+        _td=datetime.date.today()
+        # 주 2회 실행 시 월/목이 서로 다른 주제가 되도록 (주차*2 + 전/후반)
+        idx=(_td.isocalendar()[1]*2 + (0 if _td.weekday()<3 else 1)) % len(swipe_themes.THEMES)
+        deck=swipe_themes.THEMES[idx]
         sout=os.path.join(HERE,"_out_swipe")
         swipe_engine.render_deck(deck, sout)
         surls=upload("swipe", sout, ds)
