@@ -6,6 +6,7 @@ import { redeemAnyCode } from '../lib/redeemCode'
 import { usePlans } from '../lib/usePlans'
 import { phCapture } from '../lib/posthog'
 import { loadToss } from '../lib/tossBilling'
+import { creditsDo, annualPerMonth } from '../lib/planLabels'
 
 const CK = import.meta.env.VITE_TOSS_CLIENT_KEY || ''
 const BCK = import.meta.env.VITE_TOSS_BILLING_CLIENT_KEY || ''
@@ -152,10 +153,11 @@ export default function FindsPricing({ open, onClose, defaultTab = 'sub', defaul
                   className="flex items-center justify-between rounded-xl border border-white/10 px-4 py-3 text-left transition hover:border-[#0064FF] disabled:opacity-50">
                   <div>
                     <div className="font-bold text-white">
-                      {p.name} · 이용권 월 {p.credits.toLocaleString('ko-KR')}개
+                      {p.name} · 월 {creditsDo(p.credits)}
                       {isCurrent && <span className="ml-1.5 rounded bg-white/15 px-1.5 py-0.5 text-[10px] text-white/70">현재 플랜</span>}
                       {isChange && <span className={`ml-1.5 rounded px-1.5 py-0.5 text-[10px] ${up ? 'bg-[#0064FF]/25 text-[#8ab4ff]' : 'bg-white/10 text-white/55'}`}>{up ? '업그레이드' : '다운그레이드'}</span>}
                     </div>
+                    <div className="text-[11px] text-white/35">이용권 {p.credits.toLocaleString('ko-KR')}개 · 워치리스트 {p.watch.toLocaleString('ko-KR')}계정</div>
                     <div className="text-xs text-white/35">
                       {isCurrent ? '현재 이용 중인 플랜이에요'
                         : isChange ? (up ? '지금 바꾸면 남은 기간 차액만 결제 · 이용권 즉시 증가' : '다음 결제일부터 변경 · 그때까지 현재 이용권 유지')
@@ -164,8 +166,8 @@ export default function FindsPricing({ open, onClose, defaultTab = 'sub', defaul
                   </div>
                   {showAnnual ? (
                     <div className="text-right">
-                      <div className="text-[15px] font-bold text-[#0064FF]">₩{won(p.price * 9)}<span className="text-[11px] font-medium text-white/35"> /년</span></div>
-                      <div className="text-[11px] text-white/35"><span className="line-through">₩{won(p.price * 12)}</span> · 3개월 무료</div>
+                      <div className="text-[15px] font-bold text-[#0064FF]">₩{won(annualPerMonth(p.price))}<span className="text-[11px] font-medium text-white/35"> /월</span></div>
+                      <div className="text-[11px] text-white/35">연 ₩{won(p.price * 9)} 결제 · 3개월 무료</div>
                     </div>
                   ) : (
                     <div className="text-right">
@@ -186,7 +188,7 @@ export default function FindsPricing({ open, onClose, defaultTab = 'sub', defaul
             {PACKS.map((p) => (
               <button key={p.id} disabled={!!busy} onClick={() => buyPack(p)}
                 className="flex items-center justify-between rounded-xl border border-white/10 px-4 py-3 text-left transition hover:border-[#0064FF] disabled:opacity-50">
-                <div><div className="font-bold text-white">Finds 이용권 {p.credits}개</div><div className="text-xs text-white/35">1회 결제 · 소진식 (유효 12개월)</div></div>
+                <div><div className="font-bold text-white">{creditsDo(p.credits)}</div><div className="text-xs text-white/35">이용권 {p.credits}개 · 1회 결제 · 유효 12개월</div></div>
                 <div className="font-bold text-white">₩{won(p.price)}</div>
               </button>
             ))}

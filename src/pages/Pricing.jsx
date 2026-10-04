@@ -8,7 +8,7 @@ import AuthModal from '../components/AuthModal'
 import { fbTrack } from '../lib/fbq'
 import { phCapture } from '../lib/posthog'
 import { usePlans } from '../lib/usePlans'
-import { ACCOUNTS_PER_CREDIT } from '../lib/planLabels'
+import { ACCOUNTS_PER_CREDIT, creditsDo, annualPerMonth } from '../lib/planLabels'
 
 const HOT = 'finds100'
 const PACKS = [{ credits: 10, price: 4900 }, { credits: 30, price: 12900, hot: true }, { credits: 100, price: 34900 }]
@@ -56,8 +56,8 @@ export default function Pricing() {
             <div className="mx-auto grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
               {PACKS.map((p) => (
                 <div key={p.credits} onClick={() => buy('pack', 'monthly')} className={cardCls(p.hot)}>
-                  <div className="flex items-center gap-2"><h4 className="text-lg font-semibold text-gray-900">이용권 {p.credits}개</h4>{p.hot && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0064FF]">인기</span>}</div>
-                  <p className="mt-1 text-sm text-gray-400">1회 결제 · 유효 12개월</p>
+                  <div className="flex items-center gap-2"><h4 className="text-lg font-semibold text-gray-900">{creditsDo(p.credits)}</h4>{p.hot && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0064FF]">인기</span>}</div>
+                  <p className="mt-1 text-sm text-gray-400">이용권 {p.credits}개 · 1회 결제 · 유효 12개월</p>
                   <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-gray-900">₩{p.price.toLocaleString('ko-KR')}</span></div>
                   <div className="mt-2.5 inline-flex items-center rounded-full bg-[#0064FF]/10 px-3 py-1 text-sm font-extrabold text-[#0064FF]">개당 약 {(Math.round(p.price / p.credits / 10) * 10).toLocaleString('ko-KR')}원</div>
                   <button className={btnCls(p.hot)}>구매하기</button>
@@ -70,17 +70,19 @@ export default function Pricing() {
                 <h4 className="text-lg font-semibold text-gray-900">무료</h4>
                 <p className="mt-1 text-sm text-gray-400">먼저 써보기</p>
                 <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-gray-900">₩0</span></div>
-                <p className="mt-3 text-sm leading-relaxed text-gray-500">매월 이용권 5개</p>
+                <p className="mt-3 text-sm font-semibold leading-relaxed text-gray-700">매월 대본·소재 분석 5회</p>
+                <p className="text-xs text-gray-400">이용권 5개 · 매월 충전</p>
                 <button onClick={() => { fbTrack('Lead', { content_name: 'free_start', location: 'pricing' }); if (user) nav('/research'); else setAuthOpen(true) }} className="mt-6 w-full rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-[#0064FF] hover:text-[#0064FF]">무료로 시작</button>
               </div>
               {SUBS.map((p) => (
                 <div key={p.id} onClick={() => buy('sub', annual ? 'annual' : 'monthly')} className={cardCls(p.id === HOT)}>
                   <div className="flex items-center gap-2"><h4 className="text-lg font-semibold text-gray-900">{p.name}</h4>{p.id === HOT && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0064FF]">인기</span>}</div>
-                  <p className="mt-1 text-sm text-gray-400">이용권 월 {p.credits.toLocaleString('ko-KR')}개</p>
+                  <p className="mt-1 text-sm font-bold text-gray-800">월 {creditsDo(p.credits)}</p>
+                  <p className="text-xs text-gray-400">이용권 {p.credits.toLocaleString('ko-KR')}개 · 워치리스트 {p.watch.toLocaleString('ko-KR')}계정</p>
                   {annual ? (
                     <div className="mt-4">
-                      <div className="flex items-baseline gap-1"><span className="text-3xl font-bold text-[#0064FF]">₩{(p.price * 9).toLocaleString('ko-KR')}</span><span className="text-sm text-gray-400">/ 년</span></div>
-                      <div className="mt-0.5 text-xs text-gray-400"><span className="line-through">₩{(p.price * 12).toLocaleString('ko-KR')}</span> · 3개월 무료</div>
+                      <div className="flex items-baseline gap-1"><span className="text-3xl font-bold text-[#0064FF]">₩{annualPerMonth(p.price).toLocaleString('ko-KR')}</span><span className="text-sm text-gray-400">/ 월</span></div>
+                      <div className="mt-0.5 text-xs text-gray-400">연 ₩{(p.price * 9).toLocaleString('ko-KR')} 한 번 결제 · 3개월 무료</div>
                     </div>
                   ) : (
                     <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-gray-900">₩{p.price.toLocaleString('ko-KR')}</span><span className="text-sm text-gray-400">/ 월</span></div>
