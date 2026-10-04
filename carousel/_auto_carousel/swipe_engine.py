@@ -101,7 +101,14 @@ def _cta(path, i, n, ct):
     f = F(BHS, 46); label = ct.get("btn", "chronit.kr 에서 무료로 시작")
     d.rounded_rectangle([MX, y, MX+wof(d, label, f)+56, y+86], 16, fill=AC)
     d.text((MX+28, y+18), label, font=f, fill=(16, 12, 9))
-    _sh(d, (MX, y+150), ct["end"], F(GM, 30), GREY, off=2)
+    # 모든 포맷 공통 강제: '댓글에 크로닛 남겨주세요' 를 크게 ('크로닛'은 브랜드 블루)
+    ey = y + 150; fB = F(NB, 46)
+    p1, p2, p3 = "댓글에 ", "'크로닛'", " 남겨주세요"
+    x = MX
+    _sh(d, (x, ey), p1, fB, WHITE, off=3); x += wof(d, p1, fB)
+    _sh(d, (x, ey), p2, fB, AC, off=3); x += wof(d, p2, fB)
+    _sh(d, (x, ey), p3, fB, WHITE, off=3)
+    _sh(d, (MX, ey+64), ct["end"], F(GM, 28), GREY, off=2)
     _logo(im, W/2, H-92, 30); _dots(im, i, n); im.save(path, quality=93)
 
 def render_deck(deck, outdir):
