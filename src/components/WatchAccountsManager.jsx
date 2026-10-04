@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { fmtCount } from '../lib/format'
 import { statusOf, STATUS_META, fmtWhen } from '../lib/watchAccounts'
 
-// 감시 계정 관리 — 수백~1000개를 다루므로 칩 나열 대신 표 + 검색 + 일괄선택.
+// 벤치마크 계정 관리 — 수백~1000개를 다루므로 칩 나열 대신 표 + 검색 + 일괄선택.
 const ROW_CAP = 200   // 한 번에 그리는 최대 행. 넘치면 검색으로 좁히도록 안내.
 
 const FILTERS = [['all', '전체'], ['live', '정상'], ['quiet', '조용함'], ['dead', '응답없음'], ['off', '꺼짐']]
@@ -19,29 +19,19 @@ const ymd = (d) => (d ? new Date(d).toISOString().slice(0, 10) : '')
 export default function WatchAccountsManager({ open, onClose, accounts, feedCounts, onChanged, isProPlus = false, onImport }) {
   const [q, setQ] = useState('')
   const [filter, setFilter] = useState('all')
-  const [sortBy, setSortBy] = useState('followers')   // followers | activity | recent | name
   const [sel, setSel] = useState([])
   const [busy, setBusy] = useState(false)
 
   const rows = useMemo(() => {
     const needle = q.trim().toLowerCase()
-    const list = (accounts || []).filter((a) => {
+    return (accounts || []).filter((a) => {
       if (needle && !`${a.username} ${a.nickname || ''}`.toLowerCase().includes(needle)) return false
       if (filter === 'off') return a.active === false
       if (filter === 'all') return true
       if (a.active === false) return false
       return statusOf(a) === filter
     })
-    const num = (v) => Number(v) || 0
-    const fc = (a) => num(feedCounts[a.username])
-    const cmp = {
-      followers: (a, b) => num(b.follower_count) - num(a.follower_count),
-      activity: (a, b) => fc(b) - fc(a),
-      recent: (a, b) => new Date(b.last_found_at || 0) - new Date(a.last_found_at || 0),
-      name: (a, b) => String(a.username || '').localeCompare(String(b.username || '')),
-    }[sortBy] || (() => 0)
-    return [...list].sort(cmp)
-  }, [accounts, q, filter, sortBy, feedCounts])
+  }, [accounts, q, filter])
 
   if (!open) return null
 
@@ -88,7 +78,7 @@ export default function WatchAccountsManager({ open, onClose, accounts, feedCoun
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
       <div className="flex max-h-[88vh] w-full max-w-4xl flex-col rounded-2xl border border-white/10 bg-[#0c0d11] p-5" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-base font-bold text-white">감시 계정 관리 <span className="text-white/40">{accounts.length}</span></h3>
+          <h3 className="text-base font-bold text-white">벤치마크 계정 관리 <span className="text-white/40">{accounts.length}</span></h3>
           <div className="flex items-center gap-2">
             {onImport && (
               <button onClick={onImport}
@@ -115,13 +105,6 @@ export default function WatchAccountsManager({ open, onClose, accounts, feedCoun
           {FILTERS.map(([k, l]) => (
             <button key={k} onClick={() => setFilter(k)} className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${filter === k ? 'bg-[#0064FF] text-white' : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'}`}>{l}</button>
           ))}
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} aria-label="정렬"
-            className="rounded-lg border border-white/10 bg-black/40 px-2.5 py-1.5 text-xs font-bold text-white/80 outline-none focus:border-[#0064FF]">
-            <option value="followers">팔로워순</option>
-            <option value="activity">활동량순</option>
-            <option value="recent">최근 게시물순</option>
-            <option value="name">이름순</option>
-          </select>
         </div>
 
         {/* 일괄 작업 */}

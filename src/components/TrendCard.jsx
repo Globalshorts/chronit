@@ -3,7 +3,7 @@ import { Flame, Eye, Heart, MessageCircle, Sparkles, Lock, Play, Bookmark, Layer
 import { fmtCount, timeAgo } from '../lib/format'
 import { isCarousel, coverOf, imagesOf, openPost } from '../lib/filterConfig'
 
-// 트렌드 피드 카드 — 트렌드/워치리스트 공용.
+// 트렌드 피드 카드 — 트렌드/벤치마크 공용.
 const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
 
 // 스토리지 원본 URL을 피드 카드용 리사이즈(render) URL로 바꿔 egress 절감 (원본은 보관, 서빙만 축소).
@@ -117,9 +117,9 @@ export default function TrendCard({
           <button onClick={onUnlock} className="flex w-full items-center justify-center gap-1 rounded-lg bg-[#0064FF] py-1.5 text-xs font-bold text-white transition hover:brightness-95"><Lock size={12} />잠금 해제하고 보기</button>
         ) : (
           <>
-            <button onClick={onScript} title={scriptState?.error || '이 소재로 대본 작성하기'}
-              className={`flex w-full items-center justify-center gap-1 rounded-lg py-1.5 text-xs font-bold text-white transition hover:brightness-95 ${scriptState?.status === 'ready' ? 'bg-emerald-500' : scriptState?.status === 'error' ? 'bg-rose-500' : 'bg-[#0064FF]'}${coach ? ' animate-pulse ring-2 ring-[#0064FF]/45 ring-offset-2' : ''}`}>
-              {scriptState?.status === 'generating' ? <><Loader2 size={12} className="animate-spin" />베라에서 확인하기</> : scriptState?.status === 'ready' ? <><ArrowRight size={12} />베라에서 보기</> : scriptState?.status === 'error' ? <><Sparkles size={12} />다시 시도</> : <><Sparkles size={12} />대본 작성</>}
+            <button onClick={onScript} disabled={scriptState?.status === 'generating'} title={scriptState?.error || '이 소재로 대본 작성하기'}
+              className={`flex w-full items-center justify-center gap-1 rounded-lg py-1.5 text-xs font-bold text-white transition hover:brightness-95 ${scriptState?.status === 'ready' ? 'bg-emerald-500' : scriptState?.status === 'error' ? 'bg-rose-500' : 'bg-[#0064FF]'} ${scriptState?.status === 'generating' ? 'opacity-70' : ''}${coach ? ' animate-pulse ring-2 ring-[#0064FF]/45 ring-offset-2' : ''}`}>
+              {scriptState?.status === 'generating' ? <><Loader2 size={12} className="animate-spin" />생성 중…</> : scriptState?.status === 'ready' ? <><ArrowRight size={12} />베라에서 보기</> : scriptState?.status === 'error' ? <><Sparkles size={12} />다시 시도</> : <><Sparkles size={12} />대본 작성</>}
             </button>
             <div className="mt-1.5 flex gap-1.5">
               {onAnalyze && (
@@ -129,7 +129,7 @@ export default function TrendCard({
                 </button>
               )}
               {onToggleWatch && (
-                <button onClick={onToggleWatch} title="담기 = 이 계정을 워치리스트에 저장" aria-pressed={watching}
+                <button onClick={onToggleWatch} title="담기 = 이 계정을 벤치마크에 저장" aria-pressed={watching}
                   className={`flex flex-1 items-center justify-center gap-1 rounded-lg border py-1.5 text-xs font-bold transition ${watching ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-white/10 text-white/55 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>
                   <Bookmark size={12} className={watching ? 'fill-emerald-500 text-emerald-500' : ''} />{watching ? '담김' : '담기'}
                 </button>

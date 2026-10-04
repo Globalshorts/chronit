@@ -3,7 +3,7 @@ import { Bookmark, RefreshCw, Gift, Check, Lock, Loader2, ChevronRight } from 'l
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
 
-// 워치리스트 성장 트랙 — 등록 → 갱신을 번갈아 태우는 순차 트랙.
+// 벤치마크 성장 트랙 — 등록 → 갱신을 번갈아 태우는 순차 트랙.
 // 지금 할 단계 하나만 크게 보여주고 나머지는 로드맵으로 흐리게 둔다(다음에 뭘 할지만 보이게).
 export default function WatchlistTrack({ onGo, onClaimed }) {
   const [steps, setSteps] = useState([])
@@ -55,7 +55,7 @@ export default function WatchlistTrack({ onGo, onClaimed }) {
     reload()
   }
 
-  // 갱신 단계는 '갱신을 실행하러 가는 것'이 핵심이라 버튼이 워치리스트로 보낸다
+  // 갱신 단계는 '갱신을 실행하러 가는 것'이 핵심이라 버튼이 벤치마크로 보낸다
   const go = (step) => {
     try { phCapture('track_step_cta', { key: step.key, type: step.type }) } catch { /* noop */ }
     onGo?.()
@@ -65,7 +65,7 @@ export default function WatchlistTrack({ onGo, onClaimed }) {
     <div className="mt-5 rounded-2xl glass p-4">
       <div className="mb-3 flex items-center gap-1.5">
         <Bookmark size={14} className="text-emerald-400" />
-        <h4 className="text-sm font-bold text-white">워치리스트 성장</h4>
+        <h4 className="text-sm font-bold text-white">벤치마크 성장</h4>
         <span className="ml-auto text-[11px] text-white/35">{doneCount}/{steps.length} 단계</span>
       </div>
 

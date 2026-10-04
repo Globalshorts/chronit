@@ -15,7 +15,7 @@ const PACKS = [{ credits: 10, price: 4900 }, { credits: 30, price: 12900, hot: t
 
 export default function Pricing() {
   const nav = useNavigate()
-  const SUBS = usePlans()          // 가격·이용권·워치리스트 한도는 plans 테이블에서
+  const SUBS = usePlans()          // 가격·이용권·벤치마크 한도는 plans 테이블에서
   const [user, setUser] = useState(null)
   const [priceTab, setPriceTab] = useState('monthly')
   const [buyOpen, setBuyOpen] = useState(false)
@@ -78,7 +78,7 @@ export default function Pricing() {
                 <div key={p.id} onClick={() => buy('sub', annual ? 'annual' : 'monthly')} className={cardCls(p.id === HOT)}>
                   <div className="flex items-center gap-2"><h4 className="text-lg font-semibold text-gray-900">{p.name}</h4>{p.id === HOT && <span className="rounded-full bg-[#0064FF]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0064FF]">인기</span>}</div>
                   <p className="mt-1 text-sm font-bold text-gray-800">월 {creditsDo(p.credits)}</p>
-                  <p className="text-xs text-gray-400">이용권 {p.credits.toLocaleString('ko-KR')}개 · 워치리스트 {p.watch.toLocaleString('ko-KR')}계정</p>
+                  <p className="text-xs text-gray-400">이용권 {p.credits.toLocaleString('ko-KR')}개 · 벤치마크 계정 {p.watch.toLocaleString('ko-KR')}개</p>
                   {annual ? (
                     <div className="mt-4">
                       <div className="flex items-baseline gap-1"><span className="text-3xl font-bold text-[#0064FF]">₩{annualPerMonth(p.price).toLocaleString('ko-KR')}</span><span className="text-sm text-gray-400">/ 월</span></div>
@@ -99,7 +99,7 @@ export default function Pricing() {
             </div>
           )}
           <p className="mt-6 text-center text-sm text-gray-400">이용권은 <span className="font-semibold text-gray-600">매월 초기화</span>돼요 · 남은 이용권은 이월·누적되지 않아요.</p>
-          <p className="mt-1.5 text-center text-sm text-gray-400">워치리스트 갱신은 <span className="font-semibold text-gray-600">{ACCOUNTS_PER_CREDIT}계정당 이용권 1개</span>가 차감돼요.</p>
+          <p className="mt-1.5 text-center text-sm text-gray-400">벤치마크 계정 갱신은 <span className="font-semibold text-gray-600">{ACCOUNTS_PER_CREDIT}계정당 이용권 1개</span>가 차감돼요.</p>
         </div>
       </section>
 

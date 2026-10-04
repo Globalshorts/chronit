@@ -3,7 +3,7 @@ import { X, Upload, Loader2, AlertTriangle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { readAccountsFile } from '../lib/importAccounts'
 
-// CSV/시트에서 감시 계정 불러오기 — 파일 선택 → 추출 미리보기 → 등록.
+// CSV/시트에서 벤치마크 계정 불러오기 — 파일 선택 → 추출 미리보기 → 등록.
 // 등록은 watch_bulk_add_rpc 한 번으로 끝낸다(중복·형식·한도는 서버가 판정).
 export default function ImportAccountsModal({ open, onClose, onDone }) {
   const fileRef = useRef(null)
@@ -60,7 +60,7 @@ export default function ImportAccountsModal({ open, onClose, onDone }) {
               {result.added}개 추가 · {result.duplicates}개 중복 · {result.invalid}개 형식오류
               {result.over_limit > 0 ? ` · ${result.over_limit}개 한도초과` : ''}
             </p>
-            <p className="mt-1 text-xs text-white/40">현재 감시 계정 {result.total_now}/{result.limit}개</p>
+            <p className="mt-1 text-xs text-white/40">현재 벤치마크 계정 {result.total_now}/{result.limit}개</p>
             {result.over_limit > 0 && (
               <div className="mt-3 flex items-start gap-2 rounded-xl bg-amber-500/10 p-3 text-xs text-amber-300">
                 <AlertTriangle size={14} className="mt-0.5 shrink-0" />

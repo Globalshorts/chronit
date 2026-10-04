@@ -214,7 +214,7 @@ export default function ActivationOnboarding({ onDone, onDefer }) {
             <p className="text-center text-xl font-bold text-white">준비 끝났어요</p>
             <p className="mt-1.5 text-center text-sm leading-relaxed text-white/55">
               {savedOwner
-                ? <>@{savedOwner} 를 워치리스트에 담았어요. 이 계정의 새 소재를 계속 받아볼 수 있어요.</>
+                ? <>@{savedOwner} 를 벤치마크에 담았어요. 이 계정의 새 소재를 계속 받아볼 수 있어요.</>
                 : <>고른 분야의 소재를 계속 모아드릴게요.</>}
             </p>
 

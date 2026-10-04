@@ -109,7 +109,7 @@ export default function Trend() {
   const [watchOv, setWatchOv] = useState({})
   const isWatching = (it) => (it && it.shortcode in watchOv ? watchOv[it.shortcode] : !!(it && it.watching))
 
-  // 대본 작성 2단계 — 공용 훅(트렌드/워치리스트). markActed로 활성 추적만 감싼다.
+  // 대본 작성 2단계 — 공용 훅(트렌드/벤치마크). markActed로 활성 추적만 감싼다.
   const { scriptGen, startScript: _startScript } = useScriptGen()
   const startScript = (it, thumb) => { markActed(); _startScript(it, thumb) }
   const goAnalyze = (it, thumb) => { markActed(); nav('/script', { state: { source_ref: it.shortcode, caption: it.caption || '', thumbnail: thumb || '', analyze: true } }) }
@@ -515,7 +515,7 @@ export default function Trend() {
                         <div className="mb-2 line-clamp-2 text-[12px] font-medium text-white/85">{maskHandles(it.caption) || '(설명 없음)'}</div>
                         <div className="flex gap-1.5">
                           <button onClick={() => startScript(it, coverOf(it) || '')} title={scriptGen[it.shortcode]?.error || '이 소재로 대본 작성'} className={`flex flex-1 items-center justify-center gap-1 rounded-lg py-1.5 text-[11px] font-bold text-white transition hover:brightness-95 ${scriptGen[it.shortcode]?.status === 'ready' ? 'bg-emerald-500' : scriptGen[it.shortcode]?.status === 'error' ? 'bg-rose-500' : 'bg-[#0064FF]'}`}>{scriptGen[it.shortcode]?.status === 'generating' ? <><Loader2 size={11} className="animate-spin" />베라에서 확인하기</> : scriptGen[it.shortcode]?.status === 'ready' ? <><ArrowRight size={11} />베라에서 보기</> : scriptGen[it.shortcode]?.status === 'error' ? <><Sparkles size={11} />다시 시도</> : <><Sparkles size={11} />대본 작성</>}</button>
-                          <button onClick={() => saveItem(it)} title="담기 = 이 계정을 워치리스트에 저장" aria-pressed={watching} className={`flex flex-1 items-center justify-center gap-1 rounded-lg border py-1.5 text-[11px] font-bold transition ${watching ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-white/10 text-white/55 hover:border-[#0064FF] hover:text-[#0064FF]'}`}><Bookmark size={11} className={watching ? 'fill-emerald-500 text-emerald-500' : ''} />{watching ? '담김' : '담기'}</button>
+                          <button onClick={() => saveItem(it)} title="담기 = 이 계정을 벤치마크에 저장" aria-pressed={watching} className={`flex flex-1 items-center justify-center gap-1 rounded-lg border py-1.5 text-[11px] font-bold transition ${watching ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-white/10 text-white/55 hover:border-[#0064FF] hover:text-[#0064FF]'}`}><Bookmark size={11} className={watching ? 'fill-emerald-500 text-emerald-500' : ''} />{watching ? '담김' : '담기'}</button>
                         </div>
                       </div>
                     </div>
@@ -536,7 +536,7 @@ export default function Trend() {
             </div>
           )}
           <p className="mb-2 text-[11px] font-medium text-white/35">
-            <b className="text-white/45">대본 작성</b> = 이 소재로 베라가 대본 작성 · <b className="text-white/45">담기</b> = 이 계정을 워치리스트에 저장
+            <b className="text-white/45">대본 작성</b> = 이 소재로 베라가 대본 작성 · <b className="text-white/45">담기</b> = 이 계정을 벤치마크에 저장
           </p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {list.map((it, i) => {
@@ -588,7 +588,7 @@ export default function Trend() {
       {limitModal && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4" onClick={() => setLimitModal(null)}>
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-white" onClick={(e) => e.stopPropagation()}>
-            <h3 className="mb-2 text-base font-bold">감시 계정 한도 초과</h3>
+            <h3 className="mb-2 text-base font-bold">벤치마크 계정 한도 초과</h3>
             <p className="text-sm leading-relaxed text-white/55">현재 요금제 감시 한도({limitModal.limit ?? ''}개)를 다 쓰셨어요. 업그레이드하시겠어요?</p>
             <div className="mt-5 flex gap-2">
               <button onClick={() => setLimitModal(null)} className="flex-1 rounded-xl border border-white/10 py-2.5 text-sm font-bold text-white/45 hover:bg-white/5">나중에</button>

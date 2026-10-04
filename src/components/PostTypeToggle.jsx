@@ -1,6 +1,6 @@
 import { POST_TYPES } from '../lib/filterConfig'
 
-// 콘텐츠 유형 토글 [전체 | 릴스 | 캐러셀] — 트렌드·패스트벤치·워치리스트 필터 패널 공용.
+// 콘텐츠 유형 토글 [전체 | 릴스 | 캐러셀] — 트렌드·패스트벤치·벤치마크 필터 패널 공용.
 // 필터 패널(어두운 배경)의 지역·정렬 버튼과 같은 모양을 쓴다.
 export default function PostTypeToggle({ value, onChange }) {
   return (

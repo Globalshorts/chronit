@@ -157,7 +157,7 @@ export default function FindsPricing({ open, onClose, defaultTab = 'sub', defaul
                       {isCurrent && <span className="ml-1.5 rounded bg-white/15 px-1.5 py-0.5 text-[10px] text-white/70">현재 플랜</span>}
                       {isChange && <span className={`ml-1.5 rounded px-1.5 py-0.5 text-[10px] ${up ? 'bg-[#0064FF]/25 text-[#8ab4ff]' : 'bg-white/10 text-white/55'}`}>{up ? '업그레이드' : '다운그레이드'}</span>}
                     </div>
-                    <div className="text-[11px] text-white/35">이용권 {p.credits.toLocaleString('ko-KR')}개 · 워치리스트 {p.watch.toLocaleString('ko-KR')}계정</div>
+                    <div className="text-[11px] text-white/35">이용권 {p.credits.toLocaleString('ko-KR')}개 · 벤치마크 계정 {p.watch.toLocaleString('ko-KR')}개</div>
                     <div className="text-xs text-white/35">
                       {isCurrent ? '현재 이용 중인 플랜이에요'
                         : isChange ? (up ? '지금 바꾸면 남은 기간 차액만 결제 · 이용권 즉시 증가' : '다음 결제일부터 변경 · 그때까지 현재 이용권 유지')

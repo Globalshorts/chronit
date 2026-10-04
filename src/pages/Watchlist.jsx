@@ -71,7 +71,7 @@ export default function Watchlist() {
 
   const isReal = !!session && session.user?.is_anonymous !== true
   const uid = session?.user?.id
-  // 카드의 북마크 = 그 계정을 워치리스트에 담기/빼기
+  // 카드의 북마크 = 그 계정을 벤치마크에 담기/빼기
   const { isWatched, toggle: toggleWatch } = useWatchToggle({
     enabled: isReal, source: 'watchlist',
     onNeedLogin: () => setShowAuth(true),
@@ -248,7 +248,7 @@ export default function Watchlist() {
     return (
       <div className="mx-auto max-w-5xl px-4 py-16 text-center">
         <Bookmark size={28} className="mx-auto mb-3 text-[#0064FF]" />
-        <p className="text-lg font-bold text-white">워치리스트는 로그인 후 이용할 수 있어요</p>
+        <p className="text-lg font-bold text-white">벤치마크는 로그인 후 이용할 수 있어요</p>
         <p className="mt-1 text-sm text-white/50">경쟁 계정을 등록해두면 새 게시물을 한 화면에서 볼 수 있어요.</p>
         <button onClick={() => setShowAuth(true)} className="mt-5 rounded-full bg-[#0064FF] px-6 py-2.5 text-sm font-bold text-white">무료로 로그인 / 가입</button>
         <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
@@ -262,7 +262,7 @@ export default function Watchlist() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-[#0064FF]">
             <Bookmark size={22} />
-            <h1 className="text-2xl font-extrabold text-white">워치리스트</h1>
+            <h1 className="text-2xl font-extrabold text-white">벤치마크</h1>
           </div>
           <div className="flex items-center gap-2 rounded-full bg-white/5 px-3.5 py-1.5 text-xs">
             <Sparkles size={13} className="text-[#0064FF]" />
@@ -370,7 +370,7 @@ export default function Watchlist() {
         <div className="rounded-2xl glass p-10 text-center">
           <div className="mb-2 text-3xl">👀</div>
           <p className="font-bold text-white/80">감시할 계정을 먼저 추가해주세요.</p>
-          <p className="mt-1 text-sm text-white/45">경쟁 계정·벤치마크 계정을 등록하면 새 게시물을 모아서 보여드려요.</p>
+          <p className="mt-1 text-sm text-white/45">경쟁·레퍼런스 계정을 등록하면 새 게시물을 모아서 보여드려요.</p>
         </div>
       ) : (
         <>

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Flame, Bookmark } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
-// "지난 방문 이후 새 N건" 배지 두 개 — 트렌드와 워치리스트.
+// "지난 방문 이후 새 N건" 배지 두 개 — 트렌드와 벤치마크.
 // 기준 시각은 이 기기의 localStorage 에만 둔다(서버 왕복 없음).
 const TREND_KEY = 'chr_trend_lastSeen'
 const WATCH_KEY = 'chr_watch_lastSeen'

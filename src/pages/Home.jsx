@@ -10,7 +10,6 @@ import HeaderInstallBtn from '../components/HeaderInstallBtn'
 import SiteNav from '../components/SiteNav'
 import Reveal from '../components/Reveal'
 import RevealStagger from '../components/RevealStagger'
-import { useHeroVariant } from '../lib/useHeroVariant'
 import { supabase } from '../lib/supabase'
 import { phCapture } from '../lib/posthog'
 import { fbTrack } from '../lib/fbq'
@@ -127,7 +126,7 @@ const HERO_PH = [
 const HOT_PLAN = 'finds100'
 
 const Home = () => {
-  const subs = usePlans()          // 가격·이용권·워치리스트 한도는 plans 테이블에서
+  const subs = usePlans()          // 가격·이용권·벤치마크 한도는 plans 테이블에서
   const [scrolled, setScrolled] = useState(false)
   const [paymentOpen, setPaymentOpen] = useState(false)
   const [buyOpen, setBuyOpen] = useState(false)
@@ -155,7 +154,6 @@ const Home = () => {
   const [badgeIdx, setBadgeIdx] = useState(0)
   const [heroPersona, setHeroPersona] = useState(2)
   const [heroQuery, setHeroQuery] = useState('')
-  const heroVariant = useHeroVariant()  // 랜딩 히어로 A/B (PostHog: landing-hero)
   const [phIdx, setPhIdx] = useState(0)
   useEffect(() => { idle(() => supabase.rpc('public_stats_rpc').then(({ data }) => { if (data) setStats(data) })) }, [])
   const PAINS = [
@@ -574,27 +572,19 @@ const Home = () => {
             </div>
           )}
           {!user && (<>
-            <p className="hero-shimmer mb-6 text-[11px] font-semibold uppercase tracking-[0.32em]">{heroVariant === 'B' ? '쇼핑 크리에이터를 위한 AI' : 'Trend · Vera · Script'}</p>
-            {heroVariant === 'B' ? (
-              <h1 className="mb-6 text-[2.4rem] font-semibold leading-[1.16] tracking-tight text-white break-keep md:text-[3.7rem]">
-                오늘 뭐 팔지,<br /><span className="text-[#A9C0FF]">아직도 인스타에서 찾으세요?</span>
-              </h1>
-            ) : (
-              <h1 className="mb-6 text-[2.4rem] font-semibold leading-[1.16] tracking-tight text-white break-keep md:text-[3.7rem]">
-                쇼핑 크리에이터의<br /><span className="text-[#A9C0FF]">AI 콘텐츠 비서</span>
-              </h1>
-            )}
+            <p className="hero-shimmer mb-6 text-[11px] font-semibold uppercase tracking-[0.32em]">Trend · Vera · Script</p>
+            <h1 className="mb-6 text-[2.4rem] font-semibold leading-[1.16] tracking-tight text-white break-keep md:text-[3.7rem]">
+              쇼핑 크리에이터의<br /><span className="text-[#A9C0FF]">AI 콘텐츠 비서</span>
+            </h1>
             <p className="mx-auto mb-10 max-w-md text-[15px] font-normal leading-relaxed text-white/45 break-keep md:text-base">
-              {heroVariant === 'B'
-                ? '지금 반응하는 쇼핑 릴스를 찾고, 왜 터졌는지 분석하고, 내 말투로 대본까지.'
-                : '지금 뜨는 소재를 찾고, 분석하고, 내 말투로 대본까지.'}
+              지금 팔리는 소재를 찾아, 내 말투로 대본까지.
             </p>
             <div className="flex w-full max-w-sm flex-col items-center gap-4">
               <button onClick={handleFinds}
                 className="w-full rounded-full bg-white px-8 py-4 text-base font-semibold text-[#0A0B0F] transition-all hover:bg-white/90 active:scale-[0.99]">
-                {heroVariant === 'B' ? '무료로 쇼핑 릴스 찾아보기' : '무료로 대본 만들어보기'}
+                무료로 대본 만들어보기
               </button>
-              <p className="text-[13px] font-normal text-white/35">{heroVariant === 'B' ? '카드 없이 무료 5회 · 월 9,900원부터' : '카드 등록 없이 · 월 5회 무료'}</p>
+              <p className="text-[13px] font-normal text-white/35">카드 등록 없이 · 월 5회 무료</p>
               {spots != null && spots > 0 && (
                 <p className="mt-4 flex items-center gap-1.5 text-[13px] font-normal text-white/40">
                   <Users size={13} className="text-white/40" /> 이미 <span className="font-semibold text-white/70">{spots.toLocaleString('ko-KR')}</span>명의 크리에이터가 함께합니다
@@ -604,26 +594,6 @@ const Home = () => {
           </>)}
         </div>
       </section>
-
-      {/* ── 3단계: 찾고 → 분석하고 → 대본까지 ── */}
-      {!user && (
-        <section className="px-5 pb-4 pt-2 md:px-8">
-          <RevealStagger className="mx-auto grid max-w-3xl grid-cols-3 gap-3 md:gap-4">
-            {[
-              { n: '01', Icon: Search, t: '찾기', d: '지금 반응하는\n쇼핑 릴스 발견' },
-              { n: '02', Icon: MessageCircle, t: '분석', d: '왜 터졌는지\nAI에게 질문' },
-              { n: '03', Icon: Captions, t: '만들기', d: '내 말투로\n대본 완성' },
-            ].map(({ n, Icon, t, d }) => (
-              <div key={n} className="flex flex-col items-center rounded-2xl glass glass-c px-3 py-6 text-center md:px-4 md:py-7">
-                <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-[#0064FF]/15 text-[#A9C0FF]"><Icon size={20} /></span>
-                <div className="text-[10px] font-bold tracking-widest text-white/30">{n}</div>
-                <div className="mt-1 text-base font-bold text-white md:text-lg">{t}</div>
-                <p className="mt-1.5 whitespace-pre-line text-xs leading-relaxed text-white/45 md:text-sm">{d}</p>
-              </div>
-            ))}
-          </RevealStagger>
-        </section>
-      )}
 
       {/* ── 실데이터 통계 스트립 ── */}
       {stats?.clips ? (
@@ -675,7 +645,7 @@ const Home = () => {
             {[
               { q: '트렌드 소재는 얼마나 자주 갱신되나요?', a: (<>AI가 <b className="font-bold text-[#5AA0FF]">매일</b> 새 쇼핑 소재를 발굴해 실시간으로 채워요{stats?.clips ? <> — 지금까지 모은 소재 <b className="text-white">{Number(stats.clips).toLocaleString('ko-KR')}+</b></> : ''}. 수백 개 트렌드 계정을 24시간 추적해, 남들이 따라 하기 전에 먼저 만날 수 있어요.</>) },
               { q: '베라 대본 비서는 뭘 해주나요?', a: '고른 소재를 바탕으로 내 말투에 맞는 릴스 대본을 써줍니다. 대화로 톤·길이·표현을 다듬을수록 내 말투를 학습해 점점 나다워집니다.' },
-              { q: '이용권은 어디에 쓰이나요?', a: '이용권은 ① 베라 AI로 대본을 만들 때(대본 1개 = 10턴 세션 · 이용권 2개) ② 워치리스트에서 감시 계정의 새 게시물을 가져올 때(50계정당 1개) ③ 채널 분석(1회 1개)에 쓰여요. 트렌드 열람·검색은 무료이고, 무료 회원에게도 매월 이용권 5개를 드려요.' },
+              { q: '이용권은 어디에 쓰이나요?', a: '이용권은 ① 베라 AI로 대본을 만들 때(대본 1개 = 10턴 세션 · 이용권 2개) ② 벤치마크에서 등록한 계정의 새 게시물을 가져올 때(50계정당 1개) ③ 채널 분석(1회 1개)에 쓰여요. 트렌드 열람·검색은 무료이고, 무료 회원에게도 매월 이용권 5개를 드려요.' },
               { q: '여러 명이 함께 쓰는 팀 계정을 지원하나요?', a: '네, 팀 계정 관련은 문의 이메일(help@chronit.kr)로 연락주세요!' },
             ].map(({ q, a }) => (
               <div key={q} className="rounded-2xl glass glass-c p-6 shadow-none md:p-7">
@@ -763,7 +733,7 @@ const Home = () => {
                 })}
               </div>
               <p className="mt-6 text-center text-sm text-white/35">이용권은 <span className="font-semibold text-white/60">매월 초기화</span>됩니다 · 남은 이용권은 이월·누적되지 않습니다.{priceTab === 'annual' ? ' 연간도 매월 자동 충전됩니다.' : ''}</p>
-              <p className="mt-1.5 text-center text-sm text-white/35">워치리스트 갱신은 <span className="font-semibold text-white/60">{ACCOUNTS_PER_CREDIT}계정당 이용권 1개</span>가 차감됩니다.</p>
+              <p className="mt-1.5 text-center text-sm text-white/35">벤치마크 계정 갱신은 <span className="font-semibold text-white/60">{ACCOUNTS_PER_CREDIT}계정당 이용권 1개</span>가 차감됩니다.</p>
             </>
           )}
         </Reveal>

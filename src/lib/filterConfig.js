@@ -1,4 +1,4 @@
-// 피드 필터 공용 설정 — 트렌드 / 패스트벤치 / 워치리스트가 같은 값을 쓴다.
+// 피드 필터 공용 설정 — 트렌드 / 패스트벤치 / 벤치마크가 같은 값을 쓴다.
 //
 // 게시일 상한이 7일인 이유: 수집 쪽 보관 기간이 7일(watch-scan RECENCY_DAYS = 7)이라
 // 7일보다 뒤를 고를 수 있게 해도 항상 빈 구간이 된다. 보관 기간이 바뀌면 여기만 고치면 된다.
@@ -43,7 +43,7 @@ export const openPost = (url) => { if (url) window.open(url, '_blank', 'noopener
 export const viewRankOf = (it) =>
   isCarousel(it) ? Number(it.like_count) || 0 : Number(it.view_count) || 0
 
-// 트렌드·워치리스트 행 → 분석/재생 모달이 받는 clip 모양
+// 트렌드·벤치마크 행 → 분석/재생 모달이 받는 clip 모양
 export const feedClip = (it) => ({
   title: it.caption, source: 'instagram', thumbnail_url: coverOf(it), author: it.owner,
   views: it.view_count, likes: it.like_count, comments: it.comment_count,

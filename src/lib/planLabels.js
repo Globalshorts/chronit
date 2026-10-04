@@ -29,14 +29,14 @@ export const normalizePlan = (p) => {
 export const planLabel = (p) => PLAN_LABEL[p || 'free'] || '기타'
 
 // 요금제 스펙 — 실제 값은 DB(plans)에서 읽고, 이건 DB 응답 전/실패 시 폴백.
-// (가격·이용권·워치리스트 한도를 바꿀 땐 plans 테이블을 고치면 배포 없이 반영된다)
+// (가격·이용권·벤치마크 한도를 바꿀 땐 plans 테이블을 고치면 배포 없이 반영된다)
 export const PLAN_SPEC = {
   finds30:  { price: 9900,  credits: 60,  watch: 100 },
   finds100: { price: 24900, credits: 180, watch: 300 },
   finds300: { price: 34900, credits: 300, watch: 500 },
 }
 
-// 플랜별 부가 혜택 (이용권 수·워치리스트 한도는 스펙에서 자동 생성)
+// 플랜별 부가 혜택 (이용권 수·벤치마크 한도는 스펙에서 자동 생성)
 // '니치 알림'·'개인화 큐레이션'은 구현이 없어 삭제.
 // 패스트벤치는 프로 이상 전용(코드 게이팅과 일치).
 export const PLAN_PERKS = {
@@ -45,7 +45,7 @@ export const PLAN_PERKS = {
   finds300: ['실시간 트렌드 무제한', '패스트벤치 선점 리스트', 'CSV 내보내기', '우선 문의 응대'],
 }
 
-// 워치리스트 갱신 과금 단위 — 50계정당 이용권 1개
+// 벤치마크 계정 갱신 과금 단위 — 50계정당 이용권 1개
 export const ACCOUNTS_PER_CREDIT = 50
 
 // 이용권 소모: 대본 1건 = 2개(10턴 세션), 소재 분석 1회 = 1개 → "이용권 N개"를 바로 와닿는 행동으로 번역
