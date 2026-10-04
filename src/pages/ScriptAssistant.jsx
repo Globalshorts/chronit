@@ -8,6 +8,7 @@ import { useAnalysis } from '../context/analysis'
 import EnergyOrb from '../components/EnergyOrb'
 import ClipAnalysisReport from '../components/ClipAnalysisReport'
 import { TrendThumb } from '../components/TrendCard'
+import VideoModal from '../components/ReelModal'
 import { maskHandles } from '../lib/format'
 import { logEvent } from '../lib/events'
 import { phCapture } from '../lib/posthog'
@@ -80,6 +81,9 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [rnErr, setRnErr] = useState('')
   const [pendingAnalyze, setPendingAnalyze] = useState(false)  // 트렌드에서 분석 진입 시 자동 실행
   const [pendingGen, setPendingGen] = useState(false)  // 카드에서 대본 진입 시 자동 실행
+  const [clipBox, setClipBox] = useState(null)   // 상단 원본 클립 박스 {source_ref, caption, thumb}
+  const [playClip, setPlayClip] = useState(null) // 원본 영상 뷰어
+  const [clipVideo, setClipVideo] = useState('') // 원본 영상 프리페치 URL
   const [balance, setBalance] = useState(null)
   const [turns, setTurns] = useState(null)
   const [note, setNote] = useState('')
@@ -184,7 +188,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
     if (s && (s.source_ref || s.caption)) {
       setMessages([]); setJobId(null); setClips([])
       const base = { source_ref: s.source_ref || null, caption: String(s.caption || '').replace(/\s+/g, ' ').trim(), thumb: s.thumbnail || '' }
-      setSoso(base)
+      setSoso(base); setClipBox(base)
       if (s.analyze) setPendingAnalyze(true)
       if (s.gen) setPendingGen(true)   // 카드/모달에서 '대본' 1클릭 → 도착 즉시 자동 생성
       if (!base.caption && s.source_ref) {
@@ -194,6 +198,21 @@ export default function ScriptAssistant({ session: sessionProp }) {
       nav('.', { replace: true, state: null })
     }
   }, [loc.state])
+
+  // 클립 박스 캡션 보충 + 원본 영상 프리페치
+  useEffect(() => {
+    if (clipBox && clipBox.source_ref && !clipBox.caption) {
+      supabase.rpc('trend_detail_rpc', { p_shortcode: clipBox.source_ref })
+        .then(({ data }) => { const c = String(data?.caption || '').replace(/\s+/g, ' ').trim(); if (c) setClipBox(v => (v && v.source_ref === clipBox.source_ref) ? { ...v, caption: c } : v) }).then(null, () => {})
+    }
+    setClipVideo('')
+    const sc = clipBox?.source_ref
+    if (!sc) return
+    let alive = true
+    supabase.functions.invoke('trend-reel', { body: { shortcode: sc } }).then(({ data }) => { if (alive && data?.video_url) setClipVideo(data.video_url) }).then(null, () => {})
+    return () => { alive = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clipBox?.source_ref])
 
   // 트렌드에서 '분석'으로 진입하면 소재 붙은 뒤 자동 분석
   useEffect(() => {
@@ -229,7 +248,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
     const [{ data: msgs }, { data: cl }, { data: jrow }] = await Promise.all([
       supabase.from('job_messages').select('role,content').eq('job_id', id).order('created_at'),
       supabase.from('job_clips').select('id,storage_path,source_url,status').eq('job_id', id),
-      supabase.from('jobs').select('voice_mode,product_name,selling_points,analysis,status').eq('id', id).maybeSingle(),
+      supabase.from('jobs').select('voice_mode,product_name,selling_points,analysis,status,source_ref,script,script_b,ab_pending').eq('id', id).maybeSingle(),
     ])
     const isMy = jrow?.voice_mode === 'my' && voiceProfile?.has_voice === true
     // 분석 자료(상품·셀링포인트) 복원 — 첫 대본 메시지에 붙인다
@@ -244,11 +263,17 @@ export default function ScriptAssistant({ session: sessionProp }) {
       if (looksScript && analysis && !attached) { attached = true; base.analysis = analysis }
       return base
     })
+    if (jrow?.ab_pending && jrow?.script_b) {
+      const cleaned = built.filter((m) => !m.isScript)
+      cleaned.push({ role: 'assistant', ab: true, a: jrow.script || '', b: jrow.script_b, genre: '', mine: isMy, analysis, jobId: id })
+      built.length = 0; built.push(...cleaned)
+    }
     if (jrow?.analysis) built.unshift({ role: 'assistant', report: jrow.analysis })
     setMessages(built); setClips(cl || []); setJobId(id); setSoso(null)
+    if (jrow?.source_ref) setClipBox(v => (v && v.source_ref === jrow.source_ref) ? v : { source_ref: jrow.source_ref, caption: '', thumb: '' }); else setClipBox(null)
     try { const { data: jt } = await supabase.rpc('get_job_turns_rpc', { p_job_id: id }); setTurns(typeof jt?.turns_left === 'number' ? jt.turns_left : null) } catch { setTurns(null) }
   }
-  const newChat = () => { setMessages([]); setJobId(null); setSoso(null); setClips([]); setInput(''); setErr(''); setShowJobs(false); setTurns(null); resetGrow() }
+  const newChat = () => { setMessages([]); setJobId(null); setSoso(null); setClipBox(null); setPlayClip(null); setClips([]); setInput(''); setErr(''); setShowJobs(false); setTurns(null); resetGrow() }
 
   // 채널 분석: URL 입력 유도 → 다음 전송에서 실제 분석 실행
   const startChannelAnalysis = () => {
@@ -337,6 +362,16 @@ export default function ScriptAssistant({ session: sessionProp }) {
   }
 
   // 소재 카드로 대본 만들기 (분석 → 대본, 이용권 1)
+  const chooseVariant = async (i, variant) => {
+    setMessages((m) => m.map((x, idx) => (idx !== i || !x.ab) ? x : { role: 'assistant', text: variant === 'B' ? x.b : x.a, isScript: true, mine: x.mine, analysis: x.analysis }))
+    const msg = messages[i]; if (!msg) return
+    const chosen = variant === 'B' ? msg.b : msg.a; const jid = jobId || msg.jobId
+    try { track('vera_ab_chosen', { variant, genre: msg.genre }) } catch { /* noop */ }
+    try { const t = await token(); if (!t || !jid) return; await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'choose', job_id: jid, script: chosen, variant, genre: msg.genre }) }) } catch { /* noop */ }
+  }
+  const clipAnalyze = () => { if (!clipBox) return; setPlayClip(null); setSoso({ source_ref: clipBox.source_ref, caption: clipBox.caption || '', thumb: clipBox.thumb || '' }); setPendingAnalyze(true) }
+  const clipScript = () => { if (!clipBox) return; setPlayClip(null); setSoso({ source_ref: clipBox.source_ref, caption: clipBox.caption || '', thumb: clipBox.thumb || '' }); setPendingGen(true) }
+
   const generateFromSoso = async () => {
     if (busy || !soso) return
     setErr(''); setBusy(true); setStage('소재 분석 중… (상품·셀링포인트)')
@@ -354,9 +389,10 @@ export default function ScriptAssistant({ session: sessionProp }) {
       const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify(gbody) })
       const d = await r.json()
       if (!d.ok) { const blocked = d.code === 'INSUFFICIENT_CREDITS'; track(blocked ? 'vera_blocked_credits' : 'vera_gen_failed', { where: 'generate' }); setErr(blocked ? `이용권이 부족해요. 10턴 세션을 열려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '대본 생성 실패')); return }
-      const scriptMsg = { role: 'assistant', text: d.script, isScript: true, mine: voiceProfile?.has_voice === true, analysis: { product, selling: sp } }
-      if (jobId) { applyMeter(d); setMessages((m) => [...m, scriptMsg]) }
-      else { setJobId(d.job_id); applyMeter(d); setMessages([scriptMsg]) }
+      const meta = { mine: voiceProfile?.has_voice === true, analysis: { product, selling: sp }, jobId: jobId || d.job_id, genre: d.genre || null }
+      const outMsg = d.script_b ? { role: 'assistant', ab: true, a: d.script, b: d.script_b, ...meta } : { role: 'assistant', text: d.script, isScript: true, ...meta }
+      if (jobId) { applyMeter(d); setMessages((m) => [...m, outMsg]) }
+      else { setJobId(d.job_id); applyMeter(d); setMessages([outMsg]) }
       sawScriptRef.current = true; track('vera_script_shown', { source: 'soso', mine: voiceProfile?.has_voice === true })
       loadJobs()
     } catch (e) { track('vera_gen_failed', { where: 'generate', error: String(e).slice(0, 120) }); setErr(String(e)) } finally { setBusy(false); setStage('') }
@@ -558,6 +594,20 @@ export default function ScriptAssistant({ session: sessionProp }) {
         </div>
       )}
 
+      {!soso && clipBox?.source_ref && (
+        <button type="button" onClick={() => setPlayClip({ video_id: clipBox.source_ref, thumbnail_url: clipBox.thumb || '', caption: clipBox.caption || '', video_url: clipVideo || '' })}
+          className="mx-auto mt-3 flex w-full max-w-[700px] items-center gap-3 rounded-2xl glass p-2.5 text-left transition hover:brightness-110">
+          {clipBox.thumb
+            ? <img src={clipBox.thumb} referrerPolicy="no-referrer" className="h-16 w-12 shrink-0 rounded-lg object-cover" />
+            : <div className="h-16 w-12 shrink-0 overflow-hidden rounded-lg"><TrendThumb url="" sc={clipBox.source_ref} /></div>}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1 text-[11px] font-bold text-[#5AA0FF]"><Film size={12} /> 원본 클립 · 눌러서 보기</div>
+            <div className="line-clamp-2 text-[13px] leading-snug text-white/80">{clipBox.caption || '불러오는 중…'}</div>
+          </div>
+          <div className="shrink-0 rounded-full bg-white/10 px-3 py-2 text-xs font-bold text-white/70">원본 보기</div>
+        </button>
+      )}
+
       {/* 대화 영역 */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto py-6">
         {!started && !soso && !busy && (
@@ -640,6 +690,27 @@ export default function ScriptAssistant({ session: sessionProp }) {
               </div>
             )
             if (m.report) return <div key={i} className="sa-fade w-full max-w-[700px] self-start"><ClipAnalysisReport a={m.report} /></div>
+            if (m.ab) return (
+              <div key={i} className="sa-fade w-full max-w-[92%] self-start">
+                {m.analysis && (m.analysis.product || (m.analysis.selling && m.analysis.selling.length > 0)) && (
+                  <div className="mb-2 rounded-xl glass px-3.5 py-2.5 text-[12px]">
+                    <div className="mb-1 flex items-center gap-1 font-bold text-[#5AA0FF]"><BarChart3 size={12} /> 소재 분석</div>
+                    {m.analysis.product && <div className="text-white/85">상품 · {m.analysis.product}</div>}
+                    {m.analysis.selling && m.analysis.selling.length > 0 && <div className="mt-0.5 text-white/55">셀링포인트 · {m.analysis.selling.join(' / ')}</div>}
+                  </div>
+                )}
+                <div className="mb-1.5 text-[12px] font-bold text-white/50">두 가지 스타일로 써봤어요 — 마음에 드는 쪽을 고르면 그걸로 이어가요</div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {[['A', m.a], ['B', m.b]].map(([v, txt]) => (
+                    <div key={v} className="rounded-2xl glass-soft p-3">
+                      <div className="mb-1.5 inline-flex items-center gap-1 rounded-full bg-[#0064FF]/15 px-2 py-0.5 text-[11px] font-bold text-[#5AA0FF]">{v}안</div>
+                      <div className="whitespace-pre-wrap text-[14px] leading-relaxed text-white/95">{txt}</div>
+                      <button onClick={() => chooseVariant(i, v)} className="mt-3 w-full rounded-xl bg-[#0064FF] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95 active:scale-[0.99]">이 안으로 할게요</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
             if (m.role === 'user') return <div key={i} className="sa-fade max-w-[80%] self-end rounded-2xl rounded-br-md bg-[#0064FF] px-4 py-2.5 text-[15px] leading-relaxed text-white">{m.text}</div>
             return (
               <div key={i} className="sa-fade w-full max-w-[92%] self-start">
@@ -736,7 +807,10 @@ export default function ScriptAssistant({ session: sessionProp }) {
         {(() => {
           const last = messages[messages.length - 1]
           if (last?.trends) return null
-          const scriptOut = !!last?.isScript && !last?.trends
+          let modeMsg = null
+          for (let k = messages.length - 1; k >= 0; k--) { const mm = messages[k]; if (mm?.trends) break; if (mm?.ab || mm?.isScript || mm?.report) { modeMsg = mm; break } }
+          const scriptOut = !!(modeMsg?.ab || modeMsg?.isScript)
+          const isAnalyze = !!modeMsg?.report
           const atStart = !jobId && messages.length <= 1
           const chip = 'flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-white/70 transition hover:text-white'
           if (atStart) return (
@@ -749,12 +823,13 @@ export default function ScriptAssistant({ session: sessionProp }) {
           if (scriptOut && !busy) return (
             <div className="mx-auto mb-2 flex max-w-[700px] flex-wrap items-center gap-2">
               <span className="mr-0.5 text-[11px] font-bold text-white/35">다음 →</span>
-              {['더 짧게', '훅 더 세게', '댓글 유도 강하게', '다른 앵글로'].map(q => (
+              {['훅 다듬기', '더 짧게', '댓글 유도 넣기', '다른 앵글로'].map(q => (
                 <button key={q} onClick={() => send(q)} className={chip}>{q}</button>
               ))}
+              <button onClick={() => send('이 소재의 핵심 셀링포인트를 정리해서 보여줘')} className={chip + ' border-[#0064FF]/50 bg-[#0064FF]/10 text-[#5AA0FF]'}><BarChart3 size={13} /> 셀링포인트 보기</button>
             </div>
           )
-          if (last?.report && !busy) return (
+          if (isAnalyze && !busy) return (
             <div className="mx-auto mb-2 flex max-w-[700px] flex-wrap items-center gap-2">
               <span className="mr-0.5 text-[11px] font-bold text-white/35">다음 →</span>
               {soso && <button onClick={generateFromSoso} className={chip + ' border-[#0064FF]/50 bg-[#0064FF]/10 text-[#5AA0FF]'}><Sparkles size={13} /> 이 소재로 대본 만들기</button>}
@@ -788,6 +863,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       )}
       {showSettings && <PersonaSettings onClose={() => setShowSettings(false)} onChanged={() => loadVoiceProfile()} onRelearn={() => { setShowSettings(false); setShowOnboard(true) }} />}
       {showOnboard && <VoiceOnboard defaultHandle={voiceProfile?.ig_username || ''} onClose={() => { setShowOnboard(false); setOnboardData(null) }} onReady={() => { loadVoiceProfile(); refreshSession() }} onBackground={startVoiceLearnBg} initialData={onboardData} initialStep={onboardData ? 'review' : 'input'} />}
+      {playClip && <VideoModal clip={playClip} viewOnly onClose={() => setPlayClip(null)} onAnalyze={clipAnalyze} onScript={clipScript} scriptState={busy ? { status: 'generating' } : null} />}
     </div>
   )
 }
