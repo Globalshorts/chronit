@@ -33,7 +33,7 @@ export default function PaymentResult({ fail = false }) {
       const trial = mode === 'billing' && params.get('trial') === '1'
       const code = params.get('code') || ''
       const body = mode === 'billing'
-        ? { mode: 'billing', authKey: params.get('authKey'), customerKey: params.get('customerKey'), plan: params.get('plan'), period: params.get('period') || 'monthly', ...(trial ? { trial: true, code } : {}) }
+        ? { mode: 'billing', authKey: params.get('authKey'), customerKey: params.get('customerKey'), plan: params.get('plan'), period: params.get('period') || 'monthly', ...(trial ? { trial: true, code } : (code ? { code } : {})) }
         : { mode: 'confirm', paymentKey: params.get('paymentKey'), orderId: params.get('orderId'), amount: Number(params.get('amount') || 0) }
       try {
         // 토스 창에서 돌아온 직후라 세션 복원을 기다린 뒤 토큰을 명시적으로 싣는다

@@ -27,6 +27,8 @@ export default function FindsPricing({ open, onClose, defaultTab = 'sub', defaul
   const [period, setPeriod] = useState(defaultPeriod)
   const [busy, setBusy] = useState('')
   const [msg, setMsg] = useState('')
+  // 첫 달 할인 코드(discount_codes) — 이메일 링크 chronit.kr/pricing?code=HALF50 로 전달. 결제 시 서버가 검증·적용.
+  const [discCode] = useState(() => { try { return (new URLSearchParams(window.location.search).get('code') || '').trim().toUpperCase() } catch { return '' } })
   // 현재 구독 상태 — 활성 finds 구독이면 '신규 결제' 대신 '요금제 변경'(change-plan)으로 흐른다
   const [curPlan, setCurPlan] = useState(null)
   const [curActive, setCurActive] = useState(false)
@@ -78,7 +80,7 @@ export default function FindsPricing({ open, onClose, defaultTab = 'sub', defaul
       const payment = window.TossPayments(BCK).payment({ customerKey: user.id })
       await payment.requestBillingAuth({
         method: 'CARD', customerEmail: user.email,
-        successUrl: `${window.location.origin}/payments/success?type=billing&plan=${planId}&period=${period}`,
+        successUrl: `${window.location.origin}/payments/success?type=billing&plan=${planId}&period=${period}${discCode && !annual ? `&code=${encodeURIComponent(discCode)}` : ''}`,
         failUrl: `${window.location.origin}/payments/fail`,
       })
     } catch (e) { if (e?.code !== 'USER_CANCEL') setMsg('결제 오류: ' + (e?.message || e)); setBusy('') }
@@ -135,6 +137,11 @@ export default function FindsPricing({ open, onClose, defaultTab = 'sub', defaul
 
         {tab === 'sub' ? (
           <div className="flex flex-col gap-2">
+            {discCode && !curActive && (
+              <div className="mb-1 rounded-xl border border-[#0064FF]/40 bg-[#0064FF]/10 px-3 py-2 text-center text-[13px] font-bold text-[#8ab4ff]">
+                🎟️ 할인 코드 <b className="text-white">{discCode}</b> 적용 — {annual ? '연간은 제외, 월간 결제 시 ' : ''}첫 달 50% 할인가로 결제돼요
+              </div>
+            )}
             {/* 요금제 변경은 현재 구독 주기를 그대로 유지하므로 월간/연간 토글은 신규 결제일 때만 노출 */}
             {!curActive && (
               <div className="mb-1 flex items-center justify-center gap-1.5 text-xs font-bold">
