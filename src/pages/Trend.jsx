@@ -4,7 +4,6 @@ import { Navigate, Link, useNavigate } from 'react-router-dom'
 import { Flame, Eye, Heart, MessageCircle, ExternalLink, Loader2, Sparkles, HelpCircle, Zap, Crown, X, Bookmark, ArrowRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useScriptGen } from '../lib/useScriptGen'
-import ScriptGenToast from '../components/ScriptGenToast'
 import { phCapture } from '../lib/posthog'
 import { fbTrack } from '../lib/fbq'
 import { useProPlus } from '../lib/useProPlus'
@@ -582,7 +581,6 @@ export default function Trend() {
           </div>
         </div>
       )}
-      <ScriptGenToast scriptGen={scriptGen} />
       {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onScript={() => startScript({ shortcode: playClip.shortcode || playClip.video_id, caption: playClip.caption || '' }, playClip.thumbnail_url || coverOf(playClip) || '')} onAnalyze={() => { goAnalyze({ shortcode: playClip.shortcode || playClip.video_id, caption: playClip.caption || '' }, playClip.thumbnail_url || coverOf(playClip) || ''); setPlayClip(null) }} scriptState={scriptGen[playClip.shortcode || playClip.video_id]} onSave={() => saveItem({ ...playClip, shortcode: playClip.shortcode || playClip.video_id })} saved={isWatching({ ...playClip, shortcode: playClip.shortcode || playClip.video_id })} />}
       <FindsPricing open={payWall} onClose={() => setPayWall(false)} />
       {limitModal && (

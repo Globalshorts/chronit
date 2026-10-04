@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { Bookmark, Plus, RefreshCw, Loader2, Sparkles, X, AlertTriangle, Settings2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useScriptGen } from '../lib/useScriptGen'
-import ScriptGenToast from '../components/ScriptGenToast'
 import { phCapture } from '../lib/posthog'
 import { logEvent } from '../lib/events'
 import RangeFilter from '../components/RangeFilter'
@@ -430,7 +429,6 @@ export default function Watchlist() {
       )}
 
       {modalClip && <AnalyzeModal clip={modalClip} allowDownload={false} onClose={() => setModalClip(null)} />}
-      <ScriptGenToast scriptGen={scriptGen} />
       {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onScript={() => startScript({ shortcode: playClip.shortcode || playClip.video_id, caption: playClip.caption || '' }, playClip.thumbnail_url || '')} onAnalyze={() => { goAnalyze({ shortcode: playClip.shortcode || playClip.video_id, caption: playClip.caption || '' }, playClip.thumbnail_url || ''); setPlayClip(null) }} scriptState={scriptGen[playClip.shortcode || playClip.video_id]} />}
     </div>
   )

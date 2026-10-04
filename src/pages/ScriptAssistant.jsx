@@ -186,6 +186,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       const base = { source_ref: s.source_ref || null, caption: String(s.caption || '').replace(/\s+/g, ' ').trim(), thumb: s.thumbnail || '' }
       setSoso(base)
       if (s.analyze) setPendingAnalyze(true)
+      if (s.gen) setPendingGen(true)   // 카드/모달에서 '대본' 1클릭 → 도착 즉시 자동 생성
       if (!base.caption && s.source_ref) {
         supabase.rpc('trend_detail_rpc', { p_shortcode: s.source_ref })
           .then(({ data }) => { const c = String(data?.caption || '').replace(/\s+/g, ' ').trim(); if (c) setSoso(v => ({ ...v, caption: c })) }).then(null, () => {})
