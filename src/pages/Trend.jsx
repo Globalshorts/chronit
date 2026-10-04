@@ -429,8 +429,10 @@ export default function Trend() {
 
         {!isReal ? (
           (() => {
-            const previewPicks = [...preview].sort((a, b) => pickScore(b) - pickScore(a)).slice(0, 3)
-            const rest = preview.slice(3)
+            // 서버가 상위 3개만 teaser=true 로 실제 썸네일/캡션을 준다. 나머지는 null(블러칸).
+            const teasers = preview.filter((p) => p && p.teaser)
+            const previewPicks = (teasers.length ? teasers : preview).slice(0, 3)
+            const rest = preview.filter((p) => !(p && p.teaser))
             return (
             <div>
               {/* 오늘 먼저 볼 3개 — 선명하게(훅) */}
@@ -467,8 +469,9 @@ export default function Trend() {
                 <div className="pointer-events-none grid grid-cols-3 gap-3 blur-[6px] sm:grid-cols-4"
                   style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent)', maskImage: 'linear-gradient(to bottom, black 50%, transparent)' }}>
                   {(rest.length ? rest.slice(0, 8) : Array.from({ length: 8 })).map((it, i) => (
-                    <div key={(it && it.shortcode) || i} className="overflow-hidden rounded-xl glass">
-                      <div className="relative aspect-[9/16] bg-white/5">{it && coverOf(it) && <TrendThumb url={coverOf(it)} sc={it.shortcode} />}</div>
+                    // 블러칸: 실제 썸네일을 심지 않는다(서버도 null). 벗겨도 원본 없게 그라데이션 플레이스홀더만.
+                    <div key={i} className="overflow-hidden rounded-xl glass">
+                      <div className="relative aspect-[9/16] bg-gradient-to-br from-white/[0.07] to-white/[0.02]" />
                       <div className="p-2"><div className="h-3 w-3/4 rounded bg-white/10" /></div>
                     </div>
                   ))}
