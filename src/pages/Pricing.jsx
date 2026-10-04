@@ -70,7 +70,7 @@ export default function Pricing() {
                 <h4 className="text-lg font-semibold text-gray-900">무료</h4>
                 <p className="mt-1 text-sm text-gray-400">먼저 써보기</p>
                 <div className="mt-4 flex items-baseline gap-1"><span className="text-3xl font-bold text-gray-900">₩0</span></div>
-                <p className="mt-3 text-sm font-semibold leading-relaxed text-gray-700">매월 대본·소재 분석 5회</p>
+                <p className="mt-3 text-sm font-semibold leading-relaxed text-gray-700">매월 {creditsDo(5)}</p>
                 <p className="text-xs text-gray-400">이용권 5개 · 매월 충전</p>
                 <button onClick={() => { fbTrack('Lead', { content_name: 'free_start', location: 'pricing' }); if (user) nav('/research'); else setAuthOpen(true) }} className="mt-6 w-full rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-[#0064FF] hover:text-[#0064FF]">무료로 시작</button>
               </div>

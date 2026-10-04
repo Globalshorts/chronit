@@ -48,7 +48,8 @@ export const PLAN_PERKS = {
 // 워치리스트 갱신 과금 단위 — 50계정당 이용권 1개
 export const ACCOUNTS_PER_CREDIT = 50
 
-// 이용권 1개 = 대본 1건 또는 소재 분석 1회 → 추상적 "이용권 N개"를 바로 와닿는 행동으로 번역
-export const creditsDo = (c) => `대본·소재 분석 ${Number(c || 0).toLocaleString('ko-KR')}회`
+// 이용권 소모: 대본 1건 = 2개(10턴 세션), 소재 분석 1회 = 1개 → "이용권 N개"를 바로 와닿는 행동으로 번역
+export const SCRIPT_COST = 2
+export const creditsDo = (c) => { const n = Number(c || 0); return `대본 ${Math.floor(n / SCRIPT_COST).toLocaleString('ko-KR')}개 또는 소재 분석 ${n.toLocaleString('ko-KR')}회` }
 // 연간가(=월가×9)를 월 단위 체감가로 환산 (큰 연 총액 부담 완화용)
 export const annualPerMonth = (monthly) => Math.round(monthly * 9 / 12 / 10) * 10
