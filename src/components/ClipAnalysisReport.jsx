@@ -44,18 +44,19 @@ export default function ClipAnalysisReport({ a, shortcode }) {
     const u = await refresh()
     if (!u) setVstate('expired')
   }
-  const onDownload = async () => {
-    setDl(true)
-    const u = (freshRef.current && video) ? video : await refresh()
-    if (!u) { setVstate('expired'); setDl(false); return }
-    try {
-      // fbcdn은 CORS로 클라 fetch가 막힌다 → 같은 오리진 프록시(/api/dl)로 첨부 다운로드
-      const name = `${shortcode || 'clip'}.mp4`
-      const dlUrl = `/api/dl?src=${encodeURIComponent(u)}&name=${encodeURIComponent(name)}`
-      const link = document.createElement('a')
-      link.href = dlUrl; link.download = name
-      document.body.appendChild(link); link.click(); link.remove()
-    } catch { window.open(u, '_blank', 'noopener') } finally { setDl(false) }
+  const onDownload = () => {
+    // iOS/모바일은 클릭 '그 순간'에 다운로드를 안 걸면 사용자 제스처로 안 쳐서 막는다.
+    // 그래서 await(신선 URL 받기) 없이 즉시 <a>를 클릭한다. URL 만료 해석은 서버(/api/dl)가 한다.
+    // 신선 URL을 이미 들고 있으면 src= 로 바로, 없으면 shortcode= 로 서버가 trend-reel 해석.
+    const name = `${shortcode || 'clip'}.mp4`
+    const dlUrl = (freshRef.current && video)
+      ? `/api/dl?src=${encodeURIComponent(video)}&name=${encodeURIComponent(name)}`
+      : `/api/dl?shortcode=${encodeURIComponent(shortcode || '')}&name=${encodeURIComponent(name)}`
+    const link = document.createElement('a')
+    link.href = dlUrl; link.download = name
+    document.body.appendChild(link); link.click(); link.remove()
+    // 스피너는 잠깐만 (서버가 받는 동안 피드백). 다운로드는 이미 브라우저가 처리 중.
+    setDl(true); setTimeout(() => setDl(false), 2500)
   }
   if (!a) return null
   const cs = a.comment_sentiment || {}
