@@ -8,8 +8,6 @@ import { useAnalysis } from '../context/analysis'
 import EnergyOrb from '../components/EnergyOrb'
 import ClipAnalysisReport from '../components/ClipAnalysisReport'
 import { TrendThumb } from '../components/TrendCard'
-import VideoModal from '../components/ReelModal'
-import { useScriptGen } from '../lib/useScriptGen'
 import { maskHandles } from '../lib/format'
 import { logEvent } from '../lib/events'
 import { phCapture } from '../lib/posthog'
@@ -22,6 +20,36 @@ function Droplet({ size = 84, label }) {
     <div className="flex flex-col items-center gap-3">
       <EnergyOrb size={size} style={{ filter: 'drop-shadow(0 10px 34px rgba(0,100,255,.45))' }} />
       {label && <div className="text-sm text-white/50">{label}</div>}
+    </div>
+  )
+}
+
+// 내 말투 사전 — 베라가 실제로 학습한 말투 특징을 보여줘 '학습 체감'을 준다 (style_card 기반)
+function VoiceDict({ vp }) {
+  const sc = (vp && vp.style_card) || {}
+  const phrases = Array.isArray(sc.signature_phrases) ? sc.signature_phrases.filter(Boolean).slice(0, 6) : []
+  const chars = Array.isArray(sc.recurring_characters) ? sc.recurring_characters.filter(Boolean).slice(0, 5) : []
+  const rows = [['톤', sc.tone], ['시작 패턴', sc.opening_pattern], ['마무리 패턴', sc.closing_pattern]].filter(([, v]) => v && String(v).trim())
+  if (!rows.length && !phrases.length && !chars.length) return null
+  return (
+    <div className="w-full max-w-[640px] rounded-2xl glass p-4 text-left">
+      <div className="mb-2.5 flex items-center gap-1.5 text-[13px] font-bold text-white">
+        <Sprout size={14} className="text-emerald-400" /> 내 말투 사전
+        <span className="ml-auto text-[11px] font-medium text-white/40">{vp.n_learned ? `영상 ${vp.n_learned}개 학습` : ''}{vp.edit_count ? ` · 수정 ${vp.edit_count}회 반영` : ''}</span>
+      </div>
+      <div className="space-y-1.5 text-[12px]">
+        {rows.map(([k, v]) => (
+          <div key={k} className="flex gap-2"><span className="w-[52px] shrink-0 text-white/40">{k}</span><span className="text-white/80">{v}</span></div>
+        ))}
+        {phrases.length > 0 && (
+          <div className="flex gap-2"><span className="w-[52px] shrink-0 text-white/40">자주 쓰는 말</span><span className="flex flex-wrap gap-1">{phrases.map((p, i) => <span key={i} className="rounded-full bg-[#0064FF]/15 px-2 py-0.5 text-[11px] font-bold text-[#5AA0FF]">{p}</span>)}</span></div>
+        )}
+        {chars.length > 0 && (
+          <div className="flex gap-2"><span className="w-[52px] shrink-0 text-white/40">등장인물</span><span className="flex flex-wrap gap-1">{chars.map((c, i) => <span key={i} className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-bold text-white/70">{c}</span>)}</span></div>
+        )}
+        {vp.avg_len ? <div className="flex gap-2"><span className="w-[52px] shrink-0 text-white/40">평균 길이</span><span className="text-white/80">약 {vp.avg_len}자 / 문장</span></div> : null}
+      </div>
+      <div className="mt-2.5 text-[11px] text-white/35">대본을 직접 고칠수록 베라가 더 정확히 배워요</div>
     </div>
   )
 }
@@ -41,13 +69,11 @@ export default function ScriptAssistant({ session: sessionProp }) {
     return () => { window.removeEventListener('beforeunload', onLeave); onLeave() }
   }, [])
   const [session, setSession] = useState(sessionProp || null)
-  const restore = (() => { try { return JSON.parse(sessionStorage.getItem('vera_chat') || 'null') } catch { return null } })()
-  const [messages, setMessages] = useState(restore?.messages || [])
+  const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
-  const [jobId, setJobId] = useState(restore?.jobId || null)
+  const [jobId, setJobId] = useState(null)
   const [soso, setSoso] = useState(null)        // {source_ref, caption, thumb} 트렌드 소재
-  const [clipRef, setClipRef] = useState(restore?.clipRef || null)   // 현재 작업 클립 맥락 {source_ref, caption} — 대화에 실어 베라가 기억하게
   const [clips, setClips] = useState([])         // 이 작업의 소스 클립(레드노트 등)
   const [rnUrl, setRnUrl] = useState('')         // 레드노트 링크 입력
   const [rnBusy, setRnBusy] = useState(false)
@@ -77,11 +103,6 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [learnCount, setLearnCount] = useState(0)
   const [channelMode, setChannelMode] = useState(false)
   const { startChannel } = useAnalysis()
-  const { scriptGen } = useScriptGen()
-  const [clipBox, setClipBox] = useState(null)   // 상단 원본 클립 박스 {source_ref, caption, thumb}
-  const [clipVideo, setClipVideo] = useState('')  // 클립 박스 원본 영상 프리페치 URL (눌렀을 때 즉시 재생)
-  const [playClip, setPlayClip] = useState(null) // 원본 영상 뷰어(만료 시 재취득, IG 비노출)
-  const [awaitRef, setAwaitRef] = useState(null) // 트렌드에서 생성 중 넘어옴 — 완료되면 openJob
   const scrollRef = useRef(null)
   const greetedRef = useRef(false)
   const autoOpenRef = useRef(false)
@@ -102,7 +123,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
     try {
       const { data } = await supabase.rpc('get_voice_context_rpc')
       const has = !!(data && data.base_profile && Array.isArray(data.base_profile.transcripts) && data.base_profile.transcripts.length > 0)
-      setVoiceProfile(has ? { has_voice: true, ig_username: data.ig_username || '', style_card: data.style_card || {} } : { has_voice: false })
+      setVoiceProfile(has ? { has_voice: true, ig_username: data.ig_username || '', style_card: data.style_card || {}, avg_len: Number(data.avg_len || 0), edit_count: Number(data.edit_count || 0), n_learned: (data.base_profile && Array.isArray(data.base_profile.transcripts)) ? data.base_profile.transcripts.length : 0 } : { has_voice: false })
       setLearnCount(Number(data?.edit_count || 0))
     } catch { setVoiceProfile({ has_voice: false }) }
   }
@@ -132,36 +153,38 @@ export default function ScriptAssistant({ session: sessionProp }) {
       try { const { data: pf } = await supabase.from('profiles').select('nickname').eq('id', session.user.id).maybeSingle(); nn = pf?.nickname || '' } catch { /* noop */ }
       setNick(nn)
       supabase.rpc('trend_list_rpc', { p_limit: 3 }).then(({ data }) => setToday((Array.isArray(data) ? data : []).map(x => String(x.caption || '').replace(/\s+/g, ' ').trim().slice(0, 70)).filter(Boolean))).catch(() => {})
-      if (!greetedRef.current && messages.length === 0 && !soso && !jobId && !awaitRef) {
+      if (!greetedRef.current && messages.length === 0 && !soso && !jobId && (!jobs || jobs.length === 0)) {
         greetedRef.current = true
         setMessages([{ role: 'assistant', text: `안녕하세요${nn ? ` ${nn}님` : ''}! 저는 대본 비서 베라예요 🙂\n트렌드에서 마음에 드는 영상을 열어 '대본 작성하기'를 누르면 기승전결 대본을 써드려요. 오늘 뭐가 뜨는지 궁금하면 편하게 물어보세요.` }])
       }
     })()
   }, [session, jobs])
 
-  // (제거) 자동 세션 복원 — 세션마다 독립되도록 항상 새 대화로 시작. 지난 세션은 목록에서 직접 연다.
+  // 재방문 진입: 트렌드/분석 진입 의도가 없으면 가장 최근 세션 자동 열기
+  useEffect(() => {
+    if (autoOpenRef.current || !session) return
+    const st = loc.state
+    if (st && (st.open_job || st.source_ref || st.caption)) { autoOpenRef.current = true; return }
+    if (jobId || soso) { autoOpenRef.current = true; return }
+    if (Array.isArray(jobs) && jobs.length > 0) {
+      autoOpenRef.current = true; greetedRef.current = true
+      openJob(jobs[0].id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, jobs])
 
   // 트렌드 재생 모달의 "대본 작성하기" → 소재(클립) 자체를 비서로 가져오기
   useEffect(() => {
     const s = loc.state
-    if (!s) return
-    if (s.clip && s.clip.source_ref) setClipBox({ source_ref: s.clip.source_ref, caption: s.clip.caption || '', thumb: s.clip.thumb || '' })
-    if (s.awaiting_ref) {            // 트렌드에서 생성 중 넘어옴 — 로딩 띄우고 완료되면 연다
-      greetedRef.current = true
-      setMessages([]); setJobId(null); setClips([]); setSoso(null); setClipRef(null)
-      setAwaitRef(s.awaiting_ref)
-      nav('.', { replace: true, state: null })
-      return
-    }
-    if (s.open_job) {               // 트렌드에서 백그라운드 생성해둔 대본 열기
+    if (s && s.open_job) {          // 트렌드에서 백그라운드 생성해둔 대본 열기
       openJob(s.open_job)
       nav('.', { replace: true, state: null })
       return
     }
-    if (s.source_ref || s.caption) {
+    if (s && (s.source_ref || s.caption)) {
       setMessages([]); setJobId(null); setClips([])
       const base = { source_ref: s.source_ref || null, caption: String(s.caption || '').replace(/\s+/g, ' ').trim(), thumb: s.thumbnail || '' }
-      setSoso(base); setClipRef({ source_ref: base.source_ref, caption: base.caption })
+      setSoso(base)
       if (s.analyze) setPendingAnalyze(true)
       if (!base.caption && s.source_ref) {
         supabase.rpc('trend_detail_rpc', { p_shortcode: s.source_ref })
@@ -170,41 +193,6 @@ export default function ScriptAssistant({ session: sessionProp }) {
       nav('.', { replace: true, state: null })
     }
   }, [loc.state])
-
-  // 트렌드에서 생성 중 넘어온 경우 — 공유 상태(scriptGen)가 완료되면 자동으로 그 대본을 연다
-  useEffect(() => {
-    if (!awaitRef) return
-    const g = scriptGen[awaitRef]
-    if (!g) return
-    if (g.status === 'ready' && g.jobId) { setAwaitRef(null); openJob(g.jobId) }
-    else if (g.status === 'error') { setAwaitRef(null); setErr(g.error || '대본 생성에 실패했어요'); if (g.code === 'INSUFFICIENT_CREDITS') nav('/pricing') }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [awaitRef, scriptGen])
-
-  // 클립 박스 캡션 보충 (잡 목록에서 연 경우 캡션이 비어있을 수 있음)
-  useEffect(() => {
-    if (clipBox && clipBox.source_ref && !clipBox.caption) {
-      supabase.rpc('trend_detail_rpc', { p_shortcode: clipBox.source_ref })
-        .then(({ data }) => { const c = String(data?.caption || '').replace(/\s+/g, ' ').trim(); if (c) setClipBox(v => (v && v.source_ref === clipBox.source_ref) ? { ...v, caption: c } : v) }).then(null, () => {})
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clipBox?.source_ref])
-
-  // 클립 박스가 뜨면 원본 영상 URL을 미리 받아둔다 — 누르면 로딩 없이 바로 재생 (인스타 링크 비노출, trend-reel 경유)
-  useEffect(() => {
-    setClipVideo('')
-    const sc = clipBox?.source_ref
-    if (!sc) return
-    let alive = true
-    supabase.functions.invoke('trend-reel', { body: { shortcode: sc } })
-      .then(({ data }) => { if (alive && data?.video_url) setClipVideo(data.video_url) }).then(null, () => {})
-    return () => { alive = false }
-  }, [clipBox?.source_ref])
-
-  // 클립 박스 모달 액션 — 트렌드 모달과 동일하게 이 소재를 분석/대본으로 (현재 세션에 이어붙임)
-  const clipToSoso = () => ({ source_ref: clipBox.source_ref, caption: clipBox.caption || '', thumb: clipBox.thumb || '' })
-  const clipAnalyze = () => { if (!clipBox) return; setPlayClip(null); setSoso(clipToSoso()); setPendingAnalyze(true) }
-  const clipScript = () => { if (!clipBox) return; setPlayClip(null); setSoso(clipToSoso()); setPendingGen(true) }
 
   // 트렌드에서 '분석'으로 진입하면 소재 붙은 뒤 자동 분석
   useEffect(() => {
@@ -215,15 +203,6 @@ export default function ScriptAssistant({ session: sessionProp }) {
     if (pendingGen && soso && (soso.caption || soso.source_ref)) { setPendingGen(false); generateFromSoso() }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingGen, soso])
-
-
-  // 진행 중 세션 유지 (새로고침·이동에도 대화 보존, 탭 닫으면 초기화=세션 격리)
-  useEffect(() => {
-    try {
-      if (messages.length || jobId) sessionStorage.setItem('vera_chat', JSON.stringify({ messages, jobId, clipRef }))
-      else sessionStorage.removeItem('vera_chat')
-    } catch { /* noop */ }
-  }, [messages, jobId, clipRef])
 
   const token = async () => (session?.access_token) || (await supabase.auth.getSession()).data.session?.access_token
   const refreshSession = async () => {
@@ -239,8 +218,6 @@ export default function ScriptAssistant({ session: sessionProp }) {
     if (d.charged) { setNote('💧 이용권 2개 · 이 대본 10턴 세션'); setTimeout(() => setNote(''), 4000) }
   }
   const lastScript = () => { for (let i = messages.length - 1; i >= 0; i--) if (messages[i].role === 'assistant' && messages[i].text) return messages[i].text; return '' }
-  // 상황 맞춤 다듬기 제안 — 최근 분석 점수(있으면)에 따라 약점만 제안
-  const refineChips = () => ['훅 다듬기', '더 짧게', '댓글 유도 넣기', '다른 앵글로']
 
   const loadJobs = async () => {
     const { data } = await supabase.from('jobs').select('id,product_name,created_at,status').order('created_at', { ascending: false }).limit(40)
@@ -251,7 +228,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
     const [{ data: msgs }, { data: cl }, { data: jrow }] = await Promise.all([
       supabase.from('job_messages').select('role,content').eq('job_id', id).order('created_at'),
       supabase.from('job_clips').select('id,storage_path,source_url,status').eq('job_id', id),
-      supabase.from('jobs').select('voice_mode,product_name,selling_points,analysis,status,source_ref,script,script_b,ab_pending').eq('id', id).maybeSingle(),
+      supabase.from('jobs').select('voice_mode,product_name,selling_points,analysis,status').eq('id', id).maybeSingle(),
     ])
     const isMy = jrow?.voice_mode === 'my' && voiceProfile?.has_voice === true
     // 분석 자료(상품·셀링포인트) 복원 — 첫 대본 메시지에 붙인다
@@ -266,18 +243,11 @@ export default function ScriptAssistant({ session: sessionProp }) {
       if (looksScript && analysis && !attached) { attached = true; base.analysis = analysis }
       return base
     })
-    // A/B 대기 중이면 저장된 두 안을 선택 카드로 (기존 대본 메시지는 치운다)
-    if (jrow?.ab_pending && jrow?.script_b) {
-      const cleaned = built.filter((m) => !m.isScript)
-      cleaned.push({ role: 'assistant', ab: true, a: jrow.script || '', b: jrow.script_b, genre: '', mine: isMy, analysis, jobId: id })
-      built.length = 0; built.push(...cleaned)
-    }
-    if (jrow?.analysis) built.unshift({ role: 'assistant', report: jrow.analysis, shortcode: jrow.source_ref || null })
-    setMessages(built); setClips(cl || []); setJobId(id); setSoso(null); setClipRef(jrow?.source_ref ? { source_ref: jrow.source_ref, caption: '' } : null)
-    if (jrow?.source_ref) setClipBox(v => (v && v.source_ref === jrow.source_ref) ? v : { source_ref: jrow.source_ref, caption: '', thumb: '' }); else setClipBox(null)
+    if (jrow?.analysis) built.unshift({ role: 'assistant', report: jrow.analysis })
+    setMessages(built); setClips(cl || []); setJobId(id); setSoso(null)
     try { const { data: jt } = await supabase.rpc('get_job_turns_rpc', { p_job_id: id }); setTurns(typeof jt?.turns_left === 'number' ? jt.turns_left : null) } catch { setTurns(null) }
   }
-  const newChat = () => { try { sessionStorage.removeItem('vera_chat') } catch {} ; setMessages([]); setJobId(null); setSoso(null); setClipRef(null); setClipBox(null); setAwaitRef(null); setPlayClip(null); setClips([]); setInput(''); setErr(''); setShowJobs(false); setTurns(null); resetGrow() }
+  const newChat = () => { setMessages([]); setJobId(null); setSoso(null); setClips([]); setInput(''); setErr(''); setShowJobs(false); setTurns(null); resetGrow() }
 
   // 채널 분석: URL 입력 유도 → 다음 전송에서 실제 분석 실행
   const startChannelAnalysis = () => {
@@ -350,67 +320,42 @@ export default function ScriptAssistant({ session: sessionProp }) {
       if (a.product_name) sell0 = a.product_name + ' — ' + sell0
       // 분석 = 이용권 1개로 세션 생성 → 왼쪽 대본 리스트에 남는다
       if (jobId) {
-        setMessages((m) => [...m, { role: 'assistant', report: a, shortcode: soso?.source_ref || null }])
+        setMessages((m) => [...m, { role: 'assistant', report: a }])
       } else {
         const { data: aj } = await supabase.rpc('create_analysis_job_rpc', { p_source_ref: soso.source_ref || null, p_product_name: prod0, p_selling_points: sell0, p_analysis: a })
         if (aj && aj.ok) {
           setJobId(aj.job_id); setTurns(0)
           if (typeof aj.balance === 'number') setBalance(aj.balance)
           setNote('💧 소재 분석 · 이용권 1개'); setTimeout(() => setNote(''), 3000)
-          setMessages((m) => [...m, { role: 'assistant', report: a, shortcode: soso?.source_ref || null }]); loadJobs()
+          setMessages((m) => [...m, { role: 'assistant', report: a }]); loadJobs()
         } else if (aj && aj.code === 'INSUFFICIENT_CREDITS') { setErr('소재 분석엔 이용권 1개가 필요해요'); return }
-        else { setMessages((m) => [...m, { role: 'assistant', report: a, shortcode: soso?.source_ref || null }]) }
+        else { setMessages((m) => [...m, { role: 'assistant', report: a }]) }
       }
       if (a.product_name || sp0.length) setSoso((v) => ({ ...v, product: a.product_name || v.product, selling: sp0.length ? sp0 : v.selling }))
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
 
-  // A/B 중 하나 선택 → 그 대본을 확정(서버 저장 + 로깅), 메시지를 일반 대본으로 치환
-  const chooseVariant = async (i, variant) => {
-    setMessages((m) => m.map((x, idx) => {
-      if (idx !== i || !x.ab) return x
-      const chosen = variant === 'B' ? x.b : x.a
-      return { role: 'assistant', text: chosen, isScript: true, mine: x.mine, analysis: x.analysis }
-    }))
-    const msg = messages[i]; if (!msg) return
-    const chosen = variant === 'B' ? msg.b : msg.a
-    const jid = jobId || msg.jobId
-    try { track('vera_ab_chosen', { variant, genre: msg.genre }) } catch { /* noop */ }
-    try {
-      const t = await token(); if (!t || !jid) return
-      await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'choose', job_id: jid, script: chosen, variant, genre: msg.genre }) })
-    } catch { /* noop */ }
-  }
-
   // 소재 카드로 대본 만들기 (분석 → 대본, 이용권 1)
   const generateFromSoso = async () => {
     if (busy || !soso) return
-    setErr(''); setBusy(true); setStage('대본 준비 중…')
+    setErr(''); setBusy(true); setStage('소재 분석 중… (상품·셀링포인트)')
     const t = await token(); if (!t) { setErr('로그인이 필요해요'); setBusy(false); setStage(''); return }
     try {
       const a = await analyzeSoso(t)
-      const product = a?.product_name || ''
+      let product = a?.product_name || ''
       const sp = Array.isArray(a?.selling_points) ? a.selling_points.filter(Boolean) : []
-      const points = sp.join(' / ')
-      const subject = String(soso.caption || '').replace(/\s+/g, ' ').trim().slice(0, 240)
-      const anchor = [subject, a?.hook && ('이 영상 훅: ' + a.hook), a?.target && ('타깃: ' + a.target)].filter(Boolean).join(' / ')
-      const prodName = product || subject.split(/[—\-.\n|·]/)[0].trim().slice(0, 60) || subject.slice(0, 60)
-      const sellingFinal = [anchor ? ('원본 소재(이 영상이 실제로 다루는 제품/주제 — 반드시 이것으로만 쓰고 절대 다른 상품으로 바꾸지 말 것): ' + anchor) : '', points].filter(Boolean).join('\n')
-      if (a) setSoso(v => ({ ...v, product: product || v.product, selling: sp }))
+      let selling = sp.length ? sp.join(' / ') : (soso.caption || '')
+      if (product) selling = product + ' — ' + selling
+      if (a) setSoso(v => ({ ...v, product, selling: sp }))
       setStage('대본을 짓는 중…')
-      const gbody = { action: 'generate', voice_mode: 'my', source_ref: soso.source_ref, product_name: prodName, selling_points: sellingFinal }
+      const gbody = { action: 'generate', voice_mode: 'my', source_ref: soso.source_ref, product_name: product || (soso.caption || '').split(/[—\-.\n]/)[0].slice(0, 60), selling_points: selling }
       if (jobId) gbody.job_id = jobId
       const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify(gbody) })
       const d = await r.json()
       if (!d.ok) { const blocked = d.code === 'INSUFFICIENT_CREDITS'; track(blocked ? 'vera_blocked_credits' : 'vera_gen_failed', { where: 'generate' }); setErr(blocked ? `이용권이 부족해요. 10턴 세션을 열려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '대본 생성 실패')); return }
-      const jid = jobId || d.job_id
-      const meta = { mine: voiceProfile?.has_voice === true, analysis: { product, selling: sp }, jobId: jid, genre: d.genre || null }
-      const outMsg = d.script_b
-        ? { role: 'assistant', ab: true, a: d.script, b: d.script_b, ...meta }
-        : { role: 'assistant', text: d.script, isScript: true, ...meta }
-      applyMeter(d)
-      if (jobId) setMessages((m) => [...m, outMsg])
-      else { setJobId(d.job_id); setMessages([outMsg]) }
+      const scriptMsg = { role: 'assistant', text: d.script, isScript: true, mine: voiceProfile?.has_voice === true, analysis: { product, selling: sp } }
+      if (jobId) { applyMeter(d); setMessages((m) => [...m, scriptMsg]) }
+      else { setJobId(d.job_id); applyMeter(d); setMessages([scriptMsg]) }
       sawScriptRef.current = true; track('vera_script_shown', { source: 'soso', mine: voiceProfile?.has_voice === true })
       loadJobs()
     } catch (e) { track('vera_gen_failed', { where: 'generate', error: String(e).slice(0, 120) }); setErr(String(e)) } finally { setBusy(false); setStage('') }
@@ -435,57 +380,13 @@ export default function ScriptAssistant({ session: sessionProp }) {
       try { startChannel && startChannel(text) } catch { setErr('채널 분석을 시작하지 못했어요') }
       return
     }
-    // 인스타 릴스 링크 붙여넣기 → 그 릴스를 불러와 분석/대본으로 연결 (LLM 우회)
-    const igm = text.match(/instagram\.com\/(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/i)
-    if (igm) {
-      const sc = igm[1]
-      const wantGen = /대본|스크립트|써\s*줘|써줘|작성|만들/.test(text)
-      const wantAnalyze = /분석|해석|인사이트|왜\s*터/.test(text)
-      setMessages(m => [...m, { role: 'user', text }]); setBusy(true); setStage('릴스를 불러오는 중…')
-      try {
-        const t2 = await token(); if (!t2) { setErr('로그인이 필요해요'); return }
-        const rr = await fetch(FN('reel-by-url'), { method: 'POST', headers: { Authorization: `Bearer ${t2}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ url: text }) })
-        const rd = await rr.json()
-        if (!rd?.ok || (!rd.caption && !rd.owner)) { setMessages(m => [...m, { role: 'assistant', text: '그 릴스를 못 불러왔어요 😢 비공개·삭제됐거나 링크가 정확한지 확인해 주세요.' }]); return }
-        setJobId(null)
-        setSoso({ source_ref: sc, caption: rd.caption || '', thumb: rd.thumbnail || '' }); setClipRef({ source_ref: sc, caption: rd.caption || '' })
-        if (wantGen) setPendingGen(true)
-        else if (wantAnalyze) setPendingAnalyze(true)
-        else setMessages(m => [...m, { role: 'assistant', text: `${rd.owner ? '@' + rd.owner + ' ' : ''}릴스 가져왔어요. 아래에서 분석하거나 대본을 만들 수 있어요 👇` }])
-      } catch { setMessages(m => [...m, { role: 'assistant', text: '릴스를 불러오지 못했어요 😢 잠시 후 다시 시도해 주세요.' }]) }
-      finally { setBusy(false); setStage('') }
-      return
-    }
-
-    // 현재 작업 클립이 맥락에 있고 '분석'을 요청하면 → 그 클립을 실제로 분석
-    if (!soso && (clipRef?.source_ref || clipRef?.caption) && /분석|해석|왜\s*터|인사이트/.test(text)) {
-      setMessages(m => [...m, { role: 'user', text }])
-      setSoso({ source_ref: clipRef.source_ref || null, caption: clipRef.caption || '', thumb: '' })
-      setPendingAnalyze(true)
-      return
-    }
-    // '다시 대본 작성 / 새로 써줘 / 다시 만들어' → 잡담 없이 바로 현재 소재로 새 A/B 재생성
-    if (/((다시|새로|재)\s*(대본|작성|생성|만들|써|뽑))|(대본\s*(다시|새로|재생성))/.test(text) && (soso || clipRef?.source_ref || clipRef?.caption)) {
-      setMessages(m => [...m, { role: 'user', text }])
-      const c = soso || { source_ref: clipRef.source_ref || null, caption: clipRef.caption || '', thumb: '' }
-      setSoso(c); setPendingGen(true)
-      return
-    }
     const t = await token(); if (!t) { setErr('로그인이 필요해요'); setMessages(m => [...m, { role: 'assistant', text: '로그인이 필요해요 🙏 새로고침 후 다시 시도해 주세요.' }]); return }
     const prevScript = jobId ? lastScript() : ''
     const chatJob = (jobId && (turns > 0 || prevScript)) ? jobId : null
     const newMsgs = [...messages, { role: 'user', text }]
-    const histForLLM = newMsgs.map(m => {
-      if (m.text) return { role: m.role, content: m.text }
-      if (m.ab) return { role: 'assistant', content: `(방금 생성한 대본)\nA안:\n${m.a || ''}\n\nB안:\n${m.b || ''}` }
-      if (m.report) { const rp = typeof m.report === 'string' ? m.report : JSON.stringify(m.report); return { role: 'assistant', content: `(이 클립 분석 리포트)\n${rp}`.slice(0, 2000) } }
-      return null
-    }).filter(Boolean)
-    const clipCtx = clipRef || (soso ? { source_ref: soso.source_ref, caption: soso.caption } : null)
-    if (clipCtx && (clipCtx.caption || clipCtx.source_ref)) histForLLM.unshift({ role: 'user', content: `[작업 맥락] 지금 다루는 클립 소재: ${clipCtx.caption || clipCtx.source_ref}. 바로 아래 '방금 생성한 대본'이 이 클립으로 만든 거야. '방금 쓴 대본/클립'은 이걸 가리켜.` })
     setMessages(newMsgs); setBusy(true); setStage('베라가 생각 중…')
     try {
-      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'chat', job_id: chatJob, messages: histForLLM, clip: clipCtx, current_script: prevScript, nickname: nick, today_trends: today }) })
+      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'chat', job_id: chatJob, messages: newMsgs.map(m => ({ role: m.role, content: m.text })).filter(m => m.content), current_script: prevScript, nickname: nick, today_trends: today }) })
       const d = await r.json()
       if (!d.ok) {
         const blocked = d.code === 'INSUFFICIENT_CREDITS'
@@ -631,7 +532,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
             <p className="mt-0.5 text-sm leading-snug text-white/50">대화로 다듬을수록 내 말투를 배워요</p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-          <button onClick={() => setShowSettings(true)} className={`relative flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition ${voiceProfile?.has_voice ? 'border-[#0064FF]/40 bg-[#0064FF]/10 text-[#5AA0FF]' : 'border-[#0064FF]/60 bg-[#0064FF]/15 text-[#5AA0FF] hover:brightness-110'}`}>{!voiceProfile?.has_voice && <span className="absolute -right-0.5 -top-0.5 flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#0064FF] opacity-75" /><span className="relative inline-flex h-2 w-2 rounded-full bg-[#0064FF]" /></span>}{voiceProfile?.has_voice ? <Settings size={13} /> : <Wand2 size={13} />} {voiceProfile?.has_voice ? `내 말투${voiceProfile.ig_username ? ` @${voiceProfile.ig_username}` : ''}` : '화자·말투 설정'}</button>
+          <button onClick={() => voiceProfile?.has_voice ? setShowSettings(true) : setShowOnboard(true)} className={`relative flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition ${voiceProfile?.has_voice ? 'border-[#0064FF]/40 bg-[#0064FF]/10 text-[#5AA0FF]' : 'border-[#0064FF]/60 bg-[#0064FF]/15 text-[#5AA0FF] hover:brightness-110'}`}>{!voiceProfile?.has_voice && <span className="absolute -right-0.5 -top-0.5 flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#0064FF] opacity-75" /><span className="relative inline-flex h-2 w-2 rounded-full bg-[#0064FF]" /></span>}{voiceProfile?.has_voice ? <Settings size={13} /> : <Wand2 size={13} />} {voiceProfile?.has_voice ? `내 말투${voiceProfile.ig_username ? ` @${voiceProfile.ig_username}` : ''}` : '내 말투 만들기'}</button>
           {balance !== null && <div className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white/70">이용권 {balance}</div>}
           </div>
         </div>
@@ -656,24 +557,9 @@ export default function ScriptAssistant({ session: sessionProp }) {
         </div>
       )}
 
-      {/* 원본 클립 박스 — 소재 카드가 없을 때(대본/분석 작업 중) 상시 노출. 눌러서 원본 영상 확인(레드노트·구글렌즈용) */}
-      {!soso && clipBox?.source_ref && (
-        <button type="button" onClick={() => setPlayClip({ video_id: clipBox.source_ref, thumbnail_url: clipBox.thumb || '', caption: clipBox.caption || '', video_url: clipVideo || '' })}
-          className="mx-auto mt-3 flex w-full max-w-[700px] items-center gap-3 rounded-2xl glass p-2.5 text-left transition hover:brightness-110">
-          {clipBox.thumb
-            ? <img src={clipBox.thumb} referrerPolicy="no-referrer" className="h-16 w-12 shrink-0 rounded-lg object-cover" />
-            : <div className="h-16 w-12 shrink-0 overflow-hidden rounded-lg"><TrendThumb url="" sc={clipBox.source_ref} /></div>}
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1 text-[11px] font-bold text-[#5AA0FF]"><Film size={12} /> 원본 클립 · 눌러서 보기</div>
-            <div className="line-clamp-2 text-[13px] leading-snug text-white/80">{clipBox.caption || '불러오는 중…'}</div>
-          </div>
-          <div className="shrink-0 rounded-full bg-white/10 px-3 py-2 text-xs font-bold text-white/70">원본 보기</div>
-        </button>
-      )}
-
       {/* 대화 영역 */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto py-6">
-        {!started && !soso && !busy && !awaitRef && (
+        {!started && !soso && !busy && (
           <div className="sa-fade flex flex-col items-center justify-center gap-6 py-10 text-center">
             <Droplet size={84} />
             <div>
@@ -704,6 +590,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
                 </button>
               )}
             </div>
+            {voiceProfile?.has_voice && <VoiceDict vp={voiceProfile} />}
           </div>
         )}
 
@@ -751,23 +638,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
                 <Link to="/trend" className="mt-2 inline-block text-xs font-bold text-[#5AA0FF]">트렌드 탭에서 더 보기 →</Link>
               </div>
             )
-            if (m.report) return <div key={i} className="sa-fade w-full max-w-[700px] self-start"><ClipAnalysisReport a={m.report} shortcode={m.shortcode} /></div>
-            if (m.ab) return (
-              <div key={i} className="sa-fade w-full max-w-[760px] self-start">
-                <div className="mb-2 text-sm font-bold text-white/70">두 가지 방향으로 써봤어요 — 마음에 드는 쪽을 고르세요</div>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {[['A', m.a], ['B', m.b]].map(([v, txt]) => (
-                    <div key={v} className="flex flex-col rounded-2xl border border-white/12 bg-white/[0.04] p-4">
-                      <div className="mb-2.5"><span className="rounded-md bg-[#0064FF]/20 px-2 py-0.5 text-xs font-extrabold text-[#5AA0FF]">{v}안</span></div>
-                      <div className="flex-1 space-y-2 text-[13.5px] leading-[1.55] text-white/85">
-                        {String(txt).split(/\n+/).map((line, li) => line.trim() && <p key={li} className="break-keep">{line.trim()}</p>)}
-                      </div>
-                      <button onClick={() => chooseVariant(i, v)} className="mt-3 w-full rounded-xl bg-[#0064FF] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95 active:scale-[0.99]">이 안으로 할게요</button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )
+            if (m.report) return <div key={i} className="sa-fade w-full max-w-[700px] self-start"><ClipAnalysisReport a={m.report} /></div>
             if (m.role === 'user') return <div key={i} className="sa-fade max-w-[80%] self-end rounded-2xl rounded-br-md bg-[#0064FF] px-4 py-2.5 text-[15px] leading-relaxed text-white">{m.text}</div>
             return (
               <div key={i} className="sa-fade w-full max-w-[92%] self-start">
@@ -820,7 +691,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
               </div>
             )
           })}
-          {(busy || awaitRef) && <div className="sa-fade self-start rounded-2xl rounded-bl-md glass-soft px-6 py-5"><Droplet size={44} label={awaitRef ? '대본을 짓는 중…' : (stage || (jobId ? '다듬는 중…' : '대본을 짓는 중…'))} /></div>}
+          {busy && <div className="sa-fade self-start rounded-2xl rounded-bl-md glass-soft px-6 py-5"><Droplet size={44} label={stage || (jobId ? '다듬는 중…' : '대본을 짓는 중…')} /></div>}
 
           {/* 소스 클립 패널 (작업에 종속 — 레드노트 붙여넣기 도착지) */}
           {jobId && (
@@ -864,11 +735,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
         {(() => {
           const last = messages[messages.length - 1]
           if (last?.trends) return null
-          // 마지막 '내용' 메시지(대본/A·B/분석)를 거슬러 찾아 모드 확정 — 뒤에 잡담이 붙어도 안 엉킴
-          let modeMsg = null
-          for (let k = messages.length - 1; k >= 0; k--) { const mm = messages[k]; if (mm?.trends) break; if (mm?.ab || mm?.isScript || mm?.report) { modeMsg = mm; break } }
-          const scriptOut = !!(modeMsg?.ab || modeMsg?.isScript)   // 대본·A/B = 대본 모드
-          const isAnalyze = !!modeMsg?.report                      // 분석 리포트 = 분석 모드
+          const scriptOut = !!last?.isScript && !last?.trends
           const atStart = !jobId && messages.length <= 1
           const chip = 'flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-white/70 transition hover:text-white'
           if (atStart) return (
@@ -881,13 +748,12 @@ export default function ScriptAssistant({ session: sessionProp }) {
           if (scriptOut && !busy) return (
             <div className="mx-auto mb-2 flex max-w-[700px] flex-wrap items-center gap-2">
               <span className="mr-0.5 text-[11px] font-bold text-white/35">다음 →</span>
-              {refineChips().map(q => (
+              {['더 짧게', '훅 더 세게', '댓글 유도 강하게', '다른 앵글로'].map(q => (
                 <button key={q} onClick={() => send(q)} className={chip}>{q}</button>
               ))}
-              <button onClick={() => send('이 소재의 핵심 셀링포인트를 정리해서 보여줘')} className={chip + ' border-[#0064FF]/50 bg-[#0064FF]/10 text-[#5AA0FF]'}><BarChart3 size={13} /> 셀링포인트 보기</button>
             </div>
           )
-          if (isAnalyze && !busy) return (
+          if (last?.report && !busy) return (
             <div className="mx-auto mb-2 flex max-w-[700px] flex-wrap items-center gap-2">
               <span className="mr-0.5 text-[11px] font-bold text-white/35">다음 →</span>
               {soso && <button onClick={generateFromSoso} className={chip + ' border-[#0064FF]/50 bg-[#0064FF]/10 text-[#5AA0FF]'}><Sparkles size={13} /> 이 소재로 대본 만들기</button>}
@@ -921,7 +787,6 @@ export default function ScriptAssistant({ session: sessionProp }) {
       )}
       {showSettings && <PersonaSettings onClose={() => setShowSettings(false)} onChanged={() => loadVoiceProfile()} onRelearn={() => { setShowSettings(false); setShowOnboard(true) }} />}
       {showOnboard && <VoiceOnboard defaultHandle={voiceProfile?.ig_username || ''} onClose={() => { setShowOnboard(false); setOnboardData(null) }} onReady={() => { loadVoiceProfile(); refreshSession() }} onBackground={startVoiceLearnBg} initialData={onboardData} initialStep={onboardData ? 'review' : 'input'} />}
-      {playClip && <VideoModal clip={playClip} onClose={() => setPlayClip(null)} onAnalyze={clipAnalyze} onScript={clipScript} scriptState={busy ? { status: 'generating' } : null} />}
     </div>
   )
 }
