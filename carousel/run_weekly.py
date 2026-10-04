@@ -39,13 +39,25 @@ def upload(fmt, outdir, ds):
         urllib.request.urlopen(req, timeout=60); urls.append(f"{pub}/{n}")
     return urls
 
-CAPS={
- "top10":"이번 주 한국 쇼핑 숏폼 훅 TOP10 정리했어요.\n\n실제 상위 영상을 분석해 뽑았어요. 저장해두고 다음 릴스 만들 때 꺼내 쓰세요 📌\n\n어떤 훅이 제일 끌렸는지 댓글로 알려주세요 💬\n\n👉 오늘 뜬 소재 무료로 받기: chronit.kr",
- "casestudy":"이번 주 터진 쇼핑 릴스, 왜 터졌을까요.\n\n조회수 상위 릴스를 훅·구성·댓글로 뜯어봤어요. 저장해두고 참고하세요 📌\n\n분석해볼 릴스 있으면 댓글로 알려주세요 💬\n\n👉 오늘 뜬 소재 무료로 받기: chronit.kr",
- "numbers":"숫자로 보는 이번 주 쇼핑 숏폼 리포트.\n\n이번 주 트렌드를 데이터로 요약했어요. 저장해두세요 📌\n\n어떤 데이터가 더 궁금해요? 댓글로 알려주세요 💬\n\n👉 오늘 뜬 소재 무료로 받기: chronit.kr",
- "rising":"이번 주 급상승한 쇼핑 소재 모음이에요.\n\n트렌드 상위에서 지금 뜨는 상품 유형을 뽑았어요. 저장해두세요 📌\n\n요즘 뭐가 궁금해요? 댓글로 알려주세요 💬\n\n👉 오늘 뜬 소재 무료로 받기: chronit.kr",
-}
-PILLAR={"top10":"I","casestudy":"P","numbers":"C","rising":"T"}
+HOOK_CAP=("이번 주 쇼핑 릴스에서 실제로 쓰인 훅 패턴을 모았어요.\n\n"
+ "조회수가 안 나오면 대부분 0~3초 훅에서 스크롤을 못 잡은 거예요.\n\n"
+ "유형별로 왜 먹히는지와 내 상품에 바로 쓰는 템플릿까지 정리했어요. 저장해두고 다음 영상 기획할 때 꺼내 쓰세요 📌\n\n"
+ "어떤 훅이 제일 끌렸나요? 댓글로 알려주세요 💬\n\n"
+ "👉 터지는 쇼핑 소재랑 내 말투 대본까지: chronit.kr")
+_HQ=["person filming product video smartphone","surprised excited woman shopping","cozy warm home interior","shopping cart products saving","retail store shelf display","young woman small apartment","minimal tidy room interior"]
+def build_hook_deck(realhooks, caption):
+    cards=[]
+    for i,h in enumerate(realhooks[:7]):
+        cards.append({"no":f"{i+1:02d}","name":str(h.get("pattern") or "훅"),"why":str(h.get("why") or ""),
+                      "tpl":str(h.get("swap") or ""),"ex":str(h.get("hook") or ""),"q":_HQ[i%len(_HQ)]})
+    return {"id":"weekhooks","eyebrow":"이번 주 쇼핑 릴스 훅","panel_label":"내 상품에 바꿔 쓰기",
+      "cover":{"tag":"· 이번 주 훅","lines":["이번 주 실제로 쓰인","쇼핑 릴스 훅"],"hl":f"패턴 {len(cards)}",
+               "sub":"왜 먹혔는지 + 바로 쓰는 템플릿까지 · 저장해두세요","q":"person filming product video smartphone studio","dark":0.52},
+      "cards":cards,
+      "cta":{"lines":["이번 주 훅은 봤고","내 영상은요?"],
+             "sub":["크로닛이 매일 터지는 쇼핑 소재를 찾아주고,","내 말투 그대로 대본까지 뽑아줍니다."],
+             "end":"어떤 훅이 제일 끌렸나요? 댓글로 알려주세요","q":"content creator editing video laptop phone desk","dark":0.6},
+      "caption":caption}
 
 def main():
     ds=datetime.datetime.utcnow().strftime("%Y%m%d%H%M")
@@ -61,28 +73,27 @@ def main():
     if len(hooks)<3:
         print("too few hooks, abort"); return
     copy=post("/functions/v1/carousel-copy", {"hooks":hooks,"categories":cats}, {"x-cron-secret":SEC})
-    def w(name,obj): open(os.path.join(AC,name),"w",encoding="utf-8").write(json.dumps(obj,ensure_ascii=False)); return name
-    jobs=[]
-    if copy.get("top10"): jobs.append(("top10", w("hooks.json", copy["top10"])))
-    if copy.get("numbers"): jobs.append(("numbers", w("numbers.json", copy["numbers"])))
-    if copy.get("rising"): jobs.append(("rising", w("rising.json", copy["rising"])))
-    # casestudy는 베라 분석 리포트로 대체(아래). 분석 실패 시에만 폴백으로 렌더.
-    for fmt,jp in jobs:
-        out=os.path.join(HERE,f"_out_{fmt}")
-        subprocess.run(["python3","gen_formats.py",fmt,jp,out],cwd=AC,check=True)
-        urls=upload(fmt,out,ds)
-        cap=((copy.get("captions") or {}).get(fmt) or "").strip() or (copy.get("caption") or "").strip() or CAPS[fmt]
-        res=post("/functions/v1/carousel-enqueue", {"format":fmt,"pillar":PILLAR[fmt],"imgs":urls,"caption":cap}, {"x-cron-secret":SEC})
-        print("enqueued",fmt,len(urls),res.get("ok"))
-    # --- 베라 분석 리포트 (casestudy 대체): 1위 한국 영상 실분석(analyze-clip, ANON=이용권 무차감) ---
-    vera_ok=False
+    sys.path.insert(0, AC); import swipe_engine
+    # ① 이번 주 실제 훅 패턴 덱 — 유형·왜 먹히나·내 상품 템플릿 (집계/순위 없이 실사용 가치)
     try:
-        sys.path.insert(0, AC); import vera_report
-        # 한국 트렌드에서 '댓글 최다' 쇼핑 영상들(가십·중복 영상 제외). 진짜 제품으로 분석되는 첫 영상을 사용.
+        rh=copy.get("realhooks") or []
+        if len(rh)>=4:
+            deck=build_hook_deck(rh, (copy.get("caption") or "").strip() or HOOK_CAP)
+            hout=os.path.join(HERE,"_out_weekhooks"); swipe_engine.render_deck(deck, hout)
+            hurls=upload("weekhooks", hout, ds)
+            r=post("/functions/v1/carousel-enqueue", {"format":"weekhooks","pillar":"I","imgs":hurls,"caption":deck["caption"]}, {"x-cron-secret":SEC})
+            print("enqueued weekhooks", len(rh), r.get("ok"))
+        else:
+            print("weekhooks skip: too few realhooks", len(rh))
+    except Exception as e:
+        print("weekhooks skip:", e)
+    # ② 베라 분석 리포트: 한국 트렌드 '댓글 최다' 쇼핑 영상 실분석 (가십·중복 제외)
+    try:
+        import vera_report
         feats=fd.get("features") or []
         _norm=lambda s:"".join(str(s).split()).lower()
         recent=set(_norm(p) for p in (fd.get("recent_products") or []))
-        if not feats:  # 폴백: shopping 풀에서 댓글 최다
+        if not feats:
             feats=[{"shortcode":s["shortcode"],"caption":s.get("caption",""),"comments":s.get("comments"),"thumbnail_url":""}
                    for s in sorted([s for s in shopping if s.get("shortcode")],key=lambda s:-(s.get("comments") or 0))[:3]]
         for f in feats[:5]:
@@ -95,22 +106,12 @@ def main():
                 vout=os.path.join(HERE,"_out_vera"); vera_report.render_report(az, vout)
                 vurls=upload("vera", vout, ds)
                 r=post("/functions/v1/carousel-enqueue", {"format":"vera","pillar":"P","imgs":vurls,"caption":vera_report.build_caption(az),"featured_shortcode":f["shortcode"],"featured_product":pn}, {"x-cron-secret":SEC})
-                print("enqueued vera", f["shortcode"], f.get("comments"), len(vurls), r.get("ok")); vera_ok=True; break
+                print("enqueued vera", f["shortcode"], f.get("comments"), len(vurls), r.get("ok")); break
             else:
                 print("vera skip candidate", f.get("shortcode"), pn[:20], az.get("hook_score"))
     except Exception as e:
         print("vera skip:", e)
-    if not vera_ok and copy.get("casestudy"):
-        try:
-            jp=w("casestudy.json", copy["casestudy"]); out=os.path.join(HERE,"_out_casestudy")
-            subprocess.run(["python3","gen_formats.py","casestudy",jp,out],cwd=AC,check=True)
-            urls=upload("casestudy",out,ds)
-            cap=((copy.get("captions") or {}).get("casestudy") or "").strip() or CAPS["casestudy"]
-            post("/functions/v1/carousel-enqueue", {"format":"casestudy","pillar":"P","imgs":urls,"caption":cap}, {"x-cron-secret":SEC})
-            print("enqueued casestudy (fallback)")
-        except Exception as e:
-            print("casestudy fallback skip:", e)
-    # --- 플래그십 스와이프 캐러셀 (주차 로테이션). 실패해도 위 핵심 종에 영향 없음 ---
+    # ③ 플래그십 스와이프 캐러셀 (주차 로테이션). 실패해도 위에 영향 없음
     try:
         sys.path.insert(0, AC)
         import swipe_engine, swipe_themes
