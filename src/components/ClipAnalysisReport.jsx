@@ -2,6 +2,7 @@ import { BarChart3, Sparkles, Play, Download, ExternalLink, Loader2 } from 'luci
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { loadDetail } from '../lib/trendStore'
+import { phCapture } from '../lib/posthog'
 
 // 소재 분석 리포트 — 베라 채팅용 다크 카드 (analyze-clip 결과 a 로 렌더)
 const Bar = ({ label, val, kind }) => (
@@ -45,13 +46,17 @@ export default function ClipAnalysisReport({ a, shortcode }) {
     if (!u) setVstate('expired')
   }
   const onDownload = () => {
-    // iOS/모바일은 클릭 '그 순간'에 다운로드를 안 걸면 사용자 제스처로 안 쳐서 막는다.
-    // 그래서 await(신선 URL 받기) 없이 즉시 <a>를 클릭한다. URL 만료 해석은 서버(/api/dl)가 한다.
-    // 신선 URL을 이미 들고 있으면 src= 로 바로, 없으면 shortcode= 로 서버가 trend-reel 해석.
+    // 핵심: shortcode 가 있으면 '누르는 그 순간' 서버(/api/dl)가 새로 URL을 해석하게 한다.
+    //   리포트가 뜰 때 미리 받아둔 video(fbcdn)는 몇 분 지나면 서명이 만료돼서, src= 로 주면
+    //   데스크톱·모바일 가리지 않고 502 로 깨진다. shortcode= 로 넘기면 서버가 그때그때 신선 URL을 뽑는다.
+    // await 없이 즉시 <a> 클릭 → 모바일 제스처도 유지.
     const name = `${shortcode || 'clip'}.mp4`
-    const dlUrl = (freshRef.current && video)
-      ? `/api/dl?src=${encodeURIComponent(video)}&name=${encodeURIComponent(name)}`
-      : `/api/dl?shortcode=${encodeURIComponent(shortcode || '')}&name=${encodeURIComponent(name)}`
+    const via = shortcode ? 'shortcode' : (video ? 'src' : 'none')
+    const dlUrl = shortcode
+      ? `/api/dl?shortcode=${encodeURIComponent(shortcode)}&name=${encodeURIComponent(name)}`
+      : (video ? `/api/dl?src=${encodeURIComponent(video)}&name=${encodeURIComponent(name)}` : '')
+    try { phCapture('clip_download', { shortcode: shortcode || null, via }) } catch { /* noop */ }
+    if (!dlUrl) { setVstate('expired'); return }
     const link = document.createElement('a')
     link.href = dlUrl; link.download = name
     document.body.appendChild(link); link.click(); link.remove()
