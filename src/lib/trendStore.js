@@ -61,6 +61,15 @@ export async function loadFastbench({ limit = 60, minComments = 200, days = 21, 
   return rows
 }
 
+// 패스트벤치 전체 개수(페이지네이션 표기용) — 조건 충족 전체 수.
+export async function loadFastbenchCount({ minComments = 200, days = 21, includeCarousel = true, maxFollowers = null } = {}) {
+  const { data, error } = await supabase.rpc('fastbench_count_rpc', {
+    p_min_comments: minComments, p_days: days, p_include_carousel: includeCarousel, p_max_followers: maxFollowers,
+  })
+  if (error) throw error
+  return typeof data === 'number' ? data : 0
+}
+
 // 재생·이미지·전체 캡션은 카드를 누를 때만. 목록에 싣지 않아 payload 를 가볍게 유지한다.
 export async function loadDetail(shortcode) {
   if (!shortcode) return null

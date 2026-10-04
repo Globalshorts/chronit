@@ -17,7 +17,7 @@ import {
 import PostTypeToggle from '../components/PostTypeToggle'
 import VideoModal from '../components/ReelModal'
 import TrendCard, { TrendThumb } from '../components/TrendCard'
-import { memList, memFb, readSkeleton, loadTrendList, loadFastbench, loadDetail } from '../lib/trendStore'
+import { memList, memFb, readSkeleton, loadTrendList, loadFastbench, loadFastbenchCount, loadDetail } from '../lib/trendStore'
 import { logEvent, logEventOnce } from '../lib/events'
 import { coachPending, dismissCoach } from '../lib/coach'
 import NewSinceBadges from '../components/NewSinceBadges'
@@ -80,6 +80,8 @@ export default function Trend() {
   const [sort, setSort] = useState('view')
   const [fbSort, setFbSort] = useState('score')   // 팔로워 대비 댓글(comment_per_follower) 순
   const [fbRpc, setFbRpc] = useState(memFb)       // fastbench_feed_rpc 결과 (null = 아직 안 받음)
+  const [fbLimit, setFbLimit] = useState(60)      // 패스트벤치 더보기: 60 → 120 → … → 200(RPC 상한)
+  const [fbTotal, setFbTotal] = useState(null)    // 조건 충족 전체 개수(표기·더보기 상한용)
   const [fbRange, setFbRange] = useState(FB_DAY_MAX)   // 패스트벤치 전용 기간(서버 파라미터)
   const [showHelp, setShowHelp] = useState(false)
   const [range, setRange] = useState(DAY_MAX)
@@ -234,7 +236,7 @@ export default function Trend() {
       let rows = []
       try {
         rows = await loadFastbench({
-          limit: 60,
+          limit: fbLimit,
           minComments: minComments > 0 ? minComments : 200,
           days: fbRange,
           includeCarousel: postType !== 'reel',
@@ -247,7 +249,22 @@ export default function Trend() {
     }
     run()
     return () => { dead = true }
-  }, [isReal, fastBench, minComments, fbRange, postType, fMax])
+  }, [isReal, fastBench, minComments, fbRange, postType, fMax, fbLimit])
+
+  // 필터가 바뀌면 더보기를 다시 60개부터
+  useEffect(() => { setFbLimit(60) }, [isReal, fastBench, minComments, fbRange, postType, fMax])
+
+  // 조건 충족 전체 개수 — 처음부터 표기 + 더보기 상한 판단용
+  useEffect(() => {
+    if (!isReal) return
+    let dead = false
+    loadFastbenchCount({
+      minComments: minComments > 0 ? minComments : 200,
+      days: fbRange, includeCarousel: postType !== 'reel',
+      maxFollowers: fMax ? Number(fMax) : null,
+    }).then((n) => { if (!dead) setFbTotal(n) }).catch(() => {})
+    return () => { dead = true }
+  }, [isReal, minComments, fbRange, postType, fMax])
 
   useEffect(() => { if (!isReal) return; try { phCapture('trend_feed_viewed') } catch { /* noop */ }; supabase.from('profiles').select('niche').maybeSingle().then(({ data }) => { const n = data && data.niche; if (n && NICHE_TO_CAT[n]) { setMyNiche(n); if (!catChosen()) setSelCat((c) => c === '전체' ? NICHE_TO_CAT[n] : c); try { localStorage.setItem('chr_niche', n) } catch { /* noop */ } } }) }, [isReal])
   useEffect(() => { if (isReal) return; supabase.rpc('public_trend_preview_rpc', { p_limit: 12 }).then(({ data }) => { if (Array.isArray(data)) setPreview(data) }).catch(() => {}); supabase.rpc('public_trend_count_rpc').then(({ data }) => { if (typeof data === 'number') setPreviewCount(data) }).catch(() => {}) }, [isReal])
@@ -257,8 +274,8 @@ export default function Trend() {
   const now = Date.now()
   const FB_SCORE = 12
   const fbScore = (it) => ((Number(it.comment_count) || 0) * 1000 + (Number(it.like_count) || 0) * 50 + (Number(it.view_count) || 0)) / Math.max(Number(it.follower_count) || 0, 1000)
-  // 아직 패스트벤치를 안 눌렀으면 개수를 모른다 — 옛 캐시 값을 보여주지 않는다
-  const fbCount = Array.isArray(fbRpc) ? fbRpc.length : null
+  // 탭 배지엔 '조건 충족 전체 개수'를 표기(로드된 60개가 아니라). 아직 모르면 로드된 길이로 폴백.
+  const fbCount = (typeof fbTotal === 'number' && fbTotal > 0) ? fbTotal : (Array.isArray(fbRpc) ? fbRpc.length : null)
   const matchNiche = (it) => { const kws = NICHE_KW[myNiche]; if (!kws) return false; const t = ((it.caption || '') + ' ' + (it.hashtag || '')).toLowerCase(); return kws.some((k) => t.includes(k)) }
   // 캐러셀만 볼 때 조회수순은 의미가 없어(전부 0) 좋아요순으로 바꿔 적용한다
   const rawSort = fastBench ? fbSort : sort
@@ -541,6 +558,14 @@ export default function Trend() {
             })}
             {!list.length && <div className="col-span-full p-10 text-center text-sm text-white/35">{postType === 'carousel' ? '조건에 맞는 캐러셀이 아직 없어요.' : minComments ? `댓글 ${minComments.toLocaleString('ko-KR')}개 이상인 소재가 아직 없어요. 조건을 낮춰보세요.` : (fMin || fMax) ? '이 팔로워 구간은 아직 준비 중이에요. 곧 더 많은 계정을 추가할 예정이에요.' : '해당 기간에 트렌드가 없어요.'}</div>}
           </div>
+          {fbMode && typeof fbTotal === 'number' && Array.isArray(fbRpc) && fbRpc.length < Math.min(fbTotal, 200) && (
+            <div className="mt-5 flex justify-center">
+              <button onClick={() => setFbLimit((l) => Math.min(l + 60, 200))} className="rounded-full bg-white/10 px-5 py-2.5 text-sm font-bold text-white/85 backdrop-blur transition hover:bg-white/15">더 보기 (+60) · {fbRpc.length} / {Math.min(fbTotal, 200)}</button>
+            </div>
+          )}
+          {fbMode && typeof fbTotal === 'number' && fbTotal > 200 && Array.isArray(fbRpc) && fbRpc.length >= 200 && (
+            <p className="mt-4 text-center text-xs text-white/35">상위 200개까지 표시돼요 · 전체 {fbTotal.toLocaleString('ko-KR')}개</p>
+          )}
           </>
         )}
       </div>
