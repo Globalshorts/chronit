@@ -3,12 +3,38 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { loadDetail } from '../lib/trendStore'
 import { phCapture } from '../lib/posthog'
+import { fmtCount } from '../lib/format'
 
 // 소재 분석 리포트 — 베라 채팅용 다크 카드 (analyze-clip 결과 a 로 렌더)
-const Bar = ({ label, val, kind }) => (
+const HOOK_LABELS = [['curiosity', '호기심 유발'], ['specificity', '구체성'], ['target_fit', '타깃 적중'], ['instant_clarity', '3초 내 명확성']]
+const PAYOFF_LABELS = [['need_resolved', '니즈 해소'], ['buy_reason', '구매 근거'], ['impact', '임팩트'], ['clarity', '명확성']]
+
+// 세부 항목 막대 (0~25)
+const SubBar = ({ label, val }) => (
   <div>
-    <div className="mb-0.5 flex items-center justify-between text-[11px]"><span className="text-white/60">{label}{kind ? <span className="ml-1 text-white/30">· {kind}</span> : null}</span><span className="font-bold text-white/85">{val != null ? `${val}` : '—'}</span></div>
-    <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-[#0064FF]" style={{ width: `${Math.max(0, Math.min(100, Number(val) || 0))}%` }} /></div>
+    <div className="mb-0.5 flex items-center justify-between text-[11px]"><span className="text-white/55">{label}</span><span className="font-bold text-white/75">{val != null ? `${val}` : '—'}<span className="text-white/30">/25</span></span></div>
+    <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-[#0064FF]" style={{ width: `${Math.max(0, Math.min(100, (Number(val) || 0) / 25 * 100))}%` }} /></div>
+  </div>
+)
+
+// 총점 + 세부 내역(왜 이 점수인지)
+const ScoreBlock = ({ title, score, bd, labels }) => (
+  <div className="rounded-xl bg-white/5 p-3">
+    <div className="mb-2 flex items-baseline justify-between">
+      <span className="text-[12px] font-bold text-white/70">{title}</span>
+      <span className="text-[18px] font-extrabold leading-none text-[#5AA0FF]">{score != null ? score : '—'}<span className="ml-0.5 text-[11px] font-bold text-white/35">/100</span></span>
+    </div>
+    {bd && typeof bd === 'object' ? (
+      <div className="space-y-1.5">{labels.map(([k, lab]) => <SubBar key={k} label={lab} val={bd[k]} />)}</div>
+    ) : null}
+  </div>
+)
+
+// 실제 성과 수치 칸
+const Stat = ({ label, val }) => (
+  <div className="rounded-lg bg-white/5 py-2">
+    <div className="text-[13px] font-extrabold text-white/85">{val}</div>
+    <div className="mt-0.5 text-[10px] text-white/45">{label}</div>
   </div>
 )
 
@@ -76,9 +102,23 @@ export default function ClipAnalysisReport({ a, shortcode }) {
       <div className="mb-3 flex items-center gap-1.5 text-sm font-bold text-white"><BarChart3 size={15} className="text-[#5AA0FF]" /> 소재 분석{a.product_name ? <span className="text-white/50">· {a.product_name}</span> : null}</div>
 
       <div className="space-y-2">
-        <Bar label="훅 · 첫 3초" val={a.hook_score} kind="진단" />
-        <Bar label="페이오프 · 결말" val={a.payoff_score} kind="진단" />
+        <ScoreBlock title="훅 · 첫 3초" score={a.hook_score} bd={a.hook_breakdown} labels={HOOK_LABELS} />
+        <ScoreBlock title="페이오프 · 결말" score={a.payoff_score} bd={a.payoff_breakdown} labels={PAYOFF_LABELS} />
       </div>
+
+      {a.performance && (
+        <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+          <div className="mb-2 text-[12px] font-bold text-white/60">실제 성과 <span className="font-medium text-white/30">· 인스타 지표</span></div>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <Stat label="조회" val={a.performance.views != null ? fmtCount(a.performance.views) : '—'} />
+            <Stat label="좋아요" val={a.performance.likes != null ? fmtCount(a.performance.likes) : '—'} />
+            <Stat label="댓글" val={a.performance.comments != null ? fmtCount(a.performance.comments) : '—'} />
+            <Stat label="팔로워" val={a.performance.followers != null ? fmtCount(a.performance.followers) : '—'} />
+            <Stat label="댓글/팔로워" val={a.performance.comment_per_follower != null ? `${(a.performance.comment_per_follower * 100).toFixed(2)}%` : '—'} />
+            <Stat label="구매의도 댓글" val={a.comment_analyzed ? `${a.performance.cta_signal || 0}%` : '—'} />
+          </div>
+        </div>
+      )}
 
       {a.hook && (
         <div className="mt-3 rounded-xl bg-white/5 p-3">
