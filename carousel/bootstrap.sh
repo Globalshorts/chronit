@@ -5,9 +5,9 @@ set -e
 DIR="$(cd "$(dirname "$0")" && pwd)"
 SB="https://oxygqtbdpnxxcgzwdlzi.supabase.co/storage/v1/object/public/manual-images/assets"
 AS="$DIR/_auto_carousel/assets"; mkdir -p "$AS" "$DIR/logo"
-# Pretendard(가독성 폰트) — jsDelivr에서. Black=디스플레이, Bold=제목, Medium=본문
+# Pretendard(가독성 폰트) — jsDelivr에서. Black=디스플레이, ExtraBold/SemiBold=강조, Bold=제목, Medium=본문
 PRE="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/public/static"
-for w in Black Bold Medium; do
+for w in Black ExtraBold Bold SemiBold Medium; do
   curl -sfL -o "$AS/Pretendard-$w.otf" "$PRE/Pretendard-$w.otf"; echo "font Pretendard-$w -> $(wc -c < "$AS/Pretendard-$w.otf") bytes"
 done
 curl -s -o "$DIR/logo/chronit-mark-white.png" "$SB/chronit-mark-white.png"

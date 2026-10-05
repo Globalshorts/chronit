@@ -16,3 +16,8 @@ _auto_carousel/assets/*.ttf
 _auto_carousel/assets/*.otf
 _auto_carousel/assets/*.png
 *.json
+
+# auto 생성기 작업물
+auto/_work/
+auto/_pxcache/
+_pxcache/

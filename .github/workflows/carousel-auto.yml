@@ -1,0 +1,33 @@
+name: Carousel Auto (daily)
+# 쇼핑 2차창작 '도움글' 캐러셀 자동 생성기.
+# 매일: 주제 뱅크(carousel/auto/topics.py)에서 중복 안 된 주제를 LRU로 뽑아
+# 렌더 → Storage 업로드 → marketing_sets 큐에 status=approved 로 적재한다.
+# 이후 send-daily-carousel(크론)이 텔레그램으로 보내고, 사용자가 ✅ 승인하면 ig-publish.
+# 승인 대기 큐가 목표치(BUFFER)보다 적을 때만, 1회 최대 MAX_ADD 개만 채운다.
+on:
+  schedule:
+    - cron: '20 22 * * *'   # 매일 22:20 UTC = 익일 07:20 KST
+  workflow_dispatch: {}
+concurrency:
+  group: carousel-auto
+  cancel-in-progress: false
+jobs:
+  gen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install --quiet Pillow numpy
+      - name: Fetch fonts & logo
+        env:
+          PEXELS_KEY: ${{ secrets.PEXELS_KEY }}
+        run: bash carousel/bootstrap.sh
+      - name: Generate & enqueue
+        env:
+          PEXELS_KEY: ${{ secrets.PEXELS_KEY }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          CAROUSEL_BUFFER: '3'
+          CAROUSEL_MAX_ADD: '2'
+        run: python3 carousel/auto/auto_gen.py
