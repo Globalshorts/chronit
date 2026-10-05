@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Eye, Heart, MessageCircle, Sparkles, X, ChevronLeft, ChevronRight, Bookmark, Loader2, ArrowRight, BarChart3 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
@@ -27,6 +27,20 @@ export default function VideoModal({ clip, onClose, onSave, saved = false, onScr
   const [idx, setIdx] = useState(0)
   const [tried, setTried] = useState(false)
   const [rawImg, setRawImg] = useState({}) // 프록시 실패 시 해당 장만 원본 URL로 폴백
+  const [imgLoading, setImgLoading] = useState(false) // 장 넘길 때 로딩 표시
+  // 캐러셀 넘김 — 버튼/스와이프/키보드 공용. (예전엔 버튼만 있어 모바일에서 손가락으로 넘겨도 안 바뀌었다)
+  const nImgs = imgs.length
+  const go = (d) => { if (nImgs > 1) setIdx((i) => (i + d + nImgs) % nImgs) }
+  const touch = useRef({ x: 0, y: 0, active: false })
+  // 장(idx)이 바뀌면 프록시 콜드 캐시 동안 직전 프레임이 남지 않게 로딩 상태로 전환
+  useEffect(() => { if (mode === 'images') setImgLoading(true) }, [idx, mode])
+  useEffect(() => {
+    if (mode !== 'images' || nImgs <= 1) return
+    const onKey = (e) => { if (e.key === 'ArrowLeft') go(-1); else if (e.key === 'ArrowRight') go(1) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, nImgs])
   const resolveVideo = async () => {
     try {
       const { data } = await supabase.functions.invoke('trend-reel', { body: { shortcode: clip?.video_id } })
@@ -54,18 +68,22 @@ export default function VideoModal({ clip, onClose, onSave, saved = false, onScr
         onClick={(e) => e.stopPropagation()}>
         <button onClick={onClose} className="absolute right-2 top-2 z-10 rounded-full bg-black/60 p-1.5 text-white hover:bg-black/80"><X size={18} /></button>
         {mode === 'images' ? (
-          <div className="relative flex min-h-0 w-full flex-1 items-center justify-center bg-black">
-            <img src={rawImg[idx] ? imgs[idx] : proxied(imgs[idx], clip?.video_id, idx)} alt="" referrerPolicy="no-referrer"
-              onError={() => setRawImg((f) => (f[idx] ? f : { ...f, [idx]: true }))}
+          <div className="relative flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden bg-black"
+            onTouchStart={(e) => { const t = e.touches[0]; touch.current = { x: t.clientX, y: t.clientY, active: true } }}
+            onTouchEnd={(e) => { if (!touch.current.active) return; touch.current.active = false; const t = e.changedTouches[0]; const dx = t.clientX - touch.current.x; const dy = t.clientY - touch.current.y; if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1) }}>
+            {imgLoading && <div className="absolute inset-0 grid place-items-center bg-black"><Loader2 size={22} className="animate-spin text-white/50" /></div>}
+            <img key={idx} src={rawImg[idx] ? imgs[idx] : proxied(imgs[idx], clip?.video_id, idx)} alt="" referrerPolicy="no-referrer"
+              onLoad={() => setImgLoading(false)}
+              onError={() => { setImgLoading(false); setRawImg((f) => (f[idx] ? f : { ...f, [idx]: true })) }}
               onContextMenu={(ev) => ev.preventDefault()}
-              className="max-h-full max-w-full object-contain" />
-            {imgs.length > 1 && (
+              className="max-h-full max-w-full select-none object-contain" draggable={false} />
+            {nImgs > 1 && (
               <>
-                <button onClick={() => setIdx((i) => (i - 1 + imgs.length) % imgs.length)} aria-label="이전 장"
-                  className="absolute left-2 rounded-full bg-black/55 p-2 text-white transition hover:bg-black/80"><ChevronLeft size={20} /></button>
-                <button onClick={() => setIdx((i) => (i + 1) % imgs.length)} aria-label="다음 장"
-                  className="absolute right-2 rounded-full bg-black/55 p-2 text-white transition hover:bg-black/80"><ChevronRight size={20} /></button>
-                <div className="absolute bottom-2 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-bold text-white">{idx + 1} / {imgs.length}</div>
+                <button onClick={() => go(-1)} aria-label="이전 장"
+                  className="absolute left-2 z-10 rounded-full bg-black/55 p-2 text-white transition hover:bg-black/80"><ChevronLeft size={20} /></button>
+                <button onClick={() => go(1)} aria-label="다음 장"
+                  className="absolute right-2 z-10 rounded-full bg-black/55 p-2 text-white transition hover:bg-black/80"><ChevronRight size={20} /></button>
+                <div className="absolute bottom-2 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-bold text-white">{idx + 1} / {nImgs}</div>
               </>
             )}
           </div>
