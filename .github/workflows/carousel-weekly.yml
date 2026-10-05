@@ -1,7 +1,8 @@
 name: Carousel Pipeline
+# 2026-10-05: 옛 자동 생성(분석 리포트 류)은 반복성 때문에 중단. 새 '도움글' 캐러셀은
+# marketing_sets 큐에 직접 적재 → 텔레그램 승인 → ig-publish 흐름으로 운영한다.
+# 스케줄 제거(자동 생성 off). 필요하면 workflow_dispatch 로 수동 실행만 가능.
 on:
-  schedule:
-    - cron: '0 23 * * 0,3'   # 월·목 08:00 KST (일·수 23:00 UTC) — 주 2회 생성
   workflow_dispatch: {}
 jobs:
   gen:
