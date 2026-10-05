@@ -1,4 +1,4 @@
-// trend-thumb-cache v7: 썸네일을 스토리지(thumbnails/post/)에 영구 캐시.
+// trend-thumb-cache v8: 썸네일 + 캐러셀 슬라이드를 스토리지(thumbnails/post/)에 영구 캐시.
 // 살아있는 IG URL은 바로, 만료면 TikHub fetch_post_by_url로 fresh display_url 재취득.
 //
 // v7 변경:
@@ -8,6 +8,11 @@
 //  2) 고아 삭제 블록 제거 — thumb-sweep 으로 일원화. 여기 있던 버전은 shortcode 목록을
 //     페이지네이션 없이 읽어서(PostgREST 는 1,000행 상한) 참조 집합이 불완전했고,
 //     48h 유예가 풀리면 멀쩡한 썸네일을 지울 수 있었다.
+//
+// v8 변경: 캐러셀 슬라이드(images[]) 영구 캐시 추가.
+//  images[] 원본은 인스타 CDN 서명 URL이라 2~4일이면 만료돼, 재진입/깊은 장이 안 떴다.
+//  살아있는 동안 각 장을 post/{sc}_{i}.jpg 로 받아(= thumbnail-proxy 와 같은 경로) images[]를
+//  스토리지 URL로 교체한다. 그러면 프론트가 프록시 없이 영구 URL을 바로 쓴다.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUP = Deno.env.get("SUPABASE_URL") ?? "";
@@ -17,10 +22,14 @@ const CRON_SECRET = "chr_thumbcache_9a4d2e6b";
 const TK_BASE = "https://api.tikhub.io/api/v1/instagram/v1";
 const BUCKET = "thumbnails";
 const MAX_PER_RUN = 100;
+const CAROUSEL_ROWS = 30;      // 런당 살펴볼 캐러셀 행 수(최신순)
+const SLIDE_BUDGET = 25;       // 런당 슬라이드 다운로드 상한(타임아웃 방지)
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/121.0";
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron-secret" };
 const pubUrl = (path: string) => `${SUP}/storage/v1/object/public/${BUCKET}/${path}`;
+const isStored = (u: string) => u.includes("/storage/v1/object/public/");
+const isRawIg = (u: string) => /cdninstagram|fbcdn/i.test(u);
 
 // [테이블, 썸네일 컬럼, 정렬 컬럼] — 최신 것부터 캐시해야 만료 전에 잡는다
 const TARGETS: Array<[string, string, string | null]> = [
@@ -88,7 +97,6 @@ Deno.serve(async (req) => {
         let refetched = false;
         const path = `post/${sc}.jpg`;
 
-        // 프록시가 이미 올려둔 게 있으면 재다운로드 없이 연결만 교체
         if (!img) {
           const head = await fetch(pubUrl(path), { method: "HEAD" }).catch(() => null);
           if (head?.ok) {
@@ -97,7 +105,6 @@ Deno.serve(async (req) => {
           }
         }
 
-        // URL 이 만료됐으면 shortcode 로 fresh display_url 재취득
         if (!img && TK) {
           await sleep(700);
           const purl = `https://www.instagram.com/reel/${sc}/`;
@@ -117,6 +124,47 @@ Deno.serve(async (req) => {
     }
     (res.per_table as Record<string, unknown>)[table] = { targeted: rows?.length ?? 0, cached, failed };
   }
+
+  // ── 캐러셀 슬라이드 영구 캐시 ──
+  // images[] 에 아직 원본 IG URL이 남은 행만 골라, 살아있는 장을 스토리지로 받아 URL을 교체한다.
+  // 이미 스토리지면 재사용(HEAD), 만료돼 못 받으면 원본 유지(다음 런 재시도, 피드가 8일이면 자연 소멸).
+  let slideBudget = SLIDE_BUDGET;
+  try {
+    // 아직 원본 IG URL이 남은 캐러셀만 최신순으로 받는다(이미 캐시된 건 제외돼 백로그가 밀리지 않는다).
+    const { data: crows, error: cerr } = await admin.rpc("carousel_uncached_rpc", { p_limit: CAROUSEL_ROWS });
+    if (cerr) {
+      (res.per_table as Record<string, unknown>)["trend_feed_carousel"] = { error: cerr.message };
+    } else {
+      let cRows = 0, cSlides = 0, cFail = 0;
+      for (const row of crows ?? []) {
+        if (slideBudget <= 0) break;
+        const sc = String((row as Record<string, unknown>).shortcode ?? "");
+        const imgs0 = (row as Record<string, unknown>).images;
+        const imgs: string[] = Array.isArray(imgs0) ? (imgs0 as string[]) : [];
+        if (!sc || !imgs.length) continue;
+        // 원본 IG URL이 하나도 없으면(전부 스토리지/빈값) 건너뛴다
+        if (!imgs.some((u) => isRawIg(String(u ?? "")))) continue;
+        const out: string[] = [];
+        let changed = false;
+        for (let i = 0; i < imgs.length; i++) {
+          const u = String(imgs[i] ?? "");
+          if (!u || isStored(u)) { out.push(u); continue; }
+          if (slideBudget <= 0) { out.push(u); continue; }
+          const path = `post/${sc}_${i}.jpg`;
+          const head = await fetch(pubUrl(path), { method: "HEAD" }).catch(() => null);
+          if (head?.ok) { out.push(pubUrl(path)); changed = true; continue; }
+          slideBudget--;
+          const img = await fetchImg(u);
+          if (!img) { out.push(u); cFail++; continue; }
+          const { error: upe } = await admin.storage.from(BUCKET).upload(path, img.buf, { contentType: img.ct || "image/jpeg", upsert: true });
+          if (upe) { out.push(u); cFail++; continue; }
+          out.push(pubUrl(path)); changed = true; cSlides++;
+        }
+        if (changed) { await admin.from("trend_feed").update({ images: out }).eq("shortcode", sc); cRows++; }
+      }
+      (res.per_table as Record<string, unknown>)["trend_feed_carousel"] = { rows: cRows, slides: cSlides, failed: cFail };
+    }
+  } catch (e) { (res.per_table as Record<string, unknown>)["trend_feed_carousel"] = { error: String(e) }; }
 
   return json({ ok: true, ...res });
 });
