@@ -785,7 +785,13 @@ export default function ScriptAssistant({ session: sessionProp }) {
                     <a key={c.id} href={c.storage_path || undefined} target="_blank" rel="noreferrer" download
                       className="group relative grid h-24 w-16 shrink-0 place-items-center overflow-hidden rounded-lg border border-white/10 bg-white/5 transition hover:border-[#0064FF]">
                       {c.status === 'ready'
-                        ? <><Film size={18} className="text-white/45" /><span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-0.5 bg-black/65 py-0.5 text-[9px] font-bold text-white"><Download size={9} /> 저장</span></>
+                        ? <>
+                            {c.storage_path
+                              ? <video src={`${c.storage_path}#t=0.1`} muted playsInline preload="metadata" tabIndex={-1}
+                                  className="absolute inset-0 h-full w-full object-cover" />
+                              : <Film size={18} className="text-white/45" />}
+                            <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-0.5 bg-black/65 py-0.5 text-[9px] font-bold text-white"><Download size={9} /> 저장</span>
+                          </>
                         : <span className="text-[10px] text-white/40">{c.status || '처리중'}</span>}
                     </a>
                   ))}
