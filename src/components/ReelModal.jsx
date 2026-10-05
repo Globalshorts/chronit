@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Eye, Heart, MessageCircle, Sparkles, X, ChevronLeft, ChevronRight, Bookmark, Loader2, ArrowRight, BarChart3 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
@@ -11,16 +11,29 @@ export default function VideoModal({ clip, onClose, onSave, saved = false, onScr
   const _navScript = useNavigate()
   const imgs = Array.isArray(clip?.images) ? clip.images.filter(Boolean) : []
   const [src, setSrc] = useState(clip?.video_url || '')
-  // 영상이 없고 이미지가 있으면 캐러셀 — 앱 안에서 넘겨 본다(인스타로 내보내면 원본 URL 이 노출된다)
-  const [mode, setMode] = useState(clip?.video_url ? 'video' : imgs.length ? 'images' : 'embed')
+  // 영상이 없고 이미지가 있으면 캐러셀 — 앱 안에서 넘겨 본다(인스타로 내보내면 원본 URL 이 노출된다).
+  // 영상 URL 이 아직 없고(프리페치 전/만료) shortcode 가 있으면 서버에서 신선한 원본을 받아 네이티브로 재생한다.
+  // (예전엔 여기서 인스타 embed iframe 으로 떨어졌는데, 네이티브가 아닌 인스타 화면이 떠서 제거함)
+  const [mode, setMode] = useState(clip?.video_url ? 'video' : imgs.length ? 'images' : clip?.video_id ? 'resolving' : 'error')
   const [idx, setIdx] = useState(0)
   const [tried, setTried] = useState(false)
+  const resolveVideo = async () => {
+    try {
+      const { data } = await supabase.functions.invoke('trend-reel', { body: { shortcode: clip?.video_id } })
+      if (data?.video_url) { setSrc(data.video_url); setMode('video'); return true }
+    } catch { /* noop */ }
+    return false
+  }
+  // 영상 URL 없이 열렸으면 즉시 서버에서 신선한 원본 URL 을 받아온다
+  useEffect(() => {
+    if (mode !== 'resolving') return
+    let alive = true
+    ;(async () => { const ok = await resolveVideo(); if (alive && !ok) setMode('error') })()
+    return () => { alive = false }
+  }, [mode]) // eslint-disable-line react-hooks/exhaustive-deps
   const onVidError = async () => {
-    if (!tried) {
-      setTried(true)
-      try { const { data } = await supabase.functions.invoke('trend-reel', { body: { shortcode: clip?.video_id } }); if (data?.video_url) { setSrc(data.video_url); return } } catch { /* noop */ }
-    }
-    setMode('embed')
+    if (!tried) { setTried(true); if (await resolveVideo()) return }
+    setMode('error')
   }
   if (!clip) return null
   return (
@@ -51,8 +64,16 @@ export default function VideoModal({ clip, onClose, onSave, saved = false, onScr
             onContextMenu={(e) => e.preventDefault()}
             onError={onVidError}
             className="min-h-0 w-full flex-1 bg-black object-contain" />
+        ) : mode === 'resolving' ? (
+          <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-2 bg-black text-white/60">
+            <Loader2 size={22} className="animate-spin" />
+            <span className="text-xs">원본 영상 불러오는 중…</span>
+          </div>
         ) : (
-          <iframe key="emb" src={`https://www.instagram.com/reel/${clip.video_id}/embed`} title="reel" loading="lazy" allow="autoplay; encrypted-media; clipboard-write" className="min-h-0 w-full flex-1 border-0 bg-black" />
+          <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-3 bg-black px-6 text-center text-white/60">
+            <span className="text-sm">원본 영상을 불러오지 못했어요.</span>
+            <button onClick={() => { setTried(false); setMode('resolving') }} className="rounded-full bg-white/10 px-4 py-2 text-xs font-bold text-white transition hover:bg-white/20">다시 시도</button>
+          </div>
         )}
         <div className="shrink-0 bg-white p-3" style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}>
           <div className="mb-2 flex items-center gap-3 text-xs text-slate-500">
