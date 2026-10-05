@@ -18,6 +18,25 @@ def _clean_deep(x):
     if isinstance(x, dict): return {k: _clean_deep(v) for k, v in x.items()}
     return x
 
+# 중복 슬라이드 방지: 셀링포인트와 '적용법'이 같은 LLM 출력이라 겹치는 문제 → 의미 중복 제거
+def _norm(s): return re.sub(r"[^0-9A-Za-z가-힣]", "", str(s)).lower()
+def _toks(s): return set(re.findall(r"[가-힣]{2,}|[A-Za-z]{2,}", str(s)))
+def _dup(a, b):
+    na, nb = _norm(a), _norm(b)
+    if na and nb and (na in nb or nb in na): return True
+    ta, tb = _toks(a), _toks(b)
+    if not ta or not tb: return False
+    return len(ta & tb) / len(ta | tb) >= 0.5
+def _novel(items, seen, k):
+    """seen(이미 보여준 항목)과 의미가 겹치지 않는 항목만 최대 k개."""
+    out = []
+    for it in items:
+        if not str(it).strip(): continue
+        if any(_dup(it, s) for s in list(seen)+out): continue
+        out.append(it)
+        if len(out) >= k: break
+    return out
+
 GOOD = (86, 200, 120)   # 긍정
 INFO = (70, 150, 255)   # 질문/구매문의
 WARN = (240, 165, 70)   # 불만
@@ -52,10 +71,12 @@ def cover(path, D, n):
     if D.get("_feature"):
         _sh(d, (MX, y), D["_feature"], F(NB, 30), AC, (0, 0, 0), off=2); y += 60
     _hl(d, MX, y+6, D["product_name"], F(BHS, 58)); y += 150
-    cs = D["comment_sentiment"]; pi = int(cs.get("purchase_intent", 0))
-    tail = f"구매의도 {pi}%" if pi > 0 else f"긍정 {int(cs.get('positive',0))}%"
-    _sh(d, (MX, y), f"훅 {int(D['hook_score'])}점 · 페이오프 {int(D['payoff_score'])}점 · {tail}",
-        F(GM, 30), GREY, off=2)
+    cs = D["comment_sentiment"]; pi = int(cs.get("purchase_intent", 0)); pos = int(cs.get("positive", 0))
+    analyzed = int(D.get("comment_analyzed", 0) or 0)
+    base = f"훅 {int(D['hook_score'])}점 · 페이오프 {int(D['payoff_score'])}점"
+    if analyzed > 0 and pi > 0: base += f" · 구매의도 {pi}%"
+    elif analyzed > 0 and pos > 0: base += f" · 긍정 {pos}%"
+    _sh(d, (MX, y), base, F(GM, 30), GREY, off=2)
     _logo(im, W/2, H-92, 30); _dots(im, 1, n); im.save(path, quality=93)
 
 def hook_slide(path, i, n, D):
@@ -94,9 +115,11 @@ def selling_slide(path, i, n, D):
 def comments_slide(path, i, n, D):
     im = _bg("people typing phone social media", 0.72); d = ImageDraw.Draw(im)
     cs = D["comment_sentiment"]
-    _eyebrow(d, f"베라 분석 · 댓글 {D.get('comment_analyzed',0)}개", 90)
+    analyzed = int(D.get("comment_analyzed", 0) or 0)
+    _eyebrow(d, f"베라 분석 · 댓글 {analyzed}개", 90)
     _sh(d, (MX, 200), "댓글이 말해주는 신호", F(BHS, 58), WHITE, off=3)
-    _sh(d, (MX, 288), "실제 댓글을 베라가 분류 · 합 100%", F(GM, 28), DIM, off=2)
+    sub = "실제 댓글을 베라가 분류 · 합 100%" if analyzed > 0 else "분석된 댓글이 적어 참고용이에요"
+    _sh(d, (MX, 288), sub, F(GM, 28), DIM, off=2)
     # 4분할(합=100%)을 모두 바로 표시
     rows = [("구매 의도", int(cs.get("purchase_intent", 0)), AC),
             ("긍정 반응", int(cs.get("positive", 0)), GOOD),
@@ -106,13 +129,20 @@ def comments_slide(path, i, n, D):
     for label, v, col in rows:
         hbar(d, x, y, w, v/100.0, col, label, f"{v}%")
         y += 124
-    dom = max(rows, key=lambda r: r[1])
-    msg = {"구매 의도": "구매로 바로 이어질 신호가 강해요", "긍정 반응": "감성 반응이 폭발적이에요",
-           "질문·문의": "'어디서 사요' 문의가 쏟아져요 — 구매 직전 신호", "불만": "호불호가 갈리는 소재예요"}.get(dom[0], "")
+    dom = max(rows, key=lambda r: r[1]); total = sum(r[1] for r in rows)
     d.rounded_rectangle([MX, y+12, W-MX, y+150], 22, fill=(16, 17, 22))
-    d.text((MX+34, y+36), f"가장 큰 신호 · {dom[0]} {dom[1]}%", font=F(NB, 30), fill=AC)
-    for ln in wrap(d, msg, F(GM, 30), W-2*MX-68)[:1]:
-        d.text((MX+34, y+86), ln, font=F(GM, 30), fill=GREY)
+    if analyzed > 0 and dom[1] > 0 and total > 0:
+        # 동률이면 0이 아닌 신호만 추려 가장 강한 것(구매의도>질문>긍정>불만 우선순위는 rows 순서가 보장)
+        msg = {"구매 의도": "구매로 바로 이어질 신호가 강해요", "긍정 반응": "감성 반응이 폭발적이에요",
+               "질문·문의": "'어디서 사요' 문의가 쏟아져요 — 구매 직전 신호",
+               "불만": "호불호가 갈리는 소재예요"}.get(dom[0], "")
+        d.text((MX+34, y+36), f"가장 큰 신호 · {dom[0]} {dom[1]}%", font=F(NB, 30), fill=AC)
+        for ln in wrap(d, msg, F(GM, 30), W-2*MX-68)[:1]:
+            d.text((MX+34, y+86), ln, font=F(GM, 30), fill=GREY)
+    else:
+        d.text((MX+34, y+36), "댓글 신호 · 데이터 부족", font=F(NB, 30), fill=DIM)
+        for ln in wrap(d, "분석된 댓글이 적어 아직 뚜렷한 신호는 없어요", F(GM, 30), W-2*MX-68)[:1]:
+            d.text((MX+34, y+86), ln, font=F(GM, 30), fill=GREY)
     _sh(d, (MX, H-96), "@chronit · chronit.kr", F(GM, 26), DIM, off=2); _dots(im, i, n); im.save(path, quality=93)
 
 def structure_slide(path, i, n, D):
@@ -136,7 +166,12 @@ def remix_slide(path, i, n, D):
     _eyebrow(d, "베라 분석 · 내 상품에 적용", 90)
     _sh(d, (MX, 200), "그대로 베껴 쓰는 법", F(BHS, 58), WHITE, off=3)
     d.rectangle([MX+2, 290, MX+92, 296], fill=AC)
-    items = (D.get("remix", {}).get("differentiation") or D.get("key_takeaways") or [])[:4]
+    # 셀링포인트(3번 슬라이드)와 겹치는 항목 제거 → 중복 슬라이드 방지
+    sp = D.get("selling_points", []) or []
+    pool = (D.get("remix", {}).get("differentiation") or []) + (D.get("key_takeaways") or [])
+    items = _novel(pool, sp, 4)
+    if not items:  # 전부 겹쳤으면 테이크어웨이 원본이라도(최소 셀링포인트 복붙은 피함)
+        items = _novel(D.get("key_takeaways") or pool, [], 4) or pool[:4]
     y0 = 400; rowh = min(150, (H-200-y0)//max(1, len(items)))
     for k, s in enumerate(items):
         ry = y0+k*rowh
@@ -171,15 +206,19 @@ def build_caption(D):
     sp = " / ".join((D.get("selling_points") or [])[:3])
     diff = (D.get("remix", {}) or {}).get("differentiation") or []
     pi = int(cs.get("purchase_intent", 0) or 0); pos = int(cs.get("positive", 0) or 0)
-    sig = f"구매 의도 {pi}%" if pi > 0 else f"긍정 반응 {pos}%"
+    analyzed = int(D.get("comment_analyzed", 0) or 0)
+    sig = (f"구매 의도 {pi}%" if (analyzed > 0 and pi > 0)
+           else (f"긍정 반응 {pos}%" if (analyzed > 0 and pos > 0) else ""))
+    # 적용법은 셀링포인트와 안 겹치는 것으로
+    diff_novel = _novel(diff + (D.get("key_takeaways") or []), (D.get("selling_points") or []), 1)
     lead = (D.get("_feature") + ", 베라가 뜯어봤어요.") if D.get("_feature") else "이번 주 터진 쇼핑 릴스, 베라가 뜯어봤어요."
     parts = [
         lead,
         f"'{D.get('product_name','')}' 영상인데 훅 {int(D.get('hook_score') or 0)}점 · 페이오프 {int(D.get('payoff_score') or 0)}점이 나왔어요.",
         f"훅: \"{D.get('hook','')}\" — {D.get('hook_why','')}",
         (f"먹힌 셀링포인트: {sp}" if sp else ""),
-        f"댓글 {D.get('comment_analyzed',0)}개를 분석했더니 {sig}. 사람들이 반응하는 지점이 분명했어요.",
-        (f"내 상품에 적용하려면: {diff[0]}" if diff else ""),
+        (f"댓글 {analyzed}개를 분석했더니 {sig}. 사람들이 반응하는 지점이 분명했어요." if sig else ""),
+        (f"내 상품에 적용하려면: {diff_novel[0]}" if diff_novel else ""),
         "저장해두고 다음 영상 기획할 때 참고하세요 📌",
         "분석해보고 싶은 영상 있어요? 댓글로 알려주세요 💬",
         "👉 영상 선택하면 이 리포트가 자동으로: chronit.kr",
