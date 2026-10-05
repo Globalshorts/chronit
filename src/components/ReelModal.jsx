@@ -7,6 +7,15 @@ import { supabase } from '../lib/supabase'
 // clip: { video_url, video_id(=shortcode), thumbnail_url, views, likes, comments }
 const fmt = (n) => { n = Math.max(0, Math.trunc(Number(n) || 0)); return n >= 10000 ? (n / 10000).toFixed(1) + '만' : n >= 1000 ? (n / 1000).toFixed(1) + '천' : String(n) }
 
+// 캐러셀 슬라이드는 원본이 인스타 CDN 서명 URL(만료·핫링크 차단)이라 브라우저에서 바로 뜨지 않는다.
+// 썸네일처럼 프록시(서버 fetch → 스토리지 캐시)로 돌려 안정적으로 띄운다. 스토리지 URL은 그대로.
+const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
+const proxied = (u, sc, i) => {
+  if (!u) return ''
+  if (u.includes('/storage/v1/object/public/')) return u
+  return `${SB}/functions/v1/thumbnail-proxy?url=${encodeURIComponent(u)}${sc ? `&sc=${encodeURIComponent(sc)}` : ''}${i != null ? `&i=${i}` : ''}`
+}
+
 export default function VideoModal({ clip, onClose, onSave, saved = false, onScript, scriptState, onAnalyze, viewOnly = false }) {
   const _navScript = useNavigate()
   const imgs = Array.isArray(clip?.images) ? clip.images.filter(Boolean) : []
@@ -17,6 +26,7 @@ export default function VideoModal({ clip, onClose, onSave, saved = false, onScr
   const [mode, setMode] = useState(clip?.video_url ? 'video' : imgs.length ? 'images' : clip?.video_id ? 'resolving' : 'error')
   const [idx, setIdx] = useState(0)
   const [tried, setTried] = useState(false)
+  const [rawImg, setRawImg] = useState({}) // 프록시 실패 시 해당 장만 원본 URL로 폴백
   const resolveVideo = async () => {
     try {
       const { data } = await supabase.functions.invoke('trend-reel', { body: { shortcode: clip?.video_id } })
@@ -45,7 +55,9 @@ export default function VideoModal({ clip, onClose, onSave, saved = false, onScr
         <button onClick={onClose} className="absolute right-2 top-2 z-10 rounded-full bg-black/60 p-1.5 text-white hover:bg-black/80"><X size={18} /></button>
         {mode === 'images' ? (
           <div className="relative flex min-h-0 w-full flex-1 items-center justify-center bg-black">
-            <img src={imgs[idx]} alt="" referrerPolicy="no-referrer" onContextMenu={(ev) => ev.preventDefault()}
+            <img src={rawImg[idx] ? imgs[idx] : proxied(imgs[idx], clip?.video_id, idx)} alt="" referrerPolicy="no-referrer"
+              onError={() => setRawImg((f) => (f[idx] ? f : { ...f, [idx]: true }))}
+              onContextMenu={(ev) => ev.preventDefault()}
               className="max-h-full max-w-full object-contain" />
             {imgs.length > 1 && (
               <>

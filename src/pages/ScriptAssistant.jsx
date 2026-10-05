@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Sparkles, Send, Copy, Check, Wand2, Flame, Plus, MessageSquareText, ChevronDown, Film, Download, Clipboard, Settings, Pencil, Trash2, ChevronLeft, ChevronRight, Sprout, BarChart3 } from 'lucide-react'
+import { Sparkles, Send, Copy, Check, Wand2, Flame, Plus, MessageSquareText, ChevronDown, Film, Download, Clipboard, Settings, Pencil, Trash2, ChevronLeft, ChevronRight, Sprout, BarChart3, Play } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import VoiceOnboard from '../components/VoiceOnboard'
 import PersonaSettings from '../components/PersonaSettings'
@@ -210,9 +210,13 @@ export default function ScriptAssistant({ session: sessionProp }) {
 
   // 클립 박스 캡션 보충 + 원본 영상 프리페치
   useEffect(() => {
-    if (clipBox && clipBox.source_ref && !clipBox.caption) {
+    if (clipBox && clipBox.source_ref && (!clipBox.caption || !clipBox.thumb)) {
       supabase.rpc('trend_detail_rpc', { p_shortcode: clipBox.source_ref })
-        .then(({ data }) => { const c = String(data?.caption || '').replace(/\s+/g, ' ').trim(); if (c) setClipBox(v => (v && v.source_ref === clipBox.source_ref) ? { ...v, caption: c } : v) }).then(null, () => {})
+        .then(({ data }) => {
+          const c = String(data?.caption || '').replace(/\s+/g, ' ').trim()
+          const th = String(data?.thumbnail_url || '').trim()
+          setClipBox(v => (v && v.source_ref === clipBox.source_ref) ? { ...v, caption: c || v.caption, thumb: v.thumb || th } : v)
+        }).then(null, () => {})
     }
     setClipVideo('')
     const sc = clipBox?.source_ref
@@ -222,6 +226,16 @@ export default function ScriptAssistant({ session: sessionProp }) {
     return () => { alive = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clipBox?.source_ref])
+
+  // 소재 카드 썸네일 보충 — source_ref 만 있고 썸네일이 비었을 때(채팅 트렌드/재진입) 원본 썸네일을 채운다
+  useEffect(() => {
+    if (!soso || !soso.source_ref || soso.thumb) return
+    let alive = true
+    supabase.rpc('trend_detail_rpc', { p_shortcode: soso.source_ref })
+      .then(({ data }) => { const th = String(data?.thumbnail_url || '').trim(); if (alive && th) setSoso(v => (v && v.source_ref === soso.source_ref && !v.thumb) ? { ...v, thumb: th } : v) }).then(null, () => {})
+    return () => { alive = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [soso?.source_ref])
 
   // 트렌드에서 '분석'으로 진입하면 소재 붙은 뒤 자동 분석
   useEffect(() => {
@@ -587,19 +601,29 @@ export default function ScriptAssistant({ session: sessionProp }) {
       {/* 소재 카드 (붙은 소재) */}
       {soso && (
         <div className="mx-auto mt-3 flex w-full max-w-[700px] items-center gap-3 rounded-2xl glass p-2.5">
-          {soso.thumb ? <img src={soso.thumb} referrerPolicy="no-referrer" className="h-16 w-12 shrink-0 rounded-lg object-cover" /> : <div className="grid h-16 w-12 shrink-0 place-items-center rounded-lg bg-white/10"><Film size={18} className="text-white/40" /></div>}
+          {soso.source_ref
+            ? <button type="button" onClick={() => setPlayClip({ video_id: soso.source_ref, thumbnail_url: soso.thumb || '', caption: soso.caption || '', video_url: clipVideo || '' })} className="group relative h-16 w-12 shrink-0 overflow-hidden rounded-lg" title="원본 보기">
+                {soso.thumb ? <img src={soso.thumb} referrerPolicy="no-referrer" className="h-16 w-12 rounded-lg object-cover" /> : <TrendThumb url="" sc={soso.source_ref} />}
+                <span className="absolute inset-0 grid place-items-center bg-black/25 opacity-0 transition group-hover:opacity-100"><Play size={16} className="text-white" /></span>
+              </button>
+            : (soso.thumb ? <img src={soso.thumb} referrerPolicy="no-referrer" className="h-16 w-12 shrink-0 rounded-lg object-cover" /> : <div className="grid h-16 w-12 shrink-0 place-items-center rounded-lg bg-white/10"><Film size={18} className="text-white/40" /></div>)}
           <div className="min-w-0 flex-1">
             <div className="text-[11px] font-bold text-[#5AA0FF]">🔥 트렌드 소재{soso.product ? ' · 분석됨' : ''}</div>
             {soso.product
               ? <><div className="truncate text-[14px] font-bold text-white">{soso.product}</div><div className="line-clamp-1 text-[12px] text-white/55">{(soso.selling || []).join(' · ') || soso.caption}</div></>
               : <div className="line-clamp-2 text-[13px] leading-snug text-white/80">{soso.caption || '(캡션 불러오는 중…)'}</div>}
           </div>
-          {!jobId && (
-            <div className="flex shrink-0 flex-col gap-1.5">
-              <button onClick={generateFromSoso} disabled={busy} className="rounded-xl bg-[#0064FF] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-40">이 소재로 대본 만들기{turns > 0 ? <span className="opacity-70"> · {turns}턴 남음</span> : <span className="opacity-70"> · 이용권 2 · 10턴</span>}</button>
-              <button onClick={analyzeSosoToChat} disabled={busy} className="flex items-center justify-center gap-1 rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-xs font-bold text-white/75 transition hover:text-white disabled:opacity-40"><BarChart3 size={13} /> 소재 분석 · 이용권 1</button>
-            </div>
-          )}
+          <div className="flex shrink-0 flex-col items-stretch gap-1.5">
+            {!jobId && (
+              <>
+                <button onClick={generateFromSoso} disabled={busy} className="rounded-xl bg-[#0064FF] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-40">이 소재로 대본 만들기{turns > 0 ? <span className="opacity-70"> · {turns}턴 남음</span> : <span className="opacity-70"> · 이용권 2 · 10턴</span>}</button>
+                <button onClick={analyzeSosoToChat} disabled={busy} className="flex items-center justify-center gap-1 rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-xs font-bold text-white/75 transition hover:text-white disabled:opacity-40"><BarChart3 size={13} /> 소재 분석 · 이용권 1</button>
+              </>
+            )}
+            {soso.source_ref && (
+              <button type="button" onClick={() => setPlayClip({ video_id: soso.source_ref, thumbnail_url: soso.thumb || '', caption: soso.caption || '', video_url: clipVideo || '' })} className="flex items-center justify-center gap-1 rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-xs font-bold text-white/75 transition hover:text-white"><Film size={12} /> 원본 보기</button>
+            )}
+          </div>
         </div>
       )}
 

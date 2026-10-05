@@ -32,10 +32,15 @@ serve(async (req) => {
   const { searchParams } = new URL(req.url);
   const imageUrl = searchParams.get("url") ?? "";
   const sc = (searchParams.get("sc") ?? "").trim();
+  // 캐러셀 슬라이드: 같은 shortcode 안에서 장(index)마다 다른 파일이어야 덮어쓰지 않는다.
+  const iRaw = (searchParams.get("i") ?? "").trim();
+  const i = /^\d{1,2}$/.test(iRaw) ? Number(iRaw) : null;
   if (!imageUrl || !imageUrl.startsWith("http"))
     return new Response("url required", { status: 400, headers: cors });
 
-  const key = SC_RE.test(sc) ? `post/${sc}.jpg` : await urlHashKey(imageUrl);
+  const key = SC_RE.test(sc)
+    ? (i != null ? `post/${sc}_${i}.jpg` : `post/${sc}.jpg`)
+    : await urlHashKey(imageUrl);
 
   const admin = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
