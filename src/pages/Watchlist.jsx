@@ -33,6 +33,13 @@ const FEED_LIMIT = 600
 const SCAN_CHUNK = 20      // watch-scan CHUNK — 진행바 보간 구간 계산에 쓴다
 const WARN_OVER = 300      // 이 이상이면 탭 이탈 경고(동시 10개 병렬이라 그 아래는 금방 끝남)
 
+// 트렌드와 같은 카테고리 칩 — watch_feed.category 는 classify-watch 배치가 채운다(캡션→카테고리).
+const CATS = ['전체', '리빙', '육아', '푸드', '잡화', '패션', '디지털', '뷰티']
+const WATCH_CAT_KEY = 'chr_watch_cat'
+const readWatchCat = () => { try { const c = localStorage.getItem(WATCH_CAT_KEY); return CATS.includes(c) ? c : '전체' } catch { return '전체' } }
+const REGIONS = [['전체', ''], ['한국', 'kr'], ['일본', 'jp'], ['미국', 'us']]
+const regionOf = (it) => { const c = `${it.caption || ''}`; if (/[가-힣]/.test(c)) return 'kr'; if (/[ぁ-ゖァ-ヺ]/.test(c)) return 'jp'; return 'us' }
+
 export default function Watchlist() {
   const nav = useNavigate()
   const { scriptGen, startScript } = useScriptGen()
@@ -58,6 +65,9 @@ export default function Watchlist() {
   const [includeDead, setIncludeDead] = useState(false)
 
   const [sort, setSort] = useState('comment')
+  const [selCat, setSelCat] = useState(readWatchCat)
+  const [region, setRegion] = useState('')
+  const [showAdv, setShowAdv] = useState(true)       // 슬라이더 기본 펼침(트렌드와 동일)
   const [days, setDays] = useState(DAY_MAX)
   const [minComments, setMinComments] = useState(0)
   const [minViews, setMinViews] = useState(0)
@@ -235,6 +245,8 @@ export default function Watchlist() {
   // 서버에서 이미 정렬돼 오므로 여기선 슬라이더 조건만 거른다
   const filtered = feed
     .filter((it) => it.taken_at && now - new Date(it.taken_at).getTime() <= dayWindowMs(days))
+    .filter((it) => selCat === '전체' || it.category === selCat)
+    .filter((it) => !region || regionOf(it) === region)
     .filter((it) => !minComments || (Number(it.comment_count) || 0) >= minComments)
     // 조회수 조건은 릴스에만 — 캐러셀은 조회수가 없어서(0) 걸면 전부 사라진다
     .filter((it) => !minViews || isCarousel(it) || (Number(it.view_count) || 0) >= minViews)
@@ -342,13 +354,29 @@ export default function Watchlist() {
         </div>
       </section>
 
-      {/* 필터 */}
+      {/* 필터 — 트렌드와 동일 구조: 카테고리 칩 + 정렬 select + 상세필터(지역·유형·슬라이더) */}
+      <div className="mb-5">
+        <div className="mb-3 flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {CATS.map((c) => (
+            <button key={c} onClick={() => { setSelCat(c); try { localStorage.setItem(WATCH_CAT_KEY, c) } catch { /* noop */ } }}
+              className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-bold transition ${selCat === c ? 'bg-[#0064FF] text-white' : 'bg-white/5 text-white/55 border border-white/10 hover:border-[#0064FF] hover:text-[#0064FF]'}`}>{c}</button>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <select value={effSort} onChange={(e) => setSort(e.target.value)} className="rounded-lg glass px-3 py-1.5 text-sm font-bold text-white/85">
+            {SORTS.filter(([k]) => !(postType === 'carousel' && k === 'view')).map(([k, l]) => <option key={k} value={k}>{l}순</option>)}
+          </select>
+          <button onClick={() => setShowAdv((v) => !v)} className="rounded-lg glass px-3 py-1.5 text-sm font-bold text-white/45 hover:border-[#0064FF] hover:text-[#0064FF]">상세 필터{!showAdv && postType !== 'all' ? ` · ${postType === 'carousel' ? '캐러셀' : '릴스'}` : ''} {showAdv ? '▴' : '▾'}</button>
+        </div>
+      </div>
+
+      {showAdv && (
       <section className="mb-4 rounded-2xl bg-slate-900 p-4">
         <div className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold text-white/60">정렬</span>
-            {SORTS.filter(([k]) => !(postType === 'carousel' && k === 'view')).map(([k, l]) => (
-              <button key={k} onClick={() => setSort(k)} className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${effSort === k ? 'bg-[#0064FF] text-white' : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'}`}>{l}순</button>
+            <span className="text-xs font-bold text-white/60">지역</span>
+            {REGIONS.map(([l, v]) => (
+              <button key={l} onClick={() => setRegion(v)} className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${region === v ? 'bg-[#0064FF] text-white' : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'}`}>{l}</button>
             ))}
           </div>
           <PostTypeToggle value={postType} onChange={setPostType} />
@@ -362,6 +390,7 @@ export default function Watchlist() {
           )}
         </div>
       </section>
+      )}
 
       {loading ? (
         <div className="flex items-center gap-2 py-10 text-white/40"><Loader2 size={16} className="animate-spin" />불러오는 중…</div>
