@@ -16,6 +16,15 @@ import { phCapture } from '../lib/posthog'
 const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
 const FN = (n) => `${SB}/functions/v1/${n}`
 
+// 변주(A/B)가 가끔 한 응답에 대본을 2개 담아올 때, 첫 대본(첫 CTA '남겨주세요' 줄까지)만 남긴다.
+const oneScript = (t) => {
+  const s = String(t ?? '')
+  if (!s.trim()) return s
+  const lines = s.split('\n')
+  const i = lines.findIndex((ln) => ln.includes('남겨주세요'))
+  return i === -1 ? s.trim() : lines.slice(0, i + 1).join('\n').trim()
+}
+
 function Droplet({ size = 84, label }) {
   return (
     <div className="flex flex-col items-center gap-3">
@@ -265,7 +274,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
     })
     if (jrow?.ab_pending && jrow?.script_b) {
       const cleaned = built.filter((m) => !m.isScript)
-      cleaned.push({ role: 'assistant', ab: true, a: jrow.script || '', b: jrow.script_b, genre: '', mine: isMy, analysis, jobId: id })
+      cleaned.push({ role: 'assistant', ab: true, a: oneScript(jrow.script || ''), b: oneScript(jrow.script_b), genre: '', mine: isMy, analysis, jobId: id })
       built.length = 0; built.push(...cleaned)
     }
     if (jrow?.analysis) built.unshift({ role: 'assistant', report: jrow.analysis })
@@ -390,7 +399,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       const d = await r.json()
       if (!d.ok) { const blocked = d.code === 'INSUFFICIENT_CREDITS'; track(blocked ? 'vera_blocked_credits' : 'vera_gen_failed', { where: 'generate' }); setErr(blocked ? `이용권이 부족해요. 10턴 세션을 열려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '대본 생성 실패')); return }
       const meta = { mine: voiceProfile?.has_voice === true, analysis: { product, selling: sp }, jobId: jobId || d.job_id, genre: d.genre || null }
-      const outMsg = d.script_b ? { role: 'assistant', ab: true, a: d.script, b: d.script_b, ...meta } : { role: 'assistant', text: d.script, isScript: true, ...meta }
+      const outMsg = d.script_b ? { role: 'assistant', ab: true, a: oneScript(d.script), b: oneScript(d.script_b), ...meta } : { role: 'assistant', text: oneScript(d.script), isScript: true, ...meta }
       if (jobId) { applyMeter(d); setMessages((m) => [...m, outMsg]) }
       else { setJobId(d.job_id); applyMeter(d); setMessages([outMsg]) }
       sawScriptRef.current = true; track('vera_script_shown', { source: 'soso', mine: voiceProfile?.has_voice === true })
