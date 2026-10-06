@@ -110,6 +110,14 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [nick, setNick] = useState('')
   const [today, setToday] = useState([])
   const [jobs, setJobs] = useState([])
+  const [jobsLoaded, setJobsLoaded] = useState(false)
+  // 잡담(대본 세션 밖 대화) 기록: 유저당 1개 스레드, 최근 10회 대화(메시지 20개)만 서버 보관
+  const [freeThread, setFreeThread] = useState(null)   // 최초 로드 결과 {messages, updated_at} (null=로딩 전)
+  const [hasThread, setHasThread] = useState(false)
+  const threadRef = useRef([])        // 서버에 저장된 최신 스레드
+  const freeBaseRef = useRef([])      // 화면에 안 보이지만 스레드 앞쪽에 이어붙일 기존 기록
+  const freeReadyRef = useRef(false)  // 복원 판단 끝난 뒤에만 저장
+  const lastSavedRef = useRef('')
   const [showJobs, setShowJobs] = useState(false)
   const [voiceProfile, setVoiceProfile] = useState(null)  // {has_voice, ig_username, style_card}
   const [showOnboard, setShowOnboard] = useState(false)
@@ -178,25 +186,27 @@ export default function ScriptAssistant({ session: sessionProp }) {
       try { const { data: pf } = await supabase.from('profiles').select('nickname').eq('id', session.user.id).maybeSingle(); nn = pf?.nickname || '' } catch { /* noop */ }
       setNick(nn)
       supabase.rpc('trend_list_rpc', { p_limit: 3 }).then(({ data }) => setToday((Array.isArray(data) ? data : []).map(x => String(x.caption || '').replace(/\s+/g, ' ').trim().slice(0, 70)).filter(Boolean))).catch(() => {})
-      if (!greetedRef.current && messages.length === 0 && !soso && !jobId && (!jobs || jobs.length === 0)) {
+      if (!greetedRef.current && jobsLoaded && freeThread !== null && !(freeThread.messages || []).length && messages.length === 0 && !soso && !jobId && (!jobs || jobs.length === 0)) {
         greetedRef.current = true
         setMessages([{ role: 'assistant', text: `안녕하세요${nn ? ` ${nn}님` : ''}! 저는 대본 비서 베라예요 🙂\n트렌드에서 마음에 드는 영상을 열어 '대본 작성하기'를 누르면 기승전결 대본을 써드려요. 오늘 뭐가 뜨는지 궁금하면 편하게 물어보세요.` }])
       }
     })()
-  }, [session, jobs])
+  }, [session, jobs, jobsLoaded, freeThread])
 
   // 재방문 진입: 트렌드/분석 진입 의도가 없으면 가장 최근 세션 자동 열기
   useEffect(() => {
-    if (autoOpenRef.current || !session) return
+    if (autoOpenRef.current || !session || !jobsLoaded || freeThread === null) return
+    autoOpenRef.current = true
+    const tm = freeThread.messages || []
     const st = loc.state
-    if (st && (st.open_job || st.source_ref || st.caption)) { autoOpenRef.current = true; return }
-    if (jobId || soso) { autoOpenRef.current = true; return }
-    if (Array.isArray(jobs) && jobs.length > 0) {
-      autoOpenRef.current = true; greetedRef.current = true
-      openJob(jobs[0].id)
-    }
+    if ((st && (st.open_job || st.source_ref || st.caption)) || jobId || soso) { freeBaseRef.current = tm; freeReadyRef.current = true; return }
+    const tAt = freeThread.updated_at ? Date.parse(freeThread.updated_at) : 0
+    const jAt = jobs.length ? Date.parse(jobs[0].created_at) : 0
+    if (tm.length && tAt >= jAt) { greetedRef.current = true; freeBaseRef.current = []; setMessages(tm.slice()); freeReadyRef.current = true; return }
+    freeBaseRef.current = tm; freeReadyRef.current = true
+    if (jobs.length > 0) { greetedRef.current = true; openJob(jobs[0].id) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, jobs])
+  }, [session, jobs, jobsLoaded, freeThread])
 
   // 트렌드 재생 모달의 "대본 작성하기" → 소재(클립) 자체를 비서로 가져오기
   useEffect(() => {
@@ -335,6 +345,34 @@ export default function ScriptAssistant({ session: sessionProp }) {
       ready.forEach(({ c, i }, k) => setTimeout(() => hardDownload(dlHref(c.storage_path, i)), k * 700))
     } finally { setClipSaving(null) }
   }
+  const toStore = (m) => {
+    if (!m || m.unlockChat || m.voicePreview || m.report || m.captionAB || m.ab || m.isScript) return null
+    if (m.trends) return { role: 'assistant', trends: (m.trends || []).slice(0, 6).map((it) => ({ shortcode: it.shortcode, caption: String(it.caption || '').slice(0, 120), thumbnail_url: it.thumbnail_url || '', category: it.category || '' })), trendCat: m.trendCat || '', note: m.note || '', fallback: !!m.fallback }
+    if ((m.role === 'user' || m.role === 'assistant') && m.text) return { role: m.role, text: String(m.text).slice(0, 4000) }
+    return null
+  }
+  const FREE_KEEP = 20   // 최근 10회 대화
+  useEffect(() => {
+    if (!session) return
+    supabase.rpc('get_free_thread_rpc').then(({ data }) => {
+      const msgs = Array.isArray(data?.messages) ? data.messages : []
+      threadRef.current = msgs; lastSavedRef.current = JSON.stringify(msgs); setHasThread(msgs.length > 0)
+      setFreeThread({ messages: msgs, updated_at: data?.updated_at || null })
+    }, () => setFreeThread({ messages: [], updated_at: null }))
+  }, [session])
+  // 잡담 화면일 때(대본/소재 없음) 대화가 끝날 때마다 바로 저장 — 기존 기록 + 화면 대화, 최근 20개만
+  useEffect(() => {
+    if (!freeReadyRef.current || jobId || soso || busy) return
+    const all = [...freeBaseRef.current, ...messages.map(toStore).filter(Boolean)].slice(-FREE_KEEP)
+    const key = JSON.stringify(all)
+    if (key === lastSavedRef.current) return
+    lastSavedRef.current = key; threadRef.current = all; setHasThread(all.length > 0)
+    supabase.rpc('save_free_thread_rpc', { p_messages: all, p_max: FREE_KEEP }).then(null, () => {})
+  }, [messages, jobId, soso, busy])
+  const openFreeThread = () => {
+    setShowJobs(false); setErr(''); setJobId(null); setSoso(null); setClipBox(null); setPlayClip(null); setClips([]); setTurns(null)
+    freeBaseRef.current = []; setMessages(threadRef.current.slice())
+  }
   const applyMeter = (d) => {
     if (typeof d.turns_left === 'number') setTurns(d.turns_left)
     if (d.free_chat) setFreeChat(d.free_chat)
@@ -345,7 +383,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
 
   const loadJobs = async () => {
     const { data } = await supabase.from('jobs').select('id,product_name,created_at,status').order('created_at', { ascending: false }).limit(40)
-    setJobs(data || [])
+    setJobs(data || []); setJobsLoaded(true)
   }
   const openJob = async (id) => {
     setShowJobs(false); setErr('')
@@ -361,12 +399,13 @@ export default function ScriptAssistant({ session: sessionProp }) {
     const analysis = (jrow?.product_name || sell) ? { product: jrow?.product_name || '', selling: sell ? sell.split(' / ').filter(Boolean) : [] } : null
     let attached = false
     const built = (msgs || []).map(m => {
+      if (m.role === 'caption') { try { const c = JSON.parse(m.content || '{}'); return { role: 'assistant', captionAB: true, a: c.a || '', b: c.b || null } } catch { return null } }
       const isA = m.role === 'assistant'
       const looksScript = isA && !!m.content && m.content.includes('\n') && m.content.replace(/\s/g, '').length > 30
       const base = { role: m.role, text: m.content, isScript: looksScript, mine: looksScript && isMy }
       if (looksScript && analysis && !attached) { attached = true; base.analysis = analysis }
       return base
-    })
+    }).filter(Boolean)
     if (jrow?.ab_pending && jrow?.script_b) {
       const cleaned = built.filter((m) => !m.isScript)
       cleaned.push({ role: 'assistant', ab: true, a: oneScript(jrow.script || ''), b: oneScript(jrow.script_b), genre: '', mine: isMy, analysis, jobId: id })
@@ -377,7 +416,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
     if (jrow?.source_ref) setClipBox(v => (v && v.source_ref === jrow.source_ref) ? v : { source_ref: jrow.source_ref, caption: '', thumb: '' }); else setClipBox(null)
     try { const { data: jt } = await supabase.rpc('get_job_turns_rpc', { p_job_id: id }); setTurns(typeof jt?.turns_left === 'number' ? jt.turns_left : null) } catch { setTurns(null) }
   }
-  const newChat = () => { setMessages([]); setJobId(null); setSoso(null); setClipBox(null); setPlayClip(null); setClips([]); setInput(''); setErr(''); setShowJobs(false); setTurns(null); resetGrow() }
+  const newChat = () => { freeBaseRef.current = threadRef.current.slice(); setMessages([]); setJobId(null); setSoso(null); setClipBox(null); setPlayClip(null); setClips([]); setInput(''); setErr(''); setShowJobs(false); setTurns(null); resetGrow() }
 
   // 채널 분석: URL 입력 유도 → 다음 전송에서 실제 분석 실행
   const startChannelAnalysis = () => {
@@ -559,9 +598,10 @@ export default function ScriptAssistant({ session: sessionProp }) {
         supabase.rpc('set_job_script_rpc', { p_job_id: chatJob, p_script: d.script, p_status: 'done' }).then(null, () => {})
         if (prevScript) supabase.rpc('record_edit_rpc', { p_job_id: chatJob, p_before: prevScript, p_after: d.script }).then(null, () => {})
       }
-      if (chatJob) {
-        supabase.rpc('append_job_message_rpc', { p_job_id: chatJob, p_role: 'user', p_content: text }).then(null, () => {})
-        if (d.reply) supabase.rpc('append_job_message_rpc', { p_job_id: chatJob, p_role: 'assistant', p_content: d.reply }).then(null, () => {})
+      const logJob = chatJob || jobId
+      if (logJob) {
+        supabase.rpc('append_job_message_rpc', { p_job_id: logJob, p_role: 'user', p_content: text }).then(null, () => {})
+        if (d.reply) supabase.rpc('append_job_message_rpc', { p_job_id: logJob, p_role: 'assistant', p_content: d.reply }).then(null, () => {})
       }
       if (!shown) setMessages(m => [...m, { role: 'assistant', text: '네, 말씀하세요!' }])
     } catch (e) { track('vera_gen_failed', { where: 'chat', error: String(e).slice(0, 120) }); setErr(String(e)); setMessages(m => [...m, { role: 'assistant', text: '연결이 잠깐 불안정했어요 😢 다시 한 번 보내주실래요?' }]) } finally { setBusy(false); setStage('') }
@@ -619,6 +659,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       if (!d.ok) { setErr(d.error || '캡션 생성에 실패했어요'); return }
       actedRef.current = true; try { track('vera_caption_shown') } catch { /* noop */ }
       setMessages((m) => [...m, { role: 'assistant', captionAB: true, a: d.caption_a, b: d.caption_b }])
+      supabase.rpc('append_job_message_rpc', { p_job_id: jobId, p_role: 'caption', p_content: JSON.stringify({ a: d.caption_a || '', b: d.caption_b || '' }) }).then(null, () => {})
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
   // 대본 평가 — 👎면 "완벽하지 않아서 이탈"의 직접 신호. 평가하면 조용한 이탈로는 안 잡음.
@@ -662,6 +703,12 @@ export default function ScriptAssistant({ session: sessionProp }) {
       <aside className={`${showConvList ? 'fixed inset-0 z-40 flex bg-black/50' : 'hidden'} ${convCollapsed ? 'md:hidden' : 'md:static md:z-0 md:flex md:bg-transparent'}`} onClick={() => setShowConvList(false)}>
         <div className="flex h-full min-h-[calc(100vh-0px)] w-64 shrink-0 flex-col border-r border-white/10 bg-[#0d0e12] p-3" onClick={e => e.stopPropagation()}>
           <button onClick={() => { newChat(); setShowConvList(false) }} className="mb-3 flex items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] glass-active py-2.5 text-sm font-bold text-white transition hover:brightness-110"><Plus size={16} /> 새 대본</button>
+          {hasThread && (
+            <button onClick={() => { openFreeThread(); setShowConvList(false) }} className={`mb-3 flex items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition hover:bg-white/5 ${!jobId && !soso && messages.length > 0 ? 'bg-white/10 text-white' : 'text-white/70'}`}>
+              <MessageSquareText size={14} className="shrink-0 text-[#5AA0FF]" />
+              <div className="min-w-0"><div className="truncate">베라와 대화</div><div className="text-[10px] text-white/30">최근 대화 10회까지 보관</div></div>
+            </button>
+          )}
           <div className="mb-1.5 px-1 text-[11px] font-bold text-white/35">내 대본 {jobs.length ? `(${jobs.length})` : ''}</div>
           <div className="-mx-1 flex-1 overflow-y-auto px-1">
             {jobs.length === 0 ? <div className="px-2 py-4 text-xs text-white/30">아직 만든 대본이 없어요</div> :
