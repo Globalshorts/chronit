@@ -53,6 +53,15 @@ function lineize(t: string): string {
   }
   return out.join("\n").replace(/\n{3,}/g, "\n\n").trim();
 }
+// 대본 품질 가드: 너무 짧거나(중간에 끊김) 줄이 2줄 이하거나, 화자 개인사를 시청자에게 묻는 훅이면 불량
+function badHook(t: string): boolean {
+  const h = firstLine(t);
+  return /(저희|우리\s?집|제\s|내\s|조카|남편|아내|와이프|엄마|아빠)/.test(h) && /(눈치\s?채|아셨|보셨|알아채|알고\s?계셨)/.test(h);
+}
+function badScript(t: string): boolean {
+  const s = String(t || "");
+  return s.replace(/\s/g, "").length < 80 || s.split("\n").filter((x) => x.trim()).length < 3 || badHook(s);
+}
 function oneScript(t: string): string {
   const s = lineize(String(t ?? ""));
   if (!s.trim()) return s;
@@ -73,6 +82,7 @@ const RULES = [
   "[자극은 사실로] 거짓·과한 공포가 아니라 구체적 불편·의외의 관점·반전·유머로. 정상적인 행동을 위험한 것처럼 몰지 마라.",
   "[심리 트리거] 손실회피 / 정체성 지목(\"좁은 주방 쓰는 분들\") / 궁금증 유발(해결 원리는 뒤로) / 감정 공감(반복되는 짜증·귀찮음·찝찝함) / 미래의 나(달라지는 장면) / B급 유머. 사회적증거·전문가·희소성은 제공된 사실이 있을 때만.",
   "[후킹 규칙] 한 문장에 한 메시지. 1~3초에 이해되는 짧은 문장. 트리거 1~3개 조합(길어지면 1개만 강하게). 패턴 중 상품에 맞는 것 택: 통념반박 / 손실·후회 / 시선·발견 / 명령 / 시간·노동절감. \"뭐지?→왜?→보고 싶다\"로 이어지게. 장점을 다 설명하지 마라.",
+  "[훅 상식 체크] 훅은 처음 보는 시청자 입장에서 바로 말이 돼야 한다. 시청자가 알 수 없는 화자 개인 상황(우리 집·조카·가족·내 방)을 '눈치채셨어요?/아셨어요?/보셨죠?'처럼 시청자에게 묻지 마라. 질문형 훅은 시청자 자신의 경험·상황만 묻는다('~해본 적 있어요?', '~때문에 불편하시죠?'). 화자 이야기로 시작할 땐 질문 말고 서술로('조카 올 때마다 거실을 바꾸는데요'). 출력 전에 첫 문장을 시청자 입장에서 다시 읽고 어색하면 고쳐라.",
   "[4단계 구조] ①후킹: 가장 강한 1개, 다음 문장이 그 궁금증을 이어받게 ②문제·공감 + \"이것\" 자연스럽게 등장(후킹의 불편을 길게 반복 금지) ③핵심 장점 1~2개 + 사용 후 달라지는 장면(나열 금지, 불편→기능→변화 흐름) ④댓글 유도.",
   "[댓글 유도] 3단계 마지막 어미 바로 뒤에 공백·줄바꿈 없이  \"키워드\" 남겨주세요! 를 붙인다. 키워드가 주어지면 그대로, 없으면 제품명 안 드러나는 짧은 키워드. \"정보 궁금하신 분들은/편하게/댓글로\" 붙이지 마라.",
   "[어투] 친구에게 알려주듯 자연스러운 구어체. \"~는데/~해요/~더라고요/~라는 거예요\". 딱딱한 \"~합니다/~입니다/~하더군요\" 금지. 경험형 어미는 실제 경험이 주어졌을 때만. AI 상투어 금지.",
@@ -471,6 +481,18 @@ serve(async (req) => {
         genScript(sysAB + angleB, base, 2200),
       ]);
       sA = oneScript(stripLabels(sA)); sB = oneScript(stripLabels(sB));
+      // 잘리거나(짧음) 훅이 시청자 입장에서 말이 안 되면 그 안만 한 번 다시 생성
+      const FIX = "\n[재지시] 직전 결과가 중간에 끊겼거나 훅이 시청자 입장에서 말이 안 됐다. 처음부터 끝(CTA '남겨주세요!')까지 완성된 대본 '하나만' 다시 써라. 훅은 시청자 자신의 상황을 묻거나, 화자 이야기는 질문 말고 서술로 시작해라.";
+      const [fixA, fixB] = await Promise.all([
+        badScript(sA) ? genScript(sysAB + angleA + FIX, base, 2200).then((x) => oneScript(stripLabels(x))).catch(() => "") : Promise.resolve(""),
+        badScript(sB) ? genScript(sysAB + angleB + FIX, base, 2200).then((x) => oneScript(stripLabels(x))).catch(() => "") : Promise.resolve(""),
+      ]);
+      if (fixA && !badScript(fixA)) sA = fixA;
+      if (fixB && !badScript(fixB)) sB = fixB;
+      // 그래도 불량이면 멀쩡한 쪽만 남김(둘 다 불량이면 더 긴 쪽)
+      if (badScript(sA) && !badScript(sB)) { sA = sB; sB = ""; }
+      else if (badScript(sB) && !badScript(sA)) { sB = ""; }
+      else if (badScript(sA) && badScript(sB) && (sB || "").length > (sA || "").length) { sA = sB; sB = ""; }
       const script = sA || sB;
       if (!script) throw new Error("빈 대본");
       let sbFinal = (sB && sB !== sA) ? sB : null;
