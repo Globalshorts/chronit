@@ -63,7 +63,8 @@ export default function AppShell({ children }) {
       </aside>
 
       {/* 콘텐츠 */}
-      <div className="min-w-0 flex-1 pb-16 md:pb-0">
+      {/* 베라(/script)는 입력창이 하단 탭 높이를 자체 확보 → 중복 여백(pb-16) 빼야 최하단에서 채팅이 끌려 올라가지 않음 */}
+      <div className={`min-w-0 flex-1 ${loc.pathname.startsWith('/script') ? '' : 'pb-16'} md:pb-0`}>
         {/* 모바일 상단 브랜드바 (데스크톱은 사이드바가 대체) */}
         <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-white/10 bg-[#0a0b0f]/90 px-4 py-3 backdrop-blur md:hidden">
           <Link to="/" className="flex items-center gap-1.5">
