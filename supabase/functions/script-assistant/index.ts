@@ -58,6 +58,19 @@ const CONSIST = "화자·인물: 한 명의 화자가 일관되게 말한다. �
 const FORMAT = "[형식] 바로 읽거나 녹음할 대사만 출력. 단계 이름·트리거·괄호 지시 없이. 한 줄에 한 문장, 문장 끝 마침표(.) 금지(중간 쉼표는 유지). 감정은 ! ? ~ 만. 첫 훅과 상승 억양 문장(\"-잖아요/-거든요/-죠\")엔 ?를 붙이고, 마지막 CTA 줄엔 붙이지 않는다. 길이 지정이 없으면 20~26초 분량.";
 const BASE_SYS = ["너는 한국 쇼핑 릴스 후킹 카피라이터이자 대본 작가다. 성공한 대본의 문장을 베끼지 말고 후킹→공감→해결→행동 구조를 새 표현으로 재구성한다.", RULES, CONSIST, FORMAT].join("\n");
 
+// 상승 억양·질문 톤 어미로 끝나는 줄에 '?' 보강(모델이 자주 빠뜨림). 서술·CTA는 건드리지 않는다.
+const Q_END = /(게요|나요|을까요|ㄹ까요|은가요|인가요|ㄴ가요|신가요|있죠|없죠)$/;
+const TRAIL = /[\s←-⯿☀-➿⬀-⯿️‍\u{1F000}-\u{1FAFF}]+$/u; // 끝의 이모지·공백
+function addQ(text: string): string {
+  return String(text || "").split("\n").map((ln) => {
+    if (!ln.trim() || /[?!]/.test(ln)) return ln;
+    const suf = (ln.match(TRAIL)?.[0]) ?? "";
+    const core = (suf ? ln.slice(0, ln.length - suf.length) : ln).replace(/\s+$/, "");
+    if (Q_END.test(core)) return core + "?" + (suf.trim() ? (" " + suf.trim()) : "");
+    return ln;
+  }).join("\n");
+}
+
 // ── 인스타 캡션(잘 파는 살림·리빙 셀러 구조) — A 감성스토리 / B 혜택불릿 ──
 function captionSys(keyword: string, handle: string, coupang: boolean): string {
   const h = handle || "@내계정";
@@ -65,7 +78,9 @@ function captionSys(keyword: string, handle: string, coupang: boolean): string {
   const disc = coupang ? "\n   그 바로 아래 한 줄: \"이 게시물은 쿠팡 파트너스 활동의 일환으로 수수료를 받을 수 있어요 🙏\"" : "";
   return [
     "너는 한국 쇼핑 인스타에서 '잘 파는 살림·리빙 셀러'의 캡션 작가다. 아래 톤과 구조를 반드시 지켜라.",
-    "[톤] 부드러운 감성 혼잣말. '~더라고요/있죠?/~잖아요/~거든요' 같은 말랑한 어미. 반말 명령·딱딱한 광고체 금지. 거친 음슴체('~음/됨/개이득임') 금지. 거의 매 줄 끝에 어울리는 이모지 1개. 줄바꿈 많게(한두 줄씩 끊어).",
+    "[톤] 부드러운 감성 혼잣말. '~더라고요/있죠?/~잖아요/~거든요' 같은 말랑한 어미. 반말 명령·딱딱한 광고체 금지. 거친 음슴체('~음/됨/개이득임') 금지. 거의 매 줄 끝에 어울리는 이모지 1개.",
+    "[문장부호] 상승 억양·질문 톤으로 끝나는 문장(…-게요/-나요/-을까요/-ㄴ가요/-인가요/-있죠/-죠)과 실제 질문에는 반드시 '?'를 붙여라. 단순 서술·CTA 줄에는 붙이지 마라. 예: '물 어떻게 끓였게요?' '아직도 이러시죠?'",
+    "[줄 간격] 문장마다 빈 줄 넣지 마라. 짧은 문장은 빈 줄 없이 줄바꿈만 하고, 흐름이 크게 바뀌는 2~3군데에서만 빈 줄 1개. A안·B안 줄 간격을 동일하게 맞춰라.",
     "[제품명 숨김] 핵심 제품명은 '이것/이거'로 가리고 궁금증을 만들어 댓글 유도로 연결. 제공 안 된 효과·후기·판매량은 지어내지 마라.",
     "[구조]",
     "① 맨 위 DM 유도 블록 — 아래 4줄 그대로:",
@@ -370,7 +385,8 @@ serve(async (req) => {
           genScript(capBase + "\n" + ANGLE_A_CAP, u, 1200),
           genScript(capBase + "\n" + ANGLE_B_CAP, u, 1200),
         ]);
-        const clean = (t: string) => String(t || "").replace(/^```[a-z]*\n?|\n?```$/g, "").trim();
+        // 코드펜스 제거 → 빈 줄 전부 제거해 단일 줄 간격으로 통일(A안=B안, 과다 줄바꿈 방지) → 상승억양 '?' 보강
+        const clean = (t: string) => addQ(String(t || "").replace(/^```[a-z]*\n?|\n?```$/g, "").replace(/[ \t]+\n/g, "\n").replace(/\n{2,}/g, "\n").trim());
         const a = clean(ca), b = clean(cb);
         if (!a && !b) return J({ error: "캡션 생성 실패" }, 500);
         return J({ ok: true, caption_a: a || b, caption_b: (b && b !== a) ? b : null });
