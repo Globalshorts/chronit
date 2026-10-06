@@ -65,7 +65,7 @@ function captionSys(keyword: string, handle: string, coupang: boolean): string {
   const disc = coupang ? "\n   그 바로 아래 한 줄: \"이 게시물은 쿠팡 파트너스 활동의 일환으로 수수료를 받을 수 있어요 🙏\"" : "";
   return [
     "너는 한국 쇼핑 인스타에서 '잘 파는 살림·리빙 셀러'의 캡션 작가다. 아래 톤과 구조를 반드시 지켜라.",
-    "[톤] 부드러운 감성 혼잣말. '~더라고요/있죠?/~잖아요/~거든요' 같은 말랑한 어미. 반말 명령·딱딱한 광고체 금지. 거친 음슴체('~음/됨/개이득임') 금지. 거의 매 줄 끝에 어울리는 이모지 1개 — 단 ✨(반짝이) 이모지는 톤에 안 맞으니 절대 쓰지 말고 상황에 맞는 다른 이모지를 써라. 줄바꿈 많게(한두 줄씩 끊어).",
+    "[톤] 부드러운 감성 혼잣말. '~더라고요/있죠?/~잖아요/~거든요' 같은 말랑한 어미. 반말 명령·딱딱한 광고체 금지. 거친 음슴체('~음/됨/개이득임') 금지. 거의 매 줄 끝에 어울리는 이모지 1개. 줄바꿈 많게(한두 줄씩 끊어).",
     "[제품명 숨김] 핵심 제품명은 '이것/이거'로 가리고 궁금증을 만들어 댓글 유도로 연결. 제공 안 된 효과·후기·판매량은 지어내지 마라.",
     "[구조]",
     "① 맨 위 DM 유도 블록 — 아래 4줄 그대로:",
@@ -370,8 +370,7 @@ serve(async (req) => {
           genScript(capBase + "\n" + ANGLE_A_CAP, u, 1200),
           genScript(capBase + "\n" + ANGLE_B_CAP, u, 1200),
         ]);
-        // ✨(반짝이)는 톤에 안 맞아 서버에서 확실히 제거(프롬프트만으론 모델이 또 넣음) + 그로 인한 빈칸 정리
-        const clean = (t: string) => String(t || "").replace(/^```[a-z]*\n?|\n?```$/g, "").replace(/✨️?/g, "").replace(/[ \t]+\n/g, "\n").replace(/[ \t]{2,}/g, " ").trim();
+        const clean = (t: string) => String(t || "").replace(/^```[a-z]*\n?|\n?```$/g, "").trim();
         const a = clean(ca), b = clean(cb);
         if (!a && !b) return J({ error: "캡션 생성 실패" }, 500);
         return J({ ok: true, caption_a: a || b, caption_b: (b && b !== a) ? b : null });

@@ -894,7 +894,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
                 <button key={q} onClick={() => send(q)} className={chip}>{q}</button>
               ))}
               <button onClick={() => send('이 소재의 핵심 셀링포인트를 정리해서 보여줘')} className={chip}><BarChart3 size={13} /> 셀링포인트 보기</button>
-              <button onClick={genCaption} className={chip + ' border-[#0064FF]/60 bg-[#0064FF]/15 text-[#5AA0FF]'}><MessageSquareText size={13} /> ✨ 인스타 캡션</button>
+              <button onClick={genCaption} className={chip + ' border-[#0064FF]/60 bg-[#0064FF]/15 text-[#5AA0FF]'}><MessageSquareText size={13} /> 인스타 캡션</button>
             </div>
           )
           if (isAnalyze && !busy) return (
