@@ -377,9 +377,24 @@ serve(async (req) => {
       const kw = String(body?.dm_keyword ?? "").replace(/[^\w가-힣]/g, "").slice(0, 20) || "나도";
       const handle = String(body?.handle ?? "").slice(0, 40);
       const coupang = body?.coupang !== false;
-      const niche = String(body?.niche ?? "").slice(0, 40);
+      // 개인화 설정(핸들 없어도 적용): 니치·타깃·화자 성별 — get_voice_context_rpc + profiles.niche
+      let niche = String(body?.niche ?? "").slice(0, 40), target = "", gender = "";
+      try {
+        const { data: ctx } = await supa.rpc("get_voice_context_rpc");
+        target = String(ctx?.persona?.target ?? "").slice(0, 60);
+        const g = ctx?.persona?.gender || (ctx?.style_card?.gender_guess === "남" || ctx?.style_card?.gender_guess === "여" ? ctx.style_card.gender_guess : "");
+        gender = String(g ?? "");
+      } catch { /* noop */ }
+      if (!niche) { try { const { data: pf } = await supa.from("profiles").select("niche").eq("id", user.id).maybeSingle(); niche = String(pf?.niche ?? "").slice(0, 40); } catch { /* noop */ } }
+      const genderLine = gender === "남" ? "화자=남성 — 아내·누나·형·여동생·조카·친구 등 사용, 남편·언니·오빠 금지"
+        : gender === "여" ? "화자=여성 — 남편·언니·오빠·여동생·조카·친구 등 사용, 아내·누나·형 금지"
+        : "화자 성별 미지정 — 성별이 드러나는 인물(아내·남편·누나·형·언니·오빠) 금지, 성별 중립 인물만(친구·여동생·남동생·조카·이모·고모)";
       const capBase = captionSys(kw, handle, coupang);
-      const u = ["상품: " + (prod || "(미상)"), sell ? ("셀링포인트: " + sell) : "", niche ? ("니치: " + niche) : "", "이 상품으로 위 구조·톤에 맞는 인스타 캡션을 써라. 셀링포인트는 자연스럽게 녹여라."].filter(Boolean).join("\n");
+      const u = ["상품: " + (prod || "(미상)"), sell ? ("셀링포인트: " + sell) : "",
+        niche ? ("니치: " + niche + " — 해시태그 5개는 이 니치·상품에 맞게") : "",
+        target ? ("타깃 시청자: " + target + " — 이들이 공감할 상황·표현으로 풀어라") : "",
+        "[화자 설정] " + genderLine,
+        "이 상품으로 위 구조·톤에 맞는 인스타 캡션을 써라. 셀링포인트는 자연스럽게 녹여라."].filter(Boolean).join("\n");
       try {
         const [ca, cb] = await Promise.all([
           genScript(capBase + "\n" + ANGLE_A_CAP, u, 1200),
