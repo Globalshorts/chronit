@@ -111,13 +111,15 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [today, setToday] = useState([])
   const [jobs, setJobs] = useState([])
   const [jobsLoaded, setJobsLoaded] = useState(false)
-  // 잡담(대본 세션 밖 대화) 기록: 유저당 1개 스레드, 최근 10회 대화(메시지 20개)만 서버 보관
-  const [freeThread, setFreeThread] = useState(null)   // 최초 로드 결과 {messages, updated_at} (null=로딩 전)
-  const [hasThread, setHasThread] = useState(false)
-  const threadRef = useRef([])        // 서버에 저장된 최신 스레드
-  const freeBaseRef = useRef([])      // 화면에 안 보이지만 스레드 앞쪽에 이어붙일 기존 기록
-  const freeReadyRef = useRef(false)  // 복원 판단 끝난 뒤에만 저장
+  // 잡담(대본 세션 밖 대화) 기록: 세션 단위로 대화 전부 저장, 유저당 세션 최대 100개(서버가 오래된 것부터 정리)
+  const [chatSessions, setChatSessions] = useState(null)   // [{id,title,updated_at,count}] (null=로딩 전)
+  const [chatId, setChatId] = useState(null)               // 지금 보고 있는 잡담 세션
+  const [nickLoaded, setNickLoaded] = useState(false)
+  const [saveTick, setSaveTick] = useState(0)
+  const chatIdRef = useRef(null)
+  const freeReadyRef = useRef(false)  // 재방문 복원 판단 끝난 뒤에만 저장
   const lastSavedRef = useRef('')
+  const savingRef = useRef(false)
   const [showJobs, setShowJobs] = useState(false)
   const [voiceProfile, setVoiceProfile] = useState(null)  // {has_voice, ig_username, style_card}
   const [showOnboard, setShowOnboard] = useState(false)
@@ -184,29 +186,34 @@ export default function ScriptAssistant({ session: sessionProp }) {
     ;(async () => {
       let nn = ''
       try { const { data: pf } = await supabase.from('profiles').select('nickname').eq('id', session.user.id).maybeSingle(); nn = pf?.nickname || '' } catch { /* noop */ }
-      setNick(nn)
+      setNick(nn); setNickLoaded(true)
       supabase.rpc('trend_list_rpc', { p_limit: 3 }).then(({ data }) => setToday((Array.isArray(data) ? data : []).map(x => String(x.caption || '').replace(/\s+/g, ' ').trim().slice(0, 70)).filter(Boolean))).catch(() => {})
-      if (!greetedRef.current && jobsLoaded && freeThread !== null && !(freeThread.messages || []).length && messages.length === 0 && !soso && !jobId && (!jobs || jobs.length === 0)) {
-        greetedRef.current = true
-        setMessages([{ role: 'assistant', text: `안녕하세요${nn ? ` ${nn}님` : ''}! 저는 대본 비서 베라예요 🙂\n트렌드에서 마음에 드는 영상을 열어 '대본 작성하기'를 누르면 기승전결 대본을 써드려요. 오늘 뭐가 뜨는지 궁금하면 편하게 물어보세요.` }])
-      }
     })()
-  }, [session, jobs, jobsLoaded, freeThread])
+  }, [session])
+  // 첫 방문(대본·대화 기록 없음)에만 베라 인사
+  useEffect(() => {
+    if (greetedRef.current || !session || !jobsLoaded || !nickLoaded || chatSessions === null) return
+    if (messages.length === 0 && !soso && !jobId && jobs.length === 0 && chatSessions.length === 0) {
+      greetedRef.current = true
+      setMessages([{ role: 'assistant', text: `안녕하세요${nick ? ` ${nick}님` : ''}! 저는 대본 비서 베라예요 🙂\n트렌드에서 마음에 드는 영상을 열어 '대본 작성하기'를 누르면 기승전결 대본을 써드려요. 오늘 뭐가 뜨는지 궁금하면 편하게 물어보세요.` }])
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, jobsLoaded, nickLoaded, chatSessions, jobs])
 
   // 재방문 진입: 트렌드/분석 진입 의도가 없으면 가장 최근 세션 자동 열기
   useEffect(() => {
-    if (autoOpenRef.current || !session || !jobsLoaded || freeThread === null) return
-    autoOpenRef.current = true
-    const tm = freeThread.messages || []
+    if (autoOpenRef.current || !session || !jobsLoaded || chatSessions === null) return
+    autoOpenRef.current = true; freeReadyRef.current = true
     const st = loc.state
-    if ((st && (st.open_job || st.source_ref || st.caption)) || jobId || soso) { freeBaseRef.current = tm; freeReadyRef.current = true; return }
-    const tAt = freeThread.updated_at ? Date.parse(freeThread.updated_at) : 0
+    if ((st && (st.open_job || st.source_ref || st.caption)) || jobId || soso) return
+    // 가장 최근에 쓴 쪽(잡담 세션 vs 대본)을 연다
+    const c0 = chatSessions[0]
+    const tAt = c0 ? Date.parse(c0.updated_at) : 0
     const jAt = jobs.length ? Date.parse(jobs[0].created_at) : 0
-    if (tm.length && tAt >= jAt) { greetedRef.current = true; freeBaseRef.current = []; setMessages(tm.slice()); freeReadyRef.current = true; return }
-    freeBaseRef.current = tm; freeReadyRef.current = true
+    if (c0 && tAt >= jAt) { greetedRef.current = true; openChat(c0.id); return }
     if (jobs.length > 0) { greetedRef.current = true; openJob(jobs[0].id) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, jobs, jobsLoaded, freeThread])
+  }, [session, jobs, jobsLoaded, chatSessions])
 
   // 트렌드 재생 모달의 "대본 작성하기" → 소재(클립) 자체를 비서로 가져오기
   useEffect(() => {
@@ -351,27 +358,36 @@ export default function ScriptAssistant({ session: sessionProp }) {
     if ((m.role === 'user' || m.role === 'assistant') && m.text) return { role: m.role, text: String(m.text).slice(0, 4000) }
     return null
   }
-  const FREE_KEEP = 20   // 최근 10회 대화
+  const loadChatSessions = () => supabase.rpc('list_chat_sessions_rpc', { p_limit: 100 }).then(({ data }) => setChatSessions(Array.isArray(data) ? data : []), () => setChatSessions((v) => v || []))
+  useEffect(() => { if (session) loadChatSessions() }, [session])
+  // 잡담 화면(대본/소재 없음)에서 대화가 끝날 때마다 현재 세션에 전체 저장. 첫 저장 때 세션 생성
   useEffect(() => {
-    if (!session) return
-    supabase.rpc('get_free_thread_rpc').then(({ data }) => {
-      const msgs = Array.isArray(data?.messages) ? data.messages : []
-      threadRef.current = msgs; lastSavedRef.current = JSON.stringify(msgs); setHasThread(msgs.length > 0)
-      setFreeThread({ messages: msgs, updated_at: data?.updated_at || null })
-    }, () => setFreeThread({ messages: [], updated_at: null }))
-  }, [session])
-  // 잡담 화면일 때(대본/소재 없음) 대화가 끝날 때마다 바로 저장 — 기존 기록 + 화면 대화, 최근 20개만
-  useEffect(() => {
-    if (!freeReadyRef.current || jobId || soso || busy) return
-    const all = [...freeBaseRef.current, ...messages.map(toStore).filter(Boolean)].slice(-FREE_KEEP)
+    if (!freeReadyRef.current || jobId || soso || busy || savingRef.current) return
+    const all = messages.map(toStore).filter(Boolean)
+    if (!all.some((m) => m.role === 'user')) return   // 인사말만 있을 땐 세션 안 만듦
     const key = JSON.stringify(all)
     if (key === lastSavedRef.current) return
-    lastSavedRef.current = key; threadRef.current = all; setHasThread(all.length > 0)
-    supabase.rpc('save_free_thread_rpc', { p_messages: all, p_max: FREE_KEEP }).then(null, () => {})
-  }, [messages, jobId, soso, busy])
-  const openFreeThread = () => {
+    savingRef.current = true; lastSavedRef.current = key
+    const title = String(all.find((m) => m.role === 'user')?.text || '').replace(/\s+/g, ' ').trim().slice(0, 40)
+    supabase.rpc('save_chat_session_rpc', { p_id: chatIdRef.current, p_messages: all, p_title: title }).then(({ data }) => {
+      savingRef.current = false
+      if (data?.ok && data.id) { if (!chatIdRef.current) { chatIdRef.current = data.id; setChatId(data.id) }; loadChatSessions() } else lastSavedRef.current = ''
+      setSaveTick((t) => t + 1)
+    }, () => { savingRef.current = false; lastSavedRef.current = ''; setSaveTick((t) => t + 1) })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, jobId, soso, busy, saveTick])
+  const openChat = async (id) => {
     setShowJobs(false); setErr(''); setJobId(null); setSoso(null); setClipBox(null); setPlayClip(null); setClips([]); setTurns(null)
-    freeBaseRef.current = []; setMessages(threadRef.current.slice())
+    try {
+      const { data } = await supabase.rpc('get_chat_session_rpc', { p_id: id })
+      const msgs = data?.ok && Array.isArray(data.messages) ? data.messages : []
+      lastSavedRef.current = JSON.stringify(msgs); chatIdRef.current = id; setChatId(id); setMessages(msgs)
+    } catch { setErr('대화를 불러오지 못했어요') }
+  }
+  const deleteChat = async (id, e) => {
+    if (e) e.stopPropagation()
+    if (!window.confirm('이 대화를 삭제할까요? 되돌릴 수 없어요.')) return
+    try { await supabase.rpc('delete_chat_session_rpc', { p_id: id }); if (id === chatIdRef.current && !jobId) newChat(); loadChatSessions() } catch { /* noop */ }
   }
   const applyMeter = (d) => {
     if (typeof d.turns_left === 'number') setTurns(d.turns_left)
@@ -382,7 +398,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const lastScript = () => { for (let i = messages.length - 1; i >= 0; i--) if (messages[i].role === 'assistant' && messages[i].text) return messages[i].text; return '' }
 
   const loadJobs = async () => {
-    const { data } = await supabase.from('jobs').select('id,product_name,created_at,status').order('created_at', { ascending: false }).limit(40)
+    const { data } = await supabase.from('jobs').select('id,product_name,created_at,status').order('created_at', { ascending: false }).limit(100)
     setJobs(data || []); setJobsLoaded(true)
   }
   const openJob = async (id) => {
@@ -412,11 +428,12 @@ export default function ScriptAssistant({ session: sessionProp }) {
       built.length = 0; built.push(...cleaned)
     }
     if (jrow?.analysis) built.unshift({ role: 'assistant', report: jrow.analysis })
+    chatIdRef.current = null; setChatId(null)
     setMessages(built); setClips(cl || []); setJobId(id); setSoso(null)
     if (jrow?.source_ref) setClipBox(v => (v && v.source_ref === jrow.source_ref) ? v : { source_ref: jrow.source_ref, caption: '', thumb: '' }); else setClipBox(null)
     try { const { data: jt } = await supabase.rpc('get_job_turns_rpc', { p_job_id: id }); setTurns(typeof jt?.turns_left === 'number' ? jt.turns_left : null) } catch { setTurns(null) }
   }
-  const newChat = () => { freeBaseRef.current = threadRef.current.slice(); setMessages([]); setJobId(null); setSoso(null); setClipBox(null); setPlayClip(null); setClips([]); setInput(''); setErr(''); setShowJobs(false); setTurns(null); resetGrow() }
+  const newChat = () => { chatIdRef.current = null; setChatId(null); lastSavedRef.current = ''; setMessages([]); setJobId(null); setSoso(null); setClipBox(null); setPlayClip(null); setClips([]); setInput(''); setErr(''); setShowJobs(false); setTurns(null); resetGrow() }
 
   // 채널 분석: URL 입력 유도 → 다음 전송에서 실제 분석 실행
   const startChannelAnalysis = () => {
@@ -702,26 +719,31 @@ export default function ScriptAssistant({ session: sessionProp }) {
       {/* 왼쪽 대화 리스트 (데스크톱 고정 · 모바일 드로어) */}
       <aside className={`${showConvList ? 'fixed inset-0 z-40 flex bg-black/50' : 'hidden'} ${convCollapsed ? 'md:hidden' : 'md:static md:z-0 md:flex md:bg-transparent'}`} onClick={() => setShowConvList(false)}>
         <div className="flex h-full min-h-[calc(100vh-0px)] w-64 shrink-0 flex-col border-r border-white/10 bg-[#0d0e12] p-3" onClick={e => e.stopPropagation()}>
-          <button onClick={() => { newChat(); setShowConvList(false) }} className="mb-3 flex items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] glass-active py-2.5 text-sm font-bold text-white transition hover:brightness-110"><Plus size={16} /> 새 대본</button>
-          {hasThread && (
-            <button onClick={() => { openFreeThread(); setShowConvList(false) }} className={`mb-3 flex items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition hover:bg-white/5 ${!jobId && !soso && messages.length > 0 ? 'bg-white/10 text-white' : 'text-white/70'}`}>
-              <MessageSquareText size={14} className="shrink-0 text-[#5AA0FF]" />
-              <div className="min-w-0"><div className="truncate">베라와 대화</div><div className="text-[10px] text-white/30">최근 대화 10회까지 보관</div></div>
-            </button>
-          )}
-          <div className="mb-1.5 px-1 text-[11px] font-bold text-white/35">내 대본 {jobs.length ? `(${jobs.length})` : ''}</div>
-          <div className="-mx-1 flex-1 overflow-y-auto px-1">
-            {jobs.length === 0 ? <div className="px-2 py-4 text-xs text-white/30">아직 만든 대본이 없어요</div> :
-              jobs.map(j => (
-                <div key={j.id} className={`group mb-0.5 flex items-center rounded-lg transition hover:bg-white/5 ${j.id === jobId ? 'bg-white/10 glass-soft' : ''}`}>
-                  <button onClick={() => { openJob(j.id); setShowConvList(false) }} className={`min-w-0 flex-1 truncate px-2.5 py-2 text-left text-sm ${j.id === jobId ? 'text-white' : 'text-white/70'}`}>
-                    <div className="truncate">{j.status === 'analyzed' ? '📊 ' : ''}{j.product_name || '(제목 없음)'}</div>
-                    <div className="text-[10px] text-white/30">{new Date(j.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}</div>
-                  </button>
-                  <button onClick={(e) => deleteJob(j.id, e)} title="삭제" className="mr-1 shrink-0 rounded p-1.5 text-white/25 opacity-100 transition hover:bg-white/10 hover:text-amber-400 md:opacity-0 md:group-hover:opacity-100"><Trash2 size={13} /></button>
-                </div>
-              ))}
-          </div>
+          <button onClick={() => { newChat(); setShowConvList(false) }} className="mb-3 flex items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] glass-active py-2.5 text-sm font-bold text-white transition hover:brightness-110"><Plus size={16} /> 새 대화</button>
+          {(() => {
+            const items = [
+              ...(chatSessions || []).map((c) => ({ kind: 'chat', id: c.id, title: c.title || '베라와 대화', at: c.updated_at })),
+              ...jobs.map((j) => ({ kind: 'job', id: j.id, title: (j.status === 'analyzed' ? '📊 ' : '') + (j.product_name || '(제목 없음)'), at: j.created_at })),
+            ].sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
+            return (<>
+              <div className="mb-1.5 px-1 text-[11px] font-bold text-white/35">대화 · 대본 {items.length ? `(${items.length})` : ''}</div>
+              <div className="-mx-1 flex-1 overflow-y-auto px-1">
+                {items.length === 0 ? <div className="px-2 py-4 text-xs text-white/30">아직 대화나 대본이 없어요</div> :
+                  items.map((it) => {
+                    const on = it.kind === 'job' ? it.id === jobId : (!jobId && !soso && it.id === chatId)
+                    return (
+                      <div key={it.kind + it.id} className={`group mb-0.5 flex items-center rounded-lg transition hover:bg-white/5 ${on ? 'bg-white/10 glass-soft' : ''}`}>
+                        <button onClick={() => { it.kind === 'job' ? openJob(it.id) : openChat(it.id); setShowConvList(false) }} className={`min-w-0 flex-1 truncate px-2.5 py-2 text-left text-sm ${on ? 'text-white' : 'text-white/70'}`}>
+                          <div className="flex items-center gap-1.5 truncate">{it.kind === 'chat' && <MessageSquareText size={12} className="shrink-0 text-[#5AA0FF]" />}<span className="truncate">{it.title}</span></div>
+                          <div className="text-[10px] text-white/30">{it.kind === 'chat' ? '대화 · ' : '대본 · '}{new Date(it.at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}</div>
+                        </button>
+                        <button onClick={(e) => (it.kind === 'job' ? deleteJob(it.id, e) : deleteChat(it.id, e))} title="삭제" className="mr-1 shrink-0 rounded p-1.5 text-white/25 opacity-100 transition hover:bg-white/10 hover:text-amber-400 md:opacity-0 md:group-hover:opacity-100"><Trash2 size={13} /></button>
+                      </div>
+                    )
+                  })}
+              </div>
+            </>)
+          })()}
         </div>
       </aside>
 
@@ -733,7 +755,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
         </button>
       {/* 헤더 */}
       <div className="mb-1">
-        <button onClick={() => setShowConvList(true)} className="mb-2 flex w-fit shrink-0 items-center gap-1 rounded-lg border border-white/15 px-2.5 py-1.5 text-xs font-bold text-white/70 hover:text-white md:hidden"><MessageSquareText size={14} /> 내 대본{jobs.length ? ` ${jobs.length}` : ''}</button>
+        <button onClick={() => setShowConvList(true)} className="mb-2 flex w-fit shrink-0 items-center gap-1 rounded-lg border border-white/15 px-2.5 py-1.5 text-xs font-bold text-white/70 hover:text-white md:hidden"><MessageSquareText size={14} /> 대화 목록{(jobs.length + (chatSessions?.length || 0)) ? ` ${jobs.length + (chatSessions?.length || 0)}` : ''}</button>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h1 className="flex items-center gap-2 whitespace-nowrap text-xl font-bold text-white"><EnergyOrb size={24} /> 대본 비서</h1>
