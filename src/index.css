@@ -224,3 +224,7 @@ select option:checked, select option:hover {
 .glass-blue{position:relative;background:rgba(0,100,255,.12);box-shadow:inset 1.5px 1.5px 0 rgba(160,195,255,.45),inset -1.5px -1.5px 0 rgba(130,170,255,.25),0 6px 18px -10px rgba(0,60,180,.5);}
 /* 파란 활성 표면(사이드바 탭·주요 버튼) — 림라이트로 입체감 */
 .glass-active{box-shadow:inset 1.6px 1.6px 0 rgba(255,255,255,.4),inset -1.6px -1.6px 0 rgba(255,255,255,.2),0 6px 16px -6px rgba(0,100,255,.5);}
+
+/* 가로 스크롤 칩 행: 스크롤바 숨김 */
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.no-scrollbar::-webkit-scrollbar { display: none; }

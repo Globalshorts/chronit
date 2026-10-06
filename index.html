@@ -149,9 +149,9 @@
     /* 하단 자동생성 바와 채널톡 런처 겹침 방지 — 모바일에서 런처를 위로 */
     @media (max-width: 700px) {
       /* 런처: 하단 탭바(약 64px) 위로 */
-      #ch-plugin-launcher, #ch-plugin .launcher, div[class*="launcher"][class*="ch-"] { bottom: 80px !important; }
-      /* 마케팅 가로 배너: 하단 탭바를 가리지 않도록 위로 올림 */
-      #ch-plugin div[class*="banner"], #ch-plugin div[class*="Banner"] { bottom: 72px !important; }
+      /* 모바일: 채널톡 런처·마케팅 배너 숨김(페이지에서 showChannelButton을 다시 불러도 안 보이게) */
+      #ch-plugin-launcher, #ch-plugin .launcher, div[class*="launcher"][class*="ch-"] { display: none !important; }
+      #ch-plugin div[class*="banner"], #ch-plugin div[class*="Banner"] { display: none !important; }
     }
   </style>
 </head>
@@ -206,8 +206,11 @@
         if (document.readyState === 'complete') deferCh()
         else w.addEventListener('load', deferCh)
       })()
+      // 모바일에선 채널톡 런처 숨김(PC는 그대로)
+      var __chMobile = window.matchMedia && window.matchMedia('(max-width: 700px)').matches
       ChannelIO('boot', {
         pluginKey: '5efe3bed-3b08-450e-a971-d261e702d11b',
+        hideChannelButtonOnBoot: __chMobile,
       })
     </script>
   </body>

@@ -879,17 +879,17 @@ export default function ScriptAssistant({ session: sessionProp }) {
           const scriptOut = !!(modeMsg?.ab || modeMsg?.isScript)
           const isAnalyze = !!modeMsg?.report
           const atStart = !jobId && messages.length <= 1
-          const chip = 'flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-white/70 transition hover:text-white'
+          const chip = 'flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-white/70 transition hover:text-white'
           if (atStart) return (
-            <div className="mx-auto mb-2 flex max-w-[700px] flex-wrap items-center gap-2">
+            <div className="no-scrollbar mx-auto mb-2 flex max-w-[700px] flex-nowrap items-center gap-2 overflow-x-auto px-1">
               <Link to="/trend" className={chip + ' text-[#5AA0FF]'}><Flame size={13} /> 트렌드에서 영상 고르기</Link>
               <button onClick={startChannelAnalysis} className={chip + ' text-[#5AA0FF]'}><BarChart3 size={13} /> 채널 분석</button>
               {soso && <button onClick={analyzeSosoToChat} className={chip + ' text-[#5AA0FF]'}><BarChart3 size={13} /> 소재 분석</button>}
             </div>
           )
           if (scriptOut && !busy) return (
-            <div className="mx-auto mb-2 flex max-w-[700px] flex-wrap items-center gap-2">
-              <span className="mr-0.5 text-[11px] font-bold text-white/35">다음 →</span>
+            <div className="no-scrollbar mx-auto mb-2 flex max-w-[700px] flex-nowrap items-center gap-2 overflow-x-auto px-1">
+              <span className="mr-0.5 shrink-0 whitespace-nowrap text-[11px] font-bold text-white/35">다음 →</span>
               {['훅 다듬기', '더 짧게'].map(q => (
                 <button key={q} onClick={() => send(q)} className={chip}>{q}</button>
               ))}
@@ -898,8 +898,8 @@ export default function ScriptAssistant({ session: sessionProp }) {
             </div>
           )
           if (isAnalyze && !busy) return (
-            <div className="mx-auto mb-2 flex max-w-[700px] flex-wrap items-center gap-2">
-              <span className="mr-0.5 text-[11px] font-bold text-white/35">다음 →</span>
+            <div className="no-scrollbar mx-auto mb-2 flex max-w-[700px] flex-nowrap items-center gap-2 overflow-x-auto px-1">
+              <span className="mr-0.5 shrink-0 whitespace-nowrap text-[11px] font-bold text-white/35">다음 →</span>
               {soso && <button onClick={generateFromSoso} className={chip + ' border-[#0064FF]/50 bg-[#0064FF]/10 text-[#5AA0FF]'}><Sparkles size={13} /> 이 소재로 대본 만들기</button>}
               <button onClick={() => send('이 분석에서 훅 아이디어 더 뽑아줘')} className={chip}>훅 더 뽑기</button>
               <Link to="/trend" className={chip}><Flame size={13} /> 다른 소재 보기</Link>
