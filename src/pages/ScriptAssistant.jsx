@@ -156,6 +156,13 @@ export default function ScriptAssistant({ session: sessionProp }) {
     window.addEventListener('resize', checkAtBottom)
     return () => { window.removeEventListener('scroll', checkAtBottom); window.removeEventListener('resize', checkAtBottom) }
   }, [])
+  // 모바일: 스크롤 끝에서 바운스(러버밴드)로 하단 입력창이 끌려 올라오는 현상 방지 — 베라 화면에서만 오버스크롤 끔
+  useEffect(() => {
+    const h = document.documentElement, b = document.body
+    const ph = h.style.overscrollBehaviorY, pb = b.style.overscrollBehaviorY
+    h.style.overscrollBehaviorY = 'none'; b.style.overscrollBehaviorY = 'none'
+    return () => { h.style.overscrollBehaviorY = ph; b.style.overscrollBehaviorY = pb }
+  }, [])
   useEffect(() => { window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }); const t = setTimeout(checkAtBottom, 400); return () => clearTimeout(t) }, [messages, busy])
 
   // 닉네임 · 오늘 트렌드 · 베라 인사
