@@ -370,7 +370,8 @@ serve(async (req) => {
           genScript(capBase + "\n" + ANGLE_A_CAP, u, 1200),
           genScript(capBase + "\n" + ANGLE_B_CAP, u, 1200),
         ]);
-        const clean = (t: string) => String(t || "").replace(/^```[a-z]*\n?|\n?```$/g, "").trim();
+        // ✨(반짝이)는 톤에 안 맞아 서버에서 확실히 제거(프롬프트만으론 모델이 또 넣음) + 그로 인한 빈칸 정리
+        const clean = (t: string) => String(t || "").replace(/^```[a-z]*\n?|\n?```$/g, "").replace(/✨️?/g, "").replace(/[ \t]+\n/g, "\n").replace(/[ \t]{2,}/g, " ").trim();
         const a = clean(ca), b = clean(cb);
         if (!a && !b) return J({ error: "캡션 생성 실패" }, 500);
         return J({ ok: true, caption_a: a || b, caption_b: (b && b !== a) ? b : null });
