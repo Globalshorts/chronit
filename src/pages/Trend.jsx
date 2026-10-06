@@ -375,7 +375,6 @@ export default function Trend() {
           <button onClick={() => setFastBench(true)} className={`relative z-10 flex-1 rounded-lg py-2 transition-colors ${fastBench ? 'text-[#0064FF]' : 'text-white/45'}`}>패스트벤치{fbCount > 0 ? ` ${fbCount}` : ''}</button>
         </div>
         )}
-        {isAdmin && <button onClick={() => setPreviewLock((v) => !v)} className={`mb-4 rounded-full px-3 py-1 text-xs font-bold transition ${previewLock ? 'bg-amber-500 text-white' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'}`}>블러 미리보기(관리자) {previewLock ? 'ON' : 'OFF'}</button>}
 
         {isReal && (
         <div className="mb-5">

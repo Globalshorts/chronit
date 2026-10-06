@@ -61,12 +61,15 @@ export default function VideoModal({ clip, onClose, onSave, saved = false, onScr
   }
   if (!clip) return null
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 flex items-center justify-center bg-black/85 sm:p-4" style={{ zIndex: 2147483100 }} onClick={onClose}>
       {/* 모바일은 화면 전체(100dvh — vh 는 주소창 높이를 못 따라간다).
           영상은 남는 공간만 쓰고(min-h-0), 액션바는 shrink-0 이라 항상 보인다. */}
       <div className="relative flex h-[100dvh] w-full max-w-sm flex-col overflow-hidden bg-black sm:h-[92dvh] sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute right-2 top-2 z-10 rounded-full bg-black/60 p-1.5 text-white hover:bg-black/80"><X size={18} /></button>
+        {/* 상단 바: 노치/상태바(safe-area) 아래로 내리고, 닫기 버튼을 영상 밖에 둬서 플레이어 음소거 버튼과 안 겹치게 */}
+        <div className="flex shrink-0 items-center justify-end bg-black px-2 pb-1.5" style={{ paddingTop: 'max(0.375rem, env(safe-area-inset-top))' }}>
+          <button onClick={onClose} aria-label="닫기" className="rounded-full bg-white/10 p-1.5 text-white hover:bg-white/20"><X size={18} /></button>
+        </div>
         {mode === 'images' ? (
           <div className="relative flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden bg-black"
             onTouchStart={(e) => { const t = e.touches[0]; touch.current = { x: t.clientX, y: t.clientY, active: true } }}
@@ -105,22 +108,26 @@ export default function VideoModal({ clip, onClose, onSave, saved = false, onScr
             <button onClick={() => { setTried(false); setMode('resolving') }} className="rounded-full bg-white/10 px-4 py-2 text-xs font-bold text-white transition hover:bg-white/20">다시 시도</button>
           </div>
         )}
-        <div className="shrink-0 bg-white p-3" style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}>
+        <div className="shrink-0 bg-white px-3 pt-2.5" style={{ paddingBottom: 'calc(0.625rem + env(safe-area-inset-bottom))' }}>
           <div className="mb-2 flex items-center gap-3 text-xs text-slate-500">
             <span className="flex items-center gap-0.5"><Eye size={12} />{fmt(clip.views)}</span>
             <span className="flex items-center gap-0.5"><Heart size={12} />{fmt(clip.likes)}</span>
             <span className="flex items-center gap-0.5"><MessageCircle size={12} />{fmt(clip.comments)}</span>
           </div>
           {!viewOnly && (onScript ? (
-            <button onClick={() => onScript()} disabled={scriptState?.status === 'generating'} title={scriptState?.error || ''} className={`mb-1.5 flex w-full items-center justify-center gap-1.5 rounded-xl py-3 text-sm font-extrabold text-white transition hover:brightness-95 ${scriptState?.status === 'ready' ? 'bg-emerald-500' : scriptState?.status === 'error' ? 'bg-rose-500' : 'bg-[#0064FF]'} ${scriptState?.status === 'generating' ? 'opacity-70' : ''}`}>{scriptState?.status === 'generating' ? <><Loader2 size={16} className="animate-spin" />대본 생성 중…</> : scriptState?.status === 'ready' ? <><ArrowRight size={16} />베라에서 대본 보기</> : scriptState?.status === 'error' ? <><Sparkles size={16} />다시 시도</> : <><Sparkles size={16} />대본 작성하기</>}</button>
+            <button onClick={() => onScript()} disabled={scriptState?.status === 'generating'} title={scriptState?.error || ''} className={`mb-1.5 flex w-full items-center justify-center gap-1.5 rounded-xl py-2.5 text-sm font-extrabold text-white transition hover:brightness-95 ${scriptState?.status === 'ready' ? 'bg-emerald-500' : scriptState?.status === 'error' ? 'bg-rose-500' : 'bg-[#0064FF]'} ${scriptState?.status === 'generating' ? 'opacity-70' : ''}`}>{scriptState?.status === 'generating' ? <><Loader2 size={16} className="animate-spin" />대본 생성 중…</> : scriptState?.status === 'ready' ? <><ArrowRight size={16} />베라에서 대본 보기</> : scriptState?.status === 'error' ? <><Sparkles size={16} />다시 시도</> : <><Sparkles size={16} />대본 작성하기</>}</button>
           ) : (
-            <button onClick={() => { _navScript('/script', { state: { source_ref: clip?.video_id, caption: clip?.caption || '', thumbnail: clip?.thumbnail_url || '', product_name: '' } }); onClose && onClose() }} className="mb-1.5 flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] py-3 text-sm font-extrabold text-white transition hover:brightness-95"><Sparkles size={16} />대본 작성하기</button>
+            <button onClick={() => { _navScript('/script', { state: { source_ref: clip?.video_id, caption: clip?.caption || '', thumbnail: clip?.thumbnail_url || '', product_name: '' } }); onClose && onClose() }} className="mb-1.5 flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] py-2.5 text-sm font-extrabold text-white transition hover:brightness-95"><Sparkles size={16} />대본 작성하기</button>
           ))}
-          {!viewOnly && onAnalyze && (
-            <button onClick={() => onAnalyze()} className="mb-1.5 flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/15 py-2.5 text-sm font-bold text-white/75 transition hover:border-[#0064FF] hover:text-white"><BarChart3 size={15} /> 소재 분석 · 이용권 1</button>
-          )}
-          {!viewOnly && onSave && (
-            <button onClick={onSave} aria-pressed={saved} className={`flex w-full items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-bold transition ${saved ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-slate-200 text-slate-600 hover:border-[#0064FF] hover:text-[#0064FF]'}`}><Bookmark size={15} className={saved ? 'fill-emerald-500 text-emerald-500' : ''} />{saved ? '벤치마크에 담김' : '벤치마크에 담기'}</button>
+          {!viewOnly && (onAnalyze || onSave) && (
+            <div className={`grid gap-1.5 ${onAnalyze && onSave ? 'grid-cols-2' : 'grid-cols-1'}`}>
+              {onAnalyze && (
+                <button onClick={() => onAnalyze()} className="flex items-center justify-center gap-1 rounded-xl border border-slate-200 py-2.5 text-[13px] font-bold text-slate-600 transition hover:border-[#0064FF] hover:text-[#0064FF]"><BarChart3 size={14} /> 소재 분석 · 1</button>
+              )}
+              {onSave && (
+                <button onClick={onSave} aria-pressed={saved} className={`flex items-center justify-center gap-1 rounded-xl border py-2.5 text-[13px] font-bold transition ${saved ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-slate-200 text-slate-600 hover:border-[#0064FF] hover:text-[#0064FF]'}`}><Bookmark size={14} className={saved ? 'fill-emerald-500 text-emerald-500' : ''} />{saved ? '벤치마크에 담김' : '벤치마크에 담기'}</button>
+              )}
+            </div>
           )}
         </div>
       </div>
