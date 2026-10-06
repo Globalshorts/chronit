@@ -136,7 +136,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
     try {
       const { data } = await supabase.rpc('get_voice_context_rpc')
       const has = !!(data && data.base_profile && Array.isArray(data.base_profile.transcripts) && data.base_profile.transcripts.length > 0)
-      setVoiceProfile(has ? { has_voice: true, ig_username: data.ig_username || '', style_card: data.style_card || {}, avg_len: Number(data.avg_len || 0), edit_count: Number(data.edit_count || 0), n_learned: (data.base_profile && Array.isArray(data.base_profile.transcripts)) ? data.base_profile.transcripts.length : 0 } : { has_voice: false })
+      setVoiceProfile(has ? { has_voice: true, ig_username: data.ig_username || '', style_card: data.style_card || {}, avg_len: Number(data.avg_len || 0), edit_count: Number(data.edit_count || 0), n_learned: (data.base_profile && Array.isArray(data.base_profile.transcripts)) ? data.base_profile.transcripts.length : 0 } : { has_voice: false, ig_username: data?.ig_username || '' })
       setLearnCount(Number(data?.edit_count || 0))
     } catch { setVoiceProfile({ has_voice: false }) }
   }
@@ -487,7 +487,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       const t = await token(); if (!t) { setErr('로그인이 필요해요'); setVoiceLearn(null); return }
       const r = await fetch(FN('voice-onboard'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ username: handle }) })
       const d = await r.json()
-      if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? '재학습에 이용권 1개가 필요해요' : (d.error || '말투 학습에 실패했어요')) }
+      if (!d.ok) { if (d.code === 'INSUFFICIENT_CREDITS') { setErr('재학습에 이용권 1개가 필요해요') } else { setNote('게시물이 없어 기본 설정만 저장했어요. 최근 게시물이 생기면 다시 학습할 수 있어요'); setTimeout(() => setNote(''), 5000); loadVoiceProfile() } }
       else if (d.skipped) { setNote('✨ 새로 올린 릴스가 없어 기존 말투를 유지했어요'); setTimeout(() => setNote(''), 4000); loadVoiceProfile() }
       else { loadVoiceProfile(); refreshSession(); setOnboardData(d); setShowOnboard(true) }   // 리뷰 재오픈
     } catch (e) { setErr(String(e)) } finally { setVoiceLearn(null) }

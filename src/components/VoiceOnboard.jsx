@@ -22,17 +22,40 @@ export default function VoiceOnboard({ onClose, onReady, defaultHandle = '', onB
 
   const token = async () => (await supabase.auth.getSession()).data.session?.access_token
 
+  const cleanHandle = () => handle.trim().replace(/^@/, '')
+  const buildPersona = () => ({
+    gender: gender || undefined,
+    character_mode: charMode,
+    recurring_characters: charMode === 'fixed' ? chars.split(',').map(s => s.trim()).filter(Boolean) : [],
+    tone: tone.trim() || undefined,
+    target: target.trim() || undefined,
+  })
+  // 기본 설정 + 핸들은 항상 먼저 저장(긁어올 게시물/캡션이 없어도 등록되게). 핸들은 ig_username으로 저장돼 캡션에 바로 쓰임
+  const persistBasic = async () => {
+    const persona = buildPersona()
+    await supabase.rpc('update_voice_persona_rpc', { p_persona: persona })
+    const h = cleanHandle()
+    if (h) { try { await supabase.rpc('set_voice_handle_rpc', { p_handle: h }) } catch { /* noop */ } }
+    return persona
+  }
+
   const start = async () => {
-    const u = handle.trim().replace(/^@/, '')
+    const u = cleanHandle()
     if (!u) { setErr('인스타그램 아이디를 입력해주세요'); return }
-    if (onBackground) { onBackground(u); return }   // 백그라운드 학습: 부모가 fetch+토스트 처리, 끝나면 리뷰 재오픈
+    if (onBackground) { try { await persistBasic() } catch { /* noop */ } ; onBackground(u); return }   // 백그라운드 학습
     setErr(''); setStep('loading')
+    // 학습 전에 기본 설정 + 핸들 저장(게시물 없거나 학습 실패여도 날아가지 않게)
+    try { await persistBasic() } catch { /* noop */ }
     try {
       const t = await token(); if (!t) { setErr('로그인이 필요해요'); setStep('input'); return }
       const r = await fetch(FN('voice-onboard'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u }) })
       const d = await r.json()
-      if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? '재학습에 이용권 1개가 필요해요. 충전 후 다시 시도해주세요' : (d.error || '학습에 실패했어요')); setStep('input'); return }
-      if (d.skipped) { setMsg(d.message || '새로 올린 릴스가 없어요'); setStep('done'); onReady && onReady(d); return }
+      if (!d.ok) {
+        if (d.code === 'INSUFFICIENT_CREDITS') { setErr('재학습에 이용권 1개가 필요해요. 충전 후 다시 시도해주세요'); setStep('input'); return }
+        // 게시물 없음/비공개/학습 실패 — 기본 설정은 이미 저장됨
+        setMsg('게시물이 없어 기본 설정만 저장했어요. 나중에 "최근 게시물 학습하기"로 말투를 배울 수 있어요'); setStep('done'); onReady && onReady({ ...data, persona: buildPersona() }); return
+      }
+      if (d.skipped) { setMsg(d.message || '새로 올린 릴스가 없어 기본 설정만 저장했어요'); setStep('done'); onReady && onReady(d); return }
       setData(d)
       const sc = d.style_card || {}
       // input 화면에서 직접 정한 값은 유지하고, 비워둔 것만 학습 결과로 채운다
@@ -40,20 +63,13 @@ export default function VoiceOnboard({ onClose, onReady, defaultHandle = '', onB
       setChars((c) => c || (Array.isArray(sc.recurring_characters) ? sc.recurring_characters.join(', ') : ''))
       setTone((t) => t || (sc.tone || ''))
       setStep('review')
-    } catch (e) { setErr(String(e)); setStep('input') }
+    } catch (e) { setMsg('기본 설정은 저장했어요. 말투 학습은 나중에 다시 시도해주세요'); setStep('done'); onReady && onReady({ ...data, persona: buildPersona() }) }
   }
 
   const save = async () => {
     setSaving(true); setErr('')
     try {
-      const persona = {
-        gender: gender || undefined,
-        character_mode: charMode,
-        recurring_characters: charMode === 'fixed' ? chars.split(',').map(s => s.trim()).filter(Boolean) : [],
-        tone: tone.trim() || undefined,
-        target: target.trim() || undefined,
-      }
-      await supabase.rpc('update_voice_persona_rpc', { p_persona: persona })
+      const persona = await persistBasic()
       onReady && onReady({ ...data, persona })
       onClose && onClose()
     } catch (e) { setErr(String(e)) } finally { setSaving(false) }
