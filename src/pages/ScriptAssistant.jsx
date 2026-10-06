@@ -520,6 +520,20 @@ export default function ScriptAssistant({ session: sessionProp }) {
     } catch (e) { setRnErr(String(e)) } finally { setRnBusy(false) }
   }
   const copy = async (text, i) => { try { await navigator.clipboard.writeText(text); actedRef.current = true; track('vera_script_copied'); setCopiedI(i); setTimeout(() => setCopiedI(-1), 1500) } catch {} }
+  // 인스타 캡션 A/B (감성스토리 / 혜택불릿) — 대본 세션 내 무료
+  const genCaption = async () => {
+    if (busy || !jobId) { setErr('대본을 먼저 만들어 주세요'); return }
+    setErr(''); setBusy(true); setStage('인스타 캡션 쓰는 중…')
+    try {
+      const t = await token(); if (!t) { setErr('로그인이 필요해요'); return }
+      const handle = voiceProfile?.ig_username ? ('@' + voiceProfile.ig_username) : ''
+      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'caption', job_id: jobId, handle }) })
+      const d = await r.json()
+      if (!d.ok) { setErr(d.error || '캡션 생성에 실패했어요'); return }
+      actedRef.current = true; try { track('vera_caption_shown') } catch { /* noop */ }
+      setMessages((m) => [...m, { role: 'assistant', captionAB: true, a: d.caption_a, b: d.caption_b }])
+    } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
+  }
   // 대본 평가 — 👎면 "완벽하지 않아서 이탈"의 직접 신호. 평가하면 조용한 이탈로는 안 잡음.
   const rate = (i, rating) => { if (rated[i]) return; setRated((r) => ({ ...r, [i]: rating })); actedRef.current = true; track('vera_rated', { rating, job_id: jobId, mine: !!messages[i]?.mine }) }
 
@@ -723,6 +737,20 @@ export default function ScriptAssistant({ session: sessionProp }) {
               </div>
             )
             if (m.report) return <div key={i} className="sa-fade w-full max-w-[700px] self-start"><ClipAnalysisReport a={m.report} /></div>
+            if (m.captionAB) return (
+              <div key={i} className="sa-fade w-full max-w-[92%] self-start">
+                <div className="mb-1.5 text-[12px] font-bold text-white/50">인스타 캡션 2가지 — 복사해서 바로 올려요 <span className="text-white/35">(댓글 키워드·계정 핸들·프로필 링크 번호는 확인 후 수정)</span></div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {[['감성 스토리', m.a], ['혜택 정리', m.b]].filter(([, t]) => !!t).map(([v, txt], ci) => (
+                    <div key={v} className="rounded-2xl glass-soft p-3">
+                      <div className="mb-1.5 inline-flex items-center gap-1 rounded-full bg-[#0064FF]/15 px-2 py-0.5 text-[11px] font-bold text-[#5AA0FF]">{v}</div>
+                      <div className="max-h-80 overflow-y-auto whitespace-pre-wrap text-[13px] leading-relaxed text-white/95">{txt}</div>
+                      <button onClick={() => copy(txt, 90000 + i * 2 + ci)} className="mt-2 flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs text-white/50 hover:bg-white/10 hover:text-white/80">{copiedI === (90000 + i * 2 + ci) ? <Check size={13} /> : <Copy size={13} />} 복사</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
             if (m.ab) return (
               <div key={i} className="sa-fade w-full max-w-[92%] self-start">
                 {m.analysis && (m.analysis.product || (m.analysis.selling && m.analysis.selling.length > 0)) && (
@@ -862,10 +890,11 @@ export default function ScriptAssistant({ session: sessionProp }) {
           if (scriptOut && !busy) return (
             <div className="mx-auto mb-2 flex max-w-[700px] flex-wrap items-center gap-2">
               <span className="mr-0.5 text-[11px] font-bold text-white/35">다음 →</span>
-              {['훅 다듬기', '더 짧게', '댓글 유도 넣기', '다른 앵글로'].map(q => (
+              {['훅 다듬기', '더 짧게'].map(q => (
                 <button key={q} onClick={() => send(q)} className={chip}>{q}</button>
               ))}
-              <button onClick={() => send('이 소재의 핵심 셀링포인트를 정리해서 보여줘')} className={chip + ' border-[#0064FF]/50 bg-[#0064FF]/10 text-[#5AA0FF]'}><BarChart3 size={13} /> 셀링포인트 보기</button>
+              <button onClick={() => send('이 소재의 핵심 셀링포인트를 정리해서 보여줘')} className={chip}><BarChart3 size={13} /> 셀링포인트 보기</button>
+              <button onClick={genCaption} className={chip + ' border-[#0064FF]/60 bg-[#0064FF]/15 text-[#5AA0FF]'}><MessageSquareText size={13} /> ✨ 인스타 캡션</button>
             </div>
           )
           if (isAnalyze && !busy) return (

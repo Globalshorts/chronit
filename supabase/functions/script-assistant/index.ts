@@ -58,6 +58,29 @@ const CONSIST = "화자·인물: 한 명의 화자가 일관되게 말한다. �
 const FORMAT = "[형식] 바로 읽거나 녹음할 대사만 출력. 단계 이름·트리거·괄호 지시 없이. 한 줄에 한 문장, 문장 끝 마침표(.) 금지(중간 쉼표는 유지). 감정은 ! ? ~ 만. 첫 훅과 상승 억양 문장(\"-잖아요/-거든요/-죠\")엔 ?를 붙이고, 마지막 CTA 줄엔 붙이지 않는다. 길이 지정이 없으면 20~26초 분량.";
 const BASE_SYS = ["너는 한국 쇼핑 릴스 후킹 카피라이터이자 대본 작가다. 성공한 대본의 문장을 베끼지 말고 후킹→공감→해결→행동 구조를 새 표현으로 재구성한다.", RULES, CONSIST, FORMAT].join("\n");
 
+// ── 인스타 캡션(잘 파는 살림·리빙 셀러 구조) — A 감성스토리 / B 혜택불릿 ──
+function captionSys(keyword: string, handle: string, coupang: boolean): string {
+  const h = handle || "@내계정";
+  const kw = keyword || "나도";
+  const disc = coupang ? "\n   그 바로 아래 한 줄: \"이 게시물은 쿠팡 파트너스 활동의 일환으로 수수료를 받을 수 있어요 🙏\"" : "";
+  return [
+    "너는 한국 쇼핑 인스타에서 '잘 파는 살림·리빙 셀러'의 캡션 작가다. 아래 톤과 구조를 반드시 지켜라.",
+    "[톤] 부드러운 감성 혼잣말. '~더라고요/있죠?/~잖아요/~거든요' 같은 말랑한 어미. 반말 명령·딱딱한 광고체 금지. 거친 음슴체('~음/됨/개이득임') 금지. 거의 매 줄 끝에 어울리는 이모지 1개. 줄바꿈 많게(한두 줄씩 끊어).",
+    "[제품명 숨김] 핵심 제품명은 '이것/이거'로 가리고 궁금증을 만들어 댓글 유도로 연결. 제공 안 된 효과·후기·판매량은 지어내지 마라.",
+    "[구조]",
+    "① 맨 위 DM 유도 블록 — 아래 4줄 그대로:",
+    "📌 댓글에 '" + kw + "' 남겨주세요",
+    "📩 팔로우하셔야 DM 오류 없이 가요",
+    "📬 DM 안 보이면 숨김함도 확인해주세요",
+    "👉 " + h + " 팔로우하고 꿀템 받기",
+    "② 본문 — 아래 [이 버전] 지침대로",
+    "③ 맨 아래 — 댓글 유도 CTA 한 줄(\"제품 궁금하면 댓글에 '" + kw + "' 남겨주세요 💌\")" + disc + "\n   그다음 니치 해시태그 5개(상품·니치 기반, 공백 없이 #키워드, 한 줄)",
+    "[출력] 캡션 텍스트만. 군더더기 설명·따옴표 감싸기 없이.",
+  ].join("\n");
+}
+const ANGLE_A_CAP = "[이 버전] 감성·스토리형: 1인칭 발견 에피소드로 풀어라. 친구·가족이 자연스럽게 등장(화자 성별 모르면 성별 중립 인물만). '우연히 보고 써봤는데 ~더라고요' 흐름. 기능 불릿 쓰지 말고 분위기·사용 경험·감정 중심으로 6~10줄.";
+const ANGLE_B_CAP = "[이 버전] 문제해결·혜택형: 훅은 구체적 불편을 질문으로('아직도 ~하시나요? 😭'). 공감 2~3줄 뒤 '💡 이것만 알아두세요!' 하고 기능·이득 불릿 4개(각 줄 앞 ▪️, 끝에 이모지). 실이득(간편·가성비·공간절약·내구성) 강조.";
+
 const VERA_SYS = [
   "너는 '베라(VERA)', 크로닛의 쇼핑 릴스 대본 비서다. 다정하고 간결한 대화체. 사용자를 닉네임으로 부른다.",
   "[하는 일] 가벼운 인사·안부·잡담, 오늘 트렌드 추천(제공된 목록 안에서), 트렌드·채널 분석 상담, 숏폼/대본 방향·훅 아이디어, 이미 만든 대본 다듬기, 그리고 이 작업을 돕는 번역·요약·리프레이즈는 해준다.",
@@ -320,6 +343,38 @@ serve(async (req) => {
       try { await supa.rpc("clear_job_ab_rpc", { p_job: jobId }); } catch { /* noop */ }
       if (curS) await supa.rpc("record_edit_rpc", { p_job_id: jobId, p_before: curS, p_after: newScript });
       return J({ ok: true, script: newScript, turns_left: turn.turns_left, charged: !!turn.charged, balance: turn.balance });
+    }
+
+    // 인스타 캡션 A/B — 대본 세션 내 무료 액션(이용권·턴 차감 없음)
+    if (action === "caption") {
+      const jobId = jobIdIn;
+      let prod = product, sell = selling;
+      if (jobId) {
+        const { data: jrow } = await supa.from("jobs").select("product_name,selling_points").eq("id", jobId).maybeSingle();
+        if (jrow) {
+          prod = String(jrow.product_name ?? prod ?? "");
+          let s = String(jrow.selling_points ?? sell ?? "");
+          if (prod && s.startsWith(prod + " — ")) s = s.slice((prod + " — ").length);
+          sell = s;
+        }
+      }
+      if (!prod && !sell) return J({ error: "상품 정보가 없어요. 대본을 먼저 만들어 주세요." }, 400);
+      const kw = String(body?.dm_keyword ?? "").replace(/[^\w가-힣]/g, "").slice(0, 20) || "나도";
+      const handle = String(body?.handle ?? "").slice(0, 40);
+      const coupang = body?.coupang !== false;
+      const niche = String(body?.niche ?? "").slice(0, 40);
+      const capBase = captionSys(kw, handle, coupang);
+      const u = ["상품: " + (prod || "(미상)"), sell ? ("셀링포인트: " + sell) : "", niche ? ("니치: " + niche) : "", "이 상품으로 위 구조·톤에 맞는 인스타 캡션을 써라. 셀링포인트는 자연스럽게 녹여라."].filter(Boolean).join("\n");
+      try {
+        const [ca, cb] = await Promise.all([
+          genScript(capBase + "\n" + ANGLE_A_CAP, u, 1200),
+          genScript(capBase + "\n" + ANGLE_B_CAP, u, 1200),
+        ]);
+        const clean = (t: string) => String(t || "").replace(/^```[a-z]*\n?|\n?```$/g, "").trim();
+        const a = clean(ca), b = clean(cb);
+        if (!a && !b) return J({ error: "캡션 생성 실패" }, 500);
+        return J({ ok: true, caption_a: a || b, caption_b: (b && b !== a) ? b : null });
+      } catch (e) { return J({ error: "캡션 생성 실패: " + String(e) }, 500); }
     }
 
     let jr: any, jErr: any;
