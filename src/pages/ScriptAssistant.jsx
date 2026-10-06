@@ -17,8 +17,29 @@ const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
 const FN = (n) => `${SB}/functions/v1/${n}`
 
 // 변주(A/B)가 가끔 한 응답에 대본을 2개 담아올 때, 첫 대본(첫 CTA '남겨주세요' 줄까지)만 남긴다.
+// 문장마다 줄바꿈 강제 — '내 말투' 학습 전사본이 한 줄짜리라 모델이 문단으로 붙여 쓰는 경우 보정.
+// 이미 줄이 나뉜 짧은 줄은 건드리지 않고, 긴 줄만 문장 끝(? ! ~ . 또는 '~요/~죠' 뒤 공백)에서 자른다. CTA 키워드 따옴표 앞은 안 자름.
+const lineize = (t) => {
+  const out = []
+  for (const raw of String(t ?? "").replace(/\r/g, "").split("\n")) {
+    const x = raw.trim();
+    if (!x) { out.push(""); continue; }
+    if (x.length < 45) { out.push(x); continue; }
+    const ch = [...x]; let cur = "";
+    for (let i = 0; i < ch.length; i++) {
+      const c = ch[i]; cur += c;
+      const next = ch[i + 1], after = ch[i + 2];
+      if (next !== " " || after === undefined) continue;
+      const endPunct = /[?!~.]/.test(c);
+      const endYo = (c === "요" || c === "죠") && !/[필중]/.test(ch[i - 1] || "");
+      if ((endPunct || endYo) && !/["“'‘]/.test(after) && cur.trim().length >= 6) { out.push(cur.trim()); cur = ""; i++; }
+    }
+    if (cur.trim()) out.push(cur.trim());
+  }
+  return out.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+}
 const oneScript = (t) => {
-  const s = String(t ?? '')
+  const s = lineize(String(t ?? ''))
   if (!s.trim()) return s
   const lines = s.split('\n')
   const i = lines.findIndex((ln) => ln.includes('남겨주세요'))
@@ -432,8 +453,8 @@ export default function ScriptAssistant({ session: sessionProp }) {
     const built = (msgs || []).map(m => {
       if (m.role === 'caption') { try { const c = JSON.parse(m.content || '{}'); return { role: 'assistant', captionAB: true, a: c.a || '', b: c.b || null } } catch { return null } }
       const isA = m.role === 'assistant'
-      const looksScript = isA && !!m.content && m.content.includes('\n') && m.content.replace(/\s/g, '').length > 30
-      const base = { role: m.role, text: m.content, isScript: looksScript, mine: looksScript && isMy }
+      const looksScript = isA && !!m.content && ((m.content.includes('\n') && m.content.replace(/\s/g, '').length > 30) || m.content.includes('남겨주세요'))
+      const base = { role: m.role, text: looksScript ? lineize(m.content) : m.content, isScript: looksScript, mine: looksScript && isMy }
       if (looksScript && analysis && !attached) { attached = true; base.analysis = analysis }
       return base
     }).filter(Boolean)

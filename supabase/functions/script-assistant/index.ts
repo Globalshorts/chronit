@@ -32,8 +32,29 @@ function stripLabels(t: string): string {
   return lines.join("\n").replace(/\*\*/g, "").replace(/\n{3,}/g, "\n\n").trim();
 }
 // 한 변주 응답에 '완성 대본'이 2개 이상 실려 오던 문제(특히 B안) — CTA('남겨주세요') 첫 줄까지만 남겨 대본 1개로 보장.
+// 문장마다 줄바꿈 강제 — '내 말투' 학습 전사본이 한 줄짜리라 모델이 문단으로 붙여 쓰는 경우 보정.
+// 이미 줄이 나뉜 짧은 줄은 건드리지 않고, 긴 줄만 문장 끝(? ! ~ . 또는 '~요/~죠' 뒤 공백)에서 자른다. CTA 키워드 따옴표 앞은 안 자름.
+function lineize(t: string): string {
+  const out: string[] = [];
+  for (const raw of String(t ?? "").replace(/\r/g, "").split("\n")) {
+    const x = raw.trim();
+    if (!x) { out.push(""); continue; }
+    if (x.length < 45) { out.push(x); continue; }
+    const ch = [...x]; let cur = "";
+    for (let i = 0; i < ch.length; i++) {
+      const c = ch[i]; cur += c;
+      const next = ch[i + 1], after = ch[i + 2];
+      if (next !== " " || after === undefined) continue;
+      const endPunct = /[?!~.]/.test(c);
+      const endYo = (c === "요" || c === "죠") && !/[필중]/.test(ch[i - 1] || "");
+      if ((endPunct || endYo) && !/["“'‘]/.test(after) && cur.trim().length >= 6) { out.push(cur.trim()); cur = ""; i++; }
+    }
+    if (cur.trim()) out.push(cur.trim());
+  }
+  return out.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+}
 function oneScript(t: string): string {
-  const s = String(t ?? "");
+  const s = lineize(String(t ?? ""));
   if (!s.trim()) return s;
   const lines = s.split("\n");
   const i = lines.findIndex((ln) => ln.includes("남겨주세요"));
