@@ -7,6 +7,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const ANON = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const safeStr = (x: any) => String(x ?? "").replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/g, "").replace(/(^|[^\uD800-\uDBFF])([\uDC00-\uDFFF])/g, "$1");
 const TURN_COST = 2, TURN_CYCLE = 10;
+const FREE_CHAT = 10; // 대본 세션 밖 가벼운 잡담: 하루(KST) 무료 횟수
 // 훅(첫 줄) 유사도 — A/B 두 안의 첫 문장이 너무 비슷하면 B안 훅을 다시 뽑는다.
 const firstLine = (t: string) => String(t || "").split("\n").map((x) => x.trim()).find(Boolean) || "";
 const normHook = (t: string) => firstLine(t).replace(/[^가-힣a-zA-Z0-9]/g, "").toLowerCase();
@@ -270,7 +271,17 @@ serve(async (req) => {
       const { data: s } = await supa.rpc("get_vera_session_rpc");
       let turns: any = null;
       if (jobIdIn) { const { data: jt } = await supa.rpc("get_job_turns_rpc", { p_job_id: jobIdIn }); turns = jt?.turns_left ?? null; }
-      return J({ ok: true, balance: s?.balance ?? 0, turns_left: turns, cycle: TURN_CYCLE, cost: TURN_COST });
+      let free_chat: any = null;
+      try { const { data: fc } = await supa.rpc("get_free_chat_rpc", { p_free: FREE_CHAT }); if (fc?.ok) free_chat = { free_left: fc.free_left, paid_left: fc.paid_left, free_total: fc.free_total }; } catch { /* noop */ }
+      return J({ ok: true, balance: s?.balance ?? 0, turns_left: turns, cycle: TURN_CYCLE, cost: TURN_COST, free_chat });
+    }
+
+    // 잡담 충전: 이용권 TURN_COST개 → TURN_CYCLE회
+    if (action === "unlock_chat") {
+      const { data: u, error: uErr } = await supa.rpc("unlock_free_chat_rpc", { p_cost: TURN_COST, p_cycle: TURN_CYCLE });
+      if (uErr) return J({ error: String(uErr.message ?? uErr) }, 500);
+      if (!u?.ok) return J({ ok: false, code: u?.code ?? "INSUFFICIENT_CREDITS", error: u?.error ?? "이용권이 부족해요", balance: u?.balance ?? 0, need: TURN_COST }, 402);
+      return J({ ok: true, charged: true, balance: u.balance, free_chat: { free_left: 0, paid_left: u.paid_left, free_total: FREE_CHAT } });
     }
 
     if (action === "choose") {
@@ -313,7 +324,13 @@ serve(async (req) => {
           : ((label ? "'" + label + "' " : "요즘 인기 ") + "소재 골라왔어요 — 마음에 드는 걸 고르면 대본까지 써드릴게요 👇");
         return J({ ok: true, trends: rows, trend_cat: label, note, fallback, reply: null, charged: false });
       }
-      let turns_left: any = null, charged = false, balance: any = null;
+      let turns_left: any = null, charged = false, balance: any = null, free_chat: any = null;
+      if (!jobIdIn) {
+        const { data: fc, error: fErr } = await supa.rpc("consume_free_chat_rpc", { p_free: FREE_CHAT });
+        if (fErr) return J({ error: String(fErr.message ?? fErr) }, 500);
+        if (!fc?.ok) return J({ ok: false, code: fc?.code ?? "FREE_CHAT_LIMIT", error: "오늘 무료 대화 " + FREE_CHAT + "회를 다 썼어요", need: TURN_COST, cycle: TURN_CYCLE, free_chat: { free_left: 0, paid_left: 0, free_total: FREE_CHAT } }, 402);
+        free_chat = { free_left: fc.free_left, paid_left: fc.paid_left, free_total: fc.free_total };
+      }
       if (jobIdIn) {
         const { data: turn, error: tErr } = await supa.rpc("consume_job_turn_rpc", { p_job_id: jobIdIn });
         if (tErr) return J({ error: String(tErr.message ?? tErr) }, 500);
@@ -332,7 +349,7 @@ serve(async (req) => {
       let script: string | null = null;
       const mm = reply.match(/<SCRIPT>([\s\S]*?)<\/SCRIPT>/i);
       if (mm) { script = oneScript(mm[1].trim()); reply = reply.replace(mm[0], "").trim(); }
-      return J({ ok: true, reply: reply || "네, 말씀하세요!", script, model: ANTHROPIC_API_KEY ? "sonnet-5" : "gpt-4o", turns_left, charged, balance });
+      return J({ ok: true, reply: reply || "네, 말씀하세요!", script, model: ANTHROPIC_API_KEY ? "sonnet-5" : "gpt-4o", turns_left, charged, balance, free_chat });
     }
 
     if (action === "preview_hook") {

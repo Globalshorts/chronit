@@ -95,6 +95,9 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [clipVideo, setClipVideo] = useState('') // 원본 영상 프리페치 URL
   const [balance, setBalance] = useState(null)
   const [turns, setTurns] = useState(null)
+  const [freeChat, setFreeChat] = useState(null)   // 대본 세션 밖 잡담 {free_left, paid_left, free_total}
+  const jobIdRef = useRef(null)
+  const resendRef = useRef(null)
   const [note, setNote] = useState('')
   const [copiedI, setCopiedI] = useState(-1)
   const [rated, setRated] = useState({})   // 대본별 평가(👍/👎)
@@ -258,12 +261,33 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const refreshSession = async () => {
     try {
       const t = await token(); if (!t) return
-      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'session' }) })
-      const d = await r.json(); if (d.ok) { setTurns(typeof d.turns_left === 'number' ? d.turns_left : null); if (typeof d.balance === 'number') setBalance(d.balance) }
+      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'session', job_id: jobIdRef.current }) })
+      const d = await r.json(); if (d.ok) { if (jobIdRef.current) setTurns(typeof d.turns_left === 'number' ? d.turns_left : null); if (typeof d.balance === 'number') setBalance(d.balance); if (d.free_chat) setFreeChat(d.free_chat) }
     } catch { /* noop */ }
+  }
+  useEffect(() => { jobIdRef.current = jobId }, [jobId])
+  // 잡담 충전 직후 막혔던 메시지 자동 재전송(최신 messages 기준)
+  useEffect(() => { if (resendRef.current && !busy) { const t = resendRef.current; resendRef.current = null; send(t) } }, [messages])
+  const unlockChat = async (i, pending) => {
+    if (busy) return
+    setErr(''); setBusy(true); setStage('대화 충전 중…')
+    try {
+      const t = await token(); if (!t) { setErr('로그인이 필요해요'); return }
+      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'unlock_chat' }) })
+      const d = await r.json()
+      if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? `이용권이 부족해요 (필요 ${d.need || 2}개)` : (d.error || '충전 실패')); return }
+      if (typeof d.balance === 'number') setBalance(d.balance)
+      if (d.free_chat) setFreeChat(d.free_chat)
+      setNote(`💧 이용권 2개 · 대화 ${d.free_chat?.paid_left ?? 10}회 충전됐어요`); setTimeout(() => setNote(''), 4000)
+      track('vera_chat_unlocked')
+      // 안내 버블과 막혔던 내 메시지를 걷어내고 그대로 다시 보냄
+      resendRef.current = pending || null
+      setMessages((m) => { const out = m.filter((_, k) => k !== i); const last = out[out.length - 1]; if (pending && last && last.role === 'user' && last.text === pending) out.pop(); return out })
+    } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
   const applyMeter = (d) => {
     if (typeof d.turns_left === 'number') setTurns(d.turns_left)
+    if (d.free_chat) setFreeChat(d.free_chat)
     if (typeof d.balance === 'number') setBalance(d.balance)
     if (d.charged) { setNote('💧 이용권 2개 · 이 대본 10턴 세션'); setTimeout(() => setNote(''), 4000) }
   }
@@ -455,6 +479,12 @@ export default function ScriptAssistant({ session: sessionProp }) {
     try {
       const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'chat', job_id: chatJob, messages: newMsgs.map(m => ({ role: m.role, content: m.text })).filter(m => m.content), current_script: prevScript, nickname: nick, today_trends: today }) })
       const d = await r.json()
+      if (!d.ok && d.code === 'FREE_CHAT_LIMIT') {
+        if (d.free_chat) setFreeChat(d.free_chat)
+        track('vera_chat_limit')
+        setMessages(m => [...m, { role: 'assistant', unlockChat: true, pending: text, need: d.need || 2, cycle: d.cycle || 10 }])
+        return
+      }
       if (!d.ok) {
         const blocked = d.code === 'INSUFFICIENT_CREDITS'
         track(blocked ? 'vera_blocked_credits' : 'vera_gen_failed', { where: 'chat' })
@@ -744,6 +774,18 @@ export default function ScriptAssistant({ session: sessionProp }) {
               </div>
             )
             if (m.report) return <div key={i} className="sa-fade w-full max-w-[700px] self-start"><ClipAnalysisReport a={m.report} /></div>
+            if (m.unlockChat) return (
+              <div key={i} className="sa-fade w-full max-w-[92%] self-start">
+                <div className="rounded-2xl rounded-bl-md glass-soft px-4 py-3 text-[15px] leading-relaxed text-white/95">
+                  오늘 무료 대화 {freeChat?.free_total ?? 10}회를 다 썼어요 🙏<br />이용권 {m.need}개로 {m.cycle}회 더 이어서 대화할 수 있어요.
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button onClick={() => unlockChat(i, m.pending)} disabled={busy} className="rounded-xl bg-[#0064FF] px-4 py-2 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-40">💧 이용권 {m.need}개로 {m.cycle}회 더 대화하기</button>
+                    <Link to="/trend" className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm font-bold text-white/75 hover:text-white">소재 골라 대본 만들기</Link>
+                  </div>
+                  <div className="mt-2 text-[11px] text-white/40">무료 대화는 매일 자정에 다시 {freeChat?.free_total ?? 10}회 채워져요 · 보유 이용권 {balance ?? '-'}</div>
+                </div>
+              </div>
+            )
             if (m.captionAB) return (
               <div key={i} className="sa-fade w-full max-w-[92%] self-start">
                 <div className="mb-1.5 text-[12px] font-bold text-white/50">인스타 캡션 2가지 — 복사해서 바로 올려요 <span className="text-white/35">(댓글 키워드·계정 핸들·프로필 링크 번호는 확인 후 수정)</span></div>
@@ -918,10 +960,14 @@ export default function ScriptAssistant({ session: sessionProp }) {
           <textarea ref={textareaRef} value={input} onChange={e => { setInput(e.target.value); autoGrow(e.target) }} onKeyDown={onKey} rows={1}
             placeholder={jobId ? '더 짧게, 훅 더 세게 … 대화로 다듬어요' : (soso ? '소재 카드의 버튼을 누르거나, 직접 적어도 돼요' : "트렌드에서 '대본 작성하기'로 시작하거나 직접 적어주세요")}
             className="flex-1 resize-none overflow-y-auto rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-[15px] leading-relaxed text-white placeholder-white/35 outline-none focus:border-[#0064FF]" style={{ maxHeight: 160 }} />
-          {turns !== null && <div className={`mb-0.5 shrink-0 self-center rounded-full px-2.5 py-1 text-[11px] font-bold ${turns <= 3 ? 'bg-amber-500/20 text-amber-300' : 'bg-[#0064FF]/15 text-[#5AA0FF]'}`} title="이 대본 세션의 남은 턴">{turns}턴</div>}
+          {(() => {
+            if (turns !== null) return <div className={`mb-0.5 shrink-0 self-center whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold ${turns <= 3 ? 'bg-amber-500/20 text-amber-300' : 'bg-[#0064FF]/15 text-[#5AA0FF]'}`} title="이 대본 세션의 남은 턴">{turns}회</div>
+            if (freeChat) { const left = (freeChat.free_left || 0) + (freeChat.paid_left || 0); return <div className={`mb-0.5 shrink-0 self-center whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold ${left <= 3 ? 'bg-amber-500/20 text-amber-300' : 'bg-white/10 text-white/70'}`} title="오늘 남은 대화">{left}회</div> }
+            return null
+          })()}
           <button onClick={send} disabled={busy || !input.trim()} className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#0064FF] glass-active text-white transition disabled:opacity-40"><Send size={18} /></button>
         </div>
-        <div className="mx-auto mt-1.5 max-w-[700px] text-center text-[11px] text-white/35">{turns !== null ? `이 대본 세션 ${turns}턴 남음 · 소진 시 이용권 2개로 10턴 충전` : '대본을 만들면 10턴 세션이 열려요 (이용권 2개) · 가벼운 잡담은 무료'}</div>
+        <div className="mx-auto mt-1.5 max-w-[700px] text-center text-[11px] text-white/35">{turns !== null ? `이 대본 세션 대화 ${turns}회 남음 · 소진 시 이용권 2개로 10회 충전` : (freeChat ? (freeChat.free_left > 0 ? `오늘 무료 대화 ${freeChat.free_left}회 남음${freeChat.paid_left ? ` · 충전 ${freeChat.paid_left}회` : ''} · 이후 이용권 2개로 10회` : `충전된 대화 ${freeChat.paid_left || 0}회 남음 · 소진 시 이용권 2개로 10회 충전`) : '가벼운 대화는 하루 10회 무료 · 대본을 만들면 10회 세션이 열려요 (이용권 2개)')}</div>
       </div>
       </div>
 
