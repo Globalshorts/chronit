@@ -1,4 +1,4 @@
--- 베라 잡담(대본 세션 밖 대화)을 세션 단위로 보관: 세션 안 대화는 전부 저장, 유저당 세션 최대 100개
+-- 베라 잡담(대본 세션 밖 대화)을 세션 단위로 보관: 유저당 세션 최대 10개, 세션 안 대화 최대 100회(프론트)
 -- (2026-10-06 프로덕션에 적용됨 — 기록용)
 create table if not exists public.vera_chat_sessions (
   id uuid primary key default gen_random_uuid(),
@@ -39,9 +39,10 @@ begin
   return jsonb_build_object('ok', true, 'id', r.id, 'title', r.title, 'messages', r.messages, 'updated_at', r.updated_at);
 end $$;
 
+-- 2026-10-06 정책 변경: 세션 최대 10개(자동 삭제 없음, 꽉 차면 SESSION_LIMIT로 안내), 세션 안 대화 100회는 프론트에서 관리
 create or replace function public.save_chat_session_rpc(p_id uuid, p_messages jsonb, p_title text default null)
 returns jsonb language plpgsql security definer set search_path to 'public' as $$
-declare v_uid uuid := auth.uid(); v_id uuid := p_id; v_msgs jsonb := coalesce(p_messages, '[]'::jsonb);
+declare v_uid uuid := auth.uid(); v_id uuid := p_id; v_msgs jsonb := coalesce(p_messages, '[]'::jsonb); v_cnt int;
 begin
   if v_uid is null then return jsonb_build_object('ok', false); end if;
   if jsonb_typeof(v_msgs) <> 'array' then return jsonb_build_object('ok', false, 'error', 'bad_messages'); end if;
@@ -49,13 +50,12 @@ begin
   if v_id is not null then
     update public.vera_chat_sessions set messages = v_msgs, title = coalesce(nullif(left(p_title, 40), ''), title), updated_at = clock_timestamp()
     where id = v_id and user_id = v_uid;
-    if not found then v_id := null; end if;
+    if found then return jsonb_build_object('ok', true, 'id', v_id); end if;
   end if;
-  if v_id is null then
-    insert into public.vera_chat_sessions(user_id, title, messages, created_at, updated_at)
-    values (v_uid, coalesce(left(p_title, 40), ''), v_msgs, clock_timestamp(), clock_timestamp()) returning id into v_id;
-    perform public.prune_chat_sessions(v_uid, 100);
-  end if;
+  select count(*) into v_cnt from public.vera_chat_sessions where user_id = v_uid;
+  if v_cnt >= 10 then return jsonb_build_object('ok', false, 'code', 'SESSION_LIMIT', 'limit', 10); end if;
+  insert into public.vera_chat_sessions(user_id, title, messages, created_at, updated_at)
+  values (v_uid, coalesce(left(p_title, 40), ''), v_msgs, clock_timestamp(), clock_timestamp()) returning id into v_id;
   return jsonb_build_object('ok', true, 'id', v_id);
 end $$;
 

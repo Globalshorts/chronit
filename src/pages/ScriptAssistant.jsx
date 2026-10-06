@@ -353,16 +353,29 @@ export default function ScriptAssistant({ session: sessionProp }) {
     } finally { setClipSaving(null) }
   }
   const toStore = (m) => {
-    if (!m || m.unlockChat || m.voicePreview || m.report || m.captionAB || m.ab || m.isScript) return null
+    if (!m || m.notice || m.unlockChat || m.voicePreview || m.report || m.captionAB || m.ab || m.isScript) return null
     if (m.trends) return { role: 'assistant', trends: (m.trends || []).slice(0, 6).map((it) => ({ shortcode: it.shortcode, caption: String(it.caption || '').slice(0, 120), thumbnail_url: it.thumbnail_url || '', category: it.category || '' })), trendCat: m.trendCat || '', note: m.note || '', fallback: !!m.fallback }
     if ((m.role === 'user' || m.role === 'assistant') && m.text) return { role: m.role, text: String(m.text).slice(0, 4000) }
     return null
   }
+  const CHAT_SESSION_MAX = 10     // 잡담 세션 최대 개수(자동 삭제 없음 — 꽉 차면 안내)
+  const CHAT_TURN_MAX = 100       // 한 세션 안 저장 대화 수(질문+답변 1회 = 1). 넘으면 위에서부터 밀려남
+  const [sessionLimitMsg, setSessionLimitMsg] = useState('')
+  const userCount = (arr) => arr.reduce((n, m) => n + (m && m.role === 'user' ? 1 : 0), 0)
+  // 최근 max번의 대화만 남김(오래된 대화부터 제거, 질문 단위로 자름)
+  const trimTurns = (arr, max = CHAT_TURN_MAX) => {
+    let n = 0
+    for (let i = arr.length - 1; i >= 0; i--) { if (arr[i] && arr[i].role === 'user') { n++; if (n === max) { const rest = arr.slice(0, i); return userCount(rest) > 0 ? arr.slice(i) : arr } } }
+    return arr
+  }
+  const sessionFull = () => (chatSessions?.length || 0) >= CHAT_SESSION_MAX
+  const limitText = `대화는 최대 ${CHAT_SESSION_MAX}개까지 저장돼요. 목록에서 안 쓰는 대화를 지우면 새 대화를 열 수 있어요.`
   const loadChatSessions = () => supabase.rpc('list_chat_sessions_rpc', { p_limit: 100 }).then(({ data }) => setChatSessions(Array.isArray(data) ? data : []), () => setChatSessions((v) => v || []))
   useEffect(() => { if (session) loadChatSessions() }, [session])
   // 잡담 화면(대본/소재 없음)에서 대화가 끝날 때마다 현재 세션에 전체 저장. 첫 저장 때 세션 생성
   useEffect(() => {
     if (!freeReadyRef.current || jobId || soso || busy || savingRef.current) return
+    if (userCount(messages) > CHAT_TURN_MAX) { setMessages((m) => trimTurns(m)); return }   // 100회 초과분은 위에서부터 정리
     const all = messages.map(toStore).filter(Boolean)
     if (!all.some((m) => m.role === 'user')) return   // 인사말만 있을 땐 세션 안 만듦
     const key = JSON.stringify(all)
@@ -371,7 +384,9 @@ export default function ScriptAssistant({ session: sessionProp }) {
     const title = String(all.find((m) => m.role === 'user')?.text || '').replace(/\s+/g, ' ').trim().slice(0, 40)
     supabase.rpc('save_chat_session_rpc', { p_id: chatIdRef.current, p_messages: all, p_title: title }).then(({ data }) => {
       savingRef.current = false
-      if (data?.ok && data.id) { if (!chatIdRef.current) { chatIdRef.current = data.id; setChatId(data.id) }; loadChatSessions() } else lastSavedRef.current = ''
+      if (data?.ok && data.id) { if (!chatIdRef.current) { chatIdRef.current = data.id; setChatId(data.id) }; loadChatSessions() }
+      else if (data?.code === 'SESSION_LIMIT') { setSessionLimitMsg(limitText); setMessages((m) => [...m, { role: 'assistant', notice: true, text: '⚠️ ' + limitText + ' (이 대화는 저장되지 않았어요)' }]) }
+      else lastSavedRef.current = ''
       setSaveTick((t) => t + 1)
     }, () => { savingRef.current = false; lastSavedRef.current = ''; setSaveTick((t) => t + 1) })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -387,7 +402,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const deleteChat = async (id, e) => {
     if (e) e.stopPropagation()
     if (!window.confirm('이 대화를 삭제할까요? 되돌릴 수 없어요.')) return
-    try { await supabase.rpc('delete_chat_session_rpc', { p_id: id }); if (id === chatIdRef.current && !jobId) newChat(); loadChatSessions() } catch { /* noop */ }
+    try { await supabase.rpc('delete_chat_session_rpc', { p_id: id }); setSessionLimitMsg(''); if (id === chatIdRef.current && !jobId) newChat(); loadChatSessions() } catch { /* noop */ }
   }
   const applyMeter = (d) => {
     if (typeof d.turns_left === 'number') setTurns(d.turns_left)
@@ -580,7 +595,15 @@ export default function ScriptAssistant({ session: sessionProp }) {
     const t = await token(); if (!t) { setErr('로그인이 필요해요'); setMessages(m => [...m, { role: 'assistant', text: '로그인이 필요해요 🙏 새로고침 후 다시 시도해 주세요.' }]); return }
     const prevScript = jobId ? lastScript() : ''
     const chatJob = (jobId && (turns > 0 || prevScript)) ? jobId : null
+    const freeView = !jobId && !soso
+    if (freeView && !chatIdRef.current && sessionFull()) {
+      setSessionLimitMsg(limitText)
+      setMessages((m) => [...m, { role: 'assistant', notice: true, text: '⚠️ ' + limitText }])
+      if (typeof preset !== 'string') setInput(text)
+      return
+    }
     const newMsgs = [...messages, { role: 'user', text }]
+    const turnNo = freeView ? userCount(newMsgs) : 0
     setMessages(newMsgs); setBusy(true); setStage('베라가 생각 중…')
     try {
       const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'chat', job_id: chatJob, messages: newMsgs.map(m => ({ role: m.role, content: m.text })).filter(m => m.content), current_script: prevScript, nickname: nick, today_trends: today }) })
@@ -621,6 +644,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
         if (d.reply) supabase.rpc('append_job_message_rpc', { p_job_id: logJob, p_role: 'assistant', p_content: d.reply }).then(null, () => {})
       }
       if (!shown) setMessages(m => [...m, { role: 'assistant', text: '네, 말씀하세요!' }])
+      if (turnNo === CHAT_TURN_MAX) setMessages(m => [...m, { role: 'assistant', notice: true, text: `📌 이번이 이 대화의 ${CHAT_TURN_MAX}번째 대화예요. 다음 대화부터는 맨 위의 오래된 대화부터 지워지면서 최근 ${CHAT_TURN_MAX}개만 저장돼요.` }])
     } catch (e) { track('vera_gen_failed', { where: 'chat', error: String(e).slice(0, 120) }); setErr(String(e)); setMessages(m => [...m, { role: 'assistant', text: '연결이 잠깐 불안정했어요 😢 다시 한 번 보내주실래요?' }]) } finally { setBusy(false); setStage('') }
   }
 
@@ -719,14 +743,15 @@ export default function ScriptAssistant({ session: sessionProp }) {
       {/* 왼쪽 대화 리스트 (데스크톱 고정 · 모바일 드로어) */}
       <aside className={`${showConvList ? 'fixed inset-0 z-40 flex bg-black/50' : 'hidden'} ${convCollapsed ? 'md:hidden' : 'md:static md:z-0 md:flex md:bg-transparent'}`} onClick={() => setShowConvList(false)}>
         <div className="flex h-full min-h-[calc(100vh-0px)] w-64 shrink-0 flex-col border-r border-white/10 bg-[#0d0e12] p-3" onClick={e => e.stopPropagation()}>
-          <button onClick={() => { newChat(); setShowConvList(false) }} className="mb-3 flex items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] glass-active py-2.5 text-sm font-bold text-white transition hover:brightness-110"><Plus size={16} /> 새 대화</button>
+          <button onClick={() => { if (sessionFull()) { setSessionLimitMsg(limitText); return } setSessionLimitMsg(''); newChat(); setShowConvList(false) }} className="mb-3 flex items-center justify-center gap-1.5 rounded-xl bg-[#0064FF] glass-active py-2.5 text-sm font-bold text-white transition hover:brightness-110"><Plus size={16} /> 새 대화</button>
+          {sessionLimitMsg && <div className="-mt-1.5 mb-3 rounded-lg bg-amber-500/15 px-2.5 py-2 text-[11px] leading-snug text-amber-300">{sessionLimitMsg}</div>}
           {(() => {
             const items = [
               ...(chatSessions || []).map((c) => ({ kind: 'chat', id: c.id, title: c.title || '베라와 대화', at: c.updated_at })),
               ...jobs.map((j) => ({ kind: 'job', id: j.id, title: (j.status === 'analyzed' ? '📊 ' : '') + (j.product_name || '(제목 없음)'), at: j.created_at })),
             ].sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
             return (<>
-              <div className="mb-1.5 px-1 text-[11px] font-bold text-white/35">대화 · 대본 {items.length ? `(${items.length})` : ''}</div>
+              <div className="mb-1.5 flex items-center justify-between px-1 text-[11px] font-bold text-white/35"><span>대화 · 대본</span><span className={sessionFull() ? 'text-amber-300' : ''}>대화 {chatSessions?.length || 0}/{CHAT_SESSION_MAX}</span></div>
               <div className="-mx-1 flex-1 overflow-y-auto px-1">
                 {items.length === 0 ? <div className="px-2 py-4 text-xs text-white/30">아직 대화나 대본이 없어요</div> :
                   items.map((it) => {
