@@ -34,9 +34,10 @@ export default function VoiceOnboard({ onClose, onReady, defaultHandle = '', onB
       if (d.skipped) { setMsg(d.message || '새로 올린 릴스가 없어요'); setStep('done'); onReady && onReady(d); return }
       setData(d)
       const sc = d.style_card || {}
-      setGender(sc.gender_guess === '남' || sc.gender_guess === '여' ? sc.gender_guess : '')
-      setChars(Array.isArray(sc.recurring_characters) ? sc.recurring_characters.join(', ') : '')
-      setTone(sc.tone || '')
+      // input 화면에서 직접 정한 값은 유지하고, 비워둔 것만 학습 결과로 채운다
+      setGender((g) => g || (sc.gender_guess === '남' || sc.gender_guess === '여' ? sc.gender_guess : ''))
+      setChars((c) => c || (Array.isArray(sc.recurring_characters) ? sc.recurring_characters.join(', ') : ''))
+      setTone((t) => t || (sc.tone || ''))
       setStep('review')
     } catch (e) { setErr(String(e)); setStep('input') }
   }
@@ -67,19 +68,38 @@ export default function VoiceOnboard({ onClose, onReady, defaultHandle = '', onB
         </div>
 
         {step === 'input' && (
-          <div className="p-5">
-            <p className="text-sm leading-relaxed text-white/70">내 인스타그램 릴스를 학습해서 <b className="text-white">내가 진짜 말하는 말투 그대로</b> 대본을 써드려요. 공개 계정이어야 해요.</p>
-            <div className="mt-4 flex items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-3 py-2.5 focus-within:border-[#0064FF]">
+          <div className="max-h-[75vh] overflow-y-auto p-5">
+            <p className="text-sm leading-relaxed text-white/70">인스타 릴스를 학습하면 <b className="text-white">내가 진짜 말하는 말투 그대로</b> 써드려요. 핸들이 없어도 아래 기본만 정하면 대본 호칭·눈높이가 맞춰져요.</p>
+            <label className="mt-4 mb-1 block text-xs font-bold text-white/55">인스타 아이디 <span className="font-normal text-white/35">(선택 — 넣으면 말투까지 학습)</span></label>
+            <div className="flex items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-3 py-2.5 focus-within:border-[#0064FF]">
               <AtSign size={18} className="text-white/40" />
               <span className="text-white/40">@</span>
-              <input value={handle} onChange={e => setHandle(e.target.value)} onKeyDown={e => e.key === 'Enter' && start()} placeholder="instagram_id" className="flex-1 bg-transparent text-[15px] text-white placeholder-white/30 outline-none" />
+              <input value={handle} onChange={e => setHandle(e.target.value)} onKeyDown={e => e.key === 'Enter' && (handle.trim() ? start() : save())} placeholder="instagram_id" className="flex-1 bg-transparent text-[15px] text-white placeholder-white/30 outline-none" />
             </div>
+            <p className="mt-1.5 text-[11px] text-white/35">공개 계정이어야 학습돼요 · 약 30초{defaultHandle ? ' · 첫 학습 무료, 재학습 이용권 1개' : ''}</p>
+
+            <div className="mt-4 space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3.5">
+              <div className="text-[11px] font-bold text-white/45">기본 설정 · 핸들 없어도 적용돼요</div>
+              <div>
+                <label className="mb-1 flex items-center gap-1 text-xs text-white/60"><User size={12} /> 성별 (호칭·화자 정확도)</label>
+                <div className="flex gap-2">
+                  {[['남', '남성'], ['여', '여성'], ['', '지정 안 함']].map(([v, l]) => (
+                    <button key={l} onClick={() => setGender(v)} className={`flex-1 rounded-xl border px-3 py-2 text-sm font-bold transition ${gender === v ? 'border-[#0064FF] bg-[#0064FF]/15 text-white' : 'border-white/15 bg-white/5 text-white/60'}`}>{l}</button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="mb-1 flex items-center gap-1 text-xs text-white/60"><Target size={12} /> 타깃 시청자 (선택)</label>
+                <input value={target} onChange={e => setTarget(e.target.value)} placeholder="예: 좁은 자취방 2030, 살림 초보" className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-[#0064FF]" />
+              </div>
+              <div>
+                <label className="mb-1 flex items-center gap-1 text-xs text-white/60"><MessageCircle size={12} /> 톤 (선택)</label>
+                <input value={tone} onChange={e => setTone(e.target.value)} placeholder="예: 유쾌함, 깐깐한 시선" className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-[#0064FF]" />
+              </div>
+            </div>
+
             {err && <div className="mt-3 text-sm text-amber-400">⚠ {err}</div>}
-            <button onClick={start} className="mt-4 w-full rounded-2xl bg-[#0064FF] py-3 text-sm font-bold text-white transition hover:brightness-110">{defaultHandle ? '다시 학습하기' : '릴스 학습 시작'}</button>
-            <p className="mt-2 text-center text-[11px] text-white/35">약 30초 정도 걸려요 · 최근 릴스에서 말투를 뽑아요{defaultHandle ? ' · 첫 학습 무료, 새 릴스로 다시 학습 시 이용권 1개' : ''}</p>
-            <div className="mt-4 flex items-center gap-3 text-[11px] text-white/30"><div className="h-px flex-1 bg-white/10" />또는<div className="h-px flex-1 bg-white/10" /></div>
-            <button onClick={() => { setErr(''); setStep('review') }} className="mt-3 w-full rounded-2xl border border-white/15 bg-white/5 py-3 text-sm font-bold text-white/80 transition hover:bg-white/10">핸들 없이 기본만 설정 (성별·타깃)</button>
-            <p className="mt-2 text-center text-[11px] text-white/35">인스타 학습 없이 성별·타깃·톤만 지정해도 대본 호칭·눈높이가 맞춰져요</p>
+            <button onClick={() => (handle.trim() ? start() : save())} disabled={saving} className="mt-4 w-full rounded-2xl bg-[#0064FF] py-3 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-40">{saving ? '저장 중…' : (handle.trim() ? (defaultHandle ? '다시 학습하기' : '릴스 학습하고 저장') : '기본 설정 저장하고 시작')}</button>
           </div>
         )}
 
