@@ -8,6 +8,7 @@ const ANON = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const safeStr = (x: any) => String(x ?? "").replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/g, "").replace(/(^|[^\uD800-\uDBFF])([\uDC00-\uDFFF])/g, "$1");
 const TURN_COST = 2, TURN_CYCLE = 10;
 const FREE_CHAT = 10; // 대본 세션 밖 가벼운 잡담: 하루(KST) 무료 횟수
+const CHAT_UNLOCK_COST = 1; // 잡담 충전: 이용권 1개 → TURN_CYCLE회 (대본 세션은 TURN_COST=2 유지)
 // 훅(첫 줄) 유사도 — A/B 두 안의 첫 문장이 너무 비슷하면 B안 훅을 다시 뽑는다.
 const firstLine = (t: string) => String(t || "").split("\n").map((x) => x.trim()).find(Boolean) || "";
 const normHook = (t: string) => firstLine(t).replace(/[^가-힣a-zA-Z0-9]/g, "").toLowerCase();
@@ -276,11 +277,11 @@ serve(async (req) => {
       return J({ ok: true, balance: s?.balance ?? 0, turns_left: turns, cycle: TURN_CYCLE, cost: TURN_COST, free_chat });
     }
 
-    // 잡담 충전: 이용권 TURN_COST개 → TURN_CYCLE회
+    // 잡담 충전: 이용권 CHAT_UNLOCK_COST개 → TURN_CYCLE회
     if (action === "unlock_chat") {
-      const { data: u, error: uErr } = await supa.rpc("unlock_free_chat_rpc", { p_cost: TURN_COST, p_cycle: TURN_CYCLE });
+      const { data: u, error: uErr } = await supa.rpc("unlock_free_chat_rpc", { p_cost: CHAT_UNLOCK_COST, p_cycle: TURN_CYCLE });
       if (uErr) return J({ error: String(uErr.message ?? uErr) }, 500);
-      if (!u?.ok) return J({ ok: false, code: u?.code ?? "INSUFFICIENT_CREDITS", error: u?.error ?? "이용권이 부족해요", balance: u?.balance ?? 0, need: TURN_COST }, 402);
+      if (!u?.ok) return J({ ok: false, code: u?.code ?? "INSUFFICIENT_CREDITS", error: u?.error ?? "이용권이 부족해요", balance: u?.balance ?? 0, need: CHAT_UNLOCK_COST }, 402);
       return J({ ok: true, charged: true, balance: u.balance, free_chat: { free_left: 0, paid_left: u.paid_left, free_total: FREE_CHAT } });
     }
 
@@ -328,7 +329,7 @@ serve(async (req) => {
       if (!jobIdIn) {
         const { data: fc, error: fErr } = await supa.rpc("consume_free_chat_rpc", { p_free: FREE_CHAT });
         if (fErr) return J({ error: String(fErr.message ?? fErr) }, 500);
-        if (!fc?.ok) return J({ ok: false, code: fc?.code ?? "FREE_CHAT_LIMIT", error: "오늘 무료 대화 " + FREE_CHAT + "회를 다 썼어요", need: TURN_COST, cycle: TURN_CYCLE, free_chat: { free_left: 0, paid_left: 0, free_total: FREE_CHAT } }, 402);
+        if (!fc?.ok) return J({ ok: false, code: fc?.code ?? "FREE_CHAT_LIMIT", error: "오늘 무료 대화 " + FREE_CHAT + "회를 다 썼어요", need: CHAT_UNLOCK_COST, cycle: TURN_CYCLE, free_chat: { free_left: 0, paid_left: 0, free_total: FREE_CHAT } }, 402);
         free_chat = { free_left: fc.free_left, paid_left: fc.paid_left, free_total: fc.free_total };
       }
       if (jobIdIn) {

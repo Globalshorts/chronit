@@ -98,6 +98,8 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [freeChat, setFreeChat] = useState(null)   // 대본 세션 밖 잡담 {free_left, paid_left, free_total}
   const jobIdRef = useRef(null)
   const resendRef = useRef(null)
+  const clipFiles = useRef({})                    // 모바일 공유용 클립 File 캐시 {clipId: File}
+  const [clipSaving, setClipSaving] = useState(null)
   const [note, setNote] = useState('')
   const [copiedI, setCopiedI] = useState(-1)
   const [rated, setRated] = useState({})   // 대본별 평가(👍/👎)
@@ -278,12 +280,60 @@ export default function ScriptAssistant({ session: sessionProp }) {
       if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? `이용권이 부족해요 (필요 ${d.need || 2}개)` : (d.error || '충전 실패')); return }
       if (typeof d.balance === 'number') setBalance(d.balance)
       if (d.free_chat) setFreeChat(d.free_chat)
-      setNote(`💧 이용권 2개 · 대화 ${d.free_chat?.paid_left ?? 10}회 충전됐어요`); setTimeout(() => setNote(''), 4000)
+      setNote(`💧 이용권 1개 · 대화 ${d.free_chat?.paid_left ?? 10}회 충전됐어요`); setTimeout(() => setNote(''), 4000)
       track('vera_chat_unlocked')
       // 안내 버블과 막혔던 내 메시지를 걷어내고 그대로 다시 보냄
       resendRef.current = pending || null
       setMessages((m) => { const out = m.filter((_, k) => k !== i); const last = out[out.length - 1]; if (pending && last && last.role === 'user' && last.text === pending) out.pop(); return out })
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
+  }
+  // ── 소스 클립 저장 ──
+  // PC: ?download= 로 첨부 다운로드 / 모바일: 영상 파일을 공유시트로 넘겨 '비디오 저장'(사진앱) 가능
+  const isMobileUA = () => typeof navigator !== 'undefined' && (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent)))
+  const clipName = (i) => `chronit_clip_${i + 1}.mp4`
+  const dlHref = (u, i) => u + (u.includes('?') ? '&' : '?') + 'download=' + encodeURIComponent(clipName(i))
+  const hardDownload = (href) => { const a = document.createElement('a'); a.href = href; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove() }
+  const clipFile = async (c, i) => {
+    if (clipFiles.current[c.id]) return clipFiles.current[c.id]
+    const b = await (await fetch(c.storage_path)).blob()
+    const f = new File([b], clipName(i), { type: b.type || 'video/mp4' }); clipFiles.current[c.id] = f; return f
+  }
+  // 모바일은 미리 받아둠 → 탭 즉시 공유시트(iOS는 다운로드가 길면 공유 권한이 만료됨)
+  useEffect(() => {
+    if (!isMobileUA()) return
+    clips.forEach((c, i) => { if (c.status === 'ready' && c.storage_path && !clipFiles.current[c.id]) clipFile(c, i).catch(() => {}) })
+  }, [clips])
+  const shareFiles = async (files) => {
+    if (navigator.canShare && navigator.canShare({ files })) { await navigator.share({ files }); return true }
+    return false
+  }
+  const saveClip = async (c, i) => {
+    if (!c?.storage_path || clipSaving) return
+    actedRef.current = true; try { track('vera_clip_saved', { mobile: isMobileUA() }) } catch { /* noop */ }
+    if (!isMobileUA() || !navigator.share) { hardDownload(dlHref(c.storage_path, i)); return }
+    setClipSaving(c.id)
+    try {
+      const f = await clipFile(c, i)
+      if (!(await shareFiles([f]))) hardDownload(dlHref(c.storage_path, i))
+    } catch (e) {
+      if (e?.name === 'AbortError') return   // 사용자가 공유창 닫음
+      if (e?.name === 'NotAllowedError' && clipFiles.current[c.id]) { setNote('저장 준비 완료 — 한 번 더 누르면 저장 창이 떠요'); setTimeout(() => setNote(''), 3500); return }
+      hardDownload(dlHref(c.storage_path, i))
+    } finally { setClipSaving(null) }
+  }
+  const saveAllClips = async () => {
+    const ready = clips.map((c, i) => ({ c, i })).filter(({ c }) => c.status === 'ready' && c.storage_path)
+    if (!ready.length || clipSaving) return
+    if (!isMobileUA() || !navigator.share) { ready.forEach(({ c, i }, k) => setTimeout(() => hardDownload(dlHref(c.storage_path, i)), k * 700)); return }
+    setClipSaving('all')
+    try {
+      const files = await Promise.all(ready.map(({ c, i }) => clipFile(c, i)))
+      if (!(await shareFiles(files))) ready.forEach(({ c, i }, k) => setTimeout(() => hardDownload(dlHref(c.storage_path, i)), k * 700))
+    } catch (e) {
+      if (e?.name === 'AbortError') return
+      if (e?.name === 'NotAllowedError') { setNote('저장 준비 완료 — 한 번 더 누르면 저장 창이 떠요'); setTimeout(() => setNote(''), 3500); return }
+      ready.forEach(({ c, i }, k) => setTimeout(() => hardDownload(dlHref(c.storage_path, i)), k * 700))
+    } finally { setClipSaving(null) }
   }
   const applyMeter = (d) => {
     if (typeof d.turns_left === 'number') setTurns(d.turns_left)
@@ -482,7 +532,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       if (!d.ok && d.code === 'FREE_CHAT_LIMIT') {
         if (d.free_chat) setFreeChat(d.free_chat)
         track('vera_chat_limit')
-        setMessages(m => [...m, { role: 'assistant', unlockChat: true, pending: text, need: d.need || 2, cycle: d.cycle || 10 }])
+        setMessages(m => [...m, { role: 'assistant', unlockChat: true, pending: text, need: d.need || 1, cycle: d.cycle || 10 }])
         return
       }
       if (!d.ok) {
@@ -880,19 +930,19 @@ export default function ScriptAssistant({ session: sessionProp }) {
             <div className="mt-2 rounded-2xl glass p-3.5">
               <div className="mb-2 flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-sm font-bold text-white"><Film size={15} className="text-[#5AA0FF]" /> 소스 클립 {clips.length ? `(${clips.length})` : ''}</div>
-                {clips.length > 0 && <button onClick={() => clips.forEach((c) => c.storage_path && window.open(c.storage_path, '_blank'))} className="flex items-center gap-1 rounded-lg bg-white/10 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-white/15"><Download size={13} /> 전체 다운로드</button>}
+                {clips.length > 0 && <button onClick={saveAllClips} disabled={!!clipSaving} className="flex items-center gap-1 rounded-lg bg-white/10 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-white/15 disabled:opacity-50"><Download size={13} /> {clipSaving === 'all' ? '준비 중…' : '전체 저장'}</button>}
               </div>
               <div className="flex gap-2">
                 <input value={rnUrl} onChange={(e) => setRnUrl(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addRednoteClip()} placeholder="레드노트 공유 링크 붙여넣기 (xhslink.com/… 도 OK)"
                   className="min-w-0 flex-1 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/35 outline-none focus:border-[#0064FF]" />
                 <button onClick={addRednoteClip} disabled={rnBusy || !rnUrl.trim()} className="flex shrink-0 items-center gap-1 rounded-xl bg-[#0064FF] px-3.5 py-2 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-40">{rnBusy ? '가져오는 중…' : <><Plus size={14} /> 추가</>}</button>
               </div>
-              <p className="mt-1.5 flex items-start gap-1 text-[11px] leading-snug text-white/40"><Clipboard size={12} className="mt-0.5 shrink-0" /><span>레드노트 앱에서 <b className="text-white/60">공유 → 링크 복사</b> 후 붙여넣으면 영상이 저장돼요 · PC에서 바로 다운로드 (7일 보관)</span></p>
+              <p className="mt-1.5 flex items-start gap-1 text-[11px] leading-snug text-white/40"><Clipboard size={12} className="mt-0.5 shrink-0" /><span>레드노트 앱에서 <b className="text-white/60">공유 → 링크 복사</b> 후 붙여넣으면 영상이 저장돼요 · 클립을 누르면 다운로드 (폰은 '비디오 저장'으로 사진앱에) · 7일 보관</span></p>
               {rnErr && <div className="mt-1.5 text-xs text-amber-400">⚠ {rnErr}</div>}
               {clips.length > 0 && (
                 <div className="mt-3 flex gap-2 overflow-x-auto">
-                  {clips.map((c) => (
-                    <a key={c.id} href={c.storage_path || undefined} target="_blank" rel="noreferrer" download
+                  {clips.map((c, ci) => (
+                    <button type="button" key={c.id} onClick={() => saveClip(c, ci)} disabled={c.status !== 'ready' || !c.storage_path}
                       className="group relative grid h-24 w-16 shrink-0 place-items-center overflow-hidden rounded-lg border border-white/10 bg-white/5 transition hover:border-[#0064FF]">
                       {c.status === 'ready'
                         ? <>
@@ -900,10 +950,10 @@ export default function ScriptAssistant({ session: sessionProp }) {
                               ? <video src={`${c.storage_path}#t=0.1`} muted playsInline preload="metadata" tabIndex={-1}
                                   className="absolute inset-0 h-full w-full object-cover" />
                               : <Film size={18} className="text-white/45" />}
-                            <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-0.5 bg-black/65 py-0.5 text-[9px] font-bold text-white"><Download size={9} /> 저장</span>
+                            <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-0.5 bg-black/65 py-0.5 text-[9px] font-bold text-white">{clipSaving === c.id ? '준비 중…' : <><Download size={9} /> 저장</>}</span>
                           </>
                         : <span className="text-[10px] text-white/40">{c.status || '처리중'}</span>}
-                    </a>
+                    </button>
                   ))}
                 </div>
               )}
@@ -967,7 +1017,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
           })()}
           <button onClick={send} disabled={busy || !input.trim()} className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#0064FF] glass-active text-white transition disabled:opacity-40"><Send size={18} /></button>
         </div>
-        <div className="mx-auto mt-1.5 max-w-[700px] text-center text-[11px] text-white/35">{turns !== null ? `이 대본 세션 대화 ${turns}회 남음 · 소진 시 이용권 2개로 10회 충전` : (freeChat ? (freeChat.free_left > 0 ? `오늘 무료 대화 ${freeChat.free_left}회 남음${freeChat.paid_left ? ` · 충전 ${freeChat.paid_left}회` : ''} · 이후 이용권 2개로 10회` : `충전된 대화 ${freeChat.paid_left || 0}회 남음 · 소진 시 이용권 2개로 10회 충전`) : '가벼운 대화는 하루 10회 무료 · 대본을 만들면 10회 세션이 열려요 (이용권 2개)')}</div>
+        <div className="mx-auto mt-1.5 max-w-[700px] text-center text-[11px] text-white/35">{turns !== null ? `이 대본 세션 대화 ${turns}회 남음 · 소진 시 이용권 2개로 10회 충전` : (freeChat ? (freeChat.free_left > 0 ? `오늘 무료 대화 ${freeChat.free_left}회 남음${freeChat.paid_left ? ` · 충전 ${freeChat.paid_left}회` : ''} · 이후 이용권 1개로 10회` : `충전된 대화 ${freeChat.paid_left || 0}회 남음 · 소진 시 이용권 1개로 10회 충전`) : '가벼운 대화는 하루 10회 무료 · 대본을 만들면 10회 세션이 열려요 (이용권 2개)')}</div>
       </div>
       </div>
 
