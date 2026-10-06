@@ -15,6 +15,7 @@ export default function VoiceOnboard({ onClose, onReady, defaultHandle = '', onB
   const [data, setData] = useState(initialData) // voice-onboard 응답
   const [gender, setGender] = useState(_isc.gender_guess === '남' || _isc.gender_guess === '여' ? _isc.gender_guess : '') // 남 | 여 | ''
   const [chars, setChars] = useState(Array.isArray(_isc.recurring_characters) ? _isc.recurring_characters.join(', ') : '') // 콤마 구분
+  const [charMode, setCharMode] = useState(initialData?.persona?.character_mode || (Array.isArray(_isc.recurring_characters) && _isc.recurring_characters.length ? 'fixed' : 'auto')) // auto(자유) | solo(혼자) | fixed(고정)
   const [tone, setTone] = useState(_isc.tone || '')
   const [target, setTarget] = useState(initialData?.persona?.target || '')
   const [saving, setSaving] = useState(false)
@@ -47,7 +48,8 @@ export default function VoiceOnboard({ onClose, onReady, defaultHandle = '', onB
     try {
       const persona = {
         gender: gender || undefined,
-        recurring_characters: chars.split(',').map(s => s.trim()).filter(Boolean),
+        character_mode: charMode,
+        recurring_characters: charMode === 'fixed' ? chars.split(',').map(s => s.trim()).filter(Boolean) : [],
         tone: tone.trim() || undefined,
         target: target.trim() || undefined,
       }
@@ -87,6 +89,16 @@ export default function VoiceOnboard({ onClose, onReady, defaultHandle = '', onB
                     <button key={l} onClick={() => setGender(v)} className={`flex-1 rounded-xl border px-3 py-2 text-sm font-bold transition ${gender === v ? 'border-[#0064FF] bg-[#0064FF]/15 text-white' : 'border-white/15 bg-white/5 text-white/60'}`}>{l}</button>
                   ))}
                 </div>
+              </div>
+              <div>
+                <label className="mb-1 flex items-center gap-1 text-xs text-white/60"><Users size={12} /> 출연 인물</label>
+                <div className="flex gap-2">
+                  {[['auto', '자유롭게'], ['solo', '화자 혼자'], ['fixed', '고정']].map(([v, l]) => (
+                    <button key={v} onClick={() => setCharMode(v)} className={`flex-1 rounded-xl border px-2 py-2 text-sm font-bold transition ${charMode === v ? 'border-[#0064FF] bg-[#0064FF]/15 text-white' : 'border-white/15 bg-white/5 text-white/60'}`}>{l}</button>
+                  ))}
+                </div>
+                {charMode === 'fixed' && <input value={chars} onChange={e => setChars(e.target.value)} placeholder="예: 아내, 친구" className="mt-2 w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-[#0064FF]" />}
+                <p className="mt-1 text-[11px] text-white/30">{charMode === 'auto' ? '상황에 맞는 인물이 매번 다르게 등장해요 (다양성↑)' : charMode === 'solo' ? '등장인물 없이 화자 혼자 이야기해요' : '여기 적은 인물 위주로만 등장해요'}</p>
               </div>
               <div>
                 <label className="mb-1 flex items-center gap-1 text-xs text-white/60"><Target size={12} /> 타깃 시청자 (선택)</label>
@@ -140,8 +152,14 @@ export default function VoiceOnboard({ onClose, onReady, defaultHandle = '', onB
                 </div>
               </div>
               <div>
-                <label className="mb-1 flex items-center gap-1 text-xs text-white/60"><Users size={12} /> 단골 등장인물 (콤마로 구분)</label>
-                <input value={chars} onChange={e => setChars(e.target.value)} placeholder="예: 와이프, 친구" className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-[#0064FF]" />
+                <label className="mb-1 flex items-center gap-1 text-xs text-white/60"><Users size={12} /> 출연 인물</label>
+                <div className="flex gap-2">
+                  {[['auto', '자유롭게'], ['solo', '화자 혼자'], ['fixed', '고정']].map(([v, l]) => (
+                    <button key={v} onClick={() => setCharMode(v)} className={`flex-1 rounded-xl border px-2 py-2 text-sm font-bold transition ${charMode === v ? 'border-[#0064FF] bg-[#0064FF]/15 text-white' : 'border-white/15 bg-white/5 text-white/60'}`}>{l}</button>
+                  ))}
+                </div>
+                {charMode === 'fixed' && <input value={chars} onChange={e => setChars(e.target.value)} placeholder="예: 아내, 친구" className="mt-2 w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-[#0064FF]" />}
+                <p className="mt-1 text-[11px] text-white/30">{charMode === 'auto' ? '상황에 맞는 인물이 매번 다르게 등장해요 (다양성↑)' : charMode === 'solo' ? '등장인물 없이 화자 혼자 이야기해요' : '여기 적은 인물 위주로만 등장해요'}</p>
               </div>
               <div>
                 <label className="mb-1 flex items-center gap-1 text-xs text-white/60"><MessageCircle size={12} /> 톤 (선택)</label>
