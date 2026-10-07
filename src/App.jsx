@@ -18,7 +18,7 @@ import { installGlobalErrorCapture } from './lib/errorReport'
 import { supabase } from './lib/supabase'
 import { trackSignupIfNew } from './lib/trackSignup'
 import { logEventOnce } from './lib/events'
-import { phIdentify, phReset } from './lib/posthog'
+import { phIdentify, phReset, phMarkInternal } from './lib/posthog'
 
 // ── 라우트별 코드 스플리팅 (홈 진입 시 앱 전체가 아니라 필요한 청크만 로드) ──
 // 청크 로드 실패(배포 갱신으로 옛 해시 요청 등) 시 1회 새로고침해 최신 청크를 받음 → 빈 화면 방지
@@ -101,7 +101,15 @@ const App = () => {
       } catch {}
     }
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) { setUid(session); trackSignupIfNew(session); phIdentify(session.user && session.user.id) }
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) { setUid(session); trackSignupIfNew(session); phIdentify(session.user && session.user.id)
+        // 관리자·내부 계정은 PostHog 세션 녹화 제외
+        try {
+          const em = String(session.user?.email || '').toLowerCase()
+          if (INTERNAL_EMAILS.includes(em)) phMarkInternal()
+          else supabase.from('subscriptions').select('role').eq('user_id', session.user.id).maybeSingle()
+            .then(({ data }) => { if (data && (data.role === 'admin' || data.role === 'super_admin')) phMarkInternal() }, () => {})
+        } catch { /* noop */ }
+      }
       if (event === 'SIGNED_OUT') { try { window.gtag && window.gtag('config', GA, { user_id: undefined, send_page_view: false }) } catch {}; phReset() }
     })
     return () => { try { sub.subscription.unsubscribe() } catch {} }
@@ -176,5 +184,7 @@ const App = () => {
   </BrowserRouter>
   )
 }
+
+const INTERNAL_EMAILS = ['pv2066pv@gmail.com', 'kjiswat@nate.com', 'onceyouclick98@gmail.com']
 
 export default App
