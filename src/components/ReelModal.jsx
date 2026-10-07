@@ -16,6 +16,15 @@ const proxied = (u, sc, i) => {
   return `${SB}/functions/v1/thumbnail-proxy?url=${encodeURIComponent(u)}${sc ? `&sc=${encodeURIComponent(sc)}` : ''}${i != null ? `&i=${i}` : ''}`
 }
 
+// 클릭해서 연 영상이라 소리 켜고 재생한다. 브라우저가 소리 재생을 막으면 그때만 음소거로 재생.
+const playWithSound = (v) => {
+  if (!v || v.dataset.started) return
+  v.dataset.started = '1'
+  v.muted = false
+  const p = v.play()
+  if (p && p.catch) p.catch(() => { v.muted = true; v.play().catch(() => {}) })
+}
+
 export default function VideoModal({ clip, onClose, onSave, saved = false, onScript, scriptState, onAnalyze, viewOnly = false }) {
   const _navScript = useNavigate()
   const imgs = Array.isArray(clip?.images) ? clip.images.filter(Boolean) : []
@@ -91,7 +100,7 @@ export default function VideoModal({ clip, onClose, onSave, saved = false, onScr
             )}
           </div>
         ) : mode === 'video' && src ? (
-          <video key={src} src={src} poster={clip.thumbnail_url} controls autoPlay loop muted playsInline
+          <video key={src} ref={playWithSound} src={src} poster={clip.thumbnail_url} controls loop playsInline
             controlsList="nodownload noplaybackrate noremoteplayback"
             disablePictureInPicture
             onContextMenu={(e) => e.preventDefault()}

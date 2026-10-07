@@ -34,6 +34,15 @@ const normClips = (list) => (Array.isArray(list) ? list : []).map((c) => ({
 const isValidUrl = (u) =>
   ['youtube.com', 'youtu.be', 'tiktok.com', 'instagram.com'].some((p) => u.toLowerCase().includes(p))
 
+// 클릭해서 연 영상이라 소리 켜고 재생한다. 브라우저가 소리 재생을 막으면 그때만 음소거로 재생.
+const playWithSound = (v) => {
+  if (!v || v.dataset.started) return
+  v.dataset.started = '1'
+  v.muted = false
+  const p = v.play()
+  if (p && p.catch) p.catch(() => { v.muted = true; v.play().catch(() => {}) })
+}
+
 // 결과가 마음에 안 들 때 같은 검색어로 한 번 더 — 모델 재분석 없이 검색만 다시 돌린다(무료).
 function RecheckCard({ onClick, busy }) {
   return (
@@ -95,7 +104,7 @@ function FindCard({ clip, onAnalyze }) {
     <div className="relative overflow-hidden rounded-xl border-2 border-gray-200 transition-all hover:border-gray-400">
       <div className="relative aspect-[9/16] cursor-pointer bg-gray-100" onClick={() => (playing ? setPlaying(false) : (playUrl && setPlaying(true)))}>
         {playing && playUrl ? (
-          <video src={playUrl} autoPlay muted playsInline controls={false}
+          <video key={playUrl} ref={playWithSound} src={playUrl} playsInline controls={false}
             poster={thumbSrc || undefined}
             className="h-full w-full object-cover"
             onClick={(e) => { e.stopPropagation(); setPlaying(false) }}
