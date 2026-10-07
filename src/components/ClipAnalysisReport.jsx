@@ -167,33 +167,10 @@ export default function ClipAnalysisReport({ a, shortcode }) {
       {Array.isArray(a.hashtags) && a.hashtags.length > 0 && <div className="mt-3 text-[12px] text-[#5AA0FF]">{a.hashtags.join(' ')}</div>}
 
       {shortcode && (
-        <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.03] p-3">
-          <div className="mb-2 text-[12px] font-bold text-white/60">원본 소재</div>
-          <div className="relative mx-auto aspect-[9/16] max-h-[440px] overflow-hidden rounded-lg bg-black/50">
-            {vstate === 'playing' && video ? (
-              <video key={video} src={video} poster={thumb} controls autoPlay playsInline preload="auto"
-                className="absolute inset-0 h-full w-full bg-black object-contain"
-                controlsList="noplaybackrate noremoteplayback" onError={onVidError} />
-            ) : vstate === 'expired' ? (
-              <div className="absolute inset-0 grid place-items-center px-4 text-center text-[13px] leading-relaxed text-white/50">
-                원본을 불러올 수 없어요<br />
-                <button onClick={onPlay} className="mt-1 inline-block font-bold text-[#5AA0FF] underline">다시 시도</button>
-              </div>
-            ) : (
-              <button onClick={onPlay} disabled={vstate === 'loading'} className="group absolute inset-0">
-                {thumb && <img src={thumb} referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-contain opacity-90" />}
-                <span className="absolute inset-0 grid place-items-center">
-                  <span className="grid h-12 w-12 place-items-center rounded-full bg-black/60 text-white transition group-hover:bg-black/80">
-                    {vstate === 'loading' ? <Loader2 size={20} className="animate-spin" /> : <Play size={20} />}
-                  </span>
-                </span>
-              </button>
-            )}
-          </div>
-          <div className="mt-2 flex gap-2">
-            <button onClick={onDownload} disabled={dl} className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-white/15 bg-white/5 py-2 text-[12px] font-bold text-white/75 transition hover:text-white disabled:opacity-50">{dl ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />} 원본 다운로드</button>
-          </div>
-        </div>
+        <button onClick={onDownload} disabled={dl}
+          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#0064FF]/50 bg-[#0064FF]/15 py-2.5 text-[13px] font-bold text-[#5AA0FF] transition hover:bg-[#0064FF]/25 disabled:opacity-50">
+          {dl ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />} 원본 영상 다운로드
+        </button>
       )}
     </div>
   )
