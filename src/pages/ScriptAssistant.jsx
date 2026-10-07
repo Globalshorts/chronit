@@ -87,6 +87,7 @@ function VoiceDict({ vp }) {
   )
 }
 
+const ANCHOR_HEAD = '원본 소재(이 영상이 실제로 다루는 제품/주제 — 반드시 이것으로만 쓰고 절대 다른 상품으로 바꾸지 말 것): '
 export default function ScriptAssistant({ session: sessionProp }) {
   const loc = useLocation()
   const nav = useNavigate()
@@ -460,7 +461,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
     ])
     const isMy = jrow?.voice_mode === 'my' && voiceProfile?.has_voice === true
     // 분석 자료(상품·셀링포인트) 복원 — 첫 대본 메시지에 붙인다
-    let sell = String(jrow?.selling_points || '')
+    let sell = String(jrow?.selling_points || '').split('\n').filter((l) => !l.startsWith('원본 소재(')).join(' / ')
     if (jrow?.product_name && sell.startsWith(jrow.product_name + ' — ')) sell = sell.slice((jrow.product_name + ' — ').length)
     const analysis = (jrow?.product_name || sell) ? { product: jrow?.product_name || '', selling: sell ? sell.split(' / ').filter(Boolean) : [] } : null
     let attached = false
@@ -527,7 +528,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
     if (a.structure) L.push(`[구성] ${a.structure}`)
     if (a.target) L.push(`[타깃] ${a.target}`)
     const cs = a.comment_sentiment
-    if (cs && (cs.purchase_intent || cs.positive || cs.question)) L.push(`[댓글 반응] 구매의도 ${cs.purchase_intent}% · 질문 ${cs.question}% · 긍정 ${cs.positive}%`)
+    if (cs && (cs.purchase_intent || cs.positive || cs.question)) L.push(`[댓글 반응] 구매의도 ${Math.min(100, (cs.purchase_intent || 0) + (cs.positive || 0))}% · 질문 ${cs.question || 0}%`)
     const rx = a.remix || {}
     if (Array.isArray(rx.hook_ideas) && rx.hook_ideas.length) L.push(`\n[내 걸로 · 훅 아이디어]\n${rx.hook_ideas.map((x) => `· ${x}`).join('\n')}`)
     if (Array.isArray(rx.edit_script) && rx.edit_script.length) L.push(`[편집 순서]\n${rx.edit_script.map((x, i) => `${i + 1}. ${x}`).join('\n')}`)
@@ -601,8 +602,13 @@ export default function ScriptAssistant({ session: sessionProp }) {
       let selling = sp.length ? sp.join(' / ') : (soso.caption || '')
       if (product) selling = product + ' — ' + selling
       if (a) setSoso(v => ({ ...v, product, selling: sp }))
+      // 주제 이탈 방지 — 원본 캡션·분석 훅·타깃을 '이 소재로만 쓰라'는 앵커로 생성기에 함께 넘긴다
+      const subject = String(soso.caption || '').replace(/\s+/g, ' ').trim().slice(0, 240)
+      const anchor = [subject, a?.hook && ('이 영상 훅: ' + a.hook), a?.target && ('타깃: ' + a.target)].filter(Boolean).join(' / ')
+      const prodName = product || subject.split(/[—\-.\n|·]/)[0].trim().slice(0, 60) || subject.slice(0, 60)
+      const sellingFinal = [selling, anchor ? (ANCHOR_HEAD + anchor) : ''].filter(Boolean).join('\n')
       setStage('대본을 짓는 중…')
-      const gbody = { action: 'generate', voice_mode: 'my', source_ref: soso.source_ref, product_name: product || (soso.caption || '').split(/[—\-.\n]/)[0].slice(0, 60), selling_points: selling }
+      const gbody = { action: 'generate', voice_mode: 'my', source_ref: soso.source_ref, product_name: prodName, selling_points: sellingFinal }
       if (jobId) gbody.job_id = jobId
       const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify(gbody) })
       const d = await r.json()
@@ -625,6 +631,17 @@ export default function ScriptAssistant({ session: sessionProp }) {
   }
 
   // 베라와 대화 (무료). 대본이 있으면 요청 시 다듬어 줌(무료). 새 대본 커밋은 소재 카드로.
+  // 베라에게 보낼 대화 기록 — A/B 대본·분석 리포트도 내용으로 풀고, 지금 다루는 클립 소재를 맥락으로 앞에 붙인다
+  const histForLLM = (msgs, clip) => {
+    const h = msgs.map(m => {
+      if (m.text) return { role: m.role, content: m.text }
+      if (m.ab) return { role: 'assistant', content: `(방금 생성한 대본)\nA안:\n${m.a || ''}\n\nB안:\n${m.b || ''}` }
+      if (m.report) { const rp = typeof m.report === 'string' ? m.report : JSON.stringify(m.report); return { role: 'assistant', content: `(이 클립 분석 리포트)\n${rp}`.slice(0, 2000) } }
+      return null
+    }).filter(Boolean)
+    if (clip && (clip.caption || clip.source_ref)) h.unshift({ role: 'user', content: `[작업 맥락] 지금 다루는 클립 소재: ${clip.caption || clip.source_ref}. 아래 대본·분석은 이 클립으로 만든 거야. '방금 쓴 대본/이 클립'은 이걸 가리켜.` })
+    return h
+  }
   const send = async (preset) => {
     const text = (typeof preset === 'string' ? preset : input).trim(); if (!text || busy) return
     setErr(''); if (typeof preset !== 'string') { setInput(''); resetGrow() }
@@ -633,6 +650,42 @@ export default function ScriptAssistant({ session: sessionProp }) {
       setChannelMode(false)
       setMessages(m => [...m, { role: 'user', text }, { role: 'assistant', text: '채널을 분석하고 있어요 📊 결과 창이 곧 떠요. (분석은 이용권 1개)' }])
       try { startChannel && startChannel(text) } catch { setErr('채널 분석을 시작하지 못했어요') }
+      return
+    }
+    // 인스타 릴스 링크 붙여넣기 → 그 릴스를 불러와 분석/대본으로 연결 (LLM 우회)
+    const igm = text.match(/instagram\.com\/(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/i)
+    if (igm) {
+      const sc = igm[1]
+      const wantGen = /대본|스크립트|써\s*줘|써줘|작성|만들/.test(text)
+      const wantAnalyze = /분석|해석|인사이트|왜\s*터/.test(text)
+      setMessages(m => [...m, { role: 'user', text }]); setBusy(true); setStage('릴스를 불러오는 중…')
+      try {
+        const t2 = await token(); if (!t2) { setErr('로그인이 필요해요'); return }
+        const rr = await fetch(FN('reel-by-url'), { method: 'POST', headers: { Authorization: `Bearer ${t2}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ url: text }) })
+        const rd = await rr.json().catch(() => ({}))
+        if (!rd?.ok || (!rd.caption && !rd.owner)) { setMessages(m => [...m, { role: 'assistant', text: '그 릴스를 못 불러왔어요 😢 비공개·삭제됐거나 링크가 정확한지 확인해 주세요.' }]); return }
+        setJobId(null)
+        const c = { source_ref: sc, caption: String(rd.caption || '').replace(/\s+/g, ' ').trim(), thumb: rd.thumbnail || '' }
+        setSoso(c); setClipBox(c)
+        if (wantGen) setPendingGen(true)
+        else if (wantAnalyze) setPendingAnalyze(true)
+        else setMessages(m => [...m, { role: 'assistant', text: '릴스 가져왔어요. 아래에서 분석하거나 대본을 만들 수 있어요 👇' }])
+      } catch { setMessages(m => [...m, { role: 'assistant', text: '릴스를 불러오지 못했어요 😢 잠시 후 다시 시도해 주세요.' }]) }
+      finally { setBusy(false); setStage('') }
+      return
+    }
+    const ctxClip = soso ? { source_ref: soso.source_ref || null, caption: soso.caption || '', thumb: soso.thumb || '' }
+      : (clipBox && (clipBox.source_ref || clipBox.caption) ? { source_ref: clipBox.source_ref || null, caption: clipBox.caption || '', thumb: clipBox.thumb || '' } : null)
+    // 지금 다루는 클립이 있고 '분석'을 요청하면 → 그 클립을 실제로 분석
+    if (!soso && ctxClip && /분석|해석|왜\s*터|인사이트/.test(text)) {
+      setMessages(m => [...m, { role: 'user', text }])
+      setSoso(ctxClip); setPendingAnalyze(true)
+      return
+    }
+    // '다시 대본 작성 / 새로 써줘 / 다시 만들어' → 잡담 없이 바로 현재 소재로 새 A/B 재생성
+    if (ctxClip && /((다시|새로|재)\s*(대본|작성|생성|만들|써|뽑))|(대본\s*(다시|새로|재생성))/.test(text)) {
+      setMessages(m => [...m, { role: 'user', text }])
+      setSoso(ctxClip); setPendingGen(true)
       return
     }
     const t = await token(); if (!t) { setErr('로그인이 필요해요'); setMessages(m => [...m, { role: 'assistant', text: '로그인이 필요해요 🙏 새로고침 후 다시 시도해 주세요.' }]); return }
@@ -649,7 +702,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
     const turnNo = freeView ? userCount(newMsgs) : 0
     setMessages(newMsgs); setBusy(true); setStage('베라가 생각 중…')
     try {
-      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'chat', job_id: chatJob, messages: newMsgs.map(m => ({ role: m.role, content: m.text })).filter(m => m.content), current_script: prevScript, nickname: nick, today_trends: today }) })
+      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'chat', job_id: chatJob, messages: histForLLM(newMsgs, ctxClip), current_script: prevScript, nickname: nick, today_trends: today }) })
       const d = await r.json()
       if (!d.ok && d.code === 'FREE_CHAT_LIMIT') {
         if (d.free_chat) setFreeChat(d.free_chat)

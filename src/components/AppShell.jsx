@@ -1,6 +1,11 @@
 import { Link, useLocation, Outlet } from 'react-router-dom'
-import { Flame, Search, Bookmark, User, CreditCard, Download, Shield, Handshake, PenLine } from 'lucide-react'
+import { lazy, Suspense, useState, useEffect, useCallback } from 'react'
+import { Flame, Search, Bookmark, User, CreditCard, Download, Shield, Handshake, PenLine, Trophy } from 'lucide-react'
 import EnergyOrb from './EnergyOrb'
+import QuestPanel from './QuestPanel'
+import { supabase } from '../lib/supabase'
+import { claimableCount } from '../lib/quests'
+const lazyTrialModal = () => lazy(() => import('./TrialContinueModal'))
 const ScriptOrbIcon = (p) => <EnergyOrb size={p && p.size ? p.size : 18} />
 import { useMyRole } from '../lib/useIsAdmin'
 
@@ -19,6 +24,9 @@ const NAV = [...WORKSPACE_NAV, ...AUX_NAV]
 const ADMIN_NAV = { to: '/admin', label: '관리자', title: '관리자', Icon: Shield }
 const PARTNER_NAV = { to: '/partner', label: '파트너', title: '파트너', Icon: Handshake }
 
+const CHECKIN_KEY = 'chr_checkin_at'
+const TrialContinueModal = lazyTrialModal()
+
 export default function AppShell({ children }) {
   const loc = useLocation()
   const role = useMyRole()
@@ -28,8 +36,50 @@ export default function AppShell({ children }) {
   const roleNav = role === 'super_admin' ? ADMIN_NAV : role === 'partner' ? PARTNER_NAV : null
   // 모바일 상단 타이틀 — 역할 탭은 하단 탭에 없지만 제목은 제대로 보이게
   const cur = NAV.find(active) ?? [ADMIN_NAV, PARTNER_NAV].find(active)
+
+  // 미션 — 하단 탭(모바일)·사이드바(데스크톱). 패널은 전역에서 한 번만 마운트한다.
+  const [questOpen, setQuestOpen] = useState(false)
+  const [ready, setReady] = useState(0)
+  const refreshQuests = useCallback(async () => {
+    try {
+      const { data } = await supabase.rpc('get_quests_rpc')
+      if (data?.ok) setReady(claimableCount(data.quests))
+    } catch { /* noop */ }
+  }, [])
+  useEffect(() => {
+    let dead = false
+    const run = async () => {
+      // 출석은 하루 한 번(서버도 날짜 단위로 중복을 막는다)
+      try {
+        const today = new Date().toDateString()
+        if (localStorage.getItem(CHECKIN_KEY) !== today) {
+          await supabase.rpc('checkin_rpc')
+          try { localStorage.setItem(CHECKIN_KEY, today) } catch { /* noop */ }
+        }
+      } catch { /* noop */ }
+      if (!dead) refreshQuests()
+    }
+    run()
+    return () => { dead = true }
+  }, [refreshQuests])
+
+  const MissionBtn = ({ mobile }) => (
+    <button onClick={() => setQuestOpen(true)}
+      className={mobile
+        ? `relative flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-bold transition ${questOpen ? 'text-[#0064FF]' : 'text-white/50'}`
+        : `relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-white/60 transition hover:bg-white/5 hover:text-white`}>
+      <span className="relative">
+        <Trophy size={mobile ? 19 : 18} />
+        {ready > 0 && <span className="absolute -right-1.5 -top-1 h-2 w-2 rounded-full bg-amber-400 ring-2 ring-[#0c0d11]" />}
+      </span>
+      미션
+    </button>
+  )
   return (
     <div className="min-h-screen bg-[#0a0b0f] text-white md:flex">
+      <Suspense fallback={null}><TrialContinueModal /></Suspense>
+      <QuestPanel open={questOpen} onClose={() => { setQuestOpen(false); refreshQuests() }} onClaimed={refreshQuests}
+        onGoWatchlist={() => { setQuestOpen(false); window.location.assign('/watchlist') }} />
       {/* 데스크톱 왼쪽 내비 */}
       <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-white/10 bg-[#0c0d11] p-4 md:flex">
         <Link to="/" className="mb-6 flex items-center gap-2 px-2">
@@ -43,6 +93,7 @@ export default function AppShell({ children }) {
               <n.Icon size={18} /> {n.label}
             </Link>
           ))}
+          <MissionBtn mobile={false} />
           <div className="my-2 border-t border-white/10" />
           {AUX_NAV.map((n) => (
             <Link key={n.to} to={n.to} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition ${active(n) ? 'bg-[#0064FF] text-white glass-active' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
@@ -77,7 +128,13 @@ export default function AppShell({ children }) {
 
       {/* 모바일 하단 탭 */}
       <nav className="fixed inset-x-0 bottom-0 flex border-t border-white/10 bg-[#0c0d11] md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)', zIndex: 2147483000 }}>
-        {NAV.map((n) => (
+        {WORKSPACE_NAV.map((n) => (
+          <Link key={n.to} to={n.to} className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-bold transition ${active(n) ? 'text-[#0064FF]' : 'text-white/50'}`}>
+            <n.Icon size={19} /> {n.label}
+          </Link>
+        ))}
+        <MissionBtn mobile={true} />
+        {AUX_NAV.map((n) => (
           <Link key={n.to} to={n.to} className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-bold transition ${active(n) ? 'text-[#0064FF]' : 'text-white/50'}`}>
             <n.Icon size={19} /> {n.label}
           </Link>

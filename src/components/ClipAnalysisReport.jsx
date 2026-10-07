@@ -90,11 +90,13 @@ export default function ClipAnalysisReport({ a, shortcode }) {
     setDl(true); setTimeout(() => setDl(false), 2500)
   }
   if (!a) return null
-  const cs = a.comment_sentiment || {}
+  // 긍정 댓글은 구매의도와 같은 신호라 합쳐서 보여준다(예전 캐시 분석 결과도 합산)
+  const cs0 = a.comment_sentiment || {}
+  const cs = { ...cs0, purchase_intent: Math.min(100, (cs0.purchase_intent || 0) + (cs0.positive || 0)), positive: 0 }
   const hasCs = (cs.purchase_intent || cs.positive || cs.question || cs.complaint)
   const rx = a.remix || {}
   const C = 2 * Math.PI * 14
-  const segs = [['구매의도', cs.purchase_intent || 0, '#0064FF'], ['긍정', cs.positive || 0, '#22C55E'], ['질문', cs.question || 0, '#F59E0B'], ['불만', cs.complaint || 0, '#EF4444']]
+  const segs = [['구매의도', cs.purchase_intent || 0, '#0064FF'], ['질문', cs.question || 0, '#F59E0B'], ['불만', cs.complaint || 0, '#EF4444']]
   const tot = segs.reduce((s, b) => s + b[1], 0) || 100
   let acc = 0
   return (
@@ -115,7 +117,7 @@ export default function ClipAnalysisReport({ a, shortcode }) {
             <Stat label="댓글" val={a.performance.comments != null ? fmtCount(a.performance.comments) : '—'} />
             <Stat label="팔로워" val={a.performance.followers != null ? fmtCount(a.performance.followers) : '—'} />
             <Stat label="댓글/팔로워" val={a.performance.comment_per_follower != null ? `${(a.performance.comment_per_follower * 100).toFixed(2)}%` : '—'} />
-            <Stat label="구매의도 댓글" val={a.comment_analyzed ? `${a.performance.cta_signal || 0}%` : '—'} />
+            <Stat label="구매의도 댓글" val={a.comment_analyzed ? `${cs.purchase_intent || 0}%` : '—'} />
           </div>
         </div>
       )}
@@ -148,7 +150,6 @@ export default function ClipAnalysisReport({ a, shortcode }) {
           </svg>
           <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-white/70">
             <div><span className="mr-1 inline-block h-2 w-2 rounded-full align-middle" style={{ background: '#0064FF' }} />구매의도 {cs.purchase_intent || 0}%</div>
-            <div><span className="mr-1 inline-block h-2 w-2 rounded-full align-middle" style={{ background: '#22C55E' }} />긍정 {cs.positive || 0}%</div>
             <div><span className="mr-1 inline-block h-2 w-2 rounded-full align-middle" style={{ background: '#F59E0B' }} />질문 {cs.question || 0}%</div>
             <div><span className="mr-1 inline-block h-2 w-2 rounded-full align-middle" style={{ background: '#EF4444' }} />불만 {cs.complaint || 0}%</div>
           </div>
