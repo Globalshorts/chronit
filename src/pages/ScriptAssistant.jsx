@@ -617,7 +617,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       const outMsg = d.script_b ? { role: 'assistant', ab: true, a: oneScript(d.script), b: oneScript(d.script_b), ...meta } : { role: 'assistant', text: oneScript(d.script), isScript: true, ...meta }
       if (jobId) { applyMeter(d); setMessages((m) => [...m, outMsg]) }
       else { setJobId(d.job_id); applyMeter(d); setMessages([outMsg]) }
-      sawScriptRef.current = true; track('vera_script_shown', { source: 'soso', mine: voiceProfile?.has_voice === true })
+      sawScriptRef.current = true; try { localStorage.setItem('chr_script_seen', '1'); window.dispatchEvent(new Event('chr:script-shown')) } catch { /* noop */ }; track('vera_script_shown', { source: 'soso', mine: voiceProfile?.has_voice === true })
       loadJobs()
     } catch (e) { track('vera_gen_failed', { where: 'generate', error: String(e).slice(0, 120) }); setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
@@ -729,7 +729,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       if (d.reply) { setMessages(m => [...m, { role: 'assistant', text: d.reply }]); shown = true }
       if (d.script && chatJob) {
         shown = true
-        sawScriptRef.current = true; track('vera_script_shown', { source: 'chat' })
+        sawScriptRef.current = true; try { localStorage.setItem('chr_script_seen', '1'); window.dispatchEvent(new Event('chr:script-shown')) } catch { /* noop */ }; track('vera_script_shown', { source: 'chat' })
         setMessages(m => [...m, { role: 'assistant', text: d.script, isScript: true }])
         supabase.rpc('set_job_script_rpc', { p_job_id: chatJob, p_script: d.script, p_status: 'done' }).then(null, () => {})
         if (prevScript) supabase.rpc('record_edit_rpc', { p_job_id: chatJob, p_before: prevScript, p_after: d.script }).then(null, () => {})

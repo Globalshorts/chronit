@@ -129,8 +129,20 @@ export function SourceSurvey() {
         else { try { localStorage.setItem('chronit_source_asked', '1') } catch { /* noop */ } }
       } catch { /* noop */ }
     }
-    timer = setTimeout(check, 20000)
-    return () => { if (timer) clearTimeout(timer) }
+    // 가입 직후 첫 화면(니치 선택·피드 로딩)에서는 묻지 않는다 — 첫 대본을 받은 뒤, 또는 가입 다음 날 이후 방문에서만
+    const arm = (ms) => { if (!timer) timer = setTimeout(check, ms) }
+    const onScript = () => arm(15000)
+    let seen = false
+    try { seen = localStorage.getItem('chr_script_seen') === '1' } catch { /* noop */ }
+    if (seen) arm(20000)
+    else {
+      supabase.auth.getSession().then(({ data }) => {
+        const c = data?.session?.user?.created_at
+        if (c && Date.now() - new Date(c).getTime() > 24 * 3600 * 1000) arm(20000)
+      }, () => {})
+      window.addEventListener('chr:script-shown', onScript)
+    }
+    return () => { if (timer) clearTimeout(timer); window.removeEventListener('chr:script-shown', onScript) }
   }, [])
   const done = (src) => {
     try { localStorage.setItem('chronit_source_asked', '1') } catch { /* noop */ }

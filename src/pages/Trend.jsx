@@ -72,6 +72,7 @@ export default function Trend() {
   const [previewCount, setPreviewCount] = useState(0)
   const [myNiche, setMyNiche] = useState(() => { try { return localStorage.getItem('chr_niche') || '' } catch { return '' } })
   const [selCat, setSelCat] = useState(readCat)
+  const [lockInfo, setLockInfo] = useState(null)   // 잠긴 카드 안내(바로 요금제로 보내지 않음)
   const [showAdv, setShowAdv] = useState(true)   // 슬라이더를 못 찾는다는 피드백 → 기본 펼침
   const [limitModal, setLimitModal] = useState(null)
   const [loading, setLoading] = useState(() => !(memList() || readSkeleton()))
@@ -565,7 +566,7 @@ export default function Trend() {
                   onAnalyze={() => goAnalyze(it, (clip && clip.thumbnail_url) || coverOf(it) || '')}
                   scriptState={scriptGen[it.shortcode]}
                   onToggleWatch={() => saveItem(it)}
-                  onUnlock={() => nav('/pricing')}
+                  onUnlock={() => { setLockInfo(it); try { phCapture('locked_card_click', { shortcode: it.shortcode }) } catch { /* noop */ } }}
                 />
               )
             })}
@@ -590,6 +591,19 @@ export default function Trend() {
             <Sparkles size={16} className="shrink-0 text-[#7FB2FF]" />
             <p className="flex-1 text-[13px] font-bold leading-snug text-white">이 중 하나로 <span className="text-[#7FB2FF]">대본</span>을 써보세요 — 베라가 기승전결로 뽑아드려요</p>
             <button onClick={() => { nudgeOffRef.current = true; setNudge(false) }} aria-label="닫기" className="shrink-0 text-white/40 transition hover:text-white/80"><X size={15} /></button>
+          </div>
+        </div>
+      )}
+      {lockInfo && (
+        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60 p-4 sm:items-center" onClick={() => setLockInfo(null)}>
+          <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#0c0d11] p-5" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-1.5 text-base font-extrabold text-white"><Crown size={16} className="text-amber-400" />지금 막 터진 소재예요</div>
+            <p className="mt-2 text-[13px] leading-relaxed text-white/60">반응이 빠르게 올라오는 소재는 프로 플랜에서 먼저 보여드려요. 며칠 지나면 무료로도 열려요.</p>
+            <p className="mt-1 text-[13px] leading-relaxed text-white/60">잠기지 않은 카드는 지금 바로 대본까지 만들 수 있어요.</p>
+            <div className="mt-4 flex gap-2">
+              <button onClick={() => setLockInfo(null)} className="flex-1 rounded-xl border border-white/15 py-2.5 text-sm font-bold text-white/70 transition hover:text-white">다른 소재 보기</button>
+              <button onClick={() => { setLockInfo(null); try { phCapture('locked_card_pricing') } catch { /* noop */ }; nav('/pricing') }} className="flex-1 rounded-xl bg-[#0064FF] py-2.5 text-sm font-bold text-white transition hover:brightness-110">요금제 보기</button>
+            </div>
           </div>
         </div>
       )}
