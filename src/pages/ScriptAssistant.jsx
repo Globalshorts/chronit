@@ -12,6 +12,8 @@ import VideoModal from '../components/ReelModal'
 import { maskHandles } from '../lib/format'
 import { logEvent } from '../lib/events'
 import { phCapture } from '../lib/posthog'
+import FindsPricing from '../components/FindsPricing'
+import { PaywallSheet, RatingReasons, PmfSurvey } from '../components/VeraFeedback'
 
 const SB = 'https://oxygqtbdpnxxcgzwdlzi.supabase.co'
 const FN = (n) => `${SB}/functions/v1/${n}`
@@ -124,6 +126,11 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [note, setNote] = useState('')
   const [copiedI, setCopiedI] = useState(-1)
   const [rated, setRated] = useState({})   // 대본별 평가(👍/👎)
+  const [reasonDone, setReasonDone] = useState({})  // 평가 이유까지 남겼는지
+  const [paywall, setPaywall] = useState(null)       // 이용권 소진 시트 {where}
+  const [pricingOpen, setPricingOpen] = useState(false)
+  const [pmfOpen, setPmfOpen] = useState(false)
+  const openPaywall = (where) => setPaywall({ where })
   const [editIdx, setEditIdx] = useState(-1)
   const [editText, setEditText] = useState('')
   const [err, setErr] = useState('')
@@ -315,7 +322,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       const t = await token(); if (!t) { setErr('로그인이 필요해요'); return }
       const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'unlock_chat' }) })
       const d = await r.json()
-      if (!d.ok) { setErr(d.code === 'INSUFFICIENT_CREDITS' ? `이용권이 부족해요 (필요 ${d.need || 2}개)` : (d.error || '충전 실패')); return }
+      if (!d.ok) { if (d.code === 'INSUFFICIENT_CREDITS') openPaywall('unlock_chat'); setErr(d.code === 'INSUFFICIENT_CREDITS' ? `이용권이 부족해요 (필요 ${d.need || 2}개)` : (d.error || '충전 실패')); return }
       if (typeof d.balance === 'number') setBalance(d.balance)
       if (d.free_chat) setFreeChat(d.free_chat)
       setNote(`💧 이용권 1개 · 대화 ${d.free_chat?.paid_left ?? 10}회 충전됐어요`); setTimeout(() => setNote(''), 4000)
@@ -529,7 +536,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       let a = null
       try { const { data: cached } = await supabase.rpc('get_analyze_cache_rpc', { p_key: cacheKey }); if (cached && cached.ok) a = cached } catch { /* noop */ }
       if (!a) {
-        if (balance !== null && balance < 1) { setErr('소재 분석엔 이용권 1개가 필요해요'); return }
+        if (balance !== null && balance < 1) { openPaywall('analyze'); setErr('소재 분석엔 이용권 1개가 필요해요'); return }
         const ar = await fetch(FN('analyze-clip'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ title: soso.caption, source: 'trend', thumbnail_url: soso.thumb, niche, persona, video_id: soso.source_ref }) })
         const ad = await ar.json()
         if (!ad?.ok) { setErr(ad?.error || '분석에 실패했어요. 잠시 후 다시 시도해 주세요'); return }
@@ -550,7 +557,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
           if (typeof aj.balance === 'number') setBalance(aj.balance)
           setNote('💧 소재 분석 · 이용권 1개'); setTimeout(() => setNote(''), 3000)
           setMessages((m) => [...m, { role: 'assistant', report: a }]); loadJobs()
-        } else if (aj && aj.code === 'INSUFFICIENT_CREDITS') { setErr('소재 분석엔 이용권 1개가 필요해요'); return }
+        } else if (aj && aj.code === 'INSUFFICIENT_CREDITS') { openPaywall('analyze'); setErr('소재 분석엔 이용권 1개가 필요해요'); return }
         else { setMessages((m) => [...m, { role: 'assistant', report: a }]) }
       }
       if (a.product_name || sp0.length) setSoso((v) => ({ ...v, product: a.product_name || v.product, selling: sp0.length ? sp0 : v.selling }))
@@ -584,7 +591,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       if (jobId) gbody.job_id = jobId
       const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify(gbody) })
       const d = await r.json()
-      if (!d.ok) { const blocked = d.code === 'INSUFFICIENT_CREDITS'; track(blocked ? 'vera_blocked_credits' : 'vera_gen_failed', { where: 'generate' }); setErr(blocked ? `이용권이 부족해요. 10턴 세션을 열려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '대본 생성 실패')); return }
+      if (!d.ok) { const blocked = d.code === 'INSUFFICIENT_CREDITS'; track(blocked ? 'vera_blocked_credits' : 'vera_gen_failed', { where: 'generate' }); if (blocked) openPaywall('generate'); setErr(blocked ? `이용권이 부족해요. 10턴 세션을 열려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '대본 생성 실패')); return }
       const meta = { mine: voiceProfile?.has_voice === true, analysis: { product, selling: sp }, jobId: jobId || d.job_id, genre: d.genre || null }
       const outMsg = d.script_b ? { role: 'assistant', ab: true, a: oneScript(d.script), b: oneScript(d.script_b), ...meta } : { role: 'assistant', text: oneScript(d.script), isScript: true, ...meta }
       if (jobId) { applyMeter(d); setMessages((m) => [...m, outMsg]) }
@@ -637,7 +644,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       }
       if (!d.ok) {
         const blocked = d.code === 'INSUFFICIENT_CREDITS'
-        track(blocked ? 'vera_blocked_credits' : 'vera_gen_failed', { where: 'chat' })
+        track(blocked ? 'vera_blocked_credits' : 'vera_gen_failed', { where: 'chat' }); if (blocked) openPaywall('chat')
         const bubble = blocked ? `이용권이 부족해요. 대화를 이어가려면 이용권 ${d.need || 2}개가 필요해요.` : '앗, 잠깐 문제가 있었어요 😢 한 번만 다시 보내주실래요?'
         setErr(blocked ? bubble : (d.error || '응답 실패'))
         setMessages(m => [...m, { role: 'assistant', text: bubble }])
@@ -676,7 +683,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       const t = await token(); if (!t) { setErr('로그인이 필요해요'); setVoiceLearn(null); return }
       const r = await fetch(FN('voice-onboard'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ username: handle }) })
       const d = await r.json()
-      if (!d.ok) { if (d.code === 'INSUFFICIENT_CREDITS') { setErr('재학습에 이용권 1개가 필요해요') } else { setNote('게시물이 없어 기본 설정만 저장했어요. 최근 게시물이 생기면 다시 학습할 수 있어요'); setTimeout(() => setNote(''), 5000); loadVoiceProfile() } }
+      if (!d.ok) { if (d.code === 'INSUFFICIENT_CREDITS') { openPaywall('relearn'); setErr('재학습에 이용권 1개가 필요해요') } else { setNote('게시물이 없어 기본 설정만 저장했어요. 최근 게시물이 생기면 다시 학습할 수 있어요'); setTimeout(() => setNote(''), 5000); loadVoiceProfile() } }
       else if (d.skipped) { setNote('✨ 새로 올린 릴스가 없어 기존 말투를 유지했어요'); setTimeout(() => setNote(''), 4000); loadVoiceProfile() }
       else { loadVoiceProfile(); refreshSession(); setOnboardData(d); setShowOnboard(true) }   // 리뷰 재오픈
     } catch (e) { setErr(String(e)) } finally { setVoiceLearn(null) }
@@ -693,7 +700,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'refine', job_id: jobId, voice_mode: 'my', instruction: '내 말투 그대로 자연스럽게 다시 써줘', current_script: src }) })
       const d = await r.json()
       if (d.ok && d.script) { refineRef.current += 1; sawScriptRef.current = true; track('vera_refine', { kind: 'myvoice', n: refineRef.current }); setMessages(m => [...m, { role: 'assistant', text: d.script, mine: true, isScript: true }]); applyMeter(d) }
-      else { const blocked = d.code === 'INSUFFICIENT_CREDITS'; track(blocked ? 'vera_blocked_credits' : 'vera_gen_failed', { where: 'refine' }); setErr(blocked ? `이 대본 세션을 이어가려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '내 말투 변환 실패')) }
+      else { const blocked = d.code === 'INSUFFICIENT_CREDITS'; track(blocked ? 'vera_blocked_credits' : 'vera_gen_failed', { where: 'refine' }); if (blocked) openPaywall('refine'); setErr(blocked ? `이 대본 세션을 이어가려면 이용권 ${d.need || 2}개가 필요해요.` : (d.error || '내 말투 변환 실패')) }
     } catch (e) { track('vera_gen_failed', { where: 'refine', error: String(e).slice(0, 120) }); setErr(String(e)) } finally { setBusy(false); setStage('') }
   }
   // 레드노트 링크 → 서버 캐싱 → 소스 클립으로 추가
@@ -708,7 +715,21 @@ export default function ScriptAssistant({ session: sessionProp }) {
       else setRnErr(d.error || '클립을 가져오지 못했어요')
     } catch (e) { setRnErr(String(e)) } finally { setRnBusy(false) }
   }
-  const copy = async (text, i) => { try { await navigator.clipboard.writeText(text); actedRef.current = true; track('vera_script_copied'); setCopiedI(i); setTimeout(() => setCopiedI(-1), 1500) } catch {} }
+  const copy = async (text, i) => { try { await navigator.clipboard.writeText(text); actedRef.current = true; track('vera_script_copied'); setCopiedI(i); setTimeout(() => setCopiedI(-1), 1500); maybeAskPmf(i) } catch {} }
+  // "크로닛이 없어지면 얼마나 아쉬울까요?" — 대본을 2번 이상 복사한 사람에게 평생 1회
+  const maybeAskPmf = (i) => {
+    try {
+      if (!messages[i]?.isScript) return
+      if (localStorage.getItem('vera_pmf_done')) return
+      const n = (parseInt(localStorage.getItem('vera_copy_n') || '0', 10) || 0) + 1
+      localStorage.setItem('vera_copy_n', String(n))
+      if (n < 2) return
+      supabase.rpc('pmf_survey_needed_rpc').then(({ data }) => {
+        if (data === true) setTimeout(() => setPmfOpen(true), 1200)
+        else { try { localStorage.setItem('vera_pmf_done', '1') } catch { /* noop */ } }
+      }, () => {})
+    } catch { /* noop */ }
+  }
   // 인스타 캡션 A/B (감성스토리 / 혜택불릿) — 대본 세션 내 무료
   const genCaption = async () => {
     if (busy || !jobId) { setErr('대본을 먼저 만들어 주세요'); return }
@@ -1030,8 +1051,12 @@ export default function ScriptAssistant({ session: sessionProp }) {
                           className={`rounded-lg px-2 py-1 transition ${rated[i] === 'up' ? 'bg-[#0064FF]/20' : 'hover:bg-white/10'} ${rated[i] && rated[i] !== 'up' ? 'opacity-30' : ''}`}>👍</button>
                         <button onClick={() => rate(i, 'down')} disabled={!!rated[i]} title="별로예요"
                           className={`rounded-lg px-2 py-1 transition ${rated[i] === 'down' ? 'bg-amber-500/20' : 'hover:bg-white/10'} ${rated[i] && rated[i] !== 'down' ? 'opacity-30' : ''}`}>👎</button>
-                        {rated[i] && <span className="text-white/30">고마워요!</span>}
+                        {rated[i] && reasonDone[i] && <span className="text-white/30">고마워요!</span>}
+                        {rated[i] && !reasonDone[i] && <span className="text-white/45">어떤 점이 그랬나요?</span>}
                       </div>
+                    )}
+                    {m.isScript && rated[i] && !reasonDone[i] && (
+                      <RatingReasons rating={rated[i]} jobId={jobId} onDone={() => setReasonDone((r) => ({ ...r, [i]: true }))} />
                     )}
                   </>
                 )}
@@ -1150,6 +1175,9 @@ export default function ScriptAssistant({ session: sessionProp }) {
       {showSettings && <PersonaSettings onClose={() => setShowSettings(false)} onChanged={() => loadVoiceProfile()} onRelearn={() => { setShowSettings(false); setShowOnboard(true) }} />}
       {showOnboard && <VoiceOnboard defaultHandle={voiceProfile?.ig_username || ''} onClose={() => { setShowOnboard(false); setOnboardData(null) }} onReady={() => { loadVoiceProfile(); refreshSession() }} onBackground={startVoiceLearnBg} initialData={onboardData} initialStep={onboardData ? 'review' : 'input'} />}
       {playClip && <VideoModal clip={playClip} viewOnly onClose={() => setPlayClip(null)} onAnalyze={clipAnalyze} onScript={clipScript} scriptState={busy ? { status: 'generating' } : null} />}
+      <PaywallSheet open={!!paywall} where={paywall?.where} onClose={() => setPaywall(null)} onPlans={() => { setPaywall(null); setPricingOpen(true) }} />
+      {pricingOpen && <FindsPricing open onClose={() => { setPricingOpen(false); refreshSession() }} />}
+      <PmfSurvey open={pmfOpen} onClose={() => { setPmfOpen(false); try { localStorage.setItem('vera_pmf_done', '1') } catch { /* noop */ } }} />
     </div>
   )
 }

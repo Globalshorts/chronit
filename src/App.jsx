@@ -23,6 +23,7 @@ import { phIdentify, phReset } from './lib/posthog'
 // ── 라우트별 코드 스플리팅 (홈 진입 시 앱 전체가 아니라 필요한 청크만 로드) ──
 // 청크 로드 실패(배포 갱신으로 옛 해시 요청 등) 시 1회 새로고침해 최신 청크를 받음 → 빈 화면 방지
 import WhatsNew from './components/WhatsNew'
+import { SourceSurvey } from './components/VeraFeedback'
 
 const lazyRetry = (factory) => lazy(() => factory().catch((err) => {
   try {
@@ -130,6 +131,7 @@ const App = () => {
     <Suspense fallback={null}><PwaInstallGlobal /></Suspense>
     <InstallButton />
     <WhatsNew />
+    <SourceSurvey />
     <ErrorBoundary>
     <Suspense fallback={<RouteFallback />}>
     <Routes>
