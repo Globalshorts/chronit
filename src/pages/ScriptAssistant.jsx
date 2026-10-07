@@ -485,7 +485,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       cleaned.push({ role: 'assistant', ab: true, a: oneScript(jrow.script || ''), b: oneScript(jrow.script_b), genre: '', mine: isMy, analysis, jobId: id })
       built.length = 0; built.push(...cleaned)
     }
-    if (jrow?.analysis) built.unshift({ role: 'assistant', report: jrow.analysis })
+    if (jrow?.analysis) built.unshift({ role: 'assistant', report: jrow.analysis, shortcode: jrow.source_ref || null })
     chatIdRef.current = null; setChatId(null)
     setMessages(built); setClips(cl || []); setJobId(id); setSoso(null)
     if (jrow?.source_ref) setClipBox(v => (v && v.source_ref === jrow.source_ref) ? v : { source_ref: jrow.source_ref, caption: '', thumb: '' }); else setClipBox(null)
@@ -564,16 +564,16 @@ export default function ScriptAssistant({ session: sessionProp }) {
       if (a.product_name) sell0 = a.product_name + ' — ' + sell0
       // 분석 = 이용권 1개로 세션 생성 → 왼쪽 대본 리스트에 남는다
       if (jobId) {
-        setMessages((m) => [...m, { role: 'assistant', report: a }])
+        setMessages((m) => [...m, { role: 'assistant', report: a, shortcode: soso.source_ref || null }])
       } else {
         const { data: aj } = await supabase.rpc('create_analysis_job_rpc', { p_source_ref: soso.source_ref || null, p_product_name: prod0, p_selling_points: sell0, p_analysis: a })
         if (aj && aj.ok) {
           setJobId(aj.job_id); setTurns(0)
           if (typeof aj.balance === 'number') setBalance(aj.balance)
           setNote('💧 소재 분석 · 이용권 1개'); setTimeout(() => setNote(''), 3000)
-          setMessages((m) => [...m, { role: 'assistant', report: a }]); loadJobs()
+          setMessages((m) => [...m, { role: 'assistant', report: a, shortcode: soso.source_ref || null }]); loadJobs()
         } else if (aj && aj.code === 'INSUFFICIENT_CREDITS') { openPaywall('analyze'); setErr('소재 분석엔 이용권 1개가 필요해요'); return }
-        else { setMessages((m) => [...m, { role: 'assistant', report: a }]) }
+        else { setMessages((m) => [...m, { role: 'assistant', report: a, shortcode: soso.source_ref || null }]) }
       }
       if (a.product_name || sp0.length) setSoso((v) => ({ ...v, product: a.product_name || v.product, selling: sp0.length ? sp0 : v.selling }))
     } catch (e) { setErr(String(e)) } finally { setBusy(false); setStage('') }
@@ -979,7 +979,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
                 <Link to="/trend" className="mt-2 inline-block text-xs font-bold text-[#5AA0FF]">트렌드 탭에서 더 보기 →</Link>
               </div>
             )
-            if (m.report) return <div key={i} className="sa-fade w-full max-w-[700px] self-start"><ClipAnalysisReport a={m.report} /></div>
+            if (m.report) return <div key={i} className="sa-fade w-full max-w-[700px] self-start"><ClipAnalysisReport a={m.report} shortcode={m.shortcode || clipBox?.source_ref || undefined} /></div>
             if (m.unlockChat) return (
               <div key={i} className="sa-fade w-full max-w-[92%] self-start">
                 <div className="rounded-2xl rounded-bl-md glass-soft px-4 py-3 text-[15px] leading-relaxed text-white/95">
