@@ -472,6 +472,14 @@ export default function ScriptAssistant({ session: sessionProp }) {
       if (looksScript && analysis && !attached) { attached = true; base.analysis = analysis }
       return base
     }).filter(Boolean)
+    // 대본을 직접 고치거나 A/B를 고르면 같은 대본의 새 버전이 기록에 한 번 더 쌓인다 — 사이에 사용자 메시지 없이
+    // 연달아 나온 대본은 같은 대본의 수정본이므로 마지막 것만 보여준다(다시 열었을 때 대본이 두 번 나오던 문제).
+    for (let k = built.length - 1; k > 0; k--) {
+      if (built[k]?.isScript && built[k - 1]?.isScript) {
+        if (built[k - 1].analysis && !built[k].analysis) built[k].analysis = built[k - 1].analysis
+        built.splice(k - 1, 1)
+      }
+    }
     if (jrow?.ab_pending && jrow?.script_b) {
       const cleaned = built.filter((m) => !m.isScript)
       cleaned.push({ role: 'assistant', ab: true, a: oneScript(jrow.script || ''), b: oneScript(jrow.script_b), genre: '', mine: isMy, analysis, jobId: id })
