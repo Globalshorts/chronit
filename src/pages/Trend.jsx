@@ -326,6 +326,18 @@ export default function Trend() {
       return (Number(b[mk]) || 0) - (Number(a[mk]) || 0)
     })
   const list = _listBase
+  // 카드 200개를 한 번에 그리면 첫 화면이 느려진다 → 24개씩 그리고 스크롤 끝에 닿으면 더 그린다
+  const [shown, setShown] = useState(24)
+  const moreRef = useRef(null)
+  const listKey = list.length + '|' + (list[0]?.shortcode || '')
+  useEffect(() => { setShown(24) }, [listKey])
+  useEffect(() => {
+    const el = moreRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) setShown((n) => n + 24) }, { rootMargin: '800px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [listKey, shown >= list.length])
 
   const fbQual = (it) => !!it.taken_at && (now - new Date(it.taken_at).getTime() <= 3 * 86400000) && fbScore(it) >= FB_SCORE
   const gateOn = previewLock || (!isProPlus && !isAdmin)
@@ -537,7 +549,7 @@ export default function Trend() {
             <b className="text-white/45">대본 작성</b> = 이 소재로 베라가 대본 작성 · <b className="text-white/45">담기</b> = 이 계정을 벤치마크에 저장
           </p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {list.map((it, i) => {
+            {list.slice(0, shown).map((it, i) => {
               const clip = feedClip(it)
               const locked = gateOn && fbQual(it)
               return (
@@ -557,6 +569,7 @@ export default function Trend() {
                 />
               )
             })}
+            {shown < list.length && <div ref={moreRef} className="col-span-full h-10" />}
             {!list.length && <div className="col-span-full p-10 text-center text-sm text-white/35">{postType === 'carousel' ? '조건에 맞는 캐러셀이 아직 없어요.' : minComments ? `댓글 ${minComments.toLocaleString('ko-KR')}개 이상인 소재가 아직 없어요. 조건을 낮춰보세요.` : (fMin || fMax) ? '이 팔로워 구간은 아직 준비 중이에요. 곧 더 많은 계정을 추가할 예정이에요.' : '해당 기간에 트렌드가 없어요.'}</div>}
           </div>
           {fbMode && typeof fbTotal === 'number' && Array.isArray(fbRpc) && fbRpc.length < Math.min(fbTotal, 200) && (
