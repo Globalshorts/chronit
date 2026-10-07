@@ -304,7 +304,14 @@ export default function ScriptAssistant({ session: sessionProp }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingGen, soso])
 
-  const token = async () => (session?.access_token) || (await supabase.auth.getSession()).data.session?.access_token
+  // 화면에 오래 켜 둔 뒤(절전 등) 저장된 토큰이 만료돼 401 나던 문제 — 매번 최신 세션을 받고, 만료 임박이면 갱신한다.
+  const token = async () => {
+    try {
+      let s = (await supabase.auth.getSession()).data.session
+      if (s?.expires_at && s.expires_at * 1000 - Date.now() < 60000) { const r = await supabase.auth.refreshSession(); s = r.data.session || s }
+      return s?.access_token || session?.access_token
+    } catch { return session?.access_token }
+  }
   const refreshSession = async () => {
     try {
       const t = await token(); if (!t) return
@@ -737,9 +744,14 @@ export default function ScriptAssistant({ session: sessionProp }) {
     try {
       const t = await token(); if (!t) { setErr('로그인이 필요해요'); return }
       const handle = voiceProfile?.ig_username ? ('@' + voiceProfile.ig_username) : ''
-      const r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'caption', job_id: jobId, handle }) })
-      const d = await r.json()
-      if (!d.ok) { setErr(d.error || '캡션 생성에 실패했어요'); return }
+      const body = JSON.stringify({ action: 'caption', job_id: jobId, handle })
+      let r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body })
+      if (r.status === 401) {
+        const t2 = (await supabase.auth.refreshSession()).data.session?.access_token
+        if (t2) r = await fetch(FN('script-assistant'), { method: 'POST', headers: { Authorization: `Bearer ${t2}`, 'Content-Type': 'application/json' }, body })
+      }
+      const d = await r.json().catch(() => ({}))
+      if (!d.ok) { setErr(r.status === 401 ? '로그인이 만료됐어요. 새로고침 후 다시 시도해 주세요' : (d.error || '캡션 생성에 실패했어요')); return }
       actedRef.current = true; try { track('vera_caption_shown') } catch { /* noop */ }
       setMessages((m) => [...m, { role: 'assistant', captionAB: true, a: d.caption_a, b: d.caption_b }])
       supabase.rpc('append_job_message_rpc', { p_job_id: jobId, p_role: 'caption', p_content: JSON.stringify({ a: d.caption_a || '', b: d.caption_b || '' }) }).then(null, () => {})
@@ -1132,6 +1144,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
               {['훅 다듬기', '더 짧게'].map(q => (
                 <button key={q} onClick={() => send(q)} className={chip}>{q}</button>
               ))}
+              {(soso || clipBox?.source_ref) && <button onClick={soso ? analyzeSosoToChat : clipAnalyze} className={chip}><BarChart3 size={13} /> 소재 분석하기</button>}
               <button onClick={() => send('이 소재의 핵심 셀링포인트를 정리해서 보여줘')} className={chip}><BarChart3 size={13} /> 셀링포인트 보기</button>
               <button onClick={genCaption} className={chip + ' border-[#0064FF]/60 bg-[#0064FF]/15 text-[#5AA0FF]'}><MessageSquareText size={13} /> 인스타 캡션</button>
             </div>
