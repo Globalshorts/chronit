@@ -502,7 +502,7 @@ export default function Trend() {
                   return (
                     <div key={it.shortcode || i} className="flex gap-2.5 rounded-xl glass p-2.5 sm:flex-col">
                       <div role="button" onClick={() => openItem(it)} className="relative aspect-[9/16] w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-white/10 sm:w-full">
-                        <TrendThumb url={coverOf(it)} sc={it.shortcode} />
+                        <TrendThumb url={coverOf(it)} sc={it.shortcode} eager />
                         <div className="absolute left-1 top-1 rounded bg-black/60 px-1 text-[10px] font-bold text-white">#{i + 1}</div>
                       </div>
                       <div className="min-w-0 flex-1">

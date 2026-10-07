@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Flame, Eye, Heart, MessageCircle, Sparkles, Lock, Play, Bookmark, Layers, ExternalLink, Loader2, ArrowRight, BarChart3 } from 'lucide-react'
 import { fmtCount, timeAgo } from '../lib/format'
 import { isCarousel, coverOf, imagesOf, openPost } from '../lib/filterConfig'
@@ -15,24 +15,47 @@ const sizedStorage = (u, w = 360, q = 62) =>
 // sc(shortcode)를 넘기면 프록시가 post/{sc}.jpg 한 경로에만 캐시한다.
 // 안 넘기면 URL 해시로 돌아가는데, IG URL 서명이 갱신될 때마다 새 파일이 쌓인다.
 export function TrendThumb({ url, sc, eager = false, w = 360 }) {
-  const [err, setErr] = useState(false)
-  const [loaded, setLoaded] = useState(false)
+  const isStorage = !!url && url.includes('/storage/v1/object/public/')
   // 스토리지 캐시본은 프록시 없이 리사이즈만, IG URL 은 프록시(캐시)로.
-  const src = !url ? '' : url.includes('/storage/v1/object/public/')
+  const primary = !url ? '' : isStorage
     ? sizedStorage(url, w)
     : `${SB}/functions/v1/thumbnail-proxy?url=${encodeURIComponent(url)}${sc ? `&sc=${encodeURIComponent(sc)}` : ''}`
-  if (!src || err) return <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-slate-300"><Flame size={26} /></div>
+  const [src, setSrc] = useState(primary)
+  const [stage, setStage] = useState(0)        // 0=리사이즈본 1=원본 폴백 2=재시도 9=실패
+  const [loaded, setLoaded] = useState(false)
+  const [seen, setSeen] = useState(eager)      // 화면에 들어왔는지(지연 로드 이미지의 타임아웃 기준)
+  const boxRef = useRef(null)
+  useEffect(() => { setSrc(primary); setStage(0); setLoaded(false) }, [primary])
+  useEffect(() => {
+    if (seen || !boxRef.current || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { setSeen(true); io.disconnect() } }, { rootMargin: '200px' })
+    io.observe(boxRef.current)
+    return () => io.disconnect()
+  }, [seen])
+  // 리사이즈(이미지 변환)가 첫 요청에서 느릴 때가 있다 → 화면에 보인 뒤 3.5초 안에 안 뜨면 원본으로 바로 전환
+  useEffect(() => {
+    if (!seen || loaded || stage !== 0 || !isStorage) return
+    const t = setTimeout(() => { setSrc(url); setStage(1) }, 3500)
+    return () => clearTimeout(t)
+  }, [seen, loaded, stage, isStorage, url])
+  const onError = () => {
+    if (stage === 0 && isStorage) { setSrc(url); setStage(1); return }
+    if (stage <= 1) { setStage(2); setTimeout(() => setSrc(primary + (primary.includes('?') ? '&' : '?') + 'r=' + Date.now()), 1200); return }
+    setStage(9)
+  }
+  if (!src || stage === 9) return <div ref={boxRef} className="flex h-full w-full items-center justify-center bg-white/[0.06] text-white/20"><Flame size={26} /></div>
   return (
-    // 썸네일을 잘리지 않게 전체 표시(contain) + 뒤에 같은 이미지를 흐리게 깔아 여백을 채운다.
-    <div className="relative h-full w-full overflow-hidden">
-      <img
-        src={src}
-        aria-hidden="true"
-        referrerPolicy="no-referrer"
-        loading={eager ? 'eager' : 'lazy'}
-        decoding="async"
-        className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover blur-xl opacity-60"
-      />
+    // 썸네일을 잘리지 않게 전체 표시(contain) + 뒤에 같은 이미지를 흐리게 깔아 여백을 채운다(받은 뒤에만).
+    <div ref={boxRef} className={`relative h-full w-full overflow-hidden ${loaded ? '' : 'animate-pulse bg-white/[0.08]'}`}>
+      {loaded && (
+        <img
+          src={src}
+          aria-hidden="true"
+          referrerPolicy="no-referrer"
+          decoding="async"
+          className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover blur-xl opacity-60"
+        />
+      )}
       <img
         src={src}
         referrerPolicy="no-referrer"
@@ -40,7 +63,7 @@ export function TrendThumb({ url, sc, eager = false, w = 360 }) {
         fetchpriority={eager ? 'high' : 'auto'}
         decoding="async"
         onLoad={() => setLoaded(true)}
-        onError={() => setErr(true)}
+        onError={onError}
         className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
       />
     </div>

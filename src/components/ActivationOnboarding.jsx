@@ -178,7 +178,7 @@ export default function ActivationOnboarding({ onDone, onDefer }) {
                 {items.map((it) => (
                   <div key={it.shortcode} className="overflow-hidden rounded-xl glass">
                     <div className="relative aspect-[9/16] bg-white/5">
-                      <TrendThumb url={it.thumbnail_url} sc={it.shortcode} />
+                      <TrendThumb url={it.thumbnail_url} sc={it.shortcode} eager />
                     </div>
                     <div className="p-1.5">
                       <div className="mb-1.5 flex items-center gap-1.5 text-[10px] text-white/45">
