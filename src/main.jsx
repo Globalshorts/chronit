@@ -4,12 +4,24 @@ import './index.css'
 import App from './App.jsx'
 import { initPosthog } from './lib/posthog'
 
+// ── 짧은 유입 링크 (chronit.kr/ig 등) — 프로필엔 깔끔한 주소, 내부적으로만 출처 기록 ──
+const _SHORT = {
+  '/ig': ['instagram', 'bio'], '/th': ['threads', 'bio'], '/blog': ['naver_blog', 'post'],
+  '/yt': ['youtube', 'bio'], '/kakao': ['kakao', 'chat'],
+};
+let _short = null, _shortPath = '';
+try {
+  const _p = location.pathname.replace(/\/+$/, '').toLowerCase();
+  if (_SHORT[_p]) { _short = _SHORT[_p]; _shortPath = _p; history.replaceState(null, '', '/' + location.search + location.hash) }
+} catch { /* noop */ }
+
 // ── 첫 방문 유입 캡처 (first-touch) — 광고/유입 귀속용 ──
 try {
   if (!localStorage.getItem('chronit_acq')) {
     const _q = new URLSearchParams(location.search);
+    if (_short && !_q.get('utm_source')) { _q.set('utm_source', _short[0]); _q.set('utm_medium', _short[1]); _q.set('utm_campaign', 'shortlink') }
     localStorage.setItem('chronit_acq', JSON.stringify({
-      landing: (location.pathname + location.search).slice(0, 300),
+      landing: ((_shortPath || location.pathname) + location.search).slice(0, 300),
       ref: (document.referrer || '').slice(0, 500),
       source: _q.get('utm_source') || '',
       medium: _q.get('utm_medium') || '',
