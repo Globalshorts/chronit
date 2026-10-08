@@ -97,7 +97,7 @@ export default function DmAutomation({ userPlan, userRole }) {
 
   const connect = () => {
     if (!user) return
-    if (conns.length >= maxAccounts) { setMsg(maxAccounts === 0 ? '자동 DM은 유료 회원 전용이에요.' : `현재 요금제에서는 계정 ${maxAccounts}개까지 연결할 수 있어요. (상위 요금제로 더 연결)`); return }
+    if (conns.filter((c) => c.status === 'active').length >= maxAccounts) { setMsg(maxAccounts === 0 ? '자동 DM은 유료 회원 전용이에요.' : `현재 요금제에서는 계정 ${maxAccounts}개까지 연결할 수 있어요. (상위 요금제로 더 연결)`); return }
     const state = encodeURIComponent(`${user.id}::${window.location.origin}`)
     window.location.href = `https://www.instagram.com/oauth/authorize?client_id=${IG_CLIENT_ID}&redirect_uri=${encodeURIComponent(IG_REDIRECT)}&response_type=code&scope=${encodeURIComponent(IG_SCOPE)}&state=${state}`
   }
@@ -170,7 +170,7 @@ export default function DmAutomation({ userPlan, userRole }) {
                     </span>
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-bold text-white">@{c.ig_username || c.ig_user_id}</span>
-                      <span className={`block text-xs ${c.status === 'active' ? 'text-emerald-500' : 'text-white/40'}`}>{c.status === 'active' ? '연결됨' : c.status}{on ? ' · 선택됨' : ''}</span>
+                      <span className={`block text-xs ${c.status === 'active' ? 'text-emerald-500' : 'text-red-400'}`}>{c.status === 'active' ? '연결됨' : c.status === 'expired' ? '연결 끊김 · 다시 연결해 주세요' : c.status}{on ? ' · 선택됨' : ''}</span>
                     </span>
                   </button>
                   <button onClick={() => disconnect(c)} title="연결 해제"
