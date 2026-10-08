@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { logEvent } from '../lib/events'
 import { phCapture } from '../lib/posthog'
+import { usePlans } from '../lib/usePlans'
+import { loadToss } from '../lib/tossBilling'
 
 const track = (e, p) => { try { logEvent(e, p || {}); phCapture(e, p || {}) } catch { /* noop */ } }
 
@@ -23,30 +25,106 @@ function Sheet({ onClose, children, z = 2147483200 }) {
   )
 }
 
-// D1 — 이용권 소진 시 요금제 시트 (가격·대본 건수 정보만)
+// D1 — 이용권 소진 시 요금제 시트
+// 손실 문구(못 쓰게 되는 것) + 3개 요금제 비교(프로 추천) + 선택 플랜으로 바로 결제, 닫을 때 이유 칩
+const BCK = import.meta.env.VITE_TOSS_BILLING_CLIENT_KEY || ''
+const FINDS = ['finds30', 'finds100', 'finds300']
+const won = (n) => Number(n || 0).toLocaleString('ko-KR')
+const WHY = ['가격이 부담돼요', '더 써보고 정할게요', '자동결제가 걱정돼요', '기타']
+
 export function PaywallSheet({ open, where, onClose, onPlans }) {
-  useEffect(() => { if (open) track('paywall_view', { where: where || '' }) }, [open, where])
+  const plans = usePlans()
+  const [sel, setSel] = useState('finds100')
+  const [cur, setCur] = useState(null)
+  const [step, setStep] = useState('plans')
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState('')
+  useEffect(() => {
+    if (!open) return
+    track('paywall_view', { where: where || '' })
+    setStep('plans'); setSel('finds100'); setMsg(''); setBusy(false)
+    supabase.rpc('get_my_balance_rpc').then(({ data }) => setCur(data?.plan || 'free'), () => setCur('free'))
+  }, [open, where])
   if (!open) return null
-  const Row = ({ name, price, credits, scripts, hot }) => (
-    <div className={`flex items-center justify-between rounded-2xl border px-4 py-3 ${hot ? 'border-[#0064FF]/60 bg-[#0064FF]/10' : 'border-white/10 bg-white/[0.03]'}`}>
-      <div>
-        <div className="text-sm font-extrabold text-white">{name}</div>
-        <div className="mt-0.5 text-xs text-white/50">이용권 {credits}개 = 대본 최대 {scripts}건</div>
-      </div>
-      <div className="text-right text-sm font-extrabold text-white">월 {price}원</div>
-    </div>
-  )
+
+  const paid = FINDS.includes(cur)
+  const p = plans.find((x) => x.id === sel) || plans[1] || plans[0]
+  const close = (reason) => { track('paywall_dismiss', { where: where || '', reason: reason || '' }); onClose() }
+  const go = async () => {
+    if (busy) return
+    track('paywall_click', { where: where || '', plan: sel })
+    if (paid || !BCK) { onPlans(); return } // 구독 중이면 요금제 변경(차액 결제) 화면으로
+    setBusy(true); setMsg('')
+    try {
+      const { data: ses } = await supabase.auth.getSession()
+      const user = ses?.session?.user
+      if (!user || user.is_anonymous) { setMsg('로그인이 필요해요'); setBusy(false); return }
+      try { phCapture('checkout_started', { plan: sel, amount: p.price, period: 'monthly', from: 'paywall' }); logEvent('checkout_start', { plan: sel, amount: p.price, period: 'monthly', from: 'paywall' }) } catch { /* noop */ }
+      await loadToss()
+      const payment = window.TossPayments(BCK).payment({ customerKey: user.id })
+      await payment.requestBillingAuth({
+        method: 'CARD', customerEmail: user.email,
+        successUrl: `${window.location.origin}/payments/success?type=billing&plan=${sel}&period=monthly`,
+        failUrl: `${window.location.origin}/payments/fail`,
+      })
+    } catch (e) { if (e?.code !== 'USER_CANCEL') setMsg('결제 오류: ' + (e?.message || e)); setBusy(false) }
+  }
+
+  if (step === 'why') {
+    return (
+      <Sheet onClose={() => close('')}>
+        <div className="text-lg font-extrabold text-white">어떤 점이 걸리셨어요?</div>
+        <div className="mt-1 text-[13px] text-white/50">하나만 골라주시면 더 나은 요금제를 만드는 데 써요</div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {WHY.map((r) => (
+            <button key={r} onClick={() => close(r)} className="rounded-full border border-white/15 bg-white/5 px-3.5 py-2 text-sm font-bold text-white/80 hover:bg-white/10">{r}</button>
+          ))}
+        </div>
+        <button onClick={() => close('')} className="mt-4 w-full py-2 text-xs font-bold text-white/40">그냥 닫기</button>
+      </Sheet>
+    )
+  }
+
   return (
-    <Sheet onClose={() => { track('paywall_dismiss', { where: where || '' }); onClose() }}>
-      <div className="text-lg font-extrabold text-white">이용권을 다 썼어요</div>
-      <div className="mt-1 text-[13px] text-white/50">대본 1건 = 이용권 2개 · 트렌드 피드는 계속 무료예요</div>
+    <Sheet onClose={() => close('')}>
+      <div className="text-lg font-extrabold text-white">{paid ? '이번 달 이용권을 다 썼어요' : '무료 이용권을 다 썼어요'}</div>
+      <div className="mt-1.5 text-[13px] leading-relaxed text-white/70">결제하지 않으면 대본·캡션 생성, 소재 분석, 채널 분석, 벤치마크 갱신을 더 이상 쓸 수 없어요.</div>
+      <div className="mt-1 text-[12px] text-white/40">트렌드 피드는 계속 무료로 볼 수 있어요</div>
       <div className="mt-4 space-y-2">
-        <Row name="스탠다드" price="9,900" credits={60} scripts={30} hot />
-        <Row name="프로" price="24,900" credits={180} scripts={90} />
+        {plans.map((x) => {
+          const on = x.id === sel
+          const hot = x.id === 'finds100'
+          const isCur = paid && x.id === cur
+          return (
+            <button key={x.id} onClick={() => setSel(x.id)}
+              className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${on ? 'border-[#0064FF] bg-[#0064FF]/12' : 'border-white/10 bg-white/[0.03] hover:border-white/25'}`}>
+              <div className="flex items-center gap-3">
+                <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${on ? 'border-[#0064FF]' : 'border-white/30'}`}>{on && <span className="h-2 w-2 rounded-full bg-[#0064FF]" />}</span>
+                <div>
+                  <div className="text-sm font-extrabold text-white">
+                    {x.name}
+                    {hot && <span className="ml-1.5 rounded bg-[#0064FF] px-1.5 py-0.5 text-[10px] font-bold text-white">추천</span>}
+                    {isCur && <span className="ml-1.5 rounded bg-white/15 px-1.5 py-0.5 text-[10px] text-white/70">현재</span>}
+                  </div>
+                  <div className="mt-0.5 text-xs text-white/50">이용권 {won(x.credits)}개 · 대본 최대 {won(Math.floor(x.credits / 2))}건</div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-sm font-extrabold text-white">월 {won(x.price)}원</div>
+                <div className="text-[10px] text-white/35">이용권 1개 {won(Math.round(x.price / x.credits))}원</div>
+              </div>
+            </button>
+          )
+        })}
       </div>
-      <div className="mt-5 flex gap-2">
-        <button onClick={() => { track('paywall_dismiss', { where: where || '' }); onClose() }} className="flex-1 rounded-2xl border border-white/15 py-3 text-sm font-bold text-white/70">다음에 할게요</button>
-        <button onClick={() => { track('paywall_click', { where: where || '' }); onPlans() }} className="flex-[1.4] rounded-2xl bg-[#0064FF] py-3 text-sm font-extrabold text-white">요금제 보기</button>
+      {msg && <div className="mt-3 text-center text-xs text-red-300">{msg}</div>}
+      <button onClick={go} disabled={busy || (paid && sel === cur)} className="mt-4 w-full rounded-2xl bg-[#0064FF] py-3.5 text-sm font-extrabold text-white disabled:opacity-50">
+        {busy ? '결제창 여는 중…' : paid ? (sel === cur ? '현재 이용 중인 요금제예요' : `${p?.name}로 바꾸기`) : `${won(p?.price)}원으로 이어서 만들기`}
+      </button>
+      <div className="mt-2 text-center text-[11px] text-white/40">자동결제는 마이페이지에서 언제든 해지할 수 있어요</div>
+      <div className="mt-3 flex items-center justify-between text-xs font-bold">
+        <button onClick={() => setStep('why')} className="text-white/45 hover:text-white/70">다음에 할게요</button>
+        <button onClick={() => { track('paywall_more', { where: where || '' }); onPlans() }} className="text-white/45 hover:text-white/70">연간·단건팩 보기</button>
       </div>
     </Sheet>
   )
