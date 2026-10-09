@@ -8,6 +8,7 @@ import { initPosthog } from './lib/posthog'
 const _SHORT = {
   '/ig': ['instagram', 'bio'], '/th': ['threads', 'bio'], '/blog': ['naver_blog', 'post'],
   '/yt': ['youtube', 'bio'], '/kakao': ['kakao', 'chat'],
+  '/class': ['class', 'lecture'],
 };
 let _short = null, _shortPath = '';
 try {
