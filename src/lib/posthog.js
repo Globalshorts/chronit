@@ -53,6 +53,8 @@ export function phMarkInternal() {
 export function phIdentify(uid) { try { if (!uid) return; if (ready && posthog) posthog.identify(uid); else pendingUid = uid } catch {} }
 export function phReset() { try { pendingUid = null; if (ready && posthog) posthog.reset() } catch {} }
 export function phCapture(event, props, opts) { try { if (ready && posthog && event) posthog.capture(event, props || {}, opts) } catch {} }
+// 오류 리포트에 PostHog 녹화 세션을 연결하기 위한 세션 ID (#21 2단계)
+export function phSessionId() { try { return (ready && posthog && posthog.get_session_id) ? posthog.get_session_id() : null } catch { return null } }
 export function phFeatureFlag(key) { try { return (ready && posthog && posthog.getFeatureFlag) ? posthog.getFeatureFlag(key) : undefined } catch { return undefined } }
 // 플래그가 로드되면 cb 호출. ready 전이면 잠깐 폴링해서 붙는다. unsubscribe 반환.
 export function onPhFlags(cb) {

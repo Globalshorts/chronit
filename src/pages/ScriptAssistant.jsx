@@ -12,6 +12,7 @@ import VideoModal from '../components/ReelModal'
 import { maskHandles } from '../lib/format'
 import { logEvent } from '../lib/events'
 import { phCapture } from '../lib/posthog'
+import { reportIssue } from '../lib/errorReport'
 import FindsPricing from '../components/FindsPricing'
 import { PaywallSheet, RatingReasons, PmfSurvey } from '../components/VeraFeedback'
 
@@ -135,6 +136,26 @@ export default function ScriptAssistant({ session: sessionProp }) {
   const [editIdx, setEditIdx] = useState(-1)
   const [editText, setEditText] = useState('')
   const [err, setErr] = useState('')
+  // #21 2단계: 화면에 뜬 오류는 팝업 없이 조용히 기록
+  useEffect(() => { if (err) reportIssue('script_gen', err) }, [err])
+  // #44: 대본 말풍선을 드래그해서 복사한 것도 집계 (내용은 보내지 않음, 1분에 1번)
+  const dragCopyAtRef = useRef(0)
+  useEffect(() => {
+    const norm = (x) => String(x || '').replace(/\s+/g, ' ').trim()
+    const onCopy = () => {
+      try {
+        const sel = norm(window.getSelection ? window.getSelection() : '')
+        if (sel.length < 10 || Date.now() - dragCopyAtRef.current < 60000) return
+        const head = sel.slice(0, 40)
+        const hit = messages.some((m) => m && m.isScript && norm(m.text).includes(head))
+        if (!hit) return
+        dragCopyAtRef.current = Date.now()
+        track('vera_script_copied', { method: 'drag', chars: sel.length })
+      } catch { /* noop */ }
+    }
+    document.addEventListener('copy', onCopy)
+    return () => document.removeEventListener('copy', onCopy)
+  }, [messages])
   const [stage, setStage] = useState('')
   const [nick, setNick] = useState('')
   const [today, setToday] = useState([])
@@ -783,7 +804,7 @@ export default function ScriptAssistant({ session: sessionProp }) {
       else setRnErr(d.error || '클립을 가져오지 못했어요')
     } catch (e) { setRnErr(String(e)) } finally { setRnBusy(false) }
   }
-  const copy = async (text, i) => { try { await navigator.clipboard.writeText(text); actedRef.current = true; track('vera_script_copied'); setCopiedI(i); setTimeout(() => setCopiedI(-1), 1500); maybeAskPmf(i) } catch {} }
+  const copy = async (text, i) => { try { await navigator.clipboard.writeText(text); actedRef.current = true; track('vera_script_copied', { method: 'button', chars: String(text || '').length }); setCopiedI(i); setTimeout(() => setCopiedI(-1), 1500); maybeAskPmf(i) } catch {} }
   // "크로닛이 없어지면 얼마나 아쉬울까요?" — 대본을 2번 이상 복사한 사람에게 평생 1회
   const maybeAskPmf = (i) => {
     try {

@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { phSessionId } from './posthog'
 
 // 오류를 잡아 팝업(리포트 버튼)으로 띄우고, 동의 시 이메일로 전송하는 모듈.
 let _open = null          // ErrorReportModal이 등록하는 오프너
@@ -43,6 +44,28 @@ export async function sendErrorReport(payload, memo) {
   return supabase.functions.invoke('report-error', {
     body: { ...payload, userMemo: (memo || '').slice(0, 1000), userEmail: email, userId: uid },
   })
+}
+
+// 화면에 뜬 오류를 팝업 없이 조용히 기록 (#21 2단계). 세션당 같은 오류 1번, 정상 안내 문구·네트워크 노이즈 제외.
+const _silentSeen = new Set()
+const GUIDE = /로그인이 필요|로그인 후|이용권|먼저 /
+export async function reportIssue(feature, message, extra) {
+  try {
+    const msg = String(message ?? '').slice(0, 2000)
+    if (!msg || NOISE.test(msg) || TRANSIENT.test(msg) || GUIDE.test(msg)) return
+    const key = (feature || 'runtime') + '|' + msg.slice(0, 120)
+    if (_silentSeen.has(key)) return
+    _silentSeen.add(key)
+    let uid = null
+    try { const { data } = await supabase.auth.getUser(); uid = data?.user?.id ?? null } catch (_) {}
+    await supabase.functions.invoke('report-error', {
+      body: {
+        silent: true, source: feature || 'runtime', feature: feature || null, severity: 'error', message: msg,
+        sessionId: phSessionId(), userId: uid,
+        context: { url: typeof location !== 'undefined' ? location.href : '', userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '', extra: extra ?? null, ts: new Date().toISOString() },
+      },
+    })
+  } catch (_) { /* 기록 실패는 무시 */ }
 }
 
 let _installed = false
